@@ -20,7 +20,7 @@ lov         = "Bygglov, lov för tillbyggnad och rivningslov 2026-02-18 (delegat
 byggherre   = "Viktor Ogeman"
 ka          = "Calle Johansson"
 koordinater = "SWEREF 99 12 00, höjdsystem RH2000"
-fg          = "+7,1"
+fg          = "+8,5"
 bya         = "135 + 30"     # m², fritidshus + bygglovsbefriad tillbyggnad
 bta         = "270 + 30"     # m²
 
@@ -108,22 +108,37 @@ kommentar = "Vertikala laster ner till bjälklaget, horisontell stabilisering me
 nr = "K-05"
 namn = "Mellanbjälklag och källare"
 status = "upprättas"
-kommentar = "Betongbjälklag, pelare och bärande innerväggar i källaren"
+kommentar = "Betongbjälklag och stålpelare i källaren"
 [[handling]]
 nr = "K-06"
 namn = "Grund och källarväggar"
 status = "upprättas"
-kommentar = "Bottenplatta, Leca-väggar, jordtryck"
+kommentar = "Bottenplatta, Leca-väggar och jordtryck"
 [[handling]]
 nr = "R-01"
-namn = "Konstruktionsritningar stomme (vägg, bjälklag, takstolar)"
+namn = "Konstruktionsritning nock- och dalbalkar"
 status = "upprättas"
-kommentar = "Krav enligt kallelsen"
+kommentar = ""
 [[handling]]
 nr = "R-02"
-namn = "Konstruktionsritningar grund"
+namn = "Konstruktionsritning trästomme"
 status = "upprättas"
-kommentar = "Krav enligt kallelsen"
+kommentar = ""
+[[handling]]
+nr = "R-03"
+namn = "Konstruktionsritning mellanbjälklag"
+status = "upprättas"
+kommentar = ""
+[[handling]]
+nr = "R-04"
+namn = "Konstruktionsritning källarstomme"
+status = "upprättas"
+kommentar = ""
+[[handling]]
+nr = "R-05"
+namn = "Konstruktionsritning bottenplatta"
+status = "upprättas"
+kommentar = ""
 [[handling]]
 nr = "KP-01"
 namn = "Förslag till kontrollplan"
@@ -144,23 +159,3 @@ nr = "RP-01"
 namn = "Rivningsplan med inventering av farligt avfall"
 status = "inlämnad"
 kommentar = "Rivningsplan hör till lovbeslutet, kompletteras vid behov"
-[[handling]]
-nr = "–"
-namn = "Utstakning och lägeskontroll"
-status = "upprättas"
-kommentar = "Kommunens mättekniker eller extern aktör med verifierad kompetens"
-[[handling]]
-nr = "–"
-namn = "Färdigställandeskydd, energiberäkning"
-status = "ej aktuell"
-kommentar = "Gäller inte fritidshus enligt kallelsen"
-[[handling]]
-nr = "–"
-namn = "Klimatdeklaration"
-status = "ej aktuell"
-kommentar = "Byggherren är privatperson, lag (2021:787) 6 §"
-[[handling]]
-nr = "–"
-namn = "Geoteknisk utredning"
-status = "ej aktuell"
-kommentar = "Grundläggning på berg"

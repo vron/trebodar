@@ -52,7 +52,7 @@ Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet
   [Ärende], [#o.arende. #o.lov],
   [Byggherre], o.byggherre,
   [Kontrollansvarig], o.ka,
-  [Byggnad], [Fritidshus i 1½ plan med källare, byggnadsarea #o.bya m², bruttoarea #o.bta m²],
+  [Byggnad], [Fritidshus i tre förskjutna byggnadskroppar med källare. Byggnadsarea #o.bya m², bruttoarea #o.bta m²],
   [Läge], [Kustläge, öppet mot havet i väster. Färdigt golv #o.fg (#o.koordinater)],
 )
 
@@ -61,7 +61,7 @@ Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet
 - *Tak:* bandtäckt plåt på råspont. Takbalkar 45×170 C24 c/c 600 spänner mellan nock- och dalbalkar av limträ med stålplåtar (K-01). I gavlarna och i husets mitt bärs nockbalkarna av triangulerade takstolar.
 - *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor. Skivverkan stabiliserar huset mot horisontella laster. Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar.
 - *Bjälklag:* platsgjuten armerad betongplatta, #r.bj.t mm, över källaren.
-- *Källare och grund:* ytterväggar av armerade Leca-block 350 mm, återfyllda till högst 2 m. Innerväggar 45×120 C24 och pelare 140×140 GL30h. Bottenplatta av betong på dränerande grus på sprängd berggrund.
+- *Källare och grund:* ytterväggar av armerade Leca-block 350 mm. Inne i källaren bärs bjälklaget av pelare av fyrkantsrör i stål, svetsade mot ingjutna plåtar i bottenplattan och ingjutna i bjälklaget. Bottenplatta av betong på dränerande grus på sprängd berggrund.
 
 = Regelverk och klasser
 
@@ -134,14 +134,14 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
   [Snö, vid dalarna], [#r.sno.s2 kN/m²], [], [], [], [$mu_2$ = #r.sno.mu2, flerspannstak, SS-EN 1991-1-3 5.3.4],
   [Vind, hastighetstryck], [$q_p$ = #r.vind.qp kN/m²], [0,3], [0,2], [0], [$v_b$ = #r.vind.vb m/s (EKS, Tanum), terrängtyp 0, $z$ = #r.vind.z m],
   [Temperatur], [], [0,6], [0,5], [0], [SS-EN 1991-1-5. Stål–trä-balkarna, se K-01 och K-02],
-  [Jordtryck], [], [], [], [], [Källarväggar, återfyllning högst 2 m med dränerande material, se K-06],
+  [Jordtryck], [], [], [], [], [Källarväggar, se K-06],
 )
 
 *Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² blir $q_p = (1 + 7 I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
 
 = Handlingar till tekniskt samråd
 
-Handlingarna motsvarar det som kallelsen till tekniskt samråd begär. Konstruktionsritningarna R-01 och R-02 hänvisar till beräkningarna K-01 till K-06.
+Handlingarna motsvarar det som kallelsen till tekniskt samråd begär. Konstruktionsritningarna R-01 till R-05 hänvisar till beräkningarna K-01 till K-06.
 
 #table(
   columns: (auto, 1fr, auto, 1.3fr),
