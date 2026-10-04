@@ -1,0 +1,87 @@
+# ------------------------------------------------------------------
+# Indata – K-02 Värmeflöde kring nockbalken (2D, stationärt)
+# Ändra värden här och kör:  python berakning.py
+# Enheter: mm, W, K, °C om inget annat anges.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Nockbalk – temperatur i stålplåtarna vintertid"
+dokument    = "K-02"
+revision    = "A"
+datum       = "2026-10-04"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "K-01 rev C (nock- och dalbalkar)"
+
+[geometri]
+takvinkel   = 30        # [°]
+balk_b      = 200       # balkens bredd [mm]
+plat_t      = 10        # stålplåt [mm]
+tra_h       = 170       # limträ mellan plåtarna [mm]
+masonit     = 3         # hård träfiberskiva på isoleringens ovansida [mm]
+isolering   = 170       # träfiberisolering mellan takbalkarna [mm] (takbalkar 45×170)
+installation = 45       # luftspalt för installationer [mm]
+gips        = 25        # gipsskiva [mm]
+tak_langd   = 1000      # takets längd i modellen från balkens sida, längs takfallet [mm]
+
+[material]   # värmekonduktivitet λ [W/(m·K)]
+stal        = 50.0      # konstruktionsstål, SS-EN ISO 10456
+limtra      = 0.13      # barrträ 500 kg/m³ tvärs fibrerna, SS-EN ISO 10456
+masonit     = 0.18      # träfiberskiva ca 800–900 kg/m³, SS-EN ISO 10456
+isolering   = 0.038     # Hunton Nativo träfiberisolering, deklarerat värde
+gips        = 0.25      # gipsskiva 900 kg/m³, SS-EN ISO 10456
+takbalk_b   = 45        # takbalkar 45×170 [mm]
+takbalk_cc  = 600       # [mm]
+regel_b     = 45        # glespanel 45×45 i installationsspalten [mm]
+regel_cc    = 600       # [mm]
+
+# Stillastående luftskikt: värmemotstånd R [m²K/W] mot tjocklek [mm], värmeflöde uppåt (SS-EN ISO 6946 tabell 8)
+[luftskikt]
+d           = [0, 5, 7, 10, 15, 25, 50]
+R           = [0.0, 0.11, 0.13, 0.15, 0.16, 0.16, 0.16]
+lambda_min  = 0.030     # lägsta ekvivalenta λ i mycket tunna skikt (stillastående luft + strålning)
+
+[rand]
+T_ute       = -20.0     # luft i takets luftspalt [°C]
+T_inne      = 25.0      # rumsluft [°C]
+h_ute_konv  = 2.5       # konvektion i luftspalten, långsamt luftflöde ca 0,1 m/s [W/m²K]
+emissivitet = 0.9       # alla ytor inklusive plåtarna (målade)
+lambda_luft = 0.025     # stillastående luft, används när fickan räknas som ledning + strålning
+T_ficka     = 15.0      # medeltemperatur i fickan under underplåten, för strålningen [°C]
+h_inne      = 7.7       # rumssidan, låg luftrörelse vid nocken (R_si = 0,13 m²K/W) [W/m²K]
+
+[nat]
+max_yta_plat = 2.0      # största elementyta [mm²]
+max_yta_balk = 20.0
+max_yta_tunn = 4.0
+max_yta_ovr  = 60.0
+
+# Känslighetsstudie: varje rad ändrar ett eller flera värden i förhållande till grundfallet
+[[kanslighet]]
+namn = "Grundfall"
+[[kanslighet]]
+namn = "Luftspalt, bara konvektion"
+h_ute = 2.5
+[[kanslighet]]
+namn = "Luftspalt R = 0,10 (SS-EN ISO 6946)"
+h_ute = 10.0
+[[kanslighet]]
+namn = "Luftspalt R = 0,04 (som utomhusyta)"
+h_ute = 25.0
+[[kanslighet]]
+namn = "Rumssidan R = 0,10 (SS-EN ISO 6946)"
+h_inne = 10.0
+[[kanslighet]]
+namn = "Rumssidan R = 0,17, mycket stilla luft"
+h_inne = 5.9
+[[kanslighet]]
+namn = "Isolering utan takbalkar"
+utan_takbalkar = true
+[[kanslighet]]
+namn = "Blanka eller förzinkade plåtar, ε = 0,25"
+eps_plat = 0.25
+[[kanslighet]]
+namn = "Ute −15 °C, inne +20 °C"
+T_ute = -15.0
+T_inne = 20.0

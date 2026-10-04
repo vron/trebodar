@@ -1,0 +1,191 @@
+# ------------------------------------------------------------------
+# Indata – nock- och dalbalkar, stål–trä-komposit
+# Ändra värden här och kör:  python berakning.py
+# Enheter: mm, N, MPa (N/mm²), kN/m, kN/m² om inget annat anges.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Nock- och dalbalkar – limträ med stålplåtar"
+dokument    = "K-01"
+revision    = "C"
+datum       = "2026-10-04"
+upprattad   = "Viktor Ogeman"
+granskad    = ""        # lämnas tomt om ingen granskare anges
+regelverk   = "EKS 12 (BFS 2011:10 med ändringar t.o.m. BFS 2022:4)"
+
+[geometri]
+b           = 200       # bredd plåt = bredd limträ [mm]
+t_pl        = 10        # plåttjocklek [mm]
+h_tot       = 190       # total höjd med plåtar [mm]
+h_tra       = 170       # limträets höjd i hela längden [mm]; samma som mellan plåtarna, ingen fräsning
+
+[distans]   # reglar där plåt saknas, bara för att hålla yttermåttet 190; räknas inte i bärförmågan
+tjocklek    = 10        # [mm], samma som plåten
+material    = "Trä eller plywood, valfri kvalitet"
+fastsattning = "Limmas med vanligt trälim eller häftas/spikas; inga krav på limprocessen"
+glipa       = 5         # glipa mot plåtänden [mm]
+densitet    = 450       # [kg/m³], för egenvikten
+
+[stal]
+kvalitet    = "S355J2+N"
+standard    = "SS-EN 10025-2"
+fy          = 355
+fu          = 470
+E           = 210000
+gamma_M0    = 1.0
+gamma_M1    = 1.0
+gamma_M2    = 1.2
+densitet    = 7850      # kg/m³
+alfa        = 12e-6     # längdutvidgning [1/K], SS-EN 1993-1-1 3.2.6
+korrosion   = "Ytor utanför limfogen: zinkrik grundfärg."
+tillverkning = "Plåtarna laserskärs ur 10 mm plåt med hål enligt hålbilden. Bitarna är kortare än 6 m och skarvas inte."
+
+[tra]
+kvalitet    = "GL30c"
+standard    = "SS-EN 14080"
+fmk         = 30.0
+fvk         = 3.5
+fc90k       = 2.5
+E0mean      = 13000
+Gmean       = 650
+rho_k       = 390
+rho_mean    = 430
+k_cr        = 0.67
+k_c90       = 1.75
+gamma_M     = 1.25
+k_mod       = 0.8       # klimatklass 1, medellång lastvaraktighet (snö)
+k_def       = 0.6       # klimatklass 1
+alfa        = 5e-6      # längdutvidgning längs fibrerna [1/K], SS-EN 1991-1-5 tabell C.1
+fuktkvot    = "högst 12 % vid limning"
+
+[skruv]
+typ         = "Helgängad konstruktionsskruv med ETA, huvud med plan undersida för stålplåt (inte försänkt)"
+d           = 10        # nominell (yttre) diameter [mm]
+d1          = 6.4       # kärndiameter [mm] (minst, enligt ETA)
+langd       = 90        # total längd [mm]
+l_ef        = 75        # gängans inträngning i trä, spets oräknad [mm]
+My_Rk       = 35.0      # karakteristiskt flytmoment enligt ETA, minst [Nm]
+hal         = 10.5      # håldiameter i plåt, mindre än 1,1 d (tjock plåt) [mm], laserskuret
+forborr     = 6         # förborrning i limträet [mm], högst kärndiametern (eller enligt ETA)
+huvud       = 5         # skallens höjd över plåten, ungefär [mm]
+rader2      = [45, 155] # radernas lägen från plåtkant, två rader [mm]
+rader3      = [45, 100, 155] # tre rader där delningen är tätare än s_tre_rader [mm]
+s_tre_rader = 35        # s under detta värde: tre rader
+ande        = 100       # första skruv från balkände [mm], ≥ 10d (tabell 8.6) och ≥ 80 mm (tabell 8.4)
+ande_plat   = 40        # första skruv från plåtände inne på balken [mm] (plåtkant, ≥ 1,2 d0)
+gamma_M     = 1.3
+s_lista     = [25, 30, 35, 40, 50, 60, 75, 100, 125, 150, 175, 200]   # tillåtna avstånd mellan skruvar längs plåten [mm]
+s_max       = 200       # glesaste delning: c/c 400 i varje rad
+zon_min     = 500       # kortaste zonlängd [mm]
+
+[lim]
+typ         = "Tvåkomponents strukturepoxi för limning av stål (t.ex. Sikadur-30 eller likvärdig)"
+forbehandling_stal = "Limytor blästrade eller slipade och avfettade"
+forbehandling_tra  = "Ren och torr"
+limfog      = "heltäckande"
+pressning   = "Skruvarna dras fast medan limmet är färskt"
+hardning    = "enligt limtillverkarens anvisning"
+k_lim       = 4300      # fogens skjuvstyvhet per mm balk [N/mm²] ≈ G·b/30 mm (trä närmast limfogen)
+L_slapp     = 500       # känslighetskontroll: längd närmast varje plåtände där limmet antas ha släppt [mm]
+
+[laster]
+takvinkel   = 30        # [°]
+g_tak       = 0.54      # egenvikt tak per m² takyta [kN/m²] (enl. lastberäkning)
+s_k         = 1.5       # grundvärde snölast Tanum enligt EKS [kN/m²]
+psi0        = 0.6       # snö, 1,0 ≤ s_k < 2,0 (EKS)
+psi2        = 0.1
+psi0_T      = 0.6       # temperatur i byggnader (EKS)
+
+gamma_d     = 0.91      # säkerhetsklass 2
+nedbojning_krav = 300   # w_fin ≤ L / värde
+
+[vind]   # SS-EN 1991-1-4 med EKS. Vindlyft på taket, vind längs nocken (θ = 90°), takvinkel 30°
+vb          = 25        # referensvindhastighet Tanum [m/s]
+terrang     = 0         # terrängtyp 0: kust mot öppet hav (Resö)
+z           = 7.0       # referenshöjd, nockens höjd över mark [m]
+e           = 12.0      # e = min(b, 2h) [m], b = husets bredd tvärs vinden
+cpe         = { G = -1.4, H = -0.8, I = -0.5 }   # tabell 7.4b, 30°, zon G intill gaveln (e/10), H till e/2, I därefter
+cpi         = 0.2       # invändigt övertryck, ogynnsamt vid lyft
+
+[laster.nock]
+lastbredd   = 2.50      # horisontellt [m], antaget största värde för nockbalkarna (kontrolleras)
+snobredd    = 2.50      # [m], formfaktor 1,0 (mot 0,8 enligt SS-EN 1991-1-3)
+
+[laster.dal]
+lastbredd   = 2.375     # (2,50 + 2,25)/2, horisontellt [m]
+snobredd    = 4.75      # all snö mellan nockarna (2,50 + 2,25) samlas i dalen [m]
+
+# Temperatur: ändring från limningstemperaturen +20 °C i över- och underplåt [K]. Balken antas ligga i
+# isoleringsskiktet med överplåten mot den kalla sidan. Linjär fördelning över höjden.
+[[temperatur]]
+namn        = "Vinter, uppvärmt hus"
+over        = -35       # överplåt −15 °C
+under       = -5        # underplåt +15 °C
+
+[[temperatur]]
+namn        = "Vinter, ouppvärmt hus"
+over        = -35       # −15 °C
+under       = -30       # −10 °C
+
+[[temperatur]]
+namn        = "Sommar"
+over        = 20        # +40 °C
+under       = 5         # +25 °C
+
+[modell]
+elementlangd = 20       # [mm]
+k_vagg      = 10000     # väggens styvhet som underlag [N/mm per mm balk]; i praktiken stelt
+fonster     = 400       # förtätning kring snitt där trä/stål inte klarar sig [mm]
+jamfor_utan_temperatur = true   # räkna även skruvantal utan temperaturpåverkan (tar längre tid)
+
+[jamforelse]   # rev B (K-01 rev B 2026-10-03): plåt i hela balklängden
+revB_skruv  = 750       # utan temperaturpåverkan, som redovisat i rev B
+revB_skruv_T = 954      # rev B:s layout räknad med temperaturfallen ovan
+revB_stal_kg = 1650     # 2 × 52,6 m plåt 200×10
+
+# ------------------------------------------------------------------
+# Balkar. x räknas från vänster balkände enligt skisserna.
+# spann: avstånd mellan stöd [mm]. Utan vägg fördelas (total - summa spann) lika som utstick i båda ändar.
+# vagg: sträcka där balken vilar på innervägg [mm].
+# platar: plåtbitar [från, till] i x [mm], samma i över- och underkant. Vid balkänden går plåten ut till änden.
+# Vid inre stöd går plåten över stödet och slutar 150 mm in i nästa fält (nockbalk 1 100 mm före stolpen D, dalbalk 4 400 mm före B).
+# ------------------------------------------------------------------
+[[balk]]
+namn        = "Nockbalk 1"
+typ         = "nock"
+total       = 11570
+spann       = [1900, 1900, 1900, 5870]
+triangel    = { x = 5700, e = 770 }   # dubbeltriangel: strävor från stolpen D till balken 770 mm åt båda hållen
+# Triangeln stolpe–strävor–balk vrider sig bara när stolpen böjs. Strävorna arbetar som en gungbräda.
+stolpe      = { b = 180, h = 95, L = 2900, d = 770, E = 11000, fmk = 24, fc0k = 21, E005 = 7400, gamma_M = 1.3, text = "4 st 45×95 C24 sida vid sida, 95 mm i strävans plan" }
+platar      = [[5600, 11570]]
+
+[[balk]]
+namn        = "Dalbalk 2"
+typ         = "dal"
+total       = 10070
+vagg        = [0, 6487]
+spann       = [3583]
+platar      = [[6337, 10070]]
+
+[[balk]]
+namn        = "Nockbalk 3"
+typ         = "nock"
+total       = 11070
+spann       = [2100, 3800, 5000]
+platar      = [[5835, 11070]]
+
+[[balk]]
+namn        = "Dalbalk 4"
+typ         = "dal"
+total       = 7480
+spann       = [2250, 5050]
+platar      = [[1940, 7480]]
+
+[[balk]]
+namn        = "Nockbalk 5"
+typ         = "nock"
+total       = 12370
+spann       = [4580, 2700, 4900]
+platar      = [[0, 4825], [7225, 12370]]
