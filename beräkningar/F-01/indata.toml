@@ -24,27 +24,30 @@ fg          = "+8,5"
 bya         = "135 + 30"     # m², fritidshus + bygglovsbefriad tillbyggnad
 bta         = "270 + 30"     # m²
 
-# Takets egenvikt per m² takyta (mätt längs takfallet). Vikt i kg/m².
+# Takets egenvikt per m² takyta (mätt längs takfallet). Vikt i kg/m². Trä 500 kg/m³ (på säker sida).
 [[tak]]
-skikt = "Bandtäckt plåt"
-kg = 4.7
-[[tak]]
-skikt = "Underlagstäckning"
+skikt = "Bandtäckt plåt 0,6 mm inklusive falsar"
 kg = 5.0
 [[tak]]
-skikt = "Råspont 22 mm"
-kg = 15.0
+skikt = "Underlagstäckning"
+kg = 3.0
 [[tak]]
-skikt = "Takbalkar 45×170 C24 c/c 600"
-kg = 9.6
+skikt = "Råspont 20 mm, 500 kg/m³"
+kg = 10.0
+[[tak]]
+skikt = "Luftspalt"
+kg = 0.0
 [[tak]]
 skikt = "Hård träfiberskiva 3 mm"
 kg = 2.9
 [[tak]]
-skikt = "Träfiberisolering 170 mm, 50 kg/m³"
-kg = 8.5
+skikt = "Takbalkar 45×170 c/c 600, 500 kg/m³"
+kg = 6.4
 [[tak]]
-skikt = "Glespanel 45×45 c/c 600, installationsskikt"
+skikt = "Träfiberisolering 170 mm, 50 kg/m³"
+kg = 7.9
+[[tak]]
+skikt = "Korslagda reglar 45 mm"
 kg = 3.8
 [[tak]]
 skikt = "Gipsskivor 2 × 12,5 mm"
