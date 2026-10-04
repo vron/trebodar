@@ -1,0 +1,166 @@
+# ------------------------------------------------------------------
+# Indata – F-01 Förutsättningar, referenser och laster
+# Ändra värden här och kör:  python berakning.py
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Förutsättningar, referenser och laster"
+dokument    = "F-01"
+revision    = "A"
+datum       = "2026-10-04"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+
+[objekt]
+fastighet   = "Resö 2:66, Tanums kommun"
+adress      = "Mariavägen 11 B, 457 97 Resö"
+arende      = "BYGG.2025.2278"
+lov         = "Bygglov, lov för tillbyggnad och rivningslov 2026-02-18 (delegationsbeslut D32)"
+byggherre   = "Viktor Ogeman"
+ka          = "Calle Johansson"
+koordinater = "SWEREF 99 12 00, höjdsystem RH2000"
+fg          = "+7,1"
+bya         = "135 + 30"     # m², fritidshus + bygglovsbefriad tillbyggnad
+bta         = "270 + 30"     # m²
+
+# Takets egenvikt per m² takyta (mätt längs takfallet). Vikt i kg/m².
+[[tak]]
+skikt = "Bandtäckt plåt"
+kg = 4.7
+[[tak]]
+skikt = "Underlagstäckning"
+kg = 5.0
+[[tak]]
+skikt = "Råspont 22 mm"
+kg = 15.0
+[[tak]]
+skikt = "Takbalkar 45×170 C24 c/c 600"
+kg = 9.6
+[[tak]]
+skikt = "Hård träfiberskiva 3 mm"
+kg = 2.9
+[[tak]]
+skikt = "Träfiberisolering 170 mm, 50 kg/m³"
+kg = 8.5
+[[tak]]
+skikt = "Glespanel 45×45 c/c 600, installationsskikt"
+kg = 3.8
+[[tak]]
+skikt = "Gipsskivor 2 × 12,5 mm"
+kg = 18.0
+
+[bjalklag]
+tjocklek    = 150     # platsgjuten betong [mm]
+tunghet     = 25.0    # armerad betong [kN/m³], SS-EN 1991-1-1 tabell A.1
+golv        = 0.5     # golvuppbyggnad och ytskikt [kN/m²]
+
+[nyttig]
+qk          = 2.0     # kategori A, bjälklag [kN/m²], EKS tabell C-1
+Qk          = 2.0     # [kN]
+vagg        = 0.5     # lätta mellanväggar, egentyngd ≤ 1,0 kN/m [kN/m²], SS-EN 1991-1-1 6.3.1.2(8)
+
+[sno]
+sk          = 1.5     # [kN/m²]
+Ce          = 1.0
+Ct          = 1.0
+alfa        = 30      # takvinkel [°]
+
+[vind]
+vb          = 25      # [m/s]
+z0          = 0.003   # terrängtyp 0 [m]
+z0_II       = 0.05
+z           = 7.0     # referenshöjd, nockens höjd över mark [m]
+rho         = 1.25    # [kg/m³]
+
+[klasser]
+sakerhetsklass = 2
+gamma_d     = 0.91
+livslangd   = 50
+
+# Handlingar till tekniskt samråd. status: "klar", "upprättas", "inlämnad" eller "ej aktuell".
+[[handling]]
+nr = "F-01"
+namn = "Förutsättningar, referenser och laster"
+status = "klar"
+kommentar = "Denna handling"
+[[handling]]
+nr = "K-01"
+namn = "Nock- och dalbalkar"
+status = "klar"
+kommentar = "Rev C"
+[[handling]]
+nr = "K-02"
+namn = "Värmeflöde kring nockbalken"
+status = "klar"
+kommentar = "Rev A. Underlag för temperaturlasten i K-01"
+[[handling]]
+nr = "K-03"
+namn = "Takbalkar och takstolar"
+status = "upprättas"
+kommentar = ""
+[[handling]]
+nr = "K-04"
+namn = "Väggar, stolpar och stabilisering"
+status = "upprättas"
+kommentar = "Vertikala laster ner till bjälklaget, horisontell stabilisering med skivverkan"
+[[handling]]
+nr = "K-05"
+namn = "Mellanbjälklag och källare"
+status = "upprättas"
+kommentar = "Betongbjälklag, pelare och bärande innerväggar i källaren"
+[[handling]]
+nr = "K-06"
+namn = "Grund och källarväggar"
+status = "upprättas"
+kommentar = "Bottenplatta, Leca-väggar, jordtryck"
+[[handling]]
+nr = "R-01"
+namn = "Konstruktionsritningar stomme (vägg, bjälklag, takstolar)"
+status = "upprättas"
+kommentar = "Krav enligt kallelsen"
+[[handling]]
+nr = "R-02"
+namn = "Konstruktionsritningar grund"
+status = "upprättas"
+kommentar = "Krav enligt kallelsen"
+[[handling]]
+nr = "KP-01"
+namn = "Förslag till kontrollplan"
+status = "upprättas"
+kommentar = "Tillsammans med kontrollansvarig"
+[[handling]]
+nr = "BR-01"
+namn = "Brandskyddsbeskrivning"
+status = "upprättas"
+kommentar = ""
+[[handling]]
+nr = "AV-01"
+namn = "Avfallshanteringsplan"
+status = "upprättas"
+kommentar = ""
+[[handling]]
+nr = "RP-01"
+namn = "Rivningsplan med inventering av farligt avfall"
+status = "inlämnad"
+kommentar = "Rivningsplan hör till lovbeslutet, kompletteras vid behov"
+[[handling]]
+nr = "–"
+namn = "Utstakning och lägeskontroll"
+status = "upprättas"
+kommentar = "Kommunens mättekniker eller extern aktör med verifierad kompetens"
+[[handling]]
+nr = "–"
+namn = "Färdigställandeskydd, energiberäkning"
+status = "ej aktuell"
+kommentar = "Gäller inte fritidshus enligt kallelsen"
+[[handling]]
+nr = "–"
+namn = "Klimatdeklaration"
+status = "ej aktuell"
+kommentar = "Byggherren är privatperson, lag (2021:787) 6 §"
+[[handling]]
+nr = "–"
+namn = "Geoteknisk utredning"
+status = "ej aktuell"
+kommentar = "Grundläggning på berg"
