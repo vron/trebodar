@@ -56,12 +56,12 @@ kg = 18.0
 [bjalklag]
 tjocklek    = 150     # platsgjuten betong [mm]
 tunghet     = 25.0    # armerad betong [kN/m³], SS-EN 1991-1-1 tabell A.1
-golv        = 0.5     # golvuppbyggnad och ytskikt [kN/m²]
+golv        = 0.5     # golvuppbyggnad [kN/m²]: trägolv 20 mm ca 0,15, klinker i våtrum ca 0,5
 
 [nyttig]
 qk          = 2.0     # kategori A, bjälklag [kN/m²], EKS tabell C-1
 Qk          = 2.0     # [kN]
-vagg        = 0.5     # lätta mellanväggar, egentyngd ≤ 1,0 kN/m [kN/m²], SS-EN 1991-1-1 6.3.1.2(8)
+vagg        = 0.7     # lätta mellanväggar [kN/m²], valt på säker sida mot 0,5 enligt SS-EN 1991-1-1 6.3.1.2(8)
 
 [sno]
 sk          = 1.5     # [kN/m²]
@@ -75,6 +75,10 @@ z0          = 0.003   # terrängtyp 0 [m]
 z0_II       = 0.05
 z           = 7.0     # referenshöjd, nockens höjd över mark [m]
 rho         = 1.25    # [kg/m³]
+
+[nedbojning]
+tak         = 300     # w_fin ≤ L/300, SS-EN 1995-1-1 tabell 7.2
+bjalklag    = 250     # ≤ L/250 kvasipermanent last, SS-EN 1992-1-1 7.4.1(4)
 
 [klasser]
 sakerhetsklass = 2

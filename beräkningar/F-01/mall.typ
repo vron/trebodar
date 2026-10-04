@@ -115,9 +115,9 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
       [Tak, per m² takyta], [*#r.g_tak*],
       [Tak, per m² horisontell yta], [#r.g_tak_h],
       [Betongbjälklag #r.bj.t mm, #r.bj.gamma kN/m³], [#r.bj.g],
-      [Golvuppbyggnad och ytskikt], [#r.bj.golv],
+      [Golvuppbyggnad], [#r.bj.golv],
     )
-    #liten[Tunghet för betong enligt SS-EN 1991-1-1 tabell A.1. Isoleringens densitet enligt tillverkaren. Stålbalkar och stolpar räknas med sin verkliga vikt i detaljhandlingarna.]
+    #liten[Golvuppbyggnaden täcker trägolv 20 mm (ca 0,15 kN/m²) och klinker i våtrum. Tunghet för betong enligt SS-EN 1991-1-1 tabell A.1. Isoleringens densitet enligt tillverkaren. Stålbalkar och stolpar räknas med sin verkliga vikt i detaljhandlingarna.]
   ],
 ))
 
@@ -128,7 +128,7 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
   align: (left, right, right, right, right, left),
   [Last], [Värde], [$psi_0$], [$psi_1$], [$psi_2$], [Underlag],
   [Nyttig last, bjälklag kat. A], [$q_k$ = #r.nyttig.qk kN/m²], [0,7], [0,5], [0,3], [EKS tabell C-1. $Q_k$ = #r.nyttig.Qk kN],
-  [Lätta mellanväggar], [#r.nyttig.vagg kN/m²], [], [], [], [Egentyngd högst 1,0 kN/m vägg, SS-EN 1991-1-1 6.3.1.2(8). Tyngre väggar som linjelast],
+  [Lätta mellanväggar], [#r.nyttig.vagg kN/m²], [], [], [], [På säker sida mot 0,5 kN/m² för väggar på högst 1,0 kN/m, SS-EN 1991-1-1 6.3.1.2(8). Tyngre väggar som linjelast],
   [Snö, grundvärde], [$s_k$ = #r.sno.sk kN/m²], [0,6], [0,3], [0,1], [EKS, Tanums kommun. $C_e$ = $C_t$ = 1,0],
   [Snö, takfall], [#r.sno.s1 kN/m²], [], [], [], [$mu_1$ = #r.sno.mu1, sadeltak #r.sno.alfa°, SS-EN 1991-1-3 5.3.3],
   [Snö, vid dalarna], [#r.sno.s2 kN/m²], [], [], [], [$mu_2$ = #r.sno.mu2, flerspannstak, SS-EN 1991-1-3 5.3.4],
@@ -138,6 +138,18 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
 )
 
 *Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² blir $q_p = (1 + 7 I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
+
+== Bruksgränstillstånd
+
+Gränsvärden för nedböjning. EKS anger inga värden, så de bestäms för projektet inom standardernas rekommendationer.
+
+#table(
+  columns: (auto, auto, 1fr),
+  align: (left, left, left),
+  [Byggnadsdel], [Krav], [Underlag],
+  [Tak: nock-, dal- och takbalkar], [$w_"fin"$ ≤ $L$/#r.nedb.tak], [SS-EN 1995-1-1 tabell 7.2, strängaste värdet i intervallet $L$/150–$L$/300],
+  [Betongbjälklag], [≤ $L$/#r.nedb.bjalklag], [Kvasipermanent last, SS-EN 1992-1-1 7.4.1(4)],
+)
 
 = Handlingar till tekniskt samråd
 
