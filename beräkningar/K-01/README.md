@@ -11,4 +11,13 @@ Dimensionering av de fem nock- och dalbalkarna (nockbalk 1, 3, 5 och dalbalk 2, 
 | `mall.typ` | Typst-mall för dokumentet |
 | `halbild_*.csv` | Hålbild per plåtbit för laserskärning (genereras av `berakning.py`) |
 
-Kör: `python berakning.py` → `nock_och_dalbalkar_K-01.pdf`.
+## Köra
+
+```
+pip install -r requirements.txt
+python berakning.py
+```
+
+Resultat: `nock_och_dalbalkar_K-01.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/K-01revC%20Nock-%20och%20dalbalkar.pdf).
+
+Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`). Skriptet letar efter typsnitt i `/usr/share/fonts`.
