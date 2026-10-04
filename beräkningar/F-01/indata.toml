@@ -147,6 +147,11 @@ namn = "Konstruktionsritning bottenplatta"
 status = "upprättas"
 kommentar = ""
 [[handling]]
+nr = "TP-01"
+namn = "Tidsplan och organisation"
+status = "upprättas"
+kommentar = "Punkt 1 på samrådets dagordning"
+[[handling]]
 nr = "KP-01"
 namn = "Förslag till kontrollplan"
 status = "upprättas"
