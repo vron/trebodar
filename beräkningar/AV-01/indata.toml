@@ -1,0 +1,105 @@
+# ------------------------------------------------------------------
+# Indata – AV-01 Avfallshanteringsplan
+# Ändra här och kör:  python bygg.py
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Avfallshanteringsplan"
+dokument    = "AV-01"
+revision    = "A"
+datum       = "2026-10-04"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+arende      = "BYGG.2025.2278"
+fastighet   = "Resö 2:66"
+mottagare   = "Rambo Tyft avfallsanläggning i Tanum eller Österröd i Strömstad"
+inventering = "upprättad av byggherren 2025-11-16"
+rivning_tid = "augusti 2027"
+
+[[ansvar]]
+roll = "Byggherre"
+namn = "Viktor Ogeman"
+uppgift = "Tömning och utrivning före rivning. Samordning av avfallshanteringen"
+[[ansvar]]
+roll = "Rivning, mark och sprängning"
+namn = "CTP Entreprenad AB, Christian Taflin"
+uppgift = "Entreprenör för rivningen och ansvarig för rivningsavfallet. Jord- och bergmassor"
+[[ansvar]]
+roll = "Byggentreprenör"
+namn = "Jörgen Lindholm"
+uppgift = "Byggavfall under nybyggnaden. Övriga entreprenörer använder samma behållare"
+
+# Rivning: förekomst och mängder enligt materialinventeringen
+[[rivning]]
+avfall = "Farligt avfall"
+forekomst = "Takpapp med tjära, ca 75 m². Tryckimpregnerat trä från altanen, ca 15 m², och eventuella tryckimpregnerade syllar"
+plats = "Tas bort före stommen. Egen behållare, blandas inte med annat avfall"
+behandling = "Anläggning med tillstånd för farligt avfall"
+[[rivning]]
+avfall = "Metall"
+forekomst = "Hängrännor och stuprör, ca 20 m. Takstege och skorstenskupa"
+plats = "Egen behållare"
+behandling = "Materialåtervinning"
+[[rivning]]
+avfall = "Betongpannor"
+forekomst = "Takpannor av betong, ca 75 m²"
+plats = "Egen behållare"
+behandling = "Deponi, om de inte säljs eller skänks bort"
+[[rivning]]
+avfall = "Övrigt mineral"
+forekomst = "Källargolv av betong, ca 2,5 m³. Lättbetong i källarväggar och grund, ca 40 m². Mursten från öppen spis, ca 5 ton, och skorstenens tegel"
+plats = "Eget flak"
+behandling = "Deponi. Lättbetongen används inte som fyllning på tomten"
+[[rivning]]
+avfall = "Trä med isolering"
+forekomst = "Stomme, ytterpanel, bjälklag, golv, innerväggar och inredning av trä och spånskiva, ca 50 m³, med en mindre mängd isolering"
+plats = "Rivs i större delar med isoleringen kvar och lastas direkt i täckt container"
+behandling = "Sorteras hos mottagaren. Träet energiåtervinns och isoleringen deponeras"
+
+# Nybyggnad: sortering på plats
+[[nybygge]]
+fraktion = "Trä"
+avfall = "Kapspill, formvirke"
+behallare = "Container"
+behandling = "Energiåtervinning"
+[[nybygge]]
+fraktion = "Gips"
+avfall = "Spill av gipsskivor"
+behallare = "Täckt container eller storsäck"
+behandling = "Materialåtervinning"
+[[nybygge]]
+fraktion = "Mineral"
+avfall = "Spill av betong, Leca-block och sten"
+behallare = "Container"
+behandling = "Återvinning eller deponi"
+[[nybygge]]
+fraktion = "Metall"
+avfall = "Armering, plåt- och stålspill"
+behallare = "Container eller storsäck"
+behandling = "Materialåtervinning"
+[[nybygge]]
+fraktion = "Plast"
+avfall = "Byggfolie, spill av radonduk"
+behallare = "Storsäck med lock"
+behandling = "Återvinning"
+[[nybygge]]
+fraktion = "Glas"
+avfall = "Förekommer normalt inte"
+behallare = "Separat kärl vid behov"
+behandling = "Materialåtervinning"
+[[nybygge]]
+fraktion = "Förpackningar"
+avfall = "Wellpapp, plastemballage, lastpallar"
+behallare = "Storsäck med lock. Pallar staplas"
+behandling = "Insamlingssystem för förpackningar"
+[[nybygge]]
+fraktion = "Övrigt brännbart"
+avfall = "Spill av träfiberisolering, papper"
+behallare = "Storsäck med lock"
+behandling = "Energiåtervinning"
+[[nybygge]]
+fraktion = "Farligt avfall"
+avfall = "Rester av färg, lim, epoxi och fogmassa, sprayburkar"
+behallare = "Eget kärl, skilt från övrigt avfall"
+behandling = "Anläggning med tillstånd för farligt avfall"
