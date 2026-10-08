@@ -1,0 +1,9 @@
+__pycache__/
+*.pkl
+fig_*.svg
+resultat.json
+kontroll06.json
+natkonvergens.json
+rapport/data.json
+*.pdf
+*.log
