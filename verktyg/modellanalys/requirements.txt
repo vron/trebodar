@@ -1,0 +1,5 @@
+cadquery-ocp>=8.0
+numpy>=2.0
+shapely>=2.1
+pyvista>=0.49
+matplotlib>=3.8

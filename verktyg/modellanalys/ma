@@ -1,0 +1,4 @@
+#!/bin/sh
+# Kör modellanalysen med verktygets egen Python-miljö (.venv). Se README.md.
+D="$(cd "$(dirname "$0")" && pwd)"
+exec "$D/.venv/bin/python" "$D/ma.py" "$@"
