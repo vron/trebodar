@@ -48,6 +48,15 @@ Kör sedan allt via `./ma` (använder `.venv`). Första körningen mot en fil by
 
 Bilder hamnar i `ut/` om inte `--ut` anges.
 
+## Underlag till beräkningarna
+
+`beräkningar/K-05/bild/geometri.py` hämtar mellanbjälklagets geometri (kontur, trapphål, Lecaväggar, rör, platta på mark, fria kanter) exakt ur modellen och skriver `geometri.json`, som K-05, K-06 och R-03 använder. Kör den med den här miljön när modellen har ändrats, och därefter beräkningarna och ritningarna:
+
+```
+.venv/bin/python ../../beräkningar/K-05/bild/geometri.py
+.venv/bin/python kontroll_r031.py        # ska ge "allt stämmer med modellen"
+```
+
 ## Python
 
 ```python
@@ -68,4 +77,6 @@ V, F = m.nat(platta)           # triangelnät
 | `geometri.py` | Exakta frågor: plansnitt, linjeprob, punkt, avstånd, krock, ytanalys |
 | `vy.py` | 3D-rendering (pyvista/VTK, offscreen) |
 | `ritning.py` | 2D-snittritningar (matplotlib) |
-| `kontroll_r031.py` | Kontroll av R-03.1:s yttermått och trapphål mot modellen |
+| `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, Lecaväggar) och R-03.1:s måttkedjor mot modellen |
+| `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
+| `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |
