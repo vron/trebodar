@@ -31,6 +31,11 @@ def sv(x, n=0):
     return f"{x:,.{n}f}".replace(",", " ").replace(".", ",").replace("-", "−")
 
 
+def svm(x):
+    """Mått i mm: heltal, eller en decimal när måttet inte är helt (exakt geometri, t.ex. 4 059,5)."""
+    return sv(x, 0 if abs(x - round(x)) < 0.05 else 1)
+
+
 class Vy:
     def __init__(self, x, y, w, h, skala, X0, Y1, klipp=False):
         self.x, self.y, self.w, self.h, self.s = x, y, w, h, float(skala)
@@ -148,7 +153,7 @@ class Vy:
         mid = (q0 + q1) / 2
         nu = np.array([-math.sin(math.radians(ang)), math.cos(math.radians(ang))])
         pos = mid + nu * 0.8 * self.s
-        self.text(pos[0], pos[1], txt if txt is not None else sv(L), a="cb", sz=sz, rot=round(ang, 2))
+        self.text(pos[0], pos[1], txt if txt is not None else svm(L), a="cb", sz=sz, rot=round(ang, 2))
 
     def _tick(self, q, t, n):
         sl = (np.asarray(t) + np.asarray(n)) / math.sqrt(2) * 1.1 * self.s
@@ -165,7 +170,7 @@ class Vy:
         for x in xs:
             self._tick((x, Ylinje), (1, 0), (0, 1))
         for i, (a, b) in enumerate(zip(xs[:-1], xs[1:])):
-            t = texter[i] if texter else sv(b - a)
+            t = texter[i] if texter else svm(b - a)
             self.text((a + b) / 2, Ylinje + 0.8 * self.s, t, a="cb", sz=sz)
 
     def matty(self, ys, Xlinje, Xfran, total=False, sz=6.8, texter=None):
@@ -178,7 +183,7 @@ class Vy:
         for y in ys:
             self._tick((Xlinje, y), (0, 1), (-1, 0))
         for i, (a, b) in enumerate(zip(ys[:-1], ys[1:])):
-            t = texter[i] if texter else sv(b - a)
+            t = texter[i] if texter else svm(b - a)
             self.text(Xlinje - 0.8 * self.s, (a + b) / 2, t, a="cb", sz=sz, rot=90)
 
     def kedja(self, pts, avstand, sida=1, sz=6.8, total=None):
@@ -247,9 +252,20 @@ class Blad:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
+    @staticmethod
+    def serie(bladpdf, pdf_path):
+        """Slår ihop bladens pdf:er (i ordning) till ritningsseriens pdf, ett blad per sida."""
+        import pymupdf
+        ut = pymupdf.open()
+        for f in bladpdf:
+            with pymupdf.open(f) as d:
+                ut.insert_pdf(d)
+        ut.save(pdf_path, garbage=3, deflate=True)
+        ut.close()
+
     def kompilera(self, json_path, pdf_path, root, dolj=()):
         """Kompilerar ritning.typ med bladets JSON (sökväg relativ till root). dolj: lager som inte ritas."""
         import typst
         rel = "/" + os.path.relpath(os.path.abspath(json_path), os.path.abspath(root)).replace(os.sep, "/")
         typst.compile(os.path.join(MALL, "ritning.typ"), output=pdf_path, root=root,
-                      font_paths=["/usr/share/fonts"], sys_inputs={"blad": rel, "dolj": ",".join(dolj)})
+                      font_paths=["/usr/share/fonts", os.path.join(os.path.dirname(MALL), ".fonts")], sys_inputs={"blad": rel, "dolj": ",".join(dolj)})

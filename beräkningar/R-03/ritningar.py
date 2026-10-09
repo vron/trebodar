@@ -189,13 +189,58 @@ def lager_vaggar(v):
                 v.text(c, m, f"V{i}", a="cm", sz=5.8, col="gra", rot=90, bg=True)
 
 
+def _etikettbox(xt, yt, a, txt, v, sz=6.6):
+    """Ungefärlig ruta (modellens mm) för en text med ankaret a ("lb", "rt" …) i (xt, yt)."""
+    w = (1.45 * len(txt) + 0.6) * sz / 6.6 * v.s
+    h = (0.3528 * sz + 0.7) * v.s
+    x0 = xt - {"l": 0, "c": w / 2, "r": w}[a[0]]
+    y0 = yt - {"b": 0, "m": h / 2, "t": h}[a[1]]
+    return box(x0, y0, x0 + w, y0 + h)
+
+
+def _hinder(v):
+    """Linjer som namn inte ska ligga på: trapphålets kant och kryss, diagonaljärnen och (i 1:100) hålets måttlinjer."""
+    hx0, hy0, hx1, hy1 = HAL.bounds
+    lin = [HAL.exterior, LineString([(hx0, hy0), (hx1, hy1)]), LineString([(hx0, hy1), (hx1, hy0)])]
+    if getattr(v, "med_diagonaler", False):         # bara på bladet där diagonaljärnen ritas (R-03.3)
+        lin += [LineString(d) for d in diagonaljarn()[0]]
+    if v.s >= 100:                                  # som i lager_yttermatt
+        yk, xk = hy0 - 950, hx1 + 800
+        lin += [LineString([(0, yk), (XMAX, yk)]), LineString([(hx0, hy0), (hx0, yk)]),
+                LineString([(hx1, hy0), (hx1, yk)]), LineString([(xk, 1000), (xk, 12510)]),
+                LineString([(hx1, hy0), (xk, hy0)]), LineString([(hx1, hy1), (xk, hy1)])]
+    return unary_union(lin)
+
+
+def fri_text(v, kandidater, txt, sz=6.6, **kw):
+    """Skriver texten i den första kandidaten (x, y, ankare) vars ruta inte korsar hindren eller tidigare namn."""
+    if not hasattr(v, "_namnrutor"):
+        v._namnrutor, v._hindret = [], _hinder(v).buffer(0.8 * v.s)      # 0,8 mm marginal på papperet
+    def krock(r):
+        return r.intersection(v._hindret).area + sum(r.intersection(q).area for q in v._namnrutor)
+    for xt, yt, a in kandidater:
+        r = _etikettbox(xt, yt, a, txt, v, sz)
+        if krock(r) == 0:
+            break
+    else:                                           # ingen helt fri plats: minst överlapp
+        xt, yt, a = min(kandidater, key=lambda k: krock(_etikettbox(*k, txt, v, sz)))
+        r = _etikettbox(xt, yt, a, txt, v, sz)
+    v._namnrutor.append(r)
+    v.text(xt, yt, txt, a=a, sz=sz, **kw)
+
+
 def lager_ror(v, namn=True):
-    """Stålrören (80×80) och deras namn."""
+    """Stålrören (80×80) och deras namn. Namnet står snett ovanför till höger om röret, eller i den första lediga
+    av de andra hörnen om det skulle hamna på trapphålets kant, diagonaljärnen eller en måttlinje."""
     with v.lager("ror"):
         for i, (x, y) in enumerate(G["pelare"], 1):
             v.rekt(x - 40, y - 40, x + 40, y + 40, fyll="stal", stil=None)
-            if namn:
-                v.text(x + 170, y + 170, f"P{i}", a="lb", sz=6.6, b=True, bg=True)
+        if namn:
+            for i, (x, y) in enumerate(G["pelare"], 1):
+                k = sorted(((x + dx, y + dy, ("l" if dx > 0 else "r") + ("b" if dy > 0 else "t"))
+                            for dx in (170, -170, 450, -450, 700, -700) for dy in (170, -170, 450, -450)),
+                           key=lambda t: abs(t[0] - x) + abs(t[1] - y))      # närmast först; uppe till höger först
+                fri_text(v, k, f"P{i}", sz=6.6, b=True, bg=True)
 
 
 def lager_yttermatt(v):
@@ -216,7 +261,7 @@ def lager_yttermatt(v):
         v.matty([0, YMAX], XMAX + o2, [XMAX + o1, XMAX + o1])
         # trapphålets läge och storlek
         hx = sorted({p[0] for p in G["hal"]}); hy = sorted({p[1] for p in G["hal"]})
-        yk = hy[0] - 650                          # vågrät kedja under hålet
+        yk = hy[0] - 950                          # vågrät kedja under hålet, under rörnamnen
         v.mattx([0, hx[0], hx[1], XMAX], yk, [yk, hy[0], hy[0], yk], sz=6.4)
         xk = hx[1] + 800                          # lodrät kedja till höger om hålet
         v.matty([1000, hy[0], hy[1], 12510], xk, [xk, hx[1], hx[1], xk], sz=6.4)
@@ -274,7 +319,7 @@ def lager_uk(v):
 
 
 def lager_zoner(v):
-    """Överkant: zonerna Ö1–Ö18 med tilläggsjärnen. Returnerar raderna till zontabellen."""
+    """Överkant: zonerna (Ö1 …) med tilläggsjärnen. Returnerar raderna till zontabellen."""
     rader = []
     with v.lager("zoner"):
         for zn in R["zoner"]:
@@ -284,11 +329,12 @@ def lager_zoner(v):
             for seg in jarn["x"] + jarn["y"]:
                 v.linje(list(seg.coords), "ok_tunn")
             x0, y0, x1, y1 = zn["bounds"]
-            for (hx, hy, a_, du, dv) in ((x0, y1, "lt", 0.6, -0.6), (x1, y1, "rt", -0.6, -0.6),
-                                         (x0, y0, "lb", 0.6, 0.6), (x1, y0, "rb", -0.6, 0.6)):
-                if yta.buffer(1).contains(Point(hx + du * v.s * 2, hy + dv * v.s * 2)):
-                    v.ptext(hx, hy, du, dv, zn["namn"], a=a_, sz=6.6, b=True, bg=True, col="ok")
-                    break
+            hornen = [(hx + du * v.s, hy + dv * v.s, a_)
+                      for (hx, hy, a_, du, dv) in ((x0, y1, "lt", 0.6, -0.6), (x1, y1, "rt", -0.6, -0.6),
+                                                   (x0, y0, "lb", 0.6, 0.6), (x1, y0, "rb", -0.6, 0.6))
+                      if yta.buffer(1).contains(Point(hx + du * v.s * 2, hy + dv * v.s * 2))]
+            if hornen:
+                fri_text(v, hornen, zn["namn"], sz=6.6, b=True, bg=True, col="ok")
             dz, sz_ = zn["tillagg"]
 
             def grupp(lst):
@@ -690,6 +736,7 @@ def blad_ok():
     v = planvy()
     lager_plattan(v)
     lager_vaggar(v)
+    v.med_diagonaler = True
     zrader = lager_zoner(v)
     lager_ror(v)
     lager_ok(v)
@@ -701,7 +748,7 @@ def blad_ok():
         dict(typ="lista", rader=[
             "Allmänt, se R-03.2. Mått R-03.1, sektioner R-03.4.",
             "Överkantsnätet läggs på armeringsstolar, högst 0,8 m isär.",
-            "Tilläggsjärnen i zonerna Ö1–Ö18 läggs i båda riktningarna i nätets lager och binds till nätet "
+            f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
             "Stålstolparnas plåtar (E) gäller system A i K-06. Gjuts in i underkant, se R-03.4.",
             "Förankringsjärnen pos 14 sätts i U-blocket innan bjälklaget gjuts."]),
@@ -748,15 +795,24 @@ def blad_sektioner():
 
 
 # ================================================================== 5. main
+SERIE = "R-03 Mellanbjälklag"            # ritningsseriens pdf i ritningar/, ett blad per sida
+
+
 def main(dolj=()):
     os.makedirs(UT, exist_ok=True)
+    bladmapp = os.path.join(HERE, "blad")    # bladen var för sig (versionshanteras inte)
+    os.makedirs(bladmapp, exist_ok=True)
     fn = {"R-03.1": blad_oversikt, "R-03.2": blad_uk, "R-03.3": blad_ok, "R-03.4": blad_sektioner}
+    pdfer = []
     for nr, _, _, filnamn in BLADEN:
         b = fn[nr]()
         jp = os.path.join(HERE, f"{nr}.json")
         b.spara(jp)
-        b.kompilera(jp, os.path.join(UT, filnamn + ".pdf"), ROT, dolj=dolj)
-        print(filnamn + ".pdf")
+        pdfer.append(os.path.join(bladmapp, filnamn + ".pdf"))
+        b.kompilera(jp, pdfer[-1], ROT, dolj=dolj)
+        print("blad/" + filnamn + ".pdf")
+    Blad.serie(pdfer, os.path.join(UT, SERIE + ".pdf"))
+    print(f"ritningar/{SERIE}.pdf ({len(pdfer)} sidor)")
 
 
 if __name__ == "__main__":

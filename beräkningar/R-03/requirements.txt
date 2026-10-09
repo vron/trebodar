@@ -1,0 +1,4 @@
+numpy
+shapely
+typst>=0.13
+pymupdf

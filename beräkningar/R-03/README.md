@@ -15,7 +15,7 @@ Ritningarna till mellanbjälklaget (F-01: R-03), i A3 med den gemensamma mallen 
 
 ```
 python beräkningar/K-05/berakning.py      # om K-05/resultat.json saknas
-python beräkningar/R-03/ritningar.py      # ritningar/R-03.1 … R-03.4 (pdf)
+python beräkningar/R-03/ritningar.py      # ritningar/R-03 Mellanbjälklag.pdf (R-03.1 … R-03.4)
 ```
 
-PDF:erna hamnar i [`ritningar/`](../../ritningar/). `R-03.x.json` skapas här och versionshanteras inte. Ett lager kan döljas vid kompileringen, t.ex. `main(dolj=("vaggar",))`.
+Ritningsserien blir en pdf, `R-03 Mellanbjälklag.pdf` i [`ritningar/`](../../ritningar/), med ett blad per sida. Varje blad har sin egen funktion i `ritningar.py` och kompileras för sig till `blad/` (och `R-03.x.json` här); båda versionshanteras inte. Ett lager kan döljas vid kompileringen, t.ex. `main(dolj=("vaggar",))`.
