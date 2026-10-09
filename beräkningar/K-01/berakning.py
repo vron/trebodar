@@ -498,8 +498,10 @@ R = {
     "alfa_s": "12", "alfa_t": "5", "k_lim": fmt(k_lim, 0),
     "cT1": fmt(c_T1, 2), "cT2": fmt(c_T2, 2),
     "Ninf": fmt((st["alfa"] - tr["alfa"]) * 1 / (1 / (Es * A1) + 2 / (Et * b * hw)) / 1e3, 2),
-    "temperatur": [dict(namn=T["namn"], over=fmt(T["over"], 0), under=fmt(T["under"], 0),
-                        To=fmt(20 + T["over"], 0), Tu=fmt(20 + T["under"], 0)) for T in IN["temperatur"]],
+    "temperatur": [dict(namn=T["namn"], over=fmt(T["over"], 0 if T["over"] == int(T["over"]) else 1),
+                        under=fmt(T["under"], 0 if T["under"] == int(T["under"]) else 1),
+                        To=fmt(20 + T["over"], 0 if T["over"] == int(T["over"]) else 1),
+                        Tu=fmt(20 + T["under"], 0 if T["under"] == int(T["under"]) else 1)) for T in IN["temperatur"]],
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o)), encoding="utf-8")
 

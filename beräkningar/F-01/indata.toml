@@ -90,87 +90,66 @@ livslangd   = 50
 nr = "F-01"
 namn = "Förutsättningar, referenser och laster"
 status = "klar"
-kommentar = "Denna handling"
 [[handling]]
 nr = "K-01"
 namn = "Nock- och dalbalkar"
 status = "klar"
-kommentar = "Rev C"
 [[handling]]
 nr = "K-02"
 namn = "Nockbalk – temperatur i stålplåtarna"
 status = "klar"
-kommentar = "Rev A. Underlag för temperaturlasten i K-01"
 [[handling]]
 nr = "K-03"
 namn = "Takbalkar, takstolar och stolpar"
 status = "klar"
-kommentar = "Rev A. Takbalkar, takfönster, sju takstolar och stolparna ner till bjälklaget med huvudstolpen"
 [[handling]]
 nr = "K-04"
 namn = "Väggar och stabilisering"
 status = "upprättas"
-kommentar = "Reglar, hammarband och avväxlingar, förankring i bjälklaget, horisontell stabilisering med skivverkan"
 [[handling]]
 nr = "K-05"
 namn = "Mellanbjälklag och källarpelare"
 status = "klar"
-kommentar = "Rev A. Betongbjälklag 150 mm och stålrör i källaren"
 [[handling]]
 nr = "K-06"
 namn = "Bottenplatta och källarväggar"
 status = "klar"
-kommentar = "Rev A. Bottenplatta på cellplast, Leca-väggar och jordtryck"
 [[handling]]
 nr = "R-01"
 namn = "Konstruktionsritning nock- och dalbalkar"
 status = "upprättas"
-kommentar = ""
 [[handling]]
 nr = "R-02"
 namn = "Konstruktionsritning trästomme"
 status = "upprättas"
-kommentar = ""
 [[handling]]
 nr = "R-03"
 namn = "Konstruktionsritning mellanbjälklag"
 status = "klar"
-kommentar = "Rev A, fyra blad (R-03.1–R-03.4)"
 [[handling]]
 nr = "R-04"
 namn = "Konstruktionsritning källarstomme"
 status = "upprättas"
-kommentar = ""
 [[handling]]
 nr = "R-05"
 namn = "Konstruktionsritning bottenplatta"
 status = "upprättas"
-kommentar = ""
 [[handling]]
 nr = "TP-01"
 namn = "Tidsplan och organisation"
 status = "upprättas"
-kommentar = "Punkt 1 på samrådets dagordning"
 [[handling]]
 nr = "KP-01"
 namn = "Förslag till kontrollplan"
 status = "upprättas"
-kommentar = "Tillsammans med kontrollansvarig"
 [[handling]]
 nr = "BR-01"
 namn = "Brandskyddsbeskrivning"
 status = "upprättas"
-kommentar = ""
 [[handling]]
 nr = "AV-01"
 namn = "Avfallshanteringsplan"
 status = "klar"
-kommentar = "Rev A"
-[[handling]]
-nr = "RP-01"
-namn = "Rivningsplan med inventering av farligt avfall"
-status = "inlämnad"
-kommentar = "Rivningsplan hör till lovbeslutet, kompletteras vid behov"
 
 # Övriga handlingar: egna beräkningar och utredningar som underlag för projekteringen. Ingår inte i handlingarna
 # till tekniskt samråd. Samma status som ovan.
@@ -178,4 +157,3 @@ kommentar = "Rivningsplan hör till lovbeslutet, kompletteras vid behov"
 nr = "U-01"
 namn = "Bottenplattan – temperatur och fukt under året"
 status = "klar"
-kommentar = "Rev A. Fuktsäkerhet utan golvvärme på sommaren"

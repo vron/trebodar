@@ -351,7 +351,7 @@ def rita_balk(path, B, A, env, rad, BOKST):
 
 # ------------------------------------------------------------------ princip: temperaturkraft vid plåtände
 def rita_temp(path, lam_lim, lam_skruv, L=4000.0):
-    """Plåtkraft N(x) och skjuvflöde q(x) längs en plåtbit vid lika temperaturändring i plåtarna (kyla)."""
+    """Plåtkraft N(x) och skjuvkraft per längdenhet q(x) längs en plåtbit vid lika temperaturändring i plåtarna (kyla)."""
     x = np.linspace(-L / 2, L / 2, 801)
     fig, axs = plt.subplots(3, 1, figsize=(6.6, 2.9), sharex=True, gridspec_kw=dict(height_ratios=[0.8, 1, 1], hspace=0.25))
     ax = axs[0]
@@ -370,7 +370,7 @@ def rita_temp(path, lam_lim, lam_skruv, L=4000.0):
         axs[2].plot(x, q / lam_lim, color=INK, lw=0.9, ls=ls)
     axs[1].set_ylabel("plåtkraft\n$N / N_\\infty$", fontsize=7); axs[1].set_ylim(0, 1.15)
     axs[1].legend(fontsize=6.5, frameon=False, loc="lower center", ncol=2)
-    axs[2].set_ylabel("skjuvflöde\ni fogen", fontsize=7); axs[2].set_yticks([]); axs[2].set_ylim(0, 1.1)
+    axs[2].set_ylabel("skjuvkraft per\nlängdenhet\ni fogen", fontsize=7); axs[2].set_yticks([]); axs[2].set_ylim(0, 1.1)
     axs[2].set_xticks([-L / 2, 0, L / 2]); axs[2].set_xticklabels(["plåtände", "mitt", "plåtände"])
     for a in axs[1:]:
         for sp in ("top", "right"):

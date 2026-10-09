@@ -39,7 +39,7 @@
 
 Planen anger vilket avfall rivningen och nybyggnaden på #p.fastighet (ärende #p.arende) ger upphov till och hur det tas om hand. Den är underlag till kontrollplanen enligt plan- och bygglagen 10 kap. 6 § och följer avfallsförordningen (2020:614) 3 kap. Avsnitt 2 gäller rivningen och avsnitt 3 nybyggnaden.
 
-*Platsen.* Tomten är öppen mot havet i väster och utsatt för vind. Längs fastigheten går en gångstig ned till havet och badplatsen. Området är av riksintresse för naturvård och friluftsliv och omfattas av hushållningsbestämmelserna för obruten kust. Lätt avfall som blåser bort hamnar därför snabbt i naturen och i havet. Hanteringen nedan är utformad för att förhindra det.
+*Platsen.* Tomten är öppen mot havet i väster och utsatt för vind. Längs fastigheten går en gångstig ned till havet och badplatsen. Området är av riksintresse för naturvård och friluftsliv och omfattas av hushållningsbestämmelserna för obruten kust. Lätt avfall som blåser bort hamnar snabbt i naturen och i havet. Hanteringen nedan är utformad för att förhindra det.
 
 #table(
   columns: (auto, auto, 1fr),
@@ -54,11 +54,11 @@ Avfallet lämnas till #p.mottagare, eller till annan mottagare med tillstånd f�
 
 == Underlag
 
-Materialinventeringen (#p.inventering) hör till lovbeslutet och redovisar förekomst och mängder av avfall i det befintliga huset: fritidshus i ett plan med mindre källare, byggt omkring 1950 och påbyggt 1980, byggnadsarea 63 m². Ingen asbest har påträffats. Hanteringen på plats preciseras nedan.
+Materialinventeringen (#p.inventering) hör till lovbeslutet och redovisar förekomst och uppskattade mängder av avfall i det befintliga huset: fritidshus i ett plan med mindre källare, byggt omkring 1950 och påbyggt 1980, byggnadsarea 63 m². Ingen asbest har påträffats. Hanteringen på plats preciseras nedan.
 
 == Före rivning
 
-Byggherren tömmer huset och tar själv bort fönster och dörrar, el- och VVS-installationer, inredning, hängrännor och stuprör, takstege, takpannor och takpapp. Fönster, dörrar, takpannor, kök, sanitetsporslin och vitvaror som kan användas igen säljs eller skänks bort. Övrigt sorteras enligt tabellen nedan och lämnas till återvinningscentral. Luftvärmepumpen flyttas. Stommen bedöms inte kunna återanvändas, eftersom huset är i dåligt skick.
+Byggherren tömmer huset och tar själv bort fönster och dörrar, el- och VVS-installationer, inredning, hängrännor och stuprör, takstege, takpannor och takpapp. Fönster, dörrar, takpannor, kök, sanitetsporslin och vitvaror som kan användas igen säljs, sparas eller skänks bort. Övrigt sorteras enligt tabellen nedan och lämnas till återvinningscentral. Luftvärmepumpen flyttas till attefallshuset på tomten. Stommen bedöms inte kunna återanvändas, eftersom huset är i dåligt skick.
 
 == Sortering och behandling
 

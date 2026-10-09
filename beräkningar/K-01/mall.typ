@@ -111,7 +111,7 @@ Takets egenvikt #r.laster.g_tak kN/m² takyta ger #r.g_tak_h kN/m² horisontellt
   (c) varje fält fritt upplagt med full last. Det ger största möjliga fältmoment oberoende av kontinuiteten.
 ]
 
-#for b in r.balkar.filter(b => b.vagg) [#b.namn vilar på en innervägg över #b.vagg_txt mm. ]Väggen modelleras som ett styvt underlag som bara tar tryck (#r.modell.k_vagg N/mm per mm). Balken kan alltså lyfta från väggen närmast det fria fältet, och inspänningen i väggänden begränsas av lasten som håller balken mot väggen.
+#for b in r.balkar.filter(b => b.vagg) [#b.namn vilar på en innervägg över #b.vagg_txt mm. ]Väggen modelleras som ett styvt underlag som bara tar tryck (#r.modell.k_vagg N/mm per mm). Snön i det fria fältet böjer ned balken över väggens ände. Balken trycks då hårt mot själva väggänden och vill lyfta en bit in på väggen, där bara lasten ovanpå håller den ned. Modellen låter balken lyfta där. Därför tar väggänden mindre moment än en fast inspänning, och fältmomentet blir större. Vid vindlyft är balken förankrad i väggen, se avsnitt 6.
 
 *Tvärsnitt längs balken.* Modellen har olika tvärsnitt där plåt finns och där den saknas. Med plåt är balken sammansatt av två plåtar och #r.geo.b×#r.hw limträ. Utan plåt är den limträ #r.geo.b×#r.hw med $E I$ = #r.EI_tra190 × 10#super[12] Nmm² (med $E_"0,mean"$). Plåtens ände är fri: plåtkraften är noll där och byggs upp av skruvarna (och limmet) inåt längs plåten. Varje plåt går över stöden intill, så att stödmomenten tas av plåtarna och plåtänden hamnar en bit in i nästa fält. Med nästan stel fog ger modellen samma stödreaktioner som en vanlig balk med stegvis varierande $E I$, vilket är kontrollerat.
 
@@ -125,7 +125,7 @@ Takets egenvikt #r.laster.g_tak kN/m² takyta ger #r.g_tak_h kN/m² horisontellt
   (3) limfog, $k$ = #r.k_lim N/mm per mm balk (avsnitt 5), i praktiken full samverkan, för spänningar och stödreaktioner,
 ]
 
-med $K_"ser" = rho_m^#"1,5" d slash 23$ = #r.Kser kN/mm (tabell 7.1). Limträets elasticitetsmodul $E_"0,mean" slash (1 + psi_2 k_"def")$ = #r.E2fin MPa. Krafterna i varje modell och lastfall ger skruvkraft $F = K delta$ ($delta$ = glidningen i fogen), normalkraft och krökning i plåtarna samt böj- och skjuvspänning i limträet. I brottgränstillståndet tillgodoräknas bara skruvarna: skruvarna dimensioneras med fall (1) och (2), där limmet inte finns. Med fungerande lim (fall 3) avlastas skruvarna, men balken blir styvare och får större stödmoment. Plåt och limträ klarar alla tre fallen, med högst #r.u_full_max % utnyttjande i fall 3. Stödreaktioner och omhyllande snittkrafter i avsnitt 6 omfattar alla tre fallen.
+med $K_"ser" = rho_m^#"1,5" d slash 23$ = #r.Kser kN/mm (tabell 7.1). Limträets elasticitetsmodul $E_"0,mean" slash (1 + psi_2 k_"def")$ = #r.E2fin MPa. Krafterna i varje modell och lastfall ger skruvkraft $F = K delta$ ($delta$ = glidningen i fogen), normalkraft och krökning i plåtarna samt böj- och skjuvspänning i limträet. I brottgränstillståndet tillgodoräknas bara skruvarna: skruvarna dimensioneras med fall (1) och (2), där limmet inte finns. Med fungerande lim (fall 3) avlastas skruvarna, men balken blir styvare och får större stödmoment. Plåt och limträ kontrolleras för alla tre fallen. Stödreaktioner och omhyllande snittkrafter i avsnitt 6 omfattar alla tre fallen.
 
 #grid(
   columns: (1fr, 1fr),
@@ -169,7 +169,7 @@ där $w_T$ är nedböjningen från temperaturskillnaden mellan plåtarna (avsnit
 
 = Temperaturpåverkan
 
-Stål utvidgas mer än trä: $alpha_s$ = #r.alfa_s × 10#super[−6] /K och längs fibrerna $alpha_t$ = #r.alfa_t × 10#super[−6] /K (SS-EN 1991-1-5 tabell C.1). Plåtarna limmas och skruvas vid cirka +20 °C. När temperaturen sedan ändras vill plåten ändra längd mer än limträet, och limmet och skruvarna hindrar det. Balken ligger i takets isolering med överplåten mot den kalla sidan, så över- och underplåt får dessutom olika temperatur. Följande fall räknas, med linjär temperaturfördelning över höjden:
+Stål utvidgas mer än trä: $alpha_s$ = #r.alfa_s × 10#super[−6] /K och längs fibrerna $alpha_t$ = #r.alfa_t × 10#super[−6] /K (SS-EN 1991-1-5 tabell C.1). Plåtarna limmas och skruvas vid cirka +20 °C. När temperaturen sedan ändras vill plåten ändra längd mer än limträet, och limmet och skruvarna hindrar det. Balken ligger i takets isolering med överplåten mot den kalla sidan, så över- och underplåt får dessutom olika temperatur. Vinterfallet med uppvärmt hus kommer från K-02, som räknar temperaturfältet kring nocken. Vid −20 °C ute och +25 °C inne blir plåtarna där −16,5 °C och +14,8 °C, och skillnaden mellan dem är 24–33 K med rimliga variationer av ytövergångarna. Följande fall räknas, med linjär temperaturfördelning över höjden:
 
 #table(
   columns: (1fr, auto, auto),
@@ -182,11 +182,11 @@ Påverkan delas upp i två delar som räknas var för sig och adderas för varje
 
 *Lika temperaturändring i plåtarna* (medelvärdet av över- och underplåt). När det blir kallt vill stålet krympa mer än limträet. Mitt på plåten hindrar fogen det helt: plåten blir sträckt med en jämn kraft $N_oo$, #r.Ninf kN per grad, och limträet lika mycket tryckt. Kraften är lika stor längs hela mittpartiet, så där går ingen kraft genom fogen. Vid plåtänden måste plåtkraften vara noll. Hela $N_oo$ förs därför över till limträet på en kort sträcka vid varje ände, och där får fogen en spets (figuren). Ju styvare fog, desto kortare sträcka och högre spets: med lim är sträckan några decimeter, med enbart skruv en till två meter. Samma sak gäller lasten vid en plåtände där momentet inte är noll.
 
-#figure(image("fig_temp.svg", width: 82%), caption: [Plåtkraft och skjuvflöde i fogen längs en 4 m lång plåt när plåtarna kyls lika mycket.])
+#figure(image("fig_temp.svg", width: 82%), caption: [Plåtkraft och skjuvkraft per längdenhet i fogen längs en 4 m lång plåt när plåtarna kyls lika mycket.])
 
 *Olika temperatur i över- och underplåt.* Balken vill kröka sig. Ett fritt upplagt fält får böja ut fritt, medan en kontinuerlig balk hålls kvar av stöden och får tvångsmoment. Detta räknas med finita element som i avsnitt 3, med en initialtöjning $plus.minus alpha_s (Delta T_ö - Delta T_u) slash 2$ i plåtarna och motsvarande fri krökning i limträet, både med förankrade stöd och med varje fält fritt upplagt.
 
-Temperatur i byggnader har $psi_0$ = #r.laster.psi0_T (SS-EN 1990 tabell A1.1). I brottgränstillstånd prövas både snö som huvudlast med temperatur som följdlast och tvärtom: $F_d = max(F_S + #r.cT1 F_T; thick F_(S,psi_0) + #r.cT2 F_T)$, där $F_S$ är kraften från 6.10a/b och $F_(S,psi_0)$ samma med snön som följdlast. Skruvkraften från temperaturen räknas med skruvarnas styvhet $K_u$, utan lim, som lasten i övrigt.
+Temperatur i byggnader har kombinationsfaktorn $psi_0$ = #r.laster.psi0_T (SS-EN 1990 tabell A1.1, samma i EKS). $psi_0$ är ingen materialfaktor. Den tar hänsyn till att full temperaturskillnad och full snölast sällan inträffar samtidigt: i varje kombination räknas en av dem fullt, som huvudlast, och den andra med $psi_0$. Båda kombinationerna prövas. I brottgränstillstånd prövas både snö som huvudlast med temperatur som följdlast och tvärtom: $F_d = max(F_S + #r.cT1 F_T; thick F_(S,psi_0) + #r.cT2 F_T)$, där $F_S$ är kraften från 6.10a/b och $F_(S,psi_0)$ samma med snön som följdlast. Skruvkraften från temperaturen räknas med skruvarnas styvhet $K_u$, utan lim, som lasten i övrigt.
 
 #table(
   columns: (1fr, auto, auto, auto, auto),
@@ -196,23 +196,23 @@ Temperatur i byggnader har $psi_0$ = #r.laster.psi0_T (SS-EN 1990 tabell A1.1). 
 )
 #liten[Största värde längs balken och över fallen. Skruvkraften gäller enbart skruv, skjuvspänningen i limfogen fungerande lim. Nedböjningen är den största i något fritt upplagt fält med plåt (kall överplåt ger nedböjning).]
 
-Spänningen i plåten är liten. Skruvkraften från temperaturen uppträder nära plåtänderna och är där en betydande del av bärförmågan #r.FRd kN. Nedböjningen från temperaturen ingår i bruksgränskontrollen med $psi_0 w_T$.
+Spänningen i plåten är liten. Skruvkraften från temperaturen uppträder nära plåtänderna och är där en betydande del av skruvens bärförmåga, #r.FRd kN per skruv. Nedböjningen från temperaturen ingår i bruksgränskontrollen med $psi_0 w_T$.
 
 = Limfogen
 
-Limmet behövs för styvheten. I brottgränstillståndet räknas inte limmet, och skruvarna är dimensionerade för hela skjuvflödet inklusive temperaturen.
+Limmet behövs för styvheten. I brottgränstillståndet räknas inte limmet, och skruvarna är dimensionerade för hela skjuvkraften i fogen inklusive temperaturen.
 
-Limfogen räknas som en fog med skjuvstyvheten $k$ = #r.k_lim N/mm per mm balk. Det motsvarar limträets skjuvdeformation inom cirka 30 mm från fogen ($G b slash 30$). Spänningen i fogen är störst vid plåtänderna, där plåtkraften förs in. Tabellen visar de största karakteristiska värdena, för snö som huvudlast med $psi_0$ för temperaturen eller tvärtom.
+Limfogen räknas som en fog med skjuvstyvheten $k$ = #r.k_lim N/mm per mm balk. Det motsvarar limträets skjuvdeformation inom cirka 30 mm från fogen ($G b slash 30$). Limskiktet självt är mycket styvare. Sikadur-30 har deklarerad E-modul minst 2 000 MPa (SS-EN 1504-4), alltså $G$ ≈ 0,8 GPa. Med 3 mm fog ger det 51 000 N/mm per mm, tolv gånger mer. Fogens styvhet bestäms alltså av träet närmast fogen och beror i praktiken inte på limtypen. Spänningen i fogen är störst vid plåtänderna, där plåtkraften förs in. Tabellen visar de största karakteristiska värdena, för snö som huvudlast med $psi_0$ för temperaturen eller tvärtom.
 
 #table(
   columns: (1fr, auto, auto, auto, auto, auto),
   align: (left, right, right, right, right, right),
-  [Balk], [Last $tau_S$], [Temperatur $tau_T$], [Kombinerat $tau$], [_x_ (mm)], [$tau slash k_"cr" f_"v,k"$],
+  [Balk], [Last $tau_S$ (MPa)], [Temperatur $tau_T$ (MPa)], [Kombinerat $tau$ (MPa)], [_x_ (mm)], [$tau slash k_"cr" f_"v,k"$],
   ..r.lim_tab.map(l => ([#l.namn], [#l.tauL], [#l.tauT], [#l.tau], [#l.x], [#l.u %])).flatten(),
 )
-#liten[MPa, karakteristiska värden, $k_"cr" f_"v,k"$ = #r.fvk_cr MPa. Värdena är lokala toppar i en linjär modell och gäller limträet närmast fogen.]
+#liten[Skjuvspänning i fogen, karakteristiska värden, $k_"cr" f_"v,k"$ = #r.fvk_cr MPa. _x_: läge längs balken. Värdena är lokala toppar i en linjär modell och gäller limträet närmast fogen.]
 
-Lasten ensam ger måttliga värden. Temperaturen, främst vinterfallet med uppvärmt hus, ger toppar i samma storlek som limträets skjuvhållfasthet. Nedböjningen är kontrollerad även med limmet släppt de första #r.L_slapp mm från varje plåtände, med enbart skruv där (kolumnen _släppt_ i bruksgränstabellerna). Kravet uppfylls då med högst #r.us_max_all % utnyttjande.
+Lasten ensam ger måttliga värden. Temperaturen, främst vinterfallet med uppvärmt hus, ger toppar i samma storlek som limträets skjuvhållfasthet. Nedböjningen är kontrollerad även med limmet släppt de första #r.L_slapp mm från varje plåtände, med enbart skruv där (kolumnen _släppt_ i bruksgränstabellerna). Nedböjningskravet $L$/300 uppfylls då med högst #r.us_max_all % utnyttjande.
 
 = Resultat per balk
 
@@ -302,4 +302,4 @@ Stöden betecknas A, B, … från vänster och _x_ räknas från vänster balkä
 + Plåtbitarna tillverkas i hela längder utan skarv.
 + Limträet levereras #r.geo.b×#r.hw, #r.tra.kvalitet, i hel längd. Där plåt saknas sätts distansreglar #r.distans.tjocklek mm i över- och underkant, så att balken är #r.geo.h_tot mm hög i hela längden. Reglarna är inte bärande och kräver ingen särskild limning. De kan spricka eller släppa utan att det påverkar balken.
 + Stöd med negativ $R_"min"$ förankras för angiven dragkraft (dimensionerande värde). Vindlyft ger dragkraft vid samtliga stöd.
-#for b in r.balkar.filter(b => b.stolpe != none) [+ Stolpen D i #lower(b.namn), huvudstolpen, är #b.stolpe.text och får $N_d$ = #b.stolpe.Nd kN och $M_d$ = #b.stolpe.Md kNm. Den dimensioneras i K-03.]
+

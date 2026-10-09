@@ -120,8 +120,8 @@ snobredd    = 4.75      # all snö mellan nockarna (2,50 + 2,25) samlas i dalen 
 # isoleringsskiktet med överplåten mot den kalla sidan. Linjär fördelning över höjden.
 [[temperatur]]
 namn        = "Vinter, uppvärmt hus"
-over        = -35       # överplåt −15 °C
-under       = -5        # underplåt +15 °C
+over        = -36.5     # överplåt −16,5 °C (K-02, −20 °C ute och +25 °C inne)
+under       = -5.2      # underplåt +14,8 °C (K-02)
 
 [[temperatur]]
 namn        = "Vinter, ouppvärmt hus"

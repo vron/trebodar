@@ -39,7 +39,7 @@
 
 = Syfte
 
-Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen. Avsnitt 6 listar övriga handlingar: egna underlag som inte lämnas in till tekniskt samråd.
+Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen. Avsnitt 6 listar övriga handlingar, underlag som inte lämnas in till tekniskt samråd.
 
 = Objekt
 
@@ -153,22 +153,22 @@ Gränsvärden för nedböjning. EKS anger inga värden, så de bestäms för pro
 
 = Handlingar till tekniskt samråd
 
-Handlingarna motsvarar det som kallelsen till tekniskt samråd begär. Konstruktionsritningarna R-01 till R-05 hänvisar till beräkningarna K-01 till K-06.
+Handlingarna motsvarar det som kallelsen till tekniskt samråd begär.
 
 #table(
-  columns: (12mm, 1fr, 16mm, 1.3fr),
-  align: (left, left, left, left),
-  [Nr], [Handling], [Status], [Kommentar],
-  ..r.handlingar.map(h => ([#h.nr], [#h.namn], [#h.status], [#h.kommentar])).flatten(),
+  columns: (12mm, 1fr, 16mm),
+  align: (left, left, left),
+  [Nr], [Handling], [Status],
+  ..r.handlingar.map(h => ([#h.nr], [#h.namn], [#h.status])).flatten(),
 )
 
 = Övriga handlingar
 
-Egna beräkningar och utredningar som underlag för projekteringen. De ingår inte i handlingarna till tekniskt samråd.
+Beräkningar och utredningar som underlag för projekteringen, som inte ingår i handlingarna till tekniskt samråd.
 
 #table(
-  columns: (12mm, 1fr, 16mm, 1.3fr),
-  align: (left, left, left, left),
-  [Nr], [Handling], [Status], [Kommentar],
-  ..r.ovriga.map(h => ([#h.nr], [#h.namn], [#h.status], [#h.kommentar])).flatten(),
+  columns: (12mm, 1fr, 16mm),
+  align: (left, left, left),
+  [Nr], [Handling], [Status],
+  ..r.ovriga.map(h => ([#h.nr], [#h.namn], [#h.status])).flatten(),
 )
