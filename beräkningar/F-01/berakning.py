@@ -62,7 +62,7 @@ R = {
                 mu1=fmt(mu1, 1), mu2=fmt(mu2, 1), s1=fmt(s1, 2), s2=fmt(s2, 2)),
     "vind": dict(vb=v["vb"], z0=fmt(v["z0"], 3), z=fmt(v["z"], 1), kr=fmt(kr, 3), cr=fmt(cr, 2),
                  Iv=fmt(Iv, 3), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(ce, 2)),
-    "handlingar": IN["handling"], "nedb": IN["nedbojning"],
+    "handlingar": IN["handling"], "ovriga": IN.get("ovrig", []), "nedb": IN["nedbojning"],
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 

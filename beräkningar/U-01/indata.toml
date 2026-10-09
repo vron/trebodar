@@ -1,0 +1,144 @@
+# ------------------------------------------------------------------
+# Indata – U-01 Bottenplattan, temperatur och fukt under året (2D, transient)
+# Ändra värden här och kör:  python berakning.py
+# Längder i mm, temperaturer i °C, λ i W/mK, ρc i MJ/m³K.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Bottenplattan – temperatur och fukt under året"
+dokument    = "U-01"
+revision    = "A"
+datum       = "2026-10-09"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "K-06 rev A (bottenplatta och källarväggar), modeller/trebodar.step"
+
+# Sektion A–A tvärs husets största bredd, vid y = 6 000 i K-05:s koordinater. Väggarnas och rörens lägen läses
+# ur K-05/bild/geometri.json (modellen). Bottenplattans uppbyggnad enligt K-06.
+[sektion]
+y           = 6000
+vagg_v      = "V21"
+vagg_o      = "V14"
+mark_v      = 1093      # markytan utanför V21 över bottenplattans överkant (modellen)
+mark_o      = 984       # markytan utanför V14 (modellen)
+h_rum       = 2100      # fri höjd i källaren
+utforande   = "L300"    # cellplast och kantbalk enligt K-06, se [utforande]
+
+# Plintarnas sida (mm) under rören enligt K-06. Plintar som sektionen skär räknas som strimlor längs huset.
+[plintar]
+P1 = 1100
+P2 = 1200
+P3 = 1000
+P4 = 1100
+P5 = 1200
+P6 = 800
+P7 = 1100
+P8 = 1000
+P9 = 800
+P10 = 1100
+P11 = 900
+P12 = 800
+P13 = 600
+P14 = 700
+P15 = 1100
+P16 = 1000
+P17 = 1100
+P18 = 1200
+P19 = 1000
+
+[utforande.L300]
+t_eps       = 200       # cellplast S100 under plattan, två skikt med radonfolie emellan
+h_balk      = 200       # kantbalk, balkar och plintar
+[utforande.L400]
+t_eps       = 300
+h_balk      = 300
+
+[platta]
+h_platta    = 100       # bottenplatta i fält
+t_fot       = 100       # cellplast S200 under kantbalk och plintar (L-elementets fot)
+b_balk      = 450       # kantbalkens bredd innanför väggens ytterliv
+t_ben       = 100       # L-elementets yttre ben
+urtag       = 50        # väggen står 50 mm under plattans överkant
+t_makadam   = 150
+golvvarme_z = 50        # slingornas centrum under plattans överkant (modellen)
+golvvarme_kant = 150    # slingorna börjar så långt från väggens insida
+
+[vagg]
+skikt       = [100, 150, 100]   # Leca, cellplast, Leca (Leca Isoblokk 35)
+
+# λ och ρc. Värden på säker sida: hög λ för cellplasten och låg λ för marken ger varmare mark under plattan.
+[material]
+betong      = [1.7, 2.1]    # SS-EN ISO 10456, 2 300 kg/m³
+cellplast   = [0.040, 0.04] # S100/S200 i fuktig miljö under plattan (deklarerat 0,033–0,036)
+leca        = [0.30, 0.65]  # lättklinkerbetong 650 kg/m³, fuktig
+makadam     = [0.7, 1.5]    # dränerad makadam, låg λ
+mark        = [2.0, 2.0]    # sand och grus, SS-EN ISO 13370 tabell 7 (berg: 3,5)
+
+# Utomhus: markyta och uteluft, sinus över året. Luftens årsmedel vid kusten är ungefär 8 °C och julimedlet
+# ungefär 17 °C (SMHI 1991–2020). Markytan antas 1,5 K varmare i medel och med större amplitud.
+[klimat]
+Tm          = 9.5
+A           = 10.0
+dag_max     = 205       # varmaste dagen, 24 juli
+Rse         = 0.04      # m²K/W, mark och vägg utomhus
+
+[drift]
+golvvarme   = [10, 4]   # golvvärme från oktober till och med april
+T_golvvarme = 27.0      # medeltemperatur i plattan i slingornas nivå vid golvvärme
+T_rum_vinter = 21.0
+T_rum_sommar = 16.0     # källaren utan golvvärme maj–september, lågt antaget
+Rsi_golv    = 0.17      # m²K/W, värmeflöde nedåt (SS-EN ISO 6946)
+Rsi_vagg    = 0.13
+
+# Fuktbalans där temperaturgradienten vänder (Glaser, dygnsvis): ånga från marken (RF 100 %) genom cellplasten
+# till folien eller betongen. Allt som når ytan räknas som kondens, och uttorkning sker bara nedåt.
+[fukt]
+mu_eps      = 30        # ånggenomgångsmotstånd, halva värdet i SS-EN ISO 10456 (60), på säker sida
+delta_luft  = 2.0e-10   # kg/(m·s·Pa)
+M_ref       = 500       # g/m², största kondensmängd mot icke-sugande skikt enligt DIN 4108-3, som jämförelse
+
+# Nät: rektangulärt, fint kring plattan och väggarna. Marken tas med 2,5 gånger husets bredd åt sidorna och
+# nedåt, med adiabatiska ränder (SS-EN ISO 10211).
+[nat]
+h_fin       = 25        # celler i plattan, cellplasten, väggarna och marken närmast
+h_falt      = 100       # största cell innanför väggarna
+h_vagg      = 100       # största cell i väggarnas höjd
+tillvaxt    = 0.25      # cellstorleken växer med avståndet från de fina zonerna
+h_max       = 2000
+utbredning  = 2.5       # markens utbredning i husbredder
+steg_per_dygn = 4       # tidssteg 6 h
+
+# Känslighet: varje fall ändrar grundfallets värden.
+[[fall]]
+namn        = "Grundfall"
+[[fall]]
+namn        = "Källaren 18 °C på sommaren"
+T_rum_sommar = 18.0
+[[fall]]
+namn        = "Källaren 20 °C på sommaren"
+T_rum_sommar = 20.0
+[[fall]]
+namn        = "Berg under huset, λ = 3,5"
+mark        = [3.5, 2.0]
+[[fall]]
+namn        = "Berg och källaren 18 °C på sommaren"
+mark        = [3.5, 2.0]
+T_rum_sommar = 18.0
+[[fall]]
+namn        = "Golvvärme 24 °C i slingornas nivå"
+T_golvvarme = 24.0
+[[fall]]
+namn        = "Luftens klimat: årsmedel 8 °C, amplitud 9 K"
+Tm          = 8.0
+A           = 9.0
+[[fall]]
+namn        = "Fyllning 2,0 m mot båda väggarna"
+mark_v      = 2000
+mark_o      = 2000
+[[fall]]
+namn        = "Ny cellplast, λ = 0,036"
+cellplast   = [0.036, 0.04]
+[[fall]]
+namn        = "Utförande L400"
+utforande   = "L400"

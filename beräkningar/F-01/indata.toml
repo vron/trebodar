@@ -171,3 +171,11 @@ nr = "RP-01"
 namn = "Rivningsplan med inventering av farligt avfall"
 status = "inlämnad"
 kommentar = "Rivningsplan hör till lovbeslutet, kompletteras vid behov"
+
+# Övriga handlingar: egna beräkningar och utredningar som underlag för projekteringen. Ingår inte i handlingarna
+# till tekniskt samråd. Samma status som ovan.
+[[ovrig]]
+nr = "U-01"
+namn = "Bottenplattan – temperatur och fukt under året"
+status = "klar"
+kommentar = "Rev A. Fuktsäkerhet utan golvvärme på sommaren"

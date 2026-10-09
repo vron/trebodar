@@ -39,7 +39,7 @@
 
 = Syfte
 
-Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen.
+Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen. Avsnitt 6 listar övriga handlingar: egna underlag som inte lämnas in till tekniskt samråd.
 
 = Objekt
 
@@ -156,8 +156,19 @@ Gränsvärden för nedböjning. EKS anger inga värden, så de bestäms för pro
 Handlingarna motsvarar det som kallelsen till tekniskt samråd begär. Konstruktionsritningarna R-01 till R-05 hänvisar till beräkningarna K-01 till K-06.
 
 #table(
-  columns: (auto, 1fr, auto, 1.3fr),
+  columns: (12mm, 1fr, 16mm, 1.3fr),
   align: (left, left, left, left),
   [Nr], [Handling], [Status], [Kommentar],
   ..r.handlingar.map(h => ([#h.nr], [#h.namn], [#h.status], [#h.kommentar])).flatten(),
+)
+
+= Övriga handlingar
+
+Egna beräkningar och utredningar som underlag för projekteringen. De ingår inte i handlingarna till tekniskt samråd.
+
+#table(
+  columns: (12mm, 1fr, 16mm, 1.3fr),
+  align: (left, left, left, left),
+  [Nr], [Handling], [Status], [Kommentar],
+  ..r.ovriga.map(h => ([#h.nr], [#h.namn], [#h.status], [#h.kommentar])).flatten(),
 )
