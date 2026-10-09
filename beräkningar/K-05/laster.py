@@ -46,18 +46,18 @@ VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: 
 G_D2VAGG = G_VAGG * H_VAGG                 # 1,5 kN/m
 KARM = (95.0, 90.0)                        # karmstolpens upplagsyta: väggens tjocklek (x) × 2 × 45 (y) [mm]
 STOLPE = (95.0, 90.0)                      # minsta stolpe 2 × 45×95 [mm]
-STOLPE_B = (115.0, 115.0)                  # stolpe B (LD4_1), 115×115 GL30h
+STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03)
 FOTPLAT_B = (250.0, 250.0, 15.0)           # stolpe B står på en fotplåt 250×250×15 S355 med förankring [mm]
-HAVARM_B = 95.0                            # dalbalk 4 vilar på stolpe B med 95 mm hävarm; mittakstolen centriskt [mm]
-AVST_P17 = 280.0                           # LN1_1 står 280 mm från P17 i y-led
+HAVARM_B = 70.0                            # dalbalk 4:s centrumlinje 70 mm från stolpe B:s centrum (modellen, K-03); mittakstolen centriskt [mm]
+AVST_P17 = 250.0                           # LN1_1 står i väggen vid y ≈ 2 795 (K-03), 250 mm från P17 i y-led
 # Trappan (trä) hänger på trapphålets kortsida. Vilken kortsida är inte bestämt: lasten läggs på båda.
 TRAPPA = dict(langd=3.0, bredd=0.83, g=1.0, q=2.0)       # horisontell längd [m], bredd [m], kN/m² i plan
 
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
 # x från balkens vänstra ände; balkens läge i plan enligt geometri.json (balkar)
 K01 = {
-    "N1": dict(typ="nock", stod={"A": (0, 7.4, -3.0), "B": (1900, 19.9, -6.6), "C": (3800, 9.9, -17.3),
-                                  "D": (5700, 49.3, -12.3), "E": (11570, 21.5, -6.3)}),
+    "N1": dict(typ="nock", stod={"A": (0, 7.3, -3.0), "B": (1900, 19.8, -6.5), "C": (3800, 9.9, -16.9),
+                                  "D": (5700, 49.0, -12.3), "E": (11570, 21.5, -6.3)}),
     "D2": dict(typ="dal", stod={"B": (10070, 21.2, -4.5)}, vagg_lyft=-18.6, vagg=(0, 6487)),
     "N3": dict(typ="nock", stod={"A": (85, 8.0, -3.4), "B": (2185, 23.9, -7.2), "C": (5985, 36.7, -9.4),
                                   "D": (10985, 18.9, -6.2)}),

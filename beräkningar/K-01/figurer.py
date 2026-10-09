@@ -8,6 +8,14 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.patches import Polygon, Rectangle  # noqa: E402
 
+# Carlito: systemets typsnitt, eller beräkningar/.fonts om det inte är installerat
+import os as _os  # noqa: E402
+from matplotlib import font_manager as _fm  # noqa: E402
+_FONTS = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), ".fonts")
+if _os.path.isdir(_FONTS):
+    for _f in sorted(_os.listdir(_FONTS)):
+        if _f.lower().endswith(".ttf"):
+            _fm.fontManager.addfont(_os.path.join(_FONTS, _f))
 plt.rcParams.update({"font.family": "Carlito", "font.size": 7.5, "svg.fonttype": "none",
                      "hatch.linewidth": 0.35, "axes.linewidth": 0.5, "xtick.major.width": 0.5,
                      "ytick.major.width": 0.5, "xtick.major.size": 2.5, "ytick.major.size": 2.5,

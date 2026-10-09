@@ -1,0 +1,234 @@
+# ------------------------------------------------------------------
+# Indata – K-03 Takbalkar, takstolar och stolpar
+# Ändra värden här och kör:  python berakning.py
+# Geometrin (takbalkar, takfönster, takstolar, stolpar och väggar) hämtas ur modellen med modell_k03.py och
+# ligger i geometri.json. Stolparnas laster kommer från K-05 (laster.py), som bygger på K-01:s stödreaktioner.
+# Enheter: mm, kN, MPa (N/mm²) om inget annat anges. x, y och z som i K-05 (z från bjälklagets överkant).
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Takbalkar, takstolar och stolpar"
+dokument    = "K-03"
+revision    = "A"
+datum       = "2026-10-09"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+
+# ------------------------------------------------------------------ material (karakteristiska värden)
+[material.C24]          # SS-EN 338
+fmk = 24.0
+ft0k = 14.5
+fc0k = 21.0
+fc90k = 2.5
+fvk = 4.0
+E0mean = 11000.0
+E005 = 7400.0
+rhok = 350.0
+gamma_M = 1.3
+beta_c = 0.2
+[material.GL30h]        # SS-EN 14080
+fmk = 30.0
+ft0k = 24.0
+fc0k = 30.0
+fc90k = 2.5
+fvk = 3.5
+E0mean = 13600.0
+E005 = 11300.0
+rhok = 430.0
+gamma_M = 1.25
+beta_c = 0.1
+
+[klass]
+gamma_d     = 0.91      # säkerhetsklass 2
+k_mod       = 0.8       # klimatklass 1, medellång last (snö)
+k_mod_vind  = 0.9       # korttidslast (vindlyft)
+k_def       = 0.6
+k_cr        = 0.67      # sprickor, skjuvning
+psi2_sno    = 0.1
+nedbojning  = 300       # w_fin ≤ L/300 (F-01)
+
+# ------------------------------------------------------------------ laster (F-01)
+[last]
+g_tak       = 0.56      # takets egenvikt per m² takyta [kN/m²]
+takvinkel   = 30.0
+s_k         = 1.5
+mu_dal      = 1.6       # takfall mot en dal: μ2 = 1,6 jämnt över hela takfallet (standarden: från 0 vid nocken)
+mu_takfot   = 1.0       # takfall mot takfot: 1,0 (standarden: μ1 = 0,8)
+utsprang    = 0.2       # takutsprång vid takfot och gavel, horisontellt [m]
+q_p         = 1.09      # hastighetstryck [kN/m²] (F-01)
+cpe_cpi_G   = -1.6      # vindsug netto i zon G närmast gaveln (K-01): cpe −1,4, cpi +0,2
+
+# ------------------------------------------------------------------ takbalkar
+[takbalk]
+b = 45
+h = 170
+cc = 600
+material = "C24"
+# Upplag mot nock- och dalbalkarna: upplagsregel på balkens sida, takbalken med hak över regeln.
+[upplag]
+regel_b = 45            # upplagsregelns bredd (vågrätt, under takbalken)
+regel_h = 45            # regelns höjd = hakets höjd i lodled ovanför balkens underplåt
+plat = 10               # balkens underplåt; regeln sitter på limträet ovanför plåten
+balk_h = 190            # nock- och dalbalkens höjd (K-01)
+skruv_d = 6.0           # skruv genom regeln in i limträet
+skruv_L = 100
+skruv_My = 9500.0       # flytmoment [Nmm], minst enligt ETA
+skruv_fax = 11.0        # utdragshållfasthet f_ax,k [MPa] enligt ETA
+rho_balk = 390.0        # limträets densitet (GL30c, K-01)
+lyft_skruv_L = 160      # förankringsskruv snett genom takbalken in i balken
+lyft_skruv_lef = 80     # gängans längd i balken
+
+# Takbalkstyper i modellen (namnets början). Spann och utkragning räknas ur modellen: horisontellt mellan balkarnas
+# centrumlinjer, vid takfot till ytterväggens centrum (17,5 mm innanför plattans kant, K-05).
+[[typ]]
+namn  = "ÅII"
+text  = "Mittre huskroppen, nock–dal"
+mu    = "dal"
+[[typ]]
+namn  = "ÅIY"
+text  = "Mittre huskroppen, nock–takfot"
+mu    = "takfot"
+[[typ]]
+namn  = "ÅYI"
+text  = "Sidokropparna, nock–dal"
+mu    = "dal"
+[[typ]]
+namn  = "ÅYY"
+text  = "Sidokropparna, nock–takfot"
+mu    = "takfot"
+
+# Takfönster: avväxlingsregel (45×170) mellan dubbla takbalkar, kortlingar c/c 600 ovanför och nedanför.
+[fonster]
+bredd = 1200
+rasspont_t = 20         # råspont [mm]
+rasspont_E = 11000.0
+
+# ------------------------------------------------------------------ takstolar
+# Toppens last: K-01:s stödreaktion (via K-05) för nockbalkens stöd. Diagonalerna stagas av takets "extra"
+# (takbalken ovanför innertaket) som fästs i diagonalen c/c 600.
+[[takstol]]
+namn  = "Stol 1NO"
+text  = "Vänster, nedre gavel"
+stod  = ["N5", "A"]
+gavel = true
+[[takstol]]
+namn  = "Stol 1SV"
+text  = "Vänster, övre gavel"
+stod  = ["N5", "D"]
+gavel = true
+[[takstol]]
+namn  = "Stol 2NO"
+text  = "Mitten, nedre gavel"
+stod  = ["N3", "A"]
+gavel = true
+[[takstol]]
+namn  = "Stol L2M"
+text  = "Mitten, mittakstol"
+stod  = ["N3", "C"]
+gavel = false
+[[takstol]]
+namn  = "Stol 2SV"
+text  = "Mitten, övre gavel"
+stod  = ["N3", "D"]
+gavel = true
+[[takstol]]
+namn  = "Stol 3NO"
+text  = "Höger, nedre gavel"
+stod  = ["N1", "A"]
+gavel = true
+[[takstol]]
+namn  = "3SV"
+text  = "Höger, övre gavel"
+stod  = ["N1", "E"]
+gavel = true
+
+# Toppkloss: en kloss 45 mm (diagonalens höjd, minst 600 mm lång) skruvas på var sida om toppen, så att balken vilar
+# på 135 mm. alla = true: på alla takstolar (en detalj), annars bara där 45 mm inte räcker.
+[toppkloss]
+alla = true
+t = 45
+skruv_d = 6.0
+skruv_L = 90
+skruv_My = 9500.0
+
+[spikplat]
+t = 2.0                 # plåttjocklek [mm], S250GD+Z
+fu = 330.0
+bredd = 100
+hal = 5.0
+hal_per_rad = 4
+spik_d = 4.0            # ankarspik 4,0×40
+spik_L = 40
+spik_fu = 600.0
+gamma_M2 = 1.25
+gamma_M_forband = 1.3
+
+# ------------------------------------------------------------------ stolpar
+# namn: K-05:s punktlast. sok: punkt i modellen där stolpen söks (modell_k03.py). gamla: beteckning i den äldre
+# beräkningen. krav: utförande som ersätter modellens, när modellen saknar stolpe eller den inte räcker.
+# L: knäcklängd om den inte ska tas ur modellen. e: lastens excentricitet [mm] i x-led.
+[[stolpe]]
+namn = "LN1_1"
+sok = [11655, 2795]
+krav = { delar = 4, b = 45, h = 95, mat = "C24", text = "4 st 45×95 C24, ny", z0 = 0, z1 = 3645, stagad = "x" }
+[[stolpe]]
+namn = "LN1_2"
+sok = [11655, 4686]
+gamla = "D"
+[[stolpe]]
+namn = "LN1_3"
+sok = [11665, 6602]
+gamla = "F"
+huvud = true
+[[stolpe]]
+namn = "LD2_1"
+sok = [9405, 5012]
+[[stolpe]]
+namn = "LD2_2"
+sok = [9290, 5947]
+gamla = "C"
+[[stolpe]]
+namn = "LD2_3"
+sok = [9405, 7295]
+gamla = "C"
+[[stolpe]]
+namn = "LD2_4"
+sok = [9435, 10992]
+gamla = "G"
+[[stolpe]]
+namn = "LN3_1"
+sok = [7007, 2200]
+gamla = "H"
+[[stolpe]]
+namn = "LD4_1"
+sok = [4475, 5855]
+gamla = "B"
+e = 70
+krav = { delar = 1, b = 140, h = 140, mat = "GL30h", text = "GL30h 140×140", z0 = 0, z1 = 2404, stagad = "" }
+[[stolpe]]
+namn = "LD4_2"
+sok = [4420, 10992]
+gamla = "G"
+krav = { delar = 5, b = 45, h = 95, mat = "C24", text = "5 st 45×95 C24", z0 = 43, z1 = 2361, stagad = "x" }
+[[stolpe]]
+namn = "LN5_1"
+sok = [2140, 8220]
+gamla = "E"
+[[stolpe]]
+namn = "LN5_2"
+sok = [2075, 11000]
+gamla = "D"
+
+# Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D. Strävor på båda sidor om stolpen
+# (modellen visar bara den ena). Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
+[huvudstolpe]
+L = 2900                # golv till strävornas fäste (K-01)
+N_d = 49.0              # K-01, stolpe 4 st 45×120
+M_d = 2.91              # K-01
+F_strava = 42.9         # strävornas största lodräta kraft mot balken (K-01)
+e = 770                 # strävans fäste i balken från stolpen (K-01)
+strava_b = 45
+strava_h = 120
+strava_lager = 4
+strava_L = 990          # strävans längd mellan knutpunkterna (modellen, 45°)

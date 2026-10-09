@@ -302,4 +302,4 @@ Stöden betecknas A, B, … från vänster och _x_ räknas från vänster balkä
 + Plåtbitarna tillverkas i hela längder utan skarv.
 + Limträet levereras #r.geo.b×#r.hw, #r.tra.kvalitet, i hel längd. Där plåt saknas sätts distansreglar #r.distans.tjocklek mm i över- och underkant, så att balken är #r.geo.h_tot mm hög i hela längden. Reglarna är inte bärande och kräver ingen särskild limning. De kan spricka eller släppa utan att det påverkar balken.
 + Stöd med negativ $R_"min"$ förankras för angiven dragkraft (dimensionerande värde). Vindlyft ger dragkraft vid samtliga stöd.
-#for b in r.balkar.filter(b => b.stolpe != none) [+ Stolpen D i #lower(b.namn) får $N_d$ = #b.stolpe.Nd kN och $M_d$ = #b.stolpe.Md kNm. Med knäcklängden #b.stolpe.L mm i strävornas plan (golv till strävornas fäste) blir utnyttjandet för #b.stolpe.text #b.stolpe.u % (EC5 6.3.2).#if not b.stolpe.ok [ Stolpen klarar inte detta.]]
+#for b in r.balkar.filter(b => b.stolpe != none) [+ Stolpen D i #lower(b.namn), huvudstolpen, är #b.stolpe.text och får $N_d$ = #b.stolpe.Nd kN och $M_d$ = #b.stolpe.Md kNm. Den dimensioneras i K-03.]

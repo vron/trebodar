@@ -22,6 +22,6 @@ Husets Onshape-modell är `modeller/trebodar.step` (STEP AP242, mm). Den är hus
 
 - Handlingarna visar alltid bara det senaste, korrekta läget. Ingen historik, inga avsnitt om "åtgärder" eller "ändringar" i rapporter, ritningar, README eller granskningar. Revisionen ändras bara när användaren ber om det.
 - Vid alla ändringar som inte är obetydliga: rendera de berörda rapporterna och ritningarna till bilder (t.ex. med pymupdf) och titta på dem, så att de ser bra ut, innan arbetet är klart.
-- När modellen ändras: kör `geometri.py`, sedan K-05, K-06 och R-03 i den ordning som deras README anger, och kontrollerna i `verktyg/modellanalys`.
+- När modellen ändras: kör `geometri.py`, sedan K-05, K-06 och R-03 i den ordning som deras README anger, och kontrollerna i `verktyg/modellanalys`. K-03 hämtar takets geometri med `K-03/modell_k03.py` och stolparnas laster ur K-05:s `laster.py`, som bygger på K-01. När K-01 ändras: uppdatera stödreaktionerna i `K-05/laster.py` och kör K-03, K-05 och följande.
 - Python: `beräkningar/.venv` för beräkningarna och `verktyg/modellanalys/.venv` för modellen (skapa dem med `uv` och respektive `requirements.txt`). Typsnittet Carlito läses från `beräkningar/.fonts` om det inte är installerat.
 - Git: commita och pusha självständigt till `main`. Skriv aldrig om historiken (ingen rebase, amend eller force push) och arbeta bara på `main`, inga andra grenar.

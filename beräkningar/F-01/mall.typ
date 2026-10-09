@@ -59,7 +59,7 @@ Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet
 *Bärande system.* Byggnadskropparna har sadeltak med takvinkel #r.sno.alfa° och ligger bredvid varandra med dalar mellan.
 
 - *Tak:* bandtäckt plåt på råspont. Takbalkar 45×170 C24 c/c 600 spänner mellan nock- och dalbalkar av limträ med stålplåtar (K-01). I gavlarna och i husets mitt bärs nockbalkarna av triangulerade takstolar.
-- *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor. Skivverkan stabiliserar huset mot horisontella laster. Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar.
+- *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor. Skivverkan stabiliserar huset mot horisontella laster. Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar och limträ, bland dem huvudstolpen med strävor på båda sidor under nockbalk 1 (K-03).
 - *Bjälklag:* platsgjuten armerad betongplatta, #r.bj.t mm, över källaren.
 - *Källare och grund:* ytterväggar av armerade Leca-block 350 mm. Inne i källaren bärs bjälklaget av pelare av fyrkantsrör i stål, svetsade mot ingjutna plåtar i bottenplattan och ingjutna i bjälklaget. Bottenplatta av betong på dränerande grus på sprängd berggrund.
 

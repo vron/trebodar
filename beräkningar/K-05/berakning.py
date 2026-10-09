@@ -438,6 +438,7 @@ for st in LASTER["punkter"]:
 R["stolpar"] = stolp
 
 # stolpe B (LD4_1) på fotplåt: excentrisk last, ekvivalent tryckyta (L − 2e) × B, lokalt tryck 6.7, plåttjocklek
+from laster import STOLPE_B, HAVARM_B  # noqa: E402
 sB = next(p for p in LASTER["punkter"] if p["namn"] == "LD4_1")
 LB, BB_ = sB["yta"]
 eB = sB["e"]
@@ -446,9 +447,9 @@ Ac0 = b1 * d1
 b2, d2 = min(3 * b1, b1 + H), min(3 * d1, d1 + H)
 kf = min(math.sqrt(b2 * d2 / Ac0), 3.0)
 sig = sB["Rd"] * 1e3 / Ac0
-utsprang = (LB - 115.0) / 2
+utsprang = (LB - STOLPE_B[0]) / 2
 t_fot = math.sqrt(4 * sig * utsprang ** 2 / 2 / 355.0)
-R["stolpe_B"] = dict(N=sB["Rd"] * 1e3, M=sB["M_d"], e=eB, L=LB, B=BB_, b1=b1, Ac0=Ac0, kf=kf, sigma=sig,
+R["stolpe_B"] = dict(N=sB["Rd"] * 1e3, M=sB["M_d"], e=eB, L=LB, B=BB_, b1=b1, Ac0=Ac0, kf=kf, sigma=sig, stolpe=STOLPE_B[0], havarm=HAVARM_B,
                      FRdu=Ac0 * B.fcd * kf, utn=sB["Rd"] * 1e3 / (Ac0 * B.fcd * kf), t_min=t_fot, t=15.0,
                      Wd=sB["Wd"])
 print(f"stolpe B: e {eB:.0f} mm, M {sB['M_d']:.2f} kNm, σ {sig:.2f} MPa, 6.7 {R['stolpe_B']['utn']*100:.0f} %, fotplåt t ≥ {t_fot:.1f} mm")

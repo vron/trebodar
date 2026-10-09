@@ -166,7 +166,7 @@ D["kn"] = dict(min=f(kn["min"], 2), max=f(kn["max"], 2))
 sb = R["stolpe_B"]
 D["stB"] = dict(N=f(sb["N"] / 1e3), M=f(sb["M"], 2), e=f(sb["e"], 0), L=f(sb["L"], 0), B=f(sb["B"], 0),
                 b1=f(sb["b1"], 0), s=f(sb["sigma"], 2), kf=f(sb["kf"], 2), utn=pr(sb["utn"]), tmin=f(sb["t_min"], 1),
-                t=f(sb["t"], 0), Wd=f(sb["Wd"]))
+                t=f(sb["t"], 0), Wd=f(sb["Wd"]), stolpe=f(sb["stolpe"], 0), havarm=f(sb["havarm"], 0))
 mf = max(R["pelare"], key=lambda p: p["vEd_fe"] / p["vEd_f"])
 D["fe_beta"] = dict(namn=mf["namn"], kvot=f(mf["vEd_fe"] / mf["vEd_f"] * mf["beta"], 2),
                    styr=", ".join(p["namn"] for p in R["pelare"] if p["vEd_fe"] > p["vEd_f"]))

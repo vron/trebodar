@@ -158,7 +158,8 @@ total       = 11570
 spann       = [1900, 1900, 1900, 5870]
 triangel    = { x = 5700, e = 770 }   # dubbeltriangel: strävor från stolpen D till balken 770 mm åt båda hållen
 # Triangeln stolpe–strävor–balk vrider sig bara när stolpen böjs. Strävorna arbetar som en gungbräda.
-stolpe      = { b = 180, h = 95, L = 2900, d = 770, E = 11000, fmk = 24, fc0k = 21, E005 = 7400, gamma_M = 1.3, text = "4 st 45×95 C24 sida vid sida, 95 mm i strävans plan" }
+# Stolpen (huvudstolpen LN1_3) dimensioneras i K-03; här behövs dess böjstyvhet.
+stolpe      = { b = 180, h = 120, L = 2900, d = 770, E = 11000, fmk = 24, fc0k = 21, E005 = 7400, gamma_M = 1.3, text = "4 st 45×120 C24 sida vid sida, 120 mm i strävans plan" }
 platar      = [[5600, 11570]]
 
 [[balk]]
