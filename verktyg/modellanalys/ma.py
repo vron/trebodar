@@ -14,7 +14,7 @@ ma – modellanalys av STEP-sammanställningar. Kör via ./ma <kommando> (använ
     ./ma krock [urval] [urval2]                överlappande solider
     ./ma jamfor [annan.step]                   skillnader mot annan fil / föregående version
 
-Gemensamt: --fil väg/till.step (standard ../../trebodar/Hus Mark.step), --delar/--utom för urval.
+Gemensamt: --fil väg/till.step (standard ../../modeller/trebodar.step), --delar/--utom för urval.
 Bilder hamnar i ut/ om inte --ut anges. Enhet mm.
 """
 import argparse
@@ -371,7 +371,7 @@ def k_jamfor(m, args):
 
 def main():
     gem = argparse.ArgumentParser(add_help=False)
-    gem.add_argument("--fil", help="STEP-fil (standard: trebodar/Hus Mark.step)")
+    gem.add_argument("--fil", help="STEP-fil (standard: modeller/trebodar.step)")
     gem.add_argument("--utom", help="urval att utesluta")
     p = argparse.ArgumentParser(prog="ma", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = p.add_subparsers(dest="kommando", required=True)

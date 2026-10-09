@@ -1,8 +1,8 @@
 # Modellanalys – verktyg för STEP-sammanställningar
 
-Läser en STEP-fil (t.ex. Onshape-export av `Hus Mark`) med exakt B-rep-geometri, delnamn och färger, och svarar på frågor om den: översikt, delträd, exakta koordinater, 3D-bilder från valfri vinkel med snittklipp, 2D-snittritningar med mm-koordinater, linjeprober (skikttjocklekar), avstånd, krockar och skillnader mellan versioner.
+Läser en STEP-fil (t.ex. Onshape-exporten av huset, `modeller/trebodar.step`) med exakt B-rep-geometri, delnamn och färger, och svarar på frågor om den: översikt, delträd, exakta koordinater, 3D-bilder från valfri vinkel med snittklipp, 2D-snittritningar med mm-koordinater, linjeprober (skikttjocklekar), avstånd, krockar och skillnader mellan versioner.
 
-Standardfil: `../../trebodar/Hus Mark.step`. Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
+Standardfil: `../../modeller/trebodar.step`. Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
 
 ## Installation
 

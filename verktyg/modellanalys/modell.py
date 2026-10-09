@@ -25,7 +25,7 @@ import numpy as np
 
 HERE = Path(__file__).parent
 ROT = HERE.parent.parent
-STANDARD = ROT / "trebodar" / "Hus Mark.step"
+STANDARD = ROT / "modeller" / "trebodar.step"
 CACHE = HERE / ".cache"
 FORMAT = 1                     # höj när cacheformatet ändras
 NAT_LIN = 2.0                  # triangulering: kordavvikelse (mm)
