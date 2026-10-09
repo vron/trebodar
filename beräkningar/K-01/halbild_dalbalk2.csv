@@ -1,5 +1,5 @@
-# Dalbalk 2, total längd 10070 mm. Hål Ø10,5, utan försänkning. x från vänster balkände, y från plåtens kant mot balkens framsida [mm].
-# Underplåtens rader är speglade (y_under = 200 - y_over) så att skruvarna i ytterraderna inte står mitt för varandra (mittraden y = 100 möts med 10 mm mellan spetsarna).
+# Dalbalk 2, total längd 10070 mm. Hål Ø13 genomgående, cylindriska, utan försänkning, för skruv Rothoblaas HBS PLATE EVO 10×80 (HBSPLEVO1080). x från vänster balkände, y från plåtens kant mot balkens framsida [mm].
+# Underplåtens rader är speglade (y_under = 200 - y_over) så att skruvarna i ytterraderna inte står mitt för varandra (i mittraden y = 100 är det 30 mm mellan spetsarna).
 bit;plat_fran;plat_till;nr;x_mm;y_over;y_under
 1;6337;10070;1;6377;45;155
 1;6337;10070;2;6417;155;45
@@ -24,8 +24,8 @@ bit;plat_fran;plat_till;nr;x_mm;y_over;y_under
 1;6337;10070;21;7457;45;155
 1;6337;10070;22;7657;155;45
 1;6337;10070;23;7857;45;155
-1;6337;10070;24;7964;155;45
-1;6337;10070;25;8070;45;155
+1;6337;10070;24;8057;155;45
+1;6337;10070;25;8164;45;155
 1;6337;10070;26;8270;155;45
 1;6337;10070;27;8470;45;155
 1;6337;10070;28;8670;155;45

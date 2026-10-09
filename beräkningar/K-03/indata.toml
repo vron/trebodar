@@ -225,8 +225,8 @@ gamla = "D"
 [huvudstolpe]
 L = 2900                # golv till strävornas fäste (K-01)
 N_d = 49.0              # K-01, stolpe 4 st 45×120
-M_d = 2.91              # K-01
-F_strava = 42.9         # strävornas största lodräta kraft mot balken (K-01)
+M_d = 2.90              # K-01
+F_strava = 42.8         # strävornas största lodräta kraft mot balken (K-01)
 e = 770                 # strävans fäste i balken från stolpen (K-01)
 strava_b = 45
 strava_h = 120

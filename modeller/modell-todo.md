@@ -40,7 +40,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
    | TF3 | 647–1 601; 9 539–10 739 | 10 139 (8 847) |
 
 7. **Nock- och dalbalkarna och takbalkarnas upplag som i K-01 och K-03.**
-   - Balkarna `HEA200 NV`, `NVb`, `M`, `SEb` och `SE` är i modellen HEA 200. Modellera dem som K-01: limträ 200×170 med plåt 200×10 i över- och underkant, 200×190 totalt.
+   - Balkarna `HEA200 NV`, `NVb`, `M`, `SEb` och `SE` är i modellen HEA 200. Modellera dem som K-01: limträ 200×170 med plåt 200×10 i över- och underkant, 200×190 totalt. Färdiga balkar med plåtar och skruvhål finns som STEP i `modeller/balkar/` och kan importeras.
    - Ta bort reglarna inuti profilen (`NN1_A` … `NN9_C`).
    - Sätt i stället en upplagsregel 45×45 längs balkens båda sidor, ovanpå underplåten.
    - Takbalkarna slutar mot balkens sida och vilar med ett hak på regeln (se K-03 figur 2).

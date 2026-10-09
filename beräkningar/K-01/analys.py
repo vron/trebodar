@@ -748,8 +748,12 @@ class Balkanalys:
             ys = []
             for xp in pos:
                 n_r, Y = rader_for(s_vid(xp), self.P)
+                fri = lambda y: xp - senast.get(y, -1e9) >= self.P["a1_rad"] - 1e-6
                 kand = sorted(Y, key=lambda y: senast.get(y, -1e9))
-                val = next((y for y in kand if xp - senast.get(y, -1e9) >= self.P["a1_rad"] - 1e-6), kand[0])
+                val = next((y for y in kand if fri(y)), None)
+                if val is None:                       # vid zonskifte: pröva även de andra raderna
+                    alla = sorted(set(Y) | set(self.P["rader"][3]), key=lambda y: senast.get(y, -1e9))
+                    val = next((y for y in alla if fri(y)), kand[0])
                 senast[val] = xp
                 ys.append(val)
             lagen[i] = np.column_stack([pos, ys])

@@ -3,7 +3,8 @@ Stålplåtar till nock- och dalbalkarna (K-01): en STEP-fil och en DXF-fil per p
 
     python generera.py
 
-Läser hålbilderna ../../beräkningar/K-01/halbild_*.csv och skriver en fil per plåtbit och läge
+Läser hålbilderna ../../beräkningar/K-01/halbild_*.csv och plåtens och hålens mått ur K-01:s indata.toml
+(hålets diameter är skruvens, se [skruv]), och skriver en fil per plåtbit och läge
 (över- respektive underplåt). Plåten ritas sedd ovanifrån i monterat läge:
     x = 0 vid plåtens ände närmast balkens vänstra ände, längs balken
     y = 0 vid plåtens kant mot balkens framsida
@@ -13,6 +14,7 @@ Kräver: pip install cadquery ezdxf
 import csv
 import math
 import re
+import tomllib
 from pathlib import Path
 
 import cadquery as cq
@@ -23,7 +25,10 @@ from OCP.STEPControl import STEPControl_AsIs, STEPControl_Writer
 
 HERE = Path(__file__).parent
 K01 = HERE.parent.parent / "beräkningar" / "K-01"
-B, T, D = 200.0, 10.0, 10.5          # plåtens bredd och tjocklek, håldiameter [mm]
+IN = tomllib.loads((K01 / "indata.toml").read_text(encoding="utf-8"))
+B, T = float(IN["geometri"]["b"]), float(IN["geometri"]["t_pl"])   # plåtens bredd och tjocklek [mm]
+D = float(IN["skruv"]["hal"])                                      # hålets diameter, enligt skruven [mm]
+SKRUV = f"{IN['skruv']['produkt']} ({IN['skruv']['kod']})"
 KORT = {"nockbalk": "NB", "dalbalk": "DB"}
 
 
@@ -90,5 +95,12 @@ for n, balk, nr, txt, L, a, b, nh, kg in rader:
 tab.append(f"| **Summa** | | | | **{sum(r[4] for r in rader):.0f}** | | **{sum(r[7] for r in rader)}** | **{sum(r[8] for r in rader):.0f}** |")
 readme = HERE / "README.md"
 txt = readme.read_text(encoding="utf-8")
+hal_txt = f"{D:g}".replace(".", ",")
+intro = (f"Stålplåtar {IN['stal']['kvalitet']} {B:.0f} × {T:.0f} mm till nock- och dalbalkarna enligt K-01 rev {IN['projekt']['revision']}. "
+         f"En STEP-fil (3D-solid) och en DXF-fil (2D-kontur) per plåt, för laserskärning. "
+         f"Hål Ø{hal_txt} mm genomgående, cylindriska, utan försänkning, för skruv {SKRUV}.")
+rader_txt = txt.splitlines()
+rader_txt[next(k for k, r in enumerate(rader_txt) if r.startswith("Stålplåtar "))] = intro
+txt = "\n".join(rader_txt) + "\n"
 readme.write_text(txt[: txt.index("## Förteckning")] + "## Förteckning\n\n" + "\n".join(tab) + "\n", encoding="utf-8")
 print(f"{len(rader)} plåtar, {sum(r[7] for r in rader)} hål")

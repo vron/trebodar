@@ -58,8 +58,8 @@ Plåtarna ligger i de långa fälten och går ut till balkänden där de når de
     [Limträ], [#r.tra.kvalitet enligt #r.tra.standard, #r.geo.b×#r.hw i hel längd. Fuktkvot #r.tra.fuktkvot.],
     [Distans], [Reglar #r.geo.b×#r.distans.tjocklek där plåt saknas, inga krav på limning. Glipa #r.distans.glipa mm mot plåtänden.],
     [Lim mot stål], [Tvåkomponents strukturepoxi för limning av stål (t.ex. Sikadur-30). Heltäckande fog mot båda plåtarna i hela plåtlängden.],
-    [Skruv], [Helgängad konstruktionsskruv med ETA, huvud med plan undersida för stålplåt, Ø#r.skruv.d×#r.skruv.langd. Enligt ETA: kärndiameter minst #r.skruv.d1 mm och $M_"y,Rk"$ minst #r.skruv.My_Rk Nm. Skruven sätts vinkelrätt mot plåten och går #r.intr mm in i limträet.],
-    [Hål], [Ø#r.skruv.hal, cylindriska utan försänkning. Huvudet ligger an mot plåtytan och sticker upp cirka #r.skruv.huvud mm. Förborrning i limträet genom plåthålen med Ø#r.skruv.forborr (högst kärndiametern).],
+    [Skruv], [#r.skruv.produkt (#r.skruv.kod, #r.skruv.eta)#footnote[Finns hos #link(r.skruv.lank)[#r.skruv.leverantor]. Mått och värden ur tillverkarens #link(r.skruv.datablad)[datablad]. En annan skruv kräver ny kontroll av bärförmågan och av hålens diameter.], skruv för stålplåt med ansats under huvudet. Kärndiameter #r.skruv.d1 mm, $M_"y,Rk"$ = #r.skruv.My_Rk Nm. #r.skruv.korrosion. Skruven sätts vinkelrätt mot plåten och går #r.intr mm in i limträet. Gängan börjar #r.ganga_start mm in i limträet.],
+    [Hål], [Ø#r.skruv.hal enligt tillverkaren, cylindriska genom hela plåten, utan försänkning. Ansatsen under huvudet (Ø#r.skruv.ansats) fyller hålet. Huvudet (Ø#r.skruv.huvud_d) ligger an mot plåten och sticker ut #r.skruv.huvud mm. Förborrning i limträet genom plåthålen med Ø#r.skruv.forborr, lika djupt som skruven. Skruven dras i ett drag tills huvudet ligger an mot plåten, med högst #r.skruv.moment Nm (momentbegränsare eller momentnyckel), inte med slagskruvdragare.],
     [Placering], [Två rader, #r.skruv.rader2.at(0) och #r.skruv.rader2.at(1) mm från plåtens ena långkant. Där delningen _s_ är under #r.skruv.s_tre_rader mm används tre rader (även #r.skruv.rader3.at(1) mm). Skruvarna fördelas på raderna så att c/c i varje rad blir minst #r.a1ax_min mm. Första skruv #r.skruv.ande mm från balkände och #r.skruv.ande_plat mm från plåtände inne på balken.],
   ),
 )
@@ -136,11 +136,12 @@ med $K_"ser" = rho_m^#"1,5" d slash 23$ = #r.Kser kN/mm (tabell 7.1). Limträets
     [Skruv Ø#r.skruv.d, tjock plåt (8.2.3)], [Värde],
     [$d_"ef" = #"1,1" d_1$ (8.7.1(3)); $d_"ef" > 6$ mm ger bultregler], [#r.d_ef mm],
     [$f_"h,0,k" = #"0,082" (1 - #"0,01" d_"ef") rho_k$ (8.32)], [#r.f_h MPa],
-    [$f_"ax,k" = #"0,52" d^(-#"0,5") l_"ef"^(-#"0,1") rho_k^#"0,8"$, $l_"ef"$ = #r.skruv.l_ef mm (8.39)], [#r.f_axk MPa],
-    [$F_"ax,Rk" = f_"ax,k" d l_"ef" k_d$, $alpha$ = 90°, $k_d$ = 1 (8.38)], [#r.F_ax kN],
-    [Brottmod (c), (d), (e) enligt (8.10), lindragseffekt $F_"ax,Rk" slash 4$], [#r.jc / #r.jd / #r.je kN],
+    [$f_"ax,k"$ = #r.skruv.fax_k MPa vid $rho_a$ = #r.skruv.rho_a enligt ETA, $times (rho_k slash rho_a)^#"0,8"$], [#r.f_axk MPa],
+    [$F_"ax,Rk" = f_"ax,k" d l_"ef"$, gängan i limträet $l_"ef"$ = #r.l_ef mm, $alpha$ = 90°], [#r.F_ax kN],
+    [Brottmod (c), (d), (e) enligt (8.10), $t_1$ = #r.t_ef mm, lindragseffekt $F_"ax,Rk" slash 4$], [#r.jc / #r.jd / #r.je kN],
     [$F_"v,Rk"$ (mod #r.mod)], [#r.FvRk kN],
     [$F_"v,Rd" = k_"mod" F_"v,Rk" slash gamma_M$, $gamma_M$ = #r.skruv.gamma_M], [*#r.FRd kN*],
+    [Jämförelse: tillverkarens $F_"v,k"$, tjock plåt, utan förborrning, $rho_k$ = 385], [#r.skruv.R_tjock_k kN],
   ),
   table(
     columns: (1fr, auto),
@@ -155,9 +156,9 @@ med $K_"ser" = rho_m^#"1,5" d slash 23$ = #r.Kser kN/mm (tabell 7.1). Limträets
   ),
 )
 
-*Tjock plåt.* Plåten är lika tjock som skruvens diameter ($t >= d$) och hålen är Ø#r.skruv.hal, dvs. hålspelet är under 0,1 _d_. Hålet är cylindriskt i hela plåttjockleken, så skruven får full inspänning i plåten och bärförmågan räknas för tjock plåt (8.2.3).
+*Tjock plåt.* Plåten är lika tjock som skruvens diameter ($t >= d$). Hålet Ø#r.skruv.hal är tillverkarens mått för skruven. Ansatsen under huvudet, Ø#r.skruv.ansats, fyller hålet med #r.glapp mm spel, och huvudet dras fast mot plåten. Skruven blir då inspänd i plåten. Tillverkaren och #r.skruv.eta räknar plåt med $t >= d$ som tjock plåt, och bärförmågan räknas så (8.2.3). Förborrningen ger högre hålkanthållfasthet i limträet än tillverkarens tabellvärde, som gäller utan förborrning.
 
-*Skruvdelning.* Delningen _s_ längs plåten varierar. Med två rader är c/c i varje rad $2 s$, med tre rader $3 s$. Den glesaste delningen begränsas till c/c #r.cc_max för att plåten ska hållas mot limträet när limmet härdar. Avstånden uppfyller både 8.5.1.1 (bultregler, förborrat: $a_1 >= 5d$, $a_2 >= 4d$, $a_3 >=$ #r.a3_min mm, $a_4 >= 3d$) och tabell 8.6 för axiellt belastad skruv, som krävs för lindragseffekten: $a_1 >= 7d$ = #r.a1ax_min mm i raden, $a_2 >= 5d$ = #r.a2ax_min mm mellan raderna, $a_"1,CG" >= 10d$ = #r.a1cg_min mm från balkände och $a_"2,CG" >= 4d$ = #r.a2cg_min mm från kant. Minsta c/c i en rad i schemana är #r.cc_rad_min mm. Vid en plåtände inne på balken sitter första skruven #r.skruv.ande_plat mm från plåtens ände (kantavstånd i stål, $>= #"1,2" d_0$). Skruvschemat är kontrollerat med de verkliga skruvlägena och knäcklängderna.
+*Skruvdelning.* Delningen _s_ längs plåten varierar. Med två rader är c/c i varje rad $2 s$, med tre rader $3 s$. Den glesaste delningen begränsas till c/c #r.cc_max för att plåten ska hållas mot limträet när limmet härdar. Avstånden uppfyller både 8.5.1.1 (bultregler, förborrat: $a_1 >= 5d$, $a_2 >= 4d$, $a_3 >=$ #r.a3_min mm, $a_4 >= 3d$) och tabell 8.6 för axiellt belastad skruv, som krävs för lindragseffekten: $a_1 >= 7d$ = #r.a1ax_min mm i raden, $a_2 >= 5d$ = #r.a2ax_min mm mellan raderna, $a_"1,CG" >= 10d$ = #r.a1cg_min mm från balkände och $a_"2,CG" >= 4d$ = #r.a2cg_min mm från kant. Minsta c/c i en rad i schemana är #r.cc_rad_min mm. Vid en plåtände inne på balken sitter första skruven #r.skruv.ande_plat mm från plåtens ände (kantavstånd i stål, $>= #"1,2" d_0$ = #r.e1_min mm). I stålet är c/c i en rad minst $#"2,2" d_0$ = #r.p1_min mm och mellan raderna minst $#"2,4" d_0$ = #r.p2_min mm (EC3 tabell 3.3). Skruvar från över- och underplåten står förskjutna i ytterraderna. I mittraden är det #r.gap_spets mm mellan spetsarna. Skruvschemat är kontrollerat med de verkliga skruvlägena och knäcklängderna.
 
 Tvärsnittet är lika brett som högt, så vippning är inte aktuell.
 
@@ -298,7 +299,7 @@ Stöden betecknas A, B, … från vänster och _x_ räknas från vänster balkä
 
 #if r.ok [Samtliga balkar uppfyller kraven i brottgränstillstånd (endast skruv, med temperatur) och bruksgränstillstånd (lim och skruv).] else [*Alla krav är inte uppfyllda, se tabellerna i avsnitt 6.*] Förutsättningar:
 
-+ Skruv Ø#r.skruv.d×#r.skruv.langd med ETA och plan undersida på huvudet: kärndiameter minst #r.skruv.d1 mm och $M_"y,Rk"$ minst #r.skruv.My_Rk Nm. Hål i plåt Ø#r.skruv.hal utan försänkning; hålens diameter får inte överstiga 11,0 mm (1,1 _d_). Förborrning högst Ø#r.skruv.forborr i limträet. Antal och lägen enligt hålbilden för respektive balk.
++ Skruv #r.skruv.produkt (#r.skruv.kod, #r.skruv.eta), #r.skruv.korrosion. Hål i plåten Ø#r.skruv.hal, cylindriska, utan försänkning. Förborrning Ø#r.skruv.forborr i limträet. Antal och lägen enligt hålbilden för respektive balk. En annan skruv kräver ny kontroll av bärförmågan och av hålens diameter.
 + Plåtbitarna tillverkas i hela längder utan skarv.
 + Limträet levereras #r.geo.b×#r.hw, #r.tra.kvalitet, i hel längd. Där plåt saknas sätts distansreglar #r.distans.tjocklek mm i över- och underkant, så att balken är #r.geo.h_tot mm hög i hela längden. Reglarna är inte bärande och kräver ingen särskild limning. De kan spricka eller släppa utan att det påverkar balken.
 + Stöd med negativ $R_"min"$ förankras för angiven dragkraft (dimensionerande värde). Vindlyft ger dragkraft vid samtliga stöd.

@@ -70,6 +70,8 @@ def rita_sektion(path, IN):
     for y in (t, H - t):
         ax.plot([0, b], [y, y], color="#6b4f2a", lw=1.1, zorder=3)
     d, L, hh = sk["d"], sk["langd"], sk["huvud"]
+    dk, da, ds = sk["huvud_d"], sk["ansats"], sk["ds"]
+    g0 = L - sk["b_ganga"]                                   # gängans början under huvudet
     xr = list(sk["rader2"])
 
     def skruv(xc, top, dashed):
@@ -77,13 +79,14 @@ def rita_sektion(path, IN):
         y0 = H if top else 0
         ls = (0, (2.2, 1.4)) if dashed else "solid"
         fc = "none" if dashed else "#5a5f66"
-        # huvud med plan undersida ovanpå plåten
-        ax.add_patch(Rectangle((xc - 9, y0 if not top else y0), 18, -sgn * hh, fc=fc, ec=INK, lw=0.5, ls=ls, zorder=4))
+        # huvud mot plåten, ansats i hålet, skaft och gänga
+        ax.add_patch(Rectangle((xc - dk / 2, y0), dk, -sgn * hh, fc=fc, ec=INK, lw=0.5, ls=ls, zorder=4))
         tip = y0 + sgn * L
-        body = [(xc - d / 2, y0), (xc + d / 2, y0), (xc + d / 2, tip - sgn * 6), (xc, tip), (xc - d / 2, tip - sgn * 6)]
+        prof = [(da / 2, 0), (da / 2, 4), (ds / 2, 12), (ds / 2, g0), (d / 2, g0), (d / 2, L - 6), (0, L)]
+        body = [(xc + r, y0 + sgn * z) for r, z in prof] + [(xc - r, y0 + sgn * z) for r, z in reversed(prof[:-1])]
         ax.add_patch(Polygon(body, closed=True, fc=fc, ec=INK, lw=0.5, ls=ls, zorder=4))
         if not dashed:
-            for yy in np.arange(y0 + sgn * (t + 3), tip - sgn * 8, sgn * 4.5):
+            for yy in np.arange(y0 + sgn * (g0 + 2), tip - sgn * 8, sgn * 4.5):
                 ax.plot([xc - d / 2, xc + d / 2], [yy, yy + sgn * 2.2], color="#d9dce0", lw=0.35, zorder=5)
 
     skruv(xr[0], True, False)
@@ -107,7 +110,7 @@ def rita_sektion(path, IN):
     ax.text(xt, t / 2 - 2, stal_txt, ha="right", va="center", fontsize=7, linespacing=1.15)
     ax.text(xt, H / 2 - 2, f"Limträ {tr['kvalitet']}\n{b}×{hw}", ha="right", va="center", fontsize=7, linespacing=1.15)
     ys = H - 52
-    ax.text(xt, ys, f"Skruv Ø{d}×{L}", ha="right", va="center", fontsize=7)
+    ax.text(xt, ys, f"Skruv\n{sk['produkt'].split(' ', 1)[1]}", ha="right", va="center", fontsize=7, linespacing=1.15)
     ax.plot([xt + 2, xr[0] - d / 2 - 1], [ys, ys], color=INK, lw=0.4, zorder=6)
     yl = 42
     ax.text(xt, yl, "Epoxilim", ha="right", va="center", fontsize=7)

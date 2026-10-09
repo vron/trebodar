@@ -79,4 +79,5 @@ V, F = m.nat(platta)           # triangelnät
 | `ritning.py` | 2D-snittritningar (matplotlib) |
 | `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, Lecaväggar) och R-03.1:s måttkedjor mot modellen |
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
+| `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |
 | `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |

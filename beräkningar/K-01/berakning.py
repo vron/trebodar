@@ -73,17 +73,21 @@ for typ in ("nock", "dal"):
     LAST[typ]["perm_rel"] = (LAST[typ]["qperm"] / 0.6) / (LAST[typ]["q610b"] / kmod)   # k_mod 0,6 permanent
 
 # ------------------------------------------------------------------ skruv Ø10, rak, vinkelrät mot fogen
-d, d1, lef = sk["d"], sk["d1"], sk["l_ef"]
+d, d1 = sk["d"], sk["d1"]
+t_ef = sk["langd"] - t - sk["spets"]                                  # inträngning i limträet, spets oräknad
+lef = min(sk["b_ganga"], sk["langd"] - t) - sk["spets"]              # gängans inträngning, spets oräknad
 My = sk["My_Rk"] * 1000                                                # Nmm
 rho_k, rho_m = tr["rho_k"], tr["rho_mean"]
 d_ef = 1.1 * d1                                                       # EC5 8.7.1(3)
-f_h = 0.082 * (1 - 0.01 * d_ef) * rho_k                              # EC5 (8.32), d_ef > 6 mm (8.7.1(4))
-f_axk = 0.52 * d ** -0.5 * lef ** -0.1 * rho_k ** 0.8                # EC5 (8.39)
-k_d = min(d / 8, 1.0)                                                 # EC5 (8.40)
-F_ax = f_axk * d * lef * k_d / (1.2 * math.cos(math.radians(90)) ** 2 + math.sin(math.radians(90)) ** 2)  # (8.38), α = 90°
-jc_0 = f_h * lef * d_ef * (math.sqrt(2 + 4 * My / (f_h * d_ef * lef ** 2)) - 1)   # EC5 (8.10c) utan lindragseffekt
+f_h = 0.082 * (1 - 0.01 * d_ef) * rho_k                              # EC5 (8.32), d_ef > 6 mm (8.7.1(4)), förborrat
+f_axk = sk["fax_k"] * (rho_k / sk["rho_a"]) ** 0.8                   # ETA, α = 90°
+F_ax = f_axk * d * lef                                                # utdrag; skruvens drag 40 kN är långt större
+jc_0 = f_h * t_ef * d_ef * (math.sqrt(2 + 4 * My / (f_h * d_ef * t_ef ** 2)) - 1)   # EC5 (8.10c) utan lindragseffekt
 jd_0 = 2.3 * math.sqrt(My * f_h * d_ef)                                            # (8.10d)
-je = f_h * lef * d_ef                                                              # (8.10e)
+je = f_h * t_ef * d_ef                                                             # (8.10e)
+gap_spets = Ht - 2 * (sk["langd"] - t)                               # mellan spetsarna i mittraden (över- och underplåt)
+assert gap_spets > 0, "skruvarna från över- och underplåt möts i mittraden"
+assert sk["hal"] > sk["ansats"] and sk["hal"] - sk["ansats"] <= 1.0, "hålet ska passa ansatsen under huvudet"
 jc = jc_0 + min(F_ax / 4, jc_0)                                       # lindragseffekt ≤ 100 % för skruv, 8.2.2(2)
 jd = jd_0 + min(F_ax / 4, jd_0)
 FvRk = min(jc, jd, je)
@@ -419,9 +423,10 @@ for nr, B in enumerate(IN["balk"], 1):
           f"distans {u_dist if u_dist is None else round(u_dist, 3)}, BRG {max(z['uval'] for z in brg):.2f}/{max(z['usval'] for z in brg):.2f}, konv {A.konvergerad}, verif {A.verifierad}")
     # hålbild per plåtbit (över- och underplåt; underplåtens rader speglade)
     with open(HERE / f"halbild_{B['namn'].lower().replace(' ', '')}.csv", "w", encoding="utf-8") as fh:
-        fh.write(f"# {B['namn']}, total längd {B['total']} mm. Hål Ø{txt(sk['hal'])}, utan försänkning. "
-                 f"x från vänster balkände, y från plåtens kant mot balkens framsida [mm].\n")
-        fh.write("# Underplåtens rader är speglade (y_under = 200 - y_over) så att skruvarna i ytterraderna inte står mitt för varandra (mittraden y = 100 möts med 10 mm mellan spetsarna).\n")
+        fh.write(f"# {B['namn']}, total längd {B['total']} mm. Hål Ø{txt(sk['hal'])} genomgående, cylindriska, utan försänkning, "
+                 f"för skruv {sk['produkt']} ({sk['kod']}). x från vänster balkände, y från plåtens kant mot balkens framsida [mm].\n")
+        fh.write(f"# Underplåtens rader är speglade (y_under = {b} - y_over) så att skruvarna i ytterraderna inte står mitt för varandra "
+                 f"(i mittraden y = {b / 2:.0f} är det {gap_spets:.0f} mm mellan spetsarna).\n")
         fh.write("bit;plat_fran;plat_till;nr;x_mm;y_over;y_under\n")
         for i, (p0, p1) in enumerate(A.platar):
             for k, (xp, yp) in enumerate(lagen[i], 1):
@@ -451,10 +456,21 @@ for nr, B in enumerate(IN["balk"], 1):
     figurer.rita_balk(HERE / f"fig_balk{nr}.svg", B, B["_A"], B["_env"], B["_rad"], BOKST)
 
 # ------------------------------------------------------------------ resultat till mallen
+# hålen i stålet (EC3 tabell 3.3): kantavstånd och delning med d0 = hålets diameter
+d0 = sk["hal"]
+cc_rad = min(float(np.min(np.diff(xy[xy[:, 1] == y, 0]))) for lg in POSALLA for xy in lg.values()
+             for y in set(xy[:, 1]) if (xy[:, 1] == y).sum() > 1)
+rad_avst = min(float(np.min(np.diff(sorted(r_)))) for r_ in (sk["rader2"], sk["rader3"]))
+kant_y = min(min(r_) for r_ in (sk["rader2"], sk["rader3"]))
+assert cc_rad >= 2.2 * d0 and rad_avst >= 2.4 * d0, "för tät hålbild i stålet"
+assert cc_rad >= 7 * d - 1e-6, "c/c i en rad under 7d (tabell 8.6)"
+assert sk["ande_plat"] >= 1.2 * d0 and kant_y >= 1.2 * d0, "för litet kantavstånd i stålet"
+
 R = {
     "projekt": IN["projekt"], "geo": dict(txtd(geo), t_pl_tal=t), "stal": txtd(st), "tra": txtd(tr), "skruv": dict(txtd(sk), rader2=[fmt(v, 0) for v in sk["rader2"]], langd_tal=sk["langd"], rader3=[fmt(v, 0) for v in sk["rader3"]]), "lim": IN["lim"],
     "laster": txtd(la), "modell": txtd(mo),
-    "hw": hw, "intr": fmt(sk["langd"] - t, 0), "m_balk": fmt(m_balk, 0), "g_tak_h": fmt(g_tak_h, 3), "g_balk": fmt(g_balk, 2), "g_utan": fmt(g_utan, 2), "m_utan": fmt(m_utan, 0),
+    "hw": hw, "intr": fmt(sk["langd"] - t, 0), "t_ef": fmt(t_ef, 0), "l_ef": fmt(lef, 0), "gap_spets": fmt(gap_spets, 0),
+    "glapp": fmt(sk["hal"] - sk["ansats"], 1), "ganga_start": fmt(sk["langd"] - sk["b_ganga"] - t, 0), "m_balk": fmt(m_balk, 0), "g_tak_h": fmt(g_tak_h, 3), "g_balk": fmt(g_balk, 2), "g_utan": fmt(g_utan, 2), "m_utan": fmt(m_utan, 0),
     "vindlast": {typ: dict(W={z: fmt(v_, 2) for z, v_ in LAST[typ]["W"].items()}, qW={z: fmt(v_, 2) for z, v_ in LAST[typ]["qW"].items()}) for typ in LAST},
     "vind": dict(vb=fmt(vi["vb"], 0), terrang=vi["terrang"], z=txt(vi["z"]), e=txt(vi["e"]), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(qp / qb, 2),
                  cpe={z: fmt(vi["cpe"][z], 1) for z in cnet}, cpi=fmt(vi["cpi"], 1), cnet={z: fmt(cnet[z], 1) for z in cnet},
@@ -486,8 +502,7 @@ R = {
     "lim_umax": pct(max(l["uval"] for l in LIM)), "lim_umin": pct(min(l["uval"] for l in LIM)), "L_slapp": fmt(L_slapp, 0),
     "lam_lim": fmt(math.sqrt(k_lim * (1 / (Es * A1) + 2 / (Et * b * hw))) * 1e3, 2),
     "u_full_max": pct(max(UFULL)),
-    "cc_rad_min": fmt(min(float(np.min(np.diff(xy[xy[:, 1] == y, 0]))) for lg in POSALLA for xy in lg.values()
-                          for y in set(xy[:, 1]) if (xy[:, 1] == y).sum() > 1), 0),
+    "cc_rad_min": fmt(cc_rad, 0), "e1_min": fmt(1.2 * d0, 1), "p1_min": fmt(2.2 * d0, 1), "p2_min": fmt(2.4 * d0, 1),
     "ok": all(bb["ok"] for bb in balkar),
     "stal_m": fmt(sum(bb["stal_m"] for bb in balkar), 1),
     "stal_kg": fmt(sum(bb["stal_m"] for bb in balkar) * A1 * 1e-6 * st["densitet"], 0),

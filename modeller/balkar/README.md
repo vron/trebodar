@@ -5,7 +5,7 @@ En STEP-sammanställning (AP214, enhet mm) per nock- och dalbalk enligt K-01 rev
 | Del | Namn i filen | Färg |
 |---|---|---|
 | Limträ GL30c 200×170 i hel längd | `NB1 limtra GL30c 200x170` | ljust trä |
-| Stålplåtar 200×10 med hål Ø10,5 | `NB1-1-O`, `NB1-1-U` … | grå |
+| Stålplåtar 200×10 med skruvhål enligt `../balkplattor` | `NB1-1-O`, `NB1-1-U` … | grå |
 | Distansreglar 200×10 där plåt saknas, 5 mm glipa mot plåtänden | `NB1 distansregel 1-O` … | blekt trä |
 
 Stålplåtarna läses in från `../balkplattor/*.step`, så geometrin är exakt densamma som i skärfilerna. Skruvar och förborrade hål i limträet är inte modellerade.
