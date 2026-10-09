@@ -1,140 +1,171 @@
-"""Uppmätning av geometrin för K-05 ur Onshape-skärmbilderna (källare: kallare.png, plan 1: plan1.png) och Plattor.pdf.
-Koordinater i mm, x åt höger, y uppåt, origo i plattans nedre vänstra hörn (som i bilderna)."""
-import json, numpy as np
-from PIL import Image
-from scipy import ndimage as nd
+"""Geometrin för K-05 (och K-06, R-03) ur Onshape-modellen modeller/trebodar.step, exakt.
 
-S = 5450 / (1636.8 - 1062.2)          # mm/px, uppmätt 5450 i källarbilden
-KI = 30                                # kantisolering: Lecans ytterliv ligger 30 mm utanför plattans kant
-E = 175 - KI                           # väggens centrumlinje innanför plattans kant (Lecavägg 350: 100 + 150 isolering + 100)
-UPPL = 100                             # ytterväggar: upplag 75 mm in från väggens insida (EC2 5.3.2.2, a = min(h/2, t/2))
-# passning: kärnans centrumlinje i px -> plattkant ± 175
-X = [(618, E), (1092, 4500 + E), (2042, 13810 - E), (1619, 9500 + E)]
-Y = [(1617, E), (1513, 1000 + E), (1240, 3590 + E), (331, 12510 - E), (489, 11010 - E)]
-x0 = np.mean([m - S * p for p, m in X]); y0 = np.mean([m + S * p for p, m in Y])
-fx = lambda p: S * p + x0
-fy = lambda p: -S * p + y0
+    ../../../verktyg/modellanalys/.venv/bin/python geometri.py
 
-kontur = [(0, 0), (4500, 0), (4500, 3590), (0, 3590)][::-1]   # ersätts nedan
-kontur = [(4500, 0), (9310, 0), (9310, 1000), (13810, 1000), (13810, 12510), (9500, 12510), (9500, 11010),
-          (4310, 11010), (4310, 15900), (0, 15900), (0, 3590), (4500, 3590)]
-hal = [(7350, 5050), (9420, 5050), (9420, 5878), (7350, 5878)]
+Kräver modellanalysens miljö (OCP), se verktyg/modellanalys/README.md. Koordinater i mm, x åt höger, y uppåt,
+origo i skärningen mellan plattkanterna x = 0 och y = 0 (plattans nedre vänstra hörn, som i K-05).
 
-# kärnor ur källarbilden (px): (riktning, läge, från, till)
-a = np.array(Image.open('kallare.png').convert('RGB')).astype(int)
-R, G, B = a[..., 0], a[..., 1], a[..., 2]
-pink = (R > 200) & (G > 150) & (G < 205) & (B > 180) & (B < 232)
-brown = (abs(R - 176) < 16) & (abs(G - 163) < 12) & (abs(B - 160) < 14)
-core = nd.binary_closing(brown, iterations=3) & ~pink
-bars = []
-for ax, k in (("h", np.ones((1, 25), bool)), ("v", np.ones((25, 1), bool))):
-    lab, n = nd.label(nd.binary_opening(core, structure=k))
-    for s in nd.find_objects(lab):
-        yy0, yy1, xx0, xx1 = s[0].start, s[0].stop, s[1].start, s[1].stop
-        t = (yy1 - yy0) if ax == "h" else (xx1 - xx0)
-        if not 7 <= t <= 12:
-            continue
-        if ax == "h":
-            bars.append(("h", fy((yy0 + yy1 - 1) / 2), fx(xx0 - 2), fx(xx1 + 1)))
-        else:
-            bars.append(("v", fx((xx0 + xx1 - 1) / 2), fy(yy1 + 1), fy(yy0 - 2)))
-# fäst vid plattkanterna
-SNAP = {"h": [E, 1000 + E, 3590 + E, 11010 - E, 12510 - E], "v": [E, 4500 + E, 9310 - E, 9500 + E, 13810 - E]}
-vagg = []
-for ax, c, s0, s1 in bars:
-    for v in SNAP[ax]:
-        if abs(c - v) < 60: c = v
-    vagg.append([ax, float(round(c, -1)), float(round(s0, -1)), float(round(s1, -1))])
-# hörn: förläng ändar till vinkelrät vägg inom 120 mm
-for w in vagg:
-    for k in (2, 3):
-        for o in vagg:
-            if o[0] != w[0] and o[2] - 120 <= w[1] <= o[3] + 120 and abs(o[1] - w[k]) < 320:
-                w[k] = o[1]
-# dela väggar där marken börjar (y för källarens övre vägg i vänstra delen)
-yH3_ = max(w[1] for w in vagg if w[0] == "h" and w[2] < 1000)
-ny = []
-for w in vagg:
-    if w[0] == "v" and w[1] < 5000 and w[2] < yH3_ < w[3]:
-        ny += [[w[0], w[1], w[2], yH3_], [w[0], w[1], yH3_, w[3]]]
-    else:
-        ny.append(w)
-vagg = ny
-vagg.sort(key=lambda w: (w[0], -w[1], w[2]))
-# yttre/inre vägg och upplagslinje
-from shapely.geometry import Polygon as SP_, Point as PT_
-_slab = SP_(kontur)
-def _ute(x, y):
-    return (not _slab.contains(PT_(x, y))) or (x < 4310 + 1 and y > yH3_ + 1) or (4310 <= x <= 4550 + 1 and 9210 < y < 11010 and x < 4550)
-for w in vagg:
-    ax_, c, a_, b_ = w
-    m = (a_ + b_) / 2
-    p1, p2 = ((m, c - 300), (m, c + 300)) if ax_ == "h" else ((c - 300, m), (c + 300, m))
-    u1, u2 = _ute(*p1), _ute(*p2)
-    if u1 and not u2:
-        w += ["yttre", c + UPPL]
-    elif u2 and not u1:
-        w += ["yttre", c - UPPL]
-    else:
-        w += ["inre", c]
-# upplagslinjernas ändar följer den vinkelräta väggens upplagslinje
-for w in vagg:
-    for k in (2, 3):
-        for o in vagg:
-            if o[0] != w[0] and abs(o[1] - w[k]) < 1 and o[2] - 1 <= w[1] <= o[3] + 1:
-                w.append(("a" if k == 2 else "b", o[5]))
-stod = []
-for w in vagg:
-    a_, b_ = w[2], w[3]
-    for t in w[6:]:
-        if t[0] == "a": a_ = t[1]
-        else: b_ = t[1]
-    stod.append([w[0], w[5], a_, b_])
-vagg = [w[:6] for w in vagg]
-# pelare
-dark = a.sum(-1) < 350
-lab, n = nd.label(dark)
-pel = []
-for s in nd.find_objects(lab):
-    h, w = s[0].stop - s[0].start, s[1].stop - s[1].start
-    if 15 <= h <= 18 and 15 <= w <= 18 and s[1].start > 560:
-        pel.append((float(round(fx((s[1].start + s[1].stop - 1) / 2), -1)), float(round(fy((s[0].start + s[0].stop - 1) / 2), -1))))
-pel.sort(key=lambda p: (-p[1], p[0]))
-PLAT = 200
-hx0, hy0, hx1, hy1 = hal[0][0], hal[0][1], hal[2][0], hal[2][1]
-_p = []
-for x, y in pel:
-    if hx0 - PLAT <= x <= hx1 + PLAT and abs(y - hy1) < 200:
-        y = hy1 + PLAT / 2
-    elif hx0 - PLAT <= x <= hx1 + PLAT and abs(y - hy0) < 200:
-        y = hy0 - PLAT / 2
-    _p.append((x, y))
-pel = _p
-# yta på mark: vänstra delen ovanför källarens övre vägg
-yH3 = max(w[1] for w in vagg if w[0] == "h" and w[2] < 1000)
-xV3 = min(w[1] for w in vagg if w[0] == "v" and 4000 < w[1] < 5000 and w[3] > yH3)
-mark = [(0, yH3), (xV3, yH3), (xV3, 11010), (4310, 11010), (4310, 15900), (0, 15900)]
-# väggar på plan 1 (blå i plan1.png)
-t2 = json.load(open('trans2.json'))
-b2 = np.array(Image.open('plan1.png').convert('RGB')).astype(int)
-blue = (b2[..., 2] > b2[..., 0] + 20) & (b2[..., 2] > 150)
-blue = nd.binary_closing(blue, iterations=4)
-plan1 = []
-for ax, k in (("h", np.ones((1, 30), bool)), ("v", np.ones((30, 1), bool))):
-    lab, n = nd.label(nd.binary_opening(blue, structure=k))
-    for s in nd.find_objects(lab):
-        yy0, yy1, xx0, xx1 = s[0].start, s[0].stop, s[1].start, s[1].stop
-        X0, X1 = t2["sx"] * xx0 + t2["x0"], t2["sx"] * xx1 + t2["x0"]
-        Y1, Y0 = -t2["sy"] * yy0 + t2["y0"], -t2["sy"] * yy1 + t2["y0"]
-        plan1.append([ax, round(X0, -1), round(Y0, -1), round(X1, -1), round(Y1, -1)])
-# uppmätta värden uppdateras; stolpar, balkar, linjelaster och fria kanter i geometri.json lämnas orörda
+Uppdaterar kontur, hal, vagg, stod, pelare, mark, fria_kanter och E i geometri.json. Väggarnas och rörens
+numrering behålls. stolpar, balkar, takstol och linjelaster beskriver trästommen på plan 1, som inte är fullständigt
+modellerad, och lämnas orörda.
+
+vagg: [riktning, centrumlinje, a, b, "yttre"/"inre", upplagslinje]. a och b är den vinkelräta väggens centrumlinje
+i hörn och T-anslutningar, och väggens fysiska ände vid en fri ände (öppning), mätt strax under bjälklaget.
+Ytterväggarnas upplagslinje ligger UPPL in från centrumlinjen, innerväggarnas i centrumlinjen.
+"""
+import json
 import os
-gammal = json.load(open('geometri.json', encoding='utf-8')) if os.path.exists('geometri.json') else {}
-gammal.update(dict(kontur=kontur, hal=hal, vagg=vagg, stod=stod, pelare=pel, mark=mark, plan1=plan1, skala=S, E=E))
-json.dump(gammal, open('geometri.json', 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
-print(f"skala {S:.4f} mm/px, x0 {x0:.0f}, y0 {y0:.0f}")
-print("väggar"); [print("  ", w, "  upplag", st) for w, st in zip(vagg, stod)]
-print("pelare", len(pel)); [print("  ", i + 1, p) for i, p in enumerate(pel)]
-from shapely.geometry import Polygon as SP
-print("mark", mark, "yta", round(SP(mark).area / 1e6, 1), "m², platta", round(SP(kontur).area/1e6,1), "m²")
-print("plan1-väggar", len(plan1))
+import sys
+
+import numpy as np
+from shapely.geometry import Polygon
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+sys.path.insert(0, os.path.join(ROT, "verktyg", "modellanalys"))
+from geometri import Plan, linjeprob, snitt  # noqa: E402
+from modell import Modell  # noqa: E402
+
+UPPL = 100.0                 # ytterväggarnas upplagslinje innanför väggens centrumlinje [mm]
+Z_VAGG = -200.0              # nivå för väggarnas ändar och öppningar: strax under bjälklaget (uk -150)
+Z_MITT = -1000.0             # nivå för väggarnas centrumlinje
+
+m = Modell(tyst=True)
+_pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
+O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])          # origo och bjälklagets överkant
+LECA = m.valj("Bkärna,Isoskal")
+
+
+def r3(v):
+    """Flyttal med högst tre decimaler (koden räknar med flyttal i geometri.json)."""
+    return round(float(v), 3)
+
+
+def heltal(v):
+    v = round(float(v), 3)
+    return int(v) if v == int(v) else v
+
+
+def prob(p1, p2, z, delar=LECA):
+    """Sträckor [(t0, t1)] längs linjen p1→p2 (2D, K-05) på nivån z, sammanslagna, t i mm från p1."""
+    P1 = np.r_[p1, z] + O
+    P2 = np.r_[p2, z] + O
+    iv = sorted((t0, t1) for t0, t1, *_ in linjeprob(m, delar, P1, P2))
+    ut = []
+    for a, b in iv:
+        if ut and a <= ut[-1][1] + 0.01:
+            ut[-1][1] = max(ut[-1][1], b)
+        else:
+            ut.append([a, b])
+    return ut
+
+
+gammal = json.load(open(os.path.join(HERE, "geometri.json"), encoding="utf-8"))
+
+# ---------------------------------------------------------------- platta och trapphål
+pl = Plan.tolka(f"z={O[2] - 75}").flytta(O[0], O[1])
+yta = [s.yta for s in snitt(m, [_pl], pl)][0]
+yttre = np.array(yta.exterior.coords)[:-1]
+inre = np.array(yta.interiors[0].coords)[:-1]
+kontur = [[heltal(v) for v in yttre[np.argmin(np.hypot(*(yttre - p).T))]] for p in np.array(gammal["kontur"], float)]
+assert len(yttre) == len(kontur) and abs(Polygon(kontur).area - Polygon(yttre).area) < 1, \
+    "konturen har ändrat form – kontrollera hörnens ordning"
+hx0, hy0 = inre.min(0)
+hx1, hy1 = inre.max(0)
+hal = [[r3(hx0), r3(hy0)], [r3(hx1), r3(hy0)], [r3(hx1), r3(hy1)], [r3(hx0), r3(hy1)]]
+
+# ---------------------------------------------------------------- rör (numreringen P1–P19 behålls)
+ror = [d for d in m.delar if d.namn.startswith("K Pillar")]
+mitt = np.array([[(d.bbox[0] + d.bbox[3]) / 2 - O[0], (d.bbox[1] + d.bbox[4]) / 2 - O[1]] for d in ror])
+pelare, tagna = [], set()
+for x, y in gammal["pelare"]:
+    j = int(np.argmin(np.hypot(mitt[:, 0] - x, mitt[:, 1] - y)))
+    assert j not in tagna and np.hypot(*(mitt[j] - (x, y))) < 150, (x, y)
+    tagna.add(j)
+    pelare.append([r3(mitt[j, 0]), r3(mitt[j, 1])])
+assert len(tagna) == len(ror)
+
+# ---------------------------------------------------------------- Lecaväggar
+G0 = gammal["vagg"]
+cn = []                                           # exakt centrumlinje per vägg
+for ax, c, a, b, *_ in G0:
+    s = (a + b) / 2
+    p1, p2 = ((s, c - 400), (s, c + 400)) if ax == "h" else ((c - 400, s), (c + 400, s))
+    iv = prob(p1, p2, Z_MITT)
+    lo, hi = c - 400 + iv[0][0], c - 400 + iv[-1][1]
+    assert abs(hi - lo - 350) < 0.5, (ax, c, lo, hi)
+    cn.append((lo + hi) / 2)
+
+
+def hornvagg(i, v):
+    """Index för den vinkelräta vägg vars centrumlinje väggen i:s ände v ligger på, annars None."""
+    ax, c = G0[i][0], G0[i][1]
+    for j, (ax2, c2, a2, b2, *_) in enumerate(G0):
+        if ax2 != ax and abs(c2 - v) < 1 and a2 - 1 <= c <= b2 + 1:
+            return j
+    return None
+
+
+vagg = []
+for i, (ax, c, a, b, typ, cs) in enumerate(G0):
+    c_ = cn[i]
+    ander = []
+    for k, v in ((0, a), (1, b)):
+        j = hornvagg(i, v)
+        if j is not None:
+            ander.append(cn[j])
+            continue
+        # fri ände: väggens fysiska ände på linjen, strax under bjälklaget
+        p1, p2 = ((min(a, b) - 1500, c_), (max(a, b) + 1500, c_)) if ax == "h" else ((c_, min(a, b) - 1500), (c_, max(a, b) + 1500))
+        iv = [(min(a, b) - 1500 + t0, min(a, b) - 1500 + t1) for t0, t1 in prob(p1, p2, Z_VAGG)]
+        s = (a + b) / 2
+        bit = [t for t in iv if t[0] - 200 <= s <= t[1] + 200] or [min(iv, key=lambda t: min(abs(t[0] - s), abs(t[1] - s)))]
+        ander.append(bit[0][0] if k == 0 else bit[0][1])
+    up = c_ + np.sign(cs - c) * UPPL if typ == "yttre" else c_
+    vagg.append([ax, r3(c_), r3(ander[0]), r3(ander[1]), typ, r3(up)])
+
+# upplagslinjernas ändar följer den vinkelräta väggens upplagslinje (som tidigare)
+stod = []
+for i, w in enumerate(vagg):
+    a_, b_ = w[2], w[3]
+    for k in (2, 3):
+        j = hornvagg(i, G0[i][k])
+        if j is not None:
+            if k == 2:
+                a_ = vagg[j][5]
+            else:
+                b_ = vagg[j][5]
+    stod.append([w[0], w[5], a_, b_])
+
+# ---------------------------------------------------------------- plattan på mark och fria kanter
+yH3 = max(w[1] for w in vagg if w[0] == "h" and w[2] < 1000)                  # V3
+xV3 = min(w[1] for w in vagg if w[0] == "v" and 4000 < w[1] < 5000 and w[3] > yH3)   # V20
+mark = [[0.0, yH3], [xV3, yH3], [xV3, 11010.0], [4310.0, 11010.0], [4310.0, 15900.0], [0.0, 15900.0]]
+
+
+def oppningar(y_lin, c, x0, x1):
+    """Öppningar i väggen (centrumlinje c) mellan x0 och x1 strax under bjälklaget, som sträckor på plattkanten y_lin."""
+    iv = [(x0 + t0, x0 + t1) for t0, t1 in prob((x0, c), (x1, c), Z_VAGG)]
+    return [[[r3(b), y_lin], [r3(a2), y_lin]] for (a, b), (a2, b2) in zip(iv, iv[1:]) if a2 - b > 1]
+
+
+v18, v17 = vagg[17][1], vagg[16][1]                                           # hörnen vid fasaden med öppningar
+fria = oppningar(0, vagg[9][1], v18, v17) + oppningar(1000, vagg[8][1], vagg[16][1], vagg[13][1])
+
+E = r3(vagg[20][1])                                                          # V21: centrumlinjen innanför plattkanten
+nytt = dict(gammal)
+for k in ("skala", "plan1"):                                                 # skärmbildernas mätdata, används inte
+    nytt.pop(k, None)
+nytt.update(kontur=kontur, hal=hal, vagg=vagg, stod=stod, pelare=pelare, mark=mark, fria_kanter=fria, E=E)
+json.dump(nytt, open(os.path.join(HERE, "geometri.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+
+if __name__ == "__main__":
+    print(f"modell: {m.fil.name} ({m.hash}), origo {O[:2].round(3).tolist()}, bjälklagets ök z = {O[2]:.3f}")
+    print("trapphål", hal)
+    for i, w in enumerate(vagg, 1):
+        print(f"  V{i:<3} {w}  upplag {stod[i - 1]}")
+    for i, p in enumerate(pelare, 1):
+        print(f"  P{i:<3} {p}")
+    print("mark", mark, f"{Polygon(mark).area / 1e6:.2f} m²")
+    print("fria kanter", fria)
+    print("E", E)

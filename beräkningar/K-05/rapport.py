@@ -46,7 +46,7 @@ L = LA.alla()
 D["enh"] = dict(g_betong=f(LA.G_BETONG, 2), g_golv=f(LA.G_GOLV, 2), gk=f(LA.G_BETONG + LA.G_GOLV, 2),
                 q=f(LA.Q_NYTTIG), qv=f(LA.Q_VAGG), g_tak=f(LA.G_TAK, 2), g_tak_h=f(LA.G_TAK_H, 2), s=f(LA.S_K),
                 g_vagg=f(LA.G_VAGG), h_vagg=f(LA.H_VAGG), utspr=f(LA.UTSPRANG), cc=f(LA.CC_TAKBALK),
-                takstol=f(LA.G_TAKSTOL, 2), vinkel=f(LA.TAKVINKEL, 0), vagg_in=mm(LA.VAGG_IN),
+                takstol=f(LA.G_TAKSTOL, 2), vinkel=f(LA.TAKVINKEL, 0), vagg_in=f(LA.VAGG_IN, 1),
                 tr_l=f(LA.TRAPPA["langd"]), tr_b=f(LA.TRAPPA["bredd"], 2), tr_g=f(LA.TRAPPA["g"]), tr_q=f(LA.TRAPPA["q"]),
                 t_mitt=f(2.405 / 2 + LA.UTSPRANG, 2), t_sida=f(2.155 / 2 + LA.UTSPRANG, 2))
 PL = {"platta": "plattan", "vägg": "Lecavägg", "mark": "mark"}
@@ -88,6 +88,11 @@ from shapely.geometry import Polygon as _Poly  # noqa: E402
 _K = _Poly(G["kontur"])
 D["snotak"] = f(LA.S_K * (_K.area / 1e6 + _K.length / 1e3 * LA.UTSPRANG), 0)
 D["yta"] = dict(mark=f(_Poly(G["mark"]).area / 1e6, 1), tot=f(_Poly(G["kontur"], [G["hal"]]).area / 1e6, 0))
+# rören vid trapphålet: avstånd från rörets centrum till hålkanten (geometri ur Onshape-modellen)
+from shapely.geometry import Point as _Pt  # noqa: E402
+_dh = [_Pt(G["pelare"][i - 1]).distance(_Poly(G["hal"])) for i in (6, 7, 13, 14)]
+D["yta"]["ror_hal"] = f"{f(min(_dh), 1)}–{f(max(_dh), 0)}"
+
 
 # ------------------------------------------------------------------ böjning och zoner
 D["boj"] = [
@@ -293,5 +298,5 @@ json.dump(D, open(os.path.join(HERE, "rapport/data.json"), "w"), ensure_ascii=Fa
 
 import typst  # noqa: E402
 typst.compile(os.path.join(HERE, "rapport/mall.typ"), output=os.path.join(HERE, "rapport/K-05_mellanbjalklag.pdf"),
-              font_paths=["/usr/share/fonts"], root=HERE)
+              font_paths=["/usr/share/fonts", os.path.join(os.path.dirname(HERE), ".fonts")], root=HERE)
 print("K-05_mellanbjalklag.pdf")

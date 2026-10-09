@@ -50,9 +50,14 @@ FYLL = {
     "V9": dict(h=(0.0, 0.8), ande=("f", "h")),
     "V14": dict(h=(0.8, 1.8), ande=("h", "h")),
     "V16": dict(h=(2.0, 2.0), ande=("h", "h")),
-    "V18": dict(h=(0.0, 2.0), ande=("f", "h")),
+    "V18": dict(h=(1.41, 1.52), ande=("f", "h")),     # avsatsen utanför sovrummet ligger mot väggen (modellen)
     "V20": dict(h=(H_FYLL_MARK, H_FYLL_MARK), ande=("h", "h"), platta=True),
     "V21": dict(h=(2.0, 2.0), ande=("h", "h")),
+    # Fasaden med öppningarna: under fönstren (bröstning 0,90 och 1,50 m) är väggen hel mellan hörnen vid V18 och
+    # V17. Fyllningen 0,80 m (modellen) ligger mot den delen. Räknas som en vägg mellan hörnen med fri överkant
+    # (bröstningen); pelarna V10–V13 upp till bjälklaget räknas inte som stöd i toppen (på säker sida).
+    "V10–V13": dict(h=(0.80, 0.80), ande=("h", "h"), fasad=dict(linje="V10", mellan=("V18", "V17"),
+                                                                 omfattar=("V10", "V11", "V12", "V13"))),
 }
 
 # ------------------------------------------------------------------ murverk (EKS 12 avdelning H)

@@ -51,9 +51,12 @@ ANDE = {"h": "hörn", "f": "fri"}
 rows, stolp = [], []
 for v in R["vaggar"]:
     fy = v["fyll"]
-    fyll = "–" if max(fy) <= 0 else (f(fy[0]) if abs(fy[0] - fy[1]) < 1e-9 else f"{f(fy[0])}–{f(fy[1])}")
+    _n = lambda h: 1 if abs(h - round(h, 1)) < 1e-9 else 2
+    fyll = "–" if max(fy) <= 0 else (f(fy[0], _n(fy[0])) if abs(fy[0] - fy[1]) < 1e-9
+                                     else f"{f(fy[0], _n(fy[0]))}–{f(fy[1], _n(fy[1]))}")
     r = dict(namn=v["namn"], L=f(v["L"], 2), fyll=fyll, typ=v["typ"], ande=f"{ANDE[v['ande'][0]]}/{ANDE[v['ande'][1]]}",
-             vA=pr(v["A"]["vert"]["utn"]), vB=pr(v["B"]["vert"]["utn"]))
+             vA=pr(v["A"]["vert"]["utn"]) if "vert" in v["A"] else "–",
+             vB=pr(v["B"]["vert"]["utn"]) if "vert" in v["B"] else "–")
     if max(fy) > 0:
         A, B = v["A"], v["B"]
         r.update(regel="ja" if (v["regel"] and v["L"] <= v["regel"]["varannan"]) else "nej",
@@ -72,7 +75,12 @@ for v in R["vaggar"]:
     rows.append(r)
 D["vagg"] = rows
 D["vagg_fyllda"] = [r for r in rows if r["aterfyllt"]]
-D["vagg_ovriga"] = ", ".join(r["namn"] for r in rows if not r["aterfyllt"])
+_fasad = {n for f in I.FYLL.values() if "fasad" in f for n in f["fasad"]["omfattar"]}
+D["vagg_ovriga"] = ", ".join(r["namn"] for r in rows if not r["aterfyllt"] and r["namn"] not in _fasad)
+D["fasad"] = next(dict(namn=n, h=f(fv["h"][0], 2), L=f(next(v["L"] for v in R["vaggar"] if v["namn"] == n), 2))
+                  for n, fv in I.FYLL.items() if "fasad" in fv)
+_v18 = I.FYLL["V18"]["h"]
+D["v18"] = dict(a=f(_v18[0], 2), b=f(_v18[1], 2))
 D["stolp"] = stolp
 D["nstolp"] = {s: sum(x["n"] for x in stolp if x["sys"] == s) for s in ("A", "B")}
 D["stolp_vagg"] = {s: ", ".join(f"{x['vagg']} ({x['n']})" for x in stolp if x["sys"] == s) for s in ("A", "B")}
@@ -81,7 +89,7 @@ D["lamA"] = dict(min=f(min(v["A"]["1"]["lam"] for v in fyllda), 2))
 D["lamB"] = dict(min=f(min(v["B"]["1"]["lam"] for v in fyllda), 2))
 D["Rtop_max"] = f(max(v["R_topp"] for v in fyllda))
 D["Rbot_max"] = f(max(v["R_botten"] for v in fyllda))
-vmax = {s: max(R["vaggar"], key=lambda v: v[s]["vert"]["utn"]) for s in ("A", "B")}
+vmax = {s: max((v for v in R["vaggar"] if "vert" in v[s]), key=lambda v: v[s]["vert"]["utn"]) for s in ("A", "B")}
 D["vert"] = {s: dict(namn=vmax[s]["namn"], utn=pr(vmax[s][s]["vert"]["utn"]), N=f(vmax[s][s]["vert"]["N"]),
                      NRd=f(vmax[s][s]["vert"]["NRd"]), Phi=f(vmax[s][s]["vert"]["Phi"], 2)) for s in ("A", "B")}
 stmax = max((x for x in stolp), key=lambda x: float(x["utn"].rstrip(" %")))
@@ -149,7 +157,7 @@ for u in ("L300", "L400"):
                vagg=f"{f(p['sattning']['vagg_min'], 1)}–{f(p['sattning']['vagg_max'], 1)}",
                skillnad=f(p["sattning"]["skillnad"], 1)),
         falt=dict(mu=f(p["falt"]["mu_ra"]), mo=f(p["falt"]["mo_ra"]), MRu=f(p["falt"]["MRu"]), MRo=f(p["falt"]["MRo"]),
-                  utn=pr(p["falt"]["utn_ra"])),
+                  utn=pr(p["falt"]["utn_ra"]), d=mm(p["falt"]["d"]), topp=f(p["falt"]["topp_mu"])),
         kant=dict(Ms=f(max(b["Msag"] for b in kant)), Mh=f(max(b["Mhog"] for b in kant)), V=f(max(b["V"] for b in kant)),
                   MRd=f(kant[0]["uk"]["MRd"]), MRo=f(kant[0]["ok"]["MRd"]),
                   utnV=pr(max(b["skjuv"]["utn"] for b in kant)), VRd=f(kant[0]["skjuv"]["VRdc"]),
@@ -257,5 +265,5 @@ json.dump(D, open(os.path.join(HERE, "rapport/data.json"), "w"), ensure_ascii=Fa
 
 import typst  # noqa: E402
 typst.compile(os.path.join(HERE, "rapport/mall.typ"), output=os.path.join(HERE, "rapport/K-06_grund.pdf"),
-              font_paths=["/usr/share/fonts"], root=HERE)
+              font_paths=["/usr/share/fonts", os.path.join(os.path.dirname(HERE), ".fonts")], root=HERE)
 print("K-06_grund.pdf")

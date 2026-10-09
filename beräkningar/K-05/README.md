@@ -4,8 +4,8 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 
 | Fil | Innehåll |
 |---|---|
-| `bild/geometri.json` | Geometri: plattans kontur och trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter, stolparnas lägen på plan 1 och linjelasten från dalbalk 2 |
-| `bild/geometri.py` | Uppmätning av väggar och rör ur Onshape-skärmbilderna `kallare.png` och `plan1.png`. Uppdaterar bara de uppmätta posterna i `geometri.json` |
+| `bild/geometri.json` | Geometri: plattans kontur och trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter (exakt ur Onshape-modellen), stolparnas lägen på plan 1 och linjelasten från dalbalk 2 |
+| `bild/geometri.py` | Hämtar kontur, trapphål, Lecaväggar, rör, platta på mark och fria kanter exakt ur `modeller/trebodar.step` (kör med `verktyg/modellanalys/.venv/bin/python`). Trästommens poster på plan 1 lämnas orörda |
 | `laster.py` | Alla laster: utbredda laster (F-01), punktlaster LN/LD/LA ur K-01 och gaveltakstolarna, ytterväggar qY1–qY12, qD2, trappan qT, vindlyft. Indata överst i filen |
 | `platta.py` | FE för plattor (DKT-element): nät med lokal förfining, stöd (linje, rör som fjäder, bädd), laster, moment, reaktioner, Wood–Armer |
 | `ec2.py` | Material och kontroller enligt SS-EN 1992-1-1 med EKS; rörens knäckning |
@@ -25,6 +25,7 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 
 ```
 pip install -r requirements.txt
+../../verktyg/modellanalys/.venv/bin/python bild/geometri.py   # geometrin ur modellen, när den har ändrats
 python laster.py          # lastsammanställning
 python validering/ytterskikt.py   # behövs av berakning.py (zonen vid LD4_2)
 python berakning.py       # cirka 8 min
@@ -40,8 +41,9 @@ Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosex
 
 - Betong C25/30, B500B. Nät Ø10 s150 i underkant (täckskikt 20 mm) och Ø8 s150 i överkant (täckskikt 25 mm).
 - Ytterväggarnas upplagslinje ligger 75 mm in från väggens insida; plattan går till 30 mm från Lecans ytterliv.
+- Ytterväggarna på plan 1 står över Lecans yttre skikt, centrum 17,5 mm innanför plattans kant (modellen).
 - Laster från plan 1: K-01:s stödreaktioner; gavlarnas nockbalksändar via takstolar till hörnen; takfotsväggar bär halva takbalken plus 0,2 m utsprång; ytterväggar 0,6 kN/m²; trappan hänger på hålets kortsida.
 - Lätta mellanväggar 0,7 kN/m² som nyttig last i brottgräns och permanent last i bruksgräns.
 - Momenttoppar utjämnas över 250 mm; stödmoment i överkant × 1,2 när zonerna avgränsas och tilläggsjärnen dimensioneras för 1,5 × FE (stela upplagslinjer ger nätberoende toppar vid väggändar).
 - Genomstansning: hela lasten på varje rör och stolpe på eget snitt 2d, β 1,15 (1,4 vid trapphålet), ρ ur överkantsarmeringen, för rören också FE-modellens lokala tvärkraft; minst 5 % marginal och ≤ 100 % med armeringen 10 mm för lågt. Nettokraften ur jämvikt redovisas bara som information. P7 har topplåt 160×160×25 S355.
-- Rören räknas med verklig axialstyvhet, som styva och som styva med Lecaväggarna som fjädrar (E = 2 000 MPa); det ogynnsammaste resultatet används. Rören vid trapphålet står 100 mm från hålkanten.
+- Rören räknas med verklig axialstyvhet, som styva och som styva med Lecaväggarna som fjädrar (E = 2 000 MPa); det ogynnsammaste resultatet används. Rören vid trapphålet står där de står i modellen, 62,5–81 mm från hålkanten (centrum).

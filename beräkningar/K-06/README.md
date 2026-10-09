@@ -32,7 +32,7 @@ python rapport.py              # rapport/K-06_grund.pdf
 
 ## Viktiga antaganden
 
-- Sprängt berg med dränerad makadam, inget vattentryck. Fyllning 2,0 m mot de slutna fasaderna, 1,8–0,8 m mot V14, 1,7 m bakom V3 och V20 (plattan på mark). Vilojordtryck $K_0 = 1 - \sin 40°$, 2,5 kN/m² på marken.
+- Sprängt berg med dränerad makadam, inget vattentryck. Fyllning 2,0 m mot de slutna fasaderna, 1,8–0,8 m mot V14, 1,41–1,52 m mot V18 (avsatsen), 0,80 m mot fasaden med öppningarna (hel under fönstren, räknas med fri överkant), 1,7 m bakom V3 och V20 (plattan på mark). Vilojordtryck $K_0 = 1 - \sin 40°$, 2,5 kN/m² på marken.
 - Murverk: EKS tabell H-1 ($\gamma_M$ = 2,1, kategori I, utförandeklass II), armering $\gamma_M$ = 1,3. System A räknas med samverkande vangar (Sikksakk), system B med vangarna var för sig.
 - Cellplast: $f_d = k_r f_{ck} / 1{,}3$, $E_k$ korttid och $0{,}4 E_k$ långtid. S100 under plattan, S200 under balkar och plintar, S300 vid hörnet V2/V20 (L300).
 - Lecan: $E = 1\,000 f_k$, kryptal 2,0, krympning 0,40 mm/m (påtvingad, faktor 1,0).

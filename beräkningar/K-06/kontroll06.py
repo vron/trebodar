@@ -284,9 +284,13 @@ def kontroll(utf):
     out["sattning"].update(ror_min=float(wr.min()), ror_max=float(wr.max()), vagg_min=float(wv.min()),
                            vagg_max=float(wv.max()), skillnad=float(np.median(wv) - np.median(wr)))
     out["svinn"] = dict(m_max=float(np.abs(L["mt_SV"][:, :2]).max()) / 1e3)
-    # fält: råa värden i tunna delen (utjämningen över 250 mm tar med balkarnas moment vid övergången)
-    out["falt"].update(mu_ra=float(mu[falt_n].max()) / 1e3, mo_ra=float(mo[falt_n].max()) / 1e3,
-                       utn_ra=float(max(mu[falt_n].max() / MRu, mo[falt_n].max() / MRo)))
+    # fält: råa värden i tunna delen (utjämningen över 250 mm tar med balkarnas moment vid övergången), minst d från
+    # balkar och plintar. Närmare än så är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående
+    # hörn mellan balkarna, där FE-lösningen är singulär; den redovisas som information (topp_*).
+    fd = falt_n & (dtj > d_uk)
+    out["falt"].update(mu_ra=float(mu[fd].max()) / 1e3, mo_ra=float(mo[fd].max()) / 1e3,
+                       utn_ra=float(max(mu[fd].max() / MRu, mo[fd].max() / MRo)), d=float(d_uk),
+                       topp_mu=float(mu[falt_n].max()) / 1e3, topp_xy=xy[falt_n][np.argmax(mu[falt_n])].tolist())
     # cellplastens största tryck medelvärdesbildat inom r = 150 mm (lokal hörntopp)
     trb = cKDTree(xy)
     zb = tn & ~s3

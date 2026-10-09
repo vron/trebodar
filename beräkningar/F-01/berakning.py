@@ -68,5 +68,5 @@ R = {
 
 import typst  # noqa: E402
 pdf = HERE / f"{IN['projekt']['dokument']}_forutsattningar.pdf"
-typst.compile(str(HERE / "mall.typ"), output=str(pdf), font_paths=["/usr/share/fonts"])
+typst.compile(str(HERE / "mall.typ"), output=str(pdf), font_paths=["/usr/share/fonts", str(HERE.parent / ".fonts")])
 print(pdf.name)

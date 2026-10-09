@@ -80,7 +80,7 @@ L300 räcker med S300 under kantbalken vid ett hörn. L400 sänker cellplasttryc
 
 - *Grund:* sprängt berg som avjämnas med makadam. Grunden dräneras runt huset, och det finns inget vattentryck mot väggar eller platta. Berget och den dränerade makadamen är inte tjälfarliga.
 - *Höjder:* fri höjd #D.mat.H mm från bottenplattans överkant till mellanbjälklagets underkant (rörens längd). Mellanbjälklaget är 150 mm.
-- *Fyllning:* höjden över bottenplattans överkant enligt @fig-kallare[figur]. Den är 2,0 m mot de slutna fasaderna. Mot V14 faller den från 1,8 till 0,8 m, och mot V18 och V9 från 2,0 respektive 0,8 m till noll vid fasaden med öppningarna. Bakom V3 och V20 ligger plattan på mark på plan 1 (K-05) på #D.mat.eps_mark mm cellplast. Där går fyllningen till #D.mat.hfm m och plattan räknas som ytlast, #D.mat.gmark kN/m² permanent och #D.mat.qmark kN/m² nyttig.
+- *Fyllning:* höjden över bottenplattans överkant enligt @fig-kallare[figur]. Den är 2,0 m mot de slutna fasaderna. Mot V14 faller den från 1,8 till 0,8 m och mot V9 från 0,8 m till noll vid öppningen. Mot V18 ligger avsatsen utanför sovrummet, #D.v18.a m vid fasaden och #D.v18.b m vid hörnet mot V7. Mot fasaden med öppningarna är fyllningen #D.fasad.h m (husets Onshape-modell). Bakom V3 och V20 ligger plattan på mark på plan 1 (K-05) på #D.mat.eps_mark mm cellplast. Där går fyllningen till #D.mat.hfm m och plattan räknas som ytlast, #D.mat.gmark kN/m² permanent och #D.mat.qmark kN/m² nyttig.
 - *Jordtryck:* vilojordtryck, eftersom väggarna hålls i topp och botten. $K_0 = 1 - sin phi'$ = #D.mat.K0 med $phi'$ = #D.mat.fi° för dränerande krossmaterial, $gamma$ = #D.mat.gamma kN/m³. Last på marken intill väggarna är #D.mat.q kN/m² (gångyta). Inga fordon får köra närmare än 2 m, och fyllningen packas inte närmare än 1 m från väggen.
 - *Användning:* källaren är uppvärmd och har golvvärme i bottenplattan.
 - *Laster från plan 1 och mellanbjälklaget* enligt K-05: samma punktlaster, väggar, kombinationer och mönster för nyttig last. Laster som står över en Lecavägg sprids 60° genom väggen ned till bottenplattan. Nyttig last i källaren är 2,0 + 0,7 kN/m².
@@ -125,7 +125,7 @@ Leca kräver Sikksakk-armering under mark för att vangerna ska samverka vid lå
 
 == Bärförmåga mot jordtryck <barformaga>
 
-Väggen bärs i botten av bottenplattan (urtag, @ansl), i toppen av mellanbjälklaget och på sidorna av hörnen, där armeringen förs runt, eller av stålstolpar. Bärförmågan räknas med brottlinjeteori (SS-EN 1996-1-1 5.5.5 och 6.6.2, Leca Teknisk håndbok 7.4.4). Mönstret är diagonaler från hörnen och en vågrät linje på höjden $y_0$, och både $y_0$ och läget längs väggen varieras. Jordtrycket är triangulärt, med fyllningens höjd längs väggen.
+Väggen bärs i botten av bottenplattan (urtag, @ansl), i toppen av mellanbjälklaget och på sidorna av hörnen, där armeringen förs runt, eller av stålstolpar. Bärförmågan räknas med brottlinjeteori (SS-EN 1996-1-1 5.5.5 och 6.6.2, Leca Teknisk håndbok 7.4.4). Mönstret är diagonaler från hörnen och en vågrät linje på höjden $y_0$, och både $y_0$ och läget längs väggen varieras. Jordtrycket är triangulärt, med fyllningens höjd längs väggen. Fasaden med öppningarna (#D.fasad.namn) är hel under fönstren mellan hörnen vid V18 och V17, #D.fasad.L m, och räknas med fri överkant: fönstrens bröstning ligger 0,90 och 1,50 m över bottenplattan, över fyllningen #D.fasad.h m. Pelarna mellan fönstren räknas inte som stöd i toppen. Mönstret har då en vågrät brottlinje under bröstningen eller ingen alls.
 - *Vågrätt moment* från armeringen i liggfogarna, $m_h = A_s f_"yd" z$, både i fält och över hörn och stolpar:
   - A: en Ø5 i den dragna vangen, $d$ = #A.d mm (Sikksakk 225 mm bred). Det ger $m_h$ = #A.mh1 kNm/m med armering i varje fog och #A.mh2 kNm/m i varannan.
   - B: en tråd Ø4 i bistålet, $d$ = #B.d mm i varje vange. Det ger $m_h$ = #B.mh1 kNm/m i varje skift och #B.mh2 kNm/m i vartannat, för båda vangerna tillsammans.
@@ -164,7 +164,7 @@ Stolparna tar bara vågrät last (@fig-lokala[figur]). De får inte bära bjälk
 == Vertikal last <vert>
 
 Lasten är det största av K-05:s värde över 1 m (med det som står direkt på väggen) och väggens last per meter i den samverkande modellen (@botten). Den läggs i sin helhet på den inre vangen för ytterväggar och fördelas lika på båda vangerna för innerväggar. Vid korta pelare sprids lasten 60° in i anslutande vägg ned till halva höjden. Bärförmågan är $Phi t f_d$ med $h_"ef" = 0,75 h$ och $t$ = 100 mm (bilaga G). Största utnyttjande: system A #D.vert.A.utn (#D.vert.A.namn, $N_"Ed"$ = #D.vert.A.N mot #D.vert.A.NRd kN/m) och system B #D.vert.B.utn (#D.vert.B.namn).
-- *Yttre vangen:* enligt K-05 tar den yttre vangen ungefär #D.ld42.andel av lasten från bjälklaget. Kontrollen ovan lägger hela lasten på den inre vangen, så den täcker båda vangerna. I kontrollen mot jordtryck räknas den inre vangen med 75 % av den permanenta lasten, vilket stämmer med fördelningen.
+- *Yttre vangen:* ytterväggarna på plan 1 står över den yttre vangen (K-05), så deras last och takets går ned i den. Enligt K-05 tar den yttre vangen ungefär #D.ld42.andel av lasten från bjälklaget. Kontrollen ovan lägger hela lasten på den inre vangen, så den täcker båda vangerna. I kontrollen mot jordtryck räknas den inre vangen med 75 % av den permanenta lasten, vilket stämmer med fördelningen.
 - *Punktlast LD4_2* (K-05, #D.ld42.F kN) står i hörnet V2/V20 ovanför de yttre vangerna. Under bjälklaget och det gjutna U-blocket (#D.ld42.h mm) har den spridits 45° till #D.ld42.A $dot 10^3$ mm² av vangerna, alltså #D.ld42.sig MPa. Läggs det ovanpå V2:s största last på den inre vangen (#D.ld42.sigV2 MPa, som redan innehåller LD4_2) blir det #D.ld42.tot MPa mot $f_d$ = #D.ld42.fdA MPa (A) och #D.ld42.fdB MPa (B), alltså #D.ld42.utnA och #D.ld42.utnB (SS-EN 1996-1-1 6.1.3 med $beta$ = 1). Direkt under bjälklaget bärs lasten främst av betongen i U-blocket, som är ungefär tio gånger styvare än Lecan.
 
 == Anslutningar och hörn <ansl>
@@ -261,7 +261,7 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
   caption: [Bottenplattan, utförande L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, och diagonaljärn vid inåtgående hörn.],
 ) <fig-platta>
 
-- *Platta 100 mm:* största moment utanför balkar och plintar är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m).
+- *Platta 100 mm:* största moment utanför balkar och plintar, minst $d$ = #P3.falt.d mm från dem, är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m). Närmare balkarna är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående hörn mellan balkarna (#P3.falt.topp kNm/m precis vid kanten). Toppen är en singularitet i FE-lösningen och avtar inom några centimeter; nätet går in i balkarna och tar momentet där.
 - *Kantbalkar:* balkmoment (plattans moment integrerat över 450 mm) högst #P3.kant.Ms kNm i underkant och #P3.kant.Mh kNm i överkant. 2 Ø10 i under- och överkant ger $M_"Rd"$ = #P3.kant.MRd / #P3.kant.MRo kNm (#P3.kant.utnM).
   - Tvärkraft högst #P3.kant.V kN, #P3.kant.utnV av $V_"Rd,c"$. Ingen tvärkraftsarmering behövs.
   - U-byglar Ø6 s600 håller längsjärnen på plats. Balken är en förtjockning av en platta på bädd, så minimiarmering för byglar behövs inte (6.2.1(4)).
@@ -296,7 +296,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 
 == Glidning, tjäle och fukt
 
-- *Glidning:* fasaden med öppningarna har ingen fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Kraften förs genom mellanbjälklaget och bottenplattan som skivor.
+- *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Kraften förs genom mellanbjälklaget och bottenplattan som skivor.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
 - *Fukt:* dränering och fuktskydd enligt @utfA och @utfB. Radonfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
 

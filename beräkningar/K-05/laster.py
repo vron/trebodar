@@ -38,7 +38,8 @@ H_VAGG = 2.5              # väggens höjd från bjälklaget till takfot [m]
 UTSPRANG = 0.2            # takutsprång vid takfot och gavel, horisontellt [m]
 CC_TAKBALK = 0.6          # takbalkarnas delning [m]
 G_TAKSTOL = 0.25          # gaveltakstolens egenvikt per fot [kN] (2 × 45×220 och underramstycke ≈ 45 kg)
-VAGG_IN = 120.0           # ytterväggens centrum innanför plattans kant [mm]
+VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: stommen 95 mm står från 30 mm utanför
+                          # till 65 mm innanför kanten, över Lecans yttre skikt (Onshape-modellen)
 
 # Dalbalk 2:s bärande vägg (träregelverk med gips på båda sidor): egentyngd utöver 0,7 kN/m² för lätta väggar.
 # Väggen har en dörröppning mot trappan vid trapphålet; karmstolparna står vid hålets två långsidor.

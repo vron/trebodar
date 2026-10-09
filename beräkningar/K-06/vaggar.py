@@ -36,13 +36,21 @@ H = I.H_VAGG / 1000      # m
 
 # ------------------------------------------------------------------ geometri
 def vaggar():
-    """Väggarna från K-05 med längd, ändar och fyllning."""
+    """Väggarna från K-05 med längd, ändar och fyllning, och fasaden med öppningarna (fri överkant) som en vägg
+    mellan sina hörn."""
     out = []
     for i, (ax, c, a, b, typ, cs) in enumerate(I.G05["vagg"], 1):
         n = f"V{i}"
         f = I.FYLL.get(n, dict(h=(0.0, 0.0), ande=("h", "h")))
         out.append(dict(namn=n, ax=ax, c=c, a=a, b=b, typ=typ, L=(b - a) / 1000, fyll=f["h"], ande=f["ande"],
-                        platta=f.get("platta", False)))
+                        platta=f.get("platta", False), topp_fri=False))
+    vagg = {v["namn"]: v for v in out}
+    for n, f in I.FYLL.items():
+        if "fasad" in f:
+            lin, (v1, v2) = vagg[f["fasad"]["linje"]], (vagg[x] for x in f["fasad"]["mellan"])
+            a, b = sorted((v1["c"], v2["c"]))
+            out.append(dict(namn=n, ax=lin["ax"], c=lin["c"], a=a, b=b, typ="yttre", L=(b - a) / 1000, fyll=f["h"],
+                            ande=f["ande"], platta=False, topp_fri=True))
     return out
 
 
@@ -97,10 +105,13 @@ def moment_v(sys_, N_inre):
     return m
 
 
-def brottlinje(L, p, mh, mh_v, mh_h, mv, ande, n=120):
+def brottlinje(L, p, mh, mh_v, mh_h, mv, ande, n=120, topp_fri=False):
     """Minsta lastfaktor λ = W_i / W_e över brottlinjemönstret med diagonaler från hörnen till (a, y0), (L−a, y0).
     mh: positivt horisontellt moment, mh_v/mh_h: negativt moment vid vänster/höger kant (0 om ledad eller fri),
-    mv: positivt vertikalt moment. ande: ("h"|"f", "h"|"f"). Botten och topp är ledat upplagda."""
+    mv: positivt vertikalt moment. ande: ("h"|"f", "h"|"f"). Botten och topp är ledat upplagda.
+    topp_fri: överkanten är fri (bröstning under fönster). För y0 < H förskjuts delen ovanför den vågräta
+    brottlinjen vid y0 utan att vrida sig; för y0 ≥ H vrider sig den nedre delen kring botten utan vågrät
+    brottlinje, och bara diagonalerna (projicerade på den vågräta axeln) ger inre arbete i den riktningen."""
     xs = (np.arange(n) + 0.5) / n * L
     ys = (np.arange(n) + 0.5) / n * H
     X, Y = np.meshgrid(xs, ys)
@@ -109,19 +120,30 @@ def brottlinje(L, p, mh, mh_v, mh_h, mv, ande, n=120):
     if P.sum() <= 0:
         return math.inf, None
     best = (math.inf, None)
+    y0s = np.linspace(0.04, 0.96, 24) * H
+    if topp_fri:
+        y0s = np.r_[y0s, np.linspace(1.0, 6.0, 26) * H]
+    sidor = (ande[0] == "h") + (ande[1] == "h")
     for a in np.r_[np.linspace(0.04, 1.0, 25) * L, [1.5 * L, 3 * L, 10 * L, 100 * L]]:
-        for y0 in np.linspace(0.04, 0.96, 24) * H:
-            plan = [Y / y0, (H - Y) / (H - y0)]
-            Wi = mv * L * (1 / y0 + 1 / (H - y0))
+        if ande[0] != "h" and ande[1] != "h" and a > L:
+            continue
+        for y0 in y0s:
+            if not topp_fri:
+                plan = [Y / y0, (H - Y) / (H - y0)]
+                Wi = mv * L * (1 / y0 + 1 / (H - y0))
+            elif y0 < H:
+                plan = [Y / y0, np.ones_like(Y)]
+                Wi = mv * L / y0
+            else:
+                plan = [Y / y0]
+                Wi = mv * min(L, sidor * a * H / y0) / y0
             if ande[0] == "h":
                 plan.append(X / a); Wi += (mh + mh_v) * H / a
             if ande[1] == "h":
                 plan.append((L - X) / a); Wi += (mh + mh_h) * H / a
-            if ande[0] != "h" and ande[1] != "h" and a > L:
-                continue
             d = np.minimum.reduce(plan)
             We = (P * d).sum() * dA
-            if Wi / We < best[0]:
+            if We > 0 and Wi / We < best[0]:
                 best = (Wi / We, (float(a), float(y0)))
     return best
 
@@ -129,8 +151,11 @@ def brottlinje(L, p, mh, mh_v, mh_h, mv, ande, n=120):
 def kontroll(v, sys_, var, stolpar=0):
     """λ för väggen (eller varje fack mellan stolpar) med system och armering var n:te fog."""
     mh, _ = moment_h(sys_, var)
-    w05 = VAGG05[v["namn"]]
-    N = 0.75 * max(w05["Gk"] - w05["ovan_G"], 0.0) / (w05["L"] / 1000)     # kN/m, permanent last från plattan
+    w05 = VAGG05.get(v["namn"])
+    if w05 is None or v.get("topp_fri", False):
+        N = 0.0                                     # bröstning: ingen last från plattan
+    else:
+        N = 0.75 * max(w05["Gk"] - w05["ovan_G"], 0.0) / (w05["L"] / 1000)     # kN/m, permanent last från plattan
     mv = moment_v(sys_, N)
     n = stolpar + 1
     Lf = v["L"] / n
@@ -141,7 +166,8 @@ def kontroll(v, sys_, var, stolpar=0):
         lam = math.inf
         for komb in ULS_JORD:
             p = tryck(v, komb, x0, x0 + Lf)
-            l, _ = brottlinje(Lf, p, mh, mh if ande[0] == "h" else 0.0, mh if ande[1] == "h" else 0.0, mv, ande)
+            l, _ = brottlinje(Lf, p, mh, mh if ande[0] == "h" else 0.0, mh if ande[1] == "h" else 0.0, mv, ande,
+                              topp_fri=v.get("topp_fri", False))
             lam = min(lam, l)
         res.append(lam)
     return min(res), dict(mh=mh, mv=mv, N=N, Lf=Lf, lam_fack=res)
@@ -243,13 +269,14 @@ def vertikal(v, sys_):
 
 def reaktioner(v):
     """Dimensionerande reaktion mot bjälklaget (topp) och bottenplattan (botten) [kN/m] för en vertikal strimla
-    vid största fyllning (övre gräns, väggen räknas som fritt upplagd mellan plattorna)."""
+    vid största fyllning (övre gräns, väggen räknas som fritt upplagd mellan plattorna). Med fri överkant tar
+    bottenplattan hela jordtrycket."""
     ys = np.linspace(0, H, 401)
     best = (0.0, 0.0)
     for komb in ULS_JORD:
         x = v["L"] if v["fyll"][1] >= v["fyll"][0] else 0.0
         p = tryck(v, komb)(np.full_like(ys, x), ys)
-        Rt = np.trapezoid(p * ys, ys) / H
+        Rt = 0.0 if v.get("topp_fri", False) else np.trapezoid(p * ys, ys) / H
         Rb = np.trapezoid(p, ys) - Rt
         best = (max(best[0], Rt), max(best[1], Rb))
     return best
@@ -258,11 +285,13 @@ def reaktioner(v):
 def tabell():
     rows = []
     for v in vaggar():
-        r = dict(namn=v["namn"], L=v["L"], fyll=v["fyll"], ande=v["ande"], typ=v["typ"], platta=v["platta"])
+        r = dict(namn=v["namn"], L=v["L"], fyll=v["fyll"], ande=v["ande"], typ=v["typ"], platta=v["platta"],
+                 ax=v["ax"], c=v["c"], a=v["a"], b=v["b"], topp_fri=v.get("topp_fri", False))
         r["regel"] = leca_regel(v)
         for s in ("A", "B"):
             r[s] = {}
-            r[s]["vert"] = vertikal(v, s)
+            if v["namn"] in VAGG05:                 # vertikal last: K-05:s väggar (fasaden: pelarna V10–V13)
+                r[s]["vert"] = vertikal(v, s)
             if max(v["fyll"]) <= 0:
                 continue
             for var in (2, 1):
@@ -289,7 +318,7 @@ if __name__ == "__main__":
     for r in tabell():
         txt = f"{r['namn']:4s} L {r['L']:5.2f} fyll {r['fyll']} {r['ande']}"
         for s in ("A", "B"):
-            vt = r[s]["vert"]
+            vt = r[s].get("vert") or dict(N=0.0, NRd=float("nan"), utn=0.0)
             txt += f" | {s}: N {vt['N']:5.1f}/{vt['NRd']:5.1f} ({vt['utn']*100:3.0f} %)"
             for var in (2, 1):
                 if var in r[s]:

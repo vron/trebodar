@@ -67,13 +67,10 @@ def rita_kallare(path, R, poly):
         ax.add_patch(Rectangle((x - 60, y - 60), 120, 120, fc=STAL, ec="white", lw=0.3, zorder=8))
         ax.text(x + 120, y + 100, f"P{i}", fontsize=5.4, zorder=9, path_effects=HALO)
     # fyllning
-    vmap = {v["namn"]: v for v in R["vaggar"]}
-    for i, w in enumerate(G["vagg"], 1):
-        n = f"V{i}"
-        v = vmap[n]
+    for v in R["vaggar"]:
         if max(v["fyll"]) <= 0:
             continue
-        ax_, c, a, b = w[:4]
+        ax_, c, a, b = v["ax"], v["c"], v["a"], v["b"]
         # utsidan: på den sida som ligger utanför källaren
         if ax_ == "h":
             s = 1 if not poly.contains(Point((a + b) / 2, c + 400)) else -1
@@ -85,7 +82,8 @@ def rita_kallare(path, R, poly):
             tx, ty, rot = c + s * 560, (a + b) / 2, 90
         ax.plot(*zip(p0, p1), color="#8a6d3b", lw=2.2, solid_capstyle="butt", zorder=5)
         h0, h1 = v["fyll"]
-        txt = sv(h0, 1) + " m" if abs(h0 - h1) < 1e-6 else f"{sv(h0, 1)} → {sv(h1, 1)} m"
+        nd = lambda h: 1 if abs(h - round(h, 1)) < 1e-9 else 2
+        txt = sv(h0, nd(h0)) + " m" if abs(h0 - h1) < 1e-6 else f"{sv(h0, nd(h0))} → {sv(h1, nd(h1))} m"
         ax.text(tx, ty, txt, ha="center", va="center", fontsize=6.0, rotation=rot, color="#6b5320", zorder=9,
                 path_effects=HALO)
     # stolpar
@@ -94,8 +92,7 @@ def rita_kallare(path, R, poly):
             e = v[sys_].get("1")
             if not e or not e.get("stolpar"):
                 continue
-            w = next(w for i, w in enumerate(G["vagg"], 1) if f"V{i}" == v["namn"])
-            ax_, c, a, b = w[:4]
+            ax_, c, a, b = v["ax"], v["c"], v["a"], v["b"]
             n = e["stolpar"]
             for k in range(n):
                 t = a + (b - a) * (k + 1) / (n + 1)
@@ -104,7 +101,7 @@ def rita_kallare(path, R, poly):
                 else:
                     x, y = c, t + off
                 ax.plot([x], [y], marker=mk_, ms=5.5, color=col, mec="white", mew=0.4, zorder=10, ls="none")
-    ax.text(6900, -900, "fasad med öppningar (ingen fyllning)", ha="center", fontsize=6.5)
+    ax.text(6900, -1000, "fasad med öppningar: fyllning under fönstren", ha="center", fontsize=6.5)
     items = [(plt.Line2D([0], [0], color="#8a6d3b", lw=2.2), "fyllning mot väggen (höjd över bottenplattan)"),
              (plt.Line2D([0], [0], marker="o", ls="none", color=BLA, ms=5), "stålstolpe, system A (Leca)"),
              (plt.Line2D([0], [0], marker="^", ls="none", color=ROD, ms=5), "stålstolpe, system B (Benders)"),
