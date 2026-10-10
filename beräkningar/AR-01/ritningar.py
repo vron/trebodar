@@ -399,8 +399,8 @@ def positioner():
          "2 brickor A4 per stång", f"hål Ø{S['hal_d']}, hef {S['hef']}", f"c/c ≤ {S['cc']}, ≤ {S['kant_max']} "
          "från vinkelns ände"],
         ["9", "Beslag", "plåt enligt arkitekt", "fall utåt, droppkant 15 utanför stenen", "stenens överkant"],
-        ["10", "Rörelsefog", "bottningslist + Mapei Mapesil LM (neutral silikon för natursten)", "10",
-         "inåtgående hörn, mot andra material, ≤ 6 m"],
+        ["10", "Anslutningsfog", "bottningslist + Mapei Mapesil LM (neutral silikon för natursten)", "10",
+         "mot dörr- och fönsterkarmar och andra material"],
     ]
     return dict(typ="tabell", kolumner=["Pos", "Del", "Produkt, material", "Mått (mm)", "Antal, avstånd"],
                 bredd=(0, 0.9, 2.4, 1.7, 1.6), rader=rader, just=["l", "l", "l", "l", "l"], sz=6.6)
@@ -458,8 +458,10 @@ def blad_detaljer():
             "vid läggning och härdning.",
             "Stenarna sätts skift för skift med fulla liggfogar, så att varje sten står på skiftet under. "
             "Hörnstenar i utvändiga hörn. Fogarna (6) fylls helt och komprimeras, utom dräneringsfogar: "
-            "stötfogarna i nedersta skiftet lämnas öppna närmast ovan mark, högst 800 mm isär. Rörelsefogar (10) "
-            "vid inåtgående hörn, mot andra material och högst var 6:e meter.",
+            "stötfogarna i nedersta skiftet lämnas öppna närmast ovan mark, högst 800 mm isär. Mot dörr- och "
+            "fönsterkarmar och andra material: anslutningsfog (10). Rörelsefogar i stenytan behövs inte: stenen "
+            "sitter på cellplasten, fri från betongen, och längs den längsta fasaden (cirka 11,7 m) rör den sig "
+            "bara några millimeter, fördelat på fogarna.",
             "Ingen cellplast får synas: beslag (9) över överkanten, sten eller plåt i öppningarnas smygar, "
             "armeringsbruket nedtill till 200 mm under mark.",
             "Avstånd till betongkärnans kanter (öppningar, väggens ände) och mellan infästningar minst 100 mm.",
