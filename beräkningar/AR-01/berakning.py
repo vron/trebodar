@@ -1,5 +1,5 @@
 """
-U-02: fasadsten (Bohusgranit 30–50 mm) på källarväggar av Sundolitt Kub 350-150, infästning. Kontroller av stödvinkeln,
+AR-01: fasadsten (Bohusgranit 30–50 mm) på källarväggar av Sundolitt Kub 350-150, infästning. Kontroller av stödvinkeln,
 gängstängerna som bär den och isolerpluggarna. Ritningarna (ritningar.py) läser resultat.json.
 
     python berakning.py      -> resultat.json och en sammanställning i terminalen

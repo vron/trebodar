@@ -14,9 +14,9 @@ Husets Onshape-modell är `modeller/trebodar.step` (STEP AP242, mm). Den är hus
 
 ## Mappar
 
-- `beräkningar/<nr>/` – källor per handling: indata, beräkning, rapportmall. `beräkningar/ritningsmall/` är den gemensamma A3-mallen. U-xx är egna underlag (utredningar) som inte ingår i handlingarna till tekniskt samråd. De listas i F-01 avsnitt 6.
+- `beräkningar/<nr>/` – källor per handling: indata, beräkning, rapportmall. `beräkningar/ritningsmall/` är den gemensamma A3-mallen. U-xx är egna underlag (utredningar) och AR-xx egna arbetsritningar för utförandet, i samma A3-mall som R-ritningarna. Ingen av dem ingår i handlingarna till tekniskt samråd; de listas i F-01 avsnitt 6.
 - `rapporter/` – utgivna rapporter (pdf), kopior av beräkningarnas `rapport/*.pdf`.
-- `ritningar/` – en pdf per ritningsserie med ett blad per sida (t.ex. `R-03 Mellanbjälklag.pdf`). Varje blad har egen källa i `beräkningar/R-xx/`.
+- `ritningar/` – en pdf per ritningsserie med ett blad per sida (t.ex. `R-03 Mellanbjälklag.pdf`). Varje blad har egen källa i `beräkningar/R-xx/` (arbetsritningarna i `beräkningar/AR-xx/`).
 - `modeller/` – STEP-modeller: huset, balkar och balkplåtar (med DXF). `modeller/modell-todo.md` listar det som ska ändras i modellen för att stämma med handlingarna. Lägg till punkter när handlingarna kräver något som modellen saknar, och ta bort dem när modellen är uppdaterad.
 - `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`).
 

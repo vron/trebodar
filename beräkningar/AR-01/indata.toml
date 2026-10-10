@@ -1,11 +1,11 @@
 # ------------------------------------------------------------------
-# Indata – U-02 Fasadsten på källarväggarna, infästning
+# Indata – AR-01 Fasadsten på källarväggarna, infästning
 # Ändra värden här och kör:  python berakning.py  och  python ritningar.py
 # Längder i mm, laster i kN, spänningar i N/mm² (MPa).
 # ------------------------------------------------------------------
 
 [projekt]
-dokument    = "U-02"
+dokument    = "AR-01"
 revision    = "A"
 datum       = "2026-10-10"
 underlag    = "K-06, Sundolitt Kub TG 2216, modeller/trebodar.step"

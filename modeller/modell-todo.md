@@ -57,7 +57,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 12. **P7: två rör tätt intill varandra.** `K Pillar [18]` vid (9 470; 5 950) (Onshape X −2 677,7, Y 4 657,9) står i trapphålets hörn. Lägg till ett likadant rör tätt intill i x-led, centrum (9 550; 5 950) (Onshape X −2 597,7, Y 4 657,9), z −2 250…−150. Båda rören står på en gemensam fotplåt 280 × 200 × 15 på plinten (K-05, K-06).
 
-13. **Fasadstenen 15 mm ut från cellplasten (U-02).** `Beklädnad stor` och `Beklädnad liten` är 50 mm och ligger direkt på källarväggarnas cellplast. Stenen är beklädnadsgranit Bohus Grå 600–1 200 × 400 × 30/50 mm (Stengrossen): sågad baksida och kluven framsida. Enligt U-02 ligger baksidan 15 mm utanför cellplasten (armeringsbruk och fästmassa) och framsidan 45–65 mm. Flytta beklädnaden 15 mm utåt och behåll 50 mm, så visar modellen stenens yttersta läge, 65 mm utanför cellplasten:
+13. **Fasadstenen 15 mm ut från cellplasten (AR-01).** `Beklädnad stor` och `Beklädnad liten` är 50 mm och ligger direkt på källarväggarnas cellplast. Stenen är beklädnadsgranit Bohus Grå 600–1 200 × 400 × 30/50 mm (Stengrossen): sågad baksida och kluven framsida. Enligt AR-01 ligger baksidan 15 mm utanför cellplasten (armeringsbruk och fästmassa) och framsidan 45–65 mm. Flytta beklädnaden 15 mm utåt och behåll 50 mm, så visar modellen stenens yttersta läge, 65 mm utanför cellplasten:
     - östra fasaden: cellplasten vid Onshape X = 1 692,3, stenen X 1 707,3 … 1 757,3;
     - norra fasaden: cellplasten vid Y = −322,1, stenen Y −387,1 … −337,1;
     - södra fasaden: cellplasten vid Y = 11 247,9, stenen Y 11 262,9 … 11 312,9;

@@ -1,11 +1,12 @@
 """
-U-02 Fasadsten på källarväggarna, infästning (F-01 avsnitt 6), A3 med ../ritningsmall:
+AR-01 Fasadsten på källarväggarna, infästning: egen arbetsritning för utförandet (F-01 avsnitt 6), A3 med
+../ritningsmall:
 
-    U-02.1  Sektion och detaljer                         1:10, 1:2,5, 1:2
-    U-02.2  Fasad, positioner och dimensionering         1:20
+    AR-01.1  Sektion och detaljer                         1:10, 1:2,5, 1:2
+    AR-01.2  Fasad, positioner och dimensionering         1:20
 
 Underlag: indata.toml och resultat.json (berakning.py). Allt ritas i verkliga koordinater i mm: x = 0 i
-betongkärnans yttre yta (utåt positivt), y = 0 i stödvinkelns överkant (stenens underkant). I fasaden (U-02.2) är
+betongkärnans yttre yta (utåt positivt), y = 0 i stödvinkelns överkant (stenens underkant). I fasaden (AR-01.2) är
 x längs väggen. ritningsmall/ritning.py skalar till papperet.
 
 Filen är uppdelad i:
@@ -13,10 +14,10 @@ Filen är uppdelad i:
     2. Byggdelar          vägg, sten, vinkel, stång, plugg (ritas i flera vyer)
     3. Vyer               en funktion per vy
     4. Blad               högerkolumn, tabeller och ritningshuvud
-    5. main               skriver U-02.x.json och PDF:en i ritningar/
+    5. main               skriver AR-01.x.json och PDF:en i ritningar/
 
-    python beräkningar/U-02/berakning.py
-    python beräkningar/U-02/ritningar.py
+    python beräkningar/AR-01/berakning.py
+    python beräkningar/AR-01/ritningar.py
 """
 import json
 import os
@@ -363,10 +364,10 @@ def fasad_e():
 
 # ================================================================== 4. blad
 BLADEN = [
-    ("U-02.1", ["Fasadsten på källarväggarna", "Sektion och detaljer"], "1:10, 1:2,5, 1:2",
-     "U-02.1 Fasadsten, sektion och detaljer"),
-    ("U-02.2", ["Fasadsten på källarväggarna", "Fasad, positioner och dimensionering"], "1:20",
-     "U-02.2 Fasadsten, fasad och positioner"),
+    ("AR-01.1", ["Fasadsten på källarväggarna", "Sektion och detaljer"], "1:10, 1:2,5, 1:2",
+     "AR-01.1 Fasadsten, sektion och detaljer"),
+    ("AR-01.2", ["Fasadsten på källarväggarna", "Fasad, positioner och dimensionering"], "1:20",
+     "AR-01.2 Fasadsten, fasad och positioner"),
 ]
 
 
@@ -376,7 +377,7 @@ def hd(nr):
 
 
 def positioner():
-    """Positionsförteckning: samma nummer som bubblorna på U-02.1."""
+    """Positionsförteckning: samma nummer som bubblorna på AR-01.1."""
     p = R["plugg"]
     rader = [
         ["1", "Vägg", "Sundolitt Kub 350-150 (U17), SINTEF TG 2216", "kärna 150 betong, cellplast 100 + 100", "–"],
@@ -428,7 +429,7 @@ def dimensionering():
             f"αM = 1), MRk = 1,2 Wel fuk, γMs = {sv(max(1.25, S['fuk'] / S['fyk']), 2)}. Bändbrott: τRk,cr "
             f"{sv(S['tau_Rk_cr'], 1)} · ψc {sv(S['psi_c'], 2)} · ψ0sus {sv(S['psi0_sus'], 2)}, k8 2, γM 1,5. "
             "Plugg: NRk 1,5 kN, γM 2,0, minst 4 st/m² för natursten (DIBt Z-33.46-568). Beräkning: "
-            "U-02/berakning.py."]),
+            "AR-01/berakning.py."]),
         dict(typ="tabell", kolumner=["Kontroll", "Last", "Bärförmåga", "Utn."], bredd=(1.6, 1.8, 1.0, 0.4),
              rader=rader, just=["l", "l", "l", "r"], sz=6.6)]
 
@@ -462,7 +463,7 @@ def blad_detaljer():
             "Ingen cellplast får synas: beslag (9) över överkanten, sten eller plåt i öppningarnas smygar, "
             "armeringsbruket nedtill till 200 mm under mark.",
             "Avstånd till betongkärnans kanter (öppningar, väggens ände) och mellan infästningar minst 100 mm.",
-            "Positioner, fasad och kontroller: U-02.2.",
+            "Positioner, fasad och kontroller: AR-01.2.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
@@ -473,9 +474,9 @@ def blad_detaljer():
             dict(form="yta", fyll="stal", stil=None, text="rostfritt stål EN 1.4404 (A4)"),
             dict(form="yta", fyll=GJUT, stil="tunn", text="injektionsmassa"),
             dict(form="linje", stil="dold", text="glasfibernät"),
-            dict(form="bubbla", txt="1", text="position, se U-02.2")]),
+            dict(form="bubbla", txt="1", text="position, se AR-01.2")]),
     ]
-    return Blad(hd("U-02.1"), REVISIONER, kol, vyer)
+    return Blad(hd("AR-01.1"), REVISIONER, kol, vyer)
 
 
 def blad_fasad():
@@ -511,18 +512,18 @@ def blad_fasad():
             dict(form="yta", fyll=STEN, stil="tunn", text="granit"),
         ]),
     ]
-    return Blad(hd("U-02.2"), REVISIONER, kol, [ve], block)
+    return Blad(hd("AR-01.2"), REVISIONER, kol, [ve], block)
 
 
 # ================================================================== 5. main
-SERIE = "U-02 Fasadsten på källarväggarna"
+SERIE = "AR-01 Fasadsten på källarväggarna"
 
 
 def main(dolj=()):
     os.makedirs(UT, exist_ok=True)
     bladmapp = os.path.join(HERE, "blad")
     os.makedirs(bladmapp, exist_ok=True)
-    fn = {"U-02.1": blad_detaljer, "U-02.2": blad_fasad}
+    fn = {"AR-01.1": blad_detaljer, "AR-01.2": blad_fasad}
     pdfer = []
     for nr, _, _, filnamn in BLADEN:
         b = fn[nr]()

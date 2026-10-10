@@ -151,13 +151,13 @@ nr = "AV-01"
 namn = "Avfallshanteringsplan"
 status = "klar"
 
-# Övriga handlingar: egna beräkningar och utredningar som underlag för projekteringen. Ingår inte i handlingarna
-# till tekniskt samråd. Samma status som ovan.
+# Övriga handlingar: egna utredningar (U) som underlag för projekteringen och arbetsritningar (AR) för utförandet.
+# Ingår inte i handlingarna till tekniskt samråd. Samma status som ovan.
 [[ovrig]]
 nr = "U-01"
 namn = "Bottenplattan – temperatur och fukt under året"
 status = "klar"
 [[ovrig]]
-nr = "U-02"
-namn = "Fasadsten på källarväggarna – infästning (ritning)"
+nr = "AR-01"
+namn = "Arbetsritning fasadsten på källarväggarna"
 status = "klar"
