@@ -5,12 +5,12 @@ Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt sa
 | Blad | Innehåll | Skala |
 |---|---|---|
 | AR-01.1 | Sektion A–A genom väggen, detalj B stödvinkeln på gängstång, detalj C armeringsbruk och isolerplugg genom nätet, anvisningar | 1:10, 1:2,5, 1:2 |
-| AR-01.2 | Fasad E (exempel med 400 mm skift i slumpade längder och hörnstenar), positionsförteckning, dimensionering | 1:20 |
+| AR-01.2 | Fasad E (exempel med 400 mm skift i slumpade längder och hörnstenar), positionsförteckning | 1:20 |
 
 | Fil | Innehåll |
 |---|---|
 | `indata.toml` | Väggen, skikten, stenen, stödvinkel, gängstänger (fischer FIS V, ETA-02/0024), isolerplugg (EJOT STR U 2G, ETA-04/0023), vind och lastfaktorer |
-| `berakning.py` | Laster, gängstänger med hävarm genom cellplasten (SS-EN 1992-4), stödvinkel och isolerplugg; skriver `resultat.json` |
+| `berakning.py` | Laster, gängstänger med hävarm genom cellplasten (SS-EN 1992-4), stödvinkel och isolerplugg; skriver `resultat.json`. Ritningen byggs bara om alla kontroller är uppfyllda, och resultaten skrivs inte ut på den |
 | `ritningar.py` | Bladen AR-01.1 och AR-01.2 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/) |
 
 Stenhöjden på en stödvinkel (högst 2,0 m) och stenens läge följer beklädnaden i modellen (`Beklädnad stor`, `Beklädnad liten`), kontrollerad med `verktyg/modellanalys`. Beräkningen läser inte modellen.

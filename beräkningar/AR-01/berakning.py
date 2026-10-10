@@ -1,6 +1,7 @@
 """
 AR-01: fasadsten (Bohusgranit 30–50 mm) på källarväggar av Sundolitt Kub 350-150, infästning. Kontroller av stödvinkeln,
-gängstängerna som bär den och isolerpluggarna. Ritningarna (ritningar.py) läser resultat.json.
+gängstängerna som bär den och isolerpluggarna. Ritningarna (ritningar.py) läser resultat.json
+och byggs bara om alla kontroller är uppfyllda; resultaten skrivs inte ut på ritningen.
 
     python berakning.py      -> resultat.json och en sammanställning i terminalen
 
@@ -27,7 +28,7 @@ def lagen():
     x_sten = x_bruk + s["fastmassa"]
     return dict(eps=v["eps"], bruk=x_bruk, sten_bak=x_sten, sten_fram=x_sten + s["sten"],
                 sten_fram_min=x_sten + s["sten_min"], sten_fram_max=x_sten + s["sten_max"],
-                sten_mitt=x_sten + s["sten"] / 2, vinkel_fram=x_sten + s["sten_min"] - 5)
+                sten_mitt=x_sten + s["sten"] / 2, vinkel_fram=x_bruk + IN["vinkel"]["fot"])
 
 
 def laster():
@@ -76,7 +77,7 @@ def vinkel(L_, X):
     t = w["t"]
     f_d = w["fy"] / GM0
     x_liv = X["bruk"] + t
-    hav = (X["sten_bak"] + X["vinkel_fram"]) / 2 - x_liv                    # lastens hävarm från livet
+    hav = X["sten_mitt"] - x_liv                                          # lastens hävarm från livet
     m = L_["qd"] * hav / 1000                                             # kNm/m
     sig_ben = m * 1e6 / (1000 * t**2 / 6)
     # böjning mellan stängerna, fritt upplagd på säker sida; livet (60) ger böjstyvheten
@@ -89,7 +90,7 @@ def vinkel(L_, X):
     M = L_["qd"] * (s["cc"] / 1000) ** 2 / 8
     sig = M * 1e6 / W
     return dict(hav=hav, sig_ben=sig_ben, utn_ben=sig_ben / f_d, M=M, sig=sig, utn_M=sig / f_d, f_d=f_d,
-                upplag=X["vinkel_fram"] - X["sten_bak"])
+                upplag=min(X["vinkel_fram"], X["sten_fram_min"]) - X["sten_bak"])
 
 
 def plugg(L_):
@@ -107,6 +108,10 @@ def main():
     s = IN["sten"]
     kg = L_["g_sten"] / 9.81 * 1000
     R["sten"] = dict(kg_m2=kg, kg_max=s["langd"][1] * s["hojd"] / 1e6 * s["densitet"] * IN["skikt"]["sten_max"] / 1000)
+    utn = dict(stang_M=R["stang"]["utn_M"], stang_cp=R["stang"]["utn_cp"], vinkel_ben=R["vinkel"]["utn_ben"],
+               vinkel_M=R["vinkel"]["utn_M"], plugg=R["plugg"]["utn"])
+    R["utn"] = utn
+    R["ok"] = all(u <= 1.0 for u in utn.values()) and R["stang"]["h_ok"] and R["plugg"]["n"] >= IN["plugg"]["n_min"]
     (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 
     st, v, p = R["stang"], R["vinkel"], R["plugg"]
@@ -121,6 +126,8 @@ def main():
     print(f"Vinkel: ben {v['utn_ben']:.2f}, mellan stängerna {v['utn_M']:.2f}, upplag {v['upplag']:.0f} mm")
     print(f"STR U 2G: {p['n']:.1f} st/m² (minst {p['n_min']}, behov {p['n_erf']:.1f}), utn {p['utn']:.2f}")
     print(f"Sten: {R['sten']['kg_m2']:.0f} kg/m², största sten {R['sten']['kg_max']:.0f} kg")
+    print("Alla kontroller uppfyllda." if R["ok"] else "KONTROLL EJ UPPFYLLD: " + ", ".join(
+        f"{k} {u:.2f}" for k, u in utn.items() if u > 1.0))
 
 
 if __name__ == "__main__":

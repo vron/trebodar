@@ -40,11 +40,12 @@ H_max       = 2000      # största stenhöjd på en stödvinkel
 fastmassa_densitet = 1600   # kg/m³, härdad cementbaserad fästmassa
 skift_exempel = 4       # antal skift i fasadexemplet
 
-# Stödvinkel av bockad plåt, EN 1.4404: lodrätt liv nedåt mot armeringsbruket, vågrätt ben under nedersta skiftet.
+# Stödvinkel L 50 × 50 × 5, EN 1.4404 (standardprofil): lodrätt liv nedåt mot armeringsbruket, vågrätt ben under
+# nedersta skiftet. Vinkeln ligger under mark, så benet får sticka ut förbi stenens tunnaste delar.
 [vinkel]
 t           = 5
-liv         = 60
-fot         = 34        # från armeringsbrukets yta till 5 mm innanför stenens tunnaste framsida
+liv         = 50
+fot         = 50        # från armeringsbrukets yta
 L_max       = 3000
 glipa       = 5
 fy          = 220       # EN 1993-1-4 tabell 2.1, 1.4404 varmvalsad plåt
@@ -59,7 +60,7 @@ fuk         = 700
 fyk         = 450
 cc          = 300
 kant_max    = 150       # största avstånd från vinkelns ände till närmaste stång
-y           = -30       # stångens läge, 30 mm under stenens underkant (livets mitt)
+y           = -25       # stångens läge, 25 mm under stenens underkant (livets mitt)
 hef         = 100
 hal_d       = 18
 tau_Rk_cr   = 6.0       # ETA-02/0024 tabell C5.1, M16, C20/25, sprucken betong, temperaturområde I
