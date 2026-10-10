@@ -47,7 +47,6 @@ Laster, regler och förutsättningar enligt F-01.
   align: (left, left, right),
   table.header([Kontroll], [Var], [Utnyttjande]),
   [Böjning, underkant], [fält], [#D.uk_max],
-  [Böjning, underkant vid fria kanter mot det fria (täckskikt #D.fri.c mm)], [], [#D.fri.utn],
   [Böjning, överkant, bara nät], [utanför zonerna], [#D.ok_utan],
   [Böjning, överkant, armering #D.mat.sank mm för lågt], [utanför zonerna], [#D.ok_utan_lag],
   [Böjning, överkant med tilläggsjärn], [#D.ok_zon_namn], [#D.ok_zon],
@@ -158,15 +157,15 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
   columns: (auto, 1fr),
   align: (left, left),
   table.header([Del], [Utförande]),
-  [Betong], [C25/30, exponeringsklass XC3 (vct ≤ 0,55), se täckskikt nedan. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
+  [Betong], [C25/30, exponeringsklass XC1. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
   [Armering], [B500B, $f_"yd"$ = #D.mat.fyd MPa],
   [Underkant], [Nät #D.mat.nat_uk i båda riktningarna, täckskikt #D.mat.c_uk mm],
   [Överkant], [Nät #D.mat.nat_ok i båda riktningarna, täckskikt #D.mat.c_ok mm],
-  [Fria kanter], [Båda näten går ut till kanten (trapphålet och öppningarna i källarens ytterväggar); nätet är kantarmering enligt 9.3.1.4(2). Vid öppningarna i ytterväggarna är kanten mot det fria: täckskikt #D.fri.c mm mot kanten och i underkant inom #D.fri.band mm från kanten],
+  [Fria kanter], [Båda näten går ut till kanten (trapphålet och öppningarna i källarens ytterväggar); nätet är kantarmering enligt 9.3.1.4(2). Täckskikt mot kanten enligt R-03],
   [Rör], [VKR 80×80×4 S235, kallformade (SS-EN 10219), L = 2,1 m, med topplåt 80×80×8 svetsad på röret och ingjuten kant i kant med plattans undersida. #for d in D.dubbel [#d: två rör tätt intill varandra i x-led, 160 × 80 mm, vart och ett med sin topplåt. ]],
 )
 
-*Täckskikt* (4.4.1, EKS tabell D-1): plattan är inomhus, XC1, och 50 år ger $c_"min,dur"$ = 10 mm, $c_"min,b"$ = stångens diameter och $Delta c_"dev"$ = 10 mm, alltså $c_"nom"$ = 20 mm. Underkanten har 20 mm. Överkanten har 25 mm, vilket ger 5 mm marginal för glättning eller slipning. Vid öppningarna i källarens ytterväggar är plattans kant och undersida utomhus men skyddade mot nederbörd, XC3: $c_"min,dur"$ = 20 mm (vct ≤ 0,55) och $c_"nom"$ = #D.fri.c mm. Där ligger underkantsnätet på #D.fri.c mm distanser, och böjningen klarar den mindre höjden (#D.fri.utn). Betongen beställs därför som XC3 för hela plattan. Brand R30 kräver axelavstånd 10 mm (SS-EN 1992-1-2 tabell 5.9).
+*Täckskikt* (4.4.1, EKS tabell D-1): XC1 och 50 år ger $c_"min,dur"$ = 10 mm, $c_"min,b"$ = stångens diameter och $Delta c_"dev"$ = 10 mm, alltså $c_"nom"$ = 20 mm. Underkanten har 20 mm. Överkanten har 25 mm, vilket ger 5 mm marginal för glättning eller slipning. Brand R30 kräver axelavstånd 10 mm (SS-EN 1992-1-2 tabell 5.9).
 
 == Lokala förstärkningar
 

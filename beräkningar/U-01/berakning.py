@@ -237,7 +237,7 @@ def rita_sektion(path, m):
             ("L-element: ben och fot\ncellplast 100", (xv - 0.08, -0.25), (xv - 0.62, -0.42)),
             ("makadam på berg", (xv + 0.6, g["zf"] - 0.08), (xv + 0.2, -0.56)),
             ("kantbalk", (xv + 0.36, -0.13), (xv + 0.1, -0.13)),
-            ("radonfolie", (0.80, g["zfolie"]), (0.55, -0.27)),
+            ("plastfolie", (0.80, g["zfolie"]), (0.55, -0.27)),
             ("golvvärme", (0.62, g["gv"][2]), (0.66, 0.08)),
             ("platta 100 på cellplast\nS100 2 × 100", (0.95, -0.05), (0.80, 0.25))]
     for txt, p, q in etik:
@@ -265,7 +265,7 @@ def rita_sektion(path, m):
     ax.set_title("c) Sektion A–A, z från bottenplattans överkant", fontsize=7.5, loc="left")
     h = [Rectangle((0, 0), 1, 1, fc=FARG[k], ec=INK, lw=0.4) for k in FARG]
     h += [plt.Line2D([], [], color=BLA, lw=0.6, ls=(0, (3, 1.5))), plt.Line2D([], [], color=ROD, lw=0.8, ls=(0, (1, 1)))]
-    ax.legend(h, [VISA[k] for k in FARG] + ["Radonfolie", "Golvvärme"], loc="upper center", ncol=7, fontsize=6.5,
+    ax.legend(h, [VISA[k] for k in FARG] + ["Plastfolie", "Golvvärme"], loc="upper center", ncol=7, fontsize=6.5,
               frameon=False, bbox_to_anchor=(0.5, -0.24), handlelength=1.6, columnspacing=1.2)
     fig.savefig(path, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
@@ -289,7 +289,7 @@ def rita_ar(path, r):
     ax.plot(d, r["A"].Tute, color="#999", lw=0.7, label="Ute, markytan")
     ax.step(d, r["A"].Trum, color=INK, lw=0.6, ls=(0, (2, 1)), where="mid", label="Källarens luft")
     ax.plot(d, r["To"][i], color=ROD, lw=1.0, label="Plattans underkant")
-    ax.plot(d, r["Tf"][i], color="#c98b3a", lw=0.8, label="Radonfolien")
+    ax.plot(d, r["Tf"][i], color="#c98b3a", lw=0.8, label="Plastfolien")
     ax.plot(d, r["Tu"][i], color=BLA, lw=1.0, label="Marken under cellplasten")
     ax.set_ylim(-2, 30); ax.set_ylabel("°C", fontsize=6.5, labelpad=1)
     ax.legend(fontsize=6.3, loc="upper center", bbox_to_anchor=(0.5, -0.1), frameon=False, ncol=3, handlelength=1.6,

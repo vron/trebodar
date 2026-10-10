@@ -211,7 +211,7 @@ Båda systemen går att använda. System A har en dokumenterad regel för grundm
 ) <fig-detB>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
-- *Under plattan:* cellplast S100 i två skikt, 200 mm (L300) eller 300 mm (L400), med radonfolie mellan skikten (Plattor.pdf).
+- *Under plattan:* cellplast S100 i två skikt, 200 mm (L300) eller 300 mm (L400), med åldringsbeständig plastfolie mellan skikten (Plattor.pdf).
 - *Längs ytterkanten:* L-element L300 eller L400 med 100 mm fot av S200 under kantbalken. För L300 används S300 i stället för foten 1,0 m åt båda håll från hörnet V2/V20 (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 (L300) eller 300 mm (L400) hög inklusive plattan.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S200 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
@@ -298,7 +298,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 
 - *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Kraften förs genom mellanbjälklaget och bottenplattan som skivor.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
-- *Fukt:* dränering och fuktskydd enligt @utfA och @utfB. Radonfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
+- *Fukt:* dränering och fuktskydd enligt @utfA och @utfB. Den åldringsbeständiga plastfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
 
 == L300 eller L400
 
@@ -307,7 +307,7 @@ Båda utförandena klarar alla kontroller med samma armering. Skillnaden är cel
 = Utförande och kontroll
 
 1. Spräng och avjämna berget och lägg makadam. Lägg dränledningen runt huset innan cellplasten läggs.
-2. Lägg L-element, cellplast S200 under balkar och plintar och S100 under plattan i två skikt med radonfolie emellan. Skär ur cellplasten för balkar och plintar. L300: under kantbalken vid hörnet V2/V20 ska cellplasten vara S300, 1,0 m åt båda håll.
+2. Lägg L-element, cellplast S200 under balkar och plintar och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan. Skär ur cellplasten för balkar och plintar. L300: under kantbalken vid hörnet V2/V20 ska cellplasten vara S300, 1,0 m åt båda håll.
 3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant och diagonaljärn. Gjut in fotplåtarna för rören i plintarna. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med urtag 50 mm under ytterväggarna och fickor för stålstolparna.
 5. Mura väggarna enligt system A eller B med armering i fogarna, ställ stålstolparna i fickorna och gjut igen dem, och mura det översta skiftet med U-block.

@@ -48,7 +48,7 @@ P18 = 1200
 P19 = 1000
 
 [utforande.L300]
-t_eps       = 200       # cellplast S100 under plattan, två skikt med radonfolie emellan
+t_eps       = 200       # cellplast S100 under plattan, två skikt med åldringsbeständig plastfolie emellan
 h_balk      = 200       # kantbalk, balkar och plintar
 [utforande.L400]
 t_eps       = 300

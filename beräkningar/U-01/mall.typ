@@ -48,7 +48,7 @@ Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och in
 #figure(image("fig_sektion.svg", width: 100%), caption: [Sektion A–A med beräkningsmodellens geometri. Koordinater som i K-05. z räknas från bottenplattans överkant.])
 
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
-- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, med radonfolie mellan skikten;
+- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, med åldringsbeständig plastfolie mellan skikten;
 - kantbalkar #s.h_balk mm i L-element, och plintar med samma höjd, båda på 100 mm S200;
 - Lecaväggar 100 + 150 + 100 som står i ett urtag i kantbalken;
 - makadam på berg.
@@ -100,11 +100,11 @@ Resultatet gäller det periodiska tillståndet, alltså det tillstånd som marke
 
 = Fuktkriterier
 
-Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det 200 mm cellplast och radonfolie. Under plintar och kantbalkar är det 100 mm och ingen folie.
+Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det 200 mm cellplast och plastfolie. Under plintar och kantbalkar är det 100 mm och ingen folie.
 
 + *Årsmedel:* $Delta T$ > 0 i medel över året, så att fukten i netto går nedåt.
 + *Varje dygn:* $Delta T$ > 0 hela året. Plattan är då alltid varmare än marken.
-+ *Om kriterium 2 inte uppfylls:* kondensen under perioden med omvänd gradient ska vara försumbar och torka ut under året. Den räknas dygnsvis med Glaser: ånga från marken genom cellplasten ($mu$ = #r.fukt.mu, halva värdet i SS-EN ISO 10456) till radonfolien. Den räknas också till betongen som om folien saknades. Uttorkningen sker bara nedåt. Som jämförelse tillåter DIN 4108-3 #r.fukt.M_ref g/m² kondens mot ett skikt som inte suger vatten.
++ *Om kriterium 2 inte uppfylls:* kondensen under perioden med omvänd gradient ska vara försumbar och torka ut under året. Den räknas dygnsvis med Glaser: ånga från marken genom cellplasten ($mu$ = #r.fukt.mu, halva värdet i SS-EN ISO 10456) till plastfolien. Den räknas också till betongen som om folien saknades. Uttorkningen sker bara nedåt. Som jämförelse tillåter DIN 4108-3 #r.fukt.M_ref g/m² kondens mot ett skikt som inte suger vatten.
 
 = Resultat
 
@@ -123,7 +123,7 @@ Med golvvärme är $Delta T$ i medel #r.sam.v_falt K i fält, #r.sam.v_plint K u
     ([#v.namn], [*#v.dT*], [#v.dag], [#v.x], [#v.Ts], [#v.Tg], [#v.n_neg], [#v.medel])
   }).flatten(),
 )
-#liten[Minsta värde över året och över alla lägen av respektive slag. Dygn < 0 och årsmedel gäller det sämsta läget. Temperaturskillnaden mellan radonfolien och marken är som lägst #r.bas_folie.dT K. Kondensen blir som mest #r.bas_folie.M g/m² mot folien och #b.falt.M g/m² mot plattan om folien saknades.]
+#liten[Minsta värde över året och över alla lägen av respektive slag. Dygn < 0 och årsmedel gäller det sämsta läget. Temperaturskillnaden mellan plastfolien och marken är som lägst #r.bas_folie.dT K. Kondensen blir som mest #r.bas_folie.M g/m² mot folien och #b.falt.M g/m² mot plattan om folien saknades.]
 
 == Känslighet <kansl>
 
@@ -148,4 +148,4 @@ Varje fall ändrar ett eller två av grundfallets antaganden. Minsta $Delta T$ �
 
 *Slutsats.* Bottenplattan L300 är fuktsäker utan golvvärme på sommaren. Det gäller även med de samlade antagandena på säker sida: tvådimensionellt hus, plintar som balkar, varm mark, högt ställd golvvärme och en sval källare. Med golvvärmens golvgivare på lägst 20 °C även sommartid är plattan dessutom varmare än marken hela året, med minst #mn("Källaren 20 °C på sommaren") K, under samma antaganden. Golvvärmen går då bara när källaren annars skulle bli kallare.
 
-Byggfukten i plattan torkar bara uppåt, eftersom radonfolien ligger under. Den ingår inte här, och RF i betongen mäts innan golvet läggs.
+Byggfukten i plattan torkar bara uppåt, eftersom plastfolien ligger under. Den ingår inte här, och RF i betongen mäts innan golvet läggs.

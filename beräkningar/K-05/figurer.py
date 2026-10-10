@@ -311,7 +311,7 @@ def rita_tvarsnitt(path, R):
     for yb, yl, t in lab:
         ax.plot([W - 30, W + 60, W + 90], [yb, yl, yl], color=GRID, lw=0.4)
         ax.text(W + 95, yl, t, fontsize=6.4, va="center")
-    ax.text(W / 2, -30, "C25/30, XC3, B500B", ha="center", va="top", fontsize=6.5, style="italic")
+    ax.text(W / 2, -30, "C25/30, XC1, B500B", ha="center", va="top", fontsize=6.5, style="italic")
     ax.set_xlim(-80, W + 520); ax.set_ylim(-55, h + 40)
     ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(path, bbox_inches="tight", pad_inches=0.02)

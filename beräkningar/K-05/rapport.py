@@ -164,9 +164,6 @@ D["fe_beta"] = dict(namn=mf["namn"], kvot=f(mf["vEd_fe"] / mf["vEd_f"] * mf["bet
 D["gemensam"] = ", ".join(f"{p['namn']} ({', '.join(p['gemensam'])})" for p in R["pelare"] if p["gemensam"])
 D["dubbel"] = [p["namn"] for p in R["pelare"] if p["antal"] > 1]
 D["stB_yta"] = "×".join(f(v, 0) for v in LA.STOLPE_B)
-fk = R["fri_kant"]
-D["fri"] = dict(c=f(fk["c"], 0), band=f(fk["band"], 0), d=f(fk["d"], 0), MEd=f(fk["MEd"] / 1e3), MRd=f(fk["MRd"] / 1e3),
-                utn=pr(fk["utn"]))
 mvagg = max(R["pelare"], key=lambda p: p["VEd"])
 D["vaggfall"] = dict(namn=mvagg["namn"], styv=f(mvagg["VEd_styv"] / 1e3), vagg=f(mvagg["VEd_vagg"] / 1e3),
                      n=sum(1 for p in R["pelare"] if p["VEd_vagg"] >= max(p["VEd_fjader"], p["VEd_styv"])))

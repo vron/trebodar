@@ -310,7 +310,7 @@ def rita_detalj(path, sys_, h_balk=200.0, t_eps=200.0):
              (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök", (280, yb + 45)),
              ("platta 100: Ø6 s150 i över- och underkant", (1200, -hp + 33)),
              (f"L-element L{sv(h_balk + t_fot)}: fot 100 mm S200 (S300 vid hörnet V2/V20)", (225, ybot + 50)),
-             (f"cellplast {sv(t_eps)} mm S100, radonfolie mellan skikten", (1200, -hp - t_eps * 0.5))]
+             (f"cellplast {sv(t_eps)} mm S100, plastfolie mellan skikten", (1200, -hp - t_eps * 0.5))]
     def kolumn(lst, x, ha):
         lst = sorted(lst, key=lambda t: -t[1][1])
         ys = np.linspace(yt + 380, ybot - 250, len(lst))

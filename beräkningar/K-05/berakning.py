@@ -78,9 +78,6 @@ from analys import nedbojning
 B = Betong(fck=25)                    # C25/30
 S = Stal(fyk=500)                     # B500B
 C_UK = 20                             # täckskikt underkant [mm] (Plattor.pdf)
-C_FRI = 30                            # täckskikt vid fria kanter mot det fria (öppningarna i källarens ytterväggar):
-                                      # XC3, c_min,dur 20 mm (L50, vct ≤ 0,55) + Δc_dev 10 mm, mot kanten och i underkant
-FRI_BAND = 400.0                      # bredden från kanten där underkantsnätet ligger på 30 mm distanser [mm]
 C_OK = int(__import__("os").environ.get("C_OK", 25))  # täckskikt överkant [mm]; Plattor.pdf anger 45
 BAND = float(__import__("os").environ.get("BAND", 250))   # utjämningsbredd för momenttoppar [mm], ≈ 2d
 KONV = 1.2                            # stödmoment i överkant × 1,2: nätkänslighet vid väggändar (validering/konvergens.py)
@@ -177,14 +174,6 @@ R["bojning"] = dict(
             d_y=H - a0.oy.y, As=a0.ox.As * 1e3))
 print(f"uk: MEd {sm['mux'].max()/1e3:.1f}/{sm['muy'].max()/1e3:.1f} (topp {env['mux'].max()/1e3:.1f}/{env['muy'].max()/1e3:.1f}) MRd {mux_rd/1e3:.1f}/{muy_rd/1e3:.1f}")
 print(f"ök: MEd {-sm['mox'].min()/1e3:.1f}/{-sm['moy'].min()/1e3:.1f} MRd nät {mox_rd/1e3:.1f}/{moy_rd/1e3:.1f}")
-# fria kanter mot det fria: underkantsnätet ligger C_FRI från undersidan inom FRI_BAND från kanten
-fri_omr = unary_union([LineString(l) for l in GEO["fria_kanter"]]).buffer(FRI_BAND)
-nod_fri = np.array([fri_omr.contains(Point(x_, y_)) for x_, y_ in P.xy])
-d_fri = min(a0.ux.y, a0.uy.y) - (C_FRI - C_UK)
-MRd_fri = MRd(a0.ux.As, d_fri, B, S)[0]
-M_fri = max(sm["mux"][nod_fri].max(), sm["muy"][nod_fri].max())
-R["fri_kant"] = dict(c=C_FRI, band=FRI_BAND, d=d_fri, MEd=M_fri, MRd=MRd_fri, utn=M_fri / MRd_fri)
-print(f"fria kanter mot det fria: MEd {M_fri/1e3:.1f} kNm/m, MRd {MRd_fri/1e3:.1f} (d {d_fri:.0f}) -> {M_fri/MRd_fri*100:.0f} %")
 
 # zoner där nätet i överkant inte räcker, även om armeringen ligger SANK mm för lågt (samma krav som för
 # genomstansningen): utnyttjande per nod, sammanhängande områden -> rektanglar

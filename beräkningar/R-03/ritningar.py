@@ -58,8 +58,6 @@ YU1 = C_UK + DU / 2                         # yttre lagret i underkant (järnen 
 YU2 = C_UK + DU + DU / 2                    # inre lagret i underkant
 YO1 = H - C_OK - DO / 2                     # yttre lagret i överkant
 YO2 = H - C_OK - DO - DO / 2                # inre lagret i överkant
-C_FRI = R["fri_kant"]["c"]                  # täckskikt vid fria kanter mot det fria (öppningarna i ytterväggarna)
-FRI_BAND = R["fri_kant"]["band"]            # bredd från kanten där underkantsnätet ligger på C_FRI-distanser
 ROR = [(p["namn"], *p["yta"]) for p in R["pelare"]]   # rörens lastyta (x0, y0, x1, y1); P7 är två rör (K-05)
 
 KONTUR = Polygon(G["kontur"])
@@ -145,7 +143,7 @@ PLAC = dict(
     pos13=((4500.0, 3590.0), (3600.0, 3250.0)),          # hörnet vars diagonaljärn får etiketten, bubblan
     pos14=dict(y=(9000.0, 9600.0, 10200.0), bubbla=(12500.0, 9900.0)),
     stolpe_a_text=(1300.0, 6780.0),
-    fri_text=((10390.0, 1150.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
+    fri_text=((10390.0, 1000.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
     mark_text=(2700.0, 11250.0),
     snitt=dict(A=((12950, 8000), (13870, 8000), -1), B=((11660, 7150), (11660, 6100), -1),
                C=((8100, 6350), (8100, 5450), 1), D=((9150, 9300), (10150, 9300), -1)),
@@ -309,14 +307,11 @@ def natsymbol(v, pos_x, pos_y, d, s, stil, text):
 
 
 def lager_uk(v):
-    """Underkant: områdena vid fria kanter mot det fria (större täckskikt), nätet (pos 1, 2) och 2 + 2 Ø10 över
-    varje rör (pos 3)."""
+    """Underkant: nätet (pos 1, 2), 2 + 2 Ø10 över varje rör (pos 3) och täckskiktet vid de fria kanterna mot det
+    fria (öppningarna i källarens ytterväggar)."""
     with v.lager("fri_kant"):
-        for l in G["fria_kanter"]:
-            band = LineString(l).buffer(FRI_BAND, cap_style="flat").intersection(PLATTA)
-            v.polygon(list(band.exterior.coords), fyll="eps2", stil=None)
         mal, till = PLAC["fri_text"]
-        v.hanvisning(mal, till, f"fri kant mot det fria: täckskikt {C_FRI:.0f} mm mot kanten\noch i underkant, nätet på {C_FRI:.0f} mm distanser", a="lm", sz=6.6)
+        v.hanvisning(mal, till, f"fria kanter mot det fria (öppningarna i källarens\nytterväggar): täckskikt {C_KANT:.0f} mm mot kanten", a="lm", sz=6.6)
     with v.lager("armering_uk"):
         natsymbol(v, 1, 2, DU, SU, "uk", "hela plattan")
         for _, x0, y0, x1, y1 in ROR:
@@ -668,10 +663,9 @@ def hd(nr):
 
 def anvisningar():
     return [
-        "Betong C25/30, exponeringsklass XC3 (vct ≤ 0,55), livslängd 50 år. Armering B500B.",
-        f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm. "
-        f"Vid öppningarna i källarens ytterväggar (kant mot det fria): {C_FRI:.0f} mm mot kanten och i underkant inom "
-        f"{FRI_BAND:.0f} mm från kanten, se R-03.2.",
+        "Betong C25/30, exponeringsklass XC1, livslängd 50 år. Armering B500B.",
+        f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm, även "
+        "mot de fria kanterna vid öppningarna i källarens ytterväggar.",
         f"Skarvlängd: Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm. Skarvar förskjuts minst 1,3 × skarvlängden.",
         "Järnen i varje nät läggs i valfri ordning. Tilläggsjärn läggs i nätets lager.",
         "Koordinater i mm enligt K-05; origo i skärningen mellan plattkanterna x = 0 och y = 0. Mått, se R-03.1.",
@@ -724,15 +718,13 @@ def blad_uk():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar() + [
-            f"Underkantsnätet läggs på distanser {C_UK:.0f} mm, högst 0,8 m isär, och {C_FRI:.0f} mm i de blå områdena "
-            "vid öppningarna i källarens ytterväggar.",
+            "Underkantsnätet läggs på distanser 20 mm, högst 0,8 m isär.",
             "Minst två underkantsjärn i vardera riktningen ska passera över varje rör (SS-EN 1992-1-1 9.4.1(3)): "
             "pos 3, bundna till nätet.",
             "Överkant, se R-03.3. Sektioner A–D, se R-03.4."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant"),
-            dict(form="yta", fyll="eps2", stil=None, text=f"fri kant mot det fria: täckskikt {C_FRI:.0f} mm"),
             dict(form="bubbla", txt="1", text="positionsnummer (stålförteckning R-03.4)"),
             dict(form="linje", stil="dold", text="Lecavägg under plattan"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),

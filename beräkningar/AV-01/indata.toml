@@ -80,7 +80,7 @@ behallare = "Container eller storsäck"
 behandling = "Materialåtervinning"
 [[nybygge]]
 fraktion = "Plast"
-avfall = "Byggfolie, spill av radonduk"
+avfall = "Byggfolie och spill av plastfolie"
 behallare = "Storsäck"
 behandling = "Återvinning"
 [[nybygge]]
