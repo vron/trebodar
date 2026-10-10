@@ -19,6 +19,9 @@ H = LA.H_PLATTA
 b = Betong(fck=25)                     # C25/30, styvheten påverkar reaktionerna lite
 PLAT = 200.0                           # rörets lastyta i modellen, rör + ingjutning [mm]
 A_ROR, L_ROR = 4 * 4 * (80 - 4), 2100  # VKR 80×80×4: area [mm²], längd [mm]
+# Dubbelrör: två rör VKR 80×80×4 tätt intill varandra, det andra förskjutet (dx, dy) från modellens rör [mm].
+# P7 står i trapphålets hörn och behöver två rörs lastyta för genomstansningen (160 × 80 mm).
+DUBBELROR = {"P7": (80.0, 0.0)}
 FIN = float(os.environ.get("FIN", 1.0))   # skala på den lokala förfiningen (konvergensstudie)
 K_EPS = 0.01                           # bäddmodul för plattan på mark, E/t för cellplasten [N/mm³], mjukt (på säker sida)
 # utbredda laster [N/mm²]
@@ -27,6 +30,17 @@ QK = LA.Q_NYTTIG * 1e-3                        # 2,0 kN/m²
 QV = LA.Q_VAGG * 1e-3                          # 0,7 kN/m², lätta väggar
 GD = 0.91
 LASTER = LA.alla()
+
+
+def rorstod():
+    """Rörens stöd: (namn, x, y, bx, by, antal rör), (x, y) = stödets mitt. Ett dubbelrör är ett stöd mitt
+    mellan rören med lastytan över båda (rör + ingjutning) och dubbla styvheten."""
+    ut = []
+    for i, (x, y) in enumerate(G["pelare"], 1):
+        n = f"P{i}"
+        dx, dy = DUBBELROR.get(n, (0.0, 0.0))
+        ut.append((n, x + dx / 2, y + dy / 2, PLAT + abs(dx), PLAT + abs(dy), 2 if n in DUBBELROR else 1))
+    return ut
 
 
 def over_vagg(x, y, marg=175.0):
@@ -42,7 +56,7 @@ def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
     Laster över Lecaväggar förs till närmaste upplagslinje (ovan[stödnamn] = (Gk, Sk) i kN).
     ytterskikt=True (kontroll): ytterväggarnas yttre Lecaskikt blir också upplag och lasterna över väggarna
     står där de står."""
-    pel = G["pelare"]
+    pel = rorstod()
     stod = G["stod"]
     stodlin = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, bb in stod]
     linjer = list(stodlin) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
@@ -57,8 +71,8 @@ def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg" or ytterskikt]
     stolpar = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] == "platta"]
     P = Platta(G["kontur"], hal=[G["hal"]], linjer=linjer + [list(map(tuple, G["mark"])) + [tuple(G["mark"][0])]],
-               punkter=punkter, rektanglar=[(x, y, PLAT, PLAT) for x, y in pel], hmax=hmax,
-               finare=[(x, y, 1.5 * PLAT, 50 * FIN) for x, y in pel] +
+               punkter=punkter, rektanglar=[(x, y, bx, by) for _, x, y, bx, by, _ in pel], hmax=hmax,
+               finare=[(x, y, 1.5 * PLAT, 50 * FIN) for _, x, y, _, _, _ in pel] +
                       [(x, y, 300.0, 80.0 * FIN) for pl in stodlin for x, y in pl] +    # väggändar och hörn
                       [(x, y, 400.0, 60.0 * FIN) for x, y in stolpar])                  # stolpar på plattan
     for i, pl in enumerate(stodlin):
@@ -67,9 +81,9 @@ def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
     for i, pl in enumerate(ytter):                  # fjädrar, så att de kan släppas där de får drag
         P.stod_linje(f"Y{i + 1}", pl, k=1e4)
     k = 210000 * A_ROR / L_ROR if k_ror is None else k_ror
-    for i, (x, y) in enumerate(pel, 1):
-        if f"P{i}" not in utan:                     # utan: rör som inte bär (lyfter från plattan)
-            P.stod_rekt(f"P{i}", x, y, PLAT, PLAT, k=k)
+    for n, x, y, bx, by, antal in pel:
+        if n not in utan:                           # utan: rör som inte bär (lyfter från plattan)
+            P.stod_rekt(n, x, y, bx, by, k=None if k is None else antal * k)
     P.stod_mark("mark", G["mark"], K_EPS)
     P.styvhet(Dmat(b.Ecm * H ** 3 / 12 / (1 - 0.2 ** 2), 0.2))
 

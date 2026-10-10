@@ -95,10 +95,10 @@ class Snitt:
         self.stans = []
         h = S.utf["h_balk"]
         d = h - 30 - 10
-        for i, (x, y) in enumerate(M.PEL):
+        for i, (_, x, y, bx, by, _) in enumerate(M.ROR):
             reg = []
             for a in A_STANS:
-                g = box(x - 100, y - 100, x + 100, y + 100).buffer(a * d)
+                g = box(x - bx / 2, y - by / 2, x + bx / 2, y + by / 2).buffer(a * d)
                 m = MplPath(np.asarray(g.exterior.coords)).contains_points(Pb.xy)
                 reg.append(dict(a=a * d, u=g.exterior.length, nod=np.where(m)[0]))
             self.stans.append(dict(namn=f"P{i + 1}", d=d, reg=reg))

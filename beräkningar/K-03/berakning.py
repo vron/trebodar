@@ -1,12 +1,12 @@
 """
 K-03: takbalkar, takstolar och stolpar enligt EKS 12 och SS-EN 1995-1-1.
 
-    ../../verktyg/modellanalys/.venv/bin/python modell_k03.py   # geometrin ur modellen, när den har ändrats
-    python berakning.py                                         # -> K-03_takbalkar_takstolar_stolpar.pdf
+    python berakning.py      # -> K-03_takbalkar_takstolar_stolpar.pdf
 
-Läser indata.toml, geometri.json (modellen) och stolparnas laster ur K-05 (laster.py, som bygger på K-01).
+Läser indata.toml, geometri.json (K-03:s egen geometri, kontrollerad mot modellen med
+verktyg/modellanalys/kontroll_k03.py) och stolparnas laster ur K-05 (laster.py, som bygger på K-01).
 Räknar takbalkarna per typ, takfönstren, upplagen mot nock- och dalbalkarna, takstolarna och stolparna, ritar
-figurer (figurer.py) och sätter ihop PDF via Typst (mall.typ).
+figurer (figurer03.py) och sätter ihop PDF via Typst (mall.typ).
 """
 import json
 import math

@@ -4,7 +4,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 **Hitta platsen.** Lägen anges i K-05:s koordinater (x, y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant) och i Onshape (globalt): X = x − 12 147,7, Y = y − 1 292,1, Z = z + 13 939,9 (mm). Delarnas namn är modellträdets.
 
-**När modellen är uppdaterad:** exportera till `modeller/trebodar.step`. Sedan körs `geometri.py`, `K-03/modell_k03.py`, K-03, K-05, K-06, R-03 och kontrollerna i `verktyg/modellanalys`.
+**När modellen är uppdaterad:** exportera till `modeller/trebodar.step` och kör kontrollerna i `verktyg/modellanalys`. Beräkningarna läser inte modellen; där handlingarna ska följa ändringen rättas deras källfiler för hand, och sedan körs K-03, K-05, K-06 och R-03.
 
 ## Takstommen (K-01, K-03)
 
@@ -55,9 +55,11 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 11. **Plattan på mark (plan 1): cellplast och fyllning.** Området under `Mittenplatta` vid x 0–4 545, y 9 205–15 900 (L-formen bakom V3 och V20; Onshape X −12 148…−7 603, Y 7 913–14 608). I modellen ligger berget 75 mm under plattan. Handlingarna (K-05, K-06) förutsätter 400 mm cellplast under plattan på dränerande fyllning upp till 1,7 m över bottenplattan.
 
+12. **P7: två rör tätt intill varandra.** `K Pillar [18]` vid (9 470; 5 950) (Onshape X −2 677,7, Y 4 657,9) står i trapphålets hörn. Lägg till ett likadant rör tätt intill i x-led, centrum (9 550; 5 950) (Onshape X −2 597,7, Y 4 657,9), z −2 250…−150. Båda rören står på en gemensam fotplåt 280 × 200 × 15 på plinten (K-05, K-06).
+
 ## Kontrollera och bestäm
 
-12. **Stolparnas lägen under nockbalk 1 mot K-01.**
+13. **Stolparnas lägen under nockbalk 1 mot K-01.**
 
     | Stöd | K-01 | Modellen |
     |---|---|---|
@@ -67,8 +69,10 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
     Skillnaden är 68–84 mm. Antingen flyttas stolparna, eller så räknas K-01 om med modellens lägen; säg till vilket.
 
-13. **Syll utan vägg vid LN1_2.** `R L3 T2 btm`, x 10 980–13 745, y 4 651–4 721 (Onshape X −1 168…1 597, Y 3 359–3 429), ligger utan vägg och gips. Stolpen `RL3 Ver Pin` står därför fristående, och K-03 räknar den så. Finns en vägg där, modellera den.
+14. **Syll utan vägg vid LN1_2.** `R L3 T2 btm`, x 10 980–13 745, y 4 651–4 721 (Onshape X −1 168…1 597, Y 3 359–3 429), ligger utan vägg och gips. Stolpen `RL3 Ver Pin` står därför fristående, och K-03 räknar den så. Finns en vägg där, modellera den.
 
-14. **Marken mot källarväggarna.** Glipor mellan fyllning och berg vid V2 (y 10 865, x 4 545–9 645) och V16 (x 9 645, y 10 865–12 365). Ingen mark vid V9 (y 1 145, x 11 140–13 665) och V17 (x 9 165, y 145–1 145). Modellera marken där; fyllnadshöjderna i K-06 kontrolleras mot den.
+15. **Marken mot källarväggarna.** Glipor mellan fyllning och berg vid V2 (y 10 865, x 4 545–9 645) och V16 (x 9 645, y 10 865–12 365). Ingen mark vid V9 (y 1 145, x 11 140–13 665) och V17 (x 9 165, y 145–1 145). Modellera marken där; fyllnadshöjderna i K-06 kontrolleras mot den.
 
-15. **Valfritt: dubbel takbalk vid TF1.** Takbalken vid TF1:s sida y 6 740 (`ÅYY [6]`) är enkel, de andra fönstren har dubbla. Den räcker (K-03), men dubbel blir som de andra.
+16. **Valfritt: dubbel takbalk vid TF1.** Takbalken vid TF1:s sida y 6 740 (`ÅYY [6]`) är enkel, de andra fönstren har dubbla. Den räcker (K-03), men dubbel blir som de andra.
+
+17. **Karmstolparna vid trapphålet (LD2_1, LD2_2).** Dörröppningen i dalbalk 2:s bärande vägg vid trapphålet. `R L23 vert door [1]` (x 9 370–9 440, y 5 027–5 072; Onshape X −2 778…−2 708, Y 3 735–3 780) går 12,5 mm ut över trapphålets kant (y 5 059,5). `L2M vert [1]`, `[2]`, `[4]` (x 9 212–9 370, y 5 900–5 995; Onshape X −2 936…−2 778, Y 4 608–4 703) står väster om väggens linje (x ≈ 9 405). K-05 räknar med karmstolpar 95 × 90 i väggens linje x 9 370, direkt utanför hålets långsidor (y 5 012 och 5 936). Flytta stolparna dit eller säg till om modellen är rätt.

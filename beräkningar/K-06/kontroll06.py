@@ -12,6 +12,7 @@ from matplotlib.tri import Triangulation, LinearTriInterpolator
 
 import indata as I
 from ec2 import Betong, Stal, MRd, vmin, k_size
+import modell06 as M
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 B = Betong(fck=25)
@@ -27,10 +28,12 @@ URTAG = 50.0                   # urtag i kantbalken under ytterväggen: kantbalk
 ROR_B, FOT_T, FOT_FY = 80.0, 15.0, 355.0     # rör 80×80, fotplåt 200 × 200 × 15 S355
 
 
-def fot_beff(fcd):
-    """Fotplåtens effektiva bredd, SS-EN 1993-1-8 6.2.5: c = t √(f_y / (3 f_jd)), f_jd = 2 f_cd (ger minst yta)."""
+def fot_beff(fcd, antal=1):
+    """Fotplåtens effektiva mått (x, y), SS-EN 1993-1-8 6.2.5: c = t √(f_y / (3 f_jd)), f_jd = 2 f_cd (ger minst
+    yta). Ett dubbelrör (två rör tätt intill varandra i x-led) står på en gemensam plåt, 80 mm längre i x-led."""
     c = FOT_T * math.sqrt(FOT_FY / (3 * 2 * fcd))
-    return min(ROR_B + 2 * c, 200.0)
+    dx = ROR_B * (antal - 1)
+    return min(ROR_B + dx + 2 * c, 200.0 + dx), min(ROR_B + 2 * c, 200.0)
 
 
 def _las(namn):
@@ -202,8 +205,8 @@ def kontroll(utf):
     netto = np.maximum(st["netto"], stK["netto"])
     N = np.maximum(st["N"], stK["N"])
     pl = []
-    beff = fot_beff(B.fcd)
     for i, b in enumerate(L["plint"]):
+        bx, by = fot_beff(B.fcd, M.ROR[i][5])
         d = st["d"][i]
         As = math.pi * PLINT_ARM[0] ** 2 / 4 / PLINT_ARM[1]      # i underkant, båda riktningarna
         rho = As / d
@@ -211,9 +214,9 @@ def kontroll(utf):
         # hela rörlasten (cellplastens tryck innanför snittet räknas inte av), lastyta = fotplåtens effektiva yta
         # snitt innanför plinten (a ≤ plintens utsprång från plåten)
         for a in (0.5 * d, d, 1.5 * d, 2 * d):
-            if a > (b - beff) / 2:
+            if a > (b - max(bx, by)) / 2:
                 continue
-            u = 4 * beff + 2 * math.pi * a
+            u = 2 * (bx + by) + 2 * math.pi * a
             v, vr = stans(N[i], d, u, a, rho)
             rows.append(dict(a=a, u=u, netto=float(N[i]), v=v, vr=vr, utn=v / vr))
         gov = max(rows, key=lambda r: r["utn"])
@@ -226,10 +229,10 @@ def kontroll(utf):
         ute = dict(d=dt, u=u_t, v=v_t, vr=vr_t, utn=v_t / vr_t)
         # böjning: jämnt tryck N/b² under plinten, konsol från plåtens kant
         p = N[i] / (b / 1000) ** 2
-        l = (b - beff) / 2 / 1000
+        l = (b - min(bx, by)) / 2 / 1000
         m = p * l ** 2 / 2                          # kNm/m
         MR = mrd_nat(*PLINT_ARM, d) / 1e3
-        pl.append(dict(namn=f"P{i + 1}", b=b, N=float(N[i]), d=d, beff=beff, stans=gov, utn_stans=gov["utn"],
+        pl.append(dict(namn=M.ROR[i][0], b=b, N=float(N[i]), d=d, beff=by, beff_x=bx, stans=gov, utn_stans=gov["utn"],
                        ute=ute, utn_ute=ute["utn"],
                        m=m, MRd=MR, utn_boj=m / MR, p=p))
     out["plintar"] = pl
@@ -277,7 +280,6 @@ def kontroll(utf):
     out["vaggar"] = vg
     # sättning i mellanbjälklagets stödpunkter (kvasipermanent, långtid): rör och väggar
     from scipy.spatial import cKDTree
-    import modell06 as M
     wt = L["sls"]["wt_qp"]; trt = cKDTree(xt)
     wr = np.array([wt[trt.query(p_)[1]] for p_ in M.PEL])
     wv = np.concatenate([[wt[trt.query(q)[1]] for q in np.linspace(pl[0], pl[1], 20)] for pl in M.STODLIN])

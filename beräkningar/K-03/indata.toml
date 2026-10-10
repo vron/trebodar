@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------
 # Indata – K-03 Takbalkar, takstolar och stolpar
 # Ändra värden här och kör:  python berakning.py
-# Geometrin (takbalkar, takfönster, takstolar, stolpar och väggar) hämtas ur modellen med modell_k03.py och
-# ligger i geometri.json. Stolparnas laster kommer från K-05 (laster.py), som bygger på K-01:s stödreaktioner.
+# Geometrin (takbalkar, takfönster, takstolar, stolpar och väggar) står i geometri.json, som är K-03:s egen
+# källfil och kontrolleras mot modellen med verktyg/modellanalys/kontroll_k03.py. Stolparnas laster kommer från K-05 (laster.py), som bygger på K-01:s stödreaktioner.
 # Enheter: mm, kN, MPa (N/mm²) om inget annat anges. x, y och z som i K-05 (z från bjälklagets överkant).
 # ------------------------------------------------------------------
 
@@ -165,7 +165,7 @@ gamma_M2 = 1.25
 gamma_M_forband = 1.3
 
 # ------------------------------------------------------------------ stolpar
-# namn: K-05:s punktlast. sok: punkt i modellen där stolpen söks (modell_k03.py). gamla: beteckning i den äldre
+# namn: K-05:s punktlast. sok: punkt i modellen där stolpen söks (kontroll_k03.py). gamla: beteckning i den äldre
 # beräkningen. krav: utförande som ersätter modellens, när modellen saknar stolpe eller den inte räcker.
 # L: knäcklängd om den inte ska tas ur modellen. e: lastens excentricitet [mm] i x-led.
 [[stolpe]]

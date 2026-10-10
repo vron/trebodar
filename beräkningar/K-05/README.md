@@ -4,8 +4,7 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 
 | Fil | Innehåll |
 |---|---|
-| `bild/geometri.json` | Geometri: plattans kontur och trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter (exakt ur Onshape-modellen), stolparnas lägen på plan 1 och linjelasten från dalbalk 2 |
-| `bild/geometri.py` | Hämtar kontur, trapphål, Lecaväggar, rör, platta på mark och fria kanter exakt ur `modeller/trebodar.step` (kör med `verktyg/modellanalys/.venv/bin/python`). Trästommens poster på plan 1 lämnas orörda |
+| `bild/geometri.json` | Geometri: plattans kontur och trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter , stolparnas lägen på plan 1 och linjelasten från dalbalk 2. K-05:s egen källfil, som också K-06 och R-03 använder. Kontrolleras mot modellen med `verktyg/modellanalys/kontroll_geometri05.py` |
 | `laster.py` | Alla laster: utbredda laster (F-01), punktlaster LN/LD/LA ur K-01 och gaveltakstolarna, ytterväggar qY1–qY12, qD2, trappan qT, vindlyft. Indata överst i filen |
 | `platta.py` | FE för plattor (DKT-element): nät med lokal förfining, stöd (linje, rör som fjäder, bädd), laster, moment, reaktioner, Wood–Armer |
 | `ec2.py` | Material och kontroller enligt SS-EN 1992-1-1 med EKS; rörens knäckning |
@@ -25,7 +24,6 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 
 ```
 pip install -r requirements.txt
-../../verktyg/modellanalys/.venv/bin/python bild/geometri.py   # geometrin ur modellen, när den har ändrats
 python laster.py          # lastsammanställning
 python validering/ytterskikt.py   # behövs av berakning.py (zonen vid LD4_2)
 python berakning.py       # cirka 8 min

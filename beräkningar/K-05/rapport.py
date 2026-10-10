@@ -87,11 +87,6 @@ D["tot"] = dict(Gp=f(tot["Gp"], 0), G=f(tot["G"], 0), Q=f(tot["Q"], 0), V=f(tot[
 from shapely.geometry import Polygon as _Poly  # noqa: E402
 _K = _Poly(G["kontur"])
 D["snotak"] = f(LA.S_K * (_K.area / 1e6 + _K.length / 1e3 * LA.UTSPRANG), 0)
-D["yta"] = dict(mark=f(_Poly(G["mark"]).area / 1e6, 1), tot=f(_Poly(G["kontur"], [G["hal"]]).area / 1e6, 0))
-# rören vid trapphålet: avstånd från rörets centrum till hålkanten (geometri ur Onshape-modellen)
-from shapely.geometry import Point as _Pt  # noqa: E402
-_dh = [_Pt(G["pelare"][i - 1]).distance(_Poly(G["hal"])) for i in (6, 7, 13, 14)]
-D["yta"]["ror_hal"] = f"{f(min(_dh), 1)}–{f(max(_dh), 0)}"
 
 
 # ------------------------------------------------------------------ böjning och zoner
@@ -163,17 +158,15 @@ D["max_lag"] = dict(namn=ml["namn"], utn=pr(ml["utn_lag"]))
 D["max_knack"] = pr(max(p["knack"] for p in R["pelare"]))
 kn = R["kontroll_netto"]
 D["kn"] = dict(min=f(kn["min"], 2), max=f(kn["max"], 2))
-sb = R["stolpe_B"]
-D["stB"] = dict(N=f(sb["N"] / 1e3), M=f(sb["M"], 2), e=f(sb["e"], 0), L=f(sb["L"], 0), B=f(sb["B"], 0),
-                b1=f(sb["b1"], 0), s=f(sb["sigma"], 2), kf=f(sb["kf"], 2), utn=pr(sb["utn"]), tmin=f(sb["t_min"], 1),
-                t=f(sb["t"], 0), Wd=f(sb["Wd"]), stolpe=f(sb["stolpe"], 0), havarm=f(sb["havarm"], 0))
 mf = max(R["pelare"], key=lambda p: p["vEd_fe"] / p["vEd_f"])
 D["fe_beta"] = dict(namn=mf["namn"], kvot=f(mf["vEd_fe"] / mf["vEd_f"] * mf["beta"], 2),
                    styr=", ".join(p["namn"] for p in R["pelare"] if p["vEd_fe"] > p["vEd_f"]))
 D["gemensam"] = ", ".join(f"{p['namn']} ({', '.join(p['gemensam'])})" for p in R["pelare"] if p["gemensam"])
-stor = [p for p in R["pelare"] if p["plat"][0] > 80]
-D["plat"] = [dict(namn=p["namn"], b=f(p["plat"][0], 0), t=f(p["plat"][1], 0), fy=f(p["plat"][2], 0), beff=f(p["c"], 0))
-             for p in stor]
+D["dubbel"] = [p["namn"] for p in R["pelare"] if p["antal"] > 1]
+D["stB_yta"] = "×".join(f(v, 0) for v in LA.STOLPE_B)
+fk = R["fri_kant"]
+D["fri"] = dict(c=f(fk["c"], 0), band=f(fk["band"], 0), d=f(fk["d"], 0), MEd=f(fk["MEd"] / 1e3), MRd=f(fk["MRd"] / 1e3),
+                utn=pr(fk["utn"]))
 mvagg = max(R["pelare"], key=lambda p: p["VEd"])
 D["vaggfall"] = dict(namn=mvagg["namn"], styv=f(mvagg["VEd_styv"] / 1e3), vagg=f(mvagg["VEd_vagg"] / 1e3),
                      n=sum(1 for p in R["pelare"] if p["VEd_vagg"] >= max(p["VEd_fjader"], p["VEd_styv"])))
@@ -189,41 +182,6 @@ for s_ in R["stolpar"]:
 D["stolp"] = st
 smax = max((s_ for s_ in R["stolpar"] if s_["fall"] == "på plattan"), key=lambda s_: s_["utn_lag"])
 D["stolp_max"] = dict(namn=smax["namn"], utn=pr(smax["utn"]), lag=pr(smax["utn_lag"]))
-_K = os.path.join(HERE, "konvergens.json")
-if os.path.exists(_K):
-    Kv = json.load(open(_K))
-    fj = [k for k in Kv if k["ror"] == "fjäder" and k["h"] == 200]
-    st_ = [k for k in Kv if k["ror"] == "styv" and k["h"] == 200]
-    h300 = [k for k in Kv if k["ror"] == "fjäder" and k["h"] == 300][0]
-    el = lambda ks: ", ".join(f(80 * k["fin"], 0) for k in ks[:-1]) + " och " + f(80 * ks[-1]["fin"], 0)
-    dmu = max(abs(k["mu"] / fj[0]["mu"] - 1) for k in fj + [h300])
-    dP = max(abs(k["P10"] / st_[0]["P10"] - 1) for k in st_)
-    D["konv"] = (f"Med en kombination (6.10b, snö huvudlast) ökar största utjämnade stödmoment vid väggänden V15 "
-                 f"(mjuka rör) från {f(fj[0]['mo'])} till " + " och ".join(f(k['mo']) for k in fj[1:]) +
-                 f" kNm/m med {el(fj)} mm element vid väggändarna, och vid hörnet mot plattan på mark "
-                 f"(styva rör) från {f(st_[0]['mo'])} till {f(st_[-1]['mo'])} kNm/m. Grundnätet 300 i stället för 200 mm "
-                 f"ändrar {f(abs(h300['mo'] / fj[0]['mo'] - 1) * 100, 0)} %. Toppen kommer av att upplagslinjen är stel "
-                 f"och slutar tvärt, och den konvergerar inte. Fältmomenten ändras högst {f(dmu * 100, 0)} % och "
-                 f"rörlasterna högst {f(dP * 100, 1)} %.")
-    _V = os.path.join(HERE, "vaggande.json")
-    if os.path.exists(_V):
-        Vg = json.load(open(_V))
-        A15, AH = "V15 väggände", "hörn vid plattan på mark (LD4_2)"
-        sel = lambda E, ror, k_: [v[k_] for v in Vg if v["E"] == E and v["ror"] == ror]
-        rng = lambda a: f(min(a)) if f(min(a)) == f(max(a)) else f"{f(min(a))}–{f(max(a))}"
-        dv = max(max(a) / min(a) - 1 for E in (5000.0, 2000.0) for a in (sel(E, "fjäder", A15), sel(E, "styv", AH)))
-        D["konv"] += (f" Med väggarna som fjädrar med Lecans axialstyvhet E·t/h (inre skiktet 100 mm, höjd 2,6 m) "
-                      f"blir momentet vid V15 {rng(sel(5000.0, 'fjäder', A15))} kNm/m med E = 5 000 MPa och "
-                      f"{rng(sel(2000.0, 'fjäder', A15))} kNm/m med E = 2 000 MPa, och vid hörnet "
-                      f"{rng(sel(5000.0, 'styv', AH))} respektive {rng(sel(2000.0, 'styv', AH))} kNm/m. Det ändras "
-                      f"högst {f(dv * 100, 0)} % när elementen förfinas. Momenten vid väggändarna är alltså begränsade, och "
-                      f"de stela linjerna ger värden på säker sida. Zonerna avgränsas med {f(ind['konv'], 1)} × FE-värdet "
-                      f"och tilläggsjärnen dimensioneras för {f(ind['konv'] * ind['zon'], 1)} × FE-värdet, vilket också "
-                      f"täcker den finaste indelningen med stela linjer ({f(fj[-1]['mo'])} mot {f(fj[0]['mo'])} kNm/m). "
-                      f"Med fjädrande väggar och styva rör får rören mer last (P10 {rng(sel(2000.0, 'styv', 'P10'))} kN "
-                      f"mot {f(st_[0]['P10'])} kN med stela väggar). Det fallet ingår därför i omhyllningen.")
-else:
-    D["konv"] = ""
 _Y = os.path.join(HERE, "ytterskikt.json")
 if os.path.exists(_Y):
     Y = json.load(open(_Y))
@@ -289,7 +247,6 @@ F.np = np
 F.rita_geometri(os.path.join(HERE, "fig_geometri.svg"), G)
 F.rita_laster(os.path.join(HERE, "fig_laster.svg"), G, L)
 F.rita_tvarsnitt(os.path.join(HERE, "fig_tvarsnitt.svg"), R)
-D["n_diag"] = F.rita_armering(os.path.join(HERE, "fig_armering.svg"), G, R)
 Fz = dict(np.load(os.path.join(HERE, "falt.npz")))
 Nz = dict(np.load(os.path.join(HERE, "nedb.npz")))
 F.rita_moment(os.path.join(HERE, "fig_moment.svg"), G, Fz, R)

@@ -50,11 +50,14 @@ Bilder hamnar i `ut/` om inte `--ut` anges.
 
 ## Underlag till beräkningarna
 
-`beräkningar/K-05/bild/geometri.py` hämtar mellanbjälklagets geometri (kontur, trapphål, Lecaväggar, rör, platta på mark, fria kanter) exakt ur modellen och skriver `geometri.json`, som K-05, K-06 och R-03 använder. Kör den med den här miljön när modellen har ändrats, och därefter beräkningarna och ritningarna:
+Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. Kör dem när modellen har ändrats:
 
 ```
-.venv/bin/python ../../beräkningar/K-05/bild/geometri.py
-.venv/bin/python kontroll_r031.py        # ska ge "allt stämmer med modellen"
+.venv/bin/python kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter
+.venv/bin/python kontroll_k03.py          # K-03:s geometri.json och K-05:s stolplägen
+.venv/bin/python kontroll_r031.py         # geometri.json och R-03.1:s måttkedjor
+.venv/bin/python kontroll_laster.py       # lastgeometrin i F-01, K-01, K-05 och K-06
+.venv/bin/python kontroll_balkplattor.py  # balkplåtarnas skärfiler mot K-01
 ```
 
 ## Python
@@ -77,6 +80,9 @@ V, F = m.nat(platta)           # triangelnät
 | `geometri.py` | Exakta frågor: plansnitt, linjeprob, punkt, avstånd, krock, ytanalys |
 | `vy.py` | 3D-rendering (pyvista/VTK, offscreen) |
 | `ritning.py` | 2D-snittritningar (matplotlib) |
+| `jamfor.py` | Jämförelse av en källfils data med modellens och redovisning av avvikelserna |
+| `kontroll_geometri05.py` | Kontroll av K-05:s `bild/geometri.json` (kontur, trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter) mot modellen |
+| `kontroll_k03.py` | Kontroll av K-03:s `geometri.json` (takbalkar, takfönster, takstolar, stolpar, huvudstolpen) och K-05:s stolplägen mot modellen |
 | `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, Lecaväggar) och R-03.1:s måttkedjor mot modellen |
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
 | `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |

@@ -214,7 +214,7 @@ Båda systemen går att använda. System A har en dokumenterad regel för grundm
 - *Under plattan:* cellplast S100 i två skikt, 200 mm (L300) eller 300 mm (L400), med radonfolie mellan skikten (Plattor.pdf).
 - *Längs ytterkanten:* L-element L300 eller L400 med 100 mm fot av S200 under kantbalken. För L300 används S300 i stället för foten 1,0 m åt båda håll från hörnet V2/V20 (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 (L300) eller 300 mm (L400) hög inklusive plattan.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S200 under.
-- *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Röret bär bara tryck, och bultarna håller det på plats.
+- *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
 - *Platta:* 100 mm C25/30 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
 
 == Beräkningsmodell

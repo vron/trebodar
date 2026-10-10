@@ -5,8 +5,7 @@ Takets bärande delar utom nock- och dalbalkarna (K-01): takbalkarna 45×170 c/c
 | Fil | Innehåll |
 |---|---|
 | `indata.toml` | Material, laster (F-01), takbalkstyper, upplag, takfönster, takstolar (vilket stöd i K-01 de bär), spikplåtar, toppklossar och stolpar med krav där modellen inte räcker. Huvudstolpens krafter ur K-01 |
-| `modell_k03.py` | Hämtar takbalkar, takfönster, takstolar, stolpar och väggar ur `modeller/trebodar.step` och skriver `geometri.json` (kör med `verktyg/modellanalys/.venv/bin/python`) |
-| `geometri.json` | Geometrin ur modellen, koordinater som i K-05 |
+| `geometri.json` | Geometrin: takbalkar, takfönster, takstolar, stolpar och väggar, koordinater som i K-05. K-03:s egen källfil, kontrollerad mot modellen med `verktyg/modellanalys/kontroll_k03.py` |
 | `berakning.py` | Huvudskript: takbalkar per typ, hak och upplag, takfönster, takstolar, stolpar, brister i modellen, `resultat.json`, PDF |
 | `figurer03.py` | Översikt i plan, takbalkens upplag, takstolen L2M och huvudstolpen |
 | `mall.typ` | Typst-mall för dokumentet |
@@ -16,7 +15,6 @@ Stolparnas laster läses ur K-05 (`../K-05/laster.py`), som bygger på K-01:s st
 ## Köra
 
 ```
-../../verktyg/modellanalys/.venv/bin/python modell_k03.py   # när modellen har ändrats
 python berakning.py
 ```
 

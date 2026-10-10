@@ -6,8 +6,8 @@ Kontroll av mellanbjälklagets geometri i K-05 och R-03 (bild/geometri.json) mot
 Jämför plattans kontur, trapphålet, rören, Lecaväggarna och de fria kanterna i geometri.json – underlaget för
 K-05, K-06 och ritningarna R-03 – med modellen, och R-03.1:s måttkedjor (lägen som i R-03/ritningar.py) med
 modellens hörn. K-05-koordinater: origo i skärningen mellan plattkanterna x = 0 och y = 0.
-geometri.json skapas ur modellen av beräkningar/K-05/bild/geometri.py; avvikelser här betyder att modellen har
-ändrats utan att geometri.py har körts om.
+geometri.json är K-05:s egen källfil (se kontroll_geometri05.py); avvikelser här betyder att modellen och
+källfilen inte stämmer överens.
 Bild: ut/R-03.1_kontroll.png
 """
 import json

@@ -54,10 +54,13 @@ C_UK, C_OK = IND["c_uk"], IND["c_ok"]       # täckskikt 20 / 25
 C_KANT = 25.0                               # täckskikt mot kanter och hålkanter
 DU, SU = IND["nat_uk"]                      # Ø10 s150
 DO, SO = IND["nat_ok"]                      # Ø8 s150
-YU1 = C_UK + DU / 2                         # x-järn i underkant (ytterst)
-YU2 = C_UK + DU + DU / 2                    # y-järn i underkant
-YO1 = H - C_OK - DO / 2                     # x-järn i överkant (ytterst)
-YO2 = H - C_OK - DO - DO / 2                # y-järn i överkant
+YU1 = C_UK + DU / 2                         # yttre lagret i underkant (järnen i valfri ordning)
+YU2 = C_UK + DU + DU / 2                    # inre lagret i underkant
+YO1 = H - C_OK - DO / 2                     # yttre lagret i överkant
+YO2 = H - C_OK - DO - DO / 2                # inre lagret i överkant
+C_FRI = R["fri_kant"]["c"]                  # täckskikt vid fria kanter mot det fria (öppningarna i ytterväggarna)
+FRI_BAND = R["fri_kant"]["band"]            # bredd från kanten där underkantsnätet ligger på C_FRI-distanser
+ROR = [(p["namn"], *p["yta"]) for p in R["pelare"]]   # rörens lastyta (x0, y0, x1, y1); P7 är två rör (K-05)
 
 KONTUR = Polygon(G["kontur"])
 HAL = Polygon(G["hal"])
@@ -71,7 +74,6 @@ VIKT = {8: 0.395, 10: 0.617, 12: 0.888}     # kg/m
 POS14 = dict(d=10, s=600, ben=235, in_=425)
 STOLPE = dict(fran_ytterliv=400, plat=200, vaggar=("V14", "V21"))
 LECA_UTE = 30.0                             # Lecans ytterliv 30 mm utanför plattkanten
-STOLPE_B = dict(x=4470.0, y=5860.0, plat=250)     # fotplåt för stolpe B (K-05, LD4_1)
 
 
 def lb_rqd(d):
@@ -143,7 +145,7 @@ PLAC = dict(
     pos13=((4500.0, 3590.0), (3600.0, 3250.0)),          # hörnet vars diagonaljärn får etiketten, bubblan
     pos14=dict(y=(9000.0, 9600.0, 10200.0), bubbla=(12500.0, 9900.0)),
     stolpe_a_text=(1300.0, 6780.0),
-    stolpe_b_text=(3600.0, 6250.0),
+    fri_text=((10390.0, 1150.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
     mark_text=(2700.0, 11250.0),
     snitt=dict(A=((12950, 8000), (13870, 8000), -1), B=((11660, 7150), (11660, 6100), -1),
                C=((8100, 6350), (8100, 5450), 1), D=((9150, 9300), (10150, 9300), -1)),
@@ -233,8 +235,9 @@ def lager_ror(v, namn=True):
     """Stålrören (80×80) och deras namn. Namnet står snett ovanför till höger om röret, eller i den första lediga
     av de andra hörnen om det skulle hamna på trapphålets kant, diagonaljärnen eller en måttlinje."""
     with v.lager("ror"):
-        for i, (x, y) in enumerate(G["pelare"], 1):
-            v.rekt(x - 40, y - 40, x + 40, y + 40, fyll="stal", stil=None)
+        for _, x0, y0, x1, y1 in ROR:
+            for xa in np.arange(x0, x1 - 1, 80.0):          # ett dubbelrör ritas som två rör
+                v.rekt(xa, y0, xa + 80, y1, fyll="stal", stil=None)
         if namn:
             for i, (x, y) in enumerate(G["pelare"], 1):
                 k = sorted(((x + dx, y + dy, ("l" if dx > 0 else "r") + ("b" if dy > 0 else "t"))
@@ -299,19 +302,26 @@ def natsymbol(v, pos_x, pos_y, d, s, stil, text):
     for p in ((X + L, Y), (X, Y + L)):
         v.cirkel(*p, 0.5, fyll="svart", stil=None)
     v.bubbla(X + L + 2.6 * v.s, Y, pos_x)
-    v.text(X + L + 5.2 * v.s, Y, f"Ø{d} s{s} x-led, ytterst", a="lm", sz=7.0, bg=True)
+    v.text(X + L + 5.2 * v.s, Y, f"Ø{d} s{s} x-led", a="lm", sz=7.0, bg=True)
     v.bubbla(X, Y + L + 2.6 * v.s, pos_y)
     v.text(X + 2.6 * v.s, Y + L + 2.6 * v.s, f"Ø{d} s{s} y-led", a="lm", sz=7.0, bg=True)
     v.text(X + 1.5 * v.s, Y + 1.5 * v.s, text, a="lb", sz=6.6, col="gra", i=True)
 
 
 def lager_uk(v):
-    """Underkant: nätet (pos 1, 2) och 2 + 2 Ø10 över varje rör (pos 3)."""
+    """Underkant: områdena vid fria kanter mot det fria (större täckskikt), nätet (pos 1, 2) och 2 + 2 Ø10 över
+    varje rör (pos 3)."""
+    with v.lager("fri_kant"):
+        for l in G["fria_kanter"]:
+            band = LineString(l).buffer(FRI_BAND, cap_style="flat").intersection(PLATTA)
+            v.polygon(list(band.exterior.coords), fyll="eps2", stil=None)
+        mal, till = PLAC["fri_text"]
+        v.hanvisning(mal, till, f"fri kant mot det fria: täckskikt {C_FRI:.0f} mm mot kanten\noch i underkant, nätet på {C_FRI:.0f} mm distanser", a="lm", sz=6.6)
     with v.lager("armering_uk"):
         natsymbol(v, 1, 2, DU, SU, "uk", "hela plattan")
-        for i, (x, y) in enumerate(G["pelare"], 1):
-            b = 25.0 if i != 7 else 50.0
-            for o in (-b, b):
+        for _, x0, y0, x1, y1 in ROR:
+            x, y = (x0 + x1) / 2, (y0 + y1) / 2
+            for o in (-25.0, 25.0):
                 v.linje([(x - 600, y + o), (x + 600, y + o)], "uk_tunn")
                 v.linje([(x + o, y - 600), (x + o, y + 600)], "uk_tunn")
         mal, till = PLAC["pos3"]
@@ -371,7 +381,7 @@ def lager_ok(v):
 
 
 def lager_ingjutet(v):
-    """Ingjutet och pålagt: stålstolparnas plåtar (system A, detalj E) och fotplåten för stolpe B."""
+    """Ingjutet: stålstolparnas plåtar (system A, detalj E)."""
     with v.lager("ingjutet"):
         st = stolpar_system_a()
         for namn, x, y in st:
@@ -385,11 +395,6 @@ def lager_ingjutet(v):
         x21, y21 = [(x, y) for n, x, y in st if n == "V21"][0]
         v.hanvisning((x21 + 450 + 2.4 * v.s, y21 + 60), PLAC["stolpe_a_text"],
                      "stålstolpe, system A (K-06), detalj E (R-03.4)", a="lm", sz=6.6)
-        b = STOLPE_B
-        h = b["plat"] / 2
-        v.rekt(b["x"] - h, b["y"] - h, b["x"] + h, b["y"] + h, fyll=None, stil="normal")
-        v.hanvisning((b["x"] - h, b["y"] + h), PLAC["stolpe_b_text"],
-                     f"Fotplåt stolpe B {b['plat']}×{b['plat']}×15 (förankring K-04)", a="rm", sz=6.6)
 
 
 # ---------------------------------------------------------------- sektioner (lokala koordinater, mm)
@@ -462,9 +467,9 @@ def sektion_a():
         v.matt((0, -700), (350, -700), 2.5, sida=-1, sz=6.2)
         v.matt((0, H), (LECA_UTE, H), 2.0, sz=5.8, txt=sv(LECA_UTE))
     yk = -140 + POS14["ben"]
-    etiketter(v, [("Ø8 s150 x-led, överkant", (1250, YO1), 11), ("Ø8 s150 y-led, överkant", (1200, YO2), 12),
+    etiketter(v, [("Ø8 s150, överkant", (1250, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
                   (f"Ø10 s600, L-järn {POS14['ben']} + {POS14['in_']}, i U-blockets kärna", (560, yk), 14),
-                  ("Ø10 s150 y-led, underkant", (1100, YU2), 2), ("Ø10 s150 x-led, underkant", (1000, YU1), 1),
+                  ("Ø10 s150, underkant", (1100, YU2), 2), ("Ø10 s150, underkant", (1000, YU1), 1),
                   ("U-block gjuts med bjälklaget, 2 Ø10 (K-06)", (220, -110), None),
                   ("dräneringsskiva och fyllning (K-06)", (-150, -300), None),
                   ("Lecavägg 350, Sikksakk i fogarna (K-06)", (300, -520), None)], 1480, 270, 4.0)
@@ -474,7 +479,8 @@ def sektion_a():
 
 
 def sektion_b():
-    """B–B: vid rör (P5) med topplåt, pos 3 och zon Ö8. x = 0 i rörets mitt, y = 0 i underkant. 1:10"""
+    """B–B: vid rör (P5) med topplåt, pos 3 och zonen kring röret. x = 0 i rörets mitt, y = 0 i underkant. 1:10"""
+    zp5 = next(z for z in R["zoner"] if "P5" in z["pelare"])
     v = Vy(x=194, y=14, w=130, h=70, skala=10, X0=-420, Y1=270)
     platta_snitt(v, -400, 400, "x")
     with v.lager("armering"):
@@ -493,11 +499,11 @@ def sektion_b():
         v.matt((-330, 0), (-330, H), 3.0, sida=1, sz=6.2)
         v.matt((-230, 0), (-230, C_UK), 1.5, sida=1, sz=5.6, txt=f"{C_UK:.0f}")
         v.matt((-230, H - C_OK), (-230, H), 1.5, sida=1, sz=5.6, txt=f"{C_OK:.0f}")
-    etiketter(v, [("Ø8 s150 x-led, överkant", (330, YO1), 11),
-                  ("Ö8: Ø8 s150, båda riktningarna", (275, YO2), None),
+    etiketter(v, [("Ø8 s150, överkant", (330, YO1), 11),
+                  (f"{zp5['namn']}: Ø{zp5['tillagg'][0]} s{zp5['tillagg'][1]}, båda riktningarna", (275, YO2), None),
                   ("2 + 2 Ø10 L = 1 200 över röret", (25, YU2), 3),
-                  ("Ø10 s150 x-led, underkant", (300, YU1), 1),
-                  ("topplåt 80×80×8 kant i kant med\nunderkanten (P7: 160×160×25 S355)", (40, 4), None),
+                  ("Ø10 s150, underkant", (300, YU1), 1),
+                  ("topplåt 80×80×8 kant i kant med\nunderkanten (P7: två rör)", (40, 4), None),
                   ("rör VKR 80×80×4 S235", (40, -180), None)], 450, 250, 4.6)
     with v.lager("rubrik"):
         v.rubrik(-400, -410, "SEKTION B–B  Vid rör (P5)", skala=10, sz=9)
@@ -591,8 +597,8 @@ def detalj_f():
         v.matt((0, 0), (0, H), 8.0, sida=1, sz=6.2)
         v.matt((0, 0), (0, C_UK), 3.0, sida=1, sz=5.8, txt=f"{C_UK:.0f}")
         v.matt((0, H - C_OK), (0, H), 3.0, sida=1, sz=5.8, txt=f"{C_OK:.0f}")
-    etiketter(v, [("Ø8 x-led, ytterst", (270, H - C_OK - DO / 2), 11), ("Ø8 y-led", (150, YO2), 12),
-                  ("Ø10 y-led", (225, YU2), 2), ("Ø10 x-led, ytterst", (270, C_UK + DU / 2), 1)], 345, 175, 4.6)
+    etiketter(v, [("Ø8, lager 1", (270, H - C_OK - DO / 2), 11), ("Ø8, lager 2", (150, YO2), 12),
+                  ("Ø10, lager 2", (225, YU2), 2), ("Ø10, lager 1", (270, C_UK + DU / 2), 1)], 345, 175, 4.6)
     with v.lager("rubrik"):
         v.rubrik(-180, -60, "DETALJ F  Armeringens lägen", skala=5, sz=9)
     return v
@@ -624,7 +630,7 @@ def stalforteckning():
     for pos, d, sc, rikt in ((1, DU, SU, "x"), (2, DU, SU, "y"), (11, DO, SO, "x"), (12, DO, SO, "y")):
         n, tl = nat(d, sc, rikt)
         lagg(pos, d, "rak", f"s{sc}", n, "var.", tl, ("UK " if pos < 10 else "ÖK ") + f"{rikt}-led")
-    nr = len(G["pelare"])
+    nr = len(ROR)
     lagg(3, 10, "rak", "–", 4 * nr, "1 200", 4 * nr * 1.2, "UK över rören")
     _, nh = diagonaljarn()
     lagg(13, 10, "rak", "–", 2 * nh, "1 200", 2 * nh * 1.2, "ÖK diagonalt")
@@ -662,10 +668,12 @@ def hd(nr):
 
 def anvisningar():
     return [
-        "Betong C25/30, exponeringsklass XC1, livslängd 50 år. Armering B500B.",
-        f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm.",
+        "Betong C25/30, exponeringsklass XC3 (vct ≤ 0,55), livslängd 50 år. Armering B500B.",
+        f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm. "
+        f"Vid öppningarna i källarens ytterväggar (kant mot det fria): {C_FRI:.0f} mm mot kanten och i underkant inom "
+        f"{FRI_BAND:.0f} mm från kanten, se R-03.2.",
         f"Skarvlängd: Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm. Skarvar förskjuts minst 1,3 × skarvlängden.",
-        "x-järnen ligger ytterst i båda näten. Tilläggsjärn läggs i nätets lager.",
+        "Järnen i varje nät läggs i valfri ordning. Tilläggsjärn läggs i nätets lager.",
         "Koordinater i mm enligt K-05; origo i skärningen mellan plattkanterna x = 0 och y = 0. Mått, se R-03.1.",
     ]
 
@@ -710,18 +718,21 @@ def blad_uk():
     lager_snitt(v)
     lager_origo(v)
     lager_rubrik(v, "PLAN – ARMERING I UNDERKANT", 50)
-    rader = [[f"P{i}", sv(x), sv(y), "160×160×25 S355" if i == 7 else "80×80×8"]
-             for i, (x, y) in enumerate(G["pelare"], 1)]
+    rader = [[n, sv(x0 + 40) if x1 - x0 < 100 else f"{sv(x0 + 40)} och {sv(x1 - 40)}", sv((y0 + y1) / 2),
+              "80×80×8" if x1 - x0 < 100 else "två rör tätt intill varandra, 80×80×8 på vart"]
+             for n, x0, y0, x1, y1 in ROR]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar() + [
-            "Underkantsnätet läggs på distanser 20 mm, högst 0,8 m isär.",
+            f"Underkantsnätet läggs på distanser {C_UK:.0f} mm, högst 0,8 m isär, och {C_FRI:.0f} mm i de blå områdena "
+            "vid öppningarna i källarens ytterväggar.",
             "Minst två underkantsjärn i vardera riktningen ska passera över varje rör (SS-EN 1992-1-1 9.4.1(3)): "
             "pos 3, bundna till nätet.",
             "Överkant, se R-03.3. Sektioner A–D, se R-03.4."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant"),
+            dict(form="yta", fyll="eps2", stil=None, text=f"fri kant mot det fria: täckskikt {C_FRI:.0f} mm"),
             dict(form="bubbla", txt="1", text="positionsnummer (stålförteckning R-03.4)"),
             dict(form="linje", stil="dold", text="Lecavägg under plattan"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
@@ -776,9 +787,15 @@ def blad_sektioner():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar()[:4] + [
-            "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten.",
+            "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten. "
+            "Rörens lägen ±40 mm enligt tabellen på R-03.2; P7 är två rör tätt intill varandra.",
+            "Överkantsarmeringens höjd kontrolleras före gjutning, särskilt vid rören.",
             "U-blocket i ytterväggarna gjuts samtidigt med bjälklaget. Pos 14 sätts i U-blocket före gjutning.",
             "Innerväggarna får glidskikt (byggpapp) på krönet.",
+            "Formrivning tidigast när betongen nått cirka 70 % av fck (provkroppar eller mognadsberäkning). "
+            "Last under byggtiden högst 5 kN/m², punktlaster över rör eller vägg.",
+            "Trägolv limmas först när betongens relativa fuktighet är under golvlimmets gräns (mätt enligt RBK). "
+            "Våtrum får sprickupptagande tätskikt.",
             "Detalj E gäller stålstolparna i system A (K-06): V14 och V21.",
             "Plan: underkant R-03.2, överkant R-03.3."]),
         dict(typ="rubrik", text="Teckenförklaring"),

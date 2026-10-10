@@ -8,7 +8,9 @@ Läs F-01, förutsättningarna (`rapporter/F-01revA …pdf`, källa i `beräknin
 
 ## Källmodell
 
-Husets Onshape-modell är `modeller/trebodar.step` (STEP AP242, mm). Den är husets verkliga geometri. Trästommen under nock- och dalbalkarna och balkarna själva är inte fullständigt modellerade. Analysera modellen med `verktyg/modellanalys` (`./ma`, se README). Mellanbjälklagets geometri (kontur, trapphål, rör, Lecaväggar) hämtas exakt ur modellen av `beräkningar/K-05/bild/geometri.py`.
+Husets Onshape-modell är `modeller/trebodar.step` (STEP AP242, mm). Den är husets verkliga geometri. Trästommen under nock- och dalbalkarna och balkarna själva är inte fullständigt modellerade. Analysera modellen med `verktyg/modellanalys` (`./ma`, se README).
+
+**Beräkningarna läser aldrig modellen.** Varje beräkning har sina koordinater och mått i sina egna källfiler (indata, `geometri.json`, konstanter i koden). En direkt koppling vore skör: när modellens struktur ändras (delnamn, grupper, hur delar är uppdelade) skulle beräkningarna gå sönder eller tyst få fel indata. Källfilerna kontrolleras i stället mot modellen med kontrollerna i `verktyg/modellanalys` (`kontroll_*.py`). De läser både modellen och källfilerna och redovisar avvikelser, men skriver ingenting. Avvikelser rättas för hand i källfilerna eller läggs i `modeller/modell-todo.md`.
 
 ## Mappar
 
@@ -22,6 +24,6 @@ Husets Onshape-modell är `modeller/trebodar.step` (STEP AP242, mm). Den är hus
 
 - Handlingarna visar alltid bara det senaste, korrekta läget. Ingen historik, inga avsnitt om "åtgärder" eller "ändringar" i rapporter, ritningar, README eller granskningar. Revisionen ändras bara när användaren ber om det.
 - Vid alla ändringar som inte är obetydliga: rendera de berörda rapporterna och ritningarna till bilder (t.ex. med pymupdf) och titta på dem, så att de ser bra ut, innan arbetet är klart.
-- När modellen ändras: kör `geometri.py`, sedan K-05, K-06 och R-03 i den ordning som deras README anger, och kontrollerna i `verktyg/modellanalys`. K-03 hämtar takets geometri med `K-03/modell_k03.py` och stolparnas laster ur K-05:s `laster.py`, som bygger på K-01. När K-01 ändras: uppdatera stödreaktionerna i `K-05/laster.py` och kör K-03, K-05 och följande. Generera också om balkplåtarna (`modeller/balkplattor/generera.py`, sedan `modeller/balkar/generera.py`) och kör `kontroll_balkplattor.py`. Hålens diameter hör till skruven i K-01:s `[skruv]`.
+- När modellen ändras: kör kontrollerna i `verktyg/modellanalys` (`kontroll_geometri05.py`, `kontroll_k03.py`, `kontroll_r031.py`, `kontroll_laster.py`). Rätta källfilerna för hand där handlingarna ska följa modellen och kör sedan de berörda beräkningarna, K-03, K-05, K-06 och R-03, i den ordning som deras README anger. K-03 hämtar stolparnas laster ur K-05:s `laster.py`, som bygger på K-01. När K-01 ändras: uppdatera stödreaktionerna i `K-05/laster.py` och kör K-03, K-05 och följande. Generera också om balkplåtarna (`modeller/balkplattor/generera.py`, sedan `modeller/balkar/generera.py`) och kör `kontroll_balkplattor.py`. Hålens diameter hör till skruven i K-01:s `[skruv]`.
 - Python: `beräkningar/.venv` för beräkningarna och `verktyg/modellanalys/.venv` för modellen (skapa dem med `uv` och respektive `requirements.txt`). Typsnittet Carlito läses från `beräkningar/.fonts` om det inte är installerat.
 - Git: commita och pusha självständigt till `main`. Skriv aldrig om historiken (ingen rebase, amend eller force push) och arbeta bara på `main`, inga andra grenar.

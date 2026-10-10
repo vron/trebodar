@@ -1,13 +1,14 @@
-"""Geometrin för K-05 (och K-06, R-03) ur Onshape-modellen modeller/trebodar.step, exakt.
+"""Kontroll av mellanbjälklagets geometri i K-05 (beräkningar/K-05/bild/geometri.json) mot Onshape-modellen.
 
-    ../../../verktyg/modellanalys/.venv/bin/python geometri.py
+    .venv/bin/python kontroll_geometri05.py
 
-Kräver modellanalysens miljö (OCP), se verktyg/modellanalys/README.md. Koordinater i mm, x åt höger, y uppåt,
-origo i skärningen mellan plattkanterna x = 0 och y = 0 (plattans nedre vänstra hörn, som i K-05).
+geometri.json är K-05:s egen källfil och används av K-05, K-06 och R-03. Den uppdateras för hand. Den här
+kontrollen läser modellen (modeller/trebodar.step), räknar fram kontur, hål, väggar (vagg, stod), rör, mark, fria
+kanter och E på samma sätt som i källfilen och redovisar skillnaderna. Den skriver ingenting.
+stolpar, balkar, takstol och linjelaster i källfilen beskriver trästommen på plan 1 och kontrolleras inte här.
 
-Uppdaterar kontur, hal, vagg, stod, pelare, mark, fria_kanter och E i geometri.json. Väggarnas och rörens
-numrering behålls. stolpar, balkar, takstol och linjelaster beskriver trästommen på plan 1, som inte är fullständigt
-modellerad, och lämnas orörda.
+Koordinater i mm, x åt höger, y uppåt, origo i skärningen mellan plattkanterna x = 0 och y = 0 (plattans nedre
+vänstra hörn, som i K-05).
 
 vagg: [riktning, centrumlinje, a, b, "yttre"/"inre", upplagslinje]. a och b är den vinkelräta väggens centrumlinje
 i hörn och T-anslutningar, och väggens fysiska ände vid en fri ände (öppning), mätt strax under bjälklaget.
@@ -21,9 +22,11 @@ import numpy as np
 from shapely.geometry import Polygon
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-sys.path.insert(0, os.path.join(ROT, "verktyg", "modellanalys"))
+ROT = os.path.abspath(os.path.join(HERE, "..", ".."))
+KALLA = os.path.join(ROT, "beräkningar", "K-05", "bild", "geometri.json")
+sys.path.insert(0, HERE)
 from geometri import Plan, linjeprob, snitt  # noqa: E402
+from jamfor import jamfor, redovisa  # noqa: E402
 from modell import Modell  # noqa: E402
 
 UPPL = 100.0                 # ytterväggarnas upplagslinje innanför väggens centrumlinje [mm]
@@ -60,7 +63,7 @@ def prob(p1, p2, z, delar=LECA):
     return ut
 
 
-gammal = json.load(open(os.path.join(HERE, "geometri.json"), encoding="utf-8"))
+gammal = json.load(open(KALLA, encoding="utf-8"))
 
 # ---------------------------------------------------------------- platta och trapphål
 pl = Plan.tolka(f"z={O[2] - 75}").flytta(O[0], O[1])
@@ -153,12 +156,7 @@ v18, v17 = vagg[17][1], vagg[16][1]                                           # 
 fria = oppningar(0, vagg[9][1], v18, v17) + oppningar(1000, vagg[8][1], vagg[16][1], vagg[13][1])
 
 E = r3(vagg[20][1])                                                          # V21: centrumlinjen innanför plattkanten
-nytt = dict(gammal)
-for k in ("skala", "plan1"):                                                 # skärmbildernas mätdata, används inte
-    nytt.pop(k, None)
-nytt.update(kontur=kontur, hal=hal, vagg=vagg, stod=stod, pelare=pelare, mark=mark, fria_kanter=fria, E=E)
-json.dump(nytt, open(os.path.join(HERE, "geometri.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-
+modell = dict(kontur=kontur, hal=hal, vagg=vagg, stod=stod, pelare=pelare, mark=mark, fria_kanter=fria, E=E)
 if __name__ == "__main__":
     print(f"modell: {m.fil.name} ({m.hash}), origo {O[:2].round(3).tolist()}, bjälklagets ök z = {O[2]:.3f}")
     print("trapphål", hal)
@@ -169,3 +167,5 @@ if __name__ == "__main__":
     print("mark", mark, f"{Polygon(mark).area / 1e6:.2f} m²")
     print("fria kanter", fria)
     print("E", E)
+    kalla = {k: gammal[k] for k in modell}
+    sys.exit(redovisa("K-05 bild/geometri.json", jamfor(kalla, modell)))

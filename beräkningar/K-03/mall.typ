@@ -44,7 +44,7 @@
 
 Taket bärs så här: råspont på takbalkar 45×170 c/c 600 som spänner mellan nock- och dalbalkarna (K-01) eller till ytterväggen vid takfot. Nock- och dalbalkarna vilar på takstolar i gavlarna och i mittre huskroppens mitt och på stolpar ner till bjälklaget (K-05). Handlingen omfattar takbalkarna med takfönstren och deras upplag, de sju takstolarna och alla stolpar under nock- och dalbalkar och takstolar, däribland *huvudstolpen* LN1_3. Väggarnas reglar, hammarband och avväxlingar under takbalkarna vid takfot och den horisontella stabiliseringen redovisas i K-04.
 
-Geometrin är hämtad ur modellen (#r.modell.fil) med `modell_k03.py`. Stolparna har samma beteckningar som lasterna i K-05: LN för nockbalkar, LD för dalbalkar och LA för hörnen under gavlarnas takstolar. Den äldre beräkningens beteckningar (A–H) står inom parentes.
+Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna har samma beteckningar som lasterna i K-05: LN för nockbalkar, LD för dalbalkar och LA för hörnen under gavlarnas takstolar. Den äldre beräkningens beteckningar (A–H) står inom parentes.
 
 #figure(image("fig_oversikt.svg", width: 100%), caption: [Takets bärande delar i plan, koordinater som i K-05. Röda stolpar räcker inte eller saknas i modellen, se tabellen nedan.])
 

@@ -7,6 +7,58 @@ Steg: omhyllande snittkrafter (omhyllande.py) för rör med verklig axialstyvhet
 momenttoppar, böjning med tilläggsjärn i överkant, genomstansning per rör, stolplaster på plattan, tvärkraft,
 långtidsnedböjning enligt 7.4.3, sprickbredd, minimiarmering, rörens knäckning, vindlyft, reaktioner på
 Lecaväggarna och kontroll mot handberäkning och SINTEF (kontroll.py).
+
+Metod (rapporten anger bara vilka kontroller som görs; detaljerna står här):
+
+FE-modell (modell.py, platta.py): DKT-plattelement, grundnät 200 mm som förfinas till 50 mm vid rören, 60 mm vid
+stolparna på plattan och 80 mm vid väggändar och hörn. Lecaväggarna är fria upplag längs upplagslinjer:
+ytterväggarnas linje 75 mm in från väggens insida (5.3.2.2), innerväggarnas i väggens mitt. Rören är fjädrar med
+rörets axialstyvhet E A / L över 200 × 200 mm (röret och plattans lastspridning; ett dubbelrör över båda rören).
+Rören räknas också helt styva, och helt styva med Lecaväggarna som fjädrar (E t / h, E = 2 000 MPa, inre skiktet
+100 mm, höjd 2,6 m). Mjuka rör ger störst moment i plattan, styva rör med fjädrande väggar störst rörlaster; alla
+resultat är det ogynnsammaste av de tre, väggarnas reaktioner tas ur modellerna med stela väggar. Plattan på mark:
+bäddmodul 0,01 N/mm³ (E/t, t.ex. 400 mm cellplast med E = 4 MPa); en mjuk bädd ger störst moment (0,02 och 0,05
+N/mm³ minskar stödmomentet vid hörnet mot källaren, övriga resultat ändras inte). Laster: utbredda på element,
+punktlaster i noder, linjelaster längs nätets linjer; laster över Lecaväggar på närmaste upplagslinje.
+
+Böjning: Wood–Armer, toppar utjämnade över BAND (ungefär 2d) tvärs momentets riktning. EC2 har ingen uttrycklig
+regel för att jämna ut toppar i en FE-lösning; bredden tar bara bort de lokala topparna under punktlaster och vid
+stödens kanter (lastytans bredd plus ungefär plattans tjocklek), utan omfördelning enligt 5.5/5.6. Stödmomenten i
+överkant × KONV när zonerna avgränsas och tilläggsjärnen för ZON × KONV × FE, eftersom stela upplagslinjer ger
+nätberoende toppar vid väggändarna (validering/konvergens.py, vaggande.py). M_Rd = As fyd (d − 0,4 x),
+x = As fyd / (0,8 fcd), med det inre lagrets höjd i båda riktningarna (lagrens ordning föreskrivs inte).
+
+Genomstansning (6.4), stans(): v_Rd,c = 0,18/γc k (100 ρl fck)^(1/3) ≥ v_min = 0,035 k^(3/2) fck^(1/2),
+k = 1 + √(200/d) ≤ 2.
+- Varje rör och stolpe kontrolleras för sig med hela sin last på eget kontrollsnitt u1, 2d från den belastade ytan:
+  v_Ed = β V_Ed / (u1 d), β = 1,15 (1,4 inom 2d från trapphålet). Ingen avlastning från närliggande laster och
+  ingen förhöjd bärförmåga för närmare snitt.
+- Inom 6d från trapphålet dras den del av u1 bort som ligger mellan tangenterna från rörets mitt till hålet
+  (6.4.2(3)).
+- ρl och d ur överkantsarmeringen (nät och tillägg, medelhöjden av de två lagren), som är svagare än
+  underkantsnätet; det täcker båda riktningarna för kraften genom snittet (vid rör med en stolpe ovanpå är den
+  dimensionerande nettokraften ofta nedåt).
+- För rören är v_Ed dessutom minst FE-modellens största tvärkraft längs snittet, medelvärde över längden d, delat
+  med d. Det täcker ojämn fördelning och moment som förs över i plattan (rören är ledade). Där en stolpes lastyta
+  ligger inom 2d från röret tas FE-tvärkraften längs snittet 2d runt röret och stolpen tillsammans (rörets eget
+  snitt går genom stolpens lastyta, där tvärkraften i FE-modellen är singulär).
+- Den belastade ytan är topplåten 80×80 (ett dubbelrör: två topplåtar kant i kant).
+- Nettokraften genom rörens snitt ur jämvikt (rörets reaktion minus lasterna inom snittet) redovisas som
+  information; för rör utan hål och stolpe inom 2d stämmer den med tvärkraften integrerad ur FE-modellen.
+- Vid rörets kant: v_Ed,0 = β V_Ed / (u0 d) ≤ 0,4 ν fcd med hela rörlasten. Lokalt tryck under topplåten (6.7)
+  med spridning till högst plattans tjocklek och trapphålet.
+- Krav: minst 5 % marginal (UTN_MAX, rörlägen ±40 mm) och högst 100 % om överkantsarmeringen ligger SANK mm för
+  lågt (snitten ritas om för den mindre höjden). Annars läggs tilläggsjärn, 1,5 × 1,5 m (TILL_LISTA). MIN_TILLAGG
+  oavsett beräkningen.
+
+Tvärkraft: ur momentfältets lutning, integrerad längs kontrollsnitt. Vid väggändar är sista 0,5 m av
+upplagslinjen belastad yta med snitt 2d utanför (v_Ed = 1,15 V/(u d)); längs väggarna snitt d från väggens insida
+i bitar om 1 m, mot v_min d.
+Nedböjning (analys.py) enligt 7.4.3 för kvasipermanent last, element för element och i båda riktningarna:
+1/r = ζ/r_II + (1 − ζ)/r_I, ζ = 1 − 0,5 (M_cr/M)², E_c,eff = E_cm / (1 + φ), krympkrökning med ε_cs (bilaga B).
+Försiktig gräns: helt sprucken med karakteristisk last och φ = 3 utan krympning (återger SINTEF:s tabeller).
+Sprickbredd enligt 7.3.4 för kvasipermanent last och moment utan utjämning. Vindlyft: ett rör som får drag räknas
+som borttaget och lyftfallet räknas om.
 """
 import json
 import os
@@ -18,7 +70,7 @@ from shapely.ops import unary_union
 
 from ec2 import (Betong, Stal, Armering, Lager, MRd, As_min, vRdc, vmin, k_size, sprickbredd, pelare_knackning,
                  huvudplat)
-from modell import bygg, G as GEO, GK, QK, QV, H, LASTER
+from modell import bygg, G as GEO, GK, QK, QV, H, LASTER, DUBBELROR
 from omhyllande import kor, utjamna_linje, ULS
 from analys import nedbojning
 
@@ -26,6 +78,9 @@ from analys import nedbojning
 B = Betong(fck=25)                    # C25/30
 S = Stal(fyk=500)                     # B500B
 C_UK = 20                             # täckskikt underkant [mm] (Plattor.pdf)
+C_FRI = 30                            # täckskikt vid fria kanter mot det fria (öppningarna i källarens ytterväggar):
+                                      # XC3, c_min,dur 20 mm (L50, vct ≤ 0,55) + Δc_dev 10 mm, mot kanten och i underkant
+FRI_BAND = 400.0                      # bredden från kanten där underkantsnätet ligger på 30 mm distanser [mm]
 C_OK = int(__import__("os").environ.get("C_OK", 25))  # täckskikt överkant [mm]; Plattor.pdf anger 45
 BAND = float(__import__("os").environ.get("BAND", 250))   # utjämningsbredd för momenttoppar [mm], ≈ 2d
 KONV = 1.2                            # stödmoment i överkant × 1,2: nätkänslighet vid väggändar (validering/konvergens.py)
@@ -36,7 +91,6 @@ ROR = (80, 4)                         # VKR 80×80×4
 FY_ROR = 235.0
 L_ROR = 2100.0
 TOPPLAT = (80.0, 8.0, 235.0)           # topplåt på röret: sida, tjocklek, fy [mm, mm, MPa]
-TOPPLAT_STOR = {"P7": (160.0, 25.0, 355.0)}   # större topplåt vid röret i trapphålets hörn
 GD = 0.91
 PSI2_Q, PSI2_S = 0.3, 0.1             # EKS tabell B-1
 UTN_MAX = 0.95                        # val av utförande vid rören: minst 5 % marginal (rörlägen ±40 mm)
@@ -44,21 +98,30 @@ SANK = 10.0                           # och högst 100 % om överkantsarmeringen
 POST = (90.0, 95.0)                   # minsta stolpe 2 × 45×95 [mm], belastad yta för stolplast på plattan
 
 
-NAT_UK, NAT_OK = (10, 150), (8, 150)  # nät: Ø10 s150 i underkant (x yttre), Ø8 s150 i överkant (x övre)
+NAT_UK, NAT_OK = (10, 150), (8, 150)  # nät: Ø10 s150 i underkant, Ø8 s150 i överkant, lagren i valfri ordning
 
 
-def arm(extra=None, sank=0.0):
+def arm(extra=None, sank=0.0, inre=False):
     """Näten enligt NAT_UK, NAT_OK. extra = (dia, cc) tilläggsjärn i ök, i nätets lager.
-    sank: överkantsarmeringen ligger så mycket lägre [mm] (känslighet för utförandet)."""
+    sank: överkantsarmeringen ligger så mycket lägre [mm] (känslighet för utförandet).
+    Lagrens ordning (x- eller y-järnen ytterst) föreskrivs inte. Böjning, sprickbredd och nedböjning räknas
+    därför i båda riktningarna med det inre lagrets höjd (inre=True, eller via mrd_ok/mrd_uk). Genomstansning
+    räknas med medelhöjden av de två lagren, som inte beror på ordningen."""
     du, do = NAT_UK[0], NAT_OK[0]
-    a = Armering(H, ux=Lager(du, NAT_UK[1], H - C_UK - du / 2), uy=Lager(du, NAT_UK[1], H - C_UK - du - du / 2),
-                 ox=Lager(do, NAT_OK[1], C_OK + do / 2 + sank), oy=Lager(do, NAT_OK[1], C_OK + do + do / 2 + sank))
+    yu = [H - C_UK - du / 2, H - C_UK - 1.5 * du]
+    yo = [C_OK + do / 2 + sank, C_OK + 1.5 * do + sank]
     if extra:
         dia, cc = extra
-        As = a.ox.As + math.pi * dia ** 2 / 4 / cc
         # tilläggsjärnen ligger i nätets lager; verksam höjd räknas till tilläggsjärnets centrum
-        a.ox = Lager(math.sqrt(4 * As * cc / math.pi), cc, C_OK + dia / 2 + sank)
-        a.oy = Lager(math.sqrt(4 * As * cc / math.pi), cc, C_OK + dia + dia / 2 + sank)
+        yo = [C_OK + dia / 2 + sank, C_OK + 1.5 * dia + sank]
+    if inre:
+        yu, yo = [yu[1]] * 2, [yo[1]] * 2
+    a = Armering(H, ux=Lager(du, NAT_UK[1], yu[0]), uy=Lager(du, NAT_UK[1], yu[1]),
+                 ox=Lager(do, NAT_OK[1], yo[0]), oy=Lager(do, NAT_OK[1], yo[1]))
+    if extra:
+        As = a.ox.As + math.pi * dia ** 2 / 4 / cc
+        de = math.sqrt(4 * As * cc / math.pi)
+        a.ox, a.oy = Lager(de, cc, yo[0]), Lager(de, cc, yo[1])
     return a
 
 
@@ -66,11 +129,14 @@ TILLAGG = [(8, 150), (10, 150), (12, 150), (12, 100)]
 
 
 def mrd_ok(a):
-    return MRd(a.ox.As, H - a.ox.y, B, S)[0], MRd(a.oy.As, H - a.oy.y, B, S)[0]
+    """Båda riktningarna med det inre lagrets höjd (lagrens ordning föreskrivs inte)."""
+    d = H - max(a.ox.y, a.oy.y)
+    return MRd(a.ox.As, d, B, S)[0], MRd(a.oy.As, d, B, S)[0]
 
 
 def mrd_uk(a):
-    return MRd(a.ux.As, a.ux.y, B, S)[0], MRd(a.uy.As, a.uy.y, B, S)[0]
+    d = min(a.ux.y, a.uy.y)
+    return MRd(a.ux.As, d, B, S)[0], MRd(a.uy.As, d, B, S)[0]
 
 
 def f1(x, n=1):
@@ -106,11 +172,19 @@ mux_rd, muy_rd = mrd_uk(a0)
 mox_rd, moy_rd = mrd_ok(a0)
 R["bojning"] = dict(
     uk=dict(MEd_x=sm["mux"].max(), MEd_y=sm["muy"].max(), topp_x=env["mux"].max(), topp_y=env["muy"].max(),
-            MRd_x=mux_rd, MRd_y=muy_rd, d_x=a0.ux.y, d_y=a0.uy.y, As=a0.ux.As * 1e3),
-    ok=dict(MEd_x=-sm["mox"].min(), MEd_y=-sm["moy"].min(), MRd_x=mox_rd, MRd_y=moy_rd, d_x=H - a0.ox.y,
+            MRd_x=mux_rd, MRd_y=muy_rd, d_x=a0.uy.y, d_y=a0.uy.y, As=a0.ux.As * 1e3),
+    ok=dict(MEd_x=-sm["mox"].min(), MEd_y=-sm["moy"].min(), MRd_x=mox_rd, MRd_y=moy_rd, d_x=H - a0.oy.y,
             d_y=H - a0.oy.y, As=a0.ox.As * 1e3))
 print(f"uk: MEd {sm['mux'].max()/1e3:.1f}/{sm['muy'].max()/1e3:.1f} (topp {env['mux'].max()/1e3:.1f}/{env['muy'].max()/1e3:.1f}) MRd {mux_rd/1e3:.1f}/{muy_rd/1e3:.1f}")
 print(f"ök: MEd {-sm['mox'].min()/1e3:.1f}/{-sm['moy'].min()/1e3:.1f} MRd nät {mox_rd/1e3:.1f}/{moy_rd/1e3:.1f}")
+# fria kanter mot det fria: underkantsnätet ligger C_FRI från undersidan inom FRI_BAND från kanten
+fri_omr = unary_union([LineString(l) for l in GEO["fria_kanter"]]).buffer(FRI_BAND)
+nod_fri = np.array([fri_omr.contains(Point(x_, y_)) for x_, y_ in P.xy])
+d_fri = min(a0.ux.y, a0.uy.y) - (C_FRI - C_UK)
+MRd_fri = MRd(a0.ux.As, d_fri, B, S)[0]
+M_fri = max(sm["mux"][nod_fri].max(), sm["muy"][nod_fri].max())
+R["fri_kant"] = dict(c=C_FRI, band=FRI_BAND, d=d_fri, MEd=M_fri, MRd=MRd_fri, utn=M_fri / MRd_fri)
+print(f"fria kanter mot det fria: MEd {M_fri/1e3:.1f} kNm/m, MRd {MRd_fri/1e3:.1f} (d {d_fri:.0f}) -> {M_fri/MRd_fri*100:.0f} %")
 
 # zoner där nätet i överkant inte räcker, även om armeringen ligger SANK mm för lågt (samma krav som för
 # genomstansningen): utnyttjande per nod, sammanhängande områden -> rektanglar
@@ -314,11 +388,12 @@ def hal_kon(x, y):
 
 
 def ror_yta(n, x, y):
-    """Rörets belastade yta: topplåten, med effektiv bredd enligt SS-EN 1993-1-8 6.2.5 för en större plåt,
-    c = t sqrt(fy / (3 fjd)), fjd = 2 fcd (största värdet, ger minst yta). Returnerar (yta, bredd, plåt)."""
-    b, t, fy = TOPPLAT_STOR.get(n, TOPPLAT)
-    beff = b if b <= ROR[0] else min(b, ROR[0] + 2 * t * math.sqrt(fy / (3 * 2 * B.fcd)))
-    return box(x - beff / 2, y - beff / 2, x + beff / 2, y + beff / 2), beff, (b, t, fy)
+    """Rörets belastade yta: topplåten 80×80 (lika stor som röret). Ett dubbelrör har två topplåtar kant i kant.
+    Returnerar (yta, antal rör)."""
+    b = TOPPLAT[0]
+    dx, dy = DUBBELROR.get(n, (0.0, 0.0))
+    yta = box(x - b / 2 + min(dx, 0), y - b / 2 + min(dy, 0), x + b / 2 + max(dx, 0), y + b / 2 + max(dy, 0))
+    return yta, 2 if n in DUBBELROR else 1
 
 
 def omkrets(x, y, yta, a):
@@ -386,7 +461,7 @@ for j, (x, y) in enumerate(GEO["pelare"], 1):
     bas = zb
     if n in MIN_TILLAGG:
         bas = max(bas, MIN_TILLAGG[n], key=AS) if bas else MIN_TILLAGG[n]
-    ror, beff, plat = ror_yta(n, x, y)
+    ror, antal = ror_yta(n, x, y)
     per0 = ror.exterior
     u0 = per0.length - (per0.intersection(hal_kon(x, y)).length if hal.distance(ror) < 2 * H else 0.0)
     d0 = H - C_OK - 10
@@ -397,10 +472,10 @@ for j, (x, y) in enumerate(GEO["pelare"], 1):
         ror_zoner.append(dict(bounds=[x - 750, y - 750, x + 750, y + 750], MEd_x=0.0, MEd_y=0.0, tillagg=t,
                               cx=x, cy=y, pelare=[n], orsak="genomstansning"))
     nara_st = [p["namn"] for p in STOLPAR_PL if ror.distance(stolpyta(p)) < 4 * s_["d"]]
-    pk = pelare_knackning(VEd, ROR[0], ROR[1], L_ROR, fy=FY_ROR)
+    pk = pelare_knackning(VEd / antal, ROR[0], ROR[1], L_ROR, fy=FY_ROR)
     pel.append(dict(namn=n, x=x, y=y, VEd=VEd, komb=Rkomb[n], VEd_fjader=env1["R"][n], VEd_styv=env2["R"][n], VEd_vagg=env3["R"][n],
                     R_lyft=min(e["R_lyft"][n] for e in envs), tillagg=t, knack=pk["utn"], NbRd=pk["NbRd"],
-                    c=beff, plat=plat, u0=u0, gemensam=[p["namn"] for p in inom], utn0=utn0, utn_lag=s_l["utn"], u1_lag=s_l["u1"], stolpar=nara_st, **s_))
+                    yta=ror.bounds, antal=antal, u0=u0, gemensam=[p["namn"] for p in inom], utn0=utn0, utn_lag=s_l["utn"], u1_lag=s_l["u1"], stolpar=nara_st, **s_))
     print(f"  {n}: VEd {VEd/1e3:5.1f} (netto {s_['Vnet']/1e3:5.1f}) {nara_st}, u1 {s_['u1']:.0f}{' (hål)' if s_['nara'] else ''},"
           f" β {s_['beta']}, vEd β {s_['vEd_f']:.2f} FE {s_['vEd_fe']:.2f}, vRd,c {s_['vRdc']:.2f} -> {s_['utn']*100:.0f} %"
           f" (−{SANK:.0f} mm: u1 {s_l['u1']:.0f}, {s_l['utn']*100:.0f} %){(' + Ø%dc%d' % t) if t else ''}, kant {utn0*100:.0f} %")
@@ -437,22 +512,6 @@ for st in LASTER["punkter"]:
           f" -> {s_['utn']*100:.0f} % (−{SANK:.0f} mm {s_l['utn']*100:.0f} %){(' + Ø%dc%d' % t) if t else ''}, rör {ror_n}")
 R["stolpar"] = stolp
 
-# stolpe B (LD4_1) på fotplåt: excentrisk last, ekvivalent tryckyta (L − 2e) × B, lokalt tryck 6.7, plåttjocklek
-from laster import STOLPE_B, HAVARM_B  # noqa: E402
-sB = next(p for p in LASTER["punkter"] if p["namn"] == "LD4_1")
-LB, BB_ = sB["yta"]
-eB = sB["e"]
-b1, d1 = LB - 2 * eB, BB_
-Ac0 = b1 * d1
-b2, d2 = min(3 * b1, b1 + H), min(3 * d1, d1 + H)
-kf = min(math.sqrt(b2 * d2 / Ac0), 3.0)
-sig = sB["Rd"] * 1e3 / Ac0
-utsprang = (LB - STOLPE_B[0]) / 2
-t_fot = math.sqrt(4 * sig * utsprang ** 2 / 2 / 355.0)
-R["stolpe_B"] = dict(N=sB["Rd"] * 1e3, M=sB["M_d"], e=eB, L=LB, B=BB_, b1=b1, Ac0=Ac0, kf=kf, sigma=sig, stolpe=STOLPE_B[0], havarm=HAVARM_B,
-                     FRdu=Ac0 * B.fcd * kf, utn=sB["Rd"] * 1e3 / (Ac0 * B.fcd * kf), t_min=t_fot, t=15.0,
-                     Wd=sB["Wd"])
-print(f"stolpe B: e {eB:.0f} mm, M {sB['M_d']:.2f} kNm, σ {sig:.2f} MPa, 6.7 {R['stolpe_B']['utn']*100:.0f} %, fotplåt t ≥ {t_fot:.1f} mm")
 # lägg till rörzonerna bland överkantszonerna
 # zoner som ligger helt inom en annan zon med minst lika mycket armering behövs inte
 R["zoner"] = [z for z in R["zoner"] if not any(
@@ -468,15 +527,16 @@ for i, z in enumerate(R["zoner"], 1):
 # lokalt tryck under röret (6.7): topplåt 80×80 ger lastyta A_c0 = 80², spridning högst 150 mm (plattans
 # tjocklek), högst 3 × 80 och högst till trapphålet
 for p in pel:
-    b1 = float(p["c"])
-    dh = hal.distance(box(p["x"] - b1 / 2, p["y"] - b1 / 2, p["x"] + b1 / 2, p["y"] + b1 / 2))
-    b2 = min(b1 + H, 3 * b1, b1 + 2 * dh)
-    FRdu = b1 ** 2 * B.fcd * min(b2 / b1, 3.0)
+    x0, y0, x1, y1 = p["yta"]
+    bx, by = x1 - x0, y1 - y0
+    dh = hal.distance(box(x0, y0, x1, y1))
+    b2x, b2y = min(bx + H, 3 * bx, bx + 2 * dh), min(by + H, 3 * by, by + 2 * dh)
+    FRdu = bx * by * B.fcd * min(math.sqrt(b2x * b2y / (bx * by)), 3.0)
     # topplåt: kvadratisk fritt upplagd platta, spännvidd = rörets innermått, brottlinjeteori m_p = q a² / 24
     a_in = ROR[0] - 2 * ROR[1]
-    q = p["VEd"] / b1 ** 2
-    t_topp = math.sqrt(4 * q * a_in ** 2 / 24 / FY_ROR) if p["plat"] == TOPPLAT else 0.0
-    p.update(FRdu=FRdu, utn_lokal=p["VEd"] / FRdu, b2=b2, t_topp=t_topp)
+    q = p["VEd"] / p["antal"] / TOPPLAT[0] ** 2
+    t_topp = math.sqrt(4 * q * a_in ** 2 / 24 / FY_ROR)
+    p.update(FRdu=FRdu, utn_lokal=p["VEd"] / FRdu, b2=(b2x, b2y), t_topp=t_topp)
 R["lokal"] = dict(utn=max(p["utn_lokal"] for p in pel), namn=max(pel, key=lambda p: p["utn_lokal"])["namn"],
                   t_topp=max(p["t_topp"] for p in pel))
 print(f"lokalt tryck: {R['lokal']['utn']*100:.0f} % ({R['lokal']['namn']}), topplåt t ≥ {R['lokal']['t_topp']:.1f} mm")
@@ -548,7 +608,7 @@ ecs = B.krympning(H)
 
 def arm_fn(x, y):
     z = zon_vid(x, y)
-    return arm(z["tillagg"]) if z else arm()
+    return arm(z["tillagg"], inre=True) if z else arm(inre=True)
 
 
 def f_kvasi(f):
@@ -561,11 +621,11 @@ def f_kar(f):
 
 
 Pn, fn = bygg(k_ror=None)
-rn = nedbojning(Pn, f_kvasi(fn), arm(), B, S, phi, ecs, arm_fn=arm_fn)
+rn = nedbojning(Pn, f_kvasi(fn), arm(inre=True), B, S, phi, ecs, arm_fn=arm_fn)
 Pc, fc = bygg(k_ror=None)
-rc = nedbojning(Pc, f_kar(fc), arm(), B, S, 3.0, 0.0, fullt_sprucken=True, arm_fn=arm_fn)
+rc = nedbojning(Pc, f_kar(fc), arm(inre=True), B, S, 3.0, 0.0, fullt_sprucken=True, arm_fn=arm_fn)
 Pk, fk = bygg(k_ror=None)
-rk = nedbojning(Pk, f_kvasi(fk), arm(), B, S, 0.0, 0.0, arm_fn=arm_fn)   # korttid utan krympning, för jämförelse
+rk = nedbojning(Pk, f_kvasi(fk), arm(inre=True), B, S, 0.0, 0.0, arm_fn=arm_fn)   # korttid utan krympning, för jämförelse
 # lokal spännvidd: avstånd mellan stöd i x- och y-led genom punkten
 stodgeo = unary_union([stodlinjer.buffer(1)] + [box(x - PLAT / 2, y - PLAT / 2, x + PLAT / 2, y + PLAT / 2)
                                                  for x, y in GEO["pelare"]] + [Polygon(GEO["mark"])])

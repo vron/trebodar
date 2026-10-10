@@ -1,10 +1,13 @@
 """
-K-03: geometrin för takbalkar, takfönster, takstolar och stolpar ur Onshape-modellen -> geometri.json.
+Kontroll av K-03:s geometri (beräkningar/K-03/geometri.json) mot Onshape-modellen: takbalkar, takfönster,
+takstolar, stolpar och huvudstolpen.
 
-    ../../verktyg/modellanalys/.venv/bin/python modell_k03.py
+    .venv/bin/python kontroll_k03.py
 
-Läser modeller/trebodar.step med verktyg/modellanalys. Koordinater som i K-05: x, y från skärningen mellan
-mellanbjälklagets kanter, z från bjälklagets överkant, mm. Stolparna söks kring K-05:s punktlaster (LN, LD, LA), eller kring sökpunkten i indata.toml ([[stolpe]] sok).
+geometri.json är K-03:s egen källfil och uppdateras för hand. Den här kontrollen läser modeller/trebodar.step,
+räknar fram samma data och redovisar skillnaderna. Den skriver ingenting. Koordinater som i K-05: x, y från
+skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant, mm. Stolparna söks kring K-05:s
+punktlaster (LN, LD, LA) eller kring sökpunkten i K-03:s indata.toml ([[stolpe]] sok); sökpunkten jämförs inte.
 Väggarna (gipsskivorna) avgör åt vilket håll en stolpe är stagad.
 """
 import json
@@ -16,11 +19,13 @@ import numpy as np
 
 HERE = Path(__file__).parent
 ROT = HERE.parent.parent
-sys.path.insert(0, str(ROT / "verktyg" / "modellanalys"))
+K03 = ROT / "beräkningar" / "K-03"
+sys.path.insert(0, str(HERE))
+from jamfor import jamfor, redovisa  # noqa: E402
 from modell import Modell  # noqa: E402
 
-IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
-G05 = json.load(open(HERE.parent / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
+IN = tomllib.loads((K03 / "indata.toml").read_text(encoding="utf-8"))
+G05 = json.load(open(ROT / "beräkningar" / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
 BALKAR = {"HEA200 NV": "N1", "HEA200 NVb": "D2", "HEA200 M": "N3", "HEA200 SEb": "D4", "HEA200 SE": "N5"}
 SOK_STOLPE = 120.0          # stolpens delar: centrum inom detta avstånd från sökpunkten i plan [mm]
 GLIPA_VAGG = 30.0           # stolpen räknas som stagad av en vägg om gipsskivan ligger högst så här långt bort [mm]
@@ -109,7 +114,7 @@ def main():
         if q["z1"] - q["z0"] > 1000 and (q["x1"] - q["x0"]) < 200 and (q["y1"] - q["y0"]) < 200:
             vert.append(q | dict(namn=d.namn, grupp=d.grupp.split("/")[-1]))
     ut["stolpar"] = []
-    sys.path.insert(0, str(HERE.parent / "K-05"))
+    sys.path.insert(0, str(ROT / "beräkningar" / "K-05"))
     import laster as L05                                  # stolparnas lägen: K-05:s punktlaster, sökpunkt i indata vid behov
     sok = {p["namn"]: (p["x"], p["y"]) for p in L05.punktlaster()}
     sok.update({S["namn"]: tuple(S["sok"]) for S in IN["stolpe"] if "sok" in S})
@@ -130,15 +135,17 @@ def main():
                                               z0=v["z0"], z1=v["z1"]) for v in delar]))
     # huvudstolpens delar (för figuren)
     ut["huvudstolpe"] = [bb(d) | dict(namn=d.namn) for d in stomme if d.grupp.split("/")[-1].startswith("L3 Vert") and not d.namn.startswith("Sp")]
-    (HERE / "geometri.json").write_text(json.dumps(ut, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"geometri.json: {len(ut['takbalkar'])} takbalkar, {len(ut['fonster'])} takfönster, {len(ut['takstolar'])} takstolar, "
-          f"{len(ut['stolpar'])} stolpar ({m.fil.name}, {m.hash})")
-    for f in ut["fonster"]:
-        print(f"  takfönster {f['nr']}: y {f['y0']:.0f}–{f['y1']:.0f}, x {f['x0']:.0f}–{f['x1']:.0f}, takbalkar vid sidorna {f['trimmer']}, kortlingar {f['kortlingar']}")
-    for s in ut["stolpar"]:
-        print(f"  {s['namn']}: {len(s['delar'])} delar, stagad '{s['stagad']}', " + ", ".join(
-            f"{d['namn']} {d['x1'] - d['x0']:.0f}×{d['y1'] - d['y0']:.0f} z {d['z0']:.0f}–{d['z1']:.0f}" for d in s["delar"]))
-
+    kalla = json.loads((K03 / "geometri.json").read_text(encoding="utf-8"))
+    kod = redovisa("K-03 geometri.json", jamfor(kalla, ut, utelamna=(".sok",)))
+    # K-05:s stolplägen (laster.STOLPLAGEN) mot stolparnas mitt i modellen
+    fel = []
+    for s_ in ut["stolpar"]:
+        d = s_["delar"]
+        if s_["namn"] in L05.STOLPLAGEN and d:
+            c = ((min(v["x0"] for v in d) + max(v["x1"] for v in d)) / 2, (min(v["y0"] for v in d) + max(v["y1"] for v in d)) / 2)
+            fel += [f"{s_['namn']}: K-05 {L05.STOLPLAGEN[s_['namn']]}, modellen ({c[0]:.0f}, {c[1]:.0f})"
+                    for k in (0, 1) if abs(L05.STOLPLAGEN[s_["namn"]][k] - c[k]) > 1.0][:1]
+    return max(kod, redovisa("K-05 laster.STOLPLAGEN", fel))
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

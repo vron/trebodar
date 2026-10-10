@@ -35,8 +35,9 @@ STODLIN = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, b
 VAGGLIN = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, bb, typ, cs in G["vagg"]]
 VTYP = [w[4] for w in G["vagg"]]
 INRE = [i for i, t in enumerate(VTYP) if t == "inre"]
-PEL = [tuple(p) for p in G["pelare"]]
-K_ROR = 210000 * M05.A_ROR / M05.L_ROR              # N/mm
+ROR = M05.rorstod()                                  # (namn, x, y, bx, by, antal rör); P7 är två rör (K-05)
+PEL = [(x, y) for _, x, y, _, _, _ in ROR]           # stödens mitt
+K_ROR = 210000 * M05.A_ROR / M05.L_ROR              # N/mm per rör
 
 
 # ------------------------------------------------------------------ bottenplattans geometri
@@ -76,7 +77,7 @@ def topp(hmax=200.0, k_mark=None):
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
     stolpar = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] == "platta"]
     P = Platta(G["kontur"], hal=[G["hal"]], linjer=linjer + [list(map(tuple, G["mark"])) + [tuple(G["mark"][0])]],
-               punkter=punkter, rektanglar=[(x, y, M05.PLAT, M05.PLAT) for x, y in PEL], hmax=hmax,
+               punkter=punkter, rektanglar=[(x, y, bx, by) for _, x, y, bx, by, _ in ROR], hmax=hmax,
                finare=[(x, y, 1.5 * M05.PLAT, 50 * M05.FIN) for x, y in PEL] +
                       [(x, y, 300.0, 80.0 * M05.FIN) for pl in STODLIN for x, y in pl] +
                       [(x, y, 400.0, 60.0 * M05.FIN) for x, y in stolpar])
@@ -92,7 +93,7 @@ def botten(utf, plint, hmax=200.0):
     linjer += [list(l) for l in STODLIN] + [list(l) for l in VAGGLIN]
     yttre = [list(c) for c in _ring_coords(poly)]
     assert len(yttre) == 1
-    P = Platta(yttre[0], linjer=linjer, rektanglar=[(x, y, 200.0, 200.0) for x, y in PEL], hmax=hmax,
+    P = Platta(yttre[0], linjer=linjer, rektanglar=[(x, y, bx, by) for _, x, y, bx, by, _ in ROR], hmax=hmax,
                finare=[(x, y, 400.0, 60.0) for x, y in PEL] + [(x, y, 300.0, 80.0) for pl_ in STODLIN for x, y in pl_])
     cen = P.cen
     i_tjock = MplPath(np.zeros((1, 2))).contains_points(cen)       # alla falska
@@ -205,12 +206,12 @@ def kopplingar(Pt, Pb, E_leca, ds=25.0, ytter=False):
     ytter: ytterväggarnas yttre vange bär också (fjäder E·t/h längs vangens mitt, 50 mm från ytterlivet)."""
     nt = Pt.ndof
     out = []
-    # rör: medelvärdet av noderna i rörets yta (200 × 200) i båda plattorna
-    for i, (x, y) in enumerate(PEL):
-        a = Pt.noder_i_rekt(x, y, M05.PLAT, M05.PLAT)
-        b = Pb.noder_i_rekt(x, y, 200.0, 200.0)
+    # rör: medelvärdet av noderna i rörets yta (200 × 200, ett dubbelrör över båda rören) i båda plattorna
+    for namn, x, y, bx, by, antal in ROR:
+        a = Pt.noder_i_rekt(x, y, bx, by)
+        b = Pb.noder_i_rekt(x, y, bx, by)
         v = [(3 * n, 1 / len(a)) for n in a] + [(nt + 3 * n, -1 / len(b)) for n in b]
-        out.append(dict(typ="rör", namn=f"P{i + 1}", k=K_ROR, v=v))
+        out.append(dict(typ="rör", namn=namn, k=antal * K_ROR, v=v))
     # väggar: linjefjäder längs K-05:s upplagslinje, interpolerad mellan noderna i båda näten
     for i, pl in enumerate(STODLIN):
         t = I.T_SKIKT * (2 if VTYP[i] == "inre" else 1)

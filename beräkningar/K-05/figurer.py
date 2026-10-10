@@ -30,7 +30,7 @@ MARK = "#f4ecdc"
 LECA = "#b9b3a9"
 ISOL = "#f7f3df"
 STAL = "#5a5f66"
-FRI = "#c0504d"
+FRI = "#c0504d"                       # diagonaljärn och fria kanter (används av K-06)
 LAST = "#2c4a6e"
 PLAN1 = "#9db7d1"
 GRID = "#9a9a9a"
@@ -133,6 +133,13 @@ def _vagg_etikett(ax, G, fs=5.6):
                 zorder=9, path_effects=HALO)
 
 
+def ror_symbol(x, y, n, s):
+    """Rörsymbol (x0, y0, b, h) med sidan s; ett dubbelrör (modell.DUBBELROR) dras ut åt det andra rörets håll."""
+    from modell import DUBBELROR
+    dx, dy = DUBBELROR.get(n, (0.0, 0.0))
+    return x - s / 2 + min(dx, 0), y - s / 2 + min(dy, 0), s + abs(dx), s + abs(dy)
+
+
 def rita_geometri(path, G, plat=200):
     """Plattan, Lecaväggarna (V1–V21) och rören (P1–P19)."""
     kontur, hal, pel, mark = G["kontur"], G["hal"], G["pelare"], G["mark"]
@@ -147,7 +154,8 @@ def rita_geometri(path, G, plat=200):
     ax.plot([hx0, hx1], [hy0, hy1], color=GRID, lw=0.35, zorder=5)
     ax.plot([hx0, hx1], [hy1, hy0], color=GRID, lw=0.35, zorder=5)
     for i, (x, y) in enumerate(pel, 1):
-        ax.add_patch(Rectangle((x - 70, y - 70), 140, 140, fc=STAL, ec="white", lw=0.4, zorder=8))
+        x0, y0, bx, by = ror_symbol(x, y, f"P{i}", 140)
+        ax.add_patch(Rectangle((x0, y0), bx, by, fc=STAL, ec="white", lw=0.4, zorder=8))
         under = i in (12, 13, 14)          # vid trapphålets underkant: etiketten under röret
         ax.text(x + 140, y - 120 if under else y + 120, f"P{i}", fontsize=6.3, ha="left", va="top" if under else "bottom",
                 zorder=9, path_effects=HALO)
@@ -183,8 +191,9 @@ def rita_laster(path, G, L):
     _vaggar(ax, G, fc="#d6d2cb", ec="#8a8a8a", lw=0.3)
     ax.add_patch(Polygon(G["kontur"], closed=True, fc="none", ec=INK, lw=LW * 1.2, zorder=5))
     ax.add_patch(Polygon(G["hal"], closed=True, fc="white", ec=INK, lw=LW, zorder=5))
-    for x, y in G["pelare"]:
-        ax.add_patch(Rectangle((x - 60, y - 60), 120, 120, fc="#9a9a9a", ec="none", zorder=4))
+    for i, (x, y) in enumerate(G["pelare"], 1):
+        x0, y0, bx, by = ror_symbol(x, y, f"P{i}", 120)
+        ax.add_patch(Rectangle((x0, y0), bx, by, fc="#9a9a9a", ec="none", zorder=4))
     cx, cy = SPoly(G["kontur"]).centroid.coords[0]
     # ytterväggar: tunn linje över Lecavägg, tjock där väggen står på plattan
     for w in L["vaggar"]:
@@ -274,45 +283,6 @@ def inatgaende_horn(kontur):
     return out
 
 
-def rita_armering(path, G, R):
-    """Överkantens tilläggsjärn (zoner), diagonaljärn vid inåtgående hörn och trapphålets hörn."""
-    fig, ax = plt.subplots(figsize=(6.0, 6.6))
-    ax.add_patch(Polygon(G["kontur"], closed=True, fc=BETONG, ec="none", zorder=0))
-    _bas(ax, G, pelare=False)
-    for zn in R["zoner"]:
-        x0, y0, x1, y1 = zn["bounds"]
-        ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fc="#e2bdb3", ec=INK, lw=0.5, alpha=0.85, hatch="++",
-                               zorder=2))
-        ax.text(x0 + 60, y1 - 60, zn["namn"], ha="left", va="top", fontsize=6.5, weight="bold",
-                zorder=9, path_effects=HALO)
-    # diagonaljärn: 2 Ø10 L = 1,2 m, vinkelrätt mot bisektrisen, 150 mm in från hörnet
-    hal = G["hal"]
-    hx = [p[0] for p in hal]; hy = [p[1] for p in hal]
-    hcx, hcy = sum(hx) / 4, sum(hy) / 4
-    diag = [(b, bis) for b, bis in inatgaende_horn(G["kontur"])]
-    for p in hal:
-        b = np.array(p, float); bis = b - np.array([hcx, hcy]); bis /= np.linalg.norm(bis)
-        diag.append((b, bis))
-    for b, bis in diag:
-        t = np.array([-bis[1], bis[0]])
-        for off in (150, 250):
-            c = b + bis * off
-            p0, p1 = c - t * 600, c + t * 600
-            ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=FRI, lw=0.9, zorder=8, solid_capstyle="butt")
-    for p in R["pelare"]:
-        x, y = p["x"], p["y"]
-        ax.add_patch(Rectangle((x - 40, y - 40), 80, 80, fc=STAL, ec="none", zorder=9))
-        ax.text(x + 150, y + 130, p["namn"], fontsize=6, zorder=9, path_effects=HALO)
-    items = [(Rectangle((0, 0), 1, 1, fc="#e2bdb3", ec=INK, lw=0.5, hatch="++"), "tilläggsjärn i överkant, båda riktningarna"),
-             (plt.Line2D([0], [0], color=FRI, lw=0.9), "diagonaljärn 2 Ø10, L = 1,2 m, i överkant"),
-             (Rectangle((0, 0), 1, 1, fc=STAL, ec="none"), "rör 80×80")]
-    ax.legend([i for i, _ in items], [t for _, t in items], loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=2,
-              frameon=False, fontsize=6.6, handlelength=1.6, handleheight=1.0)
-    fig.savefig(path, bbox_inches="tight", pad_inches=0.02)
-    plt.close(fig)
-    return len(diag)
-
-
 def rita_tvarsnitt(path, R):
     """Plattans tvärsnitt med armeringslagren och täckskikten (skala 1:5 ungefär)."""
     ind = R["indata"]
@@ -321,7 +291,7 @@ def rita_tvarsnitt(path, R):
     fig, ax = plt.subplots(figsize=(5.2, 1.7))
     W = 500
     ax.add_patch(Rectangle((0, 0), W, h, fc=BETONG, ec=INK, lw=0.7))
-    yb1 = cu + du / 2; yb2 = cu + du + du / 2          # x yttre, y inre
+    yb1 = cu + du / 2; yb2 = cu + du + du / 2          # lagren i valfri ordning
     yt1 = h - co - do / 2; yt2 = h - co - do - do / 2
     ax.plot([10, W - 10], [yb2, yb2], color=INK, lw=1.4)
     ax.plot([10, W - 10], [yt2, yt2], color=INK, lw=1.1)
@@ -337,12 +307,11 @@ def rita_tvarsnitt(path, R):
     vm(25, h - co, h, f"{co}", side=-1)
     vm(25, 0, cu, f"{cu}", side=-1)
     # etiketter med hänvisningslinjer
-    lab = [(yt1, h + 22, f"Ø{do} s{co_cc}, x-riktning (ytterst)"), (yt2, h - 20, f"Ø{do} s{co_cc}, y-riktning"),
-           (yb2, 48, f"Ø{du} s{cu_cc}, y-riktning"), (yb1, -12, f"Ø{du} s{cu_cc}, x-riktning (ytterst)")]
+    lab = [(yt1, h + 22, f"Ø{do} s{co_cc} i båda riktningarna"), (yb1, -12, f"Ø{du} s{cu_cc} i båda riktningarna")]
     for yb, yl, t in lab:
         ax.plot([W - 30, W + 60, W + 90], [yb, yl, yl], color=GRID, lw=0.4)
         ax.text(W + 95, yl, t, fontsize=6.4, va="center")
-    ax.text(W / 2, -30, "C25/30, XC1, B500B", ha="center", va="top", fontsize=6.5, style="italic")
+    ax.text(W / 2, -30, "C25/30, XC3, B500B", ha="center", va="top", fontsize=6.5, style="italic")
     ax.set_xlim(-80, W + 520); ax.set_ylim(-55, h + 40)
     ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(path, bbox_inches="tight", pad_inches=0.02)
@@ -378,7 +347,8 @@ def _bas(ax, G, pelare=True, vaggar=True, etiketter=False):
     ax.add_patch(Polygon(G["hal"], closed=True, fc="white", ec=INK, lw=0.6, zorder=7))
     if pelare:
         for i, (x, y) in enumerate(G["pelare"], 1):
-            ax.add_patch(Rectangle((x - 60, y - 60), 120, 120, fc=INK, ec="white", lw=0.3, zorder=8))
+            x0, y0, bx, by = ror_symbol(x, y, f"P{i}", 120)
+            ax.add_patch(Rectangle((x0, y0), bx, by, fc=INK, ec="white", lw=0.3, zorder=8))
             if etiketter:
                 ax.text(x + 120, y + 100, f"P{i}", fontsize=5.6, zorder=9, path_effects=HALO)
     ax.set_xlim(-300, 14100); ax.set_ylim(-300, 16200)

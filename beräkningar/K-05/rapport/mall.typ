@@ -36,9 +36,9 @@
 
 = Inledning
 
-Handlingen redovisar mellanbjälklaget mellan källaren och plan 1: en platsgjuten betongplatta, 150 mm, som vilar på källarens Lecaväggar och på 19 stålrör VKR 80×80×4. Den del av vänstra huskroppen som saknar källare ligger på mark. Plattan bär sin egentyngd, golv, nyttig last och alla laster från trästommen på plan 1: nock- och dalbalkarnas stöd enligt K-01, ytterväggarna och taket på dem samt trappan. Kontrollerna avser böjning, genomstansning, tvärkraft, nedböjning, sprickbredd och rörens bärförmåga. Reaktionerna på Lecaväggarna och rören är underlag för grund och källarväggar (K-06).
+Handlingen redovisar mellanbjälklaget mellan källaren och plan 1: en platsgjuten betongplatta, 150 mm, som vilar på källarens Lecaväggar och på stålrör VKR 80×80×4. Den del av vänstra huskroppen som saknar källare ligger på mark. Plattan bär sin egentyngd, golv, nyttig last och alla laster från trästommen på plan 1: stolparna under nock- och dalbalkar och takstolar (K-01, K-03), ytterväggarna med taket samt trappan. Kontrollerna avser böjning, genomstansning, tvärkraft, nedböjning, sprickbredd och rörens bärförmåga. Reaktionerna på Lecaväggarna och rören är underlag för grund och källarväggar (K-06).
 
-Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1992-1-1 och SS-EN 1993-1-1 med EKS 12. Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år. Laster och förutsättningar enligt F-01.
+Laster, regler och förutsättningar enligt F-01.
 
 *Resultat.* Plattan och rören klarar alla kontroller med armering enligt avsnitt 4. Största utnyttjande:
 
@@ -47,6 +47,7 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1992-1-1 och SS-EN 1993-1-1 med EKS 12
   align: (left, left, right),
   table.header([Kontroll], [Var], [Utnyttjande]),
   [Böjning, underkant], [fält], [#D.uk_max],
+  [Böjning, underkant vid fria kanter mot det fria (täckskikt #D.fri.c mm)], [], [#D.fri.utn],
   [Böjning, överkant, bara nät], [utanför zonerna], [#D.ok_utan],
   [Böjning, överkant, armering #D.mat.sank mm för lågt], [utanför zonerna], [#D.ok_utan_lag],
   [Böjning, överkant med tilläggsjärn], [#D.ok_zon_namn], [#D.ok_zon],
@@ -65,12 +66,12 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1992-1-1 och SS-EN 1993-1-1 med EKS 12
 
 = Husets geometri
 
-#figure(placement: auto,
-  image("../fig_geometri.svg", width: 96%),
+Trapphålet är 2 070 × 828 mm. Källarväggarna är Leca 350: Leca 100 + isolering 150 + Leca 100. Plattan gjuts ut till 30 mm från Lecans ytterliv; där utanför ligger kantisolering. Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar.
+
+#figure(
+  image("../fig_geometri.svg", width: 90%),
   caption: [Mellanbjälklaget i plan med källarens Lecaväggar V1–V21 och rören P1–P19, mm. Måtten avser plattan, origo i plattans nedre vänstra hörn.],
 )
-
-Trapphålet är 2 070 × 828 mm. Källarväggarna är Leca 350: Leca 100 + isolering 150 + Leca 100. Plattan gjuts ut till 30 mm från Lecans ytterliv; där utanför ligger kantisolering. Plattans kontur, trapphålet, Lecaväggarna och rören har de exakta lägena i husets Onshape-modell. Rören vid trapphålet (P6, P7, P13, P14) står #D.yta.ror_hal mm från hålkanten (rörets centrum). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. Den del av vänstra huskroppen som saknar källare, #D.yta.mark m² av plattans #D.yta.tot m², ligger på cellplast på mark. Riktningar (övre, nedre, vänster, höger) avser figur 1.
 
 = Laster
 
@@ -90,18 +91,20 @@ Lätta mellanväggar räknas som nyttig last i brottgränstillstånd, som 6.3.1.
 
 == Laster från trästommen
 
-Lasterna förs ned från taket på samma sätt som i trästommens beräkning:
+Stolparna under nock- och dalbalkarna och takstolarna redovisas i K-03 och balkarna i K-01. Stolparnas laster och lägen är desamma som där (punktlasttabellen, kolumnen Ursprung):
 
-- *Nock- och dalbalkar:* stödreaktioner enligt K-01. $R_d$ är K-01:s största dimensionerande reaktion (6.10b). Den delas upp i $G_k$ och $S_k$ i samma förhållande som balkens last i K-01: nockbalk 2,01 + 3,75 kN/m, dalbalk 1,93 + 7,13 kN/m. K-01:s största reaktion kommer från fältvis snö eller fritt upplagda fält, där snöns andel är minst lika stor som i lastförhållandet. Uppdelningen ger därför rätt $R_d$ med snö som huvudlast och på säker sida för övriga kombinationer och för bruksgränstillstånd, som får för stor $G_k$-andel. $W_d$ är K-01:s minsta reaktion vid vindlyft, $1,0 G + gamma_d 1,5 W$.
-- *Gavlar:* nockbalkens ände vilar på gaveltakstolen, som för hälften var till de två hörnstolparna LA1–LA10, eller till dalbalkens ände (LD2_4, LD4_2). Hörnstolpen bär också takstolens egen takremsa, (#D.enh.cc/2 + #D.enh.utspr) m × (nock–takfot + #D.enh.utspr) m, och takstolens egentyngd #D.enh.takstol kN.
-- *Mittakstolen* i mittre huskroppen för nockbalk 3:s stöd C till LD2_2 och LD4_1, hälften till var.
-- *Dalbalk 2* vilar på en bärande vägg på plan 1 (träregelverk med gips på båda sidor). Väggens reaktion enligt K-01 ger linjelasten qD2 och LD2_3 vid väggänden. Väggens egentyngd, #D.enh.g_vagg kN/m² × #D.enh.h_vagg m, läggs till qD2. Vid trapphålet har väggen en dörröppning mot trappan, och karmstolparna LD2_1 och LD2_2 står direkt intill hålets långsidor (upplagsyta 95 × 90 mm). LD2_2 bär också den del av väggen som K-01 fördelar över hålet och halva nockbalk 3:s stöd C.
-- *Takfotsväggar:* takbalkarna (c/c #D.enh.cc m) vilar på hammarbandet. Väggen bär halva takbalkens horisontella längd plus takutsprånget #D.enh.utspr m: #D.enh.t_sida m i vänstra och högra huskroppen, #D.enh.t_mitt m i mittre.
-- *Ytterväggarnas egentyngd* #D.enh.g_vagg kN/m² väggyta (fönster räknas som vägg). Höjd #D.enh.h_vagg m till takfot. Gavelväggar dessutom gavelspetsen upp till taket ($#D.enh.vinkel degree$).
-- *Trappan* (trä) hänger med halva sin vikt på trapphålets kortsida. Trappan har #D.enh.tr_l m horisontell längd och #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan. Vilken kortsida som bär är inte bestämt, så lasten läggs på båda.
-- *Stolpar:* stolparna redovisas i K-03 och räknas här med minst ytan av 2 st 45×95. Stolpe B (LD4_1, över P10) är #D.stB.stolpe×#D.stB.stolpe GL30h (K-03) och står på en fotplåt #D.stB.L × #D.stB.B × #D.stB.t mm, S355, förankrad i plattan. Dalbalk 4:s centrumlinje ligger #D.stB.havarm mm från stolpens centrum, mittakstolen centriskt. Med dagens laster blir excentriciteten $e$ = #D.stB.e mm och momentet #D.stB.M kNm (dimensionerande). Lasten läggs med den excentriciteten, bort från röret. LN1_1 står 250 mm från P17, i väggen vid y ≈ 2 795.
+- *Stolpe under en balk:* balkens stödreaktion enligt K-01. $R_d$ är K-01:s största dimensionerande reaktion (6.10b). Den delas upp i $G_k$ och $S_k$ i samma förhållande som balkens last i K-01 (nockbalk 2,01 + 3,75 kN/m, dalbalk 1,93 + 7,13 kN/m). Det ger rätt $R_d$ med snö som huvudlast och ligger på säker sida för övriga kombinationer.
+- *Takstolens fot:* halva lasten i takstolens topp (balkens stödreaktion) och takstolens egen takremsa, (#D.enh.cc/2 + #D.enh.utspr) m × (nock–takfot + #D.enh.utspr) m, med takstolens egentyngd #D.enh.takstol kN. Gavlarnas takstolar står på hörnstolparna LA1–LA10, utom i mittre huskroppens övre gavel, där takstolen står på dalbalkarnas ändar (LD2_4 och LD4_2). Mittakstolen står på LD2_2 och LD4_1.
+- *Vindlyft* $W_d$ är K-01:s minsta reaktion, $1,0 G + gamma_d 1,5 W$. Också dalbalkarna lyfter: vid vind längs nockarna är det sug över hela taket, även i dalarna (SS-EN 1991-1-4 7.2.7 och tabell 7.4b), och med invändigt övertryck är suget större än takets egentyngd.
+- *Stolparnas yta:* minst 2 st 45×95. Stolpe B (LD4_1) är #D.stB_yta GL30h (K-03) och står direkt på plattan.
 
-Ytterväggarnas stomme, 95 mm, står från 30 mm utanför till 65 mm innanför plattans kant, med centrum #D.enh.vagg_in mm innanför kanten, alltså ovanför Lecaväggens yttre skikt. Plattan vilar på båda skikten. I modellen läggs lasterna över en Lecavägg på väggens upplagslinje i det inre skiktet, där de inte böjer plattan men ingår i väggens reaktion (avsnitt 6.1). Den förenklingen är kontrollerad med en modell där också det yttre skiktet bär (bara tryck) och lasterna står där de står. Största stödmoment intill lasterna över väggarna blir då #D.ytter.med kNm/m mot #D.ytter.utan kNm/m (före faktorn #D.mat.konv), inom zon #D.ytter.zon. Zonens tilläggsjärn dimensioneras för #D.mat.zonf × det större värdet. Övriga resultat ändras inte. Det yttre skiktet tar då #D.ytter.Y kN av lasten med snö som huvudlast, vilket K-06 ska ta hänsyn till. Största last som står över en vägg är LD4_2, 44 kN dimensionerande. Spridd genom plattan (45°) till båda skikten ger den cirka 0,6 MPa på Lecan, som kontrolleras i K-06. Över källarens öppningar (fria kanter) och på marken verkar lasterna på plattan.
+Övriga laster från plan 1:
+
+- *Dalbalk 2* vilar på en bärande vägg (qD2) med dörröppning mot trappan. Karmstolparna LD2_1 och LD2_2 står intill trapphålets långsidor (upplagsyta 95 × 90 mm), och LD2_3 är väggens ände.
+- *Ytterväggarna* (qY1–qY12): egentyngd #D.enh.g_vagg kN/m² väggyta, höjd #D.enh.h_vagg m till takfot och gavelspetsen upp till taket. Takfotsväggarna bär taket till halva takbalkens horisontella längd plus takutsprånget #D.enh.utspr m: #D.enh.t_sida m i vänstra och högra huskroppen, #D.enh.t_mitt m i mittre.
+- *Trappan* (trä) hänger med halva sin vikt på trapphålets kortsida (qT): #D.enh.tr_l m horisontell längd, #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan.
+
+Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kant, ovanför Lecaväggens yttre skikt. Plattan vilar på båda skikten. I modellen läggs lasterna över en Lecavägg på väggens upplagslinje i det inre skiktet, där de inte böjer plattan men ingår i väggens reaktion (avsnitt 6.1). Om även det yttre skiktet bär, blir största stödmoment intill lasterna över väggarna #D.ytter.med kNm/m mot #D.ytter.utan kNm/m (före faktorn #D.mat.konv), inom zon #D.ytter.zon, och zonens tilläggsjärn dimensioneras för #D.mat.zonf × det större värdet. Det yttre skiktet tar då #D.ytter.Y kN av lasten med snö som huvudlast. Största last som står över en vägg är LD4_2, 44 kN dimensionerande, cirka 0,6 MPa på Lecan (K-06). Över källarens öppningar (fria kanter) och på marken verkar lasterna på plattan.
 
 #tab(
   columns: (1fr, auto, 1fr),
@@ -149,26 +152,28 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
 
 = Plattans utformning
 
-#figure(image("../fig_tvarsnitt.svg", width: 70%), caption: [Plattans tvärsnitt, mm. x-järnen ligger ytterst i båda näten.])
+#figure(image("../fig_tvarsnitt.svg", width: 70%), caption: [Plattans tvärsnitt, mm. Järnen i varje nät läggs i valfri ordning.])
 
 #tab(
   columns: (auto, 1fr),
   align: (left, left),
   table.header([Del], [Utförande]),
-  [Betong], [C25/30, exponeringsklass XC1. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
+  [Betong], [C25/30, exponeringsklass XC3 (vct ≤ 0,55), se täckskikt nedan. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
   [Armering], [B500B, $f_"yd"$ = #D.mat.fyd MPa],
-  [Underkant], [Nät #D.mat.nat_uk i båda riktningarna, täckskikt #D.mat.c_uk mm. Minst två underkantsjärn i vardera riktningen passerar över varje rör (9.4.1(3)); där nätet inte gör det läggs 2 Ø10, L = 1,2 m],
+  [Underkant], [Nät #D.mat.nat_uk i båda riktningarna, täckskikt #D.mat.c_uk mm],
   [Överkant], [Nät #D.mat.nat_ok i båda riktningarna, täckskikt #D.mat.c_ok mm],
-  [Tilläggsjärn i överkant], [Zonerna #D.zon_namn.join(", ") enligt figur 4, i nätets lager, båda riktningarna],
-  [Hörn], [2 Ø10, L = 1,2 m, diagonalt i överkant vid plattans inåtgående hörn och trapphålets hörn],
-  [Fria kanter], [Båda näten går ut till kanten (öppningarna i källarväggen och trapphålet); nätet är kantarmering enligt 9.3.1.4(2)],
-  [Rör], [VKR 80×80×4 S235, kallformade (SS-EN 10219), L = 2,1 m. Topplåt 80×80×8 svetsas på röret, som gjuts in kant i kant med plattans undersida. Ingen huvudplåt. #for r in D.plat [#r.namn: topplåt #r.b × #r.b × #r.t mm S#r.fy, centrerad på röret. ]],
+  [Fria kanter], [Båda näten går ut till kanten (trapphålet och öppningarna i källarens ytterväggar); nätet är kantarmering enligt 9.3.1.4(2). Vid öppningarna i ytterväggarna är kanten mot det fria: täckskikt #D.fri.c mm mot kanten och i underkant inom #D.fri.band mm från kanten],
+  [Rör], [VKR 80×80×4 S235, kallformade (SS-EN 10219), L = 2,1 m, med topplåt 80×80×8 svetsad på röret och ingjuten kant i kant med plattans undersida. #for d in D.dubbel [#d: två rör tätt intill varandra i x-led, 160 × 80 mm, vart och ett med sin topplåt. ]],
 )
 
-*Täckskikt* (4.4.1, EKS tabell D-1): XC1 och 50 år ger $c_"min,dur"$ = 10 mm, $c_"min,b"$ = stångens diameter och $Delta c_"dev"$ = 10 mm, alltså $c_"nom"$ = 20 mm. Underkanten har 20 mm. Överkanten har 25 mm, vilket ger 5 mm marginal för glättning eller slipning. Brand R30 kräver axelavstånd 10 mm (SS-EN 1992-1-2 tabell 5.9).
+*Täckskikt* (4.4.1, EKS tabell D-1): plattan är inomhus, XC1, och 50 år ger $c_"min,dur"$ = 10 mm, $c_"min,b"$ = stångens diameter och $Delta c_"dev"$ = 10 mm, alltså $c_"nom"$ = 20 mm. Underkanten har 20 mm. Överkanten har 25 mm, vilket ger 5 mm marginal för glättning eller slipning. Vid öppningarna i källarens ytterväggar är plattans kant och undersida utomhus men skyddade mot nederbörd, XC3: $c_"min,dur"$ = 20 mm (vct ≤ 0,55) och $c_"nom"$ = #D.fri.c mm. Där ligger underkantsnätet på #D.fri.c mm distanser, och böjningen klarar den mindre höjden (#D.fri.utn). Betongen beställs därför som XC3 för hela plattan. Brand R30 kräver axelavstånd 10 mm (SS-EN 1992-1-2 tabell 5.9).
 
-#figure(placement: auto,image("../fig_armering.svg", width: 76%),
-  caption: [Tilläggsjärn i överkant och diagonaljärn. Zonerna omfattar området där nätet inte räcker plus 0,4 m förankring, och 1,5 × 1,5 m kring rör som behöver mer armering för genomstansning eller där tillägg föreskrivs (P7, P14, P17).])
+== Lokala förstärkningar
+
+Utöver näten läggs (lägen på R-03.2 och R-03.3):
+- *vid varje rör* minst två underkantsjärn i vardera riktningen över röret (9.4.1(3)); där nätet inte gör det läggs 2 Ø10, L = 1,2 m;
+- *tilläggsjärn i överkant* i zonerna #D.zon_namn.first()–#D.zon_namn.last(), i nätets lager i båda riktningarna, där nätet inte räcker för böjning eller genomstansning, och vid P7, P14 och P17 oavsett beräkningen (tabellen);
+- *diagonaljärn* 2 Ø10, L = 1,2 m, i överkant vid plattans inåtgående hörn och trapphålets hörn.
 
 #tab(
   columns: (auto, auto, auto, auto, auto, auto, auto, 1fr),
@@ -176,37 +181,23 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
   table.header([Zon], [x (m)], [y (m)], [Storlek (m)], [Tillägg], [$M_"Ed"$], [$M_"Rd"$], [Orsak]),
   ..D.zon.map(r => ([#r.namn], [#r.x], [#r.y], [#r.mat], [#r.jarn], [#r.MEd], [#r.MRd], [#r.orsak#if r.ror != "" [, #r.ror]])).flatten(),
 )
-Moment i kNm/m; $M_"Rd"$ med nät och tilläggsjärn.
+Moment i kNm/m; $M_"Rd"$ med nät och tilläggsjärn. Zonerna omfattar området där nätet inte räcker plus 0,4 m förankring, och 1,5 × 1,5 m kring rör som behöver mer armering för genomstansning.
 
 = Beräkningsmetod
 
-Plattan räknas linjärelastiskt med finita element: DKT-plattelement, cirka 35 000 element, grundnät 200 mm som förfinas till 50 mm vid rören, 60 mm vid stolparna på plattan och 80 mm vid väggändar och hörn. Geometrin är den i figur 1.
+Plattan räknas linjärelastiskt med finita element (plattelement, cirka 35 000 element, förfinat vid rör, stolpar, väggändar och hörn) med geometrin i figur 1. Lecaväggarna är upplag längs upplagslinjer, rören fjädrar med rörets axialstyvhet, och plattan på mark ligger på en bädd (cellplasten). Tre stödvarianter räknas: verklig rörstyvhet, som ger störst moment, styva rör, och styva rör med fjädrande Lecaväggar, som ger störst rörlaster. Alla resultat är det ogynnsammaste av de tre. Metodens detaljer står i beräkningsfilerna.
 
-- *Lecaväggar:* fritt upplag längs upplagslinjer. Ytterväggarnas linje ligger 75 mm in från väggens insida (5.3.2.2), innerväggarnas i väggens mitt.
-- *Rör:* fjädrar med rörets axialstyvhet $E A slash L$ över 200 × 200 mm (röret och plattans lastspridning). Rören räknas också som helt styva, och som helt styva med Lecaväggarna som fjädrar ($E t slash h$ med $E$ = 2 000 MPa, inre skiktet 100 mm, höjd 2,6 m). Mjuka rör ger störst moment i plattan, styva rör med fjädrande väggar störst rörlaster (#D.vaggfall.namn #D.vaggfall.vagg kN mot #D.vaggfall.styv kN med stela väggar). Alla resultat är det ogynnsammaste av de tre; väggarnas reaktioner tas ur modellerna med stela väggar.
-- *Plattan på mark:* bädd med bäddmodulen 0,01 N/mm³ ($E slash t$, till exempel 400 mm cellplast med $E$ = 4 MPa). En mjuk bädd ger störst moment i plattan. Med 0,02 och 0,05 N/mm³ minskar stödmomentet vid hörnet mellan plattan på mark och källaren; övriga resultat ändras inte. Cellplastens tjocklek och tryckklass bestäms i K-06.
-- *Laster:* utbredda laster på element, punktlaster i noder, linjelaster längs nätets linjer. Laster över Lecaväggar läggs på närmaste upplagslinje.
-- *Moment:* dimensionerande moment enligt Wood–Armer, med toppar utjämnade över #D.mat.band mm (ungefär 2$d$) tvärs momentets riktning. EC2 ger ingen uttrycklig regel för att jämna ut toppar i en FE-lösning. Bredden är därför vald så liten att den bara tar bort de lokala topparna under punktlaster och vid stödens kanter (lastytans bredd plus ungefär plattans tjocklek), utan att räkna med omfördelning enligt 5.5 eller 5.6. Stödmomenten i överkant multipliceras med #D.mat.konv när zonerna avgränsas, och tilläggsjärnen dimensioneras för #D.mat.zonf × FE-värdet, eftersom stela upplagslinjer ger nätberoende toppar vid väggändarna (se kontroll av modellen nedan). Böjning: $M_"Rd" = A_s f_"yd" (d - 0,4 x)$, $x = A_s f_"yd" slash (0,8 f_"cd")$.
-- *Genomstansning* (6.4): $v_"Rd,c" = 0,18 slash gamma_c dot k (100 rho_l f_"ck")^(1 slash 3) >= v_"min" = 0,035 k^(3 slash 2) f_"ck"^(1 slash 2)$, $k = 1 + sqrt(200 slash d) <= 2$.
-  - Varje rör och varje stolpe på plattan kontrolleras för sig med hela sin last på sitt eget kontrollsnitt $u_1$, 2$d$ från den belastade ytan: $v_"Ed" = beta V_"Ed" slash (u_1 d)$, $beta$ = 1,15 (1,4 inom 2$d$ från trapphålet). Ingen avlastning från närliggande laster och ingen förhöjd bärförmåga för närmare snitt räknas.
-  - Inom 6$d$ från trapphålet dras den del av $u_1$ bort som ligger mellan tangenterna från rörets mitt till hålet (6.4.2(3)).
-  - $rho_l$ och $d$ tas ur överkantsarmeringen (nät och tillägg), som är svagare än underkantsnätet. Det täcker båda riktningarna för kraften genom snittet; vid rör med en stolpe ovanpå är den dimensionerande nettokraften ofta nedåt (dragen underkant).
-  - För rören är $v_"Ed"$ dessutom minst FE-modellens största tvärkraft längs snittet, medelvärde över längden $d$, delat med $d$. Det täcker ojämn fördelning och moment som förs över i plattan, t.ex. av närliggande stolpar och linjelaster (rören är ledade och tar inget moment). Där en stolpes lastyta ligger inom 2$d$ från röret går rörets snitt genom eller intill stolpens lastyta, där tvärkraften i FE-modellen är singulär. Där tas FE-tvärkraften längs snittet 2$d$ runt röret och stolpen tillsammans: #D.gemensam.
-  - Den belastade ytan är topplåten. För en topplåt som är större än röret räknas bara den effektiva bredden enligt SS-EN 1993-1-8 6.2.5, $c = t sqrt(f_y slash (3 f_"jd"))$ utanför rörets liv, med $f_"jd" = 2 f_"cd"$ (största möjliga värde, ger minst yta).
-  - Som information redovisas nettokraften genom rörens snitt ur jämvikt (rörets reaktion minus lasterna inom snittet). Den visar hur mycket av en stolplast som går direkt ned i röret men används inte i kontrollen. För rören utan hål och utan stolpe inom 2$d$ stämmer den med tvärkraften som integreras ur FE-modellen (kvot #D.kn.min–#D.kn.max).
-  - Vid rörets kant gäller $v_"Ed,0" = beta V_"Ed" slash (u_0 d) <= 0,4 nu f_"cd"$ med hela rörlasten.
-  - Varje rör och stolpe ska ha minst 5 % marginal och klara sig om överkantsarmeringen ligger #D.mat.sank mm för lågt. Med lägre armering ritas snitten om för den mindre höjden. Annars läggs tilläggsjärn, 1,5 × 1,5 m. Vid P7, P14 och P17 läggs Ø10 s150 i överkant oavsett beräkningen. Samma krav på −#D.mat.sank mm gäller böjning i överkant.
-- *Tvärkraft* ur momentfältets lutning, integrerad längs kontrollsnitt. Vid väggändar räknas sista 0,5 m av upplagslinjen som belastad yta med snitt 2$d$ utanför ($v_"Ed" = 1,15 V slash (u d)$). Längs väggarna används snitt $d$ från väggens insida i bitar om 1 m, mot $v_"min" d$.
-- *Nedböjning* enligt 7.4.3 för kvasipermanent last, element för element och i båda riktningarna. Krökningen interpoleras mellan osprucket och sprucket tvärsnitt, $1 slash r = zeta slash r_"II" + (1 - zeta) slash r_"I"$ med $zeta = 1 - 0,5 (M_"cr" slash M)^2$. $E_"c,eff" = E_"cm" slash (1 + phi)$ = #D.ned.Eeff GPa ($phi$ = #D.ned.phi, RH 50 %, belastning efter 28 dygn) och krympkrökning med $epsilon_"cs"$ = #D.ned.ecs ‰ (bilaga B). Alla armeringslager ingår. Som försiktig gräns räknas plattan också helt sprucken med karakteristisk last och $phi$ = 3 utan krympning. Den metoden återger SINTEF:s tabeller (avsnitt 7).
-- *Sprickbredd* enligt 7.3.4 för kvasipermanent last och moment utan utjämning.
-- *Vindlyft:* rören är inte förankrade i plattan. Ett rör som får drag räknas som borttaget, och lyftfallet räknas om.
+Kontrollerna enligt SS-EN 1992-1-1:
+- *Böjning* (6.1) med dimensionerande moment enligt Wood–Armer, utjämnade över #D.mat.band mm. Stödmomenten i överkant multipliceras med #D.mat.konv (nätets inverkan vid väggändarna), och tilläggsjärnen dimensioneras för #D.mat.zonf × FE-värdet. Varje riktning räknas med det inre armeringslagrets höjd.
+- *Genomstansning* (6.4) vid varje rör och stolpe med hela lasten på eget kontrollsnitt, reducerat vid trapphålet. Dessutom *lokalt tryck* under topplåten (6.7) och tryckbrott vid rörets kant.
+- *Tvärkraft* (6.2) vid väggändar och längs väggarna.
+- *Nedböjning* (7.4.3) och *sprickbredd* (7.3.4) för kvasipermanent last. Som försiktig gräns räknas plattan också helt sprucken med karakteristisk last.
+- *Rörens knäckning* (SS-EN 1993-1-1 6.3.1).
+- *Vindlyft:* rören är inte förankrade i plattan, så ett rör som får drag räknas som borttaget.
 
-*Kontroll av modellen.* FE-programmet ger samma resultat som kända lösningar:
-- fritt upplagd kvadratisk platta (Navier), avvikelse under 0,1 %;
-- oändlig platta på pelarnät (Timoshenko), 0,00580 mot 0,00581 $q a^4 slash D$;
-- strimla med sprickbildning och krympning, samma som handintegrering.
+Varje rör och stolpe ska ha minst 5 % marginal och klara sig om överkantsarmeringen ligger #D.mat.sank mm för lågt. Samma krav gäller böjning i överkant.
 
-Summan av reaktionerna är lika med lasten (G #D.jv.G kN, S #D.jv.S kN). #D.konv Med mjuka rör blir väggarna V17 och V19 nästan obelastade (plattan kan lyfta från dem). Räknade utan de väggarna ändras momenten mindre än 0,1 kNm/m och rörlasterna högst 2 kN.
+*Kontroll av modellen.* FE-programmet ger samma resultat som kända lösningar (fritt upplagd platta, platta på pelarnät och strimla med sprickbildning), och summan av reaktionerna är lika med lasten (G #D.jv.G kN, S #D.jv.S kN). Nätets förfining, stödens styvhet och lastvägen över Lecans två skikt är prövade i beräkningsfilerna (validering).
 
 = Resultat
 
@@ -215,13 +206,13 @@ Summan av reaktionerna är lika med lasten (G #D.jv.G kN, S #D.jv.S kN). #D.konv
 #figure(placement: auto,image("../fig_moment.svg", width: 100%),
   caption: [Dimensionerande moment i brottgränstillstånd, utjämnade över #D.mat.band mm (överkant × #D.mat.konv), omhyllande för alla kombinationer och de tre stödvarianterna (avsnitt 5). Heldragen linje: nätets bärförmåga. Streckat: zoner med tilläggsjärn.])
 
-*Böjning.*
+#block(breakable: false)[*Böjning.*
 #tab(
   columns: (auto, auto, auto, auto, auto, auto, auto, auto),
   align: (left, left, right, right, right, right, right, right),
   table.header([Läge], [Armering], [$d$ (mm)], [$A_s$ (mm²/m)], [$M_"Ed"$ (kNm/m)], [Topp (kNm/m)], [$M_"Rd"$ (kNm/m)], [Utn.]),
   ..D.boj.map(r => ([#r.lage], [#r.arm], [#r.d], [#r.As], [#r.MEd], [#r.topp], [#r.MRd], [#r.utn])).flatten(),
-)
+)]
 Topp: största moment utan utjämning, direkt under en stolpe. Det är en lokal topp i FE-lösningen på en sträcka som är kortare än plattans tjocklek. Utjämnat över #D.mat.band mm är utnyttjandet #D.uk_max. I överkant är största moment utanför zonerna #D.ok_utan_M kNm/m: #D.ok_utan av nätets bärförmåga och #D.ok_utan_lag om armeringen ligger #D.mat.sank mm för lågt ($M_"Rd"$ = #D.ok_MRd_lag kNm/m). Största moment i en zon är #D.ok_zon_M kNm/m (#D.ok_zon_namn) mot #D.ok_zon_MRd kNm/m med #D.ok_zon_jarn som tillägg (#D.ok_zon).
 
 *Genomstansning vid rören* ($V_"Ed"$ i kN, spänningar i MPa):
@@ -231,11 +222,9 @@ Topp: största moment utan utjämning, direkt under en stolpe. Det är en lokal 
   table.header([Rör], [$V_"Ed"$], [Stolpe inom 4$d$], [Netto (info)], [Tillägg ök], [$u_1$ (mm)], [$beta$], [$v_"Ed"$ ($beta$)], [$v_"Ed"$ (FE)], [$v_"Rd,c"$], [Utn.], [−#D.mat.sank mm], [Rörkant], [6.7]),
   ..D.pel.map(r => ([#r.namn], [#r.VEd], [#r.stolpar], [#r.Vnet], [#r.tillagg], [#r.u1], [#r.beta], [#r.vf], [#r.vfe], [#r.vRd], [#r.utn], [#r.lag], [#r.utn0], [#r.lokal])).flatten(),
 )
-#text(size: 8pt)[¹ Trapphålet inom 6$d$, $u_1$ reducerad. $rho_l$ ur överkantsarmeringen. −#D.mat.sank mm: utnyttjande om överkantsarmeringen ligger #D.mat.sank mm för lågt. 6.7: lokalt tryck under topplåten (80×80#for r in D.plat [, #r.namn #r.beff×#r.beff]), $F_"Rdu" = A_"c0" f_"cd" sqrt(A_"c1" slash A_"c0")$ med spridning till högst plattans tjocklek och trapphålet.]
+#text(size: 8pt)[¹ Trapphålet inom 6$d$, $u_1$ reducerad. $rho_l$ ur överkantsarmeringen. −#D.mat.sank mm: utnyttjande om överkantsarmeringen ligger #D.mat.sank mm för lågt. 6.7: lokalt tryck under topplåten (80×80#for d in D.dubbel [, #d 160×80]), $F_"Rdu" = A_"c0" f_"cd" sqrt(A_"c1" slash A_"c0")$ med spridning till högst plattans tjocklek och trapphålet.]
 
-Kontrollen använder hela rörlasten $V_"Ed"$. Nettokraften (info) visar att det mesta av en stolplast ovanpå ett rör går direkt ned i röret. FE-fördelningen är mest ojämn vid #D.fe_beta.namn: största tvärkraft längs snittet är #D.fe_beta.kvot gånger medelvärdet $V_"Ed" slash (u_1 d)$. FE-värdet styr vid #D.fe_beta.styr. #for r in D.plat [Vid #r.namn, i trapphålets hörn, behövs topplåten #r.b × #r.b × #r.t mm S#r.fy, där den effektiva bredden är hela plåten ($80 + 2c >= #r.b$ mm). ]Tilläggsjärn i överkant vid rören: #D.pel_tillagg.join(", "). Topplåten måste vara minst #D.lokal.t mm tjock (brottlinjeteori, $f_y$ = 235 MPa); 8 mm väljs.
-
-*Stolpe B* (LD4_1) står på en fotplåt #D.stB.L × #D.stB.B × #D.stB.t mm med $N_d$ = #D.stB.N kN och $e$ = #D.stB.e mm, alltså inom fotplåten ($e < L slash 2$), så att lasten inte ger drag i förankringen. Med tryckytan (#D.stB.L − 2$e$) × #D.stB.B = #D.stB.b1 × #D.stB.B mm blir trycket #D.stB.s MPa. Lokalt tryck enligt 6.7 med spridning till plattans tjocklek ($sqrt(A_"c1" slash A_"c0")$ = #D.stB.kf) ger #D.stB.utn. Fotplåten behöver $t >=$ #D.stB.tmin mm (utsprång från stolpen som konsol); #D.stB.t mm väljs. Förankringen ska ta vindlyftet #D.stB.Wd kN och redovisas med stolpen i K-04. Stolpens last kontrolleras för genomstansning med fotplåtens yta och, separat, rörets reaktion P10 med hela lasten.
+Kontrollen använder hela rörlasten $V_"Ed"$. Nettokraften (info) visar att det mesta av en stolplast ovanpå ett rör går direkt ned i röret. FE-fördelningen är mest ojämn vid #D.fe_beta.namn: största tvärkraft längs snittet är #D.fe_beta.kvot gånger medelvärdet $V_"Ed" slash (u_1 d)$. FE-värdet styr vid #D.fe_beta.styr. #for d in D.dubbel [#d står i trapphålets hörn, där kontrollsnittet blir kort. Med ett rör räcker inte bärförmågan där, men två rör tätt intill varandra ger lastytan 160 × 80 mm, och de klarar kontrollen med samma rör och topplåtar som övriga. ]Tilläggsjärn i överkant vid rören: #D.pel_tillagg.join(", "). Topplåten måste vara minst #D.lokal.t mm tjock (brottlinjeteori, $f_y$ = 235 MPa); 8 mm väljs.
 
 *Stolpar på plattan* ($R_d$ i kN, spänningar i MPa), med hela lasten på eget kontrollsnitt och överkantsarmeringen:
 #tab(
@@ -278,7 +267,7 @@ Minimiarmering (9.3.1.1): underkant #D.min.uk mm²/m (finns #D.min.uk_har), öve
 
 *Rör.* VKR 80×80×4 S235 är kallformade (knäckkurva c), ledade i båda ändar och har knäcklängden 2 100 mm. Det ger $overline(lambda)$ = #D.ror.lam, $chi$ = #D.ror.chi och $N_"b,Rd"$ = #D.ror.NbRd kN (SS-EN 1993-1-1 6.3.1). Största rörlast #D.max_VEd kN (#D.max_pel) ger #D.max_knack.
 
-*Vindlyft.* Med styva rör får #D.lyft.namn #D.lyft.Rmin kN, alltså drag. Utan #D.lyft.utan lyfter plattan #D.lyft.w mm vid röret. Största moment är då #D.lyft.ok_u kNm/m i överkant och #D.lyft.uk_u kNm/m i underkant, högst #D.lyft.utn av nätets bärförmåga. Stolparnas förankring i plattan redovisas i K-04.
+*Vindlyft.* Med styva rör får #D.lyft.namn #D.lyft.Rmin kN, alltså drag. Utan #D.lyft.utan lyfter plattan #D.lyft.w mm vid röret. Största moment är då #D.lyft.ok_u kNm/m i överkant och #D.lyft.uk_u kNm/m i underkant, högst #D.lyft.utn av nätets bärförmåga. Stolparna förankras i topp och fot för sin lyftkraft (K-03).
 
 *Reaktioner på Lecaväggarna* (underlag för K-06). Karakteristiska summor i kN, med det som står direkt på väggen från plan 1 inräknat. Största dimensionerande last över 1 m (eller hela väggen om den är kortare) är omhyllande för kombinationerna med full nyttig last.
 #liten(
@@ -314,14 +303,9 @@ Den försiktiga metoden återger alltså SINTEF:s gräns. Mellanbjälklaget har 
 
 = Utförande och sättningar
 
-- *Överkantsarmering:* täckskikt #D.mat.c_ok mm. Kontrollera höjden vid rören före gjutning (distanser). Genomstansning och böjning klarar att armeringen ligger högst #D.mat.sank mm för lågt.
-- *Rör:* topplåt 80×80×8 svetsad på röret, så att betong inte rinner ned i röret och trycket sprids#for r in D.plat [; #r.namn: #r.b × #r.b × #r.t mm S#r.fy]. Rörens lägen enligt figur 1, ±40 mm.
-- *Glidskikt* (t.ex. byggpapp) på innerväggarnas krön, så att plattan kan krympa med mindre tvång. Ytterväggarna stöds mot jordtrycket av plattan; förbindningen mellan vägg och platta redovisas i K-06.
-- *Formrivning* tidigast när betongen nått cirka 70 % av $f_"ck"$ (provkroppar eller mognadsberäkning).
-- *Upplag under byggtiden:* högst 5 kN/m² på plattan, punktlaster under rör eller vägg.
-- *Trägolv:* limmas först när betongens relativa fuktighet är under golvlimmets gräns, mätt enligt RBK.
-- *Våtrum:* sprickupptagande tätskikt (krympsprickor upp till cirka 0,2 mm).
-- *Sättningar:* plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. Rörens plintar och väggarnas grund utförs därför med samma cellplast (tjocklek och tryckklass) och ungefär samma långtidstryck, så att sättningarna blir likartade. Skillnaden i sättning beräknas i K-06 och jämförs med känsligheten ovan.
+Utförandet anges på R-03: armering, täckskikt och distanser, rörens lägen och topplåtar, glidskikt på innerväggarnas krön, formrivning och last under byggtiden.
+
+*Sättningar.* Plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. K-06 räknar grunden, Lecaväggarna, rören och mellanbjälklaget i en gemensam modell, så att skillnaden i sättning ingår, och visar att armeringen räcker.
 
 #pagebreak(weak: true)
 #counter(heading).update(0)

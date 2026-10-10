@@ -46,11 +46,18 @@ VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: 
 G_D2VAGG = G_VAGG * H_VAGG                 # 1,5 kN/m
 KARM = (95.0, 90.0)                        # karmstolpens upplagsyta: väggens tjocklek (x) × 2 × 45 (y) [mm]
 STOLPE = (95.0, 90.0)                      # minsta stolpe 2 × 45×95 [mm]
-STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03)
-FOTPLAT_B = (250.0, 250.0, 15.0)           # stolpe B står på en fotplåt 250×250×15 S355 med förankring [mm]
-HAVARM_B = 70.0                            # dalbalk 4:s centrumlinje 70 mm från stolpe B:s centrum (modellen, K-03); mittakstolen centriskt [mm]
-AVST_P17 = 250.0                           # LN1_1 står i väggen vid y ≈ 2 795 (K-03), 250 mm från P17 i y-led
-# Trappan (trä) hänger på trapphålets kortsida. Vilken kortsida är inte bestämt: lasten läggs på båda.
+STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03), står direkt på plattan
+# Stolparnas lägen (stolpens mitt) [mm], samma som stolparna i K-03. Kontrollerade mot Onshape-modellen 2026-10-10
+# (avvikelse högst 1 mm; LN1_1 saknas i modellen). Karmstolparna LD2_1 och LD2_2 räknas fram vid dörröppningen
+# intill trapphålet (punktlaster()), där modellen inte stämmer (modell-todo.md).
+STOLPLAGEN = {
+    "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
+    "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),
+    "LD4_1": (4474, 5856), "LD4_2": (4438, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
+    "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
+    "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
+}
+# Trappan (trä) hänger på trapphålets kortsida. Vilken kortsida som bär är inte bestämt: lasten läggs på båda.
 TRAPPA = dict(langd=3.0, bredd=0.83, g=1.0, q=2.0)       # horisontell längd [m], bredd [m], kN/m² i plan
 
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
@@ -137,17 +144,9 @@ def punktlaster():
     gq = G["linjelaster"][0]
     y_slut2 = G["linjelaster"][1]["y0"]                                   # qD2 börjar igen efter öppningen
     l_mellan = (y_slut2 - y_karm2) / 1000 - KARM[1] / 2000                 # vägg mellan karm och qD2
-    pel = G["pelare"]
-    x17, y17 = pel[16]
     xB, yB = st["D4 stöd B + ½ N3 C"]["x"], st["D4 stöd B + ½ N3 C"]["y"]
-    x10, y10 = pel[9]
-    ev = np.array([xB - x10, yB - y10]); ev /= np.linalg.norm(ev)       # bort från P10
-    # excentricitet i stolpe B ur dagens laster: hela dalbalk 4:s reaktion på hävarmen, mittakstolen centriskt
-    d4b = stod("D4", "B")
-    Rd_d4b, Rd_n3c = rd(d4b["Gk"], d4b["Sk"]), rd(0.5 * n3c["Gk"], 0.5 * n3c["Sk"])
-    e_B = Rd_d4b * HAVARM_B / (Rd_d4b + Rd_n3c)
     L = [
-        _summa([(1, stod("N1", "B"))], x17, y17 + AVST_P17, "LN1_1", "nockbalk 1, stöd B"),
+        _summa([(1, stod("N1", "B"))], *STOLPLAGEN["LN1_1"], "LN1_1", "nockbalk 1, stöd B"),
         _summa([(1, stod("N1", "C"))], *pos("N1 stöd C"), "LN1_2", "nockbalk 1, stöd C"),
         _summa([(1, stod("N1", "D"))], *pos("N1 stöd D"), "LN1_3", "nockbalk 1, stöd D (dubbeltriangel)"),
         # D2: bärande vägg med dörröppning vid trapphålet. Karmstolparna bär väggen och dalbalken över öppningen.
@@ -166,9 +165,10 @@ def punktlaster():
         _summa([(1, stod("D2", "B")), (0.5, stod("N3", "D"))], *pos("D2 stöd B"), "LD2_4",
                "dalbalk 2, stöd B + ½ nockbalk 3, stöd D (gaveltakstol)", strip_a=aD, takfot=False, kropp="M"),
         _summa([(1, stod("N3", "B"))], *pos("N3 stöd B"), "LN3_1", "nockbalk 3, stöd B"),
-        dict(_summa([(1, stod("D4", "B")), (0.5, n3c)], xB + e_B * ev[0], yB + e_B * ev[1], "LD4_1",
-                    "dalbalk 4, stöd B + ½ nockbalk 3, stöd C via mittakstolen"),
-             yta=FOTPLAT_B[:2], mitt=(xB, yB), e=e_B, M_d=Rd_d4b * HAVARM_B / 1e3),
+        # stolpe B står direkt på plattan, ledad i foten: dalbalkens excentricitet tas av stolpen och
+        # dess infästning i topp och fot (K-03), lasten verkar i stolpens centrum
+        dict(_summa([(1, stod("D4", "B")), (0.5, n3c)], xB, yB, "LD4_1",
+                    "dalbalk 4, stöd B + ½ nockbalk 3, stöd C via mittakstolen"), yta=STOLPE_B),
         _summa([(1, stod("D4", "C")), (0.5, stod("N3", "D"))], *pos("D4 stöd C"), "LD4_2",
                "dalbalk 4, stöd C + ½ nockbalk 3, stöd D (gaveltakstol)", strip_a=aD, takfot=False, kropp="M"),
         _summa([(1, stod("N5", "B"))], *pos("N5 stöd B"), "LN5_1", "nockbalk 5, stöd B"),
@@ -192,8 +192,10 @@ def punktlaster():
         kr = "M" if "mittre" in t else ("H" if "högra" in t else "V")
         L.append(_summa(d, x, y, f"LA{i}", "hörnstolpe: " + t, strip_a=a, kropp=kr))
     for p in L:
+        if p["namn"] in STOLPLAGEN:
+            p["x"], p["y"] = STOLPLAGEN[p["namn"]]
         p.setdefault("yta", STOLPE)
-        p.setdefault("mitt", (p["x"], p["y"]))          # upplagsytans mitt (lasten kan ligga excentriskt)
+        p.setdefault("mitt", (p["x"], p["y"]))
         p["Rd"] = rd(p["Gk"], p["Sk"])
         p["plats"] = plats(p["x"], p["y"])
     return L
