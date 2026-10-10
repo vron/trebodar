@@ -1,0 +1,120 @@
+# ------------------------------------------------------------------
+# Indata – U-02 Fasadsten på källarväggarna, infästning
+# Ändra värden här och kör:  python berakning.py  och  python ritningar.py
+# Längder i mm, laster i kN, spänningar i N/mm² (MPa).
+# ------------------------------------------------------------------
+
+[projekt]
+dokument    = "U-02"
+revision    = "A"
+datum       = "2026-10-10"
+underlag    = "K-06, Sundolitt Kub TG 2216, modeller/trebodar.step"
+
+# Källarväggen: Sundolitt Kub 350-150 (U17), SINTEF TG 2216. Betong B30 enligt Sundolitt, räknas som C30/37.
+[vagg]
+produkt     = "Sundolitt Kub 350-150 (U17)"
+karna       = 150       # betongkärna
+eps         = 100       # cellplast EPS 120 på var sida
+gips        = 13        # invändig gips, TG 2216
+fck         = 30.0
+betong      = "C30/37"
+
+# Skikten utanför cellplastens yta. Stenens framsida hamnar 55 mm utanför cellplasten.
+[skikt]
+armeringsbruk = 6       # 5–7 mm, nät i yttre tredjedelen
+fastmassa     = 9       # 6–12 mm, tar upp stenens tjockleksavvikelse
+sten          = 40
+
+# Stenen. Höjden på en stödvinkel: modellens beklädnad (Beklädnad stor/liten) är 0,8–2,0 m hög, i steg om 400 mm.
+[sten]
+material    = "granit"
+densitet    = 2700      # kg/m³
+max_langd   = 1200
+max_hojd    = 600
+max_yta     = 0.72      # m²
+fog         = 10        # liggfog och stötfog, 10–15 mm (Halfen UHA kräver 10 mm i liggfogen)
+H_max       = 2000      # största stenhöjd på en stödvinkel
+fastmassa_densitet = 1600   # kg/m³, härdad cementbaserad fästmassa
+exempel     = [790, 390]    # format i fasadexemplet (modul 800 × 400 med fog), halvstensförband
+
+# Stödvinkel av bockad plåt under nedersta skiftet, EN 1.4404.
+[vinkel]
+t           = 4
+liv         = 60        # lodrätt ben, nedåt framför konsolens ändplåt
+fot         = 35        # vågrätt ben under stenen, 5 mm innanför stenens framsida
+L_max       = 3000
+glipa       = 5
+fy          = 220       # EN 1993-1-4 tabell 2.1, 1.4404 varmvalsad plåt
+fu          = 520
+E           = 200000
+G           = 76900
+
+# Konsol, svetsad av plåt 8 mm EN 1.4404. x = 0 i betongkärnans yta, y = 0 i vinkelns överkant (stenens underkant).
+[konsol]
+cc          = 600
+kant_max    = 150       # största avstånd från vinkelns ände till närmaste konsol
+t           = 8
+fot_b       = 100       # fotplåtens bredd längs väggen
+fot_y       = [-90, 130]    # fotplåtens under- och överkant
+flans_y     = [-84, -4]     # flänsens under- och överkant
+andplat_x   = 138       # ändplåtens bakkant
+andplat_b   = 60
+andplat_y   = [-74, -4]
+stang_y     = [-65, 105]    # gängstängernas lägen i fotplåten
+hal_d       = 12        # hål Ø12 för M10
+skruv_y     = -35       # M8 genom vinkelns liv och ändplåtens avlånga hål
+a_svets     = 4
+
+# Gängstänger M10 A4-70 i injektionsmassa fischer FIS V (ETA-02/0024), sprucken betong, temperaturområde I.
+[injektion]
+d           = 10
+hef         = 80
+tau_Rk_cr   = 6.0       # ETA-02/0024 tabell C5.1, M10, C20/25, sprucken betong, temperaturområde I
+psi_c       = 1.10      # C30/37, tabell C4.1
+psi0_sus    = 0.74      # varaktig last, tabell C4.1
+k_cr        = 7.7
+gM          = 1.5       # γMp = γMc, γinst = 1,0
+As          = 58.0      # mm², M10
+fuk         = 700       # A4-70
+gMs         = 1.87      # stål, dragning
+gMs_v       = 1.56      # stål, tvärkraft
+
+# Halfen UHA-7 kvarhållningsankare (design 1: lös stift Ø5 × 70 med hylsa), ingjutet i cementbruk.
+# Halfen FS 12/2024 s. 16, betong ≥ C20/25, sprucken, standardbruk: konsol k 130–150 mm.
+[uha]
+typ         = "UHA-7-1-240"
+d           = 7
+L           = 240
+hal_d       = 17
+t0          = 90
+h_min       = 124
+HH_Rd       = 1100      # N, dimensionerande vågrät last i liggfog
+stift       = [5, 70]
+hylsa       = [7.5, 40]
+hal_sten    = [8, 30]   # hål i stenens kant: Ø8, djup ≥ 30 (stift ≥ 25 in)
+cc          = 600       # största avstånd längs liggfogen
+kant_sten   = 50        # minsta avstånd från stenens hörn till hålet (DIN 18516-3)
+
+# Isolerplugg genom nätet i armeringsbruket.
+[plugg]
+produkt     = "EJOT ejotherm STR U 2G"
+eta         = "ETA-04/0023"
+L           = 155
+tallrik     = 60
+hef         = 25
+NRk         = 1.5       # kN, betong C12/15–C50/60, tabell C1
+gM          = 2.0       # bilaga B1
+n_min       = 4         # st/m², DIBt Z-33.46-568 för natursten
+cc_x        = 600       # i stenskiftens mitthöjd, förskjutna en halv delning mellan skiften
+cc_y        = 400
+s_min       = 100       # minsta avstånd till andra infästningar och betongkärnans kanter
+
+# Vind på fasaden. Hastighetstrycket från F-01 (z = 7 m) på säker sida för källarväggens höjd.
+[vind]
+qp          = 1.09      # kN/m²
+cpe         = 1.4       # sug, zon A, cpe,1 (små ytor)
+
+[last]
+gamma_d     = 0.91      # säkerhetsklass 2
+gamma_G     = 1.35      # 6.10a, bara permanent last
+gamma_Q     = 1.5

@@ -157,3 +157,7 @@ status = "klar"
 nr = "U-01"
 namn = "Bottenplattan – temperatur och fukt under året"
 status = "klar"
+[[ovrig]]
+nr = "U-02"
+namn = "Fasadsten på källarväggarna – infästning (ritning)"
+status = "klar"
