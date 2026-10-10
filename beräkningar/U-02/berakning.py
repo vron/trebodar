@@ -1,5 +1,5 @@
 """
-U-02: fasadsten (granit 40 mm) på källarväggar av Sundolitt Kub 350-150, infästning. Kontroller av stödvinkeln,
+U-02: fasadsten (Bohusgranit 30–50 mm) på källarväggar av Sundolitt Kub 350-150, infästning. Kontroller av stödvinkeln,
 gängstängerna som bär den och isolerpluggarna. Ritningarna (ritningar.py) läser resultat.json.
 
     python berakning.py      -> resultat.json och en sammanställning i terminalen
@@ -26,7 +26,8 @@ def lagen():
     x_bruk = v["eps"] + s["armeringsbruk"]
     x_sten = x_bruk + s["fastmassa"]
     return dict(eps=v["eps"], bruk=x_bruk, sten_bak=x_sten, sten_fram=x_sten + s["sten"],
-                sten_mitt=x_sten + s["sten"] / 2, vinkel_fram=x_sten + s["sten"] - 5)
+                sten_fram_min=x_sten + s["sten_min"], sten_fram_max=x_sten + s["sten_max"],
+                sten_mitt=x_sten + s["sten"] / 2, vinkel_fram=x_sten + s["sten_min"] - 5)
 
 
 def laster():
@@ -105,12 +106,13 @@ def main():
     R = dict(lagen=X, laster=L_, stang=stang(L_, X), vinkel=vinkel(L_, X), plugg=plugg(L_))
     s = IN["sten"]
     kg = L_["g_sten"] / 9.81 * 1000
-    R["sten"] = dict(kg_m2=kg, kg_max=s["max_yta"] * kg, kg_ex=s["exempel"][0] * s["exempel"][1] / 1e6 * kg)
+    R["sten"] = dict(kg_m2=kg, kg_max=s["langd"][1] * s["hojd"] / 1e6 * s["densitet"] * IN["skikt"]["sten_max"] / 1000)
     (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 
     st, v, p = R["stang"], R["vinkel"], R["plugg"]
-    print(f"Skikt: cellplast {X['eps']:.0f}, stenens baksida {X['sten_bak']:.0f}, framsida {X['sten_fram']:.0f} mm "
-          f"från betongkärnan ({X['sten_fram'] - X['eps']:.0f} mm utanför cellplasten)")
+    print(f"Skikt: cellplast {X['eps']:.0f}, stenens baksida {X['sten_bak']:.0f}, framsida {X['sten_fram_min']:.0f}–"
+          f"{X['sten_fram_max']:.0f} mm från betongkärnan ({X['sten_fram_min'] - X['eps']:.0f}–"
+          f"{X['sten_fram_max'] - X['eps']:.0f} mm utanför cellplasten)")
     print(f"Last: sten {L_['g_sten']:.2f} + fästmassa {L_['g_fast']:.2f} = {L_['g']:.2f} kN/m², "
           f"qk = {L_['qk']:.2f}, qd = {L_['qd']:.2f} kN/m, vindsug wd = {L_['wd']:.2f} kN/m²")
     print(f"Stång M{IN['stang']['d']} c/c {IN['stang']['cc']}: V = {st['V']:.2f} kN, l = {st['l']:.0f} mm, "

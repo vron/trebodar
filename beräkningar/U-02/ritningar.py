@@ -20,6 +20,7 @@ Filen är uppdelad i:
 """
 import json
 import os
+import random
 import sys
 import tomllib
 
@@ -28,7 +29,7 @@ BER = os.path.dirname(HERE)
 ROT = os.path.dirname(BER)
 UT = os.path.join(ROT, "ritningar")
 sys.path.insert(0, os.path.join(BER, "ritningsmall"))
-from ritning import Vy, Blad, huvud, sv, PROJEKT  # noqa: E402
+from ritning import Vy, Blad, huvud, sv, svm, PROJEKT  # noqa: E402
 
 # ================================================================== 1. underlag
 IN = tomllib.loads(open(os.path.join(HERE, "indata.toml"), encoding="utf-8").read())
@@ -40,13 +41,18 @@ REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT[
 
 KARNA, EPS, GIPS = IN["vagg"]["karna"], IN["vagg"]["eps"], IN["vagg"]["gips"]
 X = R["lagen"]
-X_BRUK, X_STB, X_STF = X["bruk"], X["sten_bak"], X["sten_fram"]      # 106, 115, 155
-X_VF = X["vinkel_fram"]                                                # 150, vinkelns framkant
-FOG = IN["sten"]["fog"]
-SB, SH = IN["sten"]["exempel"]                                         # 790 × 390
-MOD_X, MOD_Y = SB + FOG, SH + FOG                                      # 800 × 400
-H_MAX = IN["sten"]["H_max"]
-NSKIFT = round(H_MAX / MOD_Y)                                          # 5 skift i exemplet
+X_BRUK, X_STB = X["bruk"], X["sten_bak"]                              # 106, 115
+X_STF, X_STF_MAX = X["sten_fram_min"], X["sten_fram_max"]             # 145, 165 (kluven framsida 30–50)
+X_STM = X["sten_mitt"]
+X_VF = X["vinkel_fram"]                                                # 140, vinkelns framkant
+ST = IN["sten"]
+T_MIN, T_MAX = IN["skikt"]["sten_min"], IN["skikt"]["sten_max"]
+FOG = ST["fog"]
+SH = ST["hojd"]                                                        # 400
+MOD_Y = SH + FOG                                                       # 410
+L_MIN, L_MAX = ST["langd"]                                             # 600–1 200
+H_MAX = ST["H_max"]
+MARK = 50                                                              # färdig mark över vinkelns överkant
 W = IN["vinkel"]
 S = IN["stang"]
 P = IN["plugg"]
@@ -84,11 +90,20 @@ def vagg(v, y0, y1, inne=True, bruk_till=None, bryt=(True, True), x_in=None):
             v.brott((xa - 15, y1), (X_BRUK + 15, y1), "tunn")
 
 
-def sten(v, y0, y1):
-    """En sten i snitt (40 mm) med fästmassan bakom."""
+def sten(v, y0, y1, fro=0):
+    """En sten i snitt med fästmassan bakom: sågad baksida, kluven framsida 30–50 mm (slumpad men fast profil)."""
+    rng = random.Random(fro * 7919 + int(y0))
+    n = max(3, int((y1 - y0) / 30))
+    ys = [y0 + (y1 - y0) * i / n for i in range(n + 1)]
+    t = [T_MIN + 4]
+    for _ in ys[1:]:
+        t.append(min(T_MAX, max(T_MIN, t[-1] + rng.uniform(-9, 9) + (T_MIN + T_MAX) / 2 * 0.08
+                                 - t[-1] * 0.08)))
+    t[-1] = T_MIN + 4
     with v.lager("sten"):
         v.rekt(X_BRUK, y0, X_STB, y1, fyll=BRUK, stil=None)
-        v.rekt(X_STB, y0, X_STF, y1, fyll=STEN, stil="tunn")
+        v.polygon([(X_STB, y0)] + [(X_STB + ti, yi) for ti, yi in zip(t, ys)] + [(X_STB, y1)], fyll=STEN,
+                  stil="tunn")
 
 
 def vinkel_snitt(v):
@@ -153,9 +168,9 @@ def sektion_a():
     ytop = H_MAX                                                        # stenens överkant = bjälklagets underkant
     hb = 150
     with v.lager("mark"):
-        v.polygon([(X_STF + 5, -250), (X_STF + 200, -250), (X_STF + 200, -60), (X_STF + 5, -60)],
-                  fyll="jord", stil=None)
-        v.linje([(X_BRUK + W["t"], -60), (X_STF + 200, -60)], "normal")
+        v.polygon([(X_BRUK + W["t"], -250), (X_STF + 200, -250), (X_STF + 200, MARK), (X_STF_MAX + 3, MARK),
+                   (X_STF_MAX + 3, 0), (X_BRUK + W["t"], 0)], fyll="jord", stil=None)
+        v.linje([(X_STF_MAX + 3, MARK), (X_STF + 200, MARK)], "normal")
     vagg(v, -250, ytop, bryt=(True, False))
     with v.lager("vagg"):
         # bjälklaget gjuts med väggens översta del; cellplasten ute fortsätter som kantform
@@ -165,37 +180,37 @@ def sektion_a():
         v.rekt(0, ytop, EPS, ytop + hb + 60, fyll="eps", stil=None)
         v.linje([(EPS, ytop), (EPS, ytop + hb + 60)], "tunn"); v.linje([(0, ytop), (0, ytop + hb)], "tunn")
         v.brott((-330, ytop - 30), (-330, ytop + hb + 30), "tunn")
-        v.rekt(X_BRUK, ytop + 20, X_STF, ytop + 300, fyll=None, stil="dold")
+        v.rekt(X_BRUK, ytop + 20, X_STF_MAX + 5, ytop + 300, fyll=None, stil="dold")
         v.linje([(-150, ytop + hb), (-150, ytop + 300)], "dold")
-    for k in range(NSKIFT):
-        sten(v, k * MOD_Y, k * MOD_Y + SH)
-    with v.lager("sten"):
-        for k in range(1, NSKIFT):
-            v.rekt(X_STB, k * MOD_Y - FOG, X_STF, k * MOD_Y, fyll="#b8b1a5", stil=None)
-    for k in range(NSKIFT):
-        str_plugg(v, k * MOD_Y + SH / 2, enkel=True)
+    y0, k = 0, 0
+    while y0 < ytop - 50:
+        y1 = min(y0 + SH, ytop - 5)
+        sten(v, y0, y1, k)
+        y0, k = y1 + FOG, k + 1
+    for kk in range(k):
+        str_plugg(v, kk * MOD_Y + min(SH, ytop - 5 - kk * MOD_Y) / 2, enkel=True)
     vinkel_snitt(v)
     stang_snitt(v, enkel=True)
     with v.lager("stal"):
-        v.linje([(EPS + 2, ytop + 60), (EPS + 2, ytop + 4), (X_STF + 22, ytop - 6), (X_STF + 22, ytop - 22)],
-                "normal")
+        v.linje([(EPS + 2, ytop + 60), (EPS + 2, ytop + 4), (X_STF_MAX + 22, ytop - 6),
+                 (X_STF_MAX + 22, ytop - 22)], "normal")
     with v.lager("matt"):
-        v.matty([0, H_MAX], X_STF + 40, [X_STF, X_STF], texter=[f"högst {sv(H_MAX)}"])
-        v.mattx([0, EPS, X_STF], -180, [-60, -60, -60], texter=["100", "55"])
+        v.matty([0, H_MAX], X_STF_MAX + 40, [X_STF_MAX, X_STF_MAX], texter=[f"högst {sv(H_MAX)}"])
+        v.mattx([0, EPS, X_STF_MAX], -180, [-60, -60, -60], texter=["100", "45–65"])
     etiketter(v, [
-        ("beslag, fall utåt, droppkant\n15 mm utanför stenen", (X_STF + 15, ytop - 3), 9),
-        ("granit 40, fog 10", (X_STF - 10, 3 * MOD_Y + 250), 5),
+        ("beslag, fall utåt, droppkant\n15 mm utanför stenen", (X_STF_MAX + 15, ytop - 3), 9),
+        ("Bohus Grå 400 hög, 30–50 tjock,\nfog 10", (X_STF + 5, 3 * MOD_Y + 250), 5),
         ("fästmassa 9 (6–12)", (X_BRUK + 4, 3 * MOD_Y - 100), 4),
         ("armeringsbruk 6 med nät", (EPS + 3, 2 * MOD_Y + 300), 2),
         ("isolerplugg, 4,2 st/m²", (EPS - 30, 1 * MOD_Y + SH / 2), 3),
         ("Kub 350-150, kärna 150,\ncellplast 100 + 100", (-60, 1 * MOD_Y - 120), 1),
-        ("stödvinkel", (X_VF - 2, -2.5), 7),
+        ("stödvinkel under mark", (X_VF - 2, -2.5), 7),
         ("gängstång M16 c/c 300", (40, S["y"]), 8),
     ], 230, 7.0, y_min=-150, y_max=2250)
     with v.lager("text"):
         v.text(-KARNA / 2, ytop + hb / 2, "mellanbjälklag", a="cm", sz=6.0, col="gra")
         v.text(X_STF + 20, ytop + 160, "vägg ovan\n(arkitekt)", a="lm", sz=6.0, col="gra")
-        v.text(X_STF + 60, -215, "färdig mark", a="lm", sz=6.0, col="gra", bg=True)
+        v.text(X_STF + 70, -215, "färdig mark", a="lm", sz=6.0, col="gra", bg=True)
         v.text(-KARNA - EPS / 2, 900, "inne", a="cm", sz=6.4, col="gra", rot=90)
     with v.lager("rubrik"):
         v.rubrik(-320, -300, "SEKTION A–A", skala=10, sz=9)
@@ -209,22 +224,30 @@ def detalj_b():
     vagg(v, yb0, yb1, inne=False, bryt=(True, True), x_in=-122)
     with v.lager("vagg"):
         v.brott((-122, yb0 - 5), (-122, yb1 + 5), "tunn")
-    sten(v, 0, yb1)
+    sten(v, 0, yb1, 3)
     with v.lager("sten"):
-        v.brott((X_BRUK - 10, yb1), (X_STF + 10, yb1), "tunn")
+        v.brott((X_BRUK - 10, yb1), (X_STF_MAX + 10, yb1), "tunn")
+    with v.lager("mark"):
+        v.polygon([(X_STF_MAX + 4, yb0), (X_STF_MAX + 60, yb0), (X_STF_MAX + 60, MARK), (X_STF_MAX + 4, MARK)],
+                  fyll="jord", stil=None)
+        v.polygon([(X_BRUK + W["t"], yb0), (X_STF_MAX + 4, yb0), (X_STF_MAX + 4, 0), (X_BRUK + W["t"], 0)],
+                  fyll="grus", stil=None)
+        v.linje([(X_STF_MAX + 4, MARK), (X_STF_MAX + 60, MARK)], "normal")
     vinkel_snitt(v)
     stang_snitt(v)
     with v.lager("matt"):
-        v.mattx([0, EPS, X_BRUK, X_STB, X_STF], 160, [yb1] * 5)
+        v.mattx([0, EPS, X_BRUK, X_STB, X_STF, X_STF_MAX], 160, [yb1] * 6)
         v.mattx([X_BRUK, X_STB, X_VF, X_STF], -98, [-W["liv"], -W["t"], -W["t"], -W["t"]])
+        v.matty([0, MARK], X_STF_MAX + 50, [X_STF_MAX + 40, X_STF_MAX + 4])
         v.mattx([-S["hef"], 0], -60, [S["y"] - S["hal_d"] / 2] * 2, texter=[f"hef {S['hef']}"])
         v.matty([-W["liv"], 0], X_STF + 22, [X_BRUK + W["t"], X_STF])
         v.matty([S["y"], 0], X_STF + 10, [X_BRUK + W["t"] + BRICKA + MUTTER_H, X_VF])
     etiketter(v, [
-        ("granit 40", (X_STF - 8, 110), 5),
-        ("fästmassa 9", (X_STB - 4, 70), 4),
-        ("armeringsbruk 6 med nät", (X_BRUK - 3, 30), 2),
-        ("stödvinkel 60 × 44 × 5, EN 1.4404", (X_VF - 3, -2.5), 7),
+        ("granit 30–50, kluven framsida", (X_STB + 20, 120), 5),
+        ("fästmassa 9", (X_STB - 4, 85), 4),
+        ("armeringsbruk 6 med nät", (X_BRUK - 3, 60), 2),
+        ("färdig mark 50 över vinkeln", (X_STF_MAX + 30, MARK), None),
+        ("stödvinkel 60 × 34 × 5, EN 1.4404", (X_VF - 3, -2.5), 7),
         ("mutter och bricka på båda sidor om\nlivet; den inre i urtag i cellplasten",
          (X_BRUK + W["t"] + BRICKA + 6, S["y"] + 8), None),
         ("gängstång M16 A4-70 i FIS V", (-40, S["y"]), 8),
@@ -248,15 +271,15 @@ def detalj_c():
                  (EPS + 3.6, P["tallrik"] / 2), (EPS + 4.2, P["tallrik"] / 2 + 3), (EPS + 4.2, yb1)], "dold")
         v.brott((-90, yb0 - 5), (-90, yb1 + 5), "tunn")
         for y in (yb0, yb1):
-            v.brott((-90, y), (X_STF + 10, y), "tunn")
-    sten(v, yb0, yb1)
+            v.brott((-90, y), (X_STF_MAX + 10, y), "tunn")
+    sten(v, yb0, yb1, 5)
     str_plugg(v, 0)
     with v.lager("matt"):
         v.mattx([-P_DJUP, 0, EPS, X_BRUK], -66, [-4, yb0, yb0, yb0],
                 texter=[f"{round(P_DJUP)}", "100", "6"])
         v.mattx([-P_DJUP, EPS + 3.5], 55, [4, P["tallrik"] / 2], texter=[f"L = {P['L']}"])
     etiketter(v, [
-        ("granit 40", (X_STF - 8, 70), 5),
+        ("granit 30–50", (X_STB + 18, 70), 5),
         ("fästmassa 9", (X_STB - 4, 45), 4),
         ("andra lagret armeringsbruk", (X_BRUK - 1, 22), None),
         ("tallrik på första lagret, genom nätet", (EPS + 2, -10), None),
@@ -269,26 +292,36 @@ def detalj_c():
 
 
 def fasad_e():
-    """E: fasad, exempel med sten 790 × 390 i halvstensförband, 2,0 m på en vinkel. x längs väggen. 1:20"""
+    """E: fasad, exempel med Bohus Grå 400 hög i slumpade längder 600–1 200 och hörnstenar i vänstra hörnet.
+    x längs väggen. 1:20"""
     B = 4000
-    v = Vy(x=24, y=12, w=300, h=150, skala=20, X0=-300, Y1=2300)
+    nsk = ST["skift_exempel"]
+    Hf = nsk * MOD_Y - FOG
+    v = Vy(x=24, y=12, w=300, h=150, skala=20, X0=-300, Y1=Hf + 400)
     with v.lager("mark"):
-        v.polygon([(-150, -100), (B + 150, -100), (B + 150, -260), (-150, -260)], fyll="jord", stil=None)
-        v.linje([(-150, -100), (B + 150, -100)], "normal")
+        v.polygon([(-150, MARK), (B + 150, MARK), (B + 150, -260), (-150, -260)], fyll="jord", stil=None)
+        v.linje([(-150, MARK), (B + 150, MARK)], "normal")
+    rng = random.Random(579)
     stenar = []
     with v.lager("sten"):
-        v.rekt(0, 0, B, H_MAX, fyll=BRUK, stil=None)
-        for k in range(NSKIFT):
-            off = 0 if k % 2 == 0 else -MOD_X / 2
-            x = off
+        v.rekt(0, MARK, B, Hf, fyll=BRUK, stil=None)
+        for k in range(nsk):
+            y0 = k * MOD_Y
+            hornl = ST["horn"][1] if k % 2 == 0 else ST["horn"][0]
+            x = 0
+            ln = hornl
             while x < B:
-                a, b = max(x, 0), min(x + SB, B)
-                if b - a > 50:
-                    v.rekt(a, k * MOD_Y, b, k * MOD_Y + SH, fyll=STEN, stil="tunn")
-                    stenar.append((k, a, b))
-                x += MOD_X
+                b = min(x + ln, B)
+                if b - x > 50:
+                    v.rekt(x, max(y0, MARK), b, y0 + SH, fyll=STEN if x > 0 else "#bdb6aa", stil="tunn")
+                    stenar.append((k, x, b))
+                x = b + FOG
+                ln = rng.choice(range(L_MIN, L_MAX + 1, 100))
+                if B - (x + ln) < L_MIN and B - x > ln:
+                    ln = B - x
+        v.linje([(0, MARK), (0, Hf)], "normal")
     plugg = []
-    for k in range(NSKIFT):
+    for k in range(nsk):
         yy = k * MOD_Y + SH / 2
         x0 = P["cc_x"] // 2 if k % 2 == 0 else 0
         for xx in range(x0, B + 1, P["cc_x"]):
@@ -301,28 +334,30 @@ def fasad_e():
     cc = (B - 2 * S["kant_max"]) / n
     stanger = [S["kant_max"] + i * cc for i in range(n + 1)]
     with v.lager("stal"):
-        v.rekt(0, -W["liv"], B, 0, fyll="stal", stil=None)
+        v.rekt(0, -W["liv"], B, 0, fyll=None, stil="dold")
         for xx in stanger:
-            v.rekt(xx - NYCKEL / 2, S["y"] - NYCKEL / 2, xx + NYCKEL / 2, S["y"] + NYCKEL / 2, fyll=STAL_L,
-                   stil="tunn")
-        v.linje([(-20, H_MAX + 8), (B + 20, H_MAX + 8)], "grov")
+            v.cirkel(xx, S["y"], NYCKEL / 2, fyll=None, stil="dold", modell=True)
+        v.linje([(-20, Hf + 8), (B + 20, Hf + 8)], "grov")
     with v.lager("matt"):
-        v.mattx([0] + stanger[:3] + [stanger[-1], B], -330,
-                [-W["liv"]] + [S["y"] - NYCKEL / 2] * 3 + [S["y"] - NYCKEL / 2, -W["liv"]],
+        v.mattx([0] + stanger[:3] + [stanger[-1], B], -330, [-W["liv"]] * 6,
                 texter=[sv(S["kant_max"]), sv(cc), sv(cc), f"… {n} × {sv(cc)} …", sv(S["kant_max"])])
-        v.matty([k * MOD_Y for k in range(NSKIFT + 1)], -120, [0] * (NSKIFT + 1), texter=[f"{SH} + {FOG}"] * NSKIFT)
+        v.matty([k * MOD_Y for k in range(nsk)] + [Hf], -120, [0] * (nsk + 1),
+                texter=[f"{SH} + {FOG}"] * (nsk - 1) + [f"{SH}"])
         px = sorted(xx for xx, yy in plugg if abs(yy - SH / 2) < 1)
         v.mattx([px[0], px[1]], SH / 2 + 60, [SH / 2, SH / 2], texter=[f"c/c {P['cc_x']}"])
-        top = [s for s in stenar if s[0] == NSKIFT - 1][0]
-        v.mattx([top[1], top[2], top[2] + FOG], H_MAX + 120, [H_MAX] * 3)
+
     with v.lager("text"):
-        v.text(B + 80, -30, "stödvinkel (7) på\ngängstänger M16 (8)", a="lm", sz=6.4)
+        v.text(B + 80, -30, "stödvinkel (7) på gängstänger\nM16 (8), under mark", a="lm", sz=6.4)
         v.text(B + 80, MOD_Y + SH / 2, "isolerplugg (3) bakom\nstenen, i skiftens mitt", a="lm", sz=6.4)
-        v.text(B + 80, H_MAX + 8, "beslag (9)", a="lm", sz=6.4)
-        v.text(B + 80, 3 * MOD_Y + SH / 2, "sten (5) limmad\nmot armeringsbruket", a="lm", sz=6.4)
+        v.text(B + 80, Hf + 8, "beslag (9)", a="lm", sz=6.4)
+        v.text(B + 80, 2 * MOD_Y + SH / 2, "Bohus Grå (5), längd\n600–1 200, slumpad", a="lm", sz=6.4)
+        v.text(0, Hf + 40, "hörnstenar 400 och 200 i varannat skift (5)", a="lb", sz=6.4)
+        for k_, a_, b_ in stenar:
+            v.text((a_ + b_) / 2, k_ * MOD_Y + SH - 60, svm(b_ - a_), a="ct", sz=5.8, col="gra")
         v.text(-150, -140, "färdig mark", a="lm", sz=6.0, col="gra", bg=True)
     with v.lager("rubrik"):
-        v.rubrik(-290, -440, f"FASAD E  Exempel, sten {SB} × {SH} i halvstensförband", skala=20, sz=9)
+        v.rubrik(-290, -440, "FASAD E  Exempel, Bohus Grå 400 hög i slumpade längder, utvändigt hörn till vänster",
+                 skala=20, sz=9)
     return v, dict(plugg=len(plugg), stanger=len(stanger), stenar=len(stenar), B=B)
 
 
@@ -353,11 +388,12 @@ def positioner():
          f"({sv(p['n'], 1)} st/m²)"],
         ["4", "Fästmassa", "Mapei Keraflex Maxi S1 (C2TE S1) eller likvärdig C2 S1 för natursten",
          "9 (6–12), kombinerad metod", "100 % täckning"],
-        ["5", "Fasadsten", "granit, sågad baksida, frostbeständig (SS-EN 12371), vattenupptagning ≤ 0,5 %",
-         "40; ≤ 1 200 × 600, ≤ 0,72 m²", f"exempel {SB} × {SH}"],
+        ["5", "Fasadsten", "Beklädnadsgranit Bohus Grå, Stengrossen (order 579): kluven framsida, sågad baksida; "
+         "hörnstenar Bohus Grå", f"{L_MIN}–{sv(L_MAX)} × {SH} × 30/50; hörn 200–400 × {SH} × 30/50",
+         "28 m² och 9 hörnstenar"],
         ["6", "Fogbruk", "Mapei Ultracolor Plus (CG2WA)", f"fog {FOG}, fullt djup", "–"],
         ["7", "Stödvinkel", "bockad plåt 5, EN 1.4404", f"{W['liv']} × {W['fot']}, L ≤ {sv(W['L_max'])}, "
-         f"glipa {W['glipa']}; hål 18 × 30, avlånga längs vinkeln", "under nedersta skiftet"],
+         f"glipa {W['glipa']}; hål 18 × 30, avlånga längs vinkeln", f"under nedersta skiftet, {MARK} under mark"],
         ["8", "Gängstång i injektionsmassa", "fischer FIS V (ETA-02/0024) + gängstång M16 A4-70, 2 muttrar och "
          "2 brickor A4 per stång", f"hål Ø{S['hal_d']}, hef {S['hef']}", f"c/c ≤ {S['cc']}, ≤ {S['kant_max']} "
          "från vinkelns ände"],
@@ -413,12 +449,16 @@ def blad_detaljer():
             "Armeringsbruket (2) i två lager med nätet i den yttre tredjedelen, skarvar 100 mm och diagonalnät vid "
             "öppningarnas hörn. Isolerpluggarna (3) sätts genom nätet i det första lagret; tallrikarna täcks "
             "direkt av det andra.",
-            "Stödvinkeln (7) på stängerna, rak och i våg (justeras med de inre muttrarna), yttre bricka och mutter.",
-            "Stenen (5) sätts med fästmassa (4) på både vägg och sten, 100 % täckning; lyft en sten då och då och "
+            f"Stödvinkeln (7) på stängerna, rak och i våg (justeras med de inre muttrarna), yttre bricka och mutter. "
+            f"Vinkelns överkant {MARK} mm under färdig mark, så att den inte syns.",
+            "Stenen (5) sätts med fästmassa (4) på både vägg och den sågade baksidan, 100 % täckning; lyft en sten "
+            "då och då och "
             "kontrollera. Armeringsbruket härdar först enligt produktbladet, normalt cirka en vecka. Lägst +5 °C "
             "vid läggning och härdning.",
-            "Fogarna (6) fylls helt och komprimeras. Rörelsefogar (10) vid inåtgående hörn, mot andra material "
-            "och högst var 6:e meter.",
+            "Stenarna sätts skift för skift med fulla liggfogar, så att varje sten står på skiftet under. "
+            "Hörnstenar i utvändiga hörn. Fogarna (6) fylls helt och komprimeras, utom dräneringsfogar: "
+            "stötfogarna i nedersta skiftet lämnas öppna närmast ovan mark, högst 800 mm isär. Rörelsefogar (10) "
+            "vid inåtgående hörn, mot andra material och högst var 6:e meter.",
             "Ingen cellplast får synas: beslag (9) över överkanten, sten eller plåt i öppningarnas smygar, "
             "armeringsbruket nedtill till 200 mm under mark.",
             "Avstånd till betongkärnans kanter (öppningar, väggens ände) och mellan infästningar minst 100 mm.",
@@ -447,16 +487,19 @@ def blad_fasad():
         dict(typ="lista", sz=7.0, rader=[
             f"Källarväggar av Sundolitt Kub 350-150 (U17): betongkärna {KARNA} mm, cellplast {EPS} mm på var sida "
             "(SINTEF TG 2216). Betong enligt Sundolitt, räknas som C30/37.",
-            f"Granit 40 mm, 108 kg/m². Sten högst 1 200 × 600 mm och 0,72 m² (största sten "
-            f"{sv(R['sten']['kg_max'], 0)} kg). Stenhöjd på en stödvinkel högst {sv(H_MAX)} mm (modellen: "
-            "0,8–2,0 m).",
-            "Stenens framsida 55 mm utanför cellplasten, 155 mm utanför betongkärnan; väggen blir cirka 405 mm.",
+            f"Sten: Beklädnadsgranit Bohus Grå från Stengrossen (order 579, faktura 1397): {L_MIN}–{sv(L_MAX)} × "
+            f"{SH} × 30/50 mm, 28 m², och 9 hörnstenar 200–400 × {SH} × 30/50 mm. Frakten var 3 100 kg, cirka "
+            f"105 kg/m²; räknas som 40 mm, {sv(R['sten']['kg_m2'], 0)} kg/m². Största sten "
+            f"{sv(R['sten']['kg_max'], 0)} kg.",
+            f"Stenhöjd på en stödvinkel högst {sv(H_MAX)} mm (modellen: 0,8–2,0 m).",
+            "Stenens baksida 15 mm utanför cellplasten; den kluvna framsidan 45–65 mm utanför cellplasten, "
+            "145–165 mm utanför betongkärnan.",
             "Uppbyggnaden följer de godkända systemen för natursten på cellplast (t.ex. DIBt Z-33.46-568): sten "
-            "limmad på armerat bruk, pluggat genom nätet, utan infästningar i stenarna. Stenen här är 40 mm i "
+            "limmad på armerat bruk, pluggat genom nätet, utan infästningar i stenarna. Stenen här är 30–50 mm i "
             "stället för högst 20 mm; den extra tyngden tas av stödvinkeln.",
             "Allt stål rostfritt EN 1.4404 eller 1.4571 (A4), även mutter och bricka.",
             "Fästmassa, armeringsbruk och fogbruk från samma leverantör; leverantören bekräftar systemet för "
-            "40 mm granit på cellplast.",
+            "30–50 mm granit på cellplast.",
             f"Fasad E visar ett exempel: {info['stenar']} stenar, {info['plugg']} isolerplugg och "
             f"{info['stanger']} gängstänger på {sv(info['B'] / 1000, 1)} m vägg.",
         ]),

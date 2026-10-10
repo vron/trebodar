@@ -18,28 +18,33 @@ eps         = 100       # cellplast EPS 120 på var sida
 gips        = 13        # invändig gips, TG 2216
 fck         = 30.0
 
-# Skikten utanför cellplastens yta. Stenens framsida hamnar 55 mm utanför cellplasten.
+# Skikten utanför cellplastens yta, till stenens (sågade) baksida 15 mm. Stenen har kluven framsida, 30–50 mm.
 [skikt]
 armeringsbruk = 6       # 5–7 mm, nät i yttre tredjedelen
 fastmassa     = 9       # 6–12 mm, tar upp stenens tjockleksavvikelse
-sten          = 40
+sten          = 40      # medeltjocklek, för vikt och lastens läge
+sten_min      = 30
+sten_max      = 50
 
-# Stenen. Höjden på en stödvinkel: modellens beklädnad (Beklädnad stor/liten) är 0,8–2,0 m hög, i steg om 400 mm.
+# Stenen: Stengrossen order 579 (faktura 1397, 2026-06-15). Beklädnadsgranit Bohus Grå 600–1200 × 400 × 30/50 mm,
+# 28 m², och 9 hörnstenar 200–400 × 400 × 30/50 mm. Frakt 3 100 kg, cirka 105 kg/m²; räknas som 40 mm, 108 kg/m².
+# Höjden på en stödvinkel: modellens beklädnad (Beklädnad stor/liten) är 0,8–2,0 m hög, i steg om 400 mm.
 [sten]
+produkt     = "Beklädnadsgranit Bohus Grå, Stengrossen"
 densitet    = 2700      # kg/m³, granit
-max_langd   = 1200
-max_hojd    = 600
-max_yta     = 0.72      # m²
+langd       = [600, 1200]
+hojd        = 400       # skifthöjd
+horn        = [200, 400]    # hörnstenarnas skänklar
 fog         = 10        # minst 10 mm för natursten (DIBt Z-33.46-568)
 H_max       = 2000      # största stenhöjd på en stödvinkel
 fastmassa_densitet = 1600   # kg/m³, härdad cementbaserad fästmassa
-exempel     = [790, 390]    # format i fasadexemplet (modul 800 × 400 med fog), halvstensförband
+skift_exempel = 4       # antal skift i fasadexemplet
 
 # Stödvinkel av bockad plåt, EN 1.4404: lodrätt liv nedåt mot armeringsbruket, vågrätt ben under nedersta skiftet.
 [vinkel]
 t           = 5
 liv         = 60
-fot         = 44        # från armeringsbrukets yta till 5 mm innanför stenens framsida
+fot         = 34        # från armeringsbrukets yta till 5 mm innanför stenens tunnaste framsida
 L_max       = 3000
 glipa       = 5
 fy          = 220       # EN 1993-1-4 tabell 2.1, 1.4404 varmvalsad plåt
