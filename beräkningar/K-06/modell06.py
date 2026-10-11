@@ -2,13 +2,14 @@
 K-06: samverkande FE-modell av mellanbjälklaget (K-05) och bottenplattan.
 
     mellanbjälklaget (K-05:s nät och laster)
-        |  Lecaväggar: fjädrar E·t/h längs K-05:s upplagslinjer        rör: fjädrar E·A/L
+        |  källarväggarna (Kub 350-150): betongkärnan som fjäder E·t/h längs K-05:s upplagslinjer   rör: E·A/L
     bottenplattan 100 mm med kantbalkar, balkar under innerväggarna och plintar under rören
         |  cellplast: bädd E/t (olika under plattan och under balkar och plintar)
     berg/makadam (styvt)
 
-Laster som står över en Lecavägg (K-05: plats "vägg") går direkt ned i väggen och läggs på bottenplattan.
-Väggarnas egentyngd läggs som linjelast på bottenplattan. Alla delar är linjära, så lastfallen kan kombineras.
+Laster som står över en källarvägg (K-05: plats "vägg") går direkt ned i väggen och läggs på bottenplattan.
+Väggarnas egentyngd och fasadstenen läggs som linjelast på bottenplattan. Alla delar är linjära, så lastfallen kan
+kombineras.
 
     python modell06.py L300     -> nätstorlek, lastsummor och jämvikt
 """
@@ -29,6 +30,7 @@ from ec2 import Betong
 import laster as LA05
 
 B = Betong(fck=25)
+BV = Betong(fck=I.FCK_V)                 # källarväggarnas kärna
 NU = 0.2
 G = I.G05
 STODLIN = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, bb in G["stod"]]
@@ -42,10 +44,29 @@ K_ROR = 210000 * M05.A_ROR / M05.L_ROR              # N/mm per rör
 
 # ------------------------------------------------------------------ bottenplattans geometri
 def kallare():
-    """Källarens yttre kontur = Lecans ytterliv (K-05:s plattkant + 30 mm), utan delen med platta på mark."""
+    """Källarens yttre kontur = väggarnas ytterliv (K-05:s plattkant + 30 mm), utan delen med platta på mark."""
     k = Polygon(G["kontur"]).buffer(I.KI, join_style=2)
     ut = box(-500, 9200 + 175, 4540 - 175, 16500)
     return k.difference(ut)
+
+
+def yttre_horn():
+    """Källarens yttre (konvexa) hörn i väggarnas ytterliv."""
+    p = kallare()
+    c = np.array(p.exterior.coords)[:-1]
+    ut = []
+    for i in range(len(c)):
+        a, b, d = c[i - 1], c[i], c[(i + 1) % len(c)]
+        cr = (b - a)[0] * (d - b)[1] - (b - a)[1] * (d - b)[0]
+        if (cr > 0) == p.exterior.is_ccw:
+            ut.append((float(b[0]), float(b[1])))
+    return ut
+
+
+def s300_zoner():
+    """Zoner (x0, y0, x1, y1) med S300 under kantbalken: I.S300_HORN åt båda håll från de yttre hörnen."""
+    L = I.S300_HORN
+    return [(x - L, y - L, x + L, y + L) for x, y in yttre_horn()]
 
 
 def balkar(plint):
@@ -139,58 +160,6 @@ def badd(Pb, k_falt, k_balk, k_300=None, zoner=()):
     Pb.a_nod = an                                      # mm² per nod
 
 
-# ------------------------------------------------------------------ godtyckliga punkter och linjer i ett nät
-def _bary(P, X, Y):
-    """Linjära formfunktioner i punkterna (X, Y): lista med [(nod, vikt) × 3] eller None utanför nätet."""
-    from matplotlib.tri import Triangulation
-    if getattr(P, "_trifinder", None) is None:
-        P._trifinder = Triangulation(P.xy[:, 0], P.xy[:, 1], P.tri).get_trifinder()
-    e = P._trifinder(np.asarray(X, float), np.asarray(Y, float))
-    out = []
-    for x, y, el in zip(X, Y, e):
-        if el < 0:
-            out.append(None)
-            continue
-        nod = P.tri[el]
-        (xa, ya), (xb, yb), (xc, yc) = P.xy[nod]
-        A = (xb - xa) * (yc - ya) - (xc - xa) * (yb - ya)
-        l1 = ((xb - x) * (yc - y) - (xc - x) * (yb - y)) / A
-        l2 = ((xc - x) * (ya - y) - (xa - x) * (yc - y)) / A
-        out.append(list(zip(nod, (l1, l2, 1.0 - l1 - l2))))
-    return out
-
-
-def linjelast(P, seg, ds=20.0):
-    """Lastvektor för en jämnt fördelad last med summan 1 längs seg (godtycklig linje i nätet)."""
-    (x0, y0), (x1, y1) = seg
-    n = max(int(np.ceil(np.hypot(x1 - x0, y1 - y0) / ds)), 1)
-    t = (np.arange(n) + 0.5) / n
-    f = np.zeros(P.ndof)
-    for v in _bary(P, x0 + t * (x1 - x0), y0 + t * (y1 - y0)):
-        if v is not None:
-            for nod, w in v:
-                f[3 * nod] += w
-    return f / max(f.sum(), 1e-12)
-
-
-YTTRE_C = 50.0          # den yttre vangens mitt från Lecans ytterliv
-
-
-def ytter_linje(i):
-    """Linje genom den yttre vangens mitt för ytterväggen i (parallell med K-05:s upplagslinje)."""
-    pl = STODLIN[i]
-    (x0, y0), (x1, y1) = pl
-    ls = LineString(pl)
-    t = np.array([x1 - x0, y1 - y0]) / ls.length
-    rand = kallare().exterior
-    pm = np.array(ls.interpolate(0.5, normalized=True).coords[0])
-    n = np.array([-t[1], t[0]])
-    if rand.distance(Point(*(pm + 10 * n))) > rand.distance(Point(*pm)):
-        n = -n
-    d = rand.distance(Point(*pm)) - YTTRE_C
-    return (tuple(np.array([x0, y0]) + n * d), tuple(np.array([x1, y1]) + n * d))
-
-
 # ------------------------------------------------------------------ kopplingar
 def _linje_vikter(P, pl):
     """Noderna på linjen pl, sorterade, och deras läge s längs linjen."""
@@ -201,9 +170,9 @@ def _linje_vikter(P, pl):
     return np.array(nod)[o], s[o], ls.length
 
 
-def kopplingar(Pt, Pb, E_leca, ds=25.0, ytter=False):
+def kopplingar(Pt, Pb, E_vagg, ds=25.0):
     """Lista (k, [(dof, vikt), ...]) med vikt + för mellanbjälklaget och − för bottenplattan (offset nt).
-    ytter: ytterväggarnas yttre vange bär också (fjäder E·t/h längs vangens mitt, 50 mm från ytterlivet)."""
+    Väggarna: betongkärnan (t = T_KARNA) som linjefjäder E·t/h längs K-05:s upplagslinje, kärnans mitt."""
     nt = Pt.ndof
     out = []
     # rör: medelvärdet av noderna i rörets yta (200 × 200, ett dubbelrör över båda rören) i båda plattorna
@@ -213,9 +182,8 @@ def kopplingar(Pt, Pb, E_leca, ds=25.0, ytter=False):
         v = [(3 * n, 1 / len(a)) for n in a] + [(nt + 3 * n, -1 / len(b)) for n in b]
         out.append(dict(typ="rör", namn=namn, k=antal * K_ROR, v=v))
     # väggar: linjefjäder längs K-05:s upplagslinje, interpolerad mellan noderna i båda näten
+    kw = E_vagg * I.T_KARNA / I.H_VAGG                 # N/mm per mm
     for i, pl in enumerate(STODLIN):
-        t = I.T_SKIKT * (2 if VTYP[i] == "inre" else 1)
-        kw = E_leca * t / I.H_VAGG                     # N/mm per mm
         nt_, st, L = _linje_vikter(Pt, pl)
         nb_, sb, _ = _linje_vikter(Pb, pl)
         n = max(int(np.ceil(L / ds)), 1)
@@ -226,22 +194,6 @@ def kopplingar(Pt, Pb, E_leca, ds=25.0, ytter=False):
                 w = (s - ss[j - 1]) / max(ss[j] - ss[j - 1], 1e-9)
                 v += [(off + 3 * int(nod[j - 1]), sg * (1 - w)), (off + 3 * int(nod[j]), sg * w)]
             out.append(dict(typ="vägg", namn=f"V{i + 1}", k=kw * L / n, v=v, s=s))
-    if ytter:
-        for i in range(len(STODLIN)):
-            if VTYP[i] != "yttre":
-                continue
-            q0, q1 = ytter_linje(i)
-            L = float(np.hypot(q1[0] - q0[0], q1[1] - q0[1]))
-            n = max(int(np.ceil(L / ds)), 1)
-            ss = (np.arange(n) + 0.5) / n * L
-            X = q0[0] + (q1[0] - q0[0]) * ss / L
-            Y = q0[1] + (q1[1] - q0[1]) * ss / L
-            kw = E_leca * I.T_SKIKT / I.H_VAGG
-            for s, a, b in zip(ss, _bary(Pt, X, Y), _bary(Pb, X, Y)):
-                if a is None or b is None:
-                    continue
-                v = [(3 * int(nod), w) for nod, w in a] + [(nt + 3 * int(nod), -w) for nod, w in b]
-                out.append(dict(typ="vägg", namn=f"V{i + 1}", k=kw * L / n, v=v, s=float(s), vange="yttre"))
     return out
 
 
@@ -259,11 +211,11 @@ def kraft(kp, u):
 
 
 # ------------------------------------------------------------------ laster
-SPRIDNING = np.tan(np.radians(30))        # last sprids 60° mot horisontalplanet genom väggen (SS-EN 1996-1-1 6.1.3)
+SPRIDNING = np.tan(np.radians(30))        # last sprids 60° mot horisontalplanet genom väggen (försiktigt för betong)
 
 
 def spridd(Pb, x, y, v):
-    """Last v [N] som står på en Lecavägg i (x, y) sprids genom väggen ned till bottenplattan: jämnt fördelad längs
+    """Last v [N] som står på en källarvägg i (x, y) sprids genom väggen ned till bottenplattan: jämnt fördelad längs
     väggens centrumlinje inom ±0,58·h från lastens läge (begränsad av väggens ändar och fördelad på alla väggar
     som går genom hörnet)."""
     pt = Point(x, y)
@@ -287,34 +239,21 @@ def spridd(Pb, x, y, v):
     return f
 
 
-def spridd_genom_punkt(Pb, x, y, v):
-    """Som spridd, men längs linjer parallella med väggarna genom lastens läge (lasten står där den står)."""
-    pt = Point(x, y)
-    nara = [LineString(pl) for pl in VAGGLIN if LineString(pl).distance(pt) < 250.0]
-    if not nara:
-        f = np.zeros(Pb.ndof); f[3 * Pb.nod(x, y)] += v
-        return f
-    r = SPRIDNING * I.H_VAGG
-    delar = []
-    for ls in nara:
-        (x0, y0), (x1, y1) = ls.coords
-        t = np.array([x1 - x0, y1 - y0]) / ls.length
-        s0 = ls.project(pt)
-        off = np.array([x, y]) - np.array(ls.interpolate(s0).coords[0])
-        a, b = max(0.0, s0 - r), min(ls.length, s0 + r)
-        if b - a > 1.0:
-            p0 = np.array([x0, y0]) + off + t * a
-            delar.append(([tuple(p0), tuple(p0 + t * (b - a))], b - a))
-    Ltot = sum(L for _, L in delar)
-    f = np.zeros(Pb.ndof)
-    for seg, L in delar:
-        f += linjelast(Pb, seg) * v * L / Ltot
-    return f
+def vaggvikt(i):
+    """Väggens egentyngd [N/mm] för vägg i (0-baserat): Kub-väggen i hela höjden och, på ytterväggarna utom V3 och
+    V20 (plattan på mark), fasadsten från 50 mm under mark till mellanbjälklagets överkant (AR-01)."""
+    namn = f"V{i + 1}"
+    q = I.G_KUB * I.H_VAGG / 1000
+    if VTYP[i] == "yttre":
+        f = next((x for n, x in I.FYLL.items() if n == namn or namn in x.get("fasad", {}).get("omfattar", ())), None)
+        if not (f and f.get("platta")):
+            hf = min(f["h"]) if f else 0.0
+            q += I.G_STEN * max((I.H_VAGG + I.H_MB) / 1000 + 0.05 - hf, 0.0)
+    return q
 
 
-def laster(Pt, Pb, verklig=False):
-    """Lastvektorer [N] för hela systemet (mellanbjälklag först, sedan bottenplatta).
-    verklig: laster över väggarna sprids längs en linje genom lastens läge i stället för väggens mittlinje."""
+def laster(Pt, Pb):
+    """Lastvektorer [N] för hela systemet (mellanbjälklag först, sedan bottenplatta)."""
     nt, nb = Pt.ndof, Pb.ndof
     LASTER = M05.LASTER
     z = lambda: (np.zeros(nt), np.zeros(nb))
@@ -322,7 +261,7 @@ def laster(Pt, Pb, verklig=False):
 
     def punkt(fa, x, y, P_, v, sprid=False):
         if sprid:
-            fa += (spridd_genom_punkt if verklig else spridd)(Pb, x, y, v)
+            fa += spridd(Pb, x, y, v)
         else:
             fa[3 * P_.nod(x, y)] += v
 
@@ -351,14 +290,12 @@ def laster(Pt, Pb, verklig=False):
             F["S_" + kr][0][:] += v * fs
         QT += Pt.last_linje(l["qk"], l["pl"])
         F["W"][0][:] += Pt.last_linje(l["wd"], l["pl"])
-    # bottenplattan: egentyngd (verklig tjocklek), golv, Lecaväggarnas egentyngd, nyttig last i källaren
-    S = I.SYSTEM["B"]                                  # tyngsta blocket
-    qv = (S["vikt"] + I.PUTS) * I.H_VAGG / 1000        # kN/m = N/mm
+    # bottenplattan: egentyngd (verklig tjocklek), golv, väggarnas egentyngd och fasadsten, nyttig last i källaren
     fb = np.zeros(nb)
     q_el = 25e-6 * Pb.h_el + 0.5e-3                     # N/mm²
     np.add.at(fb, 3 * Pb.tri.ravel(), np.repeat(q_el * Pb.area / 3, 3))
-    for pl in VAGGLIN:
-        fb += Pb.last_linje(qv, pl)
+    for i, pl in enumerate(VAGGLIN):
+        fb += Pb.last_linje(vaggvikt(i), pl)
     F["G"][1][:] += fb
     F["Qb"][1][:] += Pb.last_yta(2.7e-3)
     # trappans fot på bottenplattan: halva trappan (K-05: 3,0 × 0,83 m, 1,0 + 2,0 kN/m²) vid hålets mitt
@@ -382,7 +319,7 @@ def laster(Pt, Pb, verklig=False):
 
 
 def svinn(kopp, ndof, eps):
-    """Lastvektor för Lecaväggarnas krympning eps (förkortning eps·h) i väggfjädrarna."""
+    """Lastvektor för betongkärnans krympning eps (förkortning eps·h) i väggfjädrarna."""
     f = np.zeros(ndof)
     d = eps * I.H_VAGG
     for kp in kopp:
@@ -396,22 +333,21 @@ def svinn(kopp, ndof, eps):
 class System:
     """Hela modellen för ett utförande (L300/L400) och en styvhetsvariant."""
 
-    def __init__(self, utf, plint, eps_falt, eps_balk, variant, hmax=200.0, k_mark=None, ytter=False):
+    def __init__(self, utf, plint, eps_falt, eps_balk, variant, hmax=200.0, k_mark=None):
         self.utf = I.UTFORANDEN[utf] if isinstance(utf, str) else utf
         self.Pt = topp(hmax, k_mark)
         self.Pb = botten(self.utf, plint, hmax)
         lang = variant == "lång"
         Ec = B.Ecm / (1 + 2.8) if lang else B.Ecm             # betong: långtid med φ ≈ 2,8 (K-05)
-        El = I.E_LECA / (1 + I.KRYP_LECA) if lang else I.E_LECA
+        Ev = BV.Ecm / (1 + I.KRYP_V) if lang else BV.Ecm     # väggarnas kärna, C30/37
         ke = I.EPS_KS if lang else 1.0                         # cellplast: 0,4 E_k långtid, E_k korttid
         Ef, Eb = I.EPS[eps_falt]["Ek"] * 1e-3 * ke, I.EPS[eps_balk]["Ek"] * 1e-3 * ke   # MPa
         E3 = I.EPS["S300"]["Ek"] * 1e-3 * ke
-        zoner = I.S300_ZON.get(utf, []) if isinstance(utf, str) else []
+        zoner = s300_zoner()
         badd(self.Pb, Ef / self.utf["t_eps"], Eb / I.T_FOT, E3 / I.T_FOT, zoner)   # före styvheten
         styvheter(self.Pt, self.Pb, Ec)
         self.k_falt, self.k_balk = Ef / self.utf["t_eps"], Eb / I.T_FOT
-        self.kopp = kopplingar(self.Pt, self.Pb, El, ytter=ytter)
-        self.ytter = ytter
+        self.kopp = kopplingar(self.Pt, self.Pb, Ev)
         nt, nb = self.Pt.ndof, self.Pb.ndof
         self.nt, self.ndof = nt, nt + nb
         K = sp.block_diag([self.Pt.K, self.Pb.K]).tocsr() + kopplingsmatris(self.kopp, self.ndof)
@@ -436,7 +372,7 @@ class System:
         return self.Pb.k_nod * ub[0::3] / self.Pb.a_nod * 1e3
 
     def krafter(self, u, eps=0.0):
-        """Kraft i rör och väggar (tryck positivt). eps: Lecaväggarnas krympning i lastfallet (fjäderns vilolängd
+        """Kraft i rör och väggar (tryck positivt). eps: kärnans krympning i lastfallet (fjäderns vilolängd
         är förkortad med eps·h, så kraften är k(Δw − eps·h))."""
         out = {}
         for kp in self.kopp:

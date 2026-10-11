@@ -6,8 +6,8 @@ R-03 Konstruktionsritning mellanbjälklag (F-01), A3 med ../ritningsmall:
     R-03.3  Armering i överkant                          plan 1:50
     R-03.4  Sektioner, detaljer och stålförteckning      1:5, 1:10, 1:20
 
-Underlag: K-05 (geometri i bild/geometri.json, armering i resultat.json) och K-06 (förankring i U-blocket,
-stålstolparna). Allt ritas i verkliga koordinater i mm enligt K-05 (origo i skärningen mellan plattkanterna
+Underlag: K-05 (geometri i bild/geometri.json, armering i resultat.json) och K-06 (källarväggarna av Sundolitt
+Kub 350-150 och vinkeljärnen från väggarna till bjälklaget). Allt ritas i verkliga koordinater i mm enligt K-05 (origo i skärningen mellan plattkanterna
 x = 0 och y = 0, y uppåt); ritningsmall/ritning.py skalar till papperet.
 
 Filen är uppdelad i:
@@ -68,10 +68,14 @@ XMAX, YMAX = KONTUR.bounds[2], KONTUR.bounds[3]   # 13 810, 15 900
 YCUT = 12450.0                              # plattan på mark bryts här i planerna 1:50
 VIKT = {8: 0.395, 10: 0.617, 12: 0.888}     # kg/m
 
-# K-06: förankring i U-blocket (L-järn) och stålstolparna (system A, en stolpe mitt på V14 och V21)
-POS14 = dict(d=10, s=600, ben=235, in_=425)
-STOLPE = dict(fran_ytterliv=400, plat=200, vaggar=("V14", "V21"))
-LECA_UTE = 30.0                             # Lecans ytterliv 30 mm utanför plattkanten
+# K-06: vinkeljärn från ytterväggarnas betongkärna till bjälklaget (ben ned i väggen + ben in i bjälklaget, under
+# överkantsnätet) och väggens skikt (Kub 350-150)
+POS14 = dict(d=10, s=200, ben=650, in_=500)
+VAGG_UTE = 30.0                             # väggens ytterliv 30 mm utanför plattkanten
+KUB = (100.0, 150.0, 100.0)                 # cellplast, betongkärna, cellplast
+X_LODRAT = KUB[0] + KUB[1] - 25 - 10 - 5    # väggens lodräta järn på insidan, från ytterlivet (K-06)
+H_GJUT1 = 1800.0                            # väggarnas första gjutning, över bottenplattan (K-06)
+H_VAGG = 2100.0
 
 
 def lb_rqd(d):
@@ -123,18 +127,6 @@ def diagonaljarn():
     return ut, len(hornen)
 
 
-def stolpar_system_a():
-    """(vägg, x, y) för stålstolparnas plåtar i bjälklagets underkant."""
-    ut = []
-    for namn in STOLPE["vaggar"]:
-        ax_, c, a, b = vagg(namn)[:4]
-        t = (a + b) / 2
-        ytterliv = XMAX + LECA_UTE if c > XMAX / 2 else -LECA_UTE
-        inat = -1 if c > XMAX / 2 else 1
-        ut.append((namn, ytterliv + inat * STOLPE["fran_ytterliv"], t))
-    return ut
-
-
 # ================================================================== 2. placeringar (verkliga koordinater, mm)
 PLAC = dict(
     # nätsymbolerna: hörnet där x- och y-järnet möts, och järnens längd i symbolen
@@ -142,7 +134,6 @@ PLAC = dict(
     pos3=((11060.0, 2525.0), (10000.0, 1700.0)),         # från P17:s järn till bubblan
     pos13=((4500.0, 3590.0), (3600.0, 3250.0)),          # hörnet vars diagonaljärn får etiketten, bubblan
     pos14=dict(y=(9000.0, 9600.0, 10200.0), bubbla=(12500.0, 9900.0)),
-    stolpe_a_text=(1300.0, 6780.0),
     fri_text=((10390.0, 1000.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
     mark_text=(2700.0, 11250.0),
     snitt=dict(A=((12950, 8000), (13870, 8000), -1), B=((11660, 7150), (11660, 6100), -1),
@@ -173,7 +164,7 @@ def lager_plattan(v, klipp=True):
 
 
 def lager_vaggar(v):
-    """Lecaväggarna under plattan, streckade, och deras namn."""
+    """Källarväggarna (Kub 350-150) under plattan, streckade, och deras namn."""
     with v.lager("vaggar"):
         band = unary_union([F05.vaggband(w, G["E"], G["vagg"])[1] for w in G["vagg"]])
         for g in getattr(band, "geoms", [band]):
@@ -353,7 +344,7 @@ def lager_zoner(v):
 
 
 def lager_ok(v):
-    """Överkant: nätet (pos 11, 12), diagonaljärn (pos 13) och förankring i U-blocket (pos 14)."""
+    """Överkant: nätet (pos 11, 12), diagonaljärn (pos 13) och vinkeljärnen från ytterväggarna (pos 14)."""
     with v.lager("armering_ok"):
         natsymbol(v, 11, 12, DO, SO, "ok", "hela plattan")
         diag, nh = diagonaljarn()
@@ -366,30 +357,14 @@ def lager_ok(v):
         v.hanvisning(mid, bubbla, f"2 Ø10 L = 1 200 diagonalt, alla inåtgående\nhörn och trapphålets hörn ({nh} hörn)",
                      bubbla=13, a="rm", sz=7.0)
         c14 = vagg("V14")[1]
+        xv = c14 + G["E"] + VAGG_UTE - X_LODRAT                # vinkeljärnets lodräta ben (V14: insidan åt −x)
         for yy in PLAC["pos14"]["y"]:
-            v.linje([(c14, yy), (c14 - POS14["in_"] - 25, yy)], "ok")
-            v.linje([(c14, yy - 60), (c14, yy + 60)], "ok_tunn")
+            v.linje([(xv, yy), (xv - POS14["in_"], yy)], "ok")
+            v.linje([(xv, yy - 60), (xv, yy + 60)], "ok_tunn")
         ys = PLAC["pos14"]["y"]
-        v.fordelning((c14 - 100, ys[0] - 300), (c14 - 100, ys[-1] + 300))
-        v.hanvisning((c14 - POS14["in_"] - 25, ys[1]), PLAC["pos14"]["bubbla"],
-                     f"Ø{POS14['d']} s{POS14['s']} längs alla\nytterväggar, sektion A", bubbla=14, a="rm")
-
-
-def lager_ingjutet(v):
-    """Ingjutet: stålstolparnas plåtar (system A, detalj E)."""
-    with v.lager("ingjutet"):
-        st = stolpar_system_a()
-        for namn, x, y in st:
-            h = STOLPE["plat"] / 2
-            v.rekt(x - h, y - h, x + h, y + h, fyll=None, stil="dold")
-            sg = 1 if x < XMAX / 2 else -1
-            bx = x + sg * 450
-            v.linje([(x + sg * h, y), (bx - sg * 120, y)], "tunn")
-            v.cirkel(bx, y, 2.4, fyll="vit", stil="tunn")
-            v.text(bx, y, "E", a="cm", sz=7.2, b=True)
-        x21, y21 = [(x, y) for n, x, y in st if n == "V21"][0]
-        v.hanvisning((x21 + 450 + 2.4 * v.s, y21 + 60), PLAC["stolpe_a_text"],
-                     "stålstolpe, system A (K-06), detalj E (R-03.4)", a="lm", sz=6.6)
+        v.fordelning((xv - 100, ys[0] - 300), (xv - 100, ys[-1] + 300))
+        v.hanvisning((xv - POS14["in_"], ys[1]), PLAC["pos14"]["bubbla"],
+                     f"vinkeljärn Ø{POS14['d']} s{POS14['s']} längs alla\nytterväggar, sektion A", bubbla=14, a="rm")
 
 
 # ---------------------------------------------------------------- sektioner (lokala koordinater, mm)
@@ -415,22 +390,17 @@ def platta_snitt(v, x0, x1, langs="x", kant0=False, kant1=False):
             v.cirkel(x, yp_o, DO / 2, fyll="#b5463a", stil=None, modell=True)
 
 
-def leca(v, x0, y0, y1, u_block=False):
-    """Lecavägg 350 (100 + 150 + 100) från y0 till y1, med U-block (kärna 190 × 160, 2 Ø10) överst om u_block."""
+def kub(v, x0, y0, y1, gips=True):
+    """Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100) från y0 till y1, x0 i det ena livet."""
+    e, k, _ = KUB
     with v.lager("vagg"):
-        yt = y1 - 200 if u_block else y1
-        v.rekt(x0, y0, x0 + 100, yt, fyll="leca", stil="tunn")
-        v.rekt(x0 + 100, y0, x0 + 250, yt, fyll="isol", stil="tunn")
-        v.rekt(x0 + 250, y0, x0 + 350, yt, fyll="leca", stil="tunn")
-        for yy in np.arange(yt - 207, y0 + 20, -207):
-            v.linje([(x0, yy), (x0 + 100, yy)], "fin"); v.linje([(x0 + 250, yy), (x0 + 350, yy)], "fin")
-        if u_block:
-            v.rekt(x0, yt, x0 + 350, y1, fyll="leca", stil="tunn")
-            v.rekt(x0 + 80, yt + 40, x0 + 270, y1, fyll="betong", stil=None)
-            v.linje([(x0 + 80, y1), (x0 + 80, yt + 40), (x0 + 270, yt + 40), (x0 + 270, y1)], "tunn")
-            for x in (x0 + 130, x0 + 220):
-                v.cirkel(x, yt + 80, 5, fyll="svart", stil=None, modell=True)
-        v.brott((x0 - 60, y0), (x0 + 410, y0), "tunn")
+        v.rekt(x0, y0, x0 + e, y1, fyll="eps", stil="tunn")
+        v.rekt(x0 + e, y0, x0 + e + k, y1, fyll="karna", stil=None)
+        v.linje([(x0 + e, y0), (x0 + e, y1)], "tunn"); v.linje([(x0 + e + k, y0), (x0 + e + k, y1)], "tunn")
+        v.rekt(x0 + e + k, y0, x0 + 350, y1, fyll="eps", stil="tunn")
+        if gips:
+            v.rekt(x0 + 350, y0, x0 + 363, y1, fyll="vit", stil="tunn")
+        v.brott((x0 - 60, y0), (x0 + 420, y0), "tunn")
 
 
 def etiketter(v, lst, x, y0, dy, sz=6.8):
@@ -445,31 +415,56 @@ def etiketter(v, lst, x, y0, dy, sz=6.8):
 
 
 def sektion_a():
-    """A–A: yttervägg mot jord (V14). x = 0 vid Lecans ytterliv, inåt positivt; y = 0 i plattans underkant. 1:20"""
-    v = Vy(x=24, y=14, w=165, h=62, skala=20, X0=-660, Y1=300)
+    """A–A: yttervägg mot jord (V14), Kub 350-150, och bjälklagets kant. x = 0 i väggens ytterliv, inåt positivt;
+    y = 0 i plattans underkant. 1:10"""
+    v = Vy(x=24, y=96, w=165, h=152, skala=10, X0=-430, Y1=330)
+    hf = 0.8 + 1.0 * (8000.0 - 1145.0) / 11220.0                     # fyllningen vid snittet (K-06), m
+    ym = hf * 1000 - H_VAGG                                          # markytan
+    ylo = -1250.0
+    e, k, _ = KUB
     with v.lager("mark"):
-        v.polygon([(-620, -760), (-35, -760), (-35, -110), (-620, -110)], fyll="jord", stil=None)
-        v.linje([(-620, -110), (-35, -110)], "normal")
-        v.rekt(-35, -760, -10, 60, fyll="#c9c3b8", stil="tunn")
-    leca(v, 0, -760, 0, u_block=True)
-    platta_snitt(v, LECA_UTE, 1400, "x", kant0=True)
-    with v.lager("betong"):
-        v.linje([(LECA_UTE, 0), (80, 0)], "normal"); v.linje([(270, 0), (350, 0)], "normal")
+        v.polygon([(-400, ylo), (-60, ylo), (-60, ym), (-400, ym - 7)], fyll="jord", stil=None)
+        v.linje([(-400, ym - 7), (-60, ym)], "normal")
+        v.linje([(-6, ylo), (-6, ym + 60)], "dold")
+        v.rekt(-55, ym - 50, -15, H, fyll="#c9c3b8", stil="tunn")
+        v.rekt(-15, ym - 50, 0, H, fyll="vit", stil="tunn")
+    kub(v, 0, ylo, 0)
+    platta_snitt(v, VAGG_UTE, 1400, "x", kant0=True)
+    with v.lager("vagg"):
+        v.rekt(0, 0, VAGG_UTE, H, fyll="eps", stil="tunn")                      # kantisolering
+        v.rekt(e + 0.5, -2, e + k - 0.5, 2, fyll="betong", stil=None)           # kärnan och plattan i ett
+        v.linje([(e, H_GJUT1 - H_VAGG), (e + k, H_GJUT1 - H_VAGG)], "dold")     # gjutfogen vid 1 800
     with v.lager("armering"):
-        v.linje([(175, -140), (175, -140 + POS14["ben"]), (175 + POS14["in_"], -140 + POS14["ben"])], "ok")
+        yb = YO2 - DO / 2 - 5 - POS14["d"] / 2                                  # vinkeljärnets ben under nätet
+        xa = X_LODRAT - 14
+        v.linje([(X_LODRAT, ylo + 20), (X_LODRAT, yb + 8)], "ok_tunn")
+        v.linje([(xa, yb - POS14["ben"]), (xa, yb), (xa + POS14["in_"], yb)], "ok")
+        for yy in (H_GJUT1 - H_VAGG - 25, H_GJUT1 - H_VAGG - 325, H_GJUT1 - H_VAGG - 625, -60):
+            if yy > ylo + 20:
+                for x in (e + 30 + 5, e + k - 25 - 5):
+                    v.cirkel(x, yy, 5, fyll="svart", stil=None, modell=True)
     with v.lager("matt"):
         v.matt((1300, 0), (1300, H), 2.5, sida=-1, sz=6.2)
-        v.matt((0, -700), (350, -700), 2.5, sida=-1, sz=6.2)
-        v.matt((0, H), (LECA_UTE, H), 2.0, sz=5.8, txt=sv(LECA_UTE))
-    yk = -140 + POS14["ben"]
+        v.matt((0, ylo + 60), (e, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(e))
+        v.matt((e, ylo + 60), (e + k, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(k))
+        v.matt((e + k, ylo + 60), (350, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(KUB[2]))
+        v.matt((0, H), (VAGG_UTE, H), 2.0, sz=5.8, txt=sv(VAGG_UTE))
+        v.matt((xa, yb), (xa + POS14["in_"], yb), 4.0, sz=5.8, txt=sv(POS14["in_"]))
+        v.matt((xa, yb - POS14["ben"]), (xa, yb), 4.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
+        v.matt((520, H_GJUT1 - H_VAGG), (520, 0), 3.0, sida=-1, sz=5.8, txt=sv(H_VAGG - H_GJUT1))
     etiketter(v, [("Ø8 s150, överkant", (1250, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
-                  (f"Ø10 s600, L-järn {POS14['ben']} + {POS14['in_']}, i U-blockets kärna", (560, yk), 14),
+                  (f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, {POS14['ben']} + {POS14['in_']}, under nätet",
+                   (xa + 300, yb), 14),
                   ("Ø10 s150, underkant", (1100, YU2), 2), ("Ø10 s150, underkant", (1000, YU1), 1),
-                  ("U-block gjuts med bjälklaget, 2 Ø10 (K-06)", (220, -110), None),
-                  ("dräneringsskiva och fyllning (K-06)", (-150, -300), None),
-                  ("Lecavägg 350, Sikksakk i fogarna (K-06)", (300, -520), None)], 1480, 270, 4.0)
+                  ("kantisolering 30; plattan går 70 mm ut över cellplasten", (15, 60), None),
+                  ("kärnan och bjälklaget gjuts samtidigt (K-06)", (e + k / 2, -150), None),
+                  ("Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100 (K-06)", (e + 40, -500), None),
+                  (f"väggens lodräta järn Ø10 s{POS14['s']} på insidan, upp till nätet (K-06)",
+                   (X_LODRAT, -750), None),
+                  ("gjutfog: väggarnas första gjutning slutar 300 under bjälklaget (K-06)", (e + 20, -300), None),
+                  ("fasadsten och fyllning (K-06, AR-01)", (-35, -500), None)], 1480, 300, 4.6)
     with v.lager("rubrik"):
-        v.rubrik(-620, -900, "SEKTION A–A  Yttervägg mot jord (V14)", skala=20, sz=9)
+        v.rubrik(-400, ylo - 120, "SEKTION A–A  Yttervägg mot jord (V14)", skala=10, sz=9)
     return v
 
 
@@ -521,56 +516,18 @@ def sektion_c():
 
 
 def sektion_d():
-    """D–D: innervägg (V15) med glidskikt på krönet. x = 0 i väggens mitt, y = 0 i underkant. 1:20"""
-    v = Vy(x=24, y=96, w=112, h=58, skala=20, X0=-620, Y1=260)
-    leca(v, -175, -700, -5)
+    """D–D: innervägg (V15, Kub 350-150) med glidskikt på krönet. x = 0 i väggens mitt, y = 0 i underkant. 1:20"""
+    v = Vy(x=24, y=14, w=165, h=62, skala=20, X0=-620, Y1=300)
+    kub(v, -175, -760, -5, gips=False)
     with v.lager("vagg"):
         v.rekt(-175, -5, 175, 0, fyll="papp", stil=None)
     platta_snitt(v, -600, 600, "x")
     with v.lager("matt"):
-        v.matt((-175, -620), (175, -620), 2.5, sida=-1, sz=6.2)
-    etiketter(v, [("glidskikt (byggpapp) på krönet", (120, -3), None),
-                  ("innervägg 350 (K-06)", (120, -400), None)], 700, 120, 4.6)
+        v.matt((-175, -700), (175, -700), 2.5, sida=-1, sz=6.2)
+    etiketter(v, [("glidskikt (byggpapp) på krönet; bjälklaget förankras inte i innerväggarna", (120, -3), None),
+                  ("innervägg Kub 350-150 (K-06)", (0, -400), None)], 700, 150, 4.6)
     with v.lager("rubrik"):
         v.rubrik(-600, -880, "SEKTION D–D  Innervägg (V15)", skala=20, sz=9)
-    return v
-
-
-def detalj_e():
-    """E: stålstolpens topp (K-06 system A). x = 0 vid Lecans ytterliv, y = 0 på bottenplattan (bjälklagets
-    underkant på y = 2 100). 1:10"""
-    Hs = 2100.0
-    v = Vy(x=24, y=162, w=165, h=86, skala=10, X0=-120, Y1=2420)
-    with v.lager("vagg"):
-        v.rekt(0, Hs - 420, 100, Hs - 200, fyll="leca", stil="tunn")
-        v.rekt(100, Hs - 420, 250, Hs - 200, fyll="isol", stil="tunn")
-        v.rekt(250, Hs - 420, 350, Hs - 200, fyll="leca", stil="tunn")
-        v.rekt(0, Hs - 200, 350, Hs, fyll="leca", stil="tunn")
-        v.rekt(80, Hs - 160, 270, Hs, fyll="betong", stil=None)
-        v.brott((-60, Hs - 420), (520, Hs - 420), "tunn")
-    with v.lager("betong"):
-        v.rekt(LECA_UTE, Hs, 700, Hs + H, fyll="betong", stil=None)
-        v.linje([(LECA_UTE, Hs + H), (700, Hs + H)], "normal"); v.linje([(350, Hs), (700, Hs)], "normal")
-        v.linje([(LECA_UTE, Hs), (LECA_UTE, Hs + H)], "normal")
-        v.brott((700, Hs - 40), (700, Hs + H + 40), "tunn")
-    xs = STOLPE["fran_ytterliv"]
-    with v.lager("stal"):
-        v.rekt(xs - 50, Hs - 420, xs + 50, Hs - 35, fyll="#9aa0a8", stil="tunn")
-        v.rekt(xs - 100, Hs, xs + 100, Hs + 15, fyll="stal", stil=None)
-        for x in (xs - 70, xs + 70):
-            v.linje([(x, Hs + 15), (x, Hs + 90)], "stal"); v.linje([(x - 12, Hs + 90), (x + 12, Hs + 90)], "grov")
-        v.rekt(xs - 40, Hs - 140, xs + 40, Hs, fyll=None, stil="dold")
-        v.rekt(xs - 7, Hs - 90, xs + 7, Hs - 36, fyll="vit", stil="tunn")
-        v.cirkel(xs, Hs - 63, 6, fyll="svart", stil=None, modell=True)
-    with v.lager("matt"):
-        v.matt((xs + 50, Hs - 35), (xs + 50, Hs), 2.5, sida=-1, sz=5.8, txt="20")
-    etiketter(v, [("plåt 200×200×15 S355 med 4 svetsbultar\nØ13, L = 75, gjuts in i underkant", (xs + 90, Hs + 8), None),
-                  ("20 mm spel: stolpen bär inte bjälklaget", (xs + 40, Hs - 25), None),
-                  ("M12 8.8 i avlångt hål 14 × 54, lodrätt", (xs + 6, Hs - 63), None),
-                  ("2 flattstål 80×10 på plåten,\nett på var sida om stolpen", (xs + 40, Hs - 130), None),
-                  ("stålstolpe VKR 100×100×5 S355 (K-06)", (xs + 50, Hs - 300), None)], 780, Hs + 230, 5.6)
-    with v.lager("rubrik"):
-        v.rubrik(-100, Hs - 520, "DETALJ E  Stålstolpens topp, system A (K-06)", skala=10, sz=9)
     return v
 
 
@@ -631,7 +588,7 @@ def stalforteckning():
     lagg(13, 10, "rak", "–", 2 * nh, "1 200", 2 * nh * 1.2, "ÖK diagonalt")
     n14 = int(sum(math.floor(abs(w[3] - w[2]) / POS14["s"]) + 1 for w in G["vagg"] if w[4] == "yttre"))
     L14 = POS14["ben"] + POS14["in_"]
-    lagg(14, 10, f"L {POS14['ben']}+{POS14['in_']}", f"s{POS14['s']}", n14, sv(L14), n14 * L14 / 1000, "U-block")
+    lagg(14, 10, f"L {POS14['ben']}+{POS14['in_']}", f"s{POS14['s']}", n14, sv(L14), n14 * L14 / 1000, "vinkeljärn")
     zon = {}
     for zn in R["zoner"]:
         _, jarn = zonjarn(zn)
@@ -690,11 +647,11 @@ def blad_oversikt():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar() + [
             "Plattans kontur och trapphålets läge enligt denna ritning. Rörens lägen, se tabell på R-03.2.",
-            "Lecaväggarna under plattan streckade (K-06)."]),
+            "Källarväggarna (Kub 350-150, K-06) under plattan streckade."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
-            dict(form="linje", stil="dold", text="Lecavägg under plattan"),
+            dict(form="linje", stil="dold", text="källarvägg under plattan"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0), rader=forteckning,
@@ -726,7 +683,7 @@ def blad_uk():
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant"),
             dict(form="bubbla", txt="1", text="positionsnummer (stålförteckning R-03.4)"),
-            dict(form="linje", stil="dold", text="Lecavägg under plattan"),
+            dict(form="linje", stil="dold", text="källarvägg under plattan"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text="Rör och topplåtar"),
         dict(typ="tabell", kolumner=["Rör", "x", "y", "Topplåt"], bredd=(0, 0, 0, 1), rader=rader,
@@ -743,7 +700,6 @@ def blad_ok():
     zrader = lager_zoner(v)
     lager_ror(v)
     lager_ok(v)
-    lager_ingjutet(v)
     lager_origo(v)
     lager_rubrik(v, "PLAN – ARMERING I ÖVERKANT", 50)
     kol = [
@@ -753,14 +709,14 @@ def blad_ok():
             "Överkantsnätet läggs på armeringsstolar, högst 0,8 m isär.",
             f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
-            "Stålstolparnas plåtar (E) gäller system A i K-06. Gjuts in i underkant, se R-03.4.",
-            "Förankringsjärnen pos 14 sätts i U-blocket innan bjälklaget gjuts."]),
+            "Vinkeljärnen pos 14 sätts i ytterväggarnas betongkärna, bundna till väggens lodräta järn, innan "
+            "väggarnas översta skift och bjälklaget gjuts (sektion A, K-06)."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="ok", text="armering i överkant"),
             dict(form="yta", fyll="zon", stil="zon_kant", text="zon med tilläggsjärn i överkant"),
             dict(form="fordelning", text="fördelning av järn med samma position"),
-            dict(form="linje", stil="dold", text="Lecavägg eller plåt under plattan"),
+            dict(form="linje", stil="dold", text="källarvägg under plattan"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text="Tilläggsjärn i överkant (antal × längd)"),
         dict(typ="tabell", kolumner=["Zon", "Järn", "x-led", "y-led", "x (m)", "y (m)"], bredd=(0, 0, 0, 0, 0, 0),
@@ -770,7 +726,7 @@ def blad_ok():
 
 
 def blad_sektioner():
-    vyer = [sektion_a(), sektion_b(), sektion_d(), sektion_c(), detalj_e(), detalj_f()]
+    vyer = [sektion_a(), sektion_b(), sektion_d(), sektion_c(), detalj_f()]
     block = [dict(x=196, y=160, w=128, innehall=[
         dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning(),
         dict(typ="text", sz=6.4, rader=[
@@ -782,21 +738,22 @@ def blad_sektioner():
             "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten. "
             "Rörens lägen ±40 mm enligt tabellen på R-03.2; P7 är två rör tätt intill varandra.",
             "Överkantsarmeringens höjd kontrolleras före gjutning, särskilt vid rören.",
-            "U-blocket i ytterväggarna gjuts samtidigt med bjälklaget. Pos 14 sätts i U-blocket före gjutning.",
+            "Ytterväggarnas översta halva skift gjuts samtidigt med bjälklaget, i den ordning K-06 anger. "
+            "Bjälklagets form och stämp står för sig själva och hänger inte i Kub-elementen. "
+            "Pos 14 binds till väggens lodräta järn före gjutning.",
             "Innerväggarna får glidskikt (byggpapp) på krönet.",
             "Formrivning tidigast när betongen nått cirka 70 % av fck (provkroppar eller mognadsberäkning). "
             "Last under byggtiden högst 5 kN/m², punktlaster över rör eller vägg.",
             "Trägolv limmas först när betongens relativa fuktighet är under golvlimmets gräns (mätt enligt RBK). "
             "Våtrum får sprickupptagande tätskikt.",
-            "Detalj E gäller stålstolparna i system A (K-06): V14 och V21.",
             "Plan: underkant R-03.2, överkant R-03.3."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant"),
             dict(form="linje", stil="ok", text="armering i överkant"),
             dict(form="yta", fyll="betong", stil="tunn", text="betong C25/30"),
-            dict(form="yta", fyll="leca", stil="tunn", text="Leca (lättklinker)"),
-            dict(form="yta", fyll="isol", stil="tunn", text="isolering"),
+            dict(form="yta", fyll="karna", stil="tunn", text="betongkärna, Kub 350-150 (K-06)"),
+            dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
             dict(form="yta", fyll="jord", stil="tunn", text="fyllning"),
             dict(form="yta", fyll="stal", stil=None, text="stål")]),
     ]

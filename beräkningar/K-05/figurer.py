@@ -27,7 +27,8 @@ plt.rcParams.update({"font.family": "Carlito", "font.size": 7.5, "svg.fonttype":
 INK = "#1e1e1e"
 BETONG = "#ecebe7"
 MARK = "#f4ecdc"
-LECA = "#b9b3a9"
+KARNA = "#b9b3a9"                     # källarväggarnas betongkärna (Kub 350-150)
+EPS = "#dde6f0"                       # cellplast
 ISOL = "#f7f3df"
 STAL = "#5a5f66"
 FRI = "#c0504d"                       # diagonaljärn och fria kanter (används av K-06)
@@ -65,26 +66,29 @@ def matt(ax, p0, p1, off, txt, fs=6.5, ext=True):
 
 
 def vaggband(w, E, alla=()):
-    """Lecaväggens isolering (mittre 150) och hela tjocklek (350) som shapely-polygoner. Ändar som möter en
-    annan vägg förlängs så att hörnen blir hela."""
+    """Källarväggens betongkärna (mittre 150) och hela tjocklek (350, Kub 350-150) som shapely-polygoner. Ändar som
+    möter en annan vägg förlängs, hela väggen med E och kärnan med sin halva tjocklek, så att hörnen och
+    anslutningarna blir hela och kärnan sammanhängande."""
     ax, c, a, b = w[:4]
     def mot(v):
         return any(o[0] != ax and abs(o[1] - v) < 1 and o[2] - 1 <= c <= o[3] + 1 for o in alla)
-    a = a - E if mot(a) else a
-    b = b + E if mot(b) else b
-    if ax == "h":
-        L = LineString([(a, c), (b, c)])
-    else:
-        L = LineString([(c, a), (c, b)])
-    return L.buffer(75, cap_style="flat"), L.buffer(175, cap_style="flat"), L
+
+    def linje(ea):
+        a_ = a - ea if mot(a) else a
+        b_ = b + ea if mot(b) else b
+        return LineString([(a_, c), (b_, c)] if ax == "h" else [(c, a_), (c, b_)])
+    L = linje(E)
+    return linje(75.0).buffer(75, cap_style="flat"), L.buffer(175, cap_style="flat"), L
 
 
-def _vaggar(ax, G, fc=LECA, ec=INK, lw=0.35, zorder=2):
-    """Lecaväggarna som en sammanhängande yta (350 mm), klippt mot plattan."""
-    hela = [vaggband(w, G["E"], G["vagg"])[1] for w in G["vagg"]]
-    u = unary_union(hela).intersection(SPoly(G["kontur"]).buffer(0))
-    for g in getattr(u, "geoms", [u]):
-        ax.add_patch(Polygon(list(g.exterior.coords), closed=True, fc=fc, ec=ec, lw=lw, zorder=zorder))
+def _vaggar(ax, G, fc=(EPS, KARNA), ec=INK, lw=0.35, zorder=2):
+    """Källarväggarna, klippta mot plattan: hela väggen (cellplast, 350 mm) och den sammanhängande betongkärnan
+    (150 mm) ovanpå."""
+    pl = SPoly(G["kontur"]).buffer(0)
+    for j, f_ in ((1, fc[0]), (0, fc[1])):
+        u = unary_union([vaggband(w, G["E"], G["vagg"])[j] for w in G["vagg"]]).intersection(pl)
+        for g in getattr(u, "geoms", [u]):
+            ax.add_patch(Polygon(list(g.exterior.coords), closed=True, fc=f_, ec=ec, lw=lw, zorder=zorder + 0.1 * (1 - j)))
 
 
 def _matt(ax):
@@ -141,7 +145,7 @@ def ror_symbol(x, y, n, s):
 
 
 def rita_geometri(path, G, plat=200):
-    """Plattan, Lecaväggarna (V1–V21) och rören (P1–P19)."""
+    """Plattan, källarväggarna (V1–V21) och rören (P1–P19)."""
     kontur, hal, pel, mark = G["kontur"], G["hal"], G["pelare"], G["mark"]
     fig, ax = plt.subplots(figsize=(6.6, 7.2))
     ax.add_patch(Polygon(kontur, closed=True, fc=BETONG, ec="none", zorder=0))
@@ -166,7 +170,8 @@ def rita_geometri(path, G, plat=200):
             color="#444", zorder=6, bbox=dict(fc="white", ec="none", pad=0.4))
     _matt(ax)
     items = [
-        (Rectangle((0, 0), 1, 1, fc=LECA, ec=INK, lw=0.35), "Lecavägg 350 (Leca 100 + isolering 150 + Leca 100)"),
+        (Rectangle((0, 0), 1, 1, fc=KARNA, ec=INK, lw=0.35), "källarvägg Kub 350-150: betongkärna 150"),
+        (Rectangle((0, 0), 1, 1, fc=EPS, ec=INK, lw=0.35), "cellplast 100 på var sida om kärnan"),
         (Rectangle((0, 0), 1, 1, fc=STAL, ec="none"), "stålrör VKR 80×80×4"),
         (Rectangle((0, 0), 1, 1, fc=MARK, ec=GRID, lw=0.4, hatch="...."), "platta på mark (cellplast)"),
     ]
@@ -184,18 +189,18 @@ VAGGLAST = "#6f8fb3"
 
 
 def rita_laster(path, G, L):
-    """Laster från plan 1: punktlaster (fyllda på plattan, ofyllda över Lecavägg) och linjelaster."""
+    """Laster från plan 1: punktlaster (fyllda på plattan, ofyllda över källarvägg) och linjelaster."""
     fig, ax = plt.subplots(figsize=(6.6, 7.0))
     ax.add_patch(Polygon(G["kontur"], closed=True, fc=BETONG, ec="none", zorder=0))
     ax.add_patch(Polygon(G["mark"], closed=True, fc=MARK, ec="none", hatch="....", zorder=1, lw=0))
-    _vaggar(ax, G, fc="#d6d2cb", ec="#8a8a8a", lw=0.3)
+    _vaggar(ax, G, fc=("#eef1f5", "#d6d2cb"), ec="#8a8a8a", lw=0.3)
     ax.add_patch(Polygon(G["kontur"], closed=True, fc="none", ec=INK, lw=LW * 1.2, zorder=5))
     ax.add_patch(Polygon(G["hal"], closed=True, fc="white", ec=INK, lw=LW, zorder=5))
     for i, (x, y) in enumerate(G["pelare"], 1):
         x0, y0, bx, by = ror_symbol(x, y, f"P{i}", 120)
         ax.add_patch(Rectangle((x0, y0), bx, by, fc="#9a9a9a", ec="none", zorder=4))
     cx, cy = SPoly(G["kontur"]).centroid.coords[0]
-    # ytterväggar: tunn linje över Lecavägg, tjock där väggen står på plattan
+    # ytterväggar: tunn linje över källarvägg, tjock där väggen står på plattan
     for w in L["vaggar"]:
         pr = w["prov"]
         for k in range(len(pr)):
@@ -251,10 +256,10 @@ def rita_laster(path, G, L):
     items = [
         (plt.Line2D([0], [0], ls="none", marker="v", ms=6.4, mfc=LAST, mec=LAST), "punktlast på plattan"),
         (plt.Line2D([0], [0], ls="none", marker="v", ms=6.4, mfc="white", mec=LAST, mew=0.9),
-         "punktlast över Lecavägg (direkt till väggen)"),
+         "punktlast över källarvägg (direkt till väggen)"),
         (plt.Line2D([0], [0], color=LAST, lw=2.4), "linjelast på plattan"),
-        (plt.Line2D([0], [0], color=VAGGLAST, lw=1.1), "ytterväggens linjelast över Lecavägg"),
-        (Rectangle((0, 0), 1, 1, fc="#d6d2cb", ec="#8a8a8a", lw=0.3), "Lecavägg"),
+        (plt.Line2D([0], [0], color=VAGGLAST, lw=1.1), "ytterväggens linjelast över källarvägg"),
+        (Rectangle((0, 0), 1, 1, fc="#d6d2cb", ec="#8a8a8a", lw=0.3), "källarväggens betongkärna"),
         (Rectangle((0, 0), 1, 1, fc="#9a9a9a", ec="none"), "rör"),
     ]
     ax.legend([i for i, _ in items], [t for _, t in items], loc="upper center", bbox_to_anchor=(0.5, -0.0),
@@ -337,9 +342,9 @@ GRA = LinearSegmentedColormap.from_list("gra", ["#f6f6f4", "#cfd3d8", "#8f969e",
 def _bas(ax, G, pelare=True, vaggar=True, etiketter=False):
     """Plattans kontur, trapphål, väggar (tunt) och rör som underlag i resultatplanerna."""
     if vaggar:
-        for w in G["vagg"]:
-            k, h_, L = vaggband(w, G["E"], G["vagg"])
-            g = h_.intersection(SPoly(G["kontur"]).buffer(0))
+        for j in (1, 0):                       # hela väggen och betongkärnan
+            g = unary_union([vaggband(w, G["E"], G["vagg"])[j] for w in G["vagg"]]).intersection(
+                SPoly(G["kontur"]).buffer(0))
             for gg in getattr(g, "geoms", [g]):
                 ax.add_patch(Polygon(list(gg.exterior.coords), closed=True, fc="none", ec="#7d7d7d", lw=0.35,
                                      zorder=6))

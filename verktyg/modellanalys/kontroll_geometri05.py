@@ -12,7 +12,8 @@ vänstra hörn, som i K-05).
 
 vagg: [riktning, centrumlinje, a, b, "yttre"/"inre", upplagslinje]. a och b är den vinkelräta väggens centrumlinje
 i hörn och T-anslutningar, och väggens fysiska ände vid en fri ände (öppning), mätt strax under bjälklaget.
-Ytterväggarnas upplagslinje ligger UPPL in från centrumlinjen, innerväggarnas i centrumlinjen.
+Upplagslinjen ligger i väggens centrumlinje, som är betongkärnans mitt (Kub 350-150: cellplast 100 + betong 150 +
+cellplast 100).
 """
 import json
 import os
@@ -29,14 +30,13 @@ from geometri import Plan, linjeprob, snitt  # noqa: E402
 from jamfor import jamfor, redovisa  # noqa: E402
 from modell import Modell  # noqa: E402
 
-UPPL = 100.0                 # ytterväggarnas upplagslinje innanför väggens centrumlinje [mm]
 Z_VAGG = -200.0              # nivå för väggarnas ändar och öppningar: strax under bjälklaget (uk -150)
 Z_MITT = -1000.0             # nivå för väggarnas centrumlinje
 
 m = Modell(tyst=True)
 _pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])          # origo och bjälklagets överkant
-LECA = m.valj("Bkärna,Isoskal")
+VAGG = m.valj("Bkärna,Isoskal")
 
 
 def r3(v):
@@ -49,7 +49,7 @@ def heltal(v):
     return int(v) if v == int(v) else v
 
 
-def prob(p1, p2, z, delar=LECA):
+def prob(p1, p2, z, delar=VAGG):
     """Sträckor [(t0, t1)] längs linjen p1→p2 (2D, K-05) på nivån z, sammanslagna, t i mm från p1."""
     P1 = np.r_[p1, z] + O
     P2 = np.r_[p2, z] + O
@@ -88,7 +88,7 @@ for x, y in gammal["pelare"]:
     pelare.append([r3(mitt[j, 0]), r3(mitt[j, 1])])
 assert len(tagna) == len(ror)
 
-# ---------------------------------------------------------------- Lecaväggar
+# ---------------------------------------------------------------- källarväggarna
 G0 = gammal["vagg"]
 cn = []                                           # exakt centrumlinje per vägg
 for ax, c, a, b, *_ in G0:
@@ -124,10 +124,9 @@ for i, (ax, c, a, b, typ, cs) in enumerate(G0):
         s = (a + b) / 2
         bit = [t for t in iv if t[0] - 200 <= s <= t[1] + 200] or [min(iv, key=lambda t: min(abs(t[0] - s), abs(t[1] - s)))]
         ander.append(bit[0][0] if k == 0 else bit[0][1])
-    up = c_ + np.sign(cs - c) * UPPL if typ == "yttre" else c_
-    vagg.append([ax, r3(c_), r3(ander[0]), r3(ander[1]), typ, r3(up)])
+    vagg.append([ax, r3(c_), r3(ander[0]), r3(ander[1]), typ, r3(c_)])
 
-# upplagslinjernas ändar följer den vinkelräta väggens upplagslinje (som tidigare)
+# upplagslinjernas ändar följer den vinkelräta väggens upplagslinje
 stod = []
 for i, w in enumerate(vagg):
     a_, b_ = w[2], w[3]

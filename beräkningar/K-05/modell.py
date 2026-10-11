@@ -47,28 +47,19 @@ def over_vagg(x, y, marg=175.0):
     return LA.over_vagg(x, y, marg)
 
 
-def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
+def bygg(hmax=200.0, k_ror=None, utan=(), vagg_k=None):
     """Returnerar plattan och lastvektorerna (N):
     Gp  plattans egentyngd och golv (för vindlyft)
     G   alla permanenta laster (Gp + väggar, stolpar, qD2, trappan)
     Q   nyttig last 2,0 kN/m² på hela plattan;  V  lätta väggar 0,7 kN/m²;  QT  trappans nyttiga last
     S   snö via stolpar, väggar och qD2 (S_V, S_M, S_H: per huskropp);  W  vindlyft (dimensionerande, K-01 R_min) på stolpar på plattan och qD2
-    Laster över Lecaväggar förs till närmaste upplagslinje (ovan[stödnamn] = (Gk, Sk) i kN).
-    ytterskikt=True (kontroll): ytterväggarnas yttre Lecaskikt blir också upplag och lasterna över väggarna
-    står där de står."""
+    Laster över källarväggarna förs till närmaste upplagslinje (ovan[stödnamn] = (Gk, Sk) i kN): plattan och
+    väggarnas betongkärna gjuts samtidigt, och lasten går direkt in i kärnan (K-06)."""
     pel = rorstod()
     stod = G["stod"]
     stodlin = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, bb in stod]
     linjer = list(stodlin) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
-    ytter = []
-    if ytterskikt:                                  # yttre Lecaskiktets mitt, 35 mm in från plattans kant
-        for ax, c, a, bb, typ, cs in G["vagg"]:
-            if typ != "yttre":
-                continue
-            co = c - np.sign(cs - c) * (G["E"] - 35)
-            ytter.append([(a + 5, co), (bb - 5, co)] if ax == "h" else [(co, a + 5), (co, bb - 5)])
-        linjer += ytter
-    punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg" or ytterskikt]
+    punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
     stolpar = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] == "platta"]
     P = Platta(G["kontur"], hal=[G["hal"]], linjer=linjer + [list(map(tuple, G["mark"])) + [tuple(G["mark"][0])]],
                punkter=punkter, rektanglar=[(x, y, bx, by) for _, x, y, bx, by, _ in pel], hmax=hmax,
@@ -78,8 +69,6 @@ def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
     for i, pl in enumerate(stodlin):
         if f"V{i + 1}" not in utan:                 # utan: väggar som plattan lyfter från
             P.stod_linje(f"V{i + 1}", pl, k=vagg_k)     # vagg_k: väggen som fjäder [N/mm per mm] (kontroll)
-    for i, pl in enumerate(ytter):                  # fjädrar, så att de kan släppas där de får drag
-        P.stod_linje(f"Y{i + 1}", pl, k=1e4)
     k = 210000 * A_ROR / L_ROR if k_ror is None else k_ror
     for n, x, y, bx, by, antal in pel:
         if n not in utan:                           # utan: rör som inte bär (lyfter från plattan)
@@ -94,7 +83,7 @@ def bygg(hmax=200.0, k_ror=None, utan=(), ytterskikt=False, vagg_k=None):
 
     def nod_last(x, y, plats_):
         """Nod för en last i (x, y): över vägg -> närmaste nod på närmaste upplagslinje, annars närmaste nod."""
-        if plats_ != "vägg" or ytterskikt:
+        if plats_ != "vägg":
             return P.nod(x, y), None
         n, L, nod = min(linjestod, key=lambda t: t[1].distance(Point(x, y)))
         if L.distance(Point(x, y)) > 450:           # väggen är borttagen i modellen (utan)

@@ -1,5 +1,6 @@
-"""Stödmoment vid väggändar: stela upplagslinjer (huvudmodellen) mot väggar som fjädrar med Lecans axialstyvhet
-E·t/h. En stel linje som slutar ger en singulär topp; en fjädrande vägg ger ett ändligt värde som konvergerar.
+"""Stödmoment vid väggändar: stela upplagslinjer (huvudmodellen) mot väggar som fjädrar med betongkärnans
+axialstyvhet E·t/h (Kub 350-150, korttid E_cm och långtid E_cm / (1 + 2,0)). En stel linje som slutar ger en
+singulär topp; en fjädrande vägg ger ett ändligt värde som konvergerar.
 Kombination 6.10b med snö som huvudlast, full nyttig last, mjuka rör. Skriver vaggande.json."""
 import os, sys, json; sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
@@ -8,14 +9,14 @@ from platta import wood_armer
 from omhyllande import utjamna_linje, ULS
 
 BAND = float(os.environ.get("BAND", 250))
-T_SKIKT, H_VAGG = 100.0, 2600.0            # Lecaskiktets tjocklek och väggens höjd [mm]
+T_KARNA, H_VAGG = 150.0, 2100.0            # betongkärnans tjocklek och väggens höjd [mm]
 cg, cq, cs = ULS["6.10b S"]
 punkter = {"V15 väggände": (9640.0, 7510.0), "hörn vid plattan på mark (LD4_2)": (4605.0, 10825.0)}
 out = []
-for E in (None, 5000.0, 2000.0):
+for E in (None, 33000.0, 11000.0):
     for fin in (1.0, 0.6, 0.4):
         modell.FIN = fin
-        k = None if E is None else E * T_SKIKT / H_VAGG
+        k = None if E is None else E * T_KARNA / H_VAGG
         for kr in (None, 1e9):
             P, f = modell.bygg(k_ror=kr, vagg_k=k)
             r = P.los(cg * f["G"] + cq * (f["Q"] + f["V"] + f["QT"]) + cs * f["S"])

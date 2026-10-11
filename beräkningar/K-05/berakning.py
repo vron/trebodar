@@ -6,20 +6,20 @@ K-05 Mellanbjälklag och källarpelare: alla kontroller av plattan och rören.
 Steg: omhyllande snittkrafter (omhyllande.py) för rör med verklig axialstyvhet och styva rör, utjämning av
 momenttoppar, böjning med tilläggsjärn i överkant, genomstansning per rör, stolplaster på plattan, tvärkraft,
 långtidsnedböjning enligt 7.4.3, sprickbredd, minimiarmering, rörens knäckning, vindlyft, reaktioner på
-Lecaväggarna och kontroll mot handberäkning och SINTEF (kontroll.py).
+källarväggarna och kontroll mot handberäkning och SINTEF (kontroll.py).
 
 Metod (rapporten anger bara vilka kontroller som görs; detaljerna står här):
 
 FE-modell (modell.py, platta.py): DKT-plattelement, grundnät 200 mm som förfinas till 50 mm vid rören, 60 mm vid
-stolparna på plattan och 80 mm vid väggändar och hörn. Lecaväggarna är fria upplag längs upplagslinjer:
-ytterväggarnas linje 75 mm in från väggens insida (5.3.2.2), innerväggarnas i väggens mitt. Rören är fjädrar med
-rörets axialstyvhet E A / L över 200 × 200 mm (röret och plattans lastspridning; ett dubbelrör över båda rören).
-Rören räknas också helt styva, och helt styva med Lecaväggarna som fjädrar (E t / h, E = 2 000 MPa, inre skiktet
-100 mm, höjd 2,6 m). Mjuka rör ger störst moment i plattan, styva rör med fjädrande väggar störst rörlaster; alla
+stolparna på plattan och 80 mm vid väggändar och hörn. Källarväggarna (Kub 350-150, betongkärna 150 mm i väggens
+mitt) är fria upplag längs upplagslinjer i kärnans mitt: a = min(h/2, t/2) = 75 mm från kärnans insida (5.3.2.2).
+Rören är fjädrar med rörets axialstyvhet E A / L över 200 × 200 mm (röret och plattans lastspridning; ett dubbelrör
+över båda rören). Rören räknas också helt styva, och helt styva med väggarna som fjädrar (E t / h med kärnans
+långtidsstyvhet, t = 150 mm, h = 2,1 m). Mjuka rör ger störst moment i plattan, styva rör störst rörlaster; alla
 resultat är det ogynnsammaste av de tre, väggarnas reaktioner tas ur modellerna med stela väggar. Plattan på mark:
 bäddmodul 0,01 N/mm³ (E/t, t.ex. 400 mm cellplast med E = 4 MPa); en mjuk bädd ger störst moment (0,02 och 0,05
 N/mm³ minskar stödmomentet vid hörnet mot källaren, övriga resultat ändras inte). Laster: utbredda på element,
-punktlaster i noder, linjelaster längs nätets linjer; laster över Lecaväggar på närmaste upplagslinje.
+punktlaster i noder, linjelaster längs nätets linjer; laster över källarväggarna på närmaste upplagslinje.
 
 Böjning: Wood–Armer, toppar utjämnade över BAND (ungefär 2d) tvärs momentets riktning. EC2 har ingen uttrycklig
 regel för att jämna ut toppar i en FE-lösning; bredden tar bara bort de lokala topparna under punktlaster och vid
@@ -82,7 +82,7 @@ C_OK = int(__import__("os").environ.get("C_OK", 25))  # täckskikt överkant [mm
 BAND = float(__import__("os").environ.get("BAND", 250))   # utjämningsbredd för momenttoppar [mm], ≈ 2d
 KONV = 1.2                            # stödmoment i överkant × 1,2: nätkänslighet vid väggändar (validering/konvergens.py)
 ZON = 1.25                            # tilläggsjärnen i zonerna för 1,25 × 1,2 = 1,5 × FE (validering/vaggande.py)
-E_LECA, T_LECA, H_VAGG = 2000.0, 100.0, 2600.0   # Lecaväggen som fjäder i rörlastfallet [MPa, mm, mm]
+E_KARNA, T_KARNA, H_VAGG = 33000.0 / (1 + 2.0), 150.0, 2100.0   # väggens kärna som fjäder, långtid [MPa, mm, mm]
 PLAT = 200.0                          # huvudplåt där den behövs [mm]
 ROR = (80, 4)                         # VKR 80×80×4
 FY_ROR = 235.0
@@ -148,8 +148,8 @@ R = {"indata": dict(fck=B.fck, fctm=B.fctm, Ecm=B.Ecm, fcd=B.fcd, fyd=S.fyd, c_u
 print("omhyllande ...")
 P1, env1, lf1 = kor(None)        # verklig rörstyvhet
 P2, env2, lf2 = kor(1e9)         # styva rör
-# styva rör och fjädrande Lecaväggar (E·t/h): ger störst rörlaster (validering/vaggande.py)
-P3, env3, lf3 = kor(1e9, vagg_k=E_LECA * T_LECA / H_VAGG)
+# styva rör och väggar som fjädrar med kärnans långtidsstyvhet (E·t/h, validering/vaggande.py)
+P3, env3, lf3 = kor(1e9, vagg_k=E_KARNA * T_KARNA / H_VAGG)
 del lf3
 assert P1.nn == P2.nn == P3.nn
 envs = (env1, env2, env3)
@@ -185,9 +185,6 @@ over = utn_ok > 1.0
 el_over = over[P.tri].any(1)
 polys = [Polygon(P.xy[t]) for t in P.tri[el_over]]
 LBD = 400.0                           # förankring ≈ 40Ø för Ø10
-# största stödmoment intill lasterna över väggarna i kontrollmodellen med yttre skiktet (validering/ytterskikt.py)
-_Y = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ytterskikt.json")
-YTTER = json.load(open(_Y))["med"] if os.path.exists(_Y) else None
 zoner = []
 if polys:
     U = unary_union(polys).buffer(1.0)
@@ -196,8 +193,6 @@ if polys:
         z = box(x0 - LBD, y0 - LBD, x1 + LBD, y1 + LBD).intersection(Polygon(GEO["kontur"]))
         m = np.array([Point(p).within(g.buffer(5)) for p in P.xy])
         Mx, My = -sm["mox"][m].min(), -sm["moy"][m].min()
-        if YTTER and z.distance(Point(YTTER["xy"])) < 1.0:   # kontrollmodellen där också yttre Lecaskiktet bär
-            Mx, My = max(Mx, KONV * YTTER["mo_nara"] * 1e3), max(My, KONV * YTTER["mo_nara"] * 1e3)
         val = None
         for t in TILLAGG:
             rx, ry = mrd_ok(arm(t, sank=SANK))
@@ -715,7 +710,7 @@ if utan:
     print(f"  utan {utan}: ök {-ox_u.min()/1e3:.1f}/{-oy_u.min()/1e3:.1f}, uk {ux_u.max()/1e3:.1f}/{uy_u.max()/1e3:.1f} kNm/m,"
           f" lyft {-ru.w.min():.2f} mm")
 
-# ------------------------------------------------------------------ 10. reaktioner på Lecaväggarna
+# ------------------------------------------------------------------ 10. reaktioner på källarväggarna
 vagg_r = []
 for nm, (Pp, lf) in {"fjäder": (P1, lf1), "styv": (P2, lf2)}.items():
     sedd = set()

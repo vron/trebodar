@@ -314,7 +314,8 @@ class Platta:
             u = np.zeros(self.ndof); u[free] = lu.solve(f[free])
             R = f - self.K @ u
             for d, k in self.springs.items():
-                R[d] = k * u[d]
+                if d not in self.fixed:             # en fast frihetsgrad behåller sin reaktion
+                    R[d] = k * u[d]
             out.append(Resultat(self, u, R, f))
         return out
 
@@ -325,7 +326,8 @@ class Platta:
         u[free] = spla.spsolve(Kff, f[free])
         R = f - self.K @ u                      # reaktion uppåt positiv i fasta frihetsgrader
         for d, k in self.springs.items():
-            R[d] = k * u[d]                     # fjäderns kraft på plattan (uppåt)
+            if d not in self.fixed:             # en fast frihetsgrad (t.ex. ett upplag vid bädden) behåller sin reaktion
+                R[d] = k * u[d]                 # fjäderns kraft på plattan (uppåt)
         return Resultat(self, u, R, f, chi0)
 
 

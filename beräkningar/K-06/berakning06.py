@@ -2,10 +2,10 @@
 K-06: bottenplattan i den samverkande modellen (modell06), båda utförandena (L300 och L400).
 
 För varje utförande räknas två styvheter:
-  kort  korttidsstyvhet (cellplast E_k, Leca och betong utan krypning) – brottgräns
-  lång  långtidsstyvhet (cellplast 0,4 E_k, Leca och betong med krypning, Lecans krympning) – brottgräns och bruks
+  kort  korttidsstyvhet (cellplast E_k, betong utan krypning) – brottgräns
+  lång  långtidsstyvhet (cellplast 0,4 E_k, betong med krypning, väggkärnans krympning) – brottgräns och bruks
 Lastfall: G, snö per huskropp, nyttig last per fält på mellanbjälklaget (K-05:s mönster), nyttig last i källaren,
-Lecaväggarnas krympning (bara lång). Kombinationer som i K-05.
+väggkärnans krympning (bara lång). Kombinationer som i K-05.
 
     python berakning06.py   -> res06_<utf>.npz och res06.json
 """
@@ -47,16 +47,15 @@ def lastfall(S, F, variant):
     cols = [F["G"], F["S_V"], F["S_M"], F["S_H"], F["Qb"]] + list(F["Q"])
     if variant == "lång":
         names.append("SV")
-        cols.append(M.svinn(S.kopp, S.ndof, I.SVINN_LECA))
+        cols.append(M.svinn(S.kopp, S.ndof, I.SVINN_V))
     U = S.lu.solve(np.column_stack(cols))
     return dict(zip(names, U.T))
 
 
-def analys(utf, plint, variant, spara=True, ytter=False):
-    """ytter: ytterväggarnas båda vangar bär, och lasterna över väggarna står där de står (modell06)."""
+def analys(utf, plint, variant, spara=True):
     t0 = time.time()
-    S = M.System(utf, plint, EPS_FALT, EPS_BALK, variant, k_mark=k_mark(variant), ytter=ytter)
-    F, monster = M.laster(S.Pt, S.Pb, verklig=ytter)
+    S = M.System(utf, plint, EPS_FALT, EPS_BALK, variant, k_mark=k_mark(variant))
+    F, monster = M.laster(S.Pt, S.Pb)
     U = lastfall(S, F, variant)
     nq = len(F["Q"])
     # snittkrafter per lastfall
@@ -72,8 +71,8 @@ def analys(utf, plint, variant, spara=True, ytter=False):
         qx, qy = SN.skjuv_komp(S.Pb, mb[k])
         balk_lf[k] = sx.balk_lf(mb[k], qx, qy)
         stans_lf[k] = np.array(sx.stans_lf(p_eps[k]))
-        vagg_lf[k] = sx.vagg_lf(u, I.SVINN_LECA if k == "SV" else 0.0)
-    krafter = {k: S.krafter(u, I.SVINN_LECA if k == "SV" else 0.0) for k, u in U.items()}
+        vagg_lf[k] = sx.vagg_lf(u, I.SVINN_V if k == "SV" else 0.0)
+    krafter = {k: S.krafter(u, I.SVINN_V if k == "SV" else 0.0) for k, u in U.items()}
     w_t = {k: u[:S.nt][0::3] for k, u in U.items()}
     w_b = {k: u[S.nt:][0::3] for k, u in U.items()}
     nt_, nb_ = S.Pt.nn, S.Pb.nn
@@ -141,14 +140,7 @@ def analys(utf, plint, variant, spara=True, ytter=False):
     env["stans"] = dict(netto=stans_env["netto"], N=stans_env["N"], d=[s_["d"] for s_ in sx.stans],
                         u=[[r["u"] for r in s_["reg"]] for s_ in sx.stans], a=[[r["a"] for r in s_["reg"]] for s_ in sx.stans])
     env["vagg"] = vagg_env
-    if ytter:
-        yk = [kp for kp in S.kopp if kp.get("vange") == "yttre"]
-        fy = {k: np.array([M.kraft(kp, u) for kp in yk]) for k, u in U.items()}
-        env["ytter_vange"] = dict(G_min=float(fy["G"].min()), G_sum=float(fy["G"].sum()),
-                                  inre_G_sum=float(sum(M.kraft(kp, U["G"]) for kp in S.kopp
-                                                       if kp["typ"] == "vägg" and kp.get("vange") != "yttre"
-                                                       and M.VTYP[int(kp["namn"][1:]) - 1] == "yttre")))
-    print(f"{utf} {variant}{' ytter' if ytter else ''}: {time.time() - t0:.0f} s, dof {S.ndof}")
+    print(f"{utf} {variant}: {time.time() - t0:.0f} s, dof {S.ndof}")
     return S, env, sls, lf, dict(max=kr_max, komb=kr_komb), monster
 
 
@@ -165,12 +157,10 @@ def spara(S, env, sls, lf, kr, plint, namn):
 
 
 if __name__ == "__main__":
-    # python berakning06.py [L300] [L400] [ytter] [omplint]
-    #   grundmodellen, eller med "ytter" varianten där båda vangarna bär och lasterna står där de står.
-    #   Plintarnas storlek tas ur grundmodellens tidigare körning, om den finns och "omplint" inte anges.
+    # python berakning06.py [L300] [L400] [omplint]
+    #   Plintarnas storlek tas ur en tidigare körning, om den finns och "omplint" inte anges.
     import pickle
     arg = sys.argv[1:]
-    ytter = "ytter" in arg
     for utf in [a for a in arg if a.startswith("L")] or ["L300", "L400"]:
         f0 = os.path.join(HERE, f"res06_{utf}_lång.pkl")
         if os.path.exists(f0) and "omplint" not in arg:
@@ -183,8 +173,6 @@ if __name__ == "__main__":
             del S0
         print(utf, "plintar:", plint, flush=True)
         for variant in ("lång", "kort"):
-            S, env, sls, lf, kr, monster = analys(utf, plint, variant, ytter=ytter)
-            spara(S, env, sls, lf, kr, plint, f"res06_{utf}_{variant}{'_ytter' if ytter else ''}.pkl")
-            if ytter:
-                print("  yttre vangen:", {k: round(v / 1e3, 1) for k, v in env["ytter_vange"].items()}, flush=True)
+            S, env, sls, lf, kr, monster = analys(utf, plint, variant)
+            spara(S, env, sls, lf, kr, plint, f"res06_{utf}_{variant}.pkl")
             del S, env, sls, lf

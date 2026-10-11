@@ -5,7 +5,7 @@ Punktlaster heter efter balken de kommer från, numrerade från balkens början 
 nockbalkar och LD2_1, ... för dalbalkar. Hörnstolparna under gavlarnas takstolar heter LA1–LA10. Linjelaster:
 qD2 (dalbalk 2 via bärande vägg), qY1–qY12 (ytterväggar på plan 1), qT (trappan på trapphålets kant).
 
-Laster som står över en Lecavägg förs i FE-modellen direkt till väggens upplagslinje (ger ingen böjning i
+Laster som står över en källarvägg förs i FE-modellen direkt till väggens upplagslinje (ger ingen böjning i
 plattan, men ingår i väggens reaktion). Övriga laster verkar på plattan där de står.
 
     python laster.py      -> lastsammanställning (kontroll)
@@ -39,7 +39,8 @@ UTSPRANG = 0.2            # takutsprång vid takfot och gavel, horisontellt [m]
 CC_TAKBALK = 0.6          # takbalkarnas delning [m]
 G_TAKSTOL = 0.25          # gaveltakstolens egenvikt per fot [kN] (2 × 45×220 och underramstycke ≈ 45 kg)
 VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: stommen 95 mm står från 30 mm utanför
-                          # till 65 mm innanför kanten, över Lecans yttre skikt (Onshape-modellen)
+                          # till 65 mm innanför kanten, över källarväggens yttre cellplast, 52,5 mm utanför
+                          # betongkärnan (Onshape-modellen)
 
 # Dalbalk 2:s bärande vägg (träregelverk med gips på båda sidor): egentyngd utöver 0,7 kN/m² för lätta väggar.
 # Väggen har en dörröppning mot trappan vid trapphålet; karmstolparna står vid hålets två långsidor.

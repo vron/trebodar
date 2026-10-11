@@ -83,8 +83,8 @@ def utjamna(P, falt_, R=375.0):
     return out
 
 
-def kor(k_ror, hmax=200.0, utan=(), ytterskikt=False, vagg_k=None):
-    P, f = bygg(hmax=hmax, k_ror=k_ror, utan=utan, ytterskikt=ytterskikt, vagg_k=vagg_k)
+def kor(k_ror, hmax=200.0, utan=(), vagg_k=None):
+    P, f = bygg(hmax=hmax, k_ror=k_ror, utan=utan, vagg_k=vagg_k)
     polys, monster = falt()
     # nyttig last per fält: 2,0 + 0,7 kN/m² och trappans nyttiga last i det fält där den står
     fQc = []

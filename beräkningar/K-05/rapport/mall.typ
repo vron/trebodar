@@ -31,12 +31,12 @@
   inset: 4pt,
   [*Projekt*], p.namn, [*Dokument*], [#p.dokument, rev #p.revision],
   [*Objekt*], p.objekt, [*Datum*], p.datum,
-  [*Innehåll*], [Betongbjälklag 150 mm på Lecaväggar och stålrör i källaren], [*Upprättad*], p.upprattad,
+  [*Innehåll*], [Betongbjälklag 150 mm på källarväggar av Kub 350-150 och stålrör i källaren], [*Upprättad*], p.upprattad,
 )
 
 = Inledning
 
-Handlingen redovisar mellanbjälklaget mellan källaren och plan 1: en platsgjuten betongplatta, 150 mm, som vilar på källarens Lecaväggar och på stålrör VKR 80×80×4. Den del av vänstra huskroppen som saknar källare ligger på mark. Plattan bär sin egentyngd, golv, nyttig last och alla laster från trästommen på plan 1: stolparna under nock- och dalbalkar och takstolar (K-01, K-03), ytterväggarna med taket samt trappan. Kontrollerna avser böjning, genomstansning, tvärkraft, nedböjning, sprickbredd och rörens bärförmåga. Reaktionerna på Lecaväggarna och rören är underlag för grund och källarväggar (K-06).
+Handlingen redovisar mellanbjälklaget mellan källaren och plan 1: en platsgjuten betongplatta, 150 mm, som vilar på källarväggarnas betongkärna (Sundolitt Kub 350-150) och på stålrör VKR 80×80×4. Den del av vänstra huskroppen som saknar källare ligger på mark. Plattan bär sin egentyngd, golv, nyttig last och alla laster från trästommen på plan 1: stolparna under nock- och dalbalkar och takstolar (K-01, K-03), ytterväggarna med taket samt trappan. Kontrollerna avser böjning, genomstansning, tvärkraft, nedböjning, sprickbredd och rörens bärförmåga. Reaktionerna på väggarna och rören är underlag för grund och källarväggar (K-06).
 
 Laster, regler och förutsättningar enligt F-01.
 
@@ -65,11 +65,11 @@ Laster, regler och förutsättningar enligt F-01.
 
 = Husets geometri
 
-Trapphålet är 2 070 × 828 mm. Källarväggarna är Leca 350: Leca 100 + isolering 150 + Leca 100. Plattan gjuts ut till 30 mm från Lecans ytterliv; där utanför ligger kantisolering. Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar.
+Trapphålet är 2 070 × 828 mm. Källarväggarna är Sundolitt Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100. Plattan gjuts samtidigt med väggarnas översta skift och vilar på hela kärnan. Den går ut till 30 mm från väggens ytterliv, alltså 70 mm ut över den yttre cellplasten, och där utanför ligger 30 mm kantisolering. Upplagslinjen ligger i kärnans mitt, 75 mm från kärnans insida (5.3.2.2). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar.
 
 #figure(
   image("../fig_geometri.svg", width: 90%),
-  caption: [Mellanbjälklaget i plan med källarens Lecaväggar V1–V21 och rören P1–P19, mm. Måtten avser plattan, origo i plattans nedre vänstra hörn.],
+  caption: [Mellanbjälklaget i plan med källarväggarna V1–V21 och rören P1–P19, mm. Måtten avser plattan, origo i plattans nedre vänstra hörn.],
 )
 
 = Laster
@@ -103,7 +103,7 @@ Stolparna under nock- och dalbalkarna och takstolarna redovisas i K-03 och balka
 - *Ytterväggarna* (qY1–qY12): egentyngd #D.enh.g_vagg kN/m² väggyta, höjd #D.enh.h_vagg m till takfot och gavelspetsen upp till taket. Takfotsväggarna bär taket till halva takbalkens horisontella längd plus takutsprånget #D.enh.utspr m: #D.enh.t_sida m i vänstra och högra huskroppen, #D.enh.t_mitt m i mittre.
 - *Trappan* (trä) hänger med halva sin vikt på trapphålets kortsida (qT): #D.enh.tr_l m horisontell längd, #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan.
 
-Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kant, ovanför Lecaväggens yttre skikt. Plattan vilar på båda skikten. I modellen läggs lasterna över en Lecavägg på väggens upplagslinje i det inre skiktet, där de inte böjer plattan men ingår i väggens reaktion (avsnitt 6.1). Om även det yttre skiktet bär, blir största stödmoment intill lasterna över väggarna #D.ytter.med kNm/m mot #D.ytter.utan kNm/m (före faktorn #D.mat.konv), inom zon #D.ytter.zon, och zonens tilläggsjärn dimensioneras för #D.mat.zonf × det större värdet. Det yttre skiktet tar då #D.ytter.Y kN av lasten med snö som huvudlast. Största last som står över en vägg är LD4_2, 44 kN dimensionerande, cirka 0,6 MPa på Lecan (K-06). Över källarens öppningar (fria kanter) och på marken verkar lasterna på plattan.
+Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kant, över källarväggens yttre cellplast och 52,5 mm utanför betongkärnan. Plattan gjuts samtidigt med kärnan och kragar ut 70 mm över cellplasten. Lasten går därför med en tryckstrimla direkt in i kärnan, eftersom avståndet till kärnan är mindre än halva plattans tjocklek. I modellen läggs lasterna över en källarvägg på upplagslinjen i kärnans mitt, där de inte böjer plattan men ingår i väggens reaktion (avsnitt 6.1). Lastöverföringen och konsolmomentet kontrolleras i K-06, också för den största lasten över en vägg, LD4_2 (44 kN dimensionerande) i hörnet V2/V20. Över källarens öppningar (fria kanter) och på marken verkar lasterna på plattan.
 
 #tab(
   columns: (1fr, auto, 1fr),
@@ -184,7 +184,7 @@ Moment i kNm/m; $M_"Rd"$ med nät och tilläggsjärn. Zonerna omfattar området 
 
 = Beräkningsmetod
 
-Plattan räknas linjärelastiskt med finita element (plattelement, cirka 35 000 element, förfinat vid rör, stolpar, väggändar och hörn) med geometrin i figur 1. Lecaväggarna är upplag längs upplagslinjer, rören fjädrar med rörets axialstyvhet, och plattan på mark ligger på en bädd (cellplasten). Tre stödvarianter räknas: verklig rörstyvhet, som ger störst moment, styva rör, och styva rör med fjädrande Lecaväggar, som ger störst rörlaster. Alla resultat är det ogynnsammaste av de tre. Metodens detaljer står i beräkningsfilerna.
+Plattan räknas linjärelastiskt med finita element (plattelement, cirka 35 000 element, förfinat vid rör, stolpar, väggändar och hörn) med geometrin i figur 1. Källarväggarna är upplag längs upplagslinjer i betongkärnans mitt, rören fjädrar med rörets axialstyvhet, och plattan på mark ligger på en bädd (cellplasten). Tre stödvarianter räknas: verklig rörstyvhet, som ger störst moment, styva rör, och styva rör med väggarna som fjädrar med kärnans långtidsstyvhet. Alla resultat är det ogynnsammaste av de tre. Metodens detaljer står i beräkningsfilerna.
 
 Kontrollerna enligt SS-EN 1992-1-1:
 - *Böjning* (6.1) med dimensionerande moment enligt Wood–Armer, utjämnade över #D.mat.band mm. Stödmomenten i överkant multipliceras med #D.mat.konv (nätets inverkan vid väggändarna), och tilläggsjärnen dimensioneras för #D.mat.zonf × FE-värdet. Varje riktning räknas med det inre armeringslagrets höjd.
@@ -196,7 +196,7 @@ Kontrollerna enligt SS-EN 1992-1-1:
 
 Varje rör och stolpe ska ha minst 5 % marginal och klara sig om överkantsarmeringen ligger #D.mat.sank mm för lågt. Samma krav gäller böjning i överkant.
 
-*Kontroll av modellen.* FE-programmet ger samma resultat som kända lösningar (fritt upplagd platta, platta på pelarnät och strimla med sprickbildning), och summan av reaktionerna är lika med lasten (G #D.jv.G kN, S #D.jv.S kN). Nätets förfining, stödens styvhet och lastvägen över Lecans två skikt är prövade i beräkningsfilerna (validering).
+*Kontroll av modellen.* FE-programmet ger samma resultat som kända lösningar (fritt upplagd platta, platta på pelarnät och strimla med sprickbildning), och summan av reaktionerna är lika med lasten (G #D.jv.G kN, S #D.jv.S kN). Nätets förfining, stödens styvhet och lastvägen in i väggarnas kärna är prövade i beräkningsfilerna (validering).
 
 = Resultat
 
@@ -268,14 +268,14 @@ Minimiarmering (9.3.1.1): underkant #D.min.uk mm²/m (finns #D.min.uk_har), öve
 
 *Vindlyft.* Med styva rör får #D.lyft.namn #D.lyft.Rmin kN, alltså drag. Utan #D.lyft.utan lyfter plattan #D.lyft.w mm vid röret. Största moment är då #D.lyft.ok_u kNm/m i överkant och #D.lyft.uk_u kNm/m i underkant, högst #D.lyft.utn av nätets bärförmåga. Stolparna förankras i topp och fot för sin lyftkraft (K-03).
 
-*Reaktioner på Lecaväggarna* (underlag för K-06). Karakteristiska summor i kN, med det som står direkt på väggen från plan 1 inräknat. Största dimensionerande last över 1 m (eller hela väggen om den är kortare) är omhyllande för kombinationerna med full nyttig last.
+*Reaktioner på källarväggarna* (underlag för K-06). Karakteristiska summor i kN, med det som står direkt på väggen från plan 1 inräknat. Största dimensionerande last över 1 m (eller hela väggen om den är kortare) är omhyllande för kombinationerna med full nyttig last.
 #liten(
   columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
   align: (left, right, left, right, right, right, right, right, right),
   table.header([Vägg], [$L$ (m)], [Typ], [$G_k$], [$Q_k$], [$S_k$], [varav plan 1, $G_k$ / $S_k$], [$G_k slash L$ (kN/m)], [max $q_d$ (kN/m)]),
   ..D.vr.map(r => ([#r.namn], [#r.L], [#r.typ], [#r.Gk], [#r.Qk], [#r.Sk], [#r.oG / #r.oS], [#r.gm], [#r.qd])).flatten(),
 )
-De korta väggbitarna V4, V6 och V8 bär last från stora delar av plattan och från LD2_3. Rörens reaktioner finns i tabellen för genomstansning. Lecaväggarnas egentyngd och jordtryck ingår inte här.
+De korta väggbitarna V4, V6 och V8 bär last från stora delar av plattan och från LD2_3. Rörens reaktioner finns i tabellen för genomstansning. Väggarnas egentyngd och jordtryck ingår inte här.
 
 == Handberäkning
 
@@ -290,7 +290,7 @@ Rörlasterna kontrolleras med belastningsytor: varje punkt på plattan bärs av 
   [Stödmoment vid inre rör], [50 % av stödmomentet inom 0,25 $L$ (9.4.1(2)): $1,3 q_d L^2 slash 8$], [#D.hand.Ms kNm/m], [#D.hand.FEs kNm/m],
   [Nedböjning, helt sprucken], [fritt upplagd strimla $5 q_k L^4 slash (384 E I_"II")$, $q_k$ = #D.hand.qk kN/m², $E I_"II"$ = #D.hand.EI2 MNm²/m], [#D.hand.w mm], [#D.hand.wFE mm],
 )
-FE ger större rörlaster än belastningsytorna, eftersom rörlasterna i 6.1 är det största av alla modellerna: styva rör drar till sig last från grannfälten, och med fjädrande väggar går ännu mer last till rören nära väggarna. Det är på säker sida. FE ger mindre fältmoment och nedböjning än den fritt upplagda strimlan, eftersom plattan är kontinuerlig och bär i två riktningar. Stödmomentet över inre rör (#D.hand.inre) varierar med rörens avstånd och stolplasterna. Det största FE-värdet är ungefär dubbelt så stort som regeln, eftersom FE-värdet är utjämnat över bara 250 mm och multiplicerat med 1,2. De högsta värdena ligger vid #D.hand.stod_namn#if D.hand.stod_zon [, som alla ligger i zoner med tilläggsjärn].
+FE ger större rörlaster än belastningsytorna, eftersom rörlasterna i 6.1 är det största av alla modellerna och styva rör drar till sig last från grannfälten. Det är på säker sida. FE ger mindre fältmoment och nedböjning än den fritt upplagda strimlan, eftersom plattan är kontinuerlig och bär i två riktningar. Stödmomentet över inre rör (#D.hand.inre) varierar med rörens avstånd och stolplasterna. Det största FE-värdet är ungefär dubbelt så stort som regeln, eftersom FE-värdet är utjämnat över bara 250 mm och multiplicerat med 1,2. De högsta värdena ligger vid #D.hand.stod_namn#if D.hand.stod_zon [, som alla ligger i zoner med tilläggsjärn].
 
 = Jämförelse med SINTEF
 
@@ -304,7 +304,7 @@ Den försiktiga metoden återger alltså SINTEF:s gräns. Mellanbjälklaget har 
 
 Utförandet anges på R-03: armering, täckskikt och distanser, rörens lägen och topplåtar, glidskikt på innerväggarnas krön, formrivning och last under byggtiden.
 
-*Sättningar.* Plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. K-06 räknar grunden, Lecaväggarna, rören och mellanbjälklaget i en gemensam modell, så att skillnaden i sättning ingår, och visar att armeringen räcker.
+*Sättningar.* Plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. K-06 räknar grunden, källarväggarna, rören och mellanbjälklaget i en gemensam modell, så att skillnaden i sättning ingår, och visar att armeringen räcker.
 
 #pagebreak(weak: true)
 #counter(heading).update(0)

@@ -24,7 +24,6 @@ BAND = 250.0
 STANG = [(2, 10), (3, 10), (2, 12), (3, 12), (4, 12), (3, 16), (4, 16)]
 NAT = (6, 150)                 # Ø6 s150 i båda lagren i fält (Plattor.pdf)
 PLINT_ARM = (8, 150)           # plintarnas underkant, båda riktningarna
-URTAG = 50.0                   # urtag i kantbalken under ytterväggen: kantbalkens höjd räknas h − 50
 ROR_B, FOT_T, FOT_FY = 80.0, 15.0, 355.0     # rör 80×80, fotplåt 200 × 200 × 15 S355
 
 
@@ -40,38 +39,8 @@ def _las(namn):
     return pickle.load(open(os.path.join(HERE, namn), "rb"))
 
 
-def _sla_ihop(a, b):
-    """Omhyllande av två körningar med samma nät (grundmodellen och varianten där båda vangarna bär)."""
-    m = dict(a)
-    env, eb = dict(a["env"]), b["env"]
-    for k in ("t_mux", "t_muy", "b_mux", "b_muy", "p_max", "p_perm"):
-        env[k] = np.maximum(env[k], eb[k])
-    for k in ("t_mox", "t_moy", "b_mox", "b_moy", "p_min"):
-        env[k] = np.minimum(env[k], eb[k])
-    env["balk"] = [dict(x, Mmax=np.maximum(x["Mmax"], y["Mmax"]), Mmin=np.minimum(x["Mmin"], y["Mmin"]),
-                        Vmax=np.maximum(x["Vmax"], y["Vmax"])) for x, y in zip(env["balk"], eb["balk"])]
-    env["stans"] = dict(env["stans"], netto=np.maximum(env["stans"]["netto"], eb["stans"]["netto"]),
-                        N=np.maximum(env["stans"]["N"], eb["stans"]["N"]))
-    env["vagg"] = {k: max(env["vagg"].get(k, -1e9), eb["vagg"].get(k, -1e9)) for k in set(env["vagg"]) | set(eb["vagg"])}
-    m["env"] = env
-    m["kr"] = dict(max={k: max(v, b["kr"]["max"].get(k, -1e18)) for k, v in a["kr"]["max"].items()},
-                   komb=a["kr"]["komb"])
-    sls = dict(a["sls"])
-    sls["p_qp"] = np.maximum(sls["p_qp"], b["sls"]["p_qp"])
-    sls["p_k"] = np.maximum(sls["p_k"], b["sls"]["p_k"])
-    m["sls"] = sls
-    if a.get("mt_SV") is not None and b.get("mt_SV") is not None:
-        m["mt_SV"] = np.where(np.abs(a["mt_SV"]) >= np.abs(b["mt_SV"]), a["mt_SV"], b["mt_SV"])
-    return m
-
-
-def las(utf, var, ytter=True):
-    """Grundmodellen, omhyllad med varianten där båda vangarna bär (res06_<utf>_<var>_ytter.pkl) om den finns."""
-    a = _las(f"res06_{utf}_{var}.pkl")
-    fy = os.path.join(HERE, f"res06_{utf}_{var}_ytter.pkl")
-    if ytter and os.path.exists(fy):
-        return _sla_ihop(a, _las(os.path.basename(fy)))
-    return a
+def las(utf, var):
+    return _las(f"res06_{utf}_{var}.pkl")
 
 
 def eps_fd(grad, varaktighet):
@@ -153,7 +122,7 @@ def kontroll(utf):
         # andel av ytan med tryck över hållfastheten
         e["over_M"] = float((pmax[m] > e["fdM"]).mean())
     if s3.any():
-        eps["s300"]["zon"] = I.S300_ZON[utf]
+        eps["s300"]["zon"] = M.s300_zoner()
     # punkter där balkarnas cellplast (S200) överskrids
     over = tn & ~s3 & (pmax > eps["balk"]["fdM"])
     eps["S300_noder"] = xy[over].tolist()
@@ -192,7 +161,7 @@ def kontroll(utf):
         Mmax = float(max(bL["Mmax"].max(), bK["Mmax"].max()))
         Mmin = float(min(bL["Mmin"].min(), bK["Mmin"].min()))
         Vmax = float(max(bL["Vmax"].max(), bK["Vmax"].max()))
-        du, do = (d_b_uk - URTAG, d_b_ok - URTAG) if bL["kant"] else (d_b_uk, d_b_ok)   # kantbalk: h − urtaget
+        du, do = d_b_uk, d_b_ok
         uk = balk_armering(max(Mmax, 0), du)
         ok = balk_armering(max(-Mmin, 0), do)
         sk = balk_skjuv(Vmax, uk["As"] if uk else 0, du)

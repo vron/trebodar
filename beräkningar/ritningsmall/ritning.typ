@@ -21,7 +21,7 @@
 #let OK = rgb("#b5463a")
 #let ZON = rgb("#c0504d")
 #let FYLL = (
-  betong: rgb("#ecebe7"), mark: rgb("#f4ecdc"), leca: rgb("#b9b3a9"), isol: rgb("#f7f3df"), stal: rgb("#5a5f66"),
+  betong: rgb("#ecebe7"), mark: rgb("#f4ecdc"), karna: rgb("#b9b3a9"), isol: rgb("#f7f3df"), stal: rgb("#5a5f66"),
   eps: rgb("#f3f6fa"), eps2: rgb("#dde6f0"), vit: white, svart: INK, zon: rgb("#f6e3df"), hal: white,
   jord: tiling(size: (2.2mm, 2.2mm))[#place(line(start: (0%, 100%), end: (100%, 0%), stroke: 0.15mm + rgb("#a89a7c")))],
   grus: tiling(size: (1.6mm, 1.6mm))[#place(dx: 0.5mm, dy: 0.5mm, circle(radius: 0.18mm, fill: rgb("#8f8a80")))],

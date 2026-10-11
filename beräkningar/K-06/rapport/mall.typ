@@ -28,8 +28,9 @@
 #let D = json("data.json")
 #let tab(..args) = text(size: 8.6pt, table(..args))
 #let liten(..args) = text(size: 7.9pt, table(..args))
-#let A = D.sys.A
-#let B = D.sys.B
+#let M = D.mat
+#let A = D.arm
+#let BY = D.bygg
 #let P3 = D.platta.L300
 #let P4 = D.platta.L400
 
@@ -39,63 +40,66 @@
   inset: 4pt,
   [*Projekt*], p.namn, [*Dokument*], [#p.dokument, rev #p.revision],
   [*Objekt*], p.objekt, [*Datum*], p.datum,
-  [*Innehåll*], [Källarväggar av isolerade lättklinkerblock mot jord och bottenplatta på cellplast], [*Upprättad*], p.upprattad,
+  [*Innehåll*], [Källarväggar av Sundolitt Kub 350-150 mot jord, byggskedet och bottenplatta på cellplast], [*Upprättad*], p.upprattad,
 )
 
 = Inledning
 
-Handlingen redovisar källarens ytterväggar mot jord och bottenplattan. Väggarna muras av isolerade lättklinkerblock, 350 mm (100 Leca + 150 isolering + 100 Leca). Två system jämförs:
-- *A:* Leca Isoblokk 35 från Leca Norge;
-- *B:* LECA Isoblock 350 PUR från Benders.
+Handlingen redovisar källarens väggar och bottenplattan. Väggarna gjuts i Sundolitt Kub 350-150 (U17). Kub är element av cellplast EPS 120, 100 mm på var sida, som är kvarsittande form för en armerad betongkärna, 150 mm (SINTEF Teknisk Godkjenning TG 2216). Kärnan räknas som en vanlig betongvägg med samma tvärsnitt. Ytterväggarna mot jord hålls i botten av bottenplattan och i toppen av mellanbjälklaget, som gjuts samtidigt med väggarnas översta skift.
 
-För båda redovisas hur väggarna dimensioneras och armeras och hur de görs täta på ut- och insidan.
+Handlingen redovisar också byggskedet innan mellanbjälklaget har gjutits:
+- i vilken ordning väggarna gjuts och fylls;
+- hur V3 och V20 bär fyllningen innan bjälklaget finns;
+- vilken hållfasthet betongen behöver när det fylls mot väggarna, och hur många dygn den då ska härda.
 
-Bottenplattan är 100 mm på cellplast med kantbalkar i L-element, balkar under innerväggarna och plintar under rören. Två utföranden prövas: L300 med 200 mm hög kantbalk och L400 med 300 mm. Bottenplattan, Lecaväggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell. Därmed ingår skillnaden i sättning mellan rör och väggar, som K-05 hänvisade hit.
+Bottenplattan är 100 mm på cellplast med kantbalkar i L-element, balkar under innerväggarna och plintar under rören. Två utföranden prövas: L300 med 200 mm hög kantbalk och L400 med 300 mm. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
 
-Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1992-1-1, SS-EN 1996-1-1 och SS-EN 1997-1 med EKS 12. Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år, geoteknisk kategori 1. Murverket utförs i utförandeklass II.
+Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1-2 och SS-EN 1997-1 med EKS 12, samt TG 2216 och Sundolitts monteringsanvisning för Kub (2022). Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år, geoteknisk kategori 1.
 
 *Resultat.*
 #tab(
   columns: (44mm, 1fr),
   align: (left, left),
   table.header([Del], [Resultat]),
-  [Väggar mot jord, system A (Leca)], [Sikksakk-armering i varje liggfog. #D.nstolp.A stålstolpar: #D.stolp_vagg.A. Minsta lastfaktor #D.lamA.min.],
-  [Väggar mot jord, system B (Benders)], [Bistål i varje skift i båda vangerna. #D.nstolp.B stålstolpar: #D.stolp_vagg.B. Minsta lastfaktor #D.lamB.min.],
-  [Väggar, vertikal last], [Högst #D.vert.A.utn (A, #D.vert.A.namn) och #D.vert.B.utn (B, #D.vert.B.namn)],
-  [Bottenplatta L300, cellplast], [S200 under balkar och plintar #P3.eps_b.utn. S300 under kantbalken vid hörnet V2/V20, 1,0 m åt båda håll, #P3.eps_3.utn. S100 under plattan #P3.eps_f.utn],
+  [Väggar mot jord, färdigt läge], [Lodräta järn #A.txt på insidan i alla ytterväggar. Böjning högst #D.vmax.utn (#D.vmax.namn), tvärkraft #D.vmax.utnV, fogen mot bottenplattan #D.fog.utnb],
+  [Fasaden med öppningarna], [Pelarna #D.fasad.utn, bröstningen med 2 Ø12 under öppningarna],
+  [Vertikal last], [Ytterväggar #D.vert.yutn (#D.vert.ynamn, med jordtrycket), innerväggar #D.vert.iutn],
+  [LD4_2 i hörnet V2/V20], [#D.horn.utn],
+  [Byggskedet], [V3 bär fyllningen vågrätt mellan hörnen med #BY.hor3 i båda ytorna ($lambda$ = #BY.lam3). Fyll mot väggarna när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa: #BY.d10N dygn vid 10 °C (#BY.d10R med snabbhärdande cement), se @hardning],
+  [Bottenplatta L300, cellplast], [S200 under balkar och plintar #P3.eps_b.utn. S300 under kantbalken vid de #D.horn_s300 yttre hörnen, 1,0 m åt båda håll, #P3.eps_3.utn. S100 under plattan #P3.eps_f.utn],
   [Bottenplatta L300, betong], [Kantbalk 450 × 200 med 2 Ø10 i under- och överkant (#P3.kant.utnM). Platta Ø6 s150 i båda lagren (#P3.falt.utn). Plintar #D.plint_bredd mm, genomstansning högst #P3.plint.max],
   [Mellanbjälklaget (K-05) med sättningar], [Överkant #P3.topp.ok och underkant #P3.topp.uk av K-05:s armering. K-05:s modell ger #P3.topp.ok5 och #P3.topp.uk5],
   [Plattan på mark (plan 1), 400 mm S100], [#P3.mark.utn],
   [Glidning], [#D.glid.utn],
 )
 
-L300 räcker med S300 under kantbalken vid ett hörn. L400 sänker cellplasttrycket under balkarna något men behövs inte för bärförmågan. System A rekommenderas: Leca har en dokumenterad regel för grundmurar av Isoblokk, och väggarna behöver bara två stolpar. Benders anvisningar för LECA Isoblock gäller väggar ovan mark, så med system B behövs fler stolpar.
+Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolitts armering för väggar som hålls i topp och botten (Ø10 s300) räcker för jordtrycket men inte för packningstrycket från en vanlig lätt vibroplatta, så de lodräta järnen läggs tätare. L300 räcker, med S300 under kantbalken vid de yttre hörnen.
 
 = Förutsättningar
 
 #figure(placement: auto,
   image("../fig_kallare.svg", width: 90%),
-  caption: [Källaren med Lecaväggarna V1–V21, rören P1–P19, fyllningens höjd mot väggarna och stålstolparna för de två systemen. Mått i mm, samma koordinater som i K-05.],
+  caption: [Källaren med väggarna V1–V21 (Kub 350-150, den sammanhängande betongkärnan mörk), rören P1–P19 och fyllningens höjd mot väggarna. Bakom V3 och V20 läggs fyllningen innan mellanbjälklaget gjuts. Mått i mm, samma koordinater som i K-05.],
 ) <fig-kallare>
 
 - *Grund:* sprängt berg som avjämnas med makadam. Grunden dräneras runt huset, och det finns inget vattentryck mot väggar eller platta. Berget och den dränerade makadamen är inte tjälfarliga.
-- *Höjder:* fri höjd #D.mat.H mm från bottenplattans överkant till mellanbjälklagets underkant (rörens längd). Mellanbjälklaget är 150 mm.
-- *Fyllning:* höjden över bottenplattans överkant enligt @fig-kallare[figur]. Den är 2,0 m mot de slutna fasaderna. Mot V14 faller den från 1,8 till 0,8 m och mot V9 från 0,8 m till noll vid öppningen. Mot V18 ligger avsatsen utanför sovrummet, #D.v18.a m vid fasaden och #D.v18.b m vid hörnet mot V7. Mot fasaden med öppningarna är fyllningen #D.fasad.h m (husets Onshape-modell). Bakom V3 och V20 ligger plattan på mark på plan 1 (K-05) på #D.mat.eps_mark mm cellplast. Där går fyllningen till #D.mat.hfm m och plattan räknas som ytlast, #D.mat.gmark kN/m² permanent och #D.mat.qmark kN/m² nyttig.
-- *Jordtryck:* vilojordtryck, eftersom väggarna hålls i topp och botten. $K_0 = 1 - sin phi'$ = #D.mat.K0 med $phi'$ = #D.mat.fi° för dränerande krossmaterial, $gamma$ = #D.mat.gamma kN/m³. Last på marken intill väggarna är #D.mat.q kN/m² (gångyta). Inga fordon får köra närmare än 2 m, och fyllningen packas inte närmare än 1 m från väggen.
+- *Höjder:* fri höjd #M.H mm från bottenplattans överkant till mellanbjälklagets underkant (rörens längd), alltså tre hela Kub-skift à 600 mm och ett halvt skift, 300 mm. Mellanbjälklaget är 150 mm.
+- *Fyllning:* höjden över bottenplattans överkant enligt @fig-kallare[figur]. Den är 2,0 m mot de slutna fasaderna utom mot V1, där den är #D.v1 m. Mot V18 ligger avsatsen utanför sovrummet, #D.v18 m. Mot V14 faller den från 1,8 till 0,8 m och mot V9 från 0,8 m till noll vid öppningen. Mot fasaden med öppningarna är fyllningen #D.fasad.h m (husets Onshape-modell). Bakom V3 och V20 ligger plattan på mark på plan 1 (K-05) på #M.eps_mark mm cellplast. Där går fyllningen till #M.hfm m, och plattan räknas som ytlast, #M.gmark kN/m² permanent och #M.qmark kN/m² nyttig.
+- *Jordtryck:* vilojordtryck, eftersom väggarna hålls i topp och botten. $K_0 = 1 - sin phi'$ = #M.K0 med $phi'$ = #M.fi° för dränerande krossmaterial, $gamma$ = #M.gamma kN/m³. Last på marken intill väggarna är #M.q kN/m² (gångyta). Inga fordon får köra närmare än 2 m.
+- *Packning* (@jordtryck): fyllningen inom 1 m från väggen läggs i lager om högst #M.lager m och packas med en lätt vibroplatta, högst #M.vp_m kg, centrifugalkraft högst #M.vp_F kN och bredd minst #M.vp_b m. Det ger ett kvarstående horisontaltryck på #M.komp kPa. Längre ut än 1 m får fyllningen packas tyngre.
 - *Användning:* källaren är uppvärmd och har golvvärme i bottenplattan.
-- *Laster från plan 1 och mellanbjälklaget* enligt K-05: samma punktlaster, väggar, kombinationer och mönster för nyttig last. Laster som står över en Lecavägg sprids 60° genom väggen ned till bottenplattan. Nyttig last i källaren är 2,0 + 0,7 kN/m².
-- *Kombinationer:* jordtrycket är permanent last, 6.10a med $0,91 dot 1,35$ och 6.10b med $0,91 dot 1,2$. Last på marken är nyttig last. Lecaväggarnas krympning är en påtvingad deformation med faktorn 1,0.
+- *Laster från plan 1 och mellanbjälklaget* enligt K-05: samma punktlaster, väggar, kombinationer och mönster för nyttig last. Laster som står över en vägg går in i väggens kärna och sprids 60° mot horisontalplanet ned till bottenplattan. Nyttig last i källaren är 2,0 + 0,7 kN/m².
+- *Kombinationer:* jordtrycket och packningstrycket är permanent last, 6.10a med $0,91 dot 1,35$ och 6.10b med $0,91 dot 1,2$. Last på marken är nyttig last. Kärnans krympning är en påtvingad deformation med faktorn 1,0.
 
 #tab(
-  columns: (auto, auto, auto, auto, auto, auto),
-  align: (left, left, right, right, right, right),
-  table.header([Material], [], [$f_k$ (MPa)], [$f_"xk1"$ / $f_"xk2"$ (MPa)], [$E$ (MPa)], [$gamma_M$]),
-  [Murverk A], [Leca Isoblokk 35, 5 MPa, weber M5 (EKS tabell H-4, H-6)], [#A.fk], [#A.fxk1 / #A.fxk2], [#A.E], [#D.mat.gM],
-  [Murverk B], [LECA Isoblock 350, 5 MPa, tunnfogsbruk Flexoheft], [#B.fk], [#B.fxk1 / #B.fxk2], [#B.E], [#D.mat.gM],
-  [Armering i fogar], [Sikksakk (A) 500 MPa, bistål (B) räknas som 500 MPa], [], [], [], [#D.mat.gS],
-  [Betong], [C25/30, B500B, täckskikt 30 mm mot cellplast och 25 mm i överkant], [], [], [], [1,5 / 1,15],
+  columns: (auto, 1fr, auto, auto),
+  align: (left, left, right, right),
+  table.header([Material], [], [$f_"ck"$ (MPa)], [$gamma_M$]),
+  [Betong i väggarna], [Sundolitts recept B30 (NS-EN 206), räknas som C30/37. Största stenstorlek 16 mm, grov ballast minskad 25 %, sättmått 180–200 mm], [#M.fck], [1,5],
+  [Betong i plattorna], [C25/30 (bottenplattan, K-05). Mellanbjälklaget får gjutas med väggarnas recept], [25], [1,5],
+  [Armering], [B500B. I väggarna täckande skikt #M.c_in mm mot insidan och #M.c_ut mm mot utsidan till de vågräta järnen], [500], [1,15],
 )
-$gamma_M$ för murverk enligt EKS tabell H-1 (block kategori I, specialmurbruk, utförandeklass II). $E = K_E f_k$, $K_E$ = 1 000. Lecans slutliga krympning är #D.mat.svinn mm/m (deklarerat värde) och kryptalet #D.mat.kryp (SS-EN 1996-1-1 tabell 3.3).
+Kärnans $E_"cm"$ = #M.Ecm MPa. Kryptalet är #M.kryp och den slutliga krympningen #M.svinn mm/m (SS-EN 1992-1-1 3.1.4 med RH 80 % och $h_0$ = 150 mm; kärnan är inkapslad i cellplast).
 
 #block(breakable: false, tab(
   columns: (auto, auto, auto, auto, auto, auto),
@@ -109,110 +113,151 @@ Dimensionerande hållfasthet $f_d = k_r f_"ck" slash gamma_m$ med $gamma_m$ = 1,
 
 = Källarväggar
 
-== Två system
+== Väggsystemet
+
+Kub 350-150 består av element 1 200 × 600 mm (halva element 300 mm), som staplas i förband och armeras innan kärnan gjuts. Plastbindare håller ihop cellplasten och har fästen för armeringen och för gipsskivorna på insidan. Väggen är #M.H mm hög: de tre hela skiften (#M.gjut1 mm) gjuts först, och det översta halva skiftet gjuts tillsammans med mellanbjälklaget.
+
+TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är vår vägg: den hålls i toppen av ett gjutet bjälklag och i botten av golvet, med fyllning upp till 2,3 m. TG 2216 anger armeringen för det fallet, men den räknar inte med packning intill väggen. Väggarna dimensioneras därför här enligt SS-EN 1992-1-1, och armeringen är minst den som TG 2216 anger:
 
 #tab(
   columns: (auto, 1fr, 1fr),
   align: (left, left, left),
-  table.header([], [A: Leca Isoblokk 35 (Leca Norge)], [B: LECA Isoblock 350 PUR (Benders)]),
-  [Block], [349 × 197 × 499, 100 + 150 PUR + 100, 5 MPa], [350 × 197 × 500, 100 + 150 PUR + 100, 5 MPa],
-  [Bruk och fog], [weber Murmørtel M5, 10 mm fog under mark], [Flexoheft M2,5, tunnfog],
-  [Armering i fogarna], [Leca Sikksakk-armering: 2 Ø5 i var sin vange, sammanbundna med diagonaler (fackverk)], [Bistål Bi 40 ob (inre vangen) och Bi 37 rf (yttre), ett i varje vange, inte sammanbundna],
-  [Tillverkarens regler under mark], [Leca Teknisk håndbok, tabell 7.7a–c: Sikksakk i minst varannan fog, fyllning ≤ 2,0 m, fri höjd ≤ 2,6 m, avstivande väggar högst 6,0 m isär. SINTEF Teknisk godkjenning 20031 och Byggdetaljblad 523.133], [Benders anvisningar för Isoblock gäller väggar ovan mark. Benders källaranvisning (projekteringsanvisning LECA block, 2.6) gäller massiva LECA block med utvändig isolering],
+  table.header([Del], [Armering], [Kommentar]),
+  [Vågräta järn], [2 Ø10 per skift, ett vid var yta, s600. I de två översta skiften s300], [TG 2216. I V3 s300 i hela höjden (@v3)],
+  [Lodräta järn], [#A.txt på insidan i alla ytterväggar, i hela höjden], [TG 2216 anger Ø10 s300; tätare för packningstrycket (@barformaga) och för lasterna över väggarna (@vert)],
+  [Startjärn], [#A.start på utsidan, 500 mm ned i kantbalken (bockade) och 1 200 mm upp i väggen], [TG 2216],
+  [Vinkeljärn till bjälklaget], [#A.txt, 600 mm ned i väggen och 500 mm in i bjälklaget], [TG 2216 anger Ø10 s300],
+  [Hörn och anslutningar], [Vinkeljärn Ø10, 750 mm åt var håll, vid båda ytorna; skarvar minst #M.skarv mm], [TG 2216 figur 5–7; @fig-lokala[figur] c och d],
+  [Öppningar], [2 Ø12 över, under och längs sidorna, förankrade 600 mm förbi öppningen], [TG 2216],
+  [Innerväggar], [Vågräta järn och startjärn som ovan], [Inget jordtryck; glidskikt på krönet (R-03)],
 )
 
-Leca kräver Sikksakk-armering under mark för att vangerna ska samverka vid långvarig last. För system B finns ingen sådan förbindelse mellan vangerna. Vangerna räknas därför var för sig, som två 100 mm väggar som får jordtrycket via isoleringen.
+== Jordtryck och packning <jordtryck>
 
-== Bärförmåga mot jordtryck <barformaga>
-
-Väggen bärs i botten av bottenplattan (urtag, @ansl), i toppen av mellanbjälklaget och på sidorna av hörnen, där armeringen förs runt, eller av stålstolpar. Bärförmågan räknas med brottlinjeteori (SS-EN 1996-1-1 5.5.5 och 6.6.2, Leca Teknisk håndbok 7.4.4). Mönstret är diagonaler från hörnen och en vågrät linje på höjden $y_0$, och både $y_0$ och läget längs väggen varieras. Jordtrycket är triangulärt, med fyllningens höjd längs väggen. Fasaden med öppningarna (#D.fasad.namn) är hel under fönstren mellan hörnen vid V18 och V17, #D.fasad.L m, och räknas med fri överkant: fönstrens bröstning ligger 0,90 och 1,50 m över bottenplattan, över fyllningen #D.fasad.h m. Pelarna mellan fönstren räknas inte som stöd i toppen. Mönstret har då en vågrät brottlinje under bröstningen eller ingen alls.
-- *Vågrätt moment* från armeringen i liggfogarna, $m_h = A_s f_"yd" z$, både i fält och över hörn och stolpar:
-  - A: en Ø5 i den dragna vangen, $d$ = #A.d mm (Sikksakk 225 mm bred). Det ger $m_h$ = #A.mh1 kNm/m med armering i varje fog och #A.mh2 kNm/m i varannan.
-  - B: en tråd Ø4 i bistålet, $d$ = #B.d mm i varje vange. Det ger $m_h$ = #B.mh1 kNm/m i varje skift och #B.mh2 kNm/m i vartannat, för båda vangerna tillsammans.
-- *Lodrätt moment:* $(f_"xd1" + sigma_d) t^2 slash 6$ för varje vange, med $t$ = 100 mm. $sigma_d$ kommer av vangens egentyngd och 75 % av den permanenta lasten från bjälklaget, på den inre vangen.
+När fyllningen packas intill en vägg som inte kan röra sig, blir ett horisontaltryck kvar i jorden. Det är större än vilojordtrycket nära markytan (Ingold, Géotechnique 1979). Trycket blir $sigma_"komp" = sqrt(2 P gamma slash pi)$, där $P$ är packningsredskapets linjelast, alltså tyngd och centrifugalkraft per meter bredd. För vibroplattan i avsnitt 2 är $P$ = #M.P kN/m, vilket ger $sigma_"komp"$ = #M.komp kPa. Trycket gäller från djupet där $gamma z slash K_a$ når $sigma_"komp"$ ($K_a$ = #M.KA) ned till djupet där vilojordtrycket blir större, alltså i hela fyllningshöjden här.
 
 #figure(placement: auto,
-  image("../fig_kapacitet.svg", width: 82%),
-  caption: [Lastfaktor $lambda$ (bärförmåga / dimensionerande last) för en vägg med 2,0 m fyllning, hörn i båda ändar och V1:s normalkraft. Väggarna med 1,7–2,0 m fyllning är markerade.],
-) <fig-kapacitet>
+  image("../fig_jordtryck.svg", width: 92%),
+  caption: [Vägg med 2,0 m fyllning (#D.vmax.namn). Vänster: horisontaltrycket. Höger: moment i den lodräta strimlan och bärförmågan med Sundolitts Ø10 s300 och med #A.txt.],
+) <fig-jordtryck>
 
-Med 2,0 m fyllning klarar system A #D.Lgrans.A2 m mellan hörn eller stolpar med Sikksakk i varannan fog och #D.Lgrans.A1 m med Sikksakk i varje fog. Lecas förhandsgodkända regel tillåter 6,0 m med armering i varannan fog. Beräkningen med EKS faktorer ($gamma_M$ = 1,3 för armeringen) är alltså strängare än Lecas regel, och den styr. System B klarar #D.Lgrans.B1 m med bistål i varje skift och #D.Lgrans.B2 m i vartannat.
+Med 2,0 m fyllning ger vilojordtrycket ensamt #M.M_K0 kNm/m i väggen, och med packningstrycket #M.M_komp kNm/m. Packar man inte inom 1 m från väggen räcker alltså Ø10 s300. Armeringen här tillåter normal packning med lätt vibroplatta, eftersom fyllningen intill väggen annars sätter sig.
+
+== Bärförmåga i färdigt läge <barformaga>
+
+Väggen räknas som en lodrät strimla, fritt upplagd mellan fogen mot bottenplattan och mellanbjälklagets mittplan, $L$ = #M.Ls m. Hörnen och de vinkelräta väggarna hjälper till, men det räknas inte. Ytterväggarna på plan 1 står #M.e mm utanför kärnans mitt (#M.e_ut mm utanför kärnans yta, K-05). Deras last ger ett moment i väggens topp, som avtar linjärt till noll vid bottenplattan. Hela momentet läggs på väggen och inget på bjälklaget, vilket ligger på säker sida. Det ger drag i insidan, liksom jordtrycket.
+- *Böjning:* lodräta järn på insidan, $d$ = #A.dv mm. #A.txt ger $M_"Rd"$ = #A.MRd kNm/m (Ø10 s300: #A.MRd300 kNm/m). Största moment är #D.vmax.M kNm/m i #D.vmax.namn, #D.vmax.y m över bottenplattan, varav #D.vmax.Mt kNm/m i toppen från lasterna över väggen. Det är #D.vmax.utn av bärförmågan (Ø10 s300: #D.vmax.utn300).
+- *Tvärkraft:* högst #D.vmax.utnV av $V_"Rd,c"$. Ingen tvärkraftsarmering behövs.
+- *Minimiarmering och andra ordningens effekter:* minimiarmeringen enligt 9.3.1.1 är uppfylld i båda riktningarna. Slankheten är $lambda$ = #D.vert.lam. För väggarna med fyllning är normalkraften liten och gränsen enligt 5.8.3.1 minst #D.vert.lam_lim, så andra ordningens effekter är försumbara.
 
 #liten(
-  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
-  align: (left, right, left, left, center, right, right, center, right, right, center, right),
-  table.header([Vägg], [$L$ (m)], [Fyllning (m)], [Ändar], [Lecaregel], [A var 2:a], [A varje], [Stolpar A], [B var 2:a], [B varje], [Stolpar B], [$R_"topp"$ / $R_"botten"$]),
-  ..D.vagg_fyllda.map(r => ([#r.namn], [#r.L], [#r.fyll], [#r.ande], [#r.regel], [#r.A2], [#r.A1], [#r.nA], [#r.B2], [#r.B1], [#r.nB], [#r.Rt / #r.Rb])).flatten(),
+  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
+  align: (left, right, left, right, right, right, right, right, right, left),
+  table.header([Vägg], [$L$ (m)], [Fyllning (m)], [$M_"Ed"$ jord + topp], [$M_"Ed"$], [$M_"Rd"$], [Böjning], [$V_"Ed"$ / $V_"Rd,c"$], [$R_"topp"$ / $R_"botten"$], [Minsta]),
+  ..D.vagg_fyllda.map(r => ([#r.namn], [#r.L], [#r.fyll], [#r.Mj + #r.Mt], [#r.M], [#r.MRd], [#r.utnM], [#r.V / #r.VRd], [#r.Rt / #r.Rb], [#r.min])).flatten(),
 )
-#text(size: 8pt)[$lambda$ utan stolpar för armering i varannan respektive varje fog. Stolpar: antal stolpar som behövs med armering i varje fog, jämnt fördelade. Lecaregel: väggen uppfyller Leca tabell 7.7a. $R$: dimensionerande reaktion mot bjälklaget och bottenplattan (kN/m). Övriga väggar (#D.vagg_ovriga) har ingen fyllning.]
+#text(size: 8pt)[Moment i kNm/m och krafter i kN/m, dimensionerande. Största fyllning längs väggen. Minsta: den glesaste lodräta armering som räcker för väggen. Övriga väggar (#D.vagg_ovriga) har ingen fyllning.]
 
-== Stålstolpar <stolpar>
+== Fasaden med öppningarna <fasad>
 
-Där väggen är längre än vad armeringen bär, sätts en stålstolpe mot väggens insida. Stolpen går från bottenplattan till bjälklaget, och väggen spänner kontinuerligt över den. Stolpen räknas fritt upplagd för jordtrycket på fackbredden med faktorn 1,25 för kontinuitet.
+Mot fasaden med öppningarna (#D.fasad.namn) är fyllningen #D.fasad.h m. Fönstrens bröstning ligger #D.fasad.bro m över bottenplattan. Pelarna mellan öppningarna går upp till bjälklaget. De bär jordtrycket från sin egen bredd och halva öppningarna intill, lodrätt mellan plattorna:
 
 #tab(
-  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
-  align: (center, left, right, right, right, left, right, right, right),
-  table.header([System], [Vägg], [Antal], [Fack (m)], [$lambda$], [Profil S355], [$M_"Ed"$ / $M_"Rd"$ (kNm)], [$R_"topp"$ (kN)], [$R_"botten"$ (kN)]),
-  ..D.stolp.map(r => ([#r.sys], [#r.vagg], [#r.n], [#r.Lf], [#r.lam], [#r.vkr], [#r.M / #r.MRd], [#r.Rt], [#r.Rb])).flatten(),
+  columns: (auto, auto, auto, auto),
+  align: (left, right, right, right),
+  table.header([Pelare], [Bredd (m)], [Lastbredd / bredd], [$M_"Ed"$ (kNm/m)]),
+  ..D.fasad.pel.map(r => ([#r.namn], [#r.b], [#r.faktor], [#r.M])).flatten(),
 )
-Stolparna tar bara vågrät last (@fig-lokala[figur]). De får inte bära bjälklaget, eftersom Lecaväggarna sätter sig mer än stålet (@cellplast). Reaktionerna går som skivkrafter in i bjälklaget och bottenplattan.
-- *Fot:* stolpen står i en ficka i kantbalken. Där förlängs urtaget till balkens innerkant på 200 mm längd, och stolpen trycker mot fickans inre kant. Största reaktion #D.stolpfast.Rb kN på 100 × 50 mm ger #D.stolpfast.sig MPa mot $f_"cd"$ = #D.stolpfast.fcd MPa (#D.stolpfast.utn_fot). Fickan gjuts igen med cementbruk när stolpen står.
-- *Topp:* en plåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, gjuts in i bjälklagets underkant över stolpen. Två flattstål 80 × 10 svetsas på plåten, ett på var sida om stolpen. En M12 8.8 går genom flattstålen och stolpen i avlånga hål (lodrätt, 40 mm), och mellan stolpens topp och plåten lämnas 20 mm. Största reaktion #D.stolpfast.Rt kN mot #D.stolpfast.Fv kN för skruven (två skär) och #D.stolpfast.dym kN för svetsbultarna (SS-EN 1994-1-1 6.6.3.1), alltså #D.stolpfast.utn_topp.
-- Väggen binds till stolpen med en murkramla i var tredje fog. Stolparna ska stå när fyllningen läggs.
+Största moment är #D.fasad.Mmax kNm/m, alltså #D.fasad.utn av #A.txt. Bröstningen under öppningarna spänner vågrätt mellan pelarna, högst #D.fasad.oppn m. Med #D.fasad.p kPa ger det #D.fasad.Mb kNm/m mot #D.fasad.MRdb kNm/m med de vågräta järnen och 2 Ø12 under öppningen.
 
-== Vertikal last <vert>
+== Vertikal last och lasterna över väggarna <vert>
 
-Lasten är det största av K-05:s värde över 1 m (med det som står direkt på väggen) och väggens last per meter i den samverkande modellen (@botten). Den läggs i sin helhet på den inre vangen för ytterväggar och fördelas lika på båda vangerna för innerväggar. Vid korta pelare sprids lasten 60° in i anslutande vägg ned till halva höjden. Bärförmågan är $Phi t f_d$ med $h_"ef" = 0,75 h$ och $t$ = 100 mm (bilaga G). Största utnyttjande: system A #D.vert.A.utn (#D.vert.A.namn, $N_"Ed"$ = #D.vert.A.N mot #D.vert.A.NRd kN/m) och system B #D.vert.B.utn (#D.vert.B.namn).
-- *Yttre vangen:* ytterväggarna på plan 1 står över den yttre vangen (K-05), så deras last och takets går ned i den. Enligt K-05 tar den yttre vangen ungefär #D.ld42.andel av lasten från bjälklaget. Kontrollen ovan lägger hela lasten på den inre vangen, så den täcker båda vangerna. I kontrollen mot jordtryck räknas den inre vangen med 75 % av den permanenta lasten, vilket stämmer med fördelningen.
-- *Punktlast LD4_2* (K-05, #D.ld42.F kN) står i hörnet V2/V20 ovanför de yttre vangerna. Under bjälklaget och det gjutna U-blocket (#D.ld42.h mm) har den spridits 45° till #D.ld42.A $dot 10^3$ mm² av vangerna, alltså #D.ld42.sig MPa. Läggs det ovanpå V2:s största last på den inre vangen (#D.ld42.sigV2 MPa, som redan innehåller LD4_2) blir det #D.ld42.tot MPa mot $f_d$ = #D.ld42.fdA MPa (A) och #D.ld42.fdB MPa (B), alltså #D.ld42.utnA och #D.ld42.utnB (SS-EN 1996-1-1 6.1.3 med $beta$ = 1). Direkt under bjälklaget bärs lasten främst av betongen i U-blocket, som är ungefär tio gånger styvare än Lecan.
+Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som står direkt på väggen) och väggens last per meter i den samverkande modellen (@botten). Största värde är #D.vert.Nmax kN/m (#D.vert.Nnamn).
+- *Ytterväggar:* normalkraften med egentyngd och oavsiktlig excentricitet $l_0 slash 400$, tillsammans med momentet i @barformaga, eller i väggar utan fyllning momentet från lasterna över väggen. Högst #D.vert.yutn (#D.vert.ynamn: $M_"Ed"$ = #D.vert.yM mot $M_"Rd"$ = #D.vert.yMRd kNm/m med normalkraft). Normalkraften ökar momentkapaciteten, så kontrollen i @barformaga utan normalkraft ligger på säker sida. Andra ordningens moment (nominell krökning, 5.8.8) ingår där slankheten överskrider gränsen: #D.vert.M2.
+- *Innerväggar:* centrisk last (glidskikt på krönet), oarmerad vägg enligt 12.6.5.2 med $Phi$ = #D.vert.Phi, där slankheten ingår: högst #D.vert.iutn (#D.vert.inamn, #D.vert.iN mot #D.vert.iNRd kN/m).
+- *Lasterna över väggarna:* ytterväggarna på plan 1 står på bjälklaget #M.e_ut mm utanför kärnans yta. Det är mindre än halva bjälklagets tjocklek, så lasten går med en tryckstrimla direkt in i kärnan. Bjälklaget och kärnan gjuts samtidigt. Konsolmomentet till kärnans yta blir högst #D.kant.M kNm/m (#D.kant.q kN/m) mot #D.kant.MRd kNm/m för överkantsnätet.
+- *LD4_2* (K-05, #D.horn.F kN dimensionerande) står i hörnet V2/V20, #D.horn.ax och #D.horn.ay mm utanför kärnornas ytor. Bjälklaget ($d$ = #D.horn.d mm) räknas längs kärnornas ytor, $u$ = #D.horn.u mm:
+  - tryckstrimlan: $V_"Ed"$ / $V_"Rd,max"$ = #D.horn.F / #D.horn.VRdmax kN (#D.horn.utn_max);
+  - tvärkraft med $beta = a_v slash 2d$ = #D.horn.beta (6.2.2(6)): #D.horn.utn_c av $V_"Rd,c"$ = #D.horn.VRdc kN;
+  - dragband i överkant: $F a_v slash z$ = #D.horn.T kN mot #D.horn.TRd kN för nätet (#D.horn.utn_T).
 
-== Anslutningar och hörn <ansl>
+  Zon Ö1 i K-05 ger dessutom tilläggsjärn i överkant över hörnet.
 
-- *Topp:* översta skiftet är Leca Iso U-blokk (A) eller LECA balkblock (B), armerat med 2 Ø10. Det gjuts samtidigt med bjälklaget, så att bjälklaget håller väggens topp. Bjälklaget förankras i U-blocket med Ø10 s#D.topp.s, bockade. Största reaktion är #D.topp.Rt kN/m, vilket ger #D.topp.utn av en stångs skjuvkapacitet #D.topp.VRd kN.
-- *Botten:* väggen står i ett 50 mm djupt urtag i kantbalken, så att plattans kant håller väggens fot. Det motsvarar Lecas krav att golvet ska gå minst 20 mm upp på nedersta skiftet och Benders klack på minst 45 mm. Största reaktion är #D.Rbot_max kN/m. Under första skiftet läggs glidskikt av papp.
-- *Hörn:* armeringen i fogarna förs runt hörnen (A: Sikksakk klipps och bockas enligt Leca figur 4.21; B: bistål bockas eller skarvas med minst 500 mm omlott), så att väggen är inspänd i hörnet.
-- *Öppningar:* armering över och under öppningar (en extra fog under fönsterbröstningen och en över avväxlingen), 1 m förbi öppningens kant.
+== Anslutningar och fogar <ansl>
 
-== Utförande, system A (Leca Isoblokk 35) <utfA>
+- *Topp:* det översta halva skiftet gjuts samtidigt med mellanbjälklaget. Kärnan och bjälklaget blir då en enhet, och bjälklaget vilar på hela kärnan (TG 2216 kräver minst 100 mm). Den yttre cellplasten i det översta skiftet kapas i bjälklagets underkant, och bjälklaget går ut till 30 mm från väggens ytterliv, med 30 mm kantisolering utanför (husets modell). Vinkeljärnen (#A.txt) förankrar väggen i bjälklaget. Största reaktion i toppen är #D.vmax.Rt kN/m.
+- *Gjutfogen vid #M.gjut1 mm:* tvärkraften där är högst #D.fog.V18 kN/m. Med de lodräta järnen genom fogen och en uppruggad yta (6.2.5) är utnyttjandet #D.fog.utn18.
+- *Botten:* kärnan gjuts direkt på kantbalkens uppruggade överkant, och startjärnen går genom fogen. Bottenplattan är golvet som håller väggens fot, och kärnan står i kontakt med den, som TG 2216 kräver när fyllningen är högre än 1 m. Största reaktion i botten är #D.vmax.Rb kN/m. Fogen har bärförmågan #D.fog.vrb MPa (6.2.5: uppruggad yta, startjärnen, väggens egentyngd). Det ger högst #D.fog.utnb.
+- *Hörn och anslutningar:* vågräta järn med vinkeljärn enligt TG 2216 figur 5–7, se @fig-lokala[figur] c och d.
+- *Innerväggar:* bjälklaget vilar på kärnan med glidskikt (byggpapp) på krönet och är inte förankrat i innerväggarna (R-03).
 
-- *Murning:* weber Murmørtel M5, 10 mm fogar under mark (skifthöjd 207 mm), förband minst 80 mm. Mura inte under +5 °C.
-- *Armering:* Leca Sikksakk-armering i varje liggfog i väggarna med fyllning (#D.vagg_fyllda.map(r => r.namn).join(", ")), med laftestrimmel i de armerade fogarna. Skarvar minst 300 mm, hörn enligt Leca figur 4.21. Övriga väggar: Leca Fugearmering (2 stänger) över första skiftet och i varannan fog.
-- *Stolpar:* #D.stolp_vagg.A, enligt @stolpar.
-- *Utsida under mark:* Weber Grå Slemming i två strykningar från foten till över mark. Utanpå sätts Platon grunnmursplate med knopparna mot väggen och en avslutningslist upptill. Dränledning runt huset med fall minst 1:200. Ledningens högsta punkt ska ligga minst 200 mm under golvets överkant och under plattans cellplast. Ledningen och väggen omges med dränerande material, med fiberduk mot jorden.
-- *Utsida ovan mark:* sockelputs (weber.base 261) från marken upp.
-- *Insida:* puts eller slamning, minst 4 mm (krävs för brand och lufttäthet), utan ångspärr. Väggar mot jord ska kunna torka inåt. Tilläggsisoleras väggen invändigt används ingen plastfolie.
-- *Återfyllning:* tidigast när bjälklaget är gjutet och har härdat och murverket är minst 28 dygn. Fyll försiktigt med dränerande massor. Packa inte, och kör inte med maskin närmare än 2 m. Marken ska falla från huset, helst 1:20 och minst 1:50, över 3 m.
+== Utförande av väggarna <utf>
 
-== Utförande, system B (LECA Isoblock 350 PUR) <utfB>
+- *Montering:* elementen staplas i förband med armeringen i bindarnas hållare. Väggarna riktas och stagas enligt Sundolitts anvisning: stag vid alla hörn och öppningar och annars cirka var 2 m, med skruv minst 140 mm i bindarna. Kapade element och kanter vid öppningar förstärks med plywood eller läkt.
+- *Gjutning:* pump med reducerat tryck, och betongen stiger högst 1 m per timme. Börja i ett hörn och gå runt väggarna i varv. Högst 2,4 m per gjutning, ingen vibrator i väggarna (stöt för hand vid behov). Kontrollera sättmåttet på plats. Gjut inte under −5 °C.
+- *Första gjutningen* är de tre hela skiften, upp till #M.gjut1 mm. Fogen i överkant ruggas och rengörs, och elementens knastar täcks.
+- *Gjutning med bjälklaget:* bjälklagets form och stämp står för sig själva och får inte hänga i Kub-elementen. Väggarnas översta skift fylls först. Efter 30–60 minuter, när betongen har satt sig, fylls de upp igen, och sedan gjuts bjälklaget. Bara bjälklaget vibreras.
+- *Insida:* gips 13 mm (typ A) på all cellplast, också i smygar, skruvad i bindarna. Enligt TG 2216 ger det REI 30. Kärnan klarar REI 90 enligt SS-EN 1992-1-2 tabell 5.4 (150 mm ≥ 140 mm, axelavstånd 30 mm ≥ 25 mm). Gipset skyddar cellplasten och får inte vara genombrutet; eldosor enligt TG 2216. Ingen ångspärr behövs, eftersom halva isoleringen ligger utanför kärnan.
+- *Utsida under mark:* grundmursskiva med knopparna mot väggen och en avslutningslist upptill. Dränledning runt huset med fall minst 1:200. Ledningens högsta punkt ska ligga minst 200 mm under golvets överkant och under plattans cellplast. Ledningen och väggen omges med dränerande material, med fiberduk mot jorden. Marken ska falla från huset, minst 1:50 över 3 m.
+- *Utsida ovan mark:* fasadsten enligt AR-01. Den täcker all cellplast ovan mark, som TG 2216 kräver.
 
-- *Murning:* Flexoheft M2,5, tunnfog, förband minst 80 mm. Första skiftet läggs i våg i styvare bruk på glidskikt av bitumenpapp. Mura inte under +5 °C.
-- *Armering:* bistål Bi 40 ob i inre vangen och Bi 37 rf (rostfritt) i yttre vangen, i varje skift i väggarna med fyllning, med skarvar minst 500 mm. I övriga väggar läggs bistål i första skiftet och enligt Benders anvisning.
-- *Stolpar:* #D.stolp_vagg.B, enligt @stolpar.
-- *Utsida under mark* enligt Benders projekteringsanvisning 2.6: Weber grundningsbruk KC (A-bruk) heltäckande. Därpå antingen Isodrän-skivor med geotextil utanför, eller Platonmatta med cellplast utanför. Dränledning och dränerande fyllning som för system A.
-- *Insida:* grundning KC och puts, utan ångspärr.
-- *Återfyllning* som för system A, tidigast 28 dygn efter murningen.
+= Byggskedet <bygg>
 
-== Val av system
+== Ordningsföljd
 
-Båda systemen går att använda. System A har en dokumenterad regel för grundmurar av just detta block, och vangerna är förbundna med fackverksarmering. Det behöver #D.nstolp.A stolpar. System B behöver #D.nstolp.B stolpar, eftersom vangerna bara samverkar via isoleringen och bistålet i varje vange har liten hävarm. Väljs Benders, kan källarväggarna mot jord alternativt muras av massiva LECA block 350 med utvändig isolering enligt Benders källaranvisning, och Isoblock används ovan mark.
++ Gjut bottenplattan (@botten) med startjärnen ingjutna och uppruggad yta under väggarna.
++ Montera Kub-elementen med armering, vinkeljärn i hörnen och staga väggarna.
++ Gjut de tre hela skiften (#M.gjut1 mm) i alla väggar.
++ Fyll bakom V3 och V20 till #M.hfm m när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan 400 mm cellplast för plattan på mark.
++ Montera det översta halva skiftet, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
++ Fyll mot övriga väggar när bjälklaget och det översta skiftet har nått $f_"ck" (t)$ ≥ #BY.regel MPa. Väggarna under har då härdat längre. Bjälklagets stämp får stå kvar; de påverkar inte väggarna.
++ Riv formen under bjälklaget enligt R-03.
+
+Sundolitt rekommenderar minst fyra veckors härdning och torkning innan det fylls mot väggarna. Det är ett allmänt råd som också gäller torkning före puts. TG 2216 kräver att väggar och bjälklag är gjutna och har härdat tillräckligt. Här räknas hur mycket som räcker.
+
+== V3 och V20 innan bjälklaget finns <v3>
+
+Fyllningen bakom V3 och V20 bär plattan på mark på plan 1, som är en del av mellanbjälklaget. Den måste därför ligga på plats innan bjälklaget gjuts. Väggarna har då fri överkant, #M.gjut1 mm. Som fri konsol skulle V3 behöva inspänning i foten, cirka 32 kNm/m, men bottenplattan och kantbalken kan inte ta den. Väggarna räknas i stället med brottlinjeteori: de bär åt två håll, är inspända i hörnen med vinkeljärnen och ledat upplagda i botten. Lasten är fyllningen till #M.hfm m med packningstryck. På fyllningen ligger dessutom cellplasten, #M.gbygg kN/m² permanent, och färsk betong med arbetslast när plattan på mark gjuts, #M.qbygg kN/m² (SS-EN 1991-1-6), som nyttig last.
+- *V3* ($L$ = 4,40 m): med Sundolitts vågräta järn (Ø10 s600) blir $lambda$ = #BY.lam3_std. Med #BY.hor3 i båda ytorna i hela höjden ($m_h$ = #BY.mh3 kNm/m i fält och #BY.mhn3 kNm/m vid hörnen, $m_v$ = #BY.mv3 kNm/m) blir $lambda$ = #BY.lam3, och vid återfyllningen (#BY.regel MPa) #BY.lam3_r.
+- *V20* ($L$ = 1,66 m) klarar sig med Sundolitts armering, $lambda$ = #BY.lam20.
+- *Hörnen:* vinkeljärnen Ø10 (750 + 750) i V3:s hörn får spänningen $f_"yd" slash lambda$ = #BY.sig MPa. Med sämre vidhäftning ($eta_1$ = 0,7) och alla järn skarvade i samma snitt ($alpha_6$ = 1,5) behövs förankringslängden #BY.lb mm mot #BY.l0 mm.
+- *Tvärkraft:* #BY.V3 kN/m mot $V_"Rd,c"$ = #BY.VRd3 kN/m.
+
+== Hållfasthet vid återfyllning <hardning>
+
+Betongens hållfasthet efter $t$ dygn följer SS-EN 1992-1-1 3.1.2: $f_"cm" (t) = beta_"cc" (t) f_"cm"$ med $beta_"cc" (t) = exp(s (1 - sqrt(28 slash t)))$, $f_"ck" (t) = f_"cm" (t) - 8$ MPa och $f_"ctm" (t) = beta_"cc" (t) f_"ctm"$. Kontrollerna i byggskedet görs med betongen vid ålder $t$:
+- *V3 och V20 innan bjälklaget:* $lambda$ och tvärkraft räcker redan efter tre dygn. Förankringen av vinkeljärnen i hörnen styr och kräver $f_"ck" (t)$ ≥ #BY.fckA MPa.
+- *Övriga väggar efter bjälklaget* (mest belastad #BY.vaggB): böjning, tvärkraft och gjutfogen räcker efter tre dygn. Skarven mellan vinkeljärnen och de lodräta järnen i det översta skiftet (#BY.sigB MPa) kräver $f_"ck" (t)$ ≥ #BY.fckB MPa.
+
+*Kravet blir $f_"ck" (t)$ ≥ #BY.regel MPa, två tredjedelar av $f_"ck"$, innan det fylls mot någon vägg* ($f_"cm" (t)$ ≥ #BY.fcm MPa; provkuber ungefär 20 % högre). Det gäller väggarna och, för de övriga väggarna, också bjälklaget och det översta skiftet. Vid lägre temperatur tar det längre tid. Mognadsåldern enligt SS-EN 1992-1-1 (B.10) är $t_T = sum exp(-(4000 slash (273 + T) - 13,65)) Delta t$, där $T$ är dygnets medeltemperatur. Kravet nås vid mognadsåldern #BY.teqN dygn med cement i klass N ($s$ = 0,25) och #BY.teqR dygn med klass R ($s$ = 0,20), alltså:
+
+#figure(placement: auto,
+  image("../fig_hardning.svg", width: 88%),
+  caption: [$f_"ck" (t)$ för C30/37 mot dygn efter gjutning vid konstant medeltemperatur, med cement i klass N (heldragen) och R (streckad). Kravet för återfyllning och gränsen innan betongen får frysa.],
+) <fig-hardning>
+
+#block(breakable: false, tab(
+  columns: (auto, auto, auto, auto, auto),
+  align: (left, right, right, right, right),
+  table.header([Dygnsmedeltemperatur], [Återfyllning, klass N], [Återfyllning, klass R], [Frost, klass N], [Frost, klass R]),
+  ..BY.dygn.map(r => ([#r.T °C], [#r.N dygn], [#r.R dygn], [#r.fN], [#r.fR])).flatten(),
+))
+Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betongen tål att frysa. Dessförinnan ska den skyddas mot frost. Kärnan är isolerad av cellplasten och håller värmen, så att räkna med luftens temperatur ligger på säker sida. Bjälklagets ovansida täcks med isolermattor när det är kallt.
+- *Kontroll:* temperaturgivare i väggen och i bjälklaget, med mognadsgraden räknad som ovan, eller provkuber som härdar bredvid väggen. Är betongleverantörens cement i klass R gäller den kolumnen.
+- *Exempel vid 10 °C med cement i klass N:* V3 och V20 fylls tidigast #BY.d10N dygn efter den första gjutningen, och övriga väggar #BY.d10N dygn efter bjälklaget. Vid 20 °C är tiderna #BY.d20N dygn och vid 5 °C #BY.d5N dygn.
 
 = Bottenplatta <botten>
 
 == Uppbyggnad
 
 #figure(placement: auto,
-  image("../fig_detalj_A.svg", width: 100%),
-  caption: [System A: yttervägg mot jord på kantbalk i L-element (L300). Mått i mm.],
-) <fig-detA>
-#figure(placement: auto,
-  image("../fig_detalj_B.svg", width: 100%),
-  caption: [System B: samma sektion med LECA Isoblock 350 PUR och Isodrän.],
-) <fig-detB>
+  image("../fig_detalj.svg", width: 100%),
+  caption: [Yttervägg mot jord (Kub 350-150) på kantbalk i L-element (L300), med mellanbjälklaget. Mått i mm.],
+) <fig-det>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
 - *Under plattan:* cellplast S100 i två skikt, 200 mm (L300) eller 300 mm (L400), med åldringsbeständig plastfolie mellan skikten (Plattor.pdf).
-- *Längs ytterkanten:* L-element L300 eller L400 med 100 mm fot av S200 under kantbalken. För L300 används S300 i stället för foten 1,0 m åt båda håll från hörnet V2/V20 (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 (L300) eller 300 mm (L400) hög inklusive plattan.
+- *Längs ytterkanten:* L-element L300 eller L400 med 100 mm fot av S200 under kantbalken. Vid källarens #D.horn_s300 yttre hörn är foten S300 1,0 m åt båda håll (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 (L300) eller 300 mm (L400) hög inklusive plattan. Väggens kärna står på kantbalken, 100–250 mm från ytterkanten.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S200 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
 - *Platta:* 100 mm C25/30 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
@@ -221,19 +266,18 @@ Båda systemen går att använda. System A har en dokumenterad regel för grundm
 
 - *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och 200/300 mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och olika tjocklek och kvalitet under plattan och under balkar och plintar.
 - *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på 400 mm S100.
-- *Lecaväggarna:* fjädrar $E t slash h$ längs K-05:s upplagslinjer, med den inre vangen för ytterväggar och båda vangerna för innerväggar.
+- *Väggarna:* kärnan som fjäder $E t slash h$ med $t$ = 150 mm längs K-05:s upplagslinjer i kärnans mitt.
 - *Rören:* fjädrar $E A slash L$ mellan plåtarna i de två plattorna.
 - *Styvheter, två omgångar:*
-  - kort: $E_k$ för cellplasten, $E_"cm"$ för betongen och $E$ för Lecan;
-  - lång: $0,4 E_k$ för cellplasten, $E_"cm" slash (1 + 2,8)$ för betongen, $E slash (1 + 2,0)$ för Lecan, och Lecans krympning, #D.mat.sv_mm mm över väggens höjd.
-- *Ytterväggarnas två vangar:* i grundmodellen bär den inre vangen bjälklaget, och lasterna som står över väggarna sprids längs väggens mittlinje. I en variant bär också den yttre vangen (fjäder längs vangens mitt), och lasterna över väggarna sprids längs en linje genom sitt verkliga läge. LD4_2 står då över de yttre vangerna i hörnet V2/V20. Bjälklaget lämnar nästan ingen last på den yttre vangen, men lasterna som står över den går ned i den.
-- *Lastfall och kombinationer* som i K-05. Lecaväggarnas egentyngd (2,1 kN/m², B, det tyngre blocket) och bottenplattans egentyngd ingår. Resultaten är det ogynnsammaste av omgångarna och modellerna.
+  - kort: $E_k$ för cellplasten och $E_"cm"$ för betongen;
+  - lång: $0,4 E_k$ för cellplasten, $E_"cm" slash (1 + 2,8)$ för plattorna, $E_"cm" slash (1 + #M.kryp)$ = #M.Ev_l MPa för kärnan, och kärnans krympning, #M.sv_mm mm över väggens höjd.
+- *Laster:* lastfall och kombinationer som i K-05. Väggarnas egentyngd är #M.gkub kN/m² (kärna, cellplast och gips). På ytterväggarna kommer fasadsten till, #M.gsten kN/m² från 50 mm under mark till bjälklagets överkant (AR-01). Bottenplattans egentyngd ingår också. Resultaten är det ogynnsammaste av omgångarna.
 
 == Cellplast och sättningar <cellplast>
 
 #figure(placement: auto,
   image("../fig_tryck.svg", width: 100%),
-  caption: [L300: största tryck mot cellplasten i brottgränstillstånd (omhyllande av omgångarna och modellerna) och sättning av bottenplattan för kvasipermanent last, långtid. Tunna linjer: balkar och plintar.],
+  caption: [L300: största tryck mot cellplasten i brottgränstillstånd (omhyllande av omgångarna) och sättning av bottenplattan för kvasipermanent last, långtid. Tunna linjer: balkar och plintar.],
 ) <fig-tryck>
 
 #tab(
@@ -243,14 +287,14 @@ Båda systemen går att använda. System A har en dokumenterad regel för grundm
   [S200 under balkar och plintar, brottgräns (medel inom $r$ = 150 mm vid toppen)], [#P3.eps_b.uls (#P3.eps_b.medel)], [#P4.eps_b.uls (#P4.eps_b.medel)], [#P3.eps_b.fdM],
   [S200, bara permanent last], [#P3.eps_b.perm], [#P4.eps_b.perm], [#P3.eps_b.fdP],
   [S200, kvasipermanent långtid], [#P3.eps_b.qp], [#P4.eps_b.qp], [#P3.eps_b.kryp],
-  [S300 vid hörnet V2/V20: brottgräns / permanent / långtid], [#P3.eps_3.uls / #P3.eps_3.perm / #P3.eps_3.qp], [–], [#P3.eps_3.fdM / #P3.eps_3.fdP / #P3.eps_3.kryp],
+  [S300 vid de yttre hörnen: brottgräns / permanent / långtid], [#P3.eps_3.uls / #P3.eps_3.perm / #P3.eps_3.qp], [#P4.eps_3.uls / #P4.eps_3.perm / #P4.eps_3.qp], [#P3.eps_3.fdM / #P3.eps_3.fdP / #P3.eps_3.kryp],
   [S100 under plattan, brottgräns], [#P3.eps_f.uls], [#P4.eps_f.uls], [#P3.eps_f.fdM],
   [S100 under plattan, kvasipermanent långtid], [#P3.eps_f.qp], [#P4.eps_f.qp], [#P3.eps_f.kryp],
   [Sättning av bottenplattan, långtid (mm)], [#P3.w.min–#P3.w.max], [#P4.w.min–#P4.w.max], [],
 )
-Det största trycket ligger i det yttre hörnet mellan V2 och V20, där LD4_2 står över de yttre vangerna. Med L300 räcker S200 inte där, och under kantbalken läggs S300 på 1,0 m åt båda håll från hörnet. Med L400 är medelvärdet inom radien 150 mm under gränsen för S200. Utanför hörnet räcker S200 i båda utförandena.
+Betongväggarna med fasadsten väger cirka 8–11 kN/m. De största trycken ligger vid de yttre hörnen, där hörnstolparna på plan 1 och LD4_2 står. Där räcker inte S200, och under kantbalken läggs S300 1,0 m åt båda håll från hörnet. Utanför hörnen räcker S200 i båda utförandena.
 
-Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.vagg mm vid väggarna. Väggarna sätter sig alltså cirka #P3.w.skillnad mm mer än rören, och det mesta av skillnaden är Lecans krympning och krypning. Krympningen ensam ger högst #P3.svinn kNm/m i mellanbjälklaget. Effekten finns med i kontrollen i @samverkan.
+Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.vagg mm vid väggarna. Väggarna sätter sig alltså cirka #P3.w.skillnad mm mer än rören. Kärnans krympning ensam ger högst #P3.svinn kNm/m i mellanbjälklaget. Effekten finns med i kontrollen i @samverkan.
 
 *Plattan på mark på plan 1* (K-05, 400 mm S100): största tryck är #P3.mark.uls kPa mot $f_d$ = #P3.mark.fdM kPa i brottgränstillstånd och #P3.mark.qp kPa långtid mot #P3.mark.kryp kPa, alltså #P3.mark.utn. S100 räcker där. Tjockleken bestäms av värmeisoleringen, inte av tryckklassen.
 
@@ -258,14 +302,14 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 #figure(placement: auto,
   image("../fig_bottenplatta.svg", width: 88%),
-  caption: [Bottenplattan, utförande L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, och diagonaljärn vid inåtgående hörn.],
+  caption: [Bottenplattan, utförande L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, S300 vid de yttre hörnen och diagonaljärn vid inåtgående hörn.],
 ) <fig-platta>
 
 - *Platta 100 mm:* största moment utanför balkar och plintar, minst $d$ = #P3.falt.d mm från dem, är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m). Närmare balkarna är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående hörn mellan balkarna (#P3.falt.topp kNm/m precis vid kanten). Toppen är en singularitet i FE-lösningen och avtar inom några centimeter; nätet går in i balkarna och tar momentet där.
 - *Kantbalkar:* balkmoment (plattans moment integrerat över 450 mm) högst #P3.kant.Ms kNm i underkant och #P3.kant.Mh kNm i överkant. 2 Ø10 i under- och överkant ger $M_"Rd"$ = #P3.kant.MRd / #P3.kant.MRo kNm (#P3.kant.utnM).
   - Tvärkraft högst #P3.kant.V kN, #P3.kant.utnV av $V_"Rd,c"$. Ingen tvärkraftsarmering behövs.
   - U-byglar Ø6 s600 håller längsjärnen på plats. Balken är en förtjockning av en platta på bädd, så minimiarmering för byglar behövs inte (6.2.1(4)).
-  - Urtaget och stolparnas fickor sänker kantbalkens överkant 50 mm under väggen. Kantbalken räknas därför med 50 mm lägre höjd ($d$ = #P3.kant_d.uk mm i underkant och #P3.kant_d.ok mm i överkant för L300), och överkantsjärnen ligger under urtaget.
+  - Startjärnen till väggen bockas in längs balkens underkant (@fig-det[figur]).
 - *Balkar under innerväggarna* (@fig-lokala[figur]): #P3.inre.utnM av samma armering, tvärkraft #P3.inre.utnV.
 - *Plintar* (@fig-lokala[figur]): Ø8 s150 i underkant i båda riktningarna. Lastytan är fotplåtens effektiva yta, #P3.plint.beff × #P3.plint.beff mm (SS-EN 1993-1-8 6.2.5 med $f_"jd" = 2 f_"cd"$). Genomstansning räknas med hela rörlasten, utan avdrag för cellplastens tryck innanför snittet:
   - i plinten enligt 6.4.4, snitt från 0,5$d$ till 2$d$ som ligger inom plinten ($d$ = #P3.plint.d mm): högst #P3.plint.stans (#P3.plint.namn);
@@ -283,37 +327,34 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 #figure(placement: auto,
   image("../fig_lokala.svg", width: 100%),
-  caption: [Lokal armering och infästningar, L300, ungefär skala 1:20. Mått i mm. a) Plint under rör. b, c) Stålstolpe vid yttervägg mot jord: topp med glidförband och fot i ficka. d) Balk under innervägg. Kantbalkens armering visas i @fig-detA[figur].],
+  caption: [Lokal armering, L300, ungefär skala 1:20. Mått i mm. a) Plint under rör. b) Balk under innervägg. c) Yttre hörn i plan. d) V3 mot V19/V20 i plan. Kantbalkens armering och väggens anslutningar visas i @fig-det[figur].],
 ) <fig-lokala>
-
 
 == Mellanbjälklaget och rören i samverkan <samverkan>
 
 Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K-05:s stödmoment vid väggändarna mindre, eftersom de är toppar från stela upplagslinjer. Lasterna fördelas också om något mellan rör och väggar.
-- *Böjning:* moment utjämnat över 250 mm mot K-05:s armering med tilläggsjärn ger #P3.topp.ok i överkant och #P3.topp.uk i underkant. Samma mått med K-05:s egen omhyllning ger #P3.topp.ok5 och #P3.topp.uk5. K-05:s armering räcker alltså även med sättningar och Lecans krympning.
-- *Rörlaster:* de blir högst #D.ror.max_kvot större än i K-05 (#D.ror.namn), för de lätt belastade rören #D.ror.okade (kN, samverkan / K-05). Genomstansningen i K-05 har stor marginal vid dessa rör. Största utnyttjande med armeringen 10 mm för lågt blir oförändrat #D.ror.lag (#D.ror.lag_namn).
-- *Väggarna:* lasten fördelas om mellan väggarna. De flesta får mindre last än med K-05:s stela upplagslinjer, medan V15, V17 och V19 får något mer. Kontrollen i @vert använder det största av de två.
+- *Böjning:* moment utjämnat över 250 mm mot K-05:s armering med tilläggsjärn ger #P3.topp.ok i överkant och #P3.topp.uk i underkant. Samma mått med K-05:s egen omhyllning ger #P3.topp.ok5 och #P3.topp.uk5. K-05:s armering räcker alltså även med sättningar och kärnans krympning.
+- *Rörlaster:* de blir högst #D.ror.max_kvot större än i K-05 (#D.ror.namn), för de lätt belastade rören #D.ror.okade (kN, samverkan / K-05). Genomstansningen i K-05 har stor marginal vid dessa rör. Största utnyttjande med armeringen 10 mm för lågt blir #D.ror.lag (#D.ror.lag_namn).
+- *Väggarna:* lasten fördelas om mellan väggarna. Väggar som får mer last än med K-05:s stela upplagslinjer: #D.vagglast.storre. Kontrollen i @vert använder det största av de två.
 
 == Glidning, tjäle och fukt
 
-- *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Kraften förs genom mellanbjälklaget och bottenplattan som skivor.
+- *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Räknas också packningstrycket blir det #D.glid.Fdk kN, #D.glid.utnk. Kraften förs genom mellanbjälklaget och bottenplattan som skivor. TG 2216 kräver att jordtrycket tas med i husets stabilitet när väggarna hålls av bjälklaget.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
-- *Fukt:* dränering och fuktskydd enligt @utfA och @utfB. Den åldringsbeständiga plastfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
+- *Fukt:* dränering och fuktskydd enligt @utf. Den åldringsbeständiga plastfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
 
 == L300 eller L400
 
-Båda utförandena klarar alla kontroller med samma armering. Skillnaden är cellplasten vid hörnet V2/V20, där LD4_2 står. Med L300 behövs S300 under kantbalken där, 1,0 m åt båda håll (#P3.eps_3.utn). Med L400 räcker S200, eftersom den högre balken sprider lasten bättre (medel #P4.eps_b.medel mot #P4.eps_b.fdM kPa). I övrigt ger L400 något lägre tryck på cellplasten men större moment i plattan vid övergången till balkarna. Sättningarna är lika. *L300 räcker, med S300 vid hörnet.* L400 kan väljas för värmeisoleringen men behövs inte för bärförmågan.
+Båda utförandena klarar alla kontroller med samma armering och samma S300 vid de yttre hörnen. L400 ger nästan samma tryck på cellplasten men större moment i plattan vid övergången till balkarna, och sättningarna är lika. *L300 räcker.* L400 kan väljas för värmeisoleringen men behövs inte för bärförmågan.
 
 = Utförande och kontroll
 
 1. Spräng och avjämna berget och lägg makadam. Lägg dränledningen runt huset innan cellplasten läggs.
-2. Lägg L-element, cellplast S200 under balkar och plintar och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan. Skär ur cellplasten för balkar och plintar. L300: under kantbalken vid hörnet V2/V20 ska cellplasten vara S300, 1,0 m åt båda håll.
-3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant och diagonaljärn. Gjut in fotplåtarna för rören i plintarna. Lägg golvvärmeslangarna.
-4. Gjut bottenplattan med urtag 50 mm under ytterväggarna och fickor för stålstolparna.
-5. Mura väggarna enligt system A eller B med armering i fogarna, ställ stålstolparna i fickorna och gjut igen dem, och mura det översta skiftet med U-block.
-6. Ställ rören, sätt stolparnas toppinfästning och gjut mellanbjälklaget (K-05) tillsammans med U-blocken.
-7. Slamma eller grunda väggarna utvändigt och sätt grundmursskiva eller Isodrän. Fyll tidigast när bjälklaget har härdat och murverket är minst 28 dygn, försiktigt och utan packning.
-8. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, urtagets höjd. Kontrollera under murning: armering i rätt fogar, skarvar och hörn.
+2. Lägg L-element, cellplast S200 under balkar och plintar och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan. Under kantbalken vid källarens yttre hörn ska foten vara S300, 1,0 m åt båda håll. Skär ur cellplasten för balkar och plintar.
+3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Gjut in fotplåtarna för rören i plintarna. Lägg golvvärmeslangarna.
+4. Gjut bottenplattan och rugga ytan under väggarna.
+5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.
+6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen #A.txt, de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.
 
 #v(6pt)
 #counter(heading).update(0)
@@ -329,6 +370,8 @@ Båda utförandena klarar alla kontroller med samma armering. Skillnaden är cel
   - fritt upplagd kvadratisk platta med lika moment: $lambda q L^2 slash m$ = #D.valid.l1 (exakt 24);
   - rektangel 2 : 1: #D.valid.l2 (Johansen #D.valid.l2x);
   - vågrät strimla inspänd i båda ändar: $lambda$ dividerat med den exakta lösningen $16 m slash (q L^2)$ = #D.valid.l3.
+- *Strimlan* ger för jämnt tryck 10 kPa över hela spännvidden $q L^2 slash 8$ = #D.valid.Ms kNm/m.
+- *Hållfasthetstillväxten:* $beta_"cc" (7)$ = #D.valid.b7 för cement i klass N, alltså $f_"ck" (7)$ = #D.valid.f7 MPa. Mognadsfaktorn vid 10 °C är #D.valid.m10, alltså ett dygn vid 10 °C motsvarar #D.valid.m10 dygn vid 20 °C.
 - *Sättning under balkarna* för hand: $w = sigma t slash E$ = #D.valid.sig kPa × 100 mm / #D.valid.Ed kPa = #D.valid.w_hand mm. FE-modellen ger högst #D.valid.w_fe mm.
 - *Jämvikt i den samverkande modellen:* summan av lasten är lika med reaktionen från cellplasten under bottenplattan och plattan på mark (kN): #D.jamvikt.map(r => [#r.namn #r.last = #r.R]).join(", ").
 #if D.nat != none [
