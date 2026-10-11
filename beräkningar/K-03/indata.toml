@@ -210,7 +210,7 @@ krav = { delar = 1, b = 140, h = 140, mat = "GL30h", text = "GL30h 140×140", z0
 namn = "LD4_2"
 sok = [4420, 10992]
 gamla = "G"
-krav = { delar = 5, b = 45, h = 95, mat = "C24", text = "5 st 45×95 C24", z0 = 43, z1 = 2361, stagad = "x" }
+krav = { delar = 4, b = 45, h = 95, mat = "C24", text = "4 st 45×95 C24", z0 = 43, z1 = 2361, stagad = "x" }
 [[stolpe]]
 namn = "LN5_1"
 sok = [2140, 8220]

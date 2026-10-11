@@ -15,7 +15,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 2. **Stolpe B (LD4_1): GL30h 140×140.** Delen `L2M 115x115` i gruppen `L2M`, x 4 417–4 532, y 5 798–5 913 (Onshape X −7 731…−7 616, Y 4 506–4 621), z 0–2 404. Gör den 140×140 med samma centrum (4 475; 5 855).
 
-3. **Stolpe LD4_2: 5 reglar.** Under dalbalk 4:s ände i gavelväggen `2SV`: `2SV vert [3]`, `[5]`, `[7]`, 3 st 45×95 vid x 4 370–4 505, y 10 945–11 040 (Onshape X −7 778…−7 643, Y 9 653–9 748). Lägg till två reglar 45×95 bredvid, vid x 4 325–4 370 och 4 505–4 550, så att det blir 5 st sida vid sida.
+3. **Stolpe LD4_2: 4 reglar.** Under dalbalk 4:s ände i gavelväggen `2SV`: `2SV vert [3]`, `[5]`, `[7]`, 3 st 45×95 vid x 4 370–4 505, y 10 945–11 040 (Onshape X −7 778…−7 643, Y 9 653–9 748). Lägg till en regel 45×95 bredvid, vid x 4 325–4 370 (Onshape X −7 823…−7 778), så att det blir 4 st sida vid sida, centrerade under balkänden. Flytta `2SV vert [1]` (x 4 245–4 290, Onshape X −7 903…−7 858) 35 mm så att den står tätt intill den nya, vid x 4 280–4 325 (Onshape X −7 868…−7 823).
 
 4. **Ny stolpe LN1_1 under nockbalk 1, stöd B.** Saknas helt. 4 st 45×95 sida vid sida, x 11 565–11 745, y 2 747–2 843 (Onshape X −583…−403, Y 1 455–1 551), z 0–3 645, från bjälklaget till balkens underkant. Den står i innerväggen vid y ≈ 2 795 (gipsskivor `gyp_w_3_ev4`) och sticker ut 25 mm på var sida om väggens 70 mm.
 

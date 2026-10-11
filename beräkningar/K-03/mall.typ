@@ -185,5 +185,5 @@ Alla delar klarar brott- och bruksgränstillståndet med utförandet nedan. Dela
 + Takfönster: kortlingar 45×170 c/c 600 ovanför och nedanför fönstret, burna av avväxlingar 45×170 mellan takbalkarna vid sidorna.
 + Takstolar: spikplåt 100×600×2,0 på båda sidor i fötterna och 100×400 i toppen, med ankarspik 4,0×40 enligt tabellen i avsnitt 4. Diagonalerna skruvas till takbalken ovanför innertaket c/c 600. Alla takstolar får toppklossar 45 mm, minst 600 mm långa, på båda sidor om toppen, skruvade enligt tabellen. Fötterna har minst det upplag på hammarbandet som tabellen anger.
 + Huvudstolpen LN1_3: 4 st 45×120 C24 med strävor 45×120 på båda sidor (dubbeltriangel) och en hel topregel över stolpen.
-+ Stolpe B (LD4_1): GL30h 140×140. LD4_2: 5 st 45×95 C24. Stöd B i nockbalk 1 (LN1_1): ny stolpe 4 st 45×95 C24 i väggen vid y ≈ 2 795. Den sticker ut 25 mm ur den 70 mm tjocka väggen.
++ Stolpe B (LD4_1): GL30h 140×140. LD4_2: 4 st 45×95 C24 sida vid sida, centrerade under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. Stöd B i nockbalk 1 (LN1_1): ny stolpe 4 st 45×95 C24 i väggen vid y ≈ 2 795. Den sticker ut 25 mm ur den 70 mm tjocka väggen.
 + Stolpar av flera reglar skruvas ihop. Alla stolpar förankras i topp och fot för lyftkraften i tabellen.
