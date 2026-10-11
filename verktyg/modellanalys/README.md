@@ -81,9 +81,9 @@ V, F = m.nat(platta)           # triangelnät
 | `vy.py` | 3D-rendering (pyvista/VTK, offscreen) |
 | `ritning.py` | 2D-snittritningar (matplotlib) |
 | `jamfor.py` | Jämförelse av en källfils data med modellens och redovisning av avvikelserna |
-| `kontroll_geometri05.py` | Kontroll av K-05:s `bild/geometri.json` (kontur, trapphål, Lecaväggar och upplagslinjer, rör, platta på mark, fria kanter) mot modellen |
+| `kontroll_geometri05.py` | Kontroll av K-05:s `bild/geometri.json` (kontur, trapphål, källarväggar och upplagslinjer, rör, platta på mark, fria kanter) mot modellen |
 | `kontroll_k03.py` | Kontroll av K-03:s `geometri.json` (takbalkar, takfönster, takstolar, stolpar, huvudstolpen) och K-05:s stolplägen mot modellen |
-| `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, Lecaväggar) och R-03.1:s måttkedjor mot modellen |
+| `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, källarväggar) och R-03.1:s måttkedjor mot modellen |
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
 | `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |
 | `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |

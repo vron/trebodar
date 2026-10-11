@@ -1,12 +1,12 @@
 # Lastgeometrin i F-01, K-01, K-05 och K-06 mot Onshape-modellen
 
-Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, Lecaväggar) kontrolleras av [`kontroll_r031.py`](../kontroll_r031.py).
+Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, källarväggar) kontrolleras av [`kontroll_r031.py`](../kontroll_r031.py).
 
 **Omfattning.** Den geometri som bestämmer lasterna: takvinkel, lastbredder, lastytor, höjder, utsprång, lägen för linjelaster och fyllnadshöjder mot källarväggarna. Stödens exakta lägen under nock- och dalbalkarna ingår inte, eftersom trästommen där inte är fullständigt modellerad. Koordinater som i K-05: x, y från skärningen mellan plattkanterna, z från bjälklagets överkant, mm.
 
 ## Sammanfattning
 
-Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-03 är modellens, exakt. Ytterväggarna på plan 1 står över Lecaväggens yttre skikt (figur). Kvar att stämma av:
+Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-03 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av:
 
 - **Plattan på mark:** handlingarna förutsätter 400 mm cellplast på fyllning upp till 1,7 m. Modellen är inte uppdaterad där och visar berget 75 mm under plattan.
 - **Bottenplattan i matkällaren:** K-06 räknar med bottenplatta i hela källaren. Modellen har ingen platta innanför V2, V15, V19 och V20, bara en remsa under väggarna.
@@ -50,7 +50,7 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 | Tjocklek | 150 mm | 150 mm | stämmer |
 | Trapphål | 2 070 × 828, hörn (7 348; 5 059,5) | samma | stämmer |
 | Rör P1–P19 | modellens lägen | samma | stämmer |
-| Lecaväggar V1–V21 | modellens centrumlinjer och ändar | samma | stämmer |
+| Källarväggar V1–V21 | modellens centrumlinjer och ändar | samma | stämmer |
 | Plattan på mark | 29,3 m² | samma | stämmer |
 | Trappans bredd | 0,83 m | hålets bredd 0,828 m (trappan inte modellerad) | stämmer |
 
@@ -59,7 +59,7 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|
 | Fri höjd, rörens längd | 2 100 mm | 2 100 mm, 19 rör | stämmer |
-| Lecaväggar | 350 mm, ytterliv 30 mm utanför plattkanten | samma | stämmer |
+| Källarväggar, Kub 350-150 | cellplast 100 + betongkärna 150 + cellplast 100, ytterliv 30 mm utanför plattkanten | samma (V14) | stämmer |
 | Golvyta för nyttig last | 133 m² (359 kN / 2,7) | 111,8 m² innanför väggarna | på säker sida |
 | Bottenplatta | 100 mm i hela källaren | ingen platta i matkällaren | stäm av |
 
@@ -67,7 +67,7 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 
 | Vägg | K-06 | Modell | Bedömning |
 |---|---|---|---|
-| V1 | 2,0 m | 1,31–1,56 m fyllning | på säker sida |
+| V1 | 1,8 m | 1,31–1,56 m fyllning | på säker sida |
 | V2 | 2,0 m | 1,51–1,83 m berg | på säker sida |
 | V3 | 1,7 m fyllning + 400 mm cellplast | 1,88–2,02 m berg | se plattan på mark |
 | V7 | 2,0 m | 1,51 m avsats | på säker sida |
@@ -75,10 +75,10 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 | V10–V13 (fasaden med öppningar) | 0,80 m | 0,80 m fyllning | stämmer |
 | V14 | 0,8 → 1,8 m | 0,84 → 1,18 m fyllning | på säker sida |
 | V16 | 2,0 m | 1,47 m berg | på säker sida |
-| V18 | 1,41 → 1,52 m | 1,41 → 1,50 m avsats | stämmer |
+| V18 | 2,0 m | 1,41–1,50 m avsats | på säker sida |
 | V20 | 1,7 m fyllning + 400 mm cellplast | 1,87 m berg | se plattan på mark |
-| V21 | 2,0 m | 0,92–1,39 m fyllning | på säker sida |
+| V21 | 2,0 m | 0,92–1,40 m fyllning | på säker sida |
 
 ## Inte granskat
 
-Stödlägen under nock- och dalbalkarna (trästommen är inte fullständigt modellerad där). Modellens rör är 140 × 140 platshållare; handlingarna har VKR 80×80×4. Lecaväggarnas skikt är i modellen ritade som 100 + 150 + 100 med kärnan i mitten, och tjocklek och läge stämmer med Leca Isoblokk 35.
+Stödlägen under nock- och dalbalkarna (trästommen är inte fullständigt modellerad där). Modellens rör är 140 × 140 platshållare; handlingarna har VKR 80×80×4. Väggarnas armering och fasadstenens infästning finns inte i modellen.

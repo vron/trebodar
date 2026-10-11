@@ -1,7 +1,8 @@
 """
 U-01: tvådimensionell transient värmeledning i sektion A–A genom källaren, finita volymer på rektangulärt nät.
 
-Modellen omfattar bottenplattan med cellplast, kantbalkar i L-element, plintar (som strimlor), Lecaväggarna,
+Modellen omfattar bottenplattan med cellplast, kantbalkar i L-element, plintar (som strimlor), källarväggarna
+(Kub 350-150: cellplast, betongkärna, cellplast),
 fyllningen och marken. Källarens luft och uteluften är randvillkor: rummets och uteluftens celler är inaktiva och
 ytorna mot dem får värmeövergång R_si respektive R_se. Golvvärmen ges som fast temperatur i slingornas lager.
 
@@ -14,7 +15,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spl
 
 DAG = 86400.0
-MAT = ("mark", "makadam", "betong", "cellplast", "leca")
+MAT = ("mark", "makadam", "betong", "cellplast")
 RUM, UTE = -1, -2
 MAN = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)   # första dagen i varje månad, dag 0 = 1 jan
 
@@ -57,7 +58,7 @@ def geometri(P):
     xv, xo = P["xc_v"] - tv / 2, P["xc_o"] + tv / 2          # väggarnas ytterliv
     xiv, xio = xv + tv, xo - tv                               # väggarnas insida
     hp, te, hb, tf = P["h_platta"], P["t_eps"], P["h_balk"], P["t_fot"]
-    bb, tb, ur, tm = P["b_balk"], P["t_ben"], P["urtag"], P["t_makadam"]
+    bb, tb, tm = P["b_balk"], P["t_ben"], P["t_makadam"]
     zf, zk = -(hp + te), -(hb + tf)                           # cellplastens underkant i fält och under balkar
     zmin = min(zf, zk)
     D = [("makadam", xv - tb, xo + tb, zmin - tm, 0.0)]
@@ -67,11 +68,11 @@ def geometri(P):
     D += [("cellplast", xv - tb, xv, -hb, 0.0), ("cellplast", xo, xo + tb, -hb, 0.0)]   # L-elementets ben
     for _, xc, b in P["plint"]:
         D += [("betong", xc - b / 2, xc + b / 2, -hb, 0.0), ("cellplast", xc - b / 2, xc + b / 2, zk, -hb)]
-    for x0, s in ((xv, 1), (xo, -1)):                         # väggarna, från urtaget till bjälklaget
-        lager = [(0, t1, "leca"), (t1, t1 + t2, "cellplast"), (t1 + t2, tv, "leca")]
+    for x0, s in ((xv, 1), (xo, -1)):                         # väggarna, från kantbalken till bjälklaget
+        lager = [(0, t1, "cellplast"), (t1, t1 + t2, "betong"), (t1 + t2, tv, "cellplast")]
         for a, b, m in lager:
             xa, xb = sorted((x0 + s * a, x0 + s * b))
-            D.append((m, xa, xb, -ur, P["h_rum"]))
+            D.append((m, xa, xb, 0.0, P["h_rum"]))
     g = dict(xv=xv, xo=xo, xiv=xiv, xio=xio, zf=zf, zk=zk, zmin=zmin, zfolie=-(hp + te / 2), B=xo - xv,
              gv=(xiv + P["golvvarme_kant"], xio - P["golvvarme_kant"], -P["golvvarme_z"]))
     return D, g

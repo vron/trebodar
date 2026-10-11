@@ -70,7 +70,7 @@ behallare = "Container eller storsäck"
 behandling = "Materialåtervinning"
 [[nybygge]]
 fraktion = "Mineral"
-avfall = "Spill av betong, Leca-block och sten"
+avfall = "Spill av betong och sten"
 behallare = "Container"
 behandling = "Återvinning eller deponi"
 [[nybygge]]
@@ -78,6 +78,11 @@ fraktion = "Metall"
 avfall = "Armering, plåt- och stålspill"
 behallare = "Container eller storsäck"
 behandling = "Materialåtervinning"
+[[nybygge]]
+fraktion = "Cellplast"
+avfall = "Spill av cellplast från väggelementen (Kub) och markisoleringen"
+behallare = "Storsäck"
+behandling = "Materialåtervinning av ren cellplast, annars energiåtervinning"
 [[nybygge]]
 fraktion = "Plast"
 avfall = "Byggfolie och spill av plastfolie"

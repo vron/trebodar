@@ -50,7 +50,7 @@ Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och in
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
 - 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, med åldringsbeständig plastfolie mellan skikten;
 - kantbalkar #s.h_balk mm i L-element, och plintar med samma höjd, båda på 100 mm S200;
-- Lecaväggar 100 + 150 + 100 som står i ett urtag i kantbalken;
+- källarväggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100), gjutna direkt på kantbalken;
 - makadam på berg.
 
 Modellen är tvådimensionell. Huset blir då oändligt långt, och plintarna blir balkar längs hela huset. Båda delarna ger varmare mark under plattan än i verkligheten. Källaren är ungefär 14 × 12 m, så värmen leds bort åt alla fyra sidor, och plintarna är bara 0,6–1,2 m stora.
@@ -59,9 +59,8 @@ Modellen är tvådimensionell. Huset blir då oändligt långt, och plintarna bl
   columns: (auto, auto, auto, 1fr),
   align: (left, right, right, left),
   [Material], [λ (W/mK)], [ρc (MJ/m³K)], [Underlag],
-  [Betong], [#r.mat.betong.lam], [#r.mat.betong.rc], [SS-EN ISO 10456, 2 300 kg/m³],
-  [Cellplast S100, S200], [#r.mat.cellplast.lam], [#r.mat.cellplast.rc], [Deklarerat 0,033–0,036. Högre värde för fuktig miljö under plattan],
-  [Leca, blockets skal], [#r.mat.leca.lam], [#r.mat.leca.rc], [Lättklinkerbetong 650 kg/m³, fuktig],
+  [Betong (plattor och väggarnas kärna)], [#r.mat.betong.lam], [#r.mat.betong.rc], [SS-EN ISO 10456, 2 300 kg/m³],
+  [Cellplast (S100, S200, väggarnas EPS 120)], [#r.mat.cellplast.lam], [#r.mat.cellplast.rc], [Deklarerat 0,033–0,036 (Kub: 0,035). Högre värde för fuktig miljö],
   [Makadam], [#r.mat.makadam.lam], [#r.mat.makadam.rc], [Dränerad. Lågt värde],
   [Fyllning och mark], [#r.mat.mark.lam], [#r.mat.mark.rc], [SS-EN ISO 13370 tabell 7, sand och grus. Huset står på berg (3,5), se @kansl],
 )

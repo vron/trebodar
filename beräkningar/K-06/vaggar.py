@@ -400,15 +400,16 @@ def bygg_ovriga(dim, arm, t, s=0.25):
     MR = MRd(A, d, fck)
     V = max(dim["Rb"], dim["Rt"])
     VR = VRdc(A, d, fck)
-    # skarven i toppen: momentet där skarven börjar (I.SKARV under bjälklagets underkant), utan toppmomentet
+    # skarven i toppen: vinkeljärnets lodräta ben (I.VINKEL["ned"] från benet under överkantsnätet) mot väggens
+    # lodräta järn; momentet där skarven börjar, utan toppmomentet
     sk = strimla(dim["hf"], *dim["_ytlast"], 0.0)
-    y_sk = (I.H_VAGG - I.SKARV) / 1000
+    y_sk = (I.H_VAGG + I.H_MB - 46 - I.VINKEL["ned"]) / 1000
     Msk = float(np.interp(y_sk, sk["ys"], sk["Mlinje"]))
     sig = Msk * 1e6 / (A * 0.9 * d)
     lb = dia / 4 * sig / fbd(fctm_t(t, s=s), eta1=1.0)
     fctd = 0.7 * fctm_t(t, s=s) / GC
     f18 = fog(dim["V18"], 0.0, A, fctd, fck / GC)
-    return dict(t=t, fck=fck, utn_M=M / MR, utn_V=V / VR, utn_lb=lb / (I.SKARV / 1.5), utn_fog=f18["utn"], sig=sig)
+    return dict(t=t, fck=fck, utn_M=M / MR, utn_V=V / VR, utn_lb=lb / (I.VINKEL["ned"] / 1.5), utn_fog=f18["utn"], sig=sig)
 
 
 def tid(krav, s=0.25, t0=3.0):

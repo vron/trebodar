@@ -61,7 +61,7 @@ Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet
 - *Tak:* bandtäckt plåt på råspont. Takbalkar 45×170 C24 c/c 600 spänner mellan nock- och dalbalkar av limträ med stålplåtar (K-01). I gavlarna och i husets mitt bärs nockbalkarna av triangulerade takstolar.
 - *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor. Skivverkan stabiliserar huset mot horisontella laster. Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar och limträ, bland dem huvudstolpen med strävor på båda sidor under nockbalk 1 (K-03).
 - *Bjälklag:* platsgjuten armerad betongplatta, #r.bj.t mm, över källaren.
-- *Källare och grund:* ytterväggar av armerade Leca-block 350 mm. Inne i källaren bärs bjälklaget av pelare av fyrkantsrör i stål, svetsade mot ingjutna plåtar i bottenplattan och ingjutna i bjälklaget. Bottenplatta av betong på dränerande grus på sprängd berggrund.
+- *Källare och grund:* väggar av Sundolitt Kub 350-150: en armerad betongkärna, 150 mm, gjuten i kvarsittande form av cellplast, 100 mm på var sida (K-06). Inne i källaren bärs bjälklaget av pelare av fyrkantsrör i stål, svetsade mot ingjutna plåtar i bottenplattan och ingjutna i bjälklaget. Bottenplatta av betong på dränerande grus på sprängd berggrund.
 
 = Regelverk och klasser
 

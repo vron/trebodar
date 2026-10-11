@@ -416,8 +416,8 @@ def etiketter(v, lst, x, y0, dy, sz=6.8):
 
 def sektion_a():
     """A–A: yttervägg mot jord (V14), Kub 350-150, och bjälklagets kant. x = 0 i väggens ytterliv, inåt positivt;
-    y = 0 i plattans underkant. 1:10"""
-    v = Vy(x=24, y=96, w=165, h=152, skala=10, X0=-430, Y1=330)
+    y = 0 i plattans underkant. 1:20"""
+    v = Vy(x=24, y=86, w=165, h=112, skala=20, X0=-450, Y1=380)
     hf = 0.8 + 1.0 * (8000.0 - 1145.0) / 11220.0                     # fyllningen vid snittet (K-06), m
     ym = hf * 1000 - H_VAGG                                          # markytan
     ylo = -1250.0
@@ -449,22 +449,20 @@ def sektion_a():
         v.matt((e, ylo + 60), (e + k, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(k))
         v.matt((e + k, ylo + 60), (350, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(KUB[2]))
         v.matt((0, H), (VAGG_UTE, H), 2.0, sz=5.8, txt=sv(VAGG_UTE))
-        v.matt((xa, yb), (xa + POS14["in_"], yb), 4.0, sz=5.8, txt=sv(POS14["in_"]))
-        v.matt((xa, yb - POS14["ben"]), (xa, yb), 4.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
-        v.matt((520, H_GJUT1 - H_VAGG), (520, 0), 3.0, sida=-1, sz=5.8, txt=sv(H_VAGG - H_GJUT1))
+        v.matt((xa, yb), (xa + POS14["in_"], yb), 3.0, sz=5.8, txt=sv(POS14["in_"]))
+        v.matt((xa, yb - POS14["ben"]), (xa, yb), 3.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
+        v.matt((420, H_GJUT1 - H_VAGG), (420, 0), 2.5, sida=-1, sz=5.8, txt=sv(H_VAGG - H_GJUT1))
     etiketter(v, [("Ø8 s150, överkant", (1250, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
-                  (f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, {POS14['ben']} + {POS14['in_']}, under nätet",
-                   (xa + 300, yb), 14),
+                  (f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, under nätet", (xa + 300, yb), 14),
                   ("Ø10 s150, underkant", (1100, YU2), 2), ("Ø10 s150, underkant", (1000, YU1), 1),
-                  ("kantisolering 30; plattan går 70 mm ut över cellplasten", (15, 60), None),
-                  ("kärnan och bjälklaget gjuts samtidigt (K-06)", (e + k / 2, -150), None),
-                  ("Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100 (K-06)", (e + 40, -500), None),
-                  (f"väggens lodräta järn Ø10 s{POS14['s']} på insidan, upp till nätet (K-06)",
-                   (X_LODRAT, -750), None),
-                  ("gjutfog: väggarnas första gjutning slutar 300 under bjälklaget (K-06)", (e + 20, -300), None),
-                  ("fasadsten och fyllning (K-06, AR-01)", (-35, -500), None)], 1480, 300, 4.6)
+                  ("kantisolering 30", (15, 60), None),
+                  ("kärnan gjuts med bjälklaget (K-06)", (e + k / 2, -150), None),
+                  ("gjutfog 300 under bjälklaget (K-06)", (e + 20, -300), None),
+                  ("Kub 350-150, betongkärna 150 (K-06)", (e + 40, -500), None),
+                  (f"väggens lodräta järn Ø10 s{POS14['s']} (K-06)", (X_LODRAT, -750), None),
+                  ("fasadsten (AR-01), fyllning (K-06)", (-35, -600), None)], 1500, 340, 4.4)
     with v.lager("rubrik"):
-        v.rubrik(-400, ylo - 120, "SEKTION A–A  Yttervägg mot jord (V14)", skala=10, sz=9)
+        v.rubrik(-400, ylo - 180, "SEKTION A–A  Yttervägg mot jord (V14)", skala=20, sz=9)
     return v
 
 
@@ -502,7 +500,7 @@ def sektion_b():
 
 def sektion_c():
     """C–C: trapphålets kant. x = 0 i hålkanten, y = 0 i underkant. 1:10"""
-    v = Vy(x=140, y=96, w=184, h=40, skala=10, X0=-160, Y1=250)
+    v = Vy(x=24, y=212, w=165, h=40, skala=10, X0=-160, Y1=250)
     platta_snitt(v, 0, 700, "y", kant0=True)
     with v.lager("text"):
         v.text(-30, H / 2, "trapphål", a="rm", sz=6.6, col="gra", i=True)
@@ -531,8 +529,8 @@ def sektion_d():
     return v
 
 
-def detalj_f():
-    """F: armeringens lägen i plattan. x längs plattan, y = 0 i underkant. 1:5"""
+def detalj_e():
+    """E: armeringens lägen i plattan. x längs plattan, y = 0 i underkant. 1:5"""
     v = Vy(x=196, y=210, w=128, h=55, skala=5, X0=-190, Y1=215)
     B_ = 300
     with v.lager("betong"):
@@ -552,7 +550,7 @@ def detalj_f():
     etiketter(v, [("Ø8, lager 1", (270, H - C_OK - DO / 2), 11), ("Ø8, lager 2", (150, YO2), 12),
                   ("Ø10, lager 2", (225, YU2), 2), ("Ø10, lager 1", (270, C_UK + DU / 2), 1)], 345, 175, 4.6)
     with v.lager("rubrik"):
-        v.rubrik(-180, -60, "DETALJ F  Armeringens lägen", skala=5, sz=9)
+        v.rubrik(-180, -60, "DETALJ E  Armeringens lägen", skala=5, sz=9)
     return v
 
 
@@ -726,7 +724,7 @@ def blad_ok():
 
 
 def blad_sektioner():
-    vyer = [sektion_a(), sektion_b(), sektion_d(), sektion_c(), detalj_f()]
+    vyer = [sektion_a(), sektion_b(), sektion_d(), sektion_c(), detalj_e()]
     block = [dict(x=196, y=160, w=128, innehall=[
         dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning(),
         dict(typ="text", sz=6.4, rader=[

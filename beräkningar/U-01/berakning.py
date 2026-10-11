@@ -151,8 +151,8 @@ for _f in sorted(FONTS.glob("*.ttf")) if FONTS.is_dir() else []:
 plt.rcParams.update({"font.family": "Carlito", "font.size": 7.5, "svg.fonttype": "none", "axes.linewidth": 0.5,
                      "hatch.linewidth": 0.35, "xtick.major.width": 0.5, "ytick.major.width": 0.5})
 INK, BLA, ROD = "#1e1e1e", "#2c4a6e", "#b5463a"
-FARG = dict(mark="#efe6d2", makadam="#c7c2b8", betong="#d4d2cc", cellplast="#dde6f0", leca="#b9b3a9")
-VISA = dict(mark="Fyllning och mark", makadam="Makadam", betong="Betong", cellplast="Cellplast", leca="Leca")
+FARG = dict(mark="#efe6d2", makadam="#c7c2b8", betong="#d4d2cc", cellplast="#dde6f0")
+VISA = dict(mark="Fyllning och mark", makadam="Makadam", betong="Betong", cellplast="Cellplast")
 CM = 1 / 2.54
 
 
@@ -232,7 +232,7 @@ def rita_sektion(path, m):
         xx = xv + P["b_balk"] - 0.04
         ax.annotate("", (xx, z0), (xx, z1), arrowprops=dict(arrowstyle="<->", lw=0.4, color=INK, shrinkA=0, shrinkB=0))
         ax.text(xx - 0.012, (z0 + z1) / 2, s, ha="right", va="center", fontsize=6.3)
-    etik = [("Leca Isoblokk 35", (xv + 0.05, 0.25), (xv - 0.42, 0.33)),
+    etik = [("Kub 350-150", (xv + 0.175, 0.25), (xv - 0.42, 0.33)),
             ("fyllning", (xv - 0.35, 0.05), (xv - 0.42, 0.18)),
             ("L-element: ben och fot\ncellplast 100", (xv - 0.08, -0.25), (xv - 0.62, -0.42)),
             ("makadam på berg", (xv + 0.6, g["zf"] - 0.08), (xv + 0.2, -0.56)),

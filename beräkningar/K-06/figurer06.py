@@ -293,8 +293,10 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     ax.plot([k0, k1], [I.H_GJUT1] * 2, color=INK, lw=0.7, ls=(0, (3, 1.5)), zorder=6)
     # järn
     ax.plot([x_v, x_v], [30, gap[0] - 15], color=FRI, lw=0.9, zorder=6)
-    ax.plot([x_v, x_v], [gap[1] + 15, H - 30], color=FRI, lw=0.9, zorder=6)
-    ax.plot([x_v - 14, x_v - 14, 760], [H - 600, H + hm / 2, H + hm / 2], color=FRI, lw=0.9, zorder=6)
+    yv = H + hm - 25 - 16 - 5                            # vinkeljärnets vågräta ben, under överkantsnätet
+    ax.plot([x_v, x_v], [gap[1] + 15, yv + 3], color=FRI, lw=0.9, zorder=6)
+    ax.plot([x_v - 14, x_v - 14, x_v - 14 + I.VINKEL["in_"]], [yv - I.VINKEL["ned"], yv, yv], color=FRI, lw=0.9,
+            zorder=6)
     ax.plot([x_s + 330, x_s, x_s], [yb + 30, yb + 30, gap[0] - 15], color=FRI, lw=0.9, zorder=6)
     # mellanbjälklaget och kantisoleringen; den yttre cellplasten i översta skiftet slutar i bjälklagets underkant
     ax.add_patch(Polygon([(I.KI, H), (1750, H), (1750, H + hm), (I.KI, H + hm)], closed=True, fc=BETONG, ec=INK,
@@ -334,13 +336,14 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     ax.plot([xi + 13, 1190], [I.H_GJUT1] * 2, color=INK, lw=0.3)
     dia, s = arm
     lst = [("mellanbjälklag 150 (K-05), gjuts med det översta halva skiftet", (1200, H + hm - 70), (1300, H + hm + 230)),
-           (f"vinkeljärn Ø{dia} s{s} till bjälklaget, 600 + 500", (700, H + hm / 2), (900, H + 330)),
+           (f"vinkeljärn Ø{dia} s{s} till bjälklaget, {sv(I.VINKEL['ned'])} + {sv(I.VINKEL['in_'])}, under nätet",
+            (600, yv), (900, H + 330)),
            ("kantisolering 30; bjälklaget går 70 mm ut över cellplasten", (15, H + hm / 2), (-300, H + hm + 120)),
            ("ytterväggen på plan 1, centrum 52,5 mm utanför kärnan", (xc, H + hm + 200), (-250, H + hm + 290)),
            ("fasadsten 40 mm på armeringsbruk (AR-01)", (-35, 2150), (-450, 2280)),
            ("gjutfog: de tre hela skiften gjuts först, 1 800", (k0 + 20, I.H_GJUT1), (-300, 1820)),
            ("Sundolitt Kub 350-150: cellplast 100 + betong 150 + cellplast 100", (k0 + 75, 1600), (-400, 1600)),
-           (f"lodräta järn Ø{dia} s{s} på insidan, hela höjden", (x_v, 1550), (900, 1650)),
+           (f"lodräta järn Ø{dia} s{s} på insidan, upp till bjälklagets överkantsnät", (x_v, 1550), (900, 1650)),
            ("2 Ø10 per skift, ett vid var yta (s600; s300 i de två översta)", (xs_h[1], 1475), (900, 1420)),
            ("gips 13 mm, ingen ångspärr", (xi + 7, 1150 - 500), (900, 650)),
            (f"startjärn Ø{I.STARTJARN['d']} s{I.STARTJARN['s']} på utsidan, 500 i kantbalken, 1 200 upp",

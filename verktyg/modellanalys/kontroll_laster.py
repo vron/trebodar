@@ -186,7 +186,7 @@ if hm is not None:
         "stämmer" if max(abs(x0 - hx0), abs(y0 - hy0)) < 0.05 else f"storlek stämmer, läget {x0 - hx0:+.1f} / {y0 - hy0:+.1f} mm")
 markplatta = Polygon(G05["mark"])
 rad("Bjälklag", "plattan på mark (utan källare under)", f"{markplatta.area / 1e6:.1f} m² (K-05: 29,3 m²)",
-    "Lecaväggarna V3/V20 inom 5 mm från K-05", "stämmer")
+    "källarväggarna V3/V20 inom 5 mm från K-05", "stämmer")
 rad("Bjälklag", "trappan", "3,0 m lång, 0,83 m bred (K-05)", f"hålets bredd {(hm.bounds[3] - hm.bounds[1]) / 1000:.3f} m; "
     "trappan finns inte i modellen", "bredden stämmer")
 pel = [d for d in m.delar if d.namn.startswith("K Pillar")]
@@ -198,8 +198,17 @@ vg = plansnitt(-2000, "Bkärna,Isoskal")
 bp = plansnitt(-2400, "Bottenplatta")
 kallare = unary_union([Polygon(g.exterior) for g in getattr(bp, "geoms", [bp])])   # matkällaren fylls i
 golv = kallare.difference(vg)
-rad("Källare", "Lecaväggarnas tjocklek", "350 mm (100 + 150 + 100)", "350 mm, ytterliv 30 mm utanför plattkanten",
-    "stämmer")
+# källarväggarnas skikt: vågrät linje genom V14 vid y = 6 000, 1 m under bjälklaget
+_c14 = G05["vagg"][13][1]
+_sk = [(t0, t1, d.namn) for t0, t1, d, *_ in linjeprob(m, m.valj("Bkärna,Isoskal"),
+                                                     np.array([_c14 - 400, 6000, -1000]) + O,
+                                                     np.array([_c14 + 400, 6000, -1000]) + O)]
+_skikt = " + ".join(f"{('betongkärna' if n.startswith('Bkärna') else 'cellplast')} {t1 - t0:.0f}" for t0, t1, n in _sk)
+_ut = _c14 - 400 + max(t1 for _, t1, _ in _sk) - G05["kontur"][4][0]
+_ok = [round(t1 - t0) for t0, t1, _ in _sk] == [100, 150, 100] and abs(_ut - K06.KI) < 0.5
+rad("Källare", "källarväggarna, Kub 350-150 (V14)", f"cellplast 100 + betongkärna 150 + cellplast 100, ytterliv "
+    f"{K06.KI:g} mm utanför plattkanten (K-05, K-06)", f"{_skikt}, ytterliv {_ut:.1f} mm utanför plattkanten",
+    "stämmer" if _ok else "AVVIKER")
 rad("Källare", "golvyta för nyttig last", "359 kN / (2,0 + 0,7) = 133 m² (K-06)",
     f"{golv.area / 1e6:.1f} m² innanför väggarna", "K-06 på säker sida")
 rad("Källare", "bottenplatta i matkällaren", "platta 100 mm i hela källaren (K-06)",
@@ -283,7 +292,7 @@ def rita_vaggens_lage(ut):
         ax.set_xlim(*lim); ax.set_ylim(-1100, 1300); ax.set_aspect("equal"); ax.grid(lw=0.3)
         ax.set_title(f"{titel} (snitt y = {y:.1f})", fontsize=9)
         ax.set_xlabel("x (mm, K-05)"); ax.set_ylabel("z (mm från bjälklagets ök)")
-    fig.suptitle("Ytterväggens läge på plan 1: stommen står över Lecans yttre skikt och 30 mm ut över plattkanten",
+    fig.suptitle("Ytterväggens läge på plan 1: stommen står över källarväggens yttre cellplast och 30 mm ut över plattkanten",
                  fontsize=10)
     fig.tight_layout()
     fig.savefig(ut, dpi=150)

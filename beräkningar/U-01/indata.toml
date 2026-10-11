@@ -28,11 +28,11 @@ utforande   = "L300"    # cellplast och kantbalk enligt K-06, se [utforande]
 # Plintarnas sida (mm) under rören enligt K-06. Plintar som sektionen skär räknas som strimlor längs huset.
 [plintar]
 P1 = 1100
-P2 = 1200
-P3 = 1000
+P2 = 1100
+P3 = 1100
 P4 = 1100
 P5 = 1200
-P6 = 800
+P6 = 700
 P7 = 1100
 P8 = 1000
 P9 = 800
@@ -43,7 +43,7 @@ P13 = 600
 P14 = 700
 P15 = 1100
 P16 = 1000
-P17 = 1100
+P17 = 1200
 P18 = 1200
 P19 = 1000
 
@@ -59,19 +59,17 @@ h_platta    = 100       # bottenplatta i fält
 t_fot       = 100       # cellplast S200 under kantbalk och plintar (L-elementets fot)
 b_balk      = 450       # kantbalkens bredd innanför väggens ytterliv
 t_ben       = 100       # L-elementets yttre ben
-urtag       = 50        # väggen står 50 mm under plattans överkant
 t_makadam   = 150
 golvvarme_z = 50        # slingornas centrum under plattans överkant (modellen)
 golvvarme_kant = 150    # slingorna börjar så långt från väggens insida
 
 [vagg]
-skikt       = [100, 150, 100]   # Leca, cellplast, Leca (Leca Isoblokk 35)
+skikt       = [100, 150, 100]   # cellplast, betongkärna, cellplast (Sundolitt Kub 350-150, K-06)
 
 # λ och ρc. Värden på säker sida: hög λ för cellplasten och låg λ för marken ger varmare mark under plattan.
 [material]
 betong      = [1.7, 2.1]    # SS-EN ISO 10456, 2 300 kg/m³
 cellplast   = [0.040, 0.04] # S100/S200 i fuktig miljö under plattan (deklarerat 0,033–0,036)
-leca        = [0.30, 0.65]  # lättklinkerbetong 650 kg/m³, fuktig
 makadam     = [0.7, 1.5]    # dränerad makadam, låg λ
 mark        = [2.0, 2.0]    # sand och grus, SS-EN ISO 13370 tabell 7 (berg: 3,5)
 

@@ -3,7 +3,7 @@ Kontroll av mellanbjälklagets geometri i K-05 och R-03 (bild/geometri.json) mot
 
     ./.venv/bin/python kontroll_r031.py
 
-Jämför plattans kontur, trapphålet, rören, Lecaväggarna och de fria kanterna i geometri.json – underlaget för
+Jämför plattans kontur, trapphålet, rören, källarväggarna och de fria kanterna i geometri.json – underlaget för
 K-05, K-06 och ritningarna R-03 – med modellen, och R-03.1:s måttkedjor (lägen som i R-03/ritningar.py) med
 modellens hörn. K-05-koordinater: origo i skärningen mellan plattkanterna x = 0 och y = 0.
 geometri.json är K-05:s egen källfil (se kontroll_geometri05.py); avvikelser här betyder att modellen och
@@ -73,12 +73,12 @@ for i, (x, y) in enumerate(G["pelare"], 1):
     j = int(np.argmin(np.hypot(mitt[:, 0] - x, mitt[:, 1] - y)))
     rad(f"rör P{i}", [x, y], [round(v, 3) for v in mitt[j]])
 
-# Lecaväggarnas centrumlinjer (tvärs mitt på väggen, 1 m under bjälklaget)
-LECA = m.valj("Bkärna,Isoskal")
+# källarväggarnas centrumlinjer (tvärs mitt på väggen, 1 m under bjälklaget)
+VAGG = m.valj("Bkärna,Isoskal")
 for i, (ax_, c, a, b_, *_) in enumerate(G["vagg"], 1):
     s = (a + b_) / 2
     p1, p2 = ((s, c - 400, -1000), (s, c + 400, -1000)) if ax_ == "h" else ((c - 400, s, -1000), (c + 400, s, -1000))
-    seg = linjeprob(m, LECA, np.array(p1) + O, np.array(p2) + O)
+    seg = linjeprob(m, VAGG, np.array(p1) + O, np.array(p2) + O)
     lo, hi = c - 400 + min(t0 for t0, *_ in seg), c - 400 + max(t1 for _, t1, *_ in seg)
     rad(f"vägg V{i} centrum", round(c, 3), round((lo + hi) / 2, 3))
 
