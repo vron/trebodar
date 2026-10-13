@@ -192,7 +192,9 @@ def elevation(k, ytopp):
     with v.lager("stod"):
         for st in b["stod"]:
             if st["vagg"]:
-                v.rekt(st["vagg"][0], -NIV["stod"] * s, st["vagg"][1], 0, fyll="#e3e0d8", stil="tunn")
+                x0, x1 = st["vagg"]                      # vägg: skraffering under balken, som ett fast underlag
+                v.rekt(x0, -NIV["stod"] * s, x1, -0.15 * s, fyll="stodyta", stil=None)
+                v.linje([(x0, -0.15 * s), (x1, -0.15 * s)], "normal")
             else:
                 stodsymbol(v, st["x"])
     # ---- snitt
@@ -328,8 +330,8 @@ def sektion_a():
                   ("streckat: skruv i den\nandra raden", (r1 + 3, H - 45)),
                   (f"limträ {TR['kvalitet']} 200×170", (178, 120)),
                   ("mittraden (100) där skruv-\nzonen har tre rader (DB4)", (RADER3[1], 95)),
-                  (f"skruv {SK['produkt'].split(' ', 1)[1]} i varje\nhål, hål Ø{SK['hal']:g} i plåten,\n"
-                   f"förborrning Ø{SK['forborr']:g} i limträet", (B - r0 + 4, 45)),
+                  (f"skruv {SK['produkt'].split(' ', 1)[1]} eller\nlikvärdig i varje hål, hål Ø{SK['hal']:g}\n"
+                   f"i plåten, förborrning i limträet", (B - r0 + 4, 45)),
                   ("underplåt 200×10 S355J2+N", (178, 4))], B + 44, H + 25, 13.4)
     with v.lager("rubrik"):
         v.rubrik(-15, -48, "SEKTION A–A  Med plåt", skala=2.5, sz=9)
@@ -482,7 +484,7 @@ def blad_elevationer():
             dict(form="linje", stil="plat", text="plattstål 200×10, över- och underplåt"),
             dict(form="linje", stil="distans", text="distansregel 200×10"),
             dict(form="stod", text="stöd"),
-            dict(form="yta", fyll="#e3e0d8", stil="tunn", text="stöd, vägg"),
+            dict(form="yta", fyll="stodyta", stil="", text="stöd, vägg"),
             dict(form="yta", fyll="vit", stil="tunn", text="skruvzon, två rader"),
             dict(form="yta", fyll="zon", stil="tunn", text="skruvzon, tre rader")]),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
@@ -536,13 +538,20 @@ def blad_sektioner():
             f"{ST['korrosion']} Limytorna på stålet blästras eller slipas och avfettas. Träytan ska vara ren och torr.",
             "Lim: tvåkomponents strukturepoxi för limning av stål (t.ex. Sikadur-30), heltäckande fog mot båda plåtarna "
             f"i hela plåtlängden. Härdning {LIM['hardning']}.",
-            f"Skruv: {SK['produkt']} ({SK['kod']}, {SK['eta']}), C4 EVO. En skruv i varje hål, vinkelrätt mot plåten. "
-            f"Förborra Ø{SK['forborr']:g} genom plåthålen, lika djupt som skruven.",
-            f"Skruvarna dras medan limmet är färskt, i ett drag tills huvudet ligger an mot plåten, med högst "
-            f"{SK['moment']} Nm (momentbegränsare eller momentnyckel), inte med slagskruvdragare.",
+            f"Skruv: {SK['produkt']} ({SK['kod']}, {SK['eta']}), C4 EVO, eller likvärdig. En skruv i varje hål, "
+            "vinkelrätt mot plåten.",
+            f"Likvärdig skruv: skruv för stålplåt mot trä med ETA, d = {SK['d']} mm, kärndiameter minst {sv(SK['d1'], 1)} mm, "
+            f"längd {SK['langd']} mm, gänga minst {R['l_ef']} mm i limträet, ansats under huvudet som fyller hålet "
+            f"Ø{SK['hal']:g}, karakteristiskt flytmoment minst {SK['My_Rk']:g} Nm, utdragsparameter minst "
+            f"{sv(SK['fax_k'], 1)} MPa vid densiteten {SK['rho_a']} kg/m³, korrosivitetsklass C4.",
+            f"Förborra genom plåthålen enligt skruvtillverkaren ({SK['produkt'].split(' ', 1)[1]}: Ø{SK['forborr']:g}), "
+            "lika djupt som skruven.",
+            "Skruvarna dras medan limmet är färskt, i ett drag tills huvudet ligger an mot plåten, med "
+            f"momentbegränsare eller momentnyckel ({SK['produkt'].split(' ', 1)[1]}: högst {SK['moment']} Nm), "
+            "inte med slagskruvdragare.",
             f"Distansreglar 200×{DIST['tjocklek']} där plåt saknas: {DIST['material'].lower()}. "
             f"{DIST['fastsattning']}. Glipa {GLIPA:.0f} mm mot plåtänden.",
-            "Annan skruv, annat lim eller ändrade hål kräver ny kontroll enligt K-01.",
+            "Annat lim eller ändrade hål kräver ny kontroll enligt K-01.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
