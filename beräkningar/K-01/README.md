@@ -18,6 +18,6 @@ pip install -r requirements.txt
 python berakning.py
 ```
 
-Resultat: `nock_och_dalbalkar_K-01.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/K-01revC%20Nock-%20och%20dalbalkar.pdf).
+Resultat: `nock_och_dalbalkar_K-01.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Konstruktionsritningen R-01 ([`../R-01`](../R-01/)) läser `resultat.json` och hålbilderna och körs efter K-01. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/K-01revC%20Nock-%20och%20dalbalkar.pdf).
 
 Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`). Skriptet letar efter typsnitt i `/usr/share/fonts`.

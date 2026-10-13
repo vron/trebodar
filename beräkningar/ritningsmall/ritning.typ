@@ -25,7 +25,7 @@
   eps: rgb("#f3f6fa"), eps2: rgb("#dde6f0"), vit: white, svart: INK, zon: rgb("#f6e3df"), hal: white,
   jord: tiling(size: (2.2mm, 2.2mm))[#place(line(start: (0%, 100%), end: (100%, 0%), stroke: 0.15mm + rgb("#a89a7c")))],
   grus: tiling(size: (1.6mm, 1.6mm))[#place(dx: 0.5mm, dy: 0.5mm, circle(radius: 0.18mm, fill: rgb("#8f8a80")))],
-  papp: rgb("#7d7466"),
+  papp: rgb("#7d7466"), limtra: rgb("#ecdcb8"), distans: rgb("#f7f0e1"),
 )
 #let STIL = (
   kontur: (thickness: 0.5mm, paint: INK, cap: "butt", join: "miter"),
@@ -46,6 +46,9 @@
   fordelning: (thickness: 0.18mm, paint: INK, cap: "butt"),
   snitt: (thickness: 0.7mm, paint: INK, cap: "butt"),
   stal: (thickness: 0.35mm, paint: FYLL.stal, cap: "butt"),
+  plat: (thickness: 0.9mm, paint: FYLL.stal, cap: "butt"),
+  distans: (thickness: 0.6mm, paint: rgb("#c4ad80"), cap: "butt"),
+  lim: (thickness: 0.35mm, paint: rgb("#8a6a3a"), cap: "butt"),
 )
 #let st(n) = if n == none or n == "" { none } else { stroke(STIL.at(n)) }
 #let fy(n) = if n == none or n == "" { none } else if n.starts-with("#") { rgb(n) } else { FYLL.at(n) }
@@ -111,6 +114,9 @@
   } else if s.form == "bubbla" {
     place(dx: 3.2mm, dy: 0mm, circle(radius: 1.3mm, stroke: 0.18mm + INK, fill: white,
       align(center + horizon, text(size: 6pt, s.at("txt", default: "")))))
+  } else if s.form == "stod" {
+    place(dx: 3.2mm, curve(stroke: 0.18mm + INK, fill: white, curve.move((1.3mm, 0mm)), curve.line((2.6mm, 2.4mm)),
+      curve.line((0mm, 2.4mm)), curve.close()))
   } else if s.form == "fordelning" {
     place(dy: 1.3mm, line(length: 9mm, stroke: st("fordelning")))
     place(dx: -0.5mm, dy: 0.8mm, circle(radius: 0.5mm, fill: INK))
