@@ -4,9 +4,9 @@ R-01 Konstruktionsritning nock- och dalbalkar (F-01), A3 med ../ritningsmall:
     R-01.1  Elevationer och balkarnas lägen               1:50, 1:200
     R-01.2  Sektioner, detaljer och förteckningar           1:2,5, 1:5
 
-Underlag: K-01 (indata.toml, resultat.json och hålbilderna halbild_*.csv). Balkarnas lägen i plan ur K-03
-(geometri.json), husets kontur ur K-05 (bild/geometri.json). Stöden betecknas A, B, … från balkens vänstra ände
-som i K-01; stolparna (LN1_1 …) och hörnstolpen LA6 som i K-03 och K-05.
+Ritningen är tillverkningsunderlag för balkarna. Underlag: K-01 (indata.toml, resultat.json och hålbilderna
+halbild_*.csv). Stöden ritas bara ut för orientering. Balkarnas lägen i planen ur K-03 (geometri.json), husets
+kontur ur K-05 (bild/geometri.json).
 
 Elevationerna ritas i balkens koordinater: x från balkens vänstra ände, z = 0 i balkens underkant. Sektionerna i
 tvärsnittets: x från plåtens kant mot balkens framsida (som hålbilderna), z = 0 i underkant. Planen i K-05:s
@@ -45,7 +45,7 @@ G05 = json.load(open(os.path.join(BER, "K-05", "bild", "geometri.json"), encodin
 
 NR = "R-01"
 REV, DATUM = "A", "2026-10-13"
-UNDERLAG = f"K-01 rev {IN['projekt']['revision']}, K-03"
+UNDERLAG = f"K-01 rev {IN['projekt']['revision']}"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 GEO, SK, ST, TR, LIM, DIST = IN["geometri"], IN["skruv"], IN["stal"], IN["tra"], IN["lim"], IN["distans"]
@@ -53,16 +53,6 @@ B, T, H, HW = float(GEO["b"]), float(GEO["t_pl"]), float(GEO["h_tot"]), float(GE
 GLIPA = float(DIST["glipa"])
 RADER2, RADER3 = SK["rader2"], SK["rader3"]           # [45, 155], [45, 100, 155]
 RHO = ST["densitet"] * 1e-9                            # kg/mm³
-
-# Vad som bär varje stöd (K-03 och K-05): stolpar, takstolar i gavlarna och mitten, hörnstolpe och bärande vägg
-BARS = {
-    "N1": {"A": "takstol 3NO", "B": "LN1_1", "C": "LN1_2", "D": "LN1_3", "E": "takstol 3SV"},
-    "D2": {"A": "bärande vägg", "B": "LD2_4"},
-    "N3": {"A": "takstol 2NO", "B": "LN3_1", "C": "takstol L2M", "D": "takstol 2SV"},
-    "D4": {"A": "hörnstolpe LA6", "B": "LD4_1", "C": "LD4_2"},
-    "N5": {"A": "takstol 1NO", "B": "LN5_1", "C": "LN5_2", "D": "takstol 1SV"},
-}
-
 
 def tal(s):
     """K-01:s formaterade tal ("1 900", "−3,0") som float."""
@@ -107,14 +97,15 @@ for bi, br in zip(IN["balk"], R["balkar"]):
         x = b
     if x < L:
         dist.append((x + GLIPA, L))
-    stod = []
+    stod = []                                           # stödens lägen (x eller väggens x0–x1), bara för orientering
     for s in br["stod"]:
         if s["vagg"]:
-            x0, x1 = intervall(s["x"])
-            stod.append(dict(bok=s["bok"], x=x1, vagg=(x0, x1), Rmax=s["Rmax"], Rmin="−" + s["Rvagg_lyft"],
-                             l=s["l"], hela=s["Rvagg"]))
+            stod.append(dict(x=None, vagg=intervall(s["x"])))
         else:
-            stod.append(dict(bok=s["bok"], x=tal(s["x"]), vagg=None, Rmax=s["Rmax"], Rmin=s["Rmin"], l=s["l"]))
+            stod.append(dict(x=tal(s["x"]), vagg=None))
+    if bi.get("triangel"):                              # huvudstolpens strävor når balken på båda sidor om stolpen
+        t = bi["triangel"]
+        stod += [dict(x=t["x"] - t["e"], vagg=None), dict(x=t["x"] + t["e"], vagg=None)]
     zoner = [dict(bit=z["bit"], x=intervall(z["x"]), cc=int(z["cc"]), rader=int(z["rader"]), n=int(z["n"]))
              for z in br["zoner"]]
     for nr, b in hal.items():
@@ -122,25 +113,23 @@ for bi, br in zip(IN["balk"], R["balkar"]):
     plan = next(g for g in G03["balkar"] if g["namn"] == nyckel)
     assert abs(plan["y1"] - plan["y0"] - L) < 1, nyckel
     BALKAR[kort] = dict(namn=bi["namn"], nyckel=nyckel, kort=kort, typ=bi["typ"], L=L, platar=platar, hal=hal,
-                        dist=dist, stod=stod, zoner=zoner, triangel=bi.get("triangel"), stolpe=bi.get("stolpe"),
-                        plan=plan, n_skruv=br["n_balk"],
+                        dist=dist, stod=stod, zoner=zoner, plan=plan, n_skruv=br["n_balk"],
                         stal=sum(platvikt(b["till"] - b["fran"], len(b["hal"])) for b in hal.values()) * 2)
 
 # ================================================================== 2. placeringar
 ORDNING = ["NB1", "NB3", "NB5", "DB2", "DB4"]        # nockbalkarna överst, dalbalkarna under med planen bredvid
 PLAC = dict(
-    elev=dict(x=24.0, y0=12.0, dy=47.0, X0=-700.0),     # vyernas vänsterkant, första radens överkant, radavstånd
+    elev=dict(x=24.0, y0=14.0, dy=46.0, X0=-700.0),     # vyernas vänsterkant, första radens överkant, radavstånd
     # snitten: x i balken där A–A (med plåt) och B–B (utan plåt) markeras
     snitt={"NB1": dict(A=[8700], B=[2850]), "NB3": dict(A=[8500], B=[4000]), "NB5": dict(A=[2400, 9800], B=[6000]),
            "DB2": dict(A=[8400], B=[1200]), "DB4": dict(A=[4800], B=[1000])},
-    plan=dict(x=246.0, y=164.0, X0=-600.0, Y1=16700.0,
+    plan=dict(x=246.0, y=158.0, X0=-600.0, Y1=16400.0,
               namn={"N1": 7600, "D2": 2300, "N3": 8600, "D4": 7400, "N5": 13200}),
-    elev_rubrik=(24.0, 250.0),
+    elev_rubrik=(24.0, 246.0),
 )
 
 # elevationernas nivåer över och under balken, i pappersmm
-NIV = dict(platkedja=5.0, total=9.5, titel=13.5, topp=17.0,
-           stod=2.2, bok=2.6, namn=5.4, kedja=15.0, zon=(17.2, 21.8))
+NIV = dict(platkedja=5.0, total=9.5, titel=13.5, topp=17.0, stod=2.2, zon=(5.0, 9.6))
 
 
 # ================================================================== 3. elevationer (R-01.1)
@@ -199,33 +188,13 @@ def elevation(k, ytopp):
                 v.linje([(a, z), (c, z)], "plat")
         v.linje([(0, 0), (0, H)], "normal")
         v.linje([(L, 0), (L, H)], "normal")
-    # ---- stöd
-    yfran = {}                                          # x -> z där stödkedjans hjälplinje börjar (under etiketten)
+    # ---- stöd, bara för orientering
     with v.lager("stod"):
         for st in b["stod"]:
-            x = st["x"]
             if st["vagg"]:
-                x0, x1 = st["vagg"]
-                v.rekt(x0, -NIV["stod"] * s, x1, 0, fyll="#e3e0d8", stil="tunn")
-                xm, zb = (x0 + x1) / 2, -NIV["bok"] * s
-                yfran[x0] = yfran[x1] = -(NIV["stod"] + 0.3) * s
-            elif b["triangel"] and abs(x - b["triangel"]["x"]) < 1:
-                # huvudstolpen med strävor till balken (K-03), avbruten
-                e, zc = b["triangel"]["e"], -300.0
-                for sg in (-1, 1):
-                    v.linje([(x + sg * 60, 0), (x + sg * 60, zc)], "tunn")
-                    v.linje([(x + sg * e, 0), (x + sg * (e + zc), zc)], "tunn")
-                    v.linje([(x + sg * (e - 85), 0), (x + sg * (e - 85 + zc), zc)], "tunn")
-                v.brott((x - e - 120, zc), (x + e + 120, zc), "tunn")
-                xm, zb = x, zc - 2.4 * s
-                yfran[x - e] = yfran[x + e] = zc - 2.2 * s
+                v.rekt(st["vagg"][0], -NIV["stod"] * s, st["vagg"][1], 0, fyll="#e3e0d8", stil="tunn")
             else:
-                stodsymbol(v, x)
-                xm, zb = x, -NIV["bok"] * s
-            v.text(xm, zb, st["bok"], a="ct", sz=7.2, b=True)
-            v.text(xm, zb - (NIV["namn"] - NIV["bok"]) * s, BARS[b["nyckel"]][st["bok"]], a="ct", sz=5.8, col="gra")
-            if not st["vagg"]:
-                yfran[x] = zb - (NIV["namn"] - NIV["bok"] + 2.4) * s          # under namnet
+                stodsymbol(v, st["x"])
     # ---- snitt
     with v.lager("snitt"):
         for namn, xs in PLAC["snitt"][k].items():
@@ -241,23 +210,14 @@ def elevation(k, ytopp):
             tx.append(f"plåt {k}-{nr}: {svm(c - a)}" if nr else svm(c - a))
         kedja(v, pts, H + NIV["platkedja"] * s, [H] * len(pts), tx)
         kedja(v, [0.0, L], H + NIV["total"] * s, [H + NIV["platkedja"] * s] * 2)
-        # stöden (och strävornas fästen) från balkens vänstra ände
-        xs = [0.0, L]
-        for st in b["stod"]:
-            xs += list(st["vagg"]) if st["vagg"] else [st["x"]]
-        if b["triangel"]:
-            xs += [b["triangel"]["x"] - b["triangel"]["e"], b["triangel"]["x"] + b["triangel"]["e"]]
-        xs = sorted(set(round(x, 1) for x in xs))
-        yk = -NIV["kedja"] * s
-        kedja(v, xs, yk, [yfran.get(x, -(NIV["namn"] + 2.4) * s) for x in xs])
-    # ---- skruvzoner under måttkedjan
+    # ---- skruvzoner under balken
     with v.lager("zoner"):
         z0, z1 = -NIV["zon"][0] * s, -NIV["zon"][1] * s
         for zn in b["zoner"]:
             a, c = zn["x"]
             v.rekt(a, z1, c, z0, fyll="zon" if zn["rader"] == 3 else "vit", stil="tunn")
             v.text((a + c) / 2, (z0 + z1) / 2, f"c/c {zn['cc']}\n{zn['n']} st", a="cm", sz=5.3)
-        v.text(-150, (z0 + z1) / 2, "skruv", a="rm", sz=5.8, col="gra", i=True)
+        v.text(b["zoner"][0]["x"][0] - 0.8 * s, (z0 + z1) / 2, "skruv", a="rm", sz=5.8, col="gra", i=True)
     # ---- rubrik
     with v.lager("rubrik"):
         zt = H + NIV["titel"] * s
@@ -290,26 +250,15 @@ def plan():
             g = b["plan"]
             x, y0, y1 = g["x"], g["y0"], g["y1"]
             v.rekt(x - 100, y0, x + 100, y1, fyll="stal", stil=None)
-            for st in b["stod"]:
-                if st["vagg"]:
-                    a, c = st["vagg"]
-                    v.rekt(x - 280, y0 + a, x - 140, y0 + c, fyll="#c9c4b8", stil=None)
-                else:
-                    v.linje([(x - 300, y0 + st["x"]), (x + 300, y0 + st["x"])], "normal")
             # x = 0 och riktningen
             xa = x + 1.6 * s
             v.linje([(xa, y0), (xa, y0 + 1400)], "tunn")
             v.pil((xa, y0 + 1700), (0, 1), langd=1.5, bredd=1.0)
             v.text(xa + 0.5 * s, y0 + 900, "x", a="lm", sz=6.4, i=True)
             v.text(x - 1.0 * s, p["namn"][b["nyckel"]], k, a="cm", sz=6.6, b=True, rot=90, bg=True)
-    with v.lager("matt"):
-        xs = [0.0] + [BALKAR[k]["plan"]["x"] for k in ("NB5", "DB4", "NB3", "DB2", "NB1")] + [13810.0]
-        y0s = [3590.0] + [BALKAR[k]["plan"]["y0"] for k in ("NB5", "DB4", "NB3", "DB2", "NB1")] + [1000.0]
-        kedja(v, xs, -1300.0, y0s, sz=5.6)
     with v.lager("rubrik"):
-        v.rubrik(-500, -3300, "PLAN  Balkarnas lägen", skala=200, sz=9)
-        v.text(-500, -4900, "K-05:s koordinater, mm. Strecken på balkarna\när stöden, x = 0 vid balkens nedre ände.",
-               a="lt", sz=6.2, col="gra")
+        v.rubrik(-500, -1500, "PLAN  Balkarnas lägen i huset", skala=200, sz=9)
+        v.text(-500, -3100, "Pilen visar x från balkens vänstra ände (x = 0).", a="lt", sz=6.2, col="gra")
     return v
 
 
@@ -366,7 +315,7 @@ def sektion_a():
         skruv(v, r1, H, ner=True, streckad=True)
         skruv(v, B - r0, 0, ner=False)
         skruv(v, B - r1, 0, ner=False, streckad=True)
-        v.linje([(RADER3[1], -10), (RADER3[1], H + 10)], "axel")
+        v.linje([(RADER3[1], -3), (RADER3[1], H + 3)], "axel")
     with v.lager("matt"):
         v.matt((0, H + SK["huvud"]), (B, H + SK["huvud"]), 5.0, sz=6.4)
         v.kedja([(0, -SK["huvud"]), (r0, -SK["huvud"]), (r1, -SK["huvud"]), (B, -SK["huvud"])], 4.0, sida=-1, sz=6.2)
@@ -456,12 +405,6 @@ def detalj_c():
         for x, _, _ in hal:
             skruv(v, x, H, ner=True)
             skruv(v, x, 0, ner=False)
-    with v.lager("matt"):
-        v.matt((pf - GLIPA, H), (pf, H), 3.0, sz=5.8, txt=f"{GLIPA:.0f}")
-        zb = -SK["huvud"]
-        v.matt((pf, zb), (hal[0][0], zb), 4.0, sida=-1, sz=6.2)
-        v.matt((hal[0][0], zb), (hal[1][0], zb), 4.0, sida=-1, sz=6.2, txt="s")
-        v.matt((hal[1][0], zb), (hal[2][0], zb), 4.0, sida=-1, sz=6.2, txt="s")
     with v.lager("text"):
         v.hanvisning((x0 + 40, H - 4), (x0 + 10, H + 55), f"distansregel, glipa {GLIPA:.0f} mot plåtänden", a="lm", sz=6.4)
         v.hanvisning((x1 - 4, 95), (x1 + 15, 95), "sedd från sidan", a="lm", sz=6.4, punkt=False)
@@ -471,13 +414,16 @@ def detalj_c():
     with w.lager("matt"):
         w.kedja([(x0, 0)] + [(x0, y) for y in rader] + [(x0, B)], 4.0, sida=1, sz=6.0)
         w.matt((pf, B), (hal[0][0], B), 4.0, sz=6.2)
+        w.matt((hal[0][0], B), (hal[1][0], B), 4.0, sz=6.2, txt="s")
+        w.matt((hal[1][0], B), (hal[2][0], B), 4.0, sz=6.2, txt="s")
         xa = [h[0] for h in hal if h[1] == hal[0][1]]
-        w.matt((xa[0], 0), (xa[1], 0), 5.0, sida=-1, sz=6.2, txt=f"2s = c/c {xa[1] - xa[0]:.0f} i raden")
+        w.matt((xa[0], 0), (xa[1], 0), 5.0, sida=-1, sz=6.2, txt=f"2s = {xa[1] - xa[0]:.0f}")
     with w.lager("text"):
         w.hanvisning((x1 - 4, 100), (x1 + 15, 100), "överplåten sedd\nuppifrån", a="lm", sz=6.4, punkt=False)
     with w.lager("rubrik"):
         w.rubrik(x0 - 55, -95, "DETALJ C  Plåtände inne på balken", skala=5, sz=9)
-        w.text(x0 - 55, -95 - 8.0 * 5, f"Exempel: {k}-{bit} vid x = {svm(pf)}, två rader, s = {s_:.0f}.",
+        w.text(x0 - 55, -95 - 8.0 * 5, f"Exempel: {k}-{bit} vid x = {svm(pf)}, två rader, s = {s_:.0f}. "
+               "2s = c/c i varje rad.",
                a="lb", sz=6.4, col="gra")
     return [v, w]
 
@@ -494,11 +440,11 @@ def detalj_d():
         v.matt((hal[-1][0], B), (L, B), 4.0, sz=6.2)
         v.matt((hal[-2][0], B), (hal[-1][0], B), 4.0, sz=6.2, txt="s")
         xr = [h[0] for h in hal if h[1] == hal[-1][1]]
-        v.matt((xr[-2], 0), (xr[-1], 0), 5.0, sida=-1, sz=6.2, txt=f"3s = c/c {xr[-1] - xr[-2]:.0f} i raden")
+        v.matt((xr[-2], 0), (xr[-1], 0), 5.0, sida=-1, sz=6.2, txt=f"3s = {xr[-1] - xr[-2]:.0f}")
     with v.lager("rubrik"):
         v.rubrik(x0 - 55, -70, "DETALJ D  Tre rader vid balkänden", skala=5, sz=9)
         v.text(x0 - 55, -70 - 8.0 * 5, f"Exempel: {k}-{bit} vid balkänden x = {svm(L)}, s = {hal[-1][0] - hal[-2][0]:.0f}. "
-               "Första skruv 100 från balkänden.", a="lb", sz=6.4, col="gra")
+               "3s = c/c i varje rad. Första skruv 100 från balkänden.", a="lb", sz=6.4, col="gra")
     return v
 
 
@@ -515,25 +461,6 @@ def hd(nr):
     return huvud(nr, b[1], b[2], UNDERLAG, DATUM, REV)
 
 
-def stodtabell():
-    rader, fot = [], ""
-    for k in ORDNING:
-        b = BALKAR[k]
-        for st in b["stod"]:
-            x = f"{svm(st['vagg'][0])}–{svm(st['vagg'][1])}" if st["vagg"] else svm(st["x"])
-            rmax, rmin = st["Rmax"], st["Rmin"]
-            if st["vagg"]:
-                rmax, rmin = rmax + "¹", rmin + "¹"
-                fot = (f"¹ Väggen: R_max inom 0,5 m från väggänden, hela väggen högst {st['hela']} kN. "
-                       f"R_min: dragkraften vid vindlyft sammanlagt.")
-            rader.append([k if st is b["stod"][0] else "", st["bok"], x, BARS[b["nyckel"]][st["bok"]], rmax, rmin, st["l"]])
-    return [dict(typ="tabell", kolumner=["Balk", "Stöd", "x (mm)", "Bärs av", "R max", "R min", "l min"],
-                 bredd=(0, 0, 0, 1, 0, 0, 0), rader=rader, just=["l", "l", "r", "l", "r", "r", "r"], sz=6.0),
-            dict(typ="text", sz=5.9, rader=[
-                "Dimensionerande stödreaktioner (kN) enligt K-01. R min är dragkraft vid vindlyft (negativ). "
-                "l min: minsta upplagslängd (mm) för tryck vinkelrätt fibrerna.", fot])]
-
-
 def blad_elevationer():
     vyer = [elevation(k, PLAC["elev"]["y0"] + i * PLAC["elev"]["dy"]) for i, k in enumerate(ORDNING)]
     vyer += [plan(), rubrikvy()]
@@ -543,25 +470,21 @@ def blad_elevationer():
             f"Limträ {TR['kvalitet']} 200×170 i hel längd. Plattstål 200×10 {ST['kvalitet']} i över- och underkant där "
             "plåt anges, limmat och skruvat. I övrigt distansreglar 200×10. Balkens höjd 190 mm. Sektioner och "
             "detaljer: R-01.2.",
-            "x räknas från balkens vänstra ände, som ligger mot lägre y (planen). Plåtarna och skruvzonerna är inte "
-            "symmetriska: balken monteras med x = 0 åt det hållet.",
-            "Stöden A, B, … som i K-01, stolparna och takstolarna som i K-03 och K-05. Stöden förankras för "
-            "dragkraften R min i tabellen (K-03).",
+            "x räknas från balkens vänstra ände (x = 0). Plåtarna och skruvzonerna är inte symmetriska. Balkens "
+            "vänstra ände märks med balkens namn och x = 0, så att balken kan monteras åt rätt håll (planen).",
             "Skruvzonerna: c/c i varje rad och antal skruv per plåt (lika i över- och underplåt). Två rader om inget "
             "annat anges. Hålen laserskärs enligt hålbilderna (R-01.2), en skruv i varje hål.",
-            "Huvudstolpen LN1_3 med strävor till nockbalk 1, 770 mm från stolpen åt båda hållen: K-03.",
+            "Stöden visas bara för orientering.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="yta", fyll="limtra", stil="tunn", text=f"limträ {TR['kvalitet']} 200×170"),
             dict(form="linje", stil="plat", text="plattstål 200×10, över- och underplåt"),
             dict(form="linje", stil="distans", text="distansregel 200×10"),
-            dict(form="stod", text="stöd (stolpe eller takstol)"),
-            dict(form="yta", fyll="#e3e0d8", stil="tunn", text="bärande vägg"),
+            dict(form="stod", text="stöd"),
+            dict(form="yta", fyll="#e3e0d8", stil="tunn", text="stöd, vägg"),
             dict(form="yta", fyll="vit", stil="tunn", text="skruvzon, två rader"),
             dict(form="yta", fyll="zon", stil="tunn", text="skruvzon, tre rader")]),
-        dict(typ="rubrik", text="Stöd och förankring"),
-        *stodtabell(),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0),
              rader=[[nr, ", ".join(t[1:]), sk] for nr, t, sk, _ in BLADEN], just=["l", "l", "l"], sz=6.6),
@@ -581,7 +504,7 @@ def platforteckning():
                               sv(kg, 1)])
                 tot_L += L; tot_n += len(h["hal"]); tot_kg += kg
     rader.append(["Summa", f"{len(rader)} plåtar", "", svm(tot_L), str(tot_n), sv(tot_kg, 0)])
-    return dict(typ="tabell", kolumner=["Plåt", "Läge", "x i balken", "L (mm)", "Hål", "Vikt (kg)"],
+    return dict(typ="tabell", kolumner=["Plåt", "Läge", "x i balken (mm)", "L (mm)", "Hål", "Vikt efter håltagning (kg)"],
                 bredd=(0, 0, 1, 0, 0, 0), rader=rader, just=["l", "l", "l", "r", "r", "r"], sz=6.4)
 
 
@@ -600,8 +523,7 @@ def balkforteckning():
 def blad_sektioner():
     vyer = [sektion_a(), sektion_b(), *detalj_c(), detalj_d()]
     block = [dict(x=178, y=218, w=144, innehall=[
-        dict(typ="rubrik", text="Plåtar, S355J2+N 200×10 (modeller/balkplattor)"), platforteckning(),
-        dict(typ="text", sz=6.0, rader=["Vikt efter håltagning."])])]
+        dict(typ="rubrik", text="Plåtar, S355J2+N 200×10 (modeller/balkplattor)"), platforteckning()])]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.9, rader=[
@@ -621,7 +543,6 @@ def blad_sektioner():
             f"Distansreglar 200×{DIST['tjocklek']} där plåt saknas: {DIST['material'].lower()}. "
             f"{DIST['fastsattning']}. Glipa {GLIPA:.0f} mm mot plåtänden.",
             "Annan skruv, annat lim eller ändrade hål kräver ny kontroll enligt K-01.",
-            "Takbalkarnas upplag på balkarnas sidor (upplagsregel 45×45) och förankring: K-03.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
