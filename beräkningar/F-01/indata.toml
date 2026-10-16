@@ -129,11 +129,11 @@ status = "klar"
 [[handling]]
 nr = "R-04"
 namn = "Konstruktionsritning källarstomme"
-status = "upprättas"
+status = "klar"
 [[handling]]
 nr = "R-05"
 namn = "Konstruktionsritning bottenplatta"
-status = "upprättas"
+status = "klar"
 [[handling]]
 nr = "TP-01"
 namn = "Tidsplan och organisation"

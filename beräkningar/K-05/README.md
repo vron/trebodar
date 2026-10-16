@@ -31,7 +31,7 @@ python validering/vaggande.py    # cirka 10 min
 python rapport.py         # rapport/K-05_mellanbjalklag.pdf
 ```
 
-Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosextra-carlito`). Figurer, `resultat.json`, `*.npz` och PDF skapas i mappen och versionshanteras inte. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
+Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosextra-carlito`). Figurer, `resultat.json`, `*.npz` och PDF skapas i mappen och versionshanteras inte. Ritningarna R-03 (mellanbjälklaget) och R-04 (källarstommen) läser `bild/geometri.json` och `resultat.json`. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
 
 ## Viktiga antaganden
 

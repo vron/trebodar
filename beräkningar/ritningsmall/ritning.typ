@@ -115,6 +115,8 @@
   } else if s.form == "bubbla" {
     place(dx: 3.2mm, dy: 0mm, circle(radius: 1.3mm, stroke: 0.18mm + INK, fill: white,
       align(center + horizon, text(size: 6pt, s.at("txt", default: "")))))
+  } else if s.form == "punkt" {
+    place(dx: 4.0mm, dy: 0.8mm, circle(radius: s.at("r", default: 0.5) * 1mm, fill: fy(s.at("fyll", default: "svart"))))
   } else if s.form == "stod" {
     place(dx: 3.2mm, curve(stroke: 0.18mm + INK, fill: white, curve.move((1.3mm, 0mm)), curve.line((2.6mm, 2.4mm)),
       curve.line((0mm, 2.4mm)), curve.close()))

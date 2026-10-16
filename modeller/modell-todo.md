@@ -4,7 +4,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 **Hitta platsen.** Lägen anges i K-05:s koordinater (x, y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant) och i Onshape (globalt): X = x − 12 147,7, Y = y − 1 292,1, Z = z + 13 939,9 (mm). Delarnas namn är modellträdets.
 
-**När modellen är uppdaterad:** exportera till `modeller/trebodar.step` och kör kontrollerna i `verktyg/modellanalys`. Beräkningarna läser inte modellen; där handlingarna ska följa ändringen rättas deras källfiler för hand, och sedan körs K-03, K-05, K-06 och R-03.
+**När modellen är uppdaterad:** exportera till `modeller/trebodar.step` och kör kontrollerna i `verktyg/modellanalys`. Beräkningarna läser inte modellen; där handlingarna ska följa ändringen rättas deras källfiler för hand, och sedan körs K-03, K-05, K-06, R-03, R-04 och R-05.
 
 ## Takstommen (K-01, K-03)
 
@@ -45,17 +45,22 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
    - Sätt i stället en upplagsregel 45×45 längs balkens båda sidor, ovanpå underplåten.
    - Takbalkarna slutar mot balkens sida och vilar med ett hak på regeln (se K-03 figur 2).
 
-## Källaren och grunden (K-05, K-06)
+## Källaren och grunden (K-05, K-06, R-04, R-05)
 
-8. **P2 i rätt läge och höjd.** `K Pillar [13]` står vid (7 101,7; 9 154,8) (Onshape X −5 046,1, Y 7 862,7) och 1,5 mm för högt: z −2 248,5…−148,5 mot −2 250…−150 för övriga rör. Flytta den till (7 100; 9 155) (Onshape X −5 047,7, Y 7 862,9) och sänk den 1,5 mm.
+8. **Rören som VKR 80×80×4 med topplåt och fotplåt.** Alla `K Pillar [1]`–`[19]` är massiva 140 × 140. Modellera dem enligt R-04.5: rör VKR 80×80×4 från bottenplattans överkant till mellanbjälklagets underkant (z −2 250…−150), topplåt 80×80×8 ingjuten i bjälklagets underkant (z −150…−142) och fotplåt 200×200×15 ingjuten i plintens överkant (z −2 265…−2 250). Rörens mitt som i modellen nu (R-04.1, tabellen).
+   - P7: `K Pillar [18]` vid (9 470; 5 950) (Onshape X −2 677,7, Y 4 657,9) står i trapphålets hörn. Lägg till ett likadant rör tätt intill i x-led, centrum (9 550; 5 950) (Onshape X −2 597,7, Y 4 657,9). Båda rören står på en gemensam fotplåt 280 × 200 × 15.
 
-9. **P8, P9, P10 1 mm i x-led.** `K Pillar [15]`, `[4]` och `[7]` vid y 5 820 (Onshape Y 4 527,9) står vid x 1 931 / 3 231 / 4 531. Flytta till 1 930 / 3 230 / 4 530 (Onshape X −10 217,7 / −8 917,7 / −7 617,7).
+9. **P2 1,5 mm för högt.** `K Pillar [13]` vid (7 101,7; 9 154,8) (Onshape X −5 046,1, Y 7 862,7) går z −2 248,5…−148,5, mot −2 250…−150 för övriga rör. Sänk den 1,5 mm.
 
-10. **Matkällarens bottenplatta: bestäm uppbyggnaden.** `Bottenplatta matkällare`, x 4 370–9 470, y 7 490–11 040 (Onshape X −7 778…−2 678, Y 6 198–9 748). I modellen är den 100 mm, 200 mm lägre än övriga källaren (z −2 550…−2 450). K-06 räknar med samma uppbyggnad som i resten av källaren: 100 mm platta på 200 mm cellplast, överkant z −2 250. Modellera det som gäller. Avviker det från K-06 ska K-06 räknas om.
+10. **Matkällarens bottenplatta som i resten av källaren.** `Bottenplatta matkällare`, x 4 370–9 470, y 7 490–11 040 (Onshape X −7 778…−2 678, Y 6 198–9 748). I modellen är golvet 200 mm lägre än i övriga källaren: 100 mm vid z −2 550…−2 450. Bottenplattan har samma uppbyggnad och nivå i hela källaren (K-06, R-05): överkant z −2 250, 300 mm (100 mm betong på 200 mm cellplast). Höj matkällarens golv till z −2 250, eller låt `Bottenplatta` gå igenom.
 
-11. **Plattan på mark (plan 1): cellplast och fyllning.** Området under `Mittenplatta` vid x 0–4 545, y 9 205–15 900 (L-formen bakom V3 och V20; Onshape X −12 148…−7 603, Y 7 913–14 608). I modellen ligger berget 75 mm under plattan. Handlingarna (K-05, K-06) förutsätter 400 mm cellplast under plattan på dränerande fyllning upp till 1,7 m över bottenplattan.
+11. **Väggarnas kärnor går ihop i anslutningarna.** Där en vägg möter en genomgående vägg ligger det 200 mm cellplast (`Isoskal vägg 1`) mellan kärnorna:
+    - V3 mot V19/V20 vid x 4 545, y 9 205 (Onshape X −7 602,7, Y 7 912,9): V3:s kärna (`Bkärna vägg 1`) slutar vid x 4 270, och V19/V20:s börjar vid x 4 470;
+    - V15 mot V2 vid x 9 645, y 10 865 (Onshape X −2 502,7, Y 9 572,9): V15:s kärna slutar vid y 10 590, och V2:s börjar vid y 10 790.
 
-12. **P7: två rör tätt intill varandra.** `K Pillar [18]` vid (9 470; 5 950) (Onshape X −2 677,7, Y 4 657,9) står i trapphålets hörn. Lägg till ett likadant rör tätt intill i x-led, centrum (9 550; 5 950) (Onshape X −2 597,7, Y 4 657,9), z −2 250…−150. Båda rören står på en gemensam fotplåt 280 × 200 × 15 på plinten (K-05, K-06).
+    Kärnorna gjuts ihop (R-04.4 detalj D): skär bort cellplasten där väggarna möts, så att V3:s kärna går in i V19/V20:s och V15:s in i V2:s.
+
+12. **Plattan på mark (plan 1): cellplast och fyllning.** Området under `Mittenplatta` vid x 0–4 545, y 9 205–15 900 (L-formen bakom V3 och V20; Onshape X −12 148…−7 603, Y 7 913–14 608). I modellen ligger berget 75 mm under plattan. Handlingarna (K-05, K-06) förutsätter 400 mm cellplast under plattan på dränerande fyllning upp till 1,7 m över bottenplattan.
 
 13. **Fasadstenen 15 mm ut från cellplasten (AR-01).** `Beklädnad stor` och `Beklädnad liten` är 50 mm och ligger direkt på källarväggarnas cellplast. Stenen är beklädnadsgranit Bohus Grå 600–1 200 × 400 × 30/50 mm (Stengrossen): sågad baksida och kluven framsida. Enligt AR-01 ligger baksidan 15 mm utanför cellplasten (armeringsbruk och fästmassa) och framsidan 45–65 mm. Flytta beklädnaden 15 mm utåt och behåll 50 mm, så visar modellen stenens yttersta läge, 65 mm utanför cellplasten:
     - östra fasaden: cellplasten vid Onshape X = 1 692,3, stenen X 1 707,3 … 1 757,3;
@@ -65,9 +70,11 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
     Skifthöjden är 400 mm och stenens underkant ligger 50 mm under färdig mark (stödvinkeln döljs). Stenens höjd på en stödvinkel är högst 2,0 m; vinkeln och gängstängerna behöver inte modelleras.
 
+14. **Valfritt: bottenplattans uppbyggnad.** `Bottenplatta` är en massiv kropp, 300 mm. Enligt R-05 är den 100 mm betong på 200 mm cellplast, med kantbalkar och balkar under innerväggarna 450 × 200 på 100 mm S200, plintar under rören (600–1 200 mm, R-05.1), L-element längs kanten och S300 under kantbalken vid de åtta yttre hörnen.
+
 ## Kontrollera och bestäm
 
-14. **Stolparnas lägen under nockbalk 1 mot K-01.**
+15. **Stolparnas lägen under nockbalk 1 mot K-01.**
 
     | Stöd | K-01 | Modellen |
     |---|---|---|
@@ -77,10 +84,10 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
     Skillnaden är 68–84 mm. Antingen flyttas stolparna, eller så räknas K-01 om med modellens lägen; säg till vilket.
 
-15. **Syll utan vägg vid LN1_2.** `R L3 T2 btm`, x 10 980–13 745, y 4 651–4 721 (Onshape X −1 168…1 597, Y 3 359–3 429), ligger utan vägg och gips. Stolpen `RL3 Ver Pin` står därför fristående, och K-03 räknar den så. Finns en vägg där, modellera den.
+16. **Syll utan vägg vid LN1_2.** `R L3 T2 btm`, x 10 980–13 745, y 4 651–4 721 (Onshape X −1 168…1 597, Y 3 359–3 429), ligger utan vägg och gips. Stolpen `RL3 Ver Pin` står därför fristående, och K-03 räknar den så. Finns en vägg där, modellera den.
 
-16. **Marken mot källarväggarna.** Glipor mellan fyllning och berg vid V2 (y 10 865, x 4 545–9 645) och V16 (x 9 645, y 10 865–12 365). Ingen mark vid V9 (y 1 145, x 11 140–13 665) och V17 (x 9 165, y 145–1 145). Modellera marken där; fyllnadshöjderna i K-06 kontrolleras mot den.
+17. **Marken mot källarväggarna.** Glipor mellan fyllning och berg vid V2 (y 10 865, x 4 545–9 645) och V16 (x 9 645, y 10 865–12 365). Ingen mark vid V9 (y 1 145, x 11 240–13 665) och V17 (x 9 165, y 145–1 145). Modellera marken där; fyllnadshöjderna i K-06 kontrolleras mot den.
 
-17. **Valfritt: dubbel takbalk vid TF1.** Takbalken vid TF1:s sida y 6 740 (`ÅYY [6]`) är enkel, de andra fönstren har dubbla. Den räcker (K-03), men dubbel blir som de andra.
+18. **Valfritt: dubbel takbalk vid TF1.** Takbalken vid TF1:s sida y 6 740 (`ÅYY [6]`) är enkel, de andra fönstren har dubbla. Den räcker (K-03), men dubbel blir som de andra.
 
-18. **Karmstolparna vid trapphålet (LD2_1, LD2_2).** Dörröppningen i dalbalk 2:s bärande vägg vid trapphålet. `R L23 vert door [1]` (x 9 370–9 440, y 5 027–5 072; Onshape X −2 778…−2 708, Y 3 735–3 780) går 12,5 mm ut över trapphålets kant (y 5 059,5). `L2M vert [1]`, `[2]`, `[4]` (x 9 212–9 370, y 5 900–5 995; Onshape X −2 936…−2 778, Y 4 608–4 703) står väster om väggens linje (x ≈ 9 405). K-05 räknar med karmstolpar 95 × 90 i väggens linje x 9 370, direkt utanför hålets långsidor (y 5 012 och 5 936). Flytta stolparna dit eller säg till om modellen är rätt.
+19. **Karmstolparna vid trapphålet (LD2_1, LD2_2).** Dörröppningen i dalbalk 2:s bärande vägg vid trapphålet. `R L23 vert door [1]` (x 9 370–9 440, y 5 027–5 072; Onshape X −2 778…−2 708, Y 3 735–3 780) går 12,5 mm ut över trapphålets kant (y 5 059,5). `L2M vert [1]`, `[2]`, `[4]` (x 9 212–9 370, y 5 900–5 995; Onshape X −2 936…−2 778, Y 4 608–4 703) står väster om väggens linje (x ≈ 9 405). K-05 räknar med karmstolpar 95 × 90 i väggens linje x 9 370, direkt utanför hålets långsidor (y 5 012 och 5 936). Flytta stolparna dit eller säg till om modellen är rätt.
