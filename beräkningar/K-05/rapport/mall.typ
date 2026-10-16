@@ -65,7 +65,7 @@ Laster, regler och förutsättningar enligt F-01.
 
 = Husets geometri
 
-Trapphålet är 2 070 × 828 mm. Källarväggarna är Sundolitt Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100. Plattan gjuts samtidigt med väggarnas översta skift och vilar på hela kärnan. Den går ut till 30 mm från väggens ytterliv, alltså 70 mm ut över den yttre cellplasten, och där utanför ligger 30 mm kantisolering. Upplagslinjen ligger i kärnans mitt, 75 mm från kärnans insida (5.3.2.2). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar.
+Trapphålet är 2 070 × 828 mm. Källarväggarna är Sundolitt Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100. Plattan gjuts samtidigt med väggarnas översta skift och vilar på hela kärnan. Den går ut till 30 mm från väggens ytterliv, alltså 70 mm ut över den yttre cellplasten, och där utanför ligger 30 mm kantisolering. Upplagslinjen ligger i kärnans mitt, 75 mm från kärnans insida (5.3.2.2). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar. Vid öppningarna slutar betongkärnan 100 mm innanför smygen, som är isolerad med cellplast, och upplagslinjerna och de fria kanterna följer kärnan.
 
 #figure(
   image("../fig_geometri.svg", width: 90%),

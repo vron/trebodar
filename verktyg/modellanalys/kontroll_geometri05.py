@@ -11,7 +11,8 @@ Koordinater i mm, x åt höger, y uppåt, origo i skärningen mellan plattkanter
 vänstra hörn, som i K-05).
 
 vagg: [riktning, centrumlinje, a, b, "yttre"/"inre", upplagslinje]. a och b är den vinkelräta väggens centrumlinje
-i hörn och T-anslutningar, och väggens fysiska ände vid en fri ände (öppning), mätt strax under bjälklaget.
+i hörn och T-anslutningar, och betongkärnans ände vid en fri ände (öppning), mätt strax under bjälklaget. Vid
+öppningarna slutar kärnan 100 mm innanför smygen, som är isolerad med cellplast.
 Upplagslinjen ligger i väggens centrumlinje, som är betongkärnans mitt (Kub 350-150: cellplast 100 + betong 150 +
 cellplast 100).
 """
@@ -37,6 +38,7 @@ m = Modell(tyst=True)
 _pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])          # origo och bjälklagets överkant
 VAGG = m.valj("Bkärna,Isoskal")
+KARNA = m.valj("Bkärna")
 
 
 def r3(v):
@@ -118,9 +120,9 @@ for i, (ax, c, a, b, typ, cs) in enumerate(G0):
         if j is not None:
             ander.append(cn[j])
             continue
-        # fri ände: väggens fysiska ände på linjen, strax under bjälklaget
+        # fri ände: betongkärnans ände på linjen, strax under bjälklaget
         p1, p2 = ((min(a, b) - 1500, c_), (max(a, b) + 1500, c_)) if ax == "h" else ((c_, min(a, b) - 1500), (c_, max(a, b) + 1500))
-        iv = [(min(a, b) - 1500 + t0, min(a, b) - 1500 + t1) for t0, t1 in prob(p1, p2, Z_VAGG)]
+        iv = [(min(a, b) - 1500 + t0, min(a, b) - 1500 + t1) for t0, t1 in prob(p1, p2, Z_VAGG, KARNA)]
         s = (a + b) / 2
         bit = [t for t in iv if t[0] - 200 <= s <= t[1] + 200] or [min(iv, key=lambda t: min(abs(t[0] - s), abs(t[1] - s)))]
         ander.append(bit[0][0] if k == 0 else bit[0][1])
@@ -146,8 +148,9 @@ mark = [[0.0, yH3], [xV3, yH3], [xV3, 11010.0], [4310.0, 11010.0], [4310.0, 1590
 
 
 def oppningar(y_lin, c, x0, x1):
-    """Öppningar i väggen (centrumlinje c) mellan x0 och x1 strax under bjälklaget, som sträckor på plattkanten y_lin."""
-    iv = [(x0 + t0, x0 + t1) for t0, t1 in prob((x0, c), (x1, c), Z_VAGG)]
+    """Öppningar i betongkärnan (centrumlinje c) mellan x0 och x1 strax under bjälklaget, som sträckor på plattkanten
+    y_lin."""
+    iv = [(x0 + t0, x0 + t1) for t0, t1 in prob((x0, c), (x1, c), Z_VAGG, KARNA)]
     return [[[r3(b), y_lin], [r3(a2), y_lin]] for (a, b), (a2, b2) in zip(iv, iv[1:]) if a2 - b > 1]
 
 

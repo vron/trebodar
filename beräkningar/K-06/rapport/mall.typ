@@ -32,7 +32,6 @@
 #let A = D.arm
 #let BY = D.bygg
 #let P3 = D.platta.L300
-#let P4 = D.platta.L400
 
 #table(
   columns: (auto, 1fr, auto, auto),
@@ -52,7 +51,7 @@ Handlingen redovisar också byggskedet innan mellanbjälklaget har gjutits:
 - hur V3 och V20 bär fyllningen innan bjälklaget finns;
 - vilken hållfasthet betongen behöver när det fylls mot väggarna, och hur många dygn den då ska härda.
 
-Bottenplattan är 100 mm på cellplast med kantbalkar i L-element, balkar under innerväggarna och plintar under rören. Två utföranden prövas: L300 med 200 mm hög kantbalk och L400 med 300 mm. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
+Bottenplattan är 100 mm på 200 mm cellplast med kantbalkar i L-element L300, balkar under innerväggarna och plintar under rören. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
 
 Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1-2 och SS-EN 1997-1 med EKS 12, samt TG 2216 och Sundolitts monteringsanvisning för Kub (2022). Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år, geoteknisk kategori 1.
 
@@ -73,7 +72,7 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1
   [Glidning], [#D.glid.utn],
 )
 
-Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolitts armering för väggar som hålls i topp och botten (Ø10 s300) räcker för jordtrycket men inte för packningstrycket från en vanlig lätt vibroplatta, så de lodräta järnen läggs tätare. L300 räcker, med S300 under kantbalken vid de yttre hörnen.
+Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolitts armering för väggar som hålls i topp och botten (Ø10 s300) räcker för jordtrycket men inte för packningstrycket från en vanlig lätt vibroplatta, så de lodräta järnen läggs tätare. Bottenplattan L300 räcker, med S300 under kantbalken vid de yttre hörnen.
 
 = Förutsättningar
 
@@ -160,7 +159,7 @@ Väggen räknas som en lodrät strimla, fritt upplagd mellan fogen mot bottenpla
 
 == Fasaden med öppningarna <fasad>
 
-Mot fasaden med öppningarna (#D.fasad.namn) är fyllningen #D.fasad.h m. Fönstrens bröstning ligger #D.fasad.bro m över bottenplattan. Pelarna mellan öppningarna går upp till bjälklaget. De bär jordtrycket från sin egen bredd och halva öppningarna intill, lodrätt mellan plattorna:
+Mot fasaden med öppningarna (#D.fasad.namn) är fyllningen #D.fasad.h m. Betongen i öppningarnas underkant ligger #D.fasad.bro m över bottenplattan; smygen och bröstningen isoleras med 100 mm cellplast. Pelarna mellan öppningarna går upp till bjälklaget. De bär jordtrycket från sin egen bredd och halva öppningarna intill, lodrätt mellan plattorna:
 
 #tab(
   columns: (auto, auto, auto, auto),
@@ -256,15 +255,15 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 ) <fig-det>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
-- *Under plattan:* cellplast S100 i två skikt, 200 mm (L300) eller 300 mm (L400), med åldringsbeständig plastfolie mellan skikten (Plattor.pdf).
-- *Längs ytterkanten:* L-element L300 eller L400 med 100 mm fot av S200 under kantbalken. Vid källarens #D.horn_s300 yttre hörn är foten S300 1,0 m åt båda håll (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 (L300) eller 300 mm (L400) hög inklusive plattan. Väggens kärna står på kantbalken, 100–250 mm från ytterkanten.
+- *Under plattan:* cellplast S100 i två skikt, 200 mm, med åldringsbeständig plastfolie mellan skikten (Plattor.pdf). Bottenplattan är alltså 300 mm hög: 100 mm betong på 200 mm cellplast, samma i hela källaren.
+- *Längs ytterkanten:* L-element L300 med 100 mm fot av S200 under kantbalken. Vid källarens #D.horn_s300 yttre hörn är foten S300 1,0 m åt båda håll (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 mm hög inklusive plattan. Väggens kärna står på kantbalken, 100–250 mm från ytterkanten.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S200 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
 - *Platta:* 100 mm C25/30 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
 
 == Beräkningsmodell
 
-- *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och 200/300 mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och olika tjocklek och kvalitet under plattan och under balkar och plintar.
+- *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och 200 mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och olika tjocklek och kvalitet under plattan och under balkar och plintar.
 - *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på 400 mm S100.
 - *Väggarna:* kärnan som fjäder $E t slash h$ med $t$ = 150 mm längs K-05:s upplagslinjer i kärnans mitt.
 - *Rören:* fjädrar $E A slash L$ mellan plåtarna i de två plattorna.
@@ -277,22 +276,22 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 
 #figure(placement: auto,
   image("../fig_tryck.svg", width: 100%),
-  caption: [L300: största tryck mot cellplasten i brottgränstillstånd (omhyllande av omgångarna) och sättning av bottenplattan för kvasipermanent last, långtid. Tunna linjer: balkar och plintar.],
+  caption: [Största tryck mot cellplasten i brottgränstillstånd (omhyllande av omgångarna) och sättning av bottenplattan för kvasipermanent last, långtid. Tunna linjer: balkar och plintar.],
 ) <fig-tryck>
 
 #tab(
-  columns: (1fr, auto, auto, auto),
-  align: (left, right, right, right),
-  table.header([Tryck (kPa)], [L300], [L400], [Gräns]),
-  [S200 under balkar och plintar, brottgräns (medel inom $r$ = 150 mm vid toppen)], [#P3.eps_b.uls (#P3.eps_b.medel)], [#P4.eps_b.uls (#P4.eps_b.medel)], [#P3.eps_b.fdM],
-  [S200, bara permanent last], [#P3.eps_b.perm], [#P4.eps_b.perm], [#P3.eps_b.fdP],
-  [S200, kvasipermanent långtid], [#P3.eps_b.qp], [#P4.eps_b.qp], [#P3.eps_b.kryp],
-  [S300 vid de yttre hörnen: brottgräns / permanent / långtid], [#P3.eps_3.uls / #P3.eps_3.perm / #P3.eps_3.qp], [#P4.eps_3.uls / #P4.eps_3.perm / #P4.eps_3.qp], [#P3.eps_3.fdM / #P3.eps_3.fdP / #P3.eps_3.kryp],
-  [S100 under plattan, brottgräns], [#P3.eps_f.uls], [#P4.eps_f.uls], [#P3.eps_f.fdM],
-  [S100 under plattan, kvasipermanent långtid], [#P3.eps_f.qp], [#P4.eps_f.qp], [#P3.eps_f.kryp],
-  [Sättning av bottenplattan, långtid (mm)], [#P3.w.min–#P3.w.max], [#P4.w.min–#P4.w.max], [],
+  columns: (1fr, auto, auto),
+  align: (left, right, right),
+  table.header([Tryck (kPa)], [Värde], [Gräns]),
+  [S200 under balkar och plintar, brottgräns (medel inom $r$ = 150 mm vid toppen)], [#P3.eps_b.uls (#P3.eps_b.medel)], [#P3.eps_b.fdM],
+  [S200, bara permanent last], [#P3.eps_b.perm], [#P3.eps_b.fdP],
+  [S200, kvasipermanent långtid], [#P3.eps_b.qp], [#P3.eps_b.kryp],
+  [S300 vid de yttre hörnen: brottgräns / permanent / långtid], [#P3.eps_3.uls / #P3.eps_3.perm / #P3.eps_3.qp], [#P3.eps_3.fdM / #P3.eps_3.fdP / #P3.eps_3.kryp],
+  [S100 under plattan, brottgräns], [#P3.eps_f.uls], [#P3.eps_f.fdM],
+  [S100 under plattan, kvasipermanent långtid], [#P3.eps_f.qp], [#P3.eps_f.kryp],
+  [Sättning av bottenplattan, långtid (mm)], [#P3.w.min–#P3.w.max], [],
 )
-Betongväggarna med fasadsten väger cirka 8–11 kN/m. De största trycken ligger vid de yttre hörnen, där hörnstolparna på plan 1 och LD4_2 står. Där räcker inte S200, och under kantbalken läggs S300 1,0 m åt båda håll från hörnet. Utanför hörnen räcker S200 i båda utförandena.
+Betongväggarna med fasadsten väger cirka 8–11 kN/m. De största trycken ligger vid de yttre hörnen, där hörnstolparna på plan 1 och LD4_2 står. Där räcker inte S200, och under kantbalken läggs S300 1,0 m åt båda håll från hörnet. Utanför hörnen räcker S200.
 
 Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.vagg mm vid väggarna. Väggarna sätter sig alltså cirka #P3.w.skillnad mm mer än rören. Kärnans krympning ensam ger högst #P3.svinn kNm/m i mellanbjälklaget. Effekten finns med i kontrollen i @samverkan.
 
@@ -302,7 +301,7 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 #figure(placement: auto,
   image("../fig_bottenplatta.svg", width: 88%),
-  caption: [Bottenplattan, utförande L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, S300 vid de yttre hörnen och diagonaljärn vid inåtgående hörn.],
+  caption: [Bottenplattan L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, S300 vid de yttre hörnen och diagonaljärn vid inåtgående hörn.],
 ) <fig-platta>
 
 - *Platta 100 mm:* största moment utanför balkar och plintar, minst $d$ = #P3.falt.d mm från dem, är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m). Närmare balkarna är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående hörn mellan balkarna (#P3.falt.topp kNm/m precis vid kanten). Toppen är en singularitet i FE-lösningen och avtar inom några centimeter; nätet går in i balkarna och tar momentet där.
@@ -327,7 +326,7 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 #figure(placement: auto,
   image("../fig_lokala.svg", width: 100%),
-  caption: [Lokal armering, L300, ungefär skala 1:20. Mått i mm. a) Plint under rör. b) Balk under innervägg. c) Yttre hörn i plan. d) V3 mot V19/V20 i plan. Kantbalkens armering och väggens anslutningar visas i @fig-det[figur].],
+  caption: [Lokal armering, ungefär skala 1:20. Mått i mm. a) Plint under rör. b) Balk under innervägg. c) Yttre hörn i plan. d) V3 mot V19/V20 i plan. Kantbalkens armering och väggens anslutningar visas i @fig-det[figur].],
 ) <fig-lokala>
 
 == Mellanbjälklaget och rören i samverkan <samverkan>
@@ -342,10 +341,6 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 - *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Räknas också packningstrycket blir det #D.glid.Fdk kN, #D.glid.utnk. Kraften förs genom mellanbjälklaget och bottenplattan som skivor. TG 2216 kräver att jordtrycket tas med i husets stabilitet när väggarna hålls av bjälklaget.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
 - *Fukt:* dränering och fuktskydd enligt @utf. Den åldringsbeständiga plastfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
-
-== L300 eller L400
-
-Båda utförandena klarar alla kontroller med samma armering och samma S300 vid de yttre hörnen. L400 ger nästan samma tryck på cellplasten men större moment i plattan vid övergången till balkarna, och sättningarna är lika. *L300 räcker.* L400 kan väljas för värmeisoleringen men behövs inte för bärförmågan.
 
 = Utförande och kontroll
 

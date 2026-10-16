@@ -1,6 +1,6 @@
 # K-06 rev A – Bottenplatta och källarväggar
 
-Källarens väggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100, SINTEF TG 2216) mot jord, byggskedet innan mellanbjälklaget har gjutits (ordningsföljd, V3/V20 med fri överkant, betongens hållfasthet och härdningstid vid återfyllning) och bottenplattan på cellplast med kantbalkar i L-element (L300 eller L400), balkar under innerväggarna och plintar under rören. Bottenplattan, väggarnas kärna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell.
+Källarens väggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100, SINTEF TG 2216) mot jord, byggskedet innan mellanbjälklaget har gjutits (ordningsföljd, V3/V20 med fri överkant, betongens hållfasthet och härdningstid vid återfyllning) och bottenplattan, 100 mm betong på 200 mm cellplast med kantbalkar i L-element L300, balkar under innerväggarna och plintar under rören. Bottenplattan, väggarnas kärna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell.
 
 | Fil | Innehåll |
 |---|---|
@@ -8,7 +8,7 @@ Källarens väggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + 
 | `vaggar.py` | Väggarna: lodrät strimla med jord- och packningstryck och toppmoment, fasaden med öppningar, vertikal last, fogar, LD4_2, byggskedet (brottlinjeteori för V3/V20), hållfasthet och mognadsålder |
 | `modell06.py` | Den samverkande FE-modellen: K-05:s mellanbjälklag, bottenplattan, väggarnas kärna och rören som fjädrar, laster, kärnans krympning |
 | `snitt06.py` | Balkmoment och tvärkraft längs balkarna, cellplastens kraft innanför stansningssnitten, väggarnas last per meter |
-| `berakning06.py` | Lastfall och omhyllande för L300 och L400, kort och lång styvhet; plintarnas storlek; skriver `res06_<utf>_<styvhet>.pkl` |
+| `berakning06.py` | Lastfall och omhyllande för L300, kort och lång styvhet; plintarnas storlek; skriver `res06_L300_<styvhet>.pkl` |
 | `kontroll06.py` | Kontroller: cellplast, platta, balkar, plintar, mellanbjälklaget mot K-05:s armering, rörlaster, sättningar, plattan på mark; skriver `kontroll06.json` |
 | `berakning.py` | Huvudskript: kör `berakning06.py` (om resultaten saknas), `kontroll06.py`, väggarna, byggskedet och glidning; skriver `resultat.json` |
 | `figurer06.py` | Figurer: källaren, jordtryck, härdning, väggens sektion, tryck och sättning, bottenplattan, lokala detaljer |
@@ -20,7 +20,7 @@ Modulerna i `../K-05` används direkt (nät, laster, FE, EC2), så K-05 ska finn
 ## Köra
 
 ```
-python berakning06.py          # L300 och L400 (omplint: räkna om plintarnas storlek)
+python berakning06.py          # L300 (omplint: räkna om plintarnas storlek)
 python berakning.py            # kontroller, väggar, byggskede och resultat.json
 python validering/natkonvergens.py
 python rapport.py              # rapport/K-06_grund.pdf

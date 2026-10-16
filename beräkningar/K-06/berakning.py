@@ -56,7 +56,7 @@ def glidning():
 
 
 def main(om=False):
-    if om or not all(os.path.exists(os.path.join(HERE, f"res06_{u}_{v}.pkl")) for u in ("L300", "L400")
+    if om or not all(os.path.exists(os.path.join(HERE, f"res06_{u}_{v}.pkl")) for u in I.UTFORANDEN
                      for v in ("lång", "kort")):
         subprocess.run([sys.executable, os.path.join(HERE, "berakning06.py")], check=True, cwd=HERE)
     subprocess.run([sys.executable, os.path.join(HERE, "kontroll06.py")], check=True, cwd=HERE)

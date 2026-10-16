@@ -36,10 +36,10 @@ Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosex
 ## Viktiga antaganden
 
 - Betong C25/30, B500B. Nät Ø10 s150 i underkant (täckskikt 20 mm) och Ø8 s150 i överkant (täckskikt 25 mm).
-- Källarväggarna är Kub 350-150 (cellplast 100 + betong 150 + cellplast 100). Upplagslinjen ligger i betongkärnans mitt, som är väggens centrumlinje (5.3.2.2: 75 mm från kärnans insida); plattan går till 30 mm från väggens ytterliv, 70 mm ut över den yttre cellplasten.
+- Källarväggarna är Kub 350-150 (cellplast 100 + betong 150 + cellplast 100). Vid öppningarna slutar betongkärnan, och därmed upplagslinjen, 100 mm innanför den isolerade smygen. Upplagslinjen ligger i betongkärnans mitt, som är väggens centrumlinje (5.3.2.2: 75 mm från kärnans insida); plattan går till 30 mm från väggens ytterliv, 70 mm ut över den yttre cellplasten.
 - Ytterväggarna på plan 1 står över källarväggens yttre cellplast, centrum 17,5 mm innanför plattans kant och 52,5 mm utanför kärnan (modellen).
 - Laster från plan 1: K-01:s stödreaktioner; gavlarnas nockbalksändar via takstolar till hörnen; takfotsväggar bär halva takbalken plus 0,2 m utsprång; ytterväggar 0,6 kN/m²; trappan hänger på hålets kortsida.
 - Lätta mellanväggar 0,7 kN/m² som nyttig last i brottgräns och permanent last i bruksgräns.
 - Momenttoppar utjämnas över 250 mm; stödmoment i överkant × 1,2 när zonerna avgränsas och tilläggsjärnen dimensioneras för 1,5 × FE (stela upplagslinjer ger nätberoende toppar vid väggändar).
-- Genomstansning: hela lasten på varje rör och stolpe på eget snitt 2d, β 1,15 (1,4 vid trapphålet), ρ ur överkantsarmeringen, för rören också FE-modellens lokala tvärkraft; minst 5 % marginal och ≤ 100 % med armeringen 10 mm för lågt. Nettokraften ur jämvikt redovisas bara som information. P7 har topplåt 160×160×25 S355.
+- Genomstansning: hela lasten på varje rör och stolpe på eget snitt 2d, β 1,15 (1,4 vid trapphålet), ρ ur överkantsarmeringen, för rören också FE-modellens lokala tvärkraft; minst 5 % marginal och ≤ 100 % med armeringen 10 mm för lågt. Nettokraften ur jämvikt redovisas bara som information. P7 är två rör tätt intill varandra i x-led, vart och ett med sin topplåt 80×80×8 (lastyta 160 × 80 mm).
 - Rören räknas med verklig axialstyvhet, som styva och som styva med väggarna som fjädrar (kärnans långtidsstyvhet, E = 11 000 MPa, t = 150 mm); det ogynnsammaste resultatet används. Rören vid trapphålet står där de står i modellen, 62,5–81 mm från hålkanten (centrum).

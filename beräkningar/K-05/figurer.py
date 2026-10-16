@@ -68,16 +68,17 @@ def matt(ax, p0, p1, off, txt, fs=6.5, ext=True):
 def vaggband(w, E, alla=()):
     """Källarväggens betongkärna (mittre 150) och hela tjocklek (350, Kub 350-150) som shapely-polygoner. Ändar som
     möter en annan vägg förlängs, hela väggen med E och kärnan med sin halva tjocklek, så att hörnen och
-    anslutningarna blir hela och kärnan sammanhängande."""
+    anslutningarna blir hela och kärnan sammanhängande. Vid en fri ände (öppning) slutar kärnan i väggens ände och
+    hela väggen 100 mm längre ut: smygen är isolerad med cellplast."""
     ax, c, a, b = w[:4]
     def mot(v):
         return any(o[0] != ax and abs(o[1] - v) < 1 and o[2] - 1 <= c <= o[3] + 1 for o in alla)
 
-    def linje(ea):
-        a_ = a - ea if mot(a) else a
-        b_ = b + ea if mot(b) else b
+    def linje(ea, fri=0.0):
+        a_ = a - ea if mot(a) else a - fri
+        b_ = b + ea if mot(b) else b + fri
         return LineString([(a_, c), (b_, c)] if ax == "h" else [(c, a_), (c, b_)])
-    L = linje(E)
+    L = linje(E, 100.0)
     return linje(75.0).buffer(75, cap_style="flat"), L.buffer(175, cap_style="flat"), L
 
 

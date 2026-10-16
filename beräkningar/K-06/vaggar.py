@@ -37,7 +37,7 @@ E_TOPP = (I.T_VAGG / 2 - I.KI - 17.5) / 1000      # m, lasterna över väggen (K
 
 
 def q06(namn):
-    """Väggens last per meter i den samverkande modellen (kontroll06.json, största av L300 och L400), annars 0."""
+    """Väggens last per meter i den samverkande modellen (kontroll06.json), annars 0."""
     f = os.path.join(HERE, "kontroll06.json")
     if not os.path.exists(f):
         return 0.0

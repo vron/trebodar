@@ -1,5 +1,5 @@
 """
-K-06: bottenplattan i den samverkande modellen (modell06), båda utförandena (L300 och L400).
+K-06: bottenplattan i den samverkande modellen (modell06), utförande L300.
 
 För varje utförande räknas två styvheter:
   kort  korttidsstyvhet (cellplast E_k, betong utan krypning) – brottgräns
@@ -157,11 +157,11 @@ def spara(S, env, sls, lf, kr, plint, namn):
 
 
 if __name__ == "__main__":
-    # python berakning06.py [L300] [L400] [omplint]
+    # python berakning06.py [L300] [omplint]
     #   Plintarnas storlek tas ur en tidigare körning, om den finns och "omplint" inte anges.
     import pickle
     arg = sys.argv[1:]
-    for utf in [a for a in arg if a.startswith("L")] or ["L300", "L400"]:
+    for utf in [a for a in arg if a.startswith("L")] or list(I.UTFORANDEN):
         f0 = os.path.join(HERE, f"res06_{utf}_lång.pkl")
         if os.path.exists(f0) and "omplint" not in arg:
             plint = pickle.load(open(f0, "rb"))["plint"]

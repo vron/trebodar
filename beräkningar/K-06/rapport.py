@@ -152,7 +152,7 @@ D["bygg"]["d10R"] = D["bygg"]["dygn"][1]["R"]
 # ------------------------------------------------------------------ bottenplatta
 P = R["platta"]
 D["platta"] = {}
-for u in ("L300", "L400"):
+for u in I.UTFORANDEN:
     p = P[u]
     e = p["eps"]
     bk = p["balkar"]

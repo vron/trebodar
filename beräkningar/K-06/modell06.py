@@ -44,9 +44,11 @@ K_ROR = 210000 * M05.A_ROR / M05.L_ROR              # N/mm per rör
 
 # ------------------------------------------------------------------ bottenplattans geometri
 def kallare():
-    """Källarens yttre kontur = väggarnas ytterliv (K-05:s plattkant + 30 mm), utan delen med platta på mark."""
+    """Källarens yttre kontur = väggarnas ytterliv (K-05:s plattkant + 30 mm), utan delen med platta på mark, som
+    avgränsas av V3:s och V20:s ytterliv."""
     k = Polygon(G["kontur"]).buffer(I.KI, join_style=2)
-    ut = box(-500, 9200 + 175, 4540 - 175, 16500)
+    y3, x20 = G["vagg"][2][1], G["vagg"][19][1]                       # V3 och V20, centrumlinjer
+    ut = box(-500, y3 + I.T_VAGG / 2, x20 - I.T_VAGG / 2, 16500)
     return k.difference(ut)
 
 
@@ -73,8 +75,10 @@ def balkar(plint):
     """Kantbalk längs hela konturen, balkar under innerväggarna och plintar (sida plint[i]) under rören."""
     poly = kallare()
     kant = poly.difference(poly.buffer(-I.B_BALK, join_style=2))
+    # V4–V6 står på en balk i hela linjen mellan V19 och V15, också under dörröppningarna
+    y4, x19, x15 = G["vagg"][3][1], G["vagg"][18][1], G["vagg"][14][1]
     inre = unary_union([LineString(VAGGLIN[i]).buffer(I.B_BALK / 2, cap_style=2) for i in INRE] +
-                       [LineString([(4540, 7510), (9640, 7510)]).buffer(I.B_BALK / 2, cap_style=2)])
+                       [LineString([(x19, y4), (x15, y4)]).buffer(I.B_BALK / 2, cap_style=2)])
     pl = [box(x - b / 2, y - b / 2, x + b / 2, y + b / 2) for (x, y), b in zip(PEL, plint)]
     return poly, kant, inre.intersection(poly), unary_union(pl).intersection(poly)
 

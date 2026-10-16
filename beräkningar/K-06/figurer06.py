@@ -116,10 +116,12 @@ def rita_bottenplatta(path, R, poly, kant, inre, plint_b):
                                  zorder=2))
             for h in p.interiors:
                 ax.add_patch(Polygon(list(h.coords), closed=True, fc=EPSF, ec=INK, lw=0.4, zorder=2))
-    for i, ((x, y), b) in enumerate(zip(G["pelare"], plint_b), 1):
+    import modell06 as M
+    for (namn, x, y, bx, by, antal), b in zip(M.ROR, plint_b):        # plinten centrerad under stödet (P7: två rör)
         ax.add_patch(Rectangle((x - b / 2, y - b / 2), b, b, fc="#e2bdb3", ec=INK, lw=0.5, zorder=3))
-        ax.add_patch(Rectangle((x - 100, y - 100), 200, 200, fc=STAL, ec="none", zorder=4))
-        ax.text(x, y - b / 2 - 90, f"P{i} {sv(b)}", ha="center", va="top", fontsize=5.3, zorder=9, path_effects=HALO)
+        fb = 200 + (bx - 80)                                            # fotplåt 200 × 200, vid två rör 280 × 200
+        ax.add_patch(Rectangle((x - fb / 2, y - 100), fb, 200, fc=STAL, ec="none", zorder=4))
+        ax.text(x, y - b / 2 - 90, f"{namn} {sv(b)}", ha="center", va="top", fontsize=5.3, zorder=9, path_effects=HALO)
     for b, bis in F05.inatgaende_horn(list(poly.exterior.coords)[:-1]):
         t = np.array([-bis[1], bis[0]])
         for off in (150, 250):
@@ -127,7 +129,6 @@ def rita_bottenplatta(path, R, poly, kant, inre, plint_b):
             p0, p1 = c - t * 600, c + t * 600
             ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=FRI, lw=0.9, zorder=8, solid_capstyle="butt")
     from shapely.geometry import box as _box
-    import modell06 as M
     for x0, y0, x1, y1 in M.s300_zoner():
         z = _box(x0, y0, x1, y1).intersection(kant)
         for g in getattr(z, "geoms", [z]):

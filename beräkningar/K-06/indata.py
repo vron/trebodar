@@ -26,10 +26,9 @@ H_MB = 150.0             # mellanbjälklagets tjocklek (K-05)
 B_BALK = 450.0           # kantbalkens bredd: L-elementets bredd 550 minus det yttre benet 100
 T_FOT = 100.0            # cellplast under kantbalk och plintar (L-elementets fot)
 H_PLATTA = 100.0         # bottenplattans tjocklek i fält (Plattor.pdf)
-# två utföranden av bottenplattan (L-element 300 och 400): cellplast under plattan och kantbalkens höjd
+# bottenplattans utförande: L-element L300, 200 mm cellplast under plattan och 200 mm hög kantbalk (300 med foten)
 UTFORANDEN = {
     "L300": dict(H=300.0, t_eps=200.0, h_balk=200.0),
-    "L400": dict(H=400.0, t_eps=300.0, h_balk=300.0),
 }
 
 # ------------------------------------------------------------------ jord och fyllning
@@ -72,7 +71,8 @@ FYLL = {
     "V10–V13": dict(h=(0.80, 0.80), ande=("h", "h"), fasad=dict(linje="V10", mellan=("V18", "V17"),
                                                                  omfattar=("V10", "V11", "V12", "V13"))),
 }
-BROSTNING = (0.90, 1.50)  # m, fönstrens bröstning över bottenplattan i fasaden med öppningarna
+BROSTNING = (0.80, 1.40)  # m, betongkärnans underkant i öppningarna över bottenplattan (modellen); smygen och
+                          # bröstningen isoleras med 100 mm cellplast, färdig bröstning 0,90 och 1,50 m
 
 # ------------------------------------------------------------------ källarväggarna: Sundolitt Kub 350-150 (U17)
 KUB = dict(namn="Sundolitt Kub 350-150 (U17)", tg="SINTEF TG 2216", element=(1200.0, 600.0), halvt=300.0,

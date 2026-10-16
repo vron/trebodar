@@ -295,7 +295,7 @@ def kontroll(utf):
 
 if __name__ == "__main__":
     res = {}
-    for utf in ("L300", "L400"):
+    for utf in I.UTFORANDEN:
         r = kontroll(utf)
         res[utf] = r
         e = r["eps"]
