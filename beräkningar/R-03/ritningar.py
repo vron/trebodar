@@ -645,7 +645,7 @@ def blad_oversikt():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar() + [
             "Plattans kontur och trapphålets läge enligt denna ritning. Rörens lägen, se tabell på R-03.2.",
-            "Källarväggarna (Kub 350-150, K-06) under plattan streckade."]),
+            "Källarväggarna (Kub 350-150, R-04) under plattan streckade."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
@@ -734,7 +734,7 @@ def blad_sektioner():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar()[:4] + [
             "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten. "
-            "Rörens lägen ±40 mm enligt tabellen på R-03.2; P7 är två rör tätt intill varandra.",
+            "Rörens mitt enligt tabellen på R-03.2 och R-04.1; P7 är två rör tätt intill varandra.",
             "Överkantsarmeringens höjd kontrolleras före gjutning, särskilt vid rören.",
             "Ytterväggarnas översta halva skift gjuts samtidigt med bjälklaget, i den ordning K-06 anger. "
             "Bjälklagets form och stämp står för sig själva och hänger inte i Kub-elementen. "

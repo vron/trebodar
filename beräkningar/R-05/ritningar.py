@@ -51,6 +51,14 @@ PLINT_ARM = (8, 150)            # Ø8 s150 i underkant, båda riktningarna
 DIAG = dict(n=2, d=10, L=1200.0, off=(150.0, 250.0))   # i överkant vid de inåtgående hörnen
 START = K.STARTJARN             # Ø10 s300, 500 i balken, 1 200 upp
 VIKT = {6: 0.222, 8: 0.395, 10: 0.617, 12: 0.888}
+
+
+def lb_rqd(d):
+    """Grundvärde för förankringslängd, SS-EN 1992-1-1 8.4.3, goda förhållanden, C25/30 (som R-03)."""
+    return d / 4 * 435 / (2.25 * 1.8 / 1.5)
+
+
+SKARV = {d: int(math.ceil(1.5 * lb_rqd(d) / 50) * 50) for d in (6, 8, 10)}     # 400 / 500 / 650
 POS = dict(uk_x=31, uk_y=32, ok_x=33, ok_y=34, balk_uk=35, balk_ok=36, bygel=37, plint=38, diag=39,
            start_ute=40, start_inne=41)
 
@@ -124,7 +132,8 @@ def lager_ror(v, fotplat=True, namn=True):
 
 
 def lager_yttermatt(v):
-    R4.lager_yttermatt(v)
+    """Som R-04.1, men längre ut: L-elementets yttre ben ligger 100 mm utanför plattans kant."""
+    R4.lager_yttermatt(v, d1=6.0, d2=12.0)
 
 
 def lager_balkmatt(v):
@@ -132,7 +141,7 @@ def lager_balkmatt(v):
     s = v.s
     with v.lager("matt"):
         # kantbalken längs V21 och V14, balken under V15 och V19
-        kedja(v, [ytterliv("V21"), ytterliv("V21") + BB], 4000.0, [4000.0] * 2, sz=5.6)
+        kedja(v, [ytterliv("V21"), ytterliv("V21") + BB], 5300.0, [5300.0] * 2, sz=5.6)
         kedja(v, [ytterliv("V14") - BB, ytterliv("V14")], 9000.0, [9000.0] * 2, sz=5.6)
         c15 = VAGG["V15"]["c"]
         kedja(v, [c15 - BB / 2, c15 + BB / 2], 9200.0, [9200.0] * 2, sz=5.6)
@@ -144,7 +153,7 @@ def lager_s300matt(v):
     """S300-zonens längd vid ett hörn (V1/V14)."""
     with v.lager("matt"):
         x, y = ytterliv("V14"), ytterliv("V1")
-        kedja(v, [y - K.I06.S300_HORN, y], x - BB - 3.0 * v.s, [x - BB] * 2, sz=5.6, ax="y")
+        kedja(v, [y - K.I06.S300_HORN, y], x - BB - 6.0 * v.s, [x - BB] * 2, sz=5.6, ax="y")
 
 
 def lager_rubrik(v, titel):
@@ -454,7 +463,7 @@ def stalforteckning():
             for seg in getattr(gg, "geoms", [gg]):
                 if seg.length > 100:
                     n += 1
-                    tl += seg.length + math.floor(seg.length / 6000) * 300.0       # skarv 300 per 6 m stång
+                    tl += seg.length + math.floor(seg.length / 12000) * SKARV[NAT[0]]   # en skarv per 12 m stång
         return n, tl / 1000
     for pos, rikt, lag in ((POS["uk_x"], "x", "UK"), (POS["uk_y"], "y", "UK"), (POS["ok_x"], "x", "ÖK"),
                            (POS["ok_y"], "y", "ÖK")):
@@ -574,6 +583,9 @@ def blad_plan():
             dict(form="ruta", fyll="stal", text="fotplåt (R-04.5)")]),
         dict(typ="rubrik", text="Plintar (sida och mitt)"),
         plinttabell(),
+        dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
+        dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0),
+             rader=[[nr, ", ".join(t[1:]), sk] for nr, t, sk, _ in BLADEN], just=["l", "l", "l"], sz=6.4),
     ]
     return Blad(hd("R-05.1"), REVISIONER, kol, [v])
 
@@ -593,10 +605,10 @@ def blad_armering():
             f"Betong C25/30, armering B500B. Täckande skikt: {C_UK:.0f} mm mot cellplasten (distanser) och "
             f"{C_OK:.0f} mm i överkant.",
             f"Nät Ø{NAT[0]} s{NAT[1]} i under- och överkant i hela plattan ({POS['uk_x']}–{POS['ok_y']}), också genom "
-            "balkarna och plintarna. Golvvärmeslangarna fästs i underkantsnätet. Skarvlängd 300.",
+            f"balkarna och plintarna. Golvvärmeslangarna fästs i underkantsnätet. Skarvlängd Ø6 {SKARV[6]}.",
             f"Kantbalkar och balkar under innerväggarna: 2 Ø10 i underkant ({POS['balk_uk']}) och 2 Ø10 i överkant "
-            f"({POS['balk_ok']}), U-byglar Ø6 s600 ({POS['bygel']}). Skarvlängd 500; i hörnen bockas järnen eller "
-            "skarvas med vinkeljärn.",
+            f"({POS['balk_ok']}), U-byglar Ø6 s600 ({POS['bygel']}). Skarvlängd Ø10 {SKARV[10]}; i hörnen bockas "
+            "järnen eller skarvas med vinkeljärn.",
             f"Plintar: Ø{PLINT_ARM[0]} s{PLINT_ARM[1]} i underkant, båda riktningarna ({POS['plint']}). Fotplåten "
             "gjuts in kant i kant med plintens överkant (R-04.5).",
             f"Inåtgående hörn: 2 Ø10, L = 1 200, i överkant diagonalt, 150 och 250 mm från hörnet ({POS['diag']}).",

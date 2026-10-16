@@ -163,44 +163,46 @@ def kedja(v, xs, Y, Yfran, texter=None, sz=6.2, ax="x"):
         bredd = len(txt) * 0.19 * sz + 0.8
         rot = 0 if ax == "x" else 90
         off = 0.8 * v.s
+        # texten står normalt på den sida av måttlinjen som vetter mot det som mäts; ryms den inte, ställs den mitt
+        # på måttet på andra sidan linjen (bort från det mätta)
+        mot = (1 if Yfran[i] > Y else -1) if ax == "x" else (-1 if Yfran[i] < Y else 1)
         if bredd < abs(b - a) / v.s:
-            pos, anc = (a + b) / 2, "cb"
-        elif i == 0:
-            pos, anc = a - 1.4 * v.s * (1 if b > a else -1), "rb"
-        elif i == n - 1:
-            pos, anc = b + 1.4 * v.s * (1 if b > a else -1), "lb"
+            pos, sida = (a + b) / 2, mot
+        elif i in (0, n - 1):
+            pos, sida = (a + b) / 2, -mot
         else:
-            pos, anc = (a + b) / 2, "cb"
+            pos, sida = (a + b) / 2, mot
             off = 3.4 * v.s
         if ax == "x":
-            v.text(pos, Y + off, txt, a=anc, sz=sz)
+            v.text(pos, Y + sida * off, txt, a="cb" if sida > 0 else "ct", sz=sz)
         else:
-            v.text(Y - off, pos, txt, a=anc, sz=sz, rot=rot)
+            v.text(Y - sida * off, pos, txt, a="cb" if sida > 0 else "ct", sz=sz, rot=rot)
 
 
-def lager_yttermatt(v):
-    """Väggarnas ytterliv (= bottenplattans kant) runt källaren, med totalmått, och betongens öppningar."""
+def lager_yttermatt(v, d1=4.0, d2=10.0):
+    """Väggarnas ytterliv (= bottenplattans kant) runt källaren, med totalmått, och betongens öppningar. d1 och d2:
+    måttkedjornas avstånd från ytterlivet (pappersmm)."""
     s = v.s
     with v.lager("matt"):
         # söder: fasaden med öppningarna F1–F3 och V8/V9 med D1
         f = [o for o in OPPN if o["c"] == VAGG["V10"]["c"]]
         xs = [ytterliv("V18")] + [p for o in f for p in (o["x0"], o["x1"])] + [ytterliv("V17")]
-        kedja(v, xs, -30.0 - 4.0 * s, [-30.0] * len(xs))
-        d1 = OPPN[3]
-        xs2 = [ytterliv("V17"), d1["x0"], d1["x1"], ytterliv("V14")]
-        kedja(v, xs2, ytterliv("V9") - 4.0 * s, [ytterliv("V9")] * len(xs2))
+        kedja(v, xs, -30.0 - d1 * s, [-30.0] * len(xs))
+        dorr = OPPN[3]
+        xs2 = [ytterliv("V17"), dorr["x0"], dorr["x1"], ytterliv("V14")]
+        kedja(v, xs2, ytterliv("V9") - d1 * s, [ytterliv("V9")] * len(xs2))
         # väster: V21 och lägena för V3, V2 och V1 (V7 och V3 från V21:s ytterliv)
         ys = [ytterliv("V7"), ytterliv("V3"), ytterliv("V2"), ytterliv("V1")]
         fr = [ytterliv("V21"), ytterliv("V21"), ytterliv("V20"), ytterliv("V16")]
-        kedja(v, ys, -30.0 - 4.0 * s, fr, ax="y")
+        kedja(v, ys, -30.0 - d1 * s, fr, ax="y")
         # norr: V3, V2, V1 och totalmåttet i x
         xs3 = [-30.0, ytterliv("V20"), ytterliv("V16"), ytterliv("V14")]
-        kedja(v, xs3, ytterliv("V1") + 4.0 * s, [ytterliv("V3"), ytterliv("V2"), ytterliv("V1"), ytterliv("V1")])
-        kedja(v, [-30.0, ytterliv("V14")], ytterliv("V1") + 10.0 * s, [ytterliv("V1") + 4.0 * s] * 2)
+        kedja(v, xs3, ytterliv("V1") + d1 * s, [ytterliv("V3"), ytterliv("V2"), ytterliv("V1"), ytterliv("V1")])
+        kedja(v, [-30.0, ytterliv("V14")], ytterliv("V1") + d2 * s, [ytterliv("V1") + d1 * s] * 2)
         # öster: fasaden, V8/V9 och V1 med totalmåttet i y
         ys4 = [-30.0, ytterliv("V9"), ytterliv("V1")]
-        kedja(v, ys4, ytterliv("V14") + 4.0 * s, [ytterliv("V17"), ytterliv("V14"), ytterliv("V14")], ax="y")
-        kedja(v, [-30.0, ytterliv("V1")], ytterliv("V14") + 10.0 * s, [ytterliv("V14") + 4.0 * s] * 2, ax="y")
+        kedja(v, ys4, ytterliv("V14") + d1 * s, [ytterliv("V17"), ytterliv("V14"), ytterliv("V14")], ax="y")
+        kedja(v, [-30.0, ytterliv("V1")], ytterliv("V14") + d2 * s, [ytterliv("V14") + d1 * s] * 2, ax="y")
 
 
 def lager_innermatt(v):
@@ -210,7 +212,7 @@ def lager_innermatt(v):
         y = VAGG["V4"]["c"]
         xs = [liv("V19", 1), OPPN[4]["x0"], OPPN[4]["x1"], OPPN[5]["x0"], OPPN[5]["x1"], liv("V15", -1)]
         kedja(v, xs, y - K.T_VAGG / 2 - 3.5 * s, [y - K.T_VAGG / 2] * len(xs))
-        kedja(v, [liv("V5", 1), VAGG["V2"]["innerliv"]], 8300.0, [8300.0, 8300.0], ax="y")
+        kedja(v, [liv("V5", 1), VAGG["V2"]["innerliv"]], 8750.0, [8750.0, 8750.0], ax="y")
         # väggens skikt (V21): cellplast 100, betongkärna 150, cellplast 100
         x0 = ytterliv("V21")
         kedja(v, [x0, x0 + K.T_EPS, x0 + K.T_EPS + K.T_KARNA, x0 + K.T_VAGG], 7100.0, [7100.0] * 4, sz=5.6)
@@ -441,10 +443,11 @@ def oppningstabell():
     rader = []
     for o in OPPN:
         f0, f1, fz = o["fardig"]
-        rader.append([o["namn"], " / ".join(o["vaggar"]), f"{sv(o['x0'])}–{sv(o['x1'])}", sv(o["bredd"]),
-                      sv(o["z0"]), sv(f1 - f0), sv(fz), sv(H - fz)])
-    return dict(typ="tabell", kolumner=["", "Mellan", "x (betong)", "b", "bröstn.", "b färdig", "bröstn.", "h färdig"],
-                bredd=(0, 0, 1, 0, 0, 0, 0, 0), rader=rader, just=["l", "l", "l", "r", "r", "r", "r", "r"], sz=6.2)
+        brost = f"{sv(o['z0'])} ({sv(fz)})" if o["z0"] > 0 else "–"
+        rader.append([o["namn"], " / ".join(o["vaggar"]), f"{sv(o['x0'])}–{sv(o['x1'])}",
+                      f"{sv(o['bredd'])} ({sv(f1 - f0)})", brost, f"{sv(H - o['z0'])} ({sv(H - fz)})"])
+    return dict(typ="tabell", kolumner=["", "Mellan", "x (betong)", "Bredd", "Bröstning", "Höjd"],
+                bredd=(0, 0, 1, 0, 0, 0), rader=rader, just=["l", "l", "l", "r", "r", "r"], sz=6.2)
 
 
 def rortabell():
@@ -479,12 +482,16 @@ def blad_plan():
             dict(form="yta", fyll="karna", stil="tunn", text="betongkärna 150, Kub 350-150"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast EPS, 100 per sida och i smygen"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
-        dict(typ="rubrik", text="Öppningar i betongen (färdig öppning)"),
+        dict(typ="rubrik", text="Öppningar i betongen"),
         oppningstabell(),
-        dict(typ="text", sz=6.0, rader=["", "Mått i mm. Överkant i mellanbjälklagets underkant, 2 100 över "
+        dict(typ="text", sz=6.0, rader=["", "Betongens mått, färdig öppning inom parentes (100 mm cellplast i smygen "
+                                          "och på bröstningen). Överkant i mellanbjälklagets underkant, 2 100 över "
                                           "bottenplattan."]),
         dict(typ="rubrik", text="Rörens lägen (mitt)"),
         rortabell(),
+        dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
+        dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0),
+             rader=[[nr, ", ".join(t[1:]), sk] for nr, t, sk, _ in BLADEN], just=["l", "l", "l"], sz=6.2),
     ]
     return Blad(hd("R-04.1"), REVISIONER, kol, [v])
 
@@ -710,8 +717,10 @@ def blad_elevationer():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.8, rader=[
-            "Elevationerna visar betongkärnan; cellplasten är inte ritad. Den färdiga öppningen (streckad) ligger "
-            "100 mm innanför betongen: smygen och bröstningen isoleras med 100 mm cellplast.",
+            "Elevationerna visar betongkärnan; cellplasten är inte ritad. Måtten längs väggarna går till kärnans ändar, "
+            "i hörnen till den vinkelräta väggens kärna (100 mm innanför ytterlivet, som planen R-04.1 mäter till). Den "
+            "färdiga öppningen (streckad) ligger 100 mm innanför betongen: smygen och bröstningen isoleras med 100 mm "
+            "cellplast.",
             f"Skift: tre hela (600) och ett halvt (300). De tre hela skiften gjuts först, upp till {sv(K.H_GJUT1)} "
             "(gjutfog, streckprickad). Det halva skiftet gjuts med mellanbjälklaget (K-06).",
             f"Vågräta järn ({POS['hor']}): ett vid var yta i varje lager, på höjderna "
