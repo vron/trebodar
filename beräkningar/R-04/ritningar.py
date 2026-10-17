@@ -1210,8 +1210,7 @@ def blad_sektioner():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.6, rader=[
             "Betong i väggarnas kärna B30 enligt Sundolitt (C30/37), största stenstorlek 16 mm, grov ballast minskad "
-            "25 %, sättmått 180–200 mm; exponeringsklass XC2 (mot insidan XC1), livslängd 50 år. Armering B500B. "
-            "Täckande skikt till de vågräta järnen 25 mm mot insidan och 30 mm mot utsidan.",
+            "25 %, sättmått 180–200 mm. Armering B500B. Täckande skikt till de vågräta järnen 25 mm mot insidan och 30 mm mot utsidan.",
             "Montering: elementen staplas i förband med armeringen i bindarnas hållare och stagas enligt Sundolitts "
             "anvisning, vid hörn och öppningar och annars cirka var 2 m. Kapade element och kanter vid öppningar "
             "förstärks med plywood eller läkt. I hörn och anslutningar skärs cellplasten bort så att kärnorna går ihop.",

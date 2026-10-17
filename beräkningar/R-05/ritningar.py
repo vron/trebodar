@@ -627,8 +627,7 @@ def blad_armering():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.8, rader=[
-            f"Betong C25/30, exponeringsklass XC2 mot cellplasten och XC1 i överkant, livslängd 50 år. Armering "
-            f"B500B. Täckande skikt: {C_UK:.0f} mm mot cellplasten (distanser) och {C_OK:.0f} mm i överkant.",
+            f"Betong C25/30, armering B500B. Täckande skikt: {C_UK:.0f} mm mot cellplasten (distanser) och {C_OK:.0f} mm i överkant.",
             f"Nät Ø{NAT[0]} s{NAT[1]} i under- och överkant i hela plattan ({POS['uk_x']}–{POS['ok_y']}), också genom "
             f"balkarna och plintarna. Golvvärmeslangarna fästs i underkantsnätet. Skarvlängd Ø6 {SKARV[6]}.",
             f"Kantbalkar och balkar under innerväggarna: 2 Ø10 i underkant ({POS['balk_uk']}) på byglarna och 2 Ø10 i "

@@ -94,8 +94,8 @@ Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolit
   columns: (auto, 1fr, auto, auto),
   align: (left, left, right, right),
   table.header([Material], [], [$f_"ck"$ (MPa)], [$gamma_M$]),
-  [Betong i väggarna], [Sundolitts recept B30 (NS-EN 206), räknas som C30/37. Största stenstorlek 16 mm, grov ballast minskad 25 %, sättmått 180–200 mm. Exponeringsklass XC2 mot utsidan (cellplast och jord) och XC1 mot insidan, livslängd 50 år], [#M.fck], [1,5],
-  [Betong i plattorna], [C25/30. Bottenplattan XC2 mot cellplasten och XC1 i överkant, mellanbjälklaget XC1 (K-05). Mellanbjälklaget får gjutas med väggarnas recept; ytterväggarnas översta skift gjuts alltid med det], [25], [1,5],
+  [Betong i väggarna], [Sundolitts recept B30 (NS-EN 206), räknas som C30/37. Största stenstorlek 16 mm, grov ballast minskad 25 %, sättmått 180–200 mm.], [#M.fck], [1,5],
+  [Betong i plattorna], [C25/30 (bottenplattan, K-05). Mellanbjälklaget får gjutas med väggarnas recept; ytterväggarnas översta skift gjuts alltid med det], [25], [1,5],
   [Armering], [B500B. I väggarna täckande skikt #M.c_in mm mot insidan och #M.c_ut mm mot utsidan till de vågräta järnen], [500], [1,15],
 )
 Kärnans $E_"cm"$ = #M.Ecm MPa. Kryptalet är #M.kryp och den slutliga krympningen #M.svinn mm/m (SS-EN 1992-1-1 3.1.4 med RH 80 % och $h_0$ = 150 mm; kärnan är inkapslad i cellplast).

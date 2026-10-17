@@ -235,7 +235,7 @@ class Vy:
                     lager=[dict(namn=k, element=e) for k, e in self.lagren.items()])
 
 
-def huvud(nummer, titel, skala, underlag, datum, rev, status="FÖR GRANSKNING", granskad="–"):
+def huvud(nummer, titel, skala, underlag, datum, rev, status="KONSTRUKTION", granskad="–"):
     """Ritningshuvud: projektets fasta uppgifter ur projekt.json och bladets egna."""
     return dict(projekt=PROJEKT["projekt"], fastighet=PROJEKT["fastighet"], upprattad=PROJEKT["upprattad"],
                 titel=titel, skala=skala, datum=datum, granskad=granskad, underlag=underlag, status=status,
