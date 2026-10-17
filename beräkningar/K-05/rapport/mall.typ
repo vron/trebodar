@@ -157,7 +157,7 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
   columns: (auto, 1fr),
   align: (left, left),
   table.header([Del], [Utförande]),
-  [Betong], [C25/30, exponeringsklass XC1. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
+  [Betong], [C30/37, samma som källarväggarna, räknad som C25/30 (på säkra sidan), exponeringsklass XC1. $f_"ck"$ = #D.mat.fck MPa, $f_"cd"$ = #D.mat.fcd MPa ($alpha_"cc"$ = 1,0), $f_"ctm"$ = #D.mat.fctm MPa, $E_"cm"$ = #D.mat.Ecm GPa],
   [Armering], [B500B, $f_"yd"$ = #D.mat.fyd MPa],
   [Underkant], [Nät #D.mat.nat_uk i båda riktningarna, täckskikt #D.mat.c_uk mm],
   [Överkant], [Nät #D.mat.nat_ok i båda riktningarna, täckskikt #D.mat.c_ok mm],

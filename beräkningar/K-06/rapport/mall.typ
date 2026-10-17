@@ -95,7 +95,7 @@ Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolit
   align: (left, left, right, right),
   table.header([Material], [], [$f_"ck"$ (MPa)], [$gamma_M$]),
   [Betong i väggarna], [Sundolitts recept B30 (NS-EN 206), räknas som C30/37. Största stenstorlek 16 mm, grov ballast minskad 25 %, sättmått 180–200 mm.], [#M.fck], [1,5],
-  [Betong i plattorna], [C25/30 (bottenplattan, K-05). Mellanbjälklaget får gjutas med väggarnas recept; ytterväggarnas översta skift gjuts alltid med det], [25], [1,5],
+  [Betong i plattorna], [C30/37, samma betong som väggarna i alla gjutningar. Plattorna räknas som C25/30, på säkra sidan.], [25], [1,5],
   [Armering], [B500B. I väggarna täckande skikt #M.c_in mm mot insidan och #M.c_ut mm mot utsidan till de vågräta järnen], [500], [1,15],
 )
 Kärnans $E_"cm"$ = #M.Ecm MPa. Kryptalet är #M.kryp och den slutliga krympningen #M.svinn mm/m (SS-EN 1992-1-1 3.1.4 med RH 80 % och $h_0$ = 150 mm; kärnan är inkapslad i cellplast).
@@ -258,7 +258,7 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 - *Längs ytterkanten:* L-element S300, 300 mm högt och 600 mm brett (t.ex. Finja L-element S300), med ytterkanten i väggens ytterliv. Ryggen är 100 mm och avfasad i ovankant, och betongen börjar innanför ryggen och fyller fasen (@fig-platta[figur]). Väggens yttre cellplast står på ryggen och fasen. Kantbalken är 450 mm bred och 200 mm hög inklusive plattan och står på L-elementets fot, 100 mm S300. Väggens kärna står på kantbalkens yttersta 150 mm. Foten går 50 mm förbi kantbalken, och plattans övre cellplastskikt läggs in över den och fästs med plastspik. Modellen räknar med kantbalkens bredd 450 mm på S300 och plattans cellplast innanför.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S300 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
-- *Platta:* 100 mm C25/30 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
+- *Platta:* 100 mm C30/37 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
 
 == Beräkningsmodell
 

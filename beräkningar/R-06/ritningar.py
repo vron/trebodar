@@ -82,7 +82,7 @@ H_VAGG = 2100.0
 
 
 def lb_rqd(d):
-    """Grundvärde för förankringslängd, SS-EN 1992-1-1 8.4.3, goda förhållanden, C25/30: (φ/4)(f_yd/f_bd)."""
+    """Grundvärde för förankringslängd, SS-EN 1992-1-1 8.4.3, goda förhållanden, med C25/30 (på säkra sidan för C30/37): (φ/4)(f_yd/f_bd)."""
     return d / 4 * 435 / (2.25 * 1.8 / 1.5)
 
 
@@ -602,9 +602,9 @@ def detalj_e():
     return v
 
 
-def stalforteckning():
-    """Positioner, antal och vikt. Näten räknas med alla järn i plattan (även plattan på mark) och en skarv per
-    12 m stång."""
+def stalforteckning(mangd=False):
+    """Positioner; med mangd=True också antal och vikt (näten räknas med alla järn i plattan, även plattan på mark,
+    och en skarv per 12 m stång). Entreprenören mängder själv."""
     rader, tot = [], {}
 
     def lagg(pos, d, form, s, n, L, total_m, anm=""):
@@ -633,9 +633,9 @@ def stalforteckning():
         L = langd(math.dist(p0, p1) - 1)
         p3[L] = p3.get(L, 0) + 1
     for L in sorted(p3, reverse=True):
-        lagg(3, 10, "rak", "–", p3[L], sv(L), p3[L] * L / 1000, "UK över rören" + ("" if L >= 1200 else ", vid trapphålet"))
+        lagg(3, 10, f"rak {sv(L)}", "–", p3[L], sv(L), p3[L] * L / 1000, "UK över rören" + ("" if L >= 1200 else ", vid trapphålet"))
     _, nh = diagonaljarn()
-    lagg(13, 10, "rak", "–", 2 * nh, "1\u00a0200", 2 * nh * 1.2, "ÖK diagonalt")
+    lagg(13, 10, "rak 1\u00a0200", "–", 2 * nh, "1\u00a0200", 2 * nh * 1.2, "ÖK diagonalt")
     n14 = int(sum(math.floor(abs(w[3] - w[2]) / S14.get(f"V{i}", POS14["s"])) + 1
                   for i, w in enumerate(G["vagg"], 1) if w[4] == "yttre"))
     L14 = POS14["ben"] + POS14["in_"]
@@ -649,10 +649,14 @@ def stalforteckning():
             z[0] += 1; z[1] += langd(seg.length) / 1000
     for dz in sorted(zon):
         lagg(f"Ö-Ø{dz}", dz, "rak", "–", zon[dz][0], "var.", zon[dz][1], "zoner R-06.3")
-    rader.append(["", "", "", "", "", "", "Summa", sv(sum(tot.values()), 0),
-                  " + ".join(f"Ø{d}: {sv(k, 0)}" for d, k in sorted(tot.items()))])
-    return dict(typ="tabell", kolumner=["Pos", "Ø", "Form", "s", "Antal", "L (mm)", "Total (m)", "Vikt (kg)", "Anm"],
-                bredd=(0, 0, 0, 0, 0, 0, 0, 0, 1), rader=rader, just=["l", "l", "l", "l", "r", "r", "r", "r", "l"], sz=6.8)
+    if mangd:
+        rader.append(["", "", "", "", "", "", "Summa", sv(sum(tot.values()), 0),
+                      " + ".join(f"Ø{d}: {sv(k, 0)}" for d, k in sorted(tot.items()))])
+        return dict(typ="tabell", kolumner=["Pos", "Ø", "Form", "s", "Antal", "L (mm)", "Total (m)", "Vikt (kg)",
+                                            "Anm"], bredd=(0, 0, 0, 0, 0, 0, 0, 0, 1), rader=rader,
+                    just=["l", "l", "l", "l", "r", "r", "r", "r", "l"], sz=6.8)
+    return dict(typ="tabell", kolumner=["Pos", "Ø", "Form", "s", "Anm"], bredd=(0, 0, 0, 0, 1),
+                rader=[[r[0], r[1], r[2], r[3], r[8]] for r in rader], just=["l", "l", "l", "l", "l"], sz=6.8)
 
 
 # ================================================================== 4. blad
@@ -672,13 +676,11 @@ def hd(nr):
 
 def anvisningar():
     return [
-        "Betong C25/30, exponeringsklass XC1, livslängd 50 år. Armering B500B. Bjälklaget får gjutas med "
-        "källarväggarnas betong, B30 enligt Sundolitt (K-06, R-05).",
+        "Betong C30/37, samma som källarväggarna (R-05), exponeringsklass XC1, livslängd 50 år. Armering B500B.",
         f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm, även "
         "mot de fria kanterna vid öppningarna i källarens ytterväggar.",
         f"Skarvlängd: Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm. Skarvar förskjuts minst 1,3 × skarvlängden.",
         "Järnen i varje nät läggs i valfri ordning. Tilläggsjärn läggs i nätets lager.",
-        "Koordinater i mm enligt K-05; origo i skärningen mellan plattkanterna x = 0 och y = 0. Mått, se R-06.1.",
     ]
 
 
@@ -727,7 +729,8 @@ def blad_uk():
              for n, x0, y0, x1, y1 in ROR]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
-        dict(typ="lista", rader=anvisningar() + [
+        dict(typ="lista", rader=[
+            "Allmänt och mått, se R-06.1.",
             "Underkantsnätet läggs på distanser 20 mm, högst 0,8 m isär.",
             "Minst två underkantsjärn i vardera riktningen ska passera över varje rör (SS-EN 1992-1-1 9.4.1(3)): "
             f"pos 3, bundna till nätet. Vid trapphålet ({', '.join(sorted({n for p0, p1, n in pos3_jarn() if math.dist(p0, p1) < 1199}, key=lambda q: int(q[1:])))}) "
@@ -760,7 +763,7 @@ def blad_ok():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=[
-            "Allmänt, se R-06.2. Mått R-06.1, sektioner R-06.4.",
+            "Allmänt och mått, se R-06.1. Sektioner R-06.4.",
             "Överkantsnätet läggs på armeringsstolar, högst 0,8 m isär.",
             f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
@@ -783,14 +786,11 @@ def blad_ok():
 def blad_sektioner():
     vyer = [sektion_a(), sektion_b(), sektion_d(), sektion_c(), detalj_e()]
     block = [dict(x=196, y=160, w=128, innehall=[
-        dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning(),
-        dict(typ="text", sz=6.4, rader=[
-            "",
-            f"Näten räknade över hela plattan (även plattan på mark) med en skarv per 12 m stång. "
-            f"Skarvlängd Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm."])])]
+        dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning()])]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
-        dict(typ="lista", rader=anvisningar()[:4] + [
+        dict(typ="lista", rader=[
+            "Allmänt, se R-06.1.",
             "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten. "
             "Rörens mitt enligt tabellen på R-06.2 och R-05.1; P7 är två rör tätt intill varandra.",
             "Överkantsarmeringens höjd kontrolleras före gjutning, särskilt vid rören.",
@@ -807,7 +807,7 @@ def blad_sektioner():
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant"),
             dict(form="linje", stil="ok", text="armering i överkant"),
-            dict(form="yta", fyll="betong", stil="tunn", text="betong C25/30"),
+            dict(form="yta", fyll="betong", stil="tunn", text="betong C30/37"),
             dict(form="yta", fyll="karna", stil="tunn", text="betongkärna, Kub 350-150 (K-06)"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
             dict(form="yta", fyll="jord", stil="tunn", text="fyllning"),

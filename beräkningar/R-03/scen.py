@@ -20,7 +20,8 @@ H, HMB = K.H_VAGG, K.H_MB                         # 2 100, 150
 Z1 = H + HMB                                      # plan 1:s golv
 HB, TF, HP = K.UTF["h_balk"], K.T_FOT, K.H_PLATTA # 200, 100, 100
 
-FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s300="#c6d6e8", stal="#55667a")
+FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s300="#c6d6e8", stal="#55667a", smyg="#e6d9b8",
+            kantisol="#dfe7f0")
 
 KALLARE, BETONG = K.KALLARE, K.BETONG
 KANT, INRE, PLINTAR = K.kantbalk(), K.balkar_inre(), K.plintar()
@@ -43,20 +44,36 @@ def grund(s, kapa=None):
     s.prisma(BETONG if kapa is None else BETONG.difference(kapa), -HP, 0.0, FARG["betong"])
 
 
+def _plan(o, a, b, halv):
+    """Ruta längs öppningens vägg, från a till b längs väggen och ±halv kring väggens mitt."""
+    g = box(a, o["c"] - halv, b, o["c"] + halv)
+    return Polygon([(y, x) for x, y in g.exterior.coords]) if o["ax"] == "v" else g
+
+
+def smyglister(o):
+    """Sundolitts smyglister vid öppningens sidor (100 mot kärnans ände, över väggens hela tjocklek)."""
+    t = K.GLIPA_SMYG
+    return [_plan(o, o["x0"], o["x0"] + t, K.T_VAGG / 2), _plan(o, o["x1"] - t, o["x1"], K.T_VAGG / 2)]
+
+
 def vaggar(s):
-    """Källarväggarna (Kub 350-150): kärnan och cellplasten, öppningarna, bröstningarna under fönstren."""
+    """Källarväggarna (Kub 350-150): kärnan och cellplasten, öppningarna med smyglister vid sidorna och på
+    bröstningen, bröstningarna under fönstren."""
+    sidor = unary_union([g for o in K.OPPNINGAR for g in smyglister(o)])
     s.prisma(K.KARNA, 0.0, H, FARG["karna"])
-    s.prisma(K.HEL.difference(K.KARNA), 0.0, H, FARG["eps"])
+    s.prisma(K.HEL.difference(K.KARNA).difference(sidor), 0.0, H, FARG["eps"])
     for o in K.OPPNINGAR:
-        if o["z0"] <= 0:
+        z0 = o["z0"]
+        for g in smyglister(o):
+            s.prisma(g, z0, H, FARG["smyg"])
+        if z0 <= 0:
             continue
-        a, b, c = o["x0"] + K.GLIPA_SMYG, o["x1"] - K.GLIPA_SMYG, o["c"]
-        hel = box(a, c - K.T_VAGG / 2, b, c + K.T_VAGG / 2)
-        kar = box(a, c - K.T_KARNA / 2, b, c + K.T_KARNA / 2)
-        if o["ax"] == "v":
-            hel, kar = (Polygon([(y, x) for x, y in g.exterior.coords]) for g in (hel, kar))
-        s.prisma(kar, 0.0, o["z0"], FARG["karna"])
-        s.prisma(hel.difference(kar), 0.0, o["z0"], FARG["eps"])
+        hel = _plan(o, o["x0"], o["x1"], K.T_VAGG / 2)
+        kar = _plan(o, o["x0"], o["x1"], K.T_KARNA / 2)
+        s.prisma(kar, 0.0, z0, FARG["karna"])
+        s.prisma(hel.difference(kar), 0.0, z0, FARG["eps"])
+        s.prisma(_plan(o, o["x0"] + K.GLIPA_SMYG, o["x1"] - K.GLIPA_SMYG, K.T_VAGG / 2), z0, z0 + K.GLIPA_SMYG,
+                 FARG["smyg"])
 
 
 def ror(s):
@@ -69,8 +86,16 @@ def ror(s):
             s.stang(x - K.PLAT / 2, x + K.PLAT / 2, y - K.PLAT / 2, y + K.PLAT / 2, 3.0, H, FARG["stal"])
 
 
+def kantisolering():
+    """Kantisoleringen 30 mm utanför mellanbjälklagets kant, ovanpå källarväggarna (ut till väggarnas ytterliv)."""
+    return KONTUR.buffer(K.KI, join_style=2).difference(KONTUR).intersection(KALLARE)
+
+
 def bjalklag(s, kapa=None):
-    """Mellanbjälklaget 150 med trapphålet, också plattan på mark (plan 1) på 400 mm cellplast."""
+    """Mellanbjälklaget 150 med trapphålet och kantisoleringen 30, också plattan på mark (plan 1) på 400 mm
+    cellplast."""
     p = KONTUR.difference(HAL)
     s.prisma(p if kapa is None else p.difference(kapa), H, Z1, FARG["betong"])
+    ki = kantisolering()
+    s.prisma(ki if kapa is None else ki.difference(kapa), H, Z1, FARG["kantisol"])
     s.prisma(MARK.buffer(-1.0, join_style=2), H - 400.0, H, FARG["eps"])

@@ -31,6 +31,7 @@ BLADEN = [("R-03.1", ["Bärande system i betong", "Översikt i 3D"], "–", "R-0
 
 H, Z1 = S.H, S.Z1
 Y_SNITT, X_SNITT = 5700.0, 5000.0          # vy 4: snitt genom källarens västra del
+Y_KAPA3 = 5500.0                            # vy 3: bjälklaget bortskuret söder om y, genom trapphålet
 
 
 # ================================================================== vyerna
@@ -49,7 +50,7 @@ def vy3(s):
     S.grund(s)
     S.vaggar(s)
     S.ror(s)
-    S.bjalklag(s, kapa=box(6400, -500, 14500, 6300))
+    S.bjalklag(s, kapa=box(6400, -500, 14500, Y_KAPA3))
 
 
 def vy4(s):
@@ -64,7 +65,7 @@ VYER = [
     (1, "Bottenplatta (R-04)", vy1, (235, 30), None, (24, 16, 146, 112)),
     (2, "Källarväggar och rör (R-05)", vy2, (235, 30), None, (176, 16, 146, 112)),
     (3, "Mellanbjälklag (R-06)", vy3, (235, 30), None, (24, 152, 146, 112)),
-    (4, "Snitt genom källarens västra del", vy4, (300, 20),
+    (4, "Snitt genom källaren", vy4, (300, 20),
      box(-1000, Y_SNITT, X_SNITT, 9000), (176, 152, 146, 112)),
 ]
 
@@ -110,7 +111,7 @@ def hanvisningar(nr):
             ("plint under varje rör, fotplåt i överkant", (x8, y8, -100.0)),
             ("balk 450 × 200 under innerväggarna", (6000.0, 7515.0, -100.0)),
             ("cellplast S100, S300 under balkar och plintar", (3300.0, 4400.0, -100.0)),
-            ("bottenplatta 100, bortskuren i bilden", (10500.0, 9000.0, 0.0)),
+            ("bottenplatta 100", (10500.0, 9000.0, 0.0)),
         ]
     if nr == 2:
         x5, y5 = _ror("P5")
@@ -118,16 +119,18 @@ def hanvisningar(nr):
             ("yttervägg mot jord, Sundolitt Kub 350-150", (145.0, 6500.0, H)),
             ("innervägg (V4–V6, V15, V19)", (7095.0, 7515.0, H)),
             ("stålrör VKR 80 × 80 på fotplåt i plinten (P1–P19)", (x5, y5, 1200.0)),
-            ("dörröppningar D1–D3", (10390.0, 1145.0, 1000.0)),
-            ("fasad med fönster F1–F3: pelare och bröstningar", (6215.0, 145.0, 1700.0)),
+            ("dörröppning D1", (10390.0, 1145.0, 1000.0)),
+            ("fasad med fönster F1–F3", (6215.0, 145.0, 1700.0)),
+            ("smyglist vid fönster och dörrar", (6435.0, 145.0, 1900.0)),
         ]
     if nr == 3:
         x15, y15 = _ror("P15")
         return [
             ("mellanbjälklag 150, vilar på väggarna och rören", (5000.0, 6500.0, Z1)),
             ("platta på mark, plan 1, på 400 mm cellplast", (1500.0, 13500.0, Z1)),
-            ("trapphål", (8000.0, 5400.0, Z1)),
+            ("trapphål", (8400.0, 5887.0, Z1)),
             ("rören bär bjälklaget med topplåt i plattans undersida", (x15, y15, 1600.0)),
+            ("kantisolering 30", (-15.0, 6000.0, Z1 - 75.0)),
         ]
     x8, y8 = _ror("P8")
     return [
@@ -137,7 +140,8 @@ def hanvisningar(nr):
         ("cellplast S100 under plattan", (1100.0, Y_SNITT, -200.0)),
         ("rör på fotplåt i plinten", (x8, y8, 900.0)),
         ("plint 200 på S300", (x8, Y_SNITT, -150.0)),
-        ("innervägg V19 på balk", (4545.0, 8000.0, 1500.0)),
+        ("innervägg på balk", (4545.0, 8000.0, 1500.0)),
+        ("kantisolering 30", (-15.0, Y_SNITT, Z1 - 75.0)),
     ]
 
 
@@ -279,8 +283,7 @@ def blad():
     kol = [
         dict(typ="rubrik", text="Bärande system"),
         dict(typ="lista", sz=6.8, rader=[
-            "Bilderna visar betongarbetets bärande delar i 3D, i den ordning de byggs. Inga mått: mått och utförande "
-            "på R-04 (bottenplatta), R-05 (källarstomme) och R-06 (mellanbjälklag).",
+            "Bilderna visar betongarbetets bärande delar i 3D.",
             "Mellanbjälklaget, 150 mm, bär plan 1 och vilar på källarväggarna och på stålrören P1–P19. Över "
             "fyllningen norr om källaren ligger det som platta på mark på 400 mm cellplast (K-05).",
             "Källarväggarna av Sundolitt Kub 350-150 bär bjälklaget och jordtrycket; ytterväggarna hålls i toppen av "
@@ -290,13 +293,15 @@ def blad():
             "Bottenplattan, 100 mm, gjuts i en gjutning med kantbalkarna, balkarna och plintarna. De fördelar lasten "
             "på cellplasten, S300 under balkar och plintar och S100 under plattan, som ligger på makadam på "
             "sprängt berg (K-06).",
-            "Bilderna är förenklade: armering, fogar, smyglister och mindre delar visas inte."]),
+            "Bilderna är förenklade: armering, fogar och mindre delar visas inte."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="yta", fyll=S.FARG["betong"], stil="tunn", text="betong: bottenplatta, balkar, plintar, bjälklag"),
             dict(form="yta", fyll=S.FARG["karna"], stil="tunn", text="Kub-väggarnas betongkärna"),
             dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under plattan"),
             dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element, under balkar och plintar"),
+            dict(form="yta", fyll=S.FARG["smyg"], stil="tunn", text="smyglist vid fönster och dörrar"),
+            dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30 runt mellanbjälklaget"),
             dict(form="yta", fyll=S.FARG["stal"], stil="tunn", text="stål: rör och fotplåtar")]),
         dict(typ="rubrik", text="Ritningar för betongarbetet"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll"], bredd=(0, 1), just=["l", "l"], sz=6.4,

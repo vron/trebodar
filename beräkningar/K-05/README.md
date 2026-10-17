@@ -35,7 +35,7 @@ Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosex
 
 ## Viktiga antaganden
 
-- Betong C25/30, B500B. Nät Ø10 s150 i underkant (täckskikt 20 mm) och Ø8 s150 i överkant (täckskikt 25 mm).
+- Betong C30/37 (som källarväggarna), beräknad som C25/30 på säkra sidan; B500B. Nät Ø10 s150 i underkant (täckskikt 20 mm) och Ø8 s150 i överkant (täckskikt 25 mm).
 - Källarväggarna är Kub 350-150 (cellplast 100 + betong 150 + cellplast 100). Vid öppningarna slutar betongkärnan, och därmed upplagslinjen, 100 mm innanför den isolerade smygen. Upplagslinjen ligger i betongkärnans mitt, som är väggens centrumlinje (5.3.2.2: 75 mm från kärnans insida); plattan går till 30 mm från väggens ytterliv, 70 mm ut över den yttre cellplasten.
 - Ytterväggarna på plan 1 står över källarväggens yttre cellplast, centrum 17,5 mm innanför plattans kant och 52,5 mm utanför kärnan (modellen).
 - Laster från plan 1: K-01:s stödreaktioner; gavlarnas nockbalksändar via takstolar till hörnen; takfotsväggar bär halva takbalken plus 0,2 m utsprång; ytterväggar 0,6 kN/m²; trappan hänger på hålets kortsida.
