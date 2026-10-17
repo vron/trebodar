@@ -37,7 +37,7 @@ Y_KAPA3 = 5500.0                            # vy 3: bjälklaget bortskuret söde
 # ================================================================== vyerna
 def vy1(s):
     """Bottenplattan; plattan bortskuren i sydvästra delen, så att balkarna, plintarna och cellplasten syns."""
-    S.grund(s, kapa=box(-500, -500, 7600, 8000))
+    S.grund(s, kapa=box(-500, -500, 7600, 8000), folie=box(-500, -500, 3600, 8000))
 
 
 def vy2(s):
@@ -110,7 +110,8 @@ def hanvisningar(nr):
             ("kantbalk 450 × 200 under ytterväggarna", (300.0, 4300.0, -100.0)),
             ("plint under varje rör, fotplåt i överkant", (x8, y8, -100.0)),
             ("balk 450 × 200 under innerväggarna", (6000.0, 7515.0, -100.0)),
-            ("cellplast S100, S300 under balkar och plintar", (3300.0, 4400.0, -100.0)),
+            ("cellplast S100, S300 under balkar och plintar", (5500.0, 6700.0, -100.0)),
+            ("åldringsbeständig plastfolie i hela ytan, tejpade överlapp minst 200 (radon)", (1300.0, 4400.0, -197.0)),
             ("bottenplatta 100", (10500.0, 9000.0, 0.0)),
         ]
     if nr == 2:
@@ -131,6 +132,7 @@ def hanvisningar(nr):
             ("trapphål", (8400.0, 5887.0, Z1)),
             ("rören bär bjälklaget med topplåt i plattans undersida", (x15, y15, 1600.0)),
             ("kantisolering 30", (-15.0, 6000.0, Z1 - 75.0)),
+            ("kantelement 500 runt plattan på mark", (-50.0, 12500.0, Z1 - 250.0)),
         ]
     x8, y8 = _ror("P8")
     return [
@@ -293,6 +295,10 @@ def blad():
             "Bottenplattan, 100 mm, gjuts i en gjutning med kantbalkarna, balkarna och plintarna. De fördelar lasten "
             "på cellplasten, S300 under balkar och plintar och S100 under plattan, som ligger på makadam på "
             "sprängt berg (K-06).",
+            "Mot radon: åldringsbeständig plastfolie i ett plan över hela bottenplattan, 200 mm under överkant: mellan "
+            "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot. Skarvarna med minst 200 mm "
+            "överlapp, tejpade, och tätade vid genomföringar (R-04).",
+            "Plattan på mark har kantelement av cellplast, 500 mm höga, längs de fria kanterna mot köldbrygga (R-06).",
             "Bilderna är förenklade: armering, fogar och mindre delar visas inte."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
@@ -301,7 +307,8 @@ def blad():
             dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under plattan"),
             dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element, under balkar och plintar"),
             dict(form="yta", fyll=S.FARG["smyg"], stil="tunn", text="smyglist vid fönster och dörrar"),
-            dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30 runt mellanbjälklaget"),
+            dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30 och kantelement 500"),
+            dict(form="yta", fyll=S.FARG["folie"], stil="tunn", text="plastfolie i våder med överlapp (schematiskt)"),
             dict(form="yta", fyll=S.FARG["stal"], stil="tunn", text="stål: rör och fotplåtar")]),
         dict(typ="rubrik", text="Ritningar för betongarbetet"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll"], bredd=(0, 1), just=["l", "l"], sz=6.4,

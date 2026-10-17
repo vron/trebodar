@@ -125,6 +125,21 @@ def kallare():
 
 KALLARE = kallare()
 BETONG = KALLARE.buffer(-L_BEN, join_style=2)       # bottenplattans betong: kanten 100 mm innanför, i kärnans yttre yta
+T_KANTELEMENT, H_KANTELEMENT = 100.0, 500.0        # kantelement av cellplast längs plattan på marks fria kanter
+
+
+def kantisolering():
+    """Kantisoleringen 30 mm utanför mellanbjälklagets kant, ovanpå källarväggarna (ut till väggarnas ytterliv)."""
+    k = Polygon(G["kontur"])
+    return k.buffer(KI, join_style=2).difference(k).intersection(KALLARE)
+
+
+def kantelement():
+    """Kantelement av cellplast, 500 mm höga, utanför plattan på marks fria kanter (plan 1, utanför källaren), mot
+    köldbrygga; tjockleken T_KANTELEMENT är schematisk."""
+    k = Polygon(G["kontur"])
+    ut = box(-500, VAGG["V3"]["c"] + T_VAGG / 2, VAGG["V20"]["c"] - T_VAGG / 2, 16500)
+    return k.buffer(T_KANTELEMENT, join_style=2).difference(k).intersection(ut)
 for v in VAGGAR:
     # utsidan: den sida av centrumlinjen som ligger utanför källaren (ytterväggar); för innerväggar None
     if v["typ"] == "yttre":

@@ -254,7 +254,7 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 ) <fig-det>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
-- *Under plattan:* cellplast S100 i två skikt, 200 mm, med åldringsbeständig plastfolie mellan skikten (Plattor.pdf). Bottenplattan är alltså 300 mm hög: 100 mm betong på 200 mm cellplast, samma i hela källaren.
+- *Under plattan:* cellplast S100 i två skikt, 200 mm. Åldringsbeständig plastfolie ligger i ett plan över hela ytan, 200 mm under överkant: mellan skikten (Plattor.pdf), under balkarna och plintarna och ut över L-elementens fot, med minst 200 mm tejpade överlapp, mot radon (R-04). Bottenplattan är alltså 300 mm hög: 100 mm betong på 200 mm cellplast, samma i hela källaren.
 - *Längs ytterkanten:* L-element S300, 300 mm högt och 600 mm brett (t.ex. Finja L-element S300), med ytterkanten i väggens ytterliv. Ryggen är 100 mm och avfasad i ovankant, och betongen börjar innanför ryggen och fyller fasen (@fig-platta[figur]). Väggens yttre cellplast står på ryggen och fasen. Kantbalken är 450 mm bred och 200 mm hög inklusive plattan och står på L-elementets fot, 100 mm S300. Väggens kärna står på kantbalkens yttersta 150 mm. Foten går 50 mm förbi kantbalken, och plattans övre cellplastskikt läggs in över den och fästs med plastspik. Modellen räknar med kantbalkens bredd 450 mm på S300 och plattans cellplast innanför.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S300 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
@@ -338,12 +338,12 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 
 - *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Räknas också packningstrycket blir det #D.glid.Fdk kN, #D.glid.utnk. Kraften förs genom mellanbjälklaget och bottenplattan som skivor. TG 2216 kräver att jordtrycket tas med i husets stabilitet när väggarna hålls av bjälklaget.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
-- *Fukt:* dränering och fuktskydd enligt @utf. Den åldringsbeständiga plastfolien mellan cellplastskikten ligger kvar som i Plattor.pdf.
+- *Fukt:* dränering och fuktskydd enligt @utf. Den åldringsbeständiga plastfolien i hela ytan under plattan ligger kvar som i Plattor.pdf och minskar också risken för radon.
 
 = Utförande och kontroll
 
 1. Spräng och avjämna berget och lägg makadam. Lägg dränledningen runt huset innan cellplasten läggs.
-2. Lägg L-element med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan, det övre skiktet 50 mm in över L-elementens fot. Skär ur cellplasten för balkar och plintar.
+2. Lägg L-element med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna och S100 under plattan i två skikt, det övre skiktet 50 mm in över L-elementens fot. Åldringsbeständig plastfolie över hela ytan ovanpå det undre skiktet, under balkar och plintar och ut över L-elementens fot, med minst 200 mm tejpade överlapp (radon). Skär ur cellplasten för balkar och plintar.
 3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med balkar och plintar i en gjutning, med fotplåtarna kant i kant med plintarnas överkant, och rugga ytan under väggarna.
 5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.

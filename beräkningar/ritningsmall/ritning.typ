@@ -50,6 +50,7 @@
   plat: (thickness: 0.9mm, paint: FYLL.stal, cap: "butt"),
   distans: (thickness: 0.6mm, paint: rgb("#c4ad80"), cap: "butt"),
   lim: (thickness: 0.35mm, paint: rgb("#8a6a3a"), cap: "butt"),
+  folie: (thickness: 0.4mm, paint: rgb("#6f9a3c"), cap: "butt"),
 )
 #let st(n) = if n == none or n == "" { none } else { stroke(STIL.at(n)) }
 #let fy(n) = if n == none or n == "" { none } else if n.starts-with("#") { rgb(n) } else { FYLL.at(n) }

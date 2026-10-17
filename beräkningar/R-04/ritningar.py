@@ -378,7 +378,8 @@ def sektion_a():
            (f"L-element S300, höjd 300, bredd {sv(K.B_L)} (t.ex. Finja)", (520, -HB - 70), None),
            (f"cellplast S100, 2 × 100, det övre skiktet {sv(K.OMLOTT)} in över L-elementets fot", (780, -HP - EPS / 4),
             None),
-           ("makadam på sprängt berg", (650, -HP - EPS - 60), None)]
+           ("makadam på sprängt berg", (650, -HP - EPS - 60), None),
+           ("plastfolie i hela ytan, ut över foten till ryggen (radon)", (820, -HB), None)]
     etiketter(v, lst, 1000.0, 480.0, 4.4, sz=6.0)       # ordningen ger hänvisningslinjer utan korsningar
     with v.lager("rubrik"):
         v.rubrik(-150, -HP - EPS - 120 - 7.0 * s, "SEKTION A–A  Kantbalk i L-element (V14)", skala=10, sz=9)
@@ -561,7 +562,7 @@ def cellplastlista():
     """Cellplast under bottenplattan: S100 under plattan i två skikt, S300 under innerbalkarna och plintarna och
     L-element längs kanten, med fot av S300."""
     rader = [["S100", "100 mm, övre skiktet", f"under plattan, {sv(K.OMLOTT)} in över L-elementens fot"],
-             ["S100", "100 mm, undre skiktet", "plastfolie mellan skikten"],
+             ["S100", "100 mm, undre skiktet", "plastfolie ovanpå, i hela ytan (radon)"],
              ["S300", "100 mm", "under innerbalkarna och plintarna"],
              ["L-element", K.L_ELEMENT.replace("L-element ", ""), "längs hela kanten, ytterkant i väggarnas ytterliv"]]
     return dict(typ="tabell", kolumner=["", "Utförande", "Anm"], bredd=(0, 1, 1), rader=rader,
@@ -599,14 +600,14 @@ def planvy():
 
 def anvisningar():
     return [
-        f"Bottenplatta L300: {sv(HP)} mm betong C30/37 på {sv(EPS)} mm cellplast S100 i två skikt med "
-        f"åldringsbeständig plastfolie emellan. Kantbalkar {sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, "
+        f"Bottenplatta L300: {sv(HP)} mm betong C30/37 på {sv(EPS)} mm cellplast S100 i två skikt. Kantbalkar {sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, "
         f"med foten av S300; balkar under innerväggarna {sv(BB)} × {sv(HB)} och plintar under rören, lika höga, på "
-        "100 mm S300. Bara två kvaliteter: S100 under plattan och S300 under balkar och plintar. Samma uppbyggnad i "
-        "hela källaren.",
+        "100 mm S300. S100 under plattan och S300 under balkar och plintar.",
+        f"Mot radon: åldringsbeständig plastfolie i ett plan över hela ytan, {sv(HB)} mm under överkant: mellan "
+        "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot till ryggen. Skarvarna med minst "
+        "200 mm överlapp, tejpade; tätas vid genomföringar.",
         "Bottenplattans ytterkant är L-elementens ytterkant, i väggarnas ytterliv (R-05.1). Planens mått går dit. "
-        f"Planen visar kantbalken ut till ytterkanten; betongen börjar innanför L-elementets rygg, {sv(K.L_BEN)} mm "
-        "(sektion A). Väggens yttre cellplast står på ryggen, kärnan på kantbalken.",
+        "Planen visar kantbalken ut till ytterkanten; betongen börjar innanför L-elementets rygg. Väggens yttre cellplast står på ryggen, kärnan på kantbalken.",
         "Plintarna är kvadratiska och centrerade under rörets mitt. Mått till plintarnas och innerbalkarnas mitt från "
         "bottenplattans ytterkant.",
     ]
@@ -687,8 +688,9 @@ def blad_sektioner():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.8, rader=[
             "Lägg L-elementen (fot S300) med ytterkanten i väggarnas ytterliv, S300 under innerbalkarna och plintarna "
-            "och S100 under plattan i två skikt med plastfolie emellan; det övre skiktet går "
-            f"{sv(K.OMLOTT)} mm in över L-elementens fot och fästs med plastspik.",
+            "och det undre S100-skiktet. Lägg plastfolien över hela ytan, med minst 200 mm tejpade överlapp och ut "
+            f"till L-elementens rygg. Lägg det övre S100-skiktet, som går {sv(K.OMLOTT)} mm in över L-elementens fot "
+            "och fästs med plastspik.",
             "Armera och fixera fotplåtarna i läge och höjd. Gjut bottenplattan med balkar och plintar i en gjutning; "
             "fotplåtarna gjuts in kant i kant med plintarnas överkant. Rugga ytan under väggarna.",
             "Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, "
@@ -700,6 +702,7 @@ def blad_sektioner():
             dict(form="yta", fyll="betong", stil="tunn", text="betong C30/37"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast S100"),
             dict(form="yta", fyll="eps2", stil="tunn", text="L-element (fot S300), S300 under balkar och plintar"),
+            dict(form="linje", stil="folie", text="plastfolie i hela ytan, överlapp minst 200"),
             dict(form="yta", fyll="karna", stil="tunn", text="väggens betongkärna (R-05)"),
             dict(form="linje", stil="uk", text="armering")]),
         dict(typ="rubrik", text="Cellplast"),

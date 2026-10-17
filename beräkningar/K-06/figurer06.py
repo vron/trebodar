@@ -349,7 +349,7 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
             (x_s, 450), (-400, 450)),
            (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök, U-byglar Ø6 s600", (509, yb + 41), (700, yb - 60)),
            ("platta 100: Ø6 s150 i över- och underkant", (1300, -hp + 33), (1450, 200)),
-           (f"cellplast {sv(t_eps)} mm S100 i två skikt, plastfolie mellan; det övre {sv(I.OMLOTT)} mm in över "
+           (f"cellplast {sv(t_eps)} mm S100 i två skikt, plastfolie i hela ytan mellan; det övre {sv(I.OMLOTT)} mm in över "
             "L-elementets fot", (1300, -hp - t_eps * 0.25), (1600, -230)),
            (f"L-element S300, höjd {sv(h_balk + t_fot)}, bredd {sv(I.B_L)} (t.ex. Finja): ryggen under väggens cellplast, "
             "avfasad upptill, fot 100 mm S300", (275, ybot + 50), (300, ybot - 230)),

@@ -37,6 +37,8 @@ sys.path.insert(0, K05)
 sys.path.insert(0, os.path.join(BER, "ritningsmall"))
 from ritning import Vy, Blad, huvud, sv, PROJEKT  # noqa: E402
 import figurer as F05  # noqa: E402   (väggband och inåtgående hörn, samma som i K-05)
+sys.path.insert(0, os.path.join(BER, "R-05"))
+import kallare as KAL  # noqa: E402   (kantisolering och kantelement, samma som i R-03)
 
 # ================================================================== 1. underlag
 G = json.load(open(os.path.join(K05, "bild", "geometri.json"), encoding="utf-8"))
@@ -164,6 +166,17 @@ def lager_plattan(v, klipp=True):
         v.linje([(min(hx), min(hy)), (max(hx), max(hy))], "tunn")
         v.linje([(min(hx), max(hy)), (max(hx), min(hy))], "tunn")
         v.text(*PLAC["mark_text"], "Platta på mark\n(400 mm cellplast, K-06)", a="cm", sz=7.0, col="gra", i=True)
+
+
+def lager_kanter(v):
+    """Kantisoleringen 30 ovanpå källarväggarna och kantelementen 500 längs plattan på marks fria kanter."""
+    with v.lager("kanter"):
+        for g, fyll in ((KAL.kantisolering(), "eps2"), (KAL.kantelement(), "eps")):
+            for p in getattr(g, "geoms", [g]):
+                v.polygon(list(p.exterior.coords), fyll=fyll, stil="tunn")
+        v.hanvisning((11000.0, 12525.0), (10200.0, 13700.0), "kantisolering 30", a="lm", sz=6.4)
+        v.hanvisning((4360.0, 14200.0), (5200.0, 14600.0),
+                     f"kantelement cellplast, höjd {sv(KAL.H_KANTELEMENT)}", a="lm", sz=6.4)
 
 
 def lager_vaggar(v, namn=True):
@@ -473,8 +486,6 @@ def sektion_a():
         v.polygon([(-400, ylo), (-60, ylo), (-60, ym), (-400, ym - 7)], fyll="jord", stil=None)
         v.linje([(-400, ym - 7), (-60, ym)], "normal")
         v.linje([(-6, ylo), (-6, ym + 60)], "dold")
-        v.rekt(-55, ym - 50, -15, H, fyll="#c9c3b8", stil="tunn")
-        v.rekt(-15, ym - 50, 0, H, fyll="vit", stil="tunn")
     kub(v, 0, ylo, 0)
     platta_snitt(v, VAGG_UTE, 1400, "x", kant0=True)
     with v.lager("vagg"):
@@ -507,7 +518,6 @@ def sektion_a():
                   (f"väggens lodräta järn Ø10 s{POS14['s']} (K-06)", (X_LODRAT, -750), None)], 1500, 340, 4.4)
     with v.lager("text"):
         v.hanvisning((15, 100), (-90, 300), "kantisolering 30", a="rm", sz=6.4)
-        v.text(-70, -250, "fasadsten\n(AR-01)", a="rb", sz=6.0, col="gra", i=True)
         v.text(-230, -1000, "fyllning\n(K-06)", a="cm", sz=6.0, col="gra", i=True, bg=True)
     with v.lager("rubrik"):
         v.rubrik(-400, ylo - 180, "SEKTION A–A  Yttervägg mot jord (V14)", skala=20, sz=9)
@@ -698,6 +708,7 @@ def planvy():
 def blad_oversikt():
     v = Vy(x=82, y=30, w=200, h=210, skala=100, X0=-2200, Y1=18300)
     lager_plattan(v, klipp=False)
+    lager_kanter(v)
     lager_vaggar(v)
     lager_ror(v)
     lager_yttermatt(v)
@@ -708,11 +719,17 @@ def blad_oversikt():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=anvisningar() + [
             "Plattans kontur och trapphålets läge enligt denna ritning. Rörens lägen, se tabell på R-06.2.",
-            "Källarväggarna (Kub 350-150, R-05) under plattan streckade."]),
+            "Källarväggarna (Kub 350-150, R-05) under plattan streckade.",
+            f"Kantisolering {sv(KAL.KI)} mm cellplast utanför plattans kant ovanpå källarväggarna, ut till väggarnas "
+            "ytterliv; plattan gjuts mot den (sektion A, R-06.4).",
+            f"Plattan på mark: kantelement av cellplast, höjd {sv(KAL.H_KANTELEMENT)}, längs de fria kanterna, som "
+            "form och mot köldbrygga. Anslutningen mot plan 1:s ytterväggar enligt arkitekten."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
             dict(form="linje", stil="dold", text="källarvägg under plattan"),
+            dict(form="yta", fyll="eps2", stil="tunn", text="kantisolering 30"),
+            dict(form="yta", fyll="eps", stil="tunn", text=f"kantelement, höjd {sv(KAL.H_KANTELEMENT)} (schematiskt)"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0), rader=forteckning,
@@ -737,7 +754,7 @@ def blad_uk():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=[
             "Allmänt och mått, se R-06.1.",
-            "Underkantsnätet läggs på distanser 20 mm, högst 0,8 m isär.",
+            "Underkantsnätet läggs på distanser 20 mm.",
             "Minst två underkantsjärn i vardera riktningen ska passera över varje rör (SS-EN 1992-1-1 9.4.1(3)): "
             f"pos 3, bundna till nätet. Vid trapphålet ({', '.join(sorted({n for p0, p1, n in pos3_jarn() if math.dist(p0, p1) < 1199}, key=lambda q: int(q[1:])))}) "
             f"slutar järnen mot hålet 25 mm från hålkanten, L = {SKARV[10]}.",
@@ -770,7 +787,7 @@ def blad_ok():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", rader=[
             "Allmänt och mått, se R-06.1. Sektioner R-06.4.",
-            "Överkantsnätet läggs på armeringsstolar, högst 0,8 m isär.",
+            "Överkantsnätet läggs på armeringsstolar.",
             f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
             "Vinkeljärnen pos 14 sätts i ytterväggarnas betongkärna, bundna till väggens lodräta järn och med samma "

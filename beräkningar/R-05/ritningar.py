@@ -535,12 +535,11 @@ def anvisningar():
         "Källarväggar av Sundolitt Kub 350-150. Betong C30/37 (Sundolitts B30), största stenstorlek 16 mm, grov "
         "ballast minskad 25 %, sättmått 180–200 mm. Armering B500B, täckskikt till de vågräta järnen 25 mm inne och "
         "30 mm ute. Höjd 2\u00a0100 till mellanbjälklagets underkant: tre hela skift (1\u00a0800) och ett halvt (300).",
-        "Gjutning (K-06): pump med reducerat tryck, högst 1 m per timme och högst 2,4 m per gjutning, ingen vibrator. "
-        "Först de tre hela skiften i alla väggar, upp till 1\u00a0800; fogen ruggas och rengörs. Det halva skiftet, "
-        "också i innerväggarna, gjuts med mellanbjälklaget: fyll skiftet, vänta 30–60 min, fyll upp igen och gjut "
-        "bjälklaget.",
-        "Återfyllning först när betongen nått 20 MPa. V3 och V20 fylls till 1,7 m före mellanbjälklaget, övriga väggar "
-        "efter. Inom 1 m från väggen lager om högst 0,2 m och lätt vibroplatta, högst 100 kg (K-06).",
+        "Gjutning (K-06): pump med reducerat tryck, högst 1 m per timme, ingen vibrator. Först de tre hela skiften i "
+        "alla väggar, upp till 1\u00a0800; fogen ruggas och rengörs. Det halva skiftet gjuts med mellanbjälklaget: "
+        "fyll skiftet, vänta 30 min och gjut bjälklaget.",
+        "Återfyllning först när betongen nått 20 MPa. V3 och V20 fylls till 1,7 m före mellanbjälklaget. "
+        "Inom 1 m från väggen lager om högst 0,2 m och lätt vibroplatta, högst 100 kg (K-06).",
         "Vid fönster och dörrar ligger den färdiga öppningen 100 mm innanför betongen: Sundolitts smyglist 100 × 350 "
         "med regel 45 × 195 vid sidorna och på bröstningen (R-05.4 E), ingen i överkant. Planen visar betongens mått "
         "utanför väggen och de färdiga måtten innanför.",
@@ -930,6 +929,7 @@ def l_element_snitt(v):
         v.rekt(0, -HB - K.T_FOT, 8, 0, fyll="betong", stil=None)                                    # ytskikt 7–10
         v.linje([(0, -HB - K.T_FOT), (0, 0)], "normal")
         v.linje([(K.L_BEN, -HB), (K.L_BEN, -K.FAS), (K.FAS, 0)], "normal")
+        v.linje([(K.L_BEN, -HB), (K.B_L + 60, -HB)], "folie")          # plastfolien ut över foten till ryggen
 
 
 def kub_snitt(v, x0, z0, z1, rikt=1, gips=True, kapad_ute=False, fog=True):
@@ -989,6 +989,8 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
         if cur < xb:
             v.rekt(cur, -hp - EPS_PL, xb, -hp - EPS_PL / 2, fyll="eps", stil="tunn")
             v.rekt(cur, -hp - EPS_PL / 2, xb, -hp, fyll="eps", stil="tunn")
+        # plastfolien i ett plan över hela ytan: mellan cellplastskikten, under balkarna och ut över L-elementets fot
+        v.linje([(xa, -HB), (xb, -HB)], "folie")
     with v.lager("bottenplatta_arm"):
         x0 = xa + (25.0 if kant else 0.0)
         v.linje([(x0, -25 - 3), (xb, -25 - 3)], "uk_tunn")                    # Ø6 s150 överkant (R-04)
@@ -1028,8 +1030,6 @@ def sektion_a():
         v.polygon([(-420, zl), (-110, zl), (-110, hf), (-420, hf - 7)], fyll="jord", stil=None)
         v.linje([(-420, hf - 7), (-110, hf)], "normal")
         v.linje([(-8, -HB - K.T_FOT), (-8, hf + 60)], "dold")             # grundmursskiva
-        v.rekt(-55, hf - 50, -15, H + H_MB, fyll="#c9c3b8", stil="tunn")   # fasadsten (AR-01)
-        v.rekt(-15, hf - 50, 0, H + H_MB, fyll="vit", stil="tunn")
     bottenplatta_snitt(v, K.L_BEN, 900.0, [(K.L_BEN, K.B_KANT)], kant=True, fas=K.FAS)
     l_element_snitt(v)
     with v.lager("bottenplatta"):
@@ -1070,7 +1070,6 @@ def sektion_a():
            (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-04)", (300, -100), None),
            (f"cellplast 2 × 100 S100, övre skiktet {sv(K.OMLOTT)} in över foten", (575, -150), None)]
     with v.lager("text"):
-        v.text(-60, hf + 120, "fasadsten\n(AR-01)", a="rb", sz=5.8, col="gra", i=True)
         v.hanvisning((15, H + 135), (-70, H + 270), "kantisolering 30", a="rm", sz=5.8)
         v.text(-260, 900, "fyllning\n(K-06)", a="cm", sz=5.8, col="gra", i=True, bg=True)
         v.hanvisning((-8, 400), (-130, 470), "grundmursskiva", a="rm", sz=5.8)
@@ -1285,6 +1284,7 @@ def blad_sektioner():
             dict(form="yta", fyll="betong", stil="tunn", text="betong, bottenplatta och mellanbjälklag"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
             dict(form="yta", fyll="eps2", stil="tunn", text="cellplast S300 (L-element, under balkar)"),
+            dict(form="linje", stil="folie", text="plastfolie i hela ytan (R-04)"),
             dict(form="punkt", r=0.4, text="vågräta järn Ø10 (21)"),
             dict(form="linje", stil="ok", text="vinkeljärn, lodräta järn i väggen"),
             dict(form="linje", stil="uk", text="startjärn och armering i bottenplattan (R-04)")]),
@@ -1350,12 +1350,16 @@ def fotplatar():
             xs = (0.0,) if n == 1 else (-K.PLAT / 2, K.PLAT / 2)
             for xr in xs:
                 v.rekt(xr - K.PLAT / 2, -K.PLAT / 2, xr + K.PLAT / 2, K.PLAT / 2, fyll="#9aa0a8", stil="tunn")
-                v.rekt(xr - K.PLAT / 2 + 4, -K.PLAT / 2 + 4, xr + K.PLAT / 2 - 4, K.PLAT / 2 - 4, fyll="vit",
-                       stil=None)
+                v.rekt(xr - K.PLAT / 2 + 4, -K.PLAT / 2 + 4, xr + K.PLAT / 2 - 4, K.PLAT / 2 - 4, fyll="#c7cbd0",
+                       stil=None)                         # plåten är hel; inuti röret syns plåten
             for bxp, byp in K.BULT_LAGE[n]:
                 v.cirkel(bxp, byp, K.SVETSBULT[0] / 2, fyll=None, stil="dold", modell=True)
             if n == 2:                                   # alternativt två plåtar 140 × 200, delade i mitten
                 v.linje([(0, -by / 2 + 2), (0, by / 2 + 25)], "axel")
+        with v.lager("text"):
+            if n == 1:
+                v.hanvisning((K.PLAT / 2 - 2, K.PLAT / 2 - 20), (bx / 2 + 25, by / 2 - 10), "röret (snitt)", a="lm", sz=6.0)
+                v.hanvisning((bx / 2 - 30, -by / 2 + 30), (bx / 2 + 25, -by / 2 + 20), "hel plåt", a="lm", sz=6.0)
         with v.lager("matt"):
             xb = sorted({p[0] for p in K.BULT_LAGE[n]})
             yb = sorted({p[1] for p in K.BULT_LAGE[n]})

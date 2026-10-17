@@ -9,6 +9,8 @@ egna sidor.
 import os
 import sys
 
+import numpy as np
+
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
@@ -21,7 +23,8 @@ Z1 = H + HMB                                      # plan 1:s golv
 HB, TF, HP = K.UTF["h_balk"], K.T_FOT, K.H_PLATTA # 200, 100, 100
 
 FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s300="#c6d6e8", stal="#55667a", smyg="#e6d9b8",
-            kantisol="#dfe7f0")
+            kantisol="#dfe7f0", folie="#cfdcb8")
+FOLIE = dict(bredd=2000.0, overlapp=200.0)        # plastfolien i våder längs y, schematiskt
 
 KALLARE, BETONG = K.KALLARE, K.BETONG
 KANT, INRE, PLINTAR = K.kantbalk(), K.balkar_inre(), K.plintar()
@@ -29,9 +32,11 @@ TJOCK = unary_union([KANT, INRE] + list(PLINTAR.values())).intersection(BETONG)
 KONTUR, HAL, MARK = Polygon(K.G["kontur"]), Polygon(K.G["hal"]), Polygon(K.G["mark"])
 
 
-def grund(s, kapa=None):
+def grund(s, kapa=None, folie=None):
     """Bottenplattan: L-elementen (rygg och fot), cellplasten (S100 i två skikt, S300 under balkar och plintar),
-    balkarna och plintarna och plattan; kapa: plattan tas bort där, så att balkarna och plintarna syns."""
+    plastfolien mellan skikten, balkarna och plintarna och plattan; kapa: plattan tas bort där, så att balkarna och
+    plintarna syns; folie: där tas också det övre cellplastskiktet bort, så att plastfolien syns, i våder med
+    överlapp."""
     rygg = KALLARE.difference(BETONG)
     fot = KALLARE.difference(KALLARE.buffer(-K.B_L, join_style=2)).difference(rygg)
     s.prisma(rygg, -HB - TF, 0.0, FARG["s300"])
@@ -39,7 +44,12 @@ def grund(s, kapa=None):
     s.prisma(unary_union([INRE] + list(PLINTAR.values())).difference(KANT), -HB - TF, -HB, FARG["s300"])
     falt = BETONG.difference(TJOCK)
     s.prisma(falt.intersection(KALLARE.buffer(-K.B_L, join_style=2)), -HB - TF, -HB, FARG["eps"])
-    s.prisma(falt, -HB, -HP, FARG["eps"])
+    s.prisma(falt if folie is None else falt.difference(folie), -HB, -HP, FARG["eps"])
+    if folie is not None:
+        x0, _, x1, _ = BETONG.bounds
+        for i, x in enumerate(np.arange(x0, x1, FOLIE["bredd"] - FOLIE["overlapp"])):
+            vad = BETONG.intersection(folie).intersection(box(x, -1e5, x + FOLIE["bredd"], 1e5))
+            s.prisma(vad, -HB, -HB + 3.0 + 3.0 * (i % 2), FARG["folie"])
     s.prisma(TJOCK, -HB, -HP, FARG["betong"])
     s.prisma(BETONG if kapa is None else BETONG.difference(kapa), -HP, 0.0, FARG["betong"])
 
@@ -87,8 +97,7 @@ def ror(s):
 
 
 def kantisolering():
-    """Kantisoleringen 30 mm utanför mellanbjälklagets kant, ovanpå källarväggarna (ut till väggarnas ytterliv)."""
-    return KONTUR.buffer(K.KI, join_style=2).difference(KONTUR).intersection(KALLARE)
+    return K.kantisolering()
 
 
 def bjalklag(s, kapa=None):
@@ -98,4 +107,5 @@ def bjalklag(s, kapa=None):
     s.prisma(p if kapa is None else p.difference(kapa), H, Z1, FARG["betong"])
     ki = kantisolering()
     s.prisma(ki if kapa is None else ki.difference(kapa), H, Z1, FARG["kantisol"])
+    s.prisma(K.kantelement(), Z1 - K.H_KANTELEMENT, Z1, FARG["kantisol"])
     s.prisma(MARK.buffer(-1.0, join_style=2), H - 400.0, H, FARG["eps"])
