@@ -136,9 +136,9 @@ def lager_balkmatt(v):
     s = v.s
     with v.lager("matt"):
         # kantbalken längs V21 och V14, balken under V15 och V19
-        kedja(v, [ytterliv("V21"), ytterliv("V21") + K.L_BEN, ytterliv("V21") + K.B_L], 5300.0, [5300.0] * 3,
+        kedja(v, [ytterliv("V21"), ytterliv("V21") + K.L_BEN, ytterliv("V21") + K.B_KANT], 5300.0, [5300.0] * 3,
               sz=5.6, bg=True)
-        kedja(v, [ytterliv("V14") - K.B_L, ytterliv("V14") - K.L_BEN, ytterliv("V14")], 9000.0, [9000.0] * 3,
+        kedja(v, [ytterliv("V14") - K.B_KANT, ytterliv("V14") - K.L_BEN, ytterliv("V14")], 9000.0, [9000.0] * 3,
               sz=5.6, bg=True)
         c15 = VAGG["V15"]["c"]
         kedja(v, [c15 - BB / 2, c15 + BB / 2], 9200.0, [9200.0] * 2, sz=5.6)
@@ -305,28 +305,25 @@ def lager_armtext(v):
 # ---------------------------------------------------------------- sektioner (R-05.3)
 def sektion_a():
     """A–A: kantbalken i L-element (V14) med väggens start. x = 0 i väggens ytterliv = L-elementets ytterkant, inåt
-    positivt; betongen börjar innanför L-elementets yttre ben. 1:10"""
+    positivt; betongen börjar innanför L-elementets rygg och fyller dess avfasning. 1:10"""
     s = 10.0
     v = Vy(x=24, y=12, w=120, h=96, skala=s, X0=-160.0, Y1=520.0)
     with v.lager("mark"):
         v.rekt(-140, -HP - EPS - 120, K.L_BEN, -HB - TF, fyll="grus", stil=None)
-    R4.bottenplatta_snitt(v, K.L_BEN, 850.0, [(K.L_BEN, K.B_L)], kant=True)
+    R4.bottenplatta_snitt(v, K.L_BEN, 850.0, [(K.L_BEN, K.B_KANT)], kant=True, fas=K.FAS)
+    R4.l_element_snitt(v)
     with v.lager("bottenplatta"):
-        v.rekt(0, -HB, K.L_BEN, 0, fyll="eps2", stil="tunn")                  # L-elementets yttre ben
-        v.rekt(0, -HB - TF, K.B_L, -HB, fyll="eps2", stil="tunn")             # L-elementets fot
-        v.linje([(0, -HB - TF), (0, 0)], "normal")
-        v.linje([(K.L_BEN, -HB), (K.L_BEN, 0)], "normal")
         v.brott((850, -HP - EPS - 40), (850, 40), "tunn")
     R4.kub_snitt(v, 0.0, 0.0, 420.0, gips=True)
     with v.lager("vagg"):
         v.brott((-40, 420), (K.T_VAGG + 60, 420), "tunn")
     with v.lager("armering"):
         v.linje([(K.X_START + FOT_START, R4.Z_BALK_UK), (K.X_START, R4.Z_BALK_UK), (K.X_START, 400)], "uk")
-    xj, xu = K.B_L - K.BALK_JARN, K.B_L - K.BYGEL_SIDA       # balkens inre järn och bygelns inre ben
+    xj, xu = K.B_KANT - K.BALK_JARN, K.B_KANT - K.BYGEL_SIDA   # balkens inre järn och bygelns inre ben
     with v.lager("matt"):
-        kedja(v, [0.0, K.L_BEN, K.B_L], -HB - TF - 4.0 * s, [-HB - TF] * 3, sz=5.8, bg=True)
+        kedja(v, [0.0, K.L_BEN, K.B_KANT, K.B_L], -HB - TF - 4.0 * s, [-HB - TF] * 4, sz=5.8, bg=True)
         kedja(v, [-HB - TF, -HB, -HP, 0.0], -6.0 * s, [0.0] * 4, sz=5.8, ax="y")
-        kedja(v, [-HB, -HB + C_UK], K.B_L + 150.0, [K.B_L] * 2, sz=5.4, ax="y")
+        kedja(v, [-HB, -HB + C_UK], K.B_L + 120.0, [K.B_KANT] * 2, sz=5.4, ax="y")
         kedja(v, [0.0, K.X_START], -HB + 120, [-HB + 46] * 2, sz=5.4)
     lst = [(f"startjärn Ø{START['d']} s{START['s']}, {sv(START['upp'])} upp, foten {sv(FOT_START)} in i balken",
             (K.X_START, 250), POS["start_ute"]),
@@ -335,8 +332,10 @@ def sektion_a():
            ("2 Ø10 i underkant", (xj, R4.Z_BALK_UK), POS["balk_uk"]),
            (f"Ø{NAT[0]} s{NAT[1]} i överkant, täckskikt {C_OK:.0f}", (700, -28), POS["ok_x"]),
            (f"Ø{NAT[0]} s{NAT[1]} i underkant, täckskikt {C_UK:.0f}", (700, -HP + C_UK + 3), POS["uk_x"]),
-           ("L-element L300: ben 100 under väggens cellplast, fot 100 S300", (520, -HB - 70), None),
-           (f"cellplast S100, {sv(EPS)} i två skikt, plastfolie emellan", (780, -HP - EPS / 4), None),
+           (f"L-element S300, höjd 300, bredd {sv(K.B_L)} (t.ex. Finja), rygg avfasad upptill", (520, -HB - 70),
+            None),
+           (f"cellplast S100, 2 × 100, det övre skiktet {sv(K.OMLOTT)} in över L-elementets fot", (780, -HP - EPS / 4),
+            None),
            ("makadam på sprängt berg", (650, -HP - EPS - 60), None)]
     etiketter(v, lst, 1000.0, 480.0, 4.4, sz=6.0)       # ordningen ger hänvisningslinjer utan korsningar
     with v.lager("rubrik"):
@@ -414,7 +413,8 @@ def sektion_c():
 
 def detalj_horn():
     """D: yttre hörn i plan (V1/V14): L-elementen med ytterkanten i väggarnas ytterliv, betongen 100 mm innanför,
-    kantbalken och väggen ovanpå (streckad). x och y i K-05:s koordinater. 1:20"""
+    kantbalken, L-elementets fot 50 mm förbi balken (streckad) och väggen ovanpå (streckad). x och y i K-05:s
+    koordinater. 1:20"""
     s = 20.0
     x, y = ytterliv("V14"), ytterliv("V1")
     v = Vy(x=200, y=122, w=126, h=80, skala=s, X0=x - 1450.0, Y1=y + 280.0)
@@ -429,14 +429,17 @@ def detalj_horn():
         v.linje([(x - 1300, y), (x, y), (x, y - 1300)], "kontur")
         v.brott((x - 1300, y - K.B_L - 60), (x - 1300, y + 60), "tunn")
         v.brott((x - K.B_L - 60, y - 1300), (x + 60, y - 1300), "tunn")
+        fot = KALLARE.buffer(-K.B_L, join_style=2).exterior.intersection(vy)   # L-elementets fot, under cellplasten
+        for g in getattr(fot, "geoms", [fot]):
+            v.linje(list(g.coords), "dold")
     with v.lager("vaggar"):
         for g in K.ytor(K.HEL.intersection(vy)):
             v.linje(list(g.exterior.coords), "dold")
         for g in K.ytor(K.KARNA.intersection(vy)):
             v.linje(list(g.exterior.coords), "dold")
     with v.lager("matt"):
-        kedja(v, [x - K.B_L, x - K.L_BEN, x], y + 3.0 * s, [y] * 3, sz=5.8)
-        kedja(v, [y - K.B_L, y - K.L_BEN, y], x + 3.0 * s, [x] * 3, sz=5.8, ax="y")
+        kedja(v, [x - K.B_L, x - K.B_KANT, x - K.L_BEN, x], y + 3.0 * s, [y] * 4, sz=5.8, bg=True)
+        kedja(v, [y - K.B_L, y - K.B_KANT, y - K.L_BEN, y], x + 3.0 * s, [x] * 4, sz=5.8, ax="y", bg=True)
         kedja(v, [x - K.T_VAGG, x - K.T_EPS - K.T_KARNA, x - K.T_EPS, x], y - 900.0, [y - 900.0] * 4, sz=5.4)
     with v.lager("text"):
         v.hanvisning((x - 175, y - 450), (x - 700, y - 850), "väggens kärna (streckad, R-04)", a="rm", sz=6.0)
@@ -444,6 +447,8 @@ def detalj_horn():
                      sz=6.0)
         v.hanvisning((x - 300, y - 1150), (x - 700, y - 1150), f"kantbalk {sv(BB)} på L-elementets fot", a="rm",
                      sz=6.0)
+        v.hanvisning((x - K.B_L, y - 1240), (x - 700, y - 1250), f"L-elementets fot, {sv(K.OMLOTT)} under plattans "
+                     "cellplast", a="rm", sz=6.0)
         v.rubrik(x - 1430, y - 1300 - 6.0 * s, "DETALJ D  Yttre hörn i plan (V1/V14)", skala=20, sz=9)
         v.text(x - 1430, y - 1300 - 6.0 * s - 7.0 * s, "Samma vid alla hörn: L-elementets ytterkant i väggens ytterliv.",
                a="lb", sz=6.2, col="gra")
@@ -517,12 +522,15 @@ def stalforteckning():
 def cellplastlista():
     """Cellplast under bottenplattan: S100 under plattan (m², två skikt), S300 under innerbalkarna och plintarna (m²)
     och L-element längs kanten (m), med fot av S300."""
-    a_100 = (BETONG.area - TJOCK.area) / 1e6
+    falt = BETONG.difference(TJOCK)
+    a_ovre = falt.area / 1e6
+    a_undre = falt.difference(K.l_element()).area / 1e6              # foten går 50 mm in under det övre skiktet
     a_200 = unary_union([INRE] + list(PLINTAR.values())).difference(KANT).area / 1e6
     L_l = KALLARE.exterior.length / 1000
-    rader = [["S100", "2 × 100 mm, plastfolie emellan", sv(a_100, 1) + " m²", "under plattan"],
+    rader = [["S100", "100 mm, övre skiktet", sv(a_ovre, 1) + " m²", "under plattan, 50 in över L-elementens fot"],
+             ["S100", "100 mm, undre skiktet", sv(a_undre, 1) + " m²", "plastfolie mellan skikten"],
              ["S300", "100 mm", sv(a_200, 1) + " m²", "under innerbalkarna och plintarna"],
-             ["L-element", "L300, 550 × 300, ben 100, fot S300", sv(L_l, 1) + " m",
+             ["L-element", K.L_ELEMENT.replace("L-element ", ""), sv(L_l, 1) + " m",
               "längs hela kanten, ytterkant i väggarnas ytterliv"]]
     return dict(typ="tabell", kolumner=["", "Utförande", "Mängd", "Anm"], bredd=(0, 1, 0, 1), rader=rader,
                 just=["l", "l", "r", "l"], sz=6.2)
@@ -560,14 +568,15 @@ def planvy():
 def anvisningar():
     return [
         f"Bottenplatta L300 (K-06): {sv(HP)} mm betong C25/30 på {sv(EPS)} mm cellplast S100 i två skikt med "
-        f"åldringsbeständig plastfolie emellan. Kantbalkar {sv(BB)} × {sv(HB)} i L-element L300 med fot av S300 längs "
-        f"hela kanten; balkar under innerväggarna {sv(BB)} × {sv(HB)} och plintar under rören, lika höga, på 100 mm "
-        "S300. Bara två kvaliteter: S100 under plattan och S300 under balkar och plintar. Samma uppbyggnad i hela "
-        "källaren.",
+        f"åldringsbeständig plastfolie emellan. Kantbalkar {sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, "
+        f"med foten av S300; balkar under innerväggarna {sv(BB)} × {sv(HB)} och plintar under rören, lika höga, på "
+        "100 mm S300. Bara två kvaliteter: S100 under plattan och S300 under balkar och plintar. Samma uppbyggnad i "
+        "hela källaren.",
         f"L-elementens ytterkant ligger i väggarnas ytterliv (R-04.1), som planens mått går till. Betongen börjar "
-        f"innanför L-elementets yttre ben, {sv(K.L_BEN)} mm, i kärnans yttre yta: väggens yttre cellplast står på benet "
-        "och kärnan på kantbalken (detalj D, sektion A). Koordinater i mm enligt K-05, höjder från bottenplattans "
-        "överkant.",
+        f"innanför L-elementets rygg, {sv(K.L_BEN)} mm, i kärnans yttre yta; ryggen är avfasad i ovankant och fasen "
+        "fylls med betong. Väggens yttre cellplast står på ryggen och fasen, kärnan på kantbalken. L-elementets fot "
+        f"går {sv(K.OMLOTT)} mm förbi kantbalken, och plattans övre cellplastskikt läggs in över den (detalj D, "
+        "sektion A). Koordinater i mm enligt K-05, höjder från bottenplattans överkant.",
         "Plintarna är kvadratiska och centrerade under rörets mitt (P7: mitt mellan de två rören). Sida och mitt enligt "
         "tabellen; mått från väggarna till rörens mitt på R-04.1.",
     ]
@@ -593,7 +602,7 @@ def blad_plan():
         dict(typ="symboler", rader=[
             dict(form="yta", fyll="zon", stil="tunn", text=f"kantbalk, balk och plint, {sv(HB)} hög, på 100 S300"),
             dict(form="yta", fyll="betong", stil="tunn", text=f"platta {sv(HP)} på {sv(EPS)} S100"),
-            dict(form="yta", fyll="eps2", stil="tunn", text="L-elementets yttre ben, 100, i väggarnas ytterliv"),
+            dict(form="yta", fyll="eps2", stil="tunn", text="L-elementets rygg, 100, i väggarnas ytterliv"),
             dict(form="linje", stil="dold", text="väggarna (R-04)"),
             dict(form="ruta", fyll="stal", text="fotplåt (R-04.5)")]),
         dict(typ="rubrik", text="Plintar (sida och mitt)"),
@@ -652,7 +661,8 @@ def blad_sektioner():
         dict(typ="lista", sz=6.8, rader=[
             "Utförande (K-06): spräng och avjämna berget och lägg makadam. Lägg dränledningen. Lägg L-elementen (fot "
             "S300) med ytterkanten i väggarnas ytterliv, S300 under innerbalkarna och plintarna och S100 under plattan "
-            "i två skikt med plastfolie emellan. Skär ur cellplasten för balkar och plintar.",
+            f"i två skikt med plastfolie emellan; det övre skiktet går {sv(K.OMLOTT)} mm in över L-elementens fot och "
+            "fästs med plastspik. Skär ur cellplasten för balkar och plintar.",
             "Armera, lägg golvvärmeslangarna och fixera fotplåtarna i läge och höjd. Gjut bottenplattan med balkar och "
             "plintar i en gjutning; fotplåtarna gjuts in kant i kant med plintarnas överkant. Rugga ytan under "
             "väggarna.",

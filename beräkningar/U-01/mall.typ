@@ -49,7 +49,7 @@ Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och in
 
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
 - 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, med åldringsbeständig plastfolie mellan skikten;
-- kantbalkar #s.h_balk mm i L-element, med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför, och plintar med samma höjd, båda på 100 mm S300;
+- kantbalkar #s.h_balk mm i L-element (höjd 300, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Båda på 100 mm S300;
 - källarväggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100), gjutna direkt på kantbalken;
 - makadam på berg.
 

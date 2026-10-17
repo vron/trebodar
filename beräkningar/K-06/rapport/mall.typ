@@ -51,7 +51,7 @@ Handlingen redovisar också byggskedet innan mellanbjälklaget har gjutits:
 - hur V3 och V20 bär fyllningen innan bjälklaget finns;
 - vilken hållfasthet betongen behöver när det fylls mot väggarna, och hur många dygn den då ska härda.
 
-Bottenplattan är 100 mm på 200 mm cellplast med kantbalkar i L-element L300, balkar under innerväggarna och plintar under rören. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
+Bottenplattan är 100 mm på 200 mm cellplast med kantbalkar i L-element (höjd 300), balkar under innerväggarna och plintar under rören. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
 
 Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1-2 och SS-EN 1997-1 med EKS 12, samt TG 2216 och Sundolitts monteringsanvisning för Kub (2022). Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år, geoteknisk kategori 1.
 
@@ -250,12 +250,12 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 
 #figure(placement: auto,
   image("../fig_detalj.svg", width: 100%),
-  caption: [Yttervägg mot jord (Kub 350-150) på kantbalk i L-element (L300), med mellanbjälklaget. Mått i mm.],
+  caption: [Yttervägg mot jord (Kub 350-150) på kantbalk i L-element (höjd 300), med mellanbjälklaget. Mått i mm.],
 ) <fig-det>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
 - *Under plattan:* cellplast S100 i två skikt, 200 mm, med åldringsbeständig plastfolie mellan skikten (Plattor.pdf). Bottenplattan är alltså 300 mm hög: 100 mm betong på 200 mm cellplast, samma i hela källaren.
-- *Längs ytterkanten:* L-element L300, 550 mm brett, med ytterkanten i väggens ytterliv. Väggens yttre cellplast står på L-elementets yttre ben, 100 mm, och betongen börjar innanför benet (@fig-platta[figur]). Kantbalken är 450 mm bred och 200 mm hög inklusive plattan och står på L-elementets fot, 100 mm S300. Väggens kärna står på kantbalkens yttersta 150 mm.
+- *Längs ytterkanten:* L-element S300, 300 mm högt och 600 mm brett (t.ex. Finja L-element S300), med ytterkanten i väggens ytterliv. Ryggen är 100 mm och avfasad i ovankant, och betongen börjar innanför ryggen och fyller fasen (@fig-platta[figur]). Väggens yttre cellplast står på ryggen och fasen. Kantbalken är 450 mm bred och 200 mm hög inklusive plattan och står på L-elementets fot, 100 mm S300. Väggens kärna står på kantbalkens yttersta 150 mm. Foten går 50 mm förbi kantbalken, och plattans övre cellplastskikt läggs in över den och fästs med plastspik. Modellen räknar med kantbalkens bredd 450 mm på S300 och plattans cellplast innanför.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S300 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
 - *Platta:* 100 mm C25/30 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
@@ -299,7 +299,7 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 #figure(placement: auto,
   image("../fig_bottenplatta.svg", width: 88%),
-  caption: [Bottenplattan L300: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, L-elementens ytterkant (streckad) och diagonaljärn vid inåtgående hörn.],
+  caption: [Bottenplattan: kantbalkar och balkar under innerväggarna, plintar under rören med sida i mm, L-elementens ytterkant (streckad) och diagonaljärn vid inåtgående hörn.],
 ) <fig-platta>
 
 - *Platta 100 mm:* största moment utanför balkar och plintar, minst $d$ = #P3.falt.d mm från dem, är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m). Närmare balkarna är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående hörn mellan balkarna (#P3.falt.topp kNm/m precis vid kanten). Toppen är en singularitet i FE-lösningen och avtar inom några centimeter; nätet går in i balkarna och tar momentet där.
@@ -343,7 +343,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 = Utförande och kontroll
 
 1. Spräng och avjämna berget och lägg makadam. Lägg dränledningen runt huset innan cellplasten läggs.
-2. Lägg L-element med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan. Skär ur cellplasten för balkar och plintar.
+2. Lägg L-element med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna och S100 under plattan i två skikt med åldringsbeständig plastfolie emellan, det övre skiktet 50 mm in över L-elementens fot. Skär ur cellplasten för balkar och plintar.
 3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med balkar och plintar i en gjutning, med fotplåtarna kant i kant med plintarnas överkant, och rugga ytan under väggarna.
 5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.

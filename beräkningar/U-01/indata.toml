@@ -57,8 +57,10 @@ h_balk      = 300
 [platta]
 h_platta    = 100       # bottenplatta i fält
 t_fot       = 100       # cellplast S300 under kantbalk och plintar (L-elementets fot)
-b_balk      = 450       # kantbalkens bredd, innanför L-elementets yttre ben
-t_ben       = 100       # L-elementets yttre ben: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför
+b_balk      = 450       # kantbalkens bredd, innanför L-elementets rygg
+t_ben       = 100       # L-elementets rygg nedtill: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför
+t_fas       = 50        # ryggen avfasad i ovankant (45°), betongen fyller fasen
+b_l         = 600       # L-elementets bredd (L-element S300, höjd 300, t.ex. Finja); foten 50 mm förbi kantbalken
 t_makadam   = 150
 golvvarme_z = 50        # slingornas centrum under plattans överkant (modellen)
 golvvarme_kant = 150    # slingorna börjar så långt från väggens insida

@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use("svg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib import font_manager  # noqa: E402
-from matplotlib.patches import Rectangle  # noqa: E402
+from matplotlib.patches import Polygon, Rectangle  # noqa: E402
 import numpy as np  # noqa: E402
 
 import mark2d as M  # noqa: E402
@@ -164,9 +164,12 @@ def rita_delar(ax, m, lw=0.4, fyll=True, kant=INK):
         for x0, x1, zm in ((X0, g["xv"], P["mark_v"]), (g["xo"], X1, P["mark_o"])):
             ax.add_patch(Rectangle((x0, zm), x1 - x0, P["h_rum"] + 1, fc="white", ec="none", zorder=0.5))
         ax.add_patch(Rectangle((g["xiv"], 0), g["xio"] - g["xiv"], P["h_rum"], fc="white", ec="none", zorder=0.5))
-    for namn, x0, x1, z0, z1 in m["D"]:
+    for namn, x0, x1, z0, z1 in m["D"][:len(m["D"]) - g["fas_n"]]:
         ax.add_patch(Rectangle((x0, z0), x1 - x0, z1 - z0, fc=FARG[namn] if fyll else "none", ec=kant, lw=lw,
                                zorder=1 if fyll else 3))
+    for tri in g["fas"]:                                      # ryggens avfasning, fylld med betong (i nätet en trappa)
+        ax.add_patch(Polygon(tri, closed=True, fc=FARG["betong"] if fyll else "none", ec=kant, lw=lw,
+                             zorder=1.1 if fyll else 3))
     # folien mellan cellplastskikten och golvvärmen
     ax.plot([g["xv"] + P["t_ben"] + P["b_balk"], g["xo"] - P["t_ben"] - P["b_balk"]], [g["zfolie"]] * 2, color=BLA, lw=0.6, ls=(0, (3, 1.5)), zorder=4)
     ax.plot([g["gv"][0], g["gv"][1]], [g["gv"][2]] * 2, color=ROD, lw=0.8, ls=(0, (1, 1)), zorder=4)
@@ -235,7 +238,7 @@ def rita_sektion(path, m):
         ax.text(xx - 0.012, (z0 + z1) / 2, s, ha="right", va="center", fontsize=6.3)
     etik = [("Kub 350-150", (xv + 0.175, 0.25), (xv - 0.42, 0.33)),
             ("fyllning", (xv - 0.35, 0.05), (xv - 0.42, 0.18)),
-            ("L-element: ben och fot\ncellplast 100", (xv + 0.05, -0.25), (xv - 0.62, -0.42)),
+            ("L-element: rygg och fot\ncellplast 100", (xv + 0.05, -0.25), (xv - 0.62, -0.42)),
             ("makadam på berg", (xv + 0.6, g["zf"] - 0.08), (xv + 0.2, -0.56)),
             ("kantbalk", (xv + 0.4, -0.13), (xv + 0.2, -0.13)),
             ("plastfolie", (0.80, g["zfolie"]), (0.70, -0.36)),

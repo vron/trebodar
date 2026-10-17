@@ -115,6 +115,10 @@ nr = "K-06"
 namn = "Bottenplatta och källarväggar"
 status = "klar"
 [[handling]]
+nr = "R-00"
+namn = "Konstruktionsritning bärande system i betong, översikt i 3D"
+status = "klar"
+[[handling]]
 nr = "R-01"
 namn = "Konstruktionsritning nock- och dalbalkar"
 status = "klar"

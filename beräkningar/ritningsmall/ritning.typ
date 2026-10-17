@@ -77,6 +77,9 @@
     let r = e.r
     place(dx: (e.c.at(0) - r) * 1mm, dy: (e.c.at(1) - r) * 1mm,
       circle(radius: r * 1mm, stroke: st(e.at("s", default: none)), fill: fy(e.at("f", default: none))))
+  } else if t == "img" {
+    // bild (PNG), sökväg från roten, övre vänstra hörnet i p
+    place(dx: e.p.at(0) * 1mm, dy: e.p.at(1) * 1mm, image(e.src, width: e.w * 1mm, height: e.h * 1mm))
   } else if t == "tx" {
     context {
       let sz = e.at("sz", default: 7.5)
@@ -218,4 +221,4 @@
 })))
 // liten text i nedre kanten: fil och skala
 #place(dx: ramx0 * 1mm, dy: (BLAD.h - RAM.n + 2.2) * 1mm,
-  text(size: 5.5pt, fill: GRA, [#B.huvud.nummer · #B.huvud.skala vid utskrift på A3 · Mått i mm om inte annat anges]))
+  text(size: 5.5pt, fill: GRA, if B.huvud.skala == "–" [#B.huvud.nummer · Utan skala och mått] else [#B.huvud.nummer · #B.huvud.skala vid utskrift på A3 · Mått i mm om inte annat anges]))

@@ -23,12 +23,16 @@ T_KARNA = 150.0          # betongkärnan, i väggens mitt
 T_EPS_V = 100.0          # cellplast EPS 120 på var sida om kärnan
 KI = 30.0                # mellanbjälklagets kant ligger 30 mm innanför väggens ytterliv (K-05)
 H_MB = 150.0             # mellanbjälklagets tjocklek (K-05)
-B_BALK = 450.0           # kantbalkens bredd: L-elementets bredd 550 minus det yttre benet 100
+B_BALK = 450.0           # kantbalkens bredd, från L-elementets rygg (100 mm från väggens ytterliv) till 550
 T_FOT = 100.0            # cellplast under kantbalk och plintar (L-elementets fot)
-L_BEN = 100.0            # L-elementets yttre ben: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför,
-                         # så att väggens yttre cellplast står på benet och kärnan på kantbalkens yttersta 150 mm
+L_BEN = 100.0            # L-elementets rygg nedtill: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför,
+                         # så att väggens yttre cellplast står på ryggen och kärnan på kantbalkens yttersta 150 mm
+FAS = 50.0               # ryggen är avfasad i ovankant (45°), 50 mm bred upptill; betongen fyller fasen
+B_L = 600.0              # L-elementets bredd: L-element S300, höjd 300, 600 × 1200 (t.ex. Finja), fot 100 mm S300
+OMLOTT = B_L - L_BEN - B_BALK    # plattans övre cellplastskikt går 50 mm in över L-elementets fot (fästs med plastspik)
+L_ELEMENT = "L-element S300, höjd 300, 600 × 1200 (t.ex. Finja)"
 H_PLATTA = 100.0         # bottenplattans tjocklek i fält (Plattor.pdf)
-# bottenplattans utförande: L-element L300, 200 mm cellplast under plattan och 200 mm hög kantbalk (300 med foten)
+# bottenplattans utförande: L-element höjd 300, 200 mm cellplast under plattan och 200 mm hög kantbalk (300 med foten)
 UTFORANDEN = {
     "L300": dict(H=300.0, t_eps=200.0, h_balk=200.0),
 }

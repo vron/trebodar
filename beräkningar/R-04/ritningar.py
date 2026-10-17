@@ -934,6 +934,18 @@ def etiketter(v, lst, x, z0, dz, sz=6.4):
                 v.hanvisning(mal, (x, z), txt, a="lm", sz=sz)
 
 
+def l_element_snitt(v):
+    """L-elementet i sektion, x = 0 i väggens ytterliv (L-elementets ytterkant) och z = 0 i plattans överkant: ryggen
+    100 med ytskikt av betong, avfasad i ovankant (betongen fyller fasen), och foten 100 S300 under kantbalken och
+    50 förbi den, där plattans övre cellplastskikt går in över foten."""
+    with v.lager("bottenplatta"):
+        v.rekt(0, -HB - K.T_FOT, K.B_L, -HB, fyll="eps2", stil="tunn")                                 # foten
+        v.polygon([(0, -HB), (K.L_BEN, -HB), (K.L_BEN, -K.FAS), (K.FAS, 0), (0, 0)], fyll="eps2", stil="tunn")
+        v.rekt(0, -HB - K.T_FOT, 8, 0, fyll="betong", stil=None)                                    # ytskikt 7–10
+        v.linje([(0, -HB - K.T_FOT), (0, 0)], "normal")
+        v.linje([(K.L_BEN, -HB), (K.L_BEN, -K.FAS), (K.FAS, 0)], "normal")
+
+
 def kub_snitt(v, x0, z0, z1, rikt=1, gips=True, kapad_ute=False, fog=True):
     """Kub 350-150 i sektion från höjden z0 till z1, x0 i det ena livet och väggen åt hållet rikt. kapad_ute: den
     yttre cellplasten slutar i mellanbjälklagets underkant. fog: gjutfogen vid 1 800 (ytterväggar)."""
@@ -960,10 +972,11 @@ Z_BYGEL = -HB + 30 + 3                  # byglarnas botten (centrum)
 Z_NAT_UK = -K.H_PLATTA + 30 + 3         # underkantsnätet, nedre lagret (centrum)
 
 
-def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True):
+def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
     """Bottenplattan L300 i sektion mellan xa och xb: platta 100 på 200 cellplast S100 (två skikt, plastfolie), balkar
     (x0, x1) 200 höga på 100 S300. Näten går genom balkarna. kant: plattans kant vid xa (annars avbrott). balkarm:
-    balkens längsjärn och byglar (inte i plintar). z = 0 i plattans överkant."""
+    balkens längsjärn och byglar (inte i plintar). fas: betongen fyller L-elementets avfasning vid kanten (xa).
+    z = 0 i plattans överkant."""
     hp = K.H_PLATTA
     with v.lager("bottenplatta"):
         v.rekt(xa, -hp - EPS_PL - 120, xb, -hp - EPS_PL, fyll="grus", stil=None)
@@ -976,7 +989,8 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True):
             cur = b1
         if cur < xb:
             prof += [(cur, -hp), (xb, -hp)]
-        poly = [(xa, 0.0)] + [(prof[0][0], prof[0][1])] + prof[1:] + [(xb, prof[-1][1]), (xb, 0.0)]
+        topp = [(xa - fas, 0.0), (xa, -fas)] if fas else [(xa, 0.0)]
+        poly = topp + [(prof[0][0], prof[0][1])] + prof[1:] + [(xb, prof[-1][1]), (xb, 0.0)]
         v.polygon(poly, fyll="betong", stil="normal")
         # cellplast: S100 under plattan i två skikt med plastfolie, S300 100 mm under balkarna
         cur = xa
@@ -1030,12 +1044,9 @@ def sektion_a():
         v.linje([(-8, -HB - K.T_FOT), (-8, hf + 60)], "dold")             # grundmursskiva
         v.rekt(-55, hf - 50, -15, H + H_MB, fyll="#c9c3b8", stil="tunn")   # fasadsten (AR-01)
         v.rekt(-15, hf - 50, 0, H + H_MB, fyll="vit", stil="tunn")
-    bottenplatta_snitt(v, K.L_BEN, 900.0, [(K.L_BEN, K.B_L)], kant=True)
+    bottenplatta_snitt(v, K.L_BEN, 900.0, [(K.L_BEN, K.B_KANT)], kant=True, fas=K.FAS)
+    l_element_snitt(v)
     with v.lager("bottenplatta"):
-        v.rekt(0, -HB, K.L_BEN, 0, fyll="eps2", stil="tunn")              # L-elementets yttre ben, i väggens ytterliv
-        v.rekt(0, -HB - K.T_FOT, K.B_L, -HB, fyll="eps2", stil="tunn")     # L-elementets fot
-        v.linje([(0, -HB - K.T_FOT), (0, 0)], "normal")
-        v.linje([(K.L_BEN, -HB), (K.L_BEN, 0)], "normal")
         v.brott((900, -K.H_PLATTA - EPS_PL - 40), (900, 40), "tunn")
     kub_snitt(v, 0.0, 0.0, H + H_MB, kapad_ute=True)
     with v.lager("vagg"):
@@ -1059,7 +1070,7 @@ def sektion_a():
         kedja(v, zs, 790.0, [K.T_VAGG + 13] * 5 + [790.0], sz=5.8, ax="y")
         v.text((K.T_VAGG + 13 + 790.0) / 2, K.H_GJUT1 - 25, "gjutfog", a="ct", sz=5.6)
         kedja(v, [-HB - K.T_FOT, -HB, -K.H_PLATTA, 0.0], 790.0, [900.0] * 4, sz=5.6, ax="y")
-        kedja(v, [0.0, K.L_BEN, K.B_L], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 3, sz=5.6, bg=True)
+        kedja(v, [0.0, K.L_BEN, K.B_KANT, K.B_L], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 4, sz=5.6, bg=True)
     lst = [(f"vinkeljärn Ø{K.POS14['d']} s{K.POS14['s']}, {K.POS14['ben']:.0f} + {K.POS14['in_']:.0f} "
             f"(R-03 pos {POS03})", (xa + 300, Z_POS14), None),
            ("mellanbjälklag 150 (R-03)", (550, H + 75), None),
@@ -1069,9 +1080,9 @@ def sektion_a():
            ("gips 13", (K.T_VAGG + 6, 1100), None),
            (f"startjärn Ø{st['d']} s{st['s']}, utsidan, foten in i balken (R-05 pos {POS05['start_ute']})",
             (K.X_START, 350), None),
-           (f"L-element L300: ben {sv(K.L_BEN)} under väggens cellplast, fot under balken", (50, -150), None),
+           (f"L-element S300, höjd 300, bredd {sv(K.B_L)}, rygg avfasad upptill", (50, -150), None),
            (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-05)", (300, -100), None),
-           (f"cellplast: {sv(EPS_PL)} S100 under plattan", (640, -250), None)]
+           (f"cellplast 2 × 100 S100, övre skiktet {sv(K.OMLOTT)} in över foten", (575, -150), None)]
     with v.lager("text"):
         v.text(-60, hf + 120, "fasadsten\n(AR-01)", a="rb", sz=5.8, col="gra", i=True)
         v.hanvisning((15, H + 135), (-70, H + 270), "kantisolering 30", a="rm", sz=5.8)

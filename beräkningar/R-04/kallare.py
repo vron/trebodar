@@ -40,8 +40,12 @@ SKIFT = 600.0                   # Kub-elementens höjd; det översta skiftet är
 C_IN, C_UT = I06.C_IN, I06.C_UT  # täckskikt till de vågräta järnen: insida 25, utsida 30
 UTF = I06.UTFORANDEN["L300"]    # bottenplattan: H 300, cellplast 200, kantbalk 200 (inklusive plattan)
 H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (S200 under balkarna), 450
-L_BEN = I06.L_BEN               # L-elementets yttre ben, 100: ytterkanten i väggens ytterliv, betongen 100 mm innanför
-B_L = L_BEN + B_BALK            # L-elementets bredd, 550
+L_BEN = I06.L_BEN               # L-elementets rygg nedtill, 100: ytterkanten i väggens ytterliv, betongen 100 mm innanför
+FAS = I06.FAS                   # ryggens avfasning i ovankant, 50 (betongen fyller fasen)
+B_L = I06.B_L                   # L-elementets bredd, 600
+B_KANT = L_BEN + B_BALK         # kantbalkens inre kant från väggens ytterliv, 550
+OMLOTT = I06.OMLOTT             # plattans övre cellplastskikt in över L-elementets fot, 50
+L_ELEMENT = I06.L_ELEMENT
 BYGEL_SIDA, BALK_JARN = 33.0, 41.0   # balkarnas byglar och längsjärn (centrum) från balkens sida: täckskikt 30
 GLIPA_SMYG = T_EPS              # isolerad smyg vid öppningarna: cellplast 100 mellan kärnan och öppningen
 
@@ -231,7 +235,7 @@ def kantbalk():
 
 
 def l_element():
-    """L-elementen: 550 mm från väggarnas ytterliv, med det yttre benet 100 och foten under kantbalken."""
+    """L-elementen: 600 mm från väggarnas ytterliv, med ryggen 100 och foten under kantbalken och 50 mm förbi den."""
     return KALLARE.difference(KALLARE.buffer(-B_L, join_style=2))
 
 

@@ -234,7 +234,7 @@ def _rekt(ax, x0, y0, w, h, fc, ec=INK, lw=0.4, hatch=None, z=2, ls="-"):
 
 
 def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
-    """Sektion genom yttervägg mot jord (Kub 350-150) på kantbalk i L-element (L300), med mellanbjälklaget.
+    """Sektion genom yttervägg mot jord (Kub 350-150) på kantbalk i L-element (höjd 300), med mellanbjälklaget.
     Mått i mm, x = 0 i väggens ytterliv, y = 0 bottenplattans överkant. Väggen visas med ett avbrott.
     Numrerade hänvisningar med en lista till höger."""
     W, Hf = 6.6, 5.0
@@ -254,18 +254,20 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     # berg och makadam, cellplast, L-element
     _rekt(ax, -1500, ybot - 330, 3250, 180, "#cfcac2", hatch="xx", z=0)
     _rekt(ax, -1500, ybot - 150, 3250, 150, DRAN, z=0)
-    lb, bl = I.L_BEN, I.L_BEN + I.B_BALK                 # L-elementets ben (100) och bredd (550) från ytterlivet
-    _rekt(ax, bl, -hp - t_eps, 1750 - bl, t_eps / 2, EPSF)
-    _rekt(ax, bl, -hp - t_eps / 2, 1750 - bl, t_eps / 2, EPSF)
-    ax.plot([bl, 1750], [-hp - t_eps / 2] * 2, color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)
+    # L-elementets rygg (100) och bredd (600) från ytterlivet, kantbalkens inre kant (550), ryggens avfasning (50)
+    lb, bl, bk, fas = I.L_BEN, I.B_L, I.L_BEN + I.B_BALK, I.FAS
+    _rekt(ax, bl, -hp - t_eps, 1750 - bl, t_eps / 2, EPSF)          # undre skiktet, från L-elementets fot
+    _rekt(ax, bk, -hp - t_eps / 2, 1750 - bk, t_eps / 2, EPSF)      # övre skiktet, in över foten
+    ax.plot([bk, 1750], [-hp - t_eps / 2] * 2, color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)
     _rekt(ax, 0, ybot, bl, t_fot, EPS2)                  # L-elementets fot, S300
-    _rekt(ax, 0, yb, lb, h_balk, EPS2)                   # det yttre benet under väggens cellplast
-    ax.add_patch(Polygon([(lb, yb), (bl, yb), (bl, -hp), (1750, -hp), (1750, 0), (lb, 0)],
+    ax.add_patch(Polygon([(0, yb), (lb, yb), (lb, -fas), (fas, 0), (0, 0)], closed=True, fc=EPS2, ec=INK, lw=0.5,
+                         zorder=2))                      # ryggen under väggens cellplast, avfasad upptill
+    ax.add_patch(Polygon([(lb, yb), (bk, yb), (bk, -hp), (1750, -hp), (1750, 0), (fas, 0), (lb, -fas)],
                          closed=True, fc=BETONG, ec=INK, lw=0.5, zorder=2))
-    for x in (lb + 41, bl - 41):
+    for x in (lb + 41, bk - 41):
         ax.add_patch(Circle((x, yb + 41), 9, fc=INK, zorder=5))        # på byglarna
         ax.add_patch(Circle((x, -42), 9, fc=INK, zorder=5))            # under överkantsnätet
-    ax.plot([lb + 33, lb + 33, bl - 33, bl - 33], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.6, zorder=5)
+    ax.plot([lb + 33, lb + 33, bk - 33, bk - 33], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.6, zorder=5)
     ax.plot([lb + 30, 1750], [-hp + 33] * 2, color=INK, lw=0.5, zorder=5)     # näten går genom balken
     ax.plot([lb + 25, 1750], [-28] * 2, color=INK, lw=0.5, zorder=5)
     # väggen i två delar
@@ -347,9 +349,10 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
             (x_s, 450), (-400, 450)),
            (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök, U-byglar Ø6 s600", (509, yb + 41), (700, yb - 60)),
            ("platta 100: Ø6 s150 i över- och underkant", (1300, -hp + 33), (1450, 200)),
-           (f"cellplast {sv(t_eps)} mm S100 i två skikt, plastfolie mellan", (1300, -hp - t_eps * 0.25), (1600, -230)),
-           (f"L-element L{sv(h_balk + t_fot)}, ben under väggens cellplast, fot 100 mm S300", (275, ybot + 50),
-            (300, ybot - 230)),
+           (f"cellplast {sv(t_eps)} mm S100 i två skikt, plastfolie mellan; det övre {sv(I.OMLOTT)} mm in över "
+            "L-elementets fot", (1300, -hp - t_eps * 0.25), (1600, -230)),
+           (f"L-element S300, höjd {sv(h_balk + t_fot)}, bredd {sv(I.B_L)} (t.ex. Finja): ryggen under väggens cellplast, "
+            "avfasad upptill, fot 100 mm S300", (275, ybot + 50), (300, ybot - 230)),
            ("grundmursskiva, knopparna mot väggen, list upptill", (-6, 1100), (-400, 1150)),
            ("dränerande fyllning; inom 1 m lager ≤ 0,2 m och lätt vibroplatta", (-800, 600), (-1100, 900)),
            ("dränledning, vattengång under plattans cellplast", (-330, ybot + 70), (-700, ybot + 230)),

@@ -61,12 +61,12 @@ def geometri(P):
     bb, tb, tm = P["b_balk"], P["t_ben"], P["t_makadam"]
     zf, zk = -(hp + te), -(hb + tf)                           # cellplastens underkant i fält och under balkar
     zmin = min(zf, zk)
-    bl = tb + bb                                              # L-elementets bredd: ytterkanten i väggens ytterliv
+    bk, bl, fa = tb + bb, P["b_l"], P["t_fas"]                # kantbalkens inre kant, L-elementets bredd, avfasning
     D = [("makadam", xv - tb, xo + tb, zmin - tm, 0.0)]
-    D += [("cellplast", xv + bl, xo - bl, zf, -hp), ("betong", xv + bl, xo - bl, -hp, 0.0)]
-    for x0, x1, f0, f1 in ((xv + tb, xv + bl, xv, xv + bl), (xo - bl, xo - tb, xo - bl, xo)):   # kantbalkar och fot
+    D += [("cellplast", xv + bk, xo - bk, zf, -hp), ("betong", xv + bk, xo - bk, -hp, 0.0)]
+    for x0, x1, f0, f1 in ((xv + tb, xv + bk, xv, xv + bl), (xo - bk, xo - tb, xo - bl, xo)):   # kantbalkar och fot
         D += [("betong", x0, x1, -hb, 0.0), ("cellplast", f0, f1, zk, -hb)]
-    D += [("cellplast", xv, xv + tb, -hb, 0.0), ("cellplast", xo - tb, xo, -hb, 0.0)]   # L-elementets ben
+    D += [("cellplast", xv, xv + tb, -hb, 0.0), ("cellplast", xo - tb, xo, -hb, 0.0)]   # L-elementets rygg
     for _, xc, b in P["plint"]:
         D += [("betong", xc - b / 2, xc + b / 2, -hb, 0.0), ("cellplast", xc - b / 2, xc + b / 2, zk, -hb)]
     for x0, s in ((xv, 1), (xo, -1)):                         # väggarna, från kantbalken till bjälklaget
@@ -74,8 +74,13 @@ def geometri(P):
         for a, b, m in lager:
             xa, xb = sorted((x0 + s * a, x0 + s * b))
             D.append((m, xa, xb, 0.0, P["h_rum"]))
+    # ryggens avfasning fylls med betong: i nätet en trappa i två steg med samma area som fasen, sist i listan
+    n = len(D)
+    for a, z0, z1 in ((0.75, -fa / 2, 0.0), (0.25, -fa, -fa / 2)):
+        D += [("betong", xv + tb - a * fa, xv + tb, z0, z1), ("betong", xo - tb, xo - tb + a * fa, z0, z1)]
     g = dict(xv=xv, xo=xo, xiv=xiv, xio=xio, zf=zf, zk=zk, zmin=zmin, zfolie=-(hp + te / 2), B=xo - xv,
-             gv=(xiv + P["golvvarme_kant"], xio - P["golvvarme_kant"], -P["golvvarme_z"]))
+             gv=(xiv + P["golvvarme_kant"], xio - P["golvvarme_kant"], -P["golvvarme_z"]), fas_n=len(D) - n,
+             fas=[[(xv + tb, -fa), (xv + tb, 0.0), (xv + tb - fa, 0.0)], [(xo - tb, -fa), (xo - tb, 0.0), (xo - tb + fa, 0.0)]])
     return D, g
 
 

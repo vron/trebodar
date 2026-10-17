@@ -87,6 +87,10 @@ class Vy:
     def text(self, X, Y, txt, a="lb", sz=7.5, rot=0, b=False, col="ink", bg=False, i=False):
         self._add(dict(t="tx", p=self.P(X, Y), txt=txt, a=a, sz=sz, rot=rot, b=b, col=col, bg=bg, i=i))
 
+    def bild(self, X, Y, w, h, src):
+        """Bild (PNG) med övre vänstra hörnet i modellpunkten (X, Y), w × h pappersmm; src: sökväg från roten."""
+        self._add(dict(t="img", p=self.P(X, Y), w=round(w, 3), h=round(h, 3), src=src))
+
     # pappersrelativa element (offset i pappersmm från en modellpunkt)
     def ptext(self, X, Y, du, dv, txt, **kw):
         """Text förskjuten du, dv pappersmm (dv uppåt) från modellpunkten."""
