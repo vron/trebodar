@@ -521,7 +521,8 @@ def anvisningar():
         "Koordinater i mm enligt K-05; origo i skärningen mellan mellanbjälklagets kanter x = 0 och y = 0. Väggarnas "
         "ytterliv ligger 30 mm utanför bjälklagets kant. Höjder från bottenplattans överkant.",
         "Vid öppningarna slutar betongkärnan 100 mm innanför den färdiga öppningen: sidorna och bröstningen får "
-        "Sundolitts smyglist 100 × 350 med regel 45 × 195 (R-04.4 E). Överkanten är mellanbjälklagets underkant. "
+        "Sundolitts smyglist 100 × 350 med regel 45 × 195 (R-04.4 E), alltså tre sidor vid fönstren och två vid "
+        "dörrarna. Ingen smyglist i överkant: öppningen går upp till mellanbjälklagets underkant. "
         "Måtten på planen avser betongens öppningar.",
         "I hörn och anslutningar går betongkärnorna ihop: cellplasten skärs bort där väggarna möts.",
     ]
@@ -845,7 +846,7 @@ def blad_elevationer():
             "Elevationerna visar betongkärnan; cellplasten är inte ritad. Måtten längs väggarna går till kärnans ändar, "
             "i hörnen till den vinkelräta väggens kärna (100 mm innanför ytterlivet, som planen R-04.1 mäter till). Den "
             "färdiga öppningen (streckad) ligger 100 mm innanför betongen: Sundolitts smyglist med regel vid sidorna och "
-            "på bröstningen (R-04.4 E).",
+            "på bröstningen (R-04.4 E). Ingen smyglist i överkant, som är mellanbjälklagets underkant.",
             f"Skift: tre hela (600) och ett halvt (300). I ytterväggarna gjuts de tre hela skiften först, upp till "
             f"{sv(K.H_GJUT1)} (gjutfog, streckprickad), och det halva skiftet med mellanbjälklaget (K-06). "
             "Innerväggarna (V4–V6) gjuts i hela höjden före bjälklaget och får glidskikt (byggpapp) på krönet.",
@@ -1243,7 +1244,8 @@ def blad_sektioner():
             "Montering: elementen staplas i förband med armeringen i bindarnas hållare och stagas enligt Sundolitts "
             "anvisning, vid hörn och öppningar och annars cirka var 2 m. Kapade element och kanter vid öppningar "
             "förstärks med plywood eller läkt. I hörn och anslutningar skärs cellplasten bort så att kärnorna går ihop. "
-            "Öppningar enligt Sundolitt: smyglist Kub U17 vid sidorna och bröstningen, med regel 45 × 195 i spåret, "
+            "Öppningar enligt Sundolitt: smyglist Kub U17 vid sidorna och bröstningen (inte i överkant, som är "
+            "mellanbjälklagets underkant), med regel 45 × 195 i spåret, "
             "fäst med grov spik 150 mm (förborra) som gjuts in i betongen, minst tre per sida och fler vid större "
             "öppningar. Smyglisterna stagas med tvärgående stag lodrätt och vågrätt. Bröstningens regel och smyglist "
             "får inspektionshål så att fyllningen kan kontrolleras (detalj E).",
