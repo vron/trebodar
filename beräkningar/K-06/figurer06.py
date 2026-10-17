@@ -128,16 +128,11 @@ def rita_bottenplatta(path, R, poly, kant, inre, plint_b):
             c = b + bis * off
             p0, p1 = c - t * 600, c + t * 600
             ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=FRI, lw=0.9, zorder=8, solid_capstyle="butt")
-    from shapely.geometry import box as _box
-    for x0, y0, x1, y1 in M.s300_zoner():
-        z = _box(x0, y0, x1, y1).intersection(kant)
-        for g in getattr(z, "geoms", [z]):
-            if g.area > 1:
-                ax.add_patch(Polygon(list(g.exterior.coords), closed=True, fc="none", ec=BLA, lw=1.1, hatch="xxxx",
-                                     zorder=5))
+    ax.add_patch(Polygon(list(M.ytterkontur().exterior.coords), closed=True, fc="none", ec=INK, lw=0.5, ls="--",
+                         zorder=5))
     items = [(Rectangle((0, 0), 1, 1, fc="#d7d3cb", ec=INK, lw=0.4, hatch="////"),
-              "kantbalk och balk under innervägg, 450 bred"),
-             (Rectangle((0, 0), 1, 1, fc="none", ec=BLA, lw=1.1, hatch="xxxx"), "S300 under kantbalken, 1,0 m från yttre hörn"),
+              "kantbalk och balk under innervägg, 450 bred, på S300"),
+             (plt.Line2D([0], [0], color=INK, lw=0.5, ls="--"), "L-elementens ytterkant, väggarnas ytterliv"),
              (Rectangle((0, 0), 1, 1, fc="#e2bdb3", ec=INK, lw=0.5), "plint under rör (sida i mm)"),
              (plt.Line2D([0], [0], color=FRI, lw=0.9), "2 Ø10, L = 1,2 m, överkant, inåtgående hörn"),
              (Rectangle((0, 0), 1, 1, fc=EPSF, ec=INK, lw=0.5), "platta 100 mm på cellplast")]
@@ -259,23 +254,24 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     # berg och makadam, cellplast, L-element
     _rekt(ax, -1500, ybot - 330, 3250, 180, "#cfcac2", hatch="xx", z=0)
     _rekt(ax, -1500, ybot - 150, 3250, 150, DRAN, z=0)
-    _rekt(ax, 450, -hp - t_eps, 1300, t_eps / 2, EPSF)
-    _rekt(ax, 450, -hp - t_eps / 2, 1300, t_eps / 2, EPSF)
-    ax.plot([450, 1750], [-hp - t_eps / 2] * 2, color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)
-    _rekt(ax, -100, ybot, 550, t_fot, EPS2)
-    _rekt(ax, -100, yb, 100, h_balk, EPS2)
-    ax.add_patch(Polygon([(0, yb), (450, yb), (450, -hp), (1750, -hp), (1750, 0), (0, 0)],
+    lb, bl = I.L_BEN, I.L_BEN + I.B_BALK                 # L-elementets ben (100) och bredd (550) från ytterlivet
+    _rekt(ax, bl, -hp - t_eps, 1750 - bl, t_eps / 2, EPSF)
+    _rekt(ax, bl, -hp - t_eps / 2, 1750 - bl, t_eps / 2, EPSF)
+    ax.plot([bl, 1750], [-hp - t_eps / 2] * 2, color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)
+    _rekt(ax, 0, ybot, bl, t_fot, EPS2)                  # L-elementets fot, S300
+    _rekt(ax, 0, yb, lb, h_balk, EPS2)                   # det yttre benet under väggens cellplast
+    ax.add_patch(Polygon([(lb, yb), (bl, yb), (bl, -hp), (1750, -hp), (1750, 0), (lb, 0)],
                          closed=True, fc=BETONG, ec=INK, lw=0.5, zorder=2))
-    for x in (60, 390):
+    for x in (lb + 41, bl - 41):
         ax.add_patch(Circle((x, yb + 41), 9, fc=INK, zorder=5))        # på byglarna
         ax.add_patch(Circle((x, -42), 9, fc=INK, zorder=5))            # under överkantsnätet
-    ax.plot([45, 45, 405, 405], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.6, zorder=5)
-    ax.plot([30, 1750], [-hp + 33] * 2, color=INK, lw=0.5, zorder=5)     # näten går genom balken
-    ax.plot([25, 1750], [-28] * 2, color=INK, lw=0.5, zorder=5)
+    ax.plot([lb + 33, lb + 33, bl - 33, bl - 33], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.6, zorder=5)
+    ax.plot([lb + 30, 1750], [-hp + 33] * 2, color=INK, lw=0.5, zorder=5)     # näten går genom balken
+    ax.plot([lb + 25, 1750], [-28] * 2, color=INK, lw=0.5, zorder=5)
     # väggen i två delar
     xs_h = (k0 + I.C_UT + 5, k1 - I.C_IN - 5)                       # vågräta järn
     x_v = k1 - I.C_IN - 10 - 5                                       # lodräta järn på insidan
-    x_s = k0 + I.C_UT + 10 + 5                                       # startjärn på utsidan
+    x_s = I.L_BEN + 41 + 14                                          # startjärn på utsidan, innanför balkens järn
     for y0, y1 in ((0, gap[0]), (gap[1], H)):
         _rekt(ax, 0, y0, k0, y1 - y0, EPS, z=3)
         _rekt(ax, k0, y0, I.T_KARNA, y1 - y0, KARNA, z=3)
@@ -298,8 +294,7 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     ax.plot([x_v, x_v], [gap[1] + 15, yv + 3], color=FRI, lw=0.9, zorder=6)
     ax.plot([x_v - 14, x_v - 14, x_v - 14 + I.VINKEL["in_"]], [yv - I.VINKEL["ned"], yv, yv], color=FRI, lw=0.9,
             zorder=6)
-    ax.plot([x_s, x_s], [yb + 41, gap[0] - 15], color=FRI, lw=0.9, zorder=6)          # foten 330 längs balken
-    ax.add_patch(Circle((x_s, yb + 41), 11, fc=FRI, zorder=7))
+    ax.plot([x_s + 330, x_s, x_s], [yb + 41, yb + 41, gap[0] - 15], color=FRI, lw=0.9, zorder=6)   # foten in i balken
     # mellanbjälklaget och kantisoleringen; den yttre cellplasten i översta skiftet slutar i bjälklagets underkant
     ax.add_patch(Polygon([(I.KI, H), (1750, H), (1750, H + hm), (I.KI, H + hm)], closed=True, fc=BETONG, ec=INK,
                          lw=0.5, zorder=3))
@@ -348,12 +343,12 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
            (f"lodräta järn Ø{dia} s{s} på insidan, upp till bjälklagets överkantsnät", (x_v, 1550), (900, 1650)),
            ("2 Ø10 per skift, ett vid var yta (s600; s300 i de två översta)", (xs_h[1], 1475), (900, 1420)),
            ("gips 13 mm, ingen ångspärr", (xi + 7, 1150 - 500), (900, 650)),
-           (f"startjärn Ø{I.STARTJARN['d']} s{I.STARTJARN['s']} på utsidan, 1 200 upp, foten längs kantbalken",
+           (f"startjärn Ø{I.STARTJARN['d']} s{I.STARTJARN['s']} på utsidan, 1 200 upp, foten 330 in i kantbalken",
             (x_s, 450), (-400, 450)),
-           (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök, U-byglar Ø6 s600", (390, yb + 45), (700, yb - 60)),
+           (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök, U-byglar Ø6 s600", (509, yb + 41), (700, yb - 60)),
            ("platta 100: Ø6 s150 i över- och underkant", (1300, -hp + 33), (1450, 200)),
            (f"cellplast {sv(t_eps)} mm S100 i två skikt, plastfolie mellan", (1300, -hp - t_eps * 0.25), (1600, -230)),
-           (f"L-element L{sv(h_balk + t_fot)}, fot 100 mm S200 (S300 vid de yttre hörnen)", (225, ybot + 50),
+           (f"L-element L{sv(h_balk + t_fot)}, ben under väggens cellplast, fot 100 mm S300", (275, ybot + 50),
             (300, ybot - 230)),
            ("grundmursskiva, knopparna mot väggen, list upptill", (-6, 1100), (-400, 1150)),
            ("dränerande fyllning; inom 1 m lager ≤ 0,2 m och lätt vibroplatta", (-800, 600), (-1100, 900)),
@@ -445,7 +440,7 @@ def rita_lokala(path, h_balk=200.0, t_eps=200.0):
           ("4 svetsbultar Ø13, L = 75 mm", (-60, -70), (-420, 160)),
           ("platta 100: Ø6 s150 i över- och underkant", (-700, -28), (-700, 200)),
           ("plint: Ø8 s150 i underkant, båda riktningarna", (300, yb + 34), (650, 160)),
-          (f"cellplast S200, {sv(tf)} mm under plinten", (200, yb - 50), (650, -330)),
+          (f"cellplast S300, {sv(tf)} mm under plinten", (200, yb - 50), (650, -330)),
           (f"cellplast S100, {sv(t_eps)} mm i två skikt", (-700, -200), (-700, -330))]
     nummer(ax, la)
     lista(0.1, 3.6, "a) Plint under rör", la)
@@ -467,7 +462,7 @@ def rita_lokala(path, h_balk=200.0, t_eps=200.0):
           ("2 Ø10 i överkant", (165, -42), (520, 160)),
           ("U-byglar Ø6 s600", (175, -110), (520, -20)),
           ("2 Ø10 i underkant", (165, yb + 41), (520, -330)),
-          (f"cellplast S200, {sv(tf)} mm under balken", (-120, yb - 50), (-520, -330))]
+          (f"cellplast S300, {sv(tf)} mm under balken", (-120, yb - 50), (-520, -330))]
     nummer(ax, ld)
     lista(0.1, 0.8, "b) Balk under innervägg", ld)
 

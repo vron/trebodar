@@ -1,6 +1,6 @@
 # R-05 rev A – Konstruktionsritning bottenplatta
 
-Ritningarna till bottenplattan i källaren (F-01: R-05), utförande L300 enligt K-06: 100 mm betong C25/30 på 200 mm cellplast S100, kantbalkar i L-element och balkar under innerväggarna 450 × 200 på 100 mm S200, plintar under rören och S300 under kantbalken vid de åtta yttre hörnen. A3 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/).
+Ritningarna till bottenplattan i källaren (F-01: R-05), utförande L300 enligt K-06: 100 mm betong C25/30 på 200 mm cellplast S100, kantbalkar i L-element (ytterkanten i väggarnas ytterliv, betongen 100 mm innanför) och balkar under innerväggarna 450 × 200, plintar under rören; S300 under alla balkar och plintar. A3 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/).
 
 | Blad | Innehåll | Skala |
 |---|---|---|

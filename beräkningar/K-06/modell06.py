@@ -43,32 +43,19 @@ K_ROR = 210000 * M05.A_ROR / M05.L_ROR              # N/mm per rör
 
 
 # ------------------------------------------------------------------ bottenplattans geometri
-def kallare():
-    """Källarens yttre kontur = väggarnas ytterliv (K-05:s plattkant + 30 mm), utan delen med platta på mark, som
-    avgränsas av V3:s och V20:s ytterliv."""
+def ytterkontur():
+    """Källarens yttre kontur = väggarnas ytterliv (K-05:s plattkant + 30 mm) = L-elementens ytterkant, utan delen med
+    platta på mark, som avgränsas av V3:s och V20:s ytterliv."""
     k = Polygon(G["kontur"]).buffer(I.KI, join_style=2)
     y3, x20 = G["vagg"][2][1], G["vagg"][19][1]                       # V3 och V20, centrumlinjer
     ut = box(-500, y3 + I.T_VAGG / 2, x20 - I.T_VAGG / 2, 16500)
     return k.difference(ut)
 
 
-def yttre_horn():
-    """Källarens yttre (konvexa) hörn i väggarnas ytterliv."""
-    p = kallare()
-    c = np.array(p.exterior.coords)[:-1]
-    ut = []
-    for i in range(len(c)):
-        a, b, d = c[i - 1], c[i], c[(i + 1) % len(c)]
-        cr = (b - a)[0] * (d - b)[1] - (b - a)[1] * (d - b)[0]
-        if (cr > 0) == p.exterior.is_ccw:
-            ut.append((float(b[0]), float(b[1])))
-    return ut
-
-
-def s300_zoner():
-    """Zoner (x0, y0, x1, y1) med S300 under kantbalken: I.S300_HORN åt båda håll från de yttre hörnen."""
-    L = I.S300_HORN
-    return [(x - L, y - L, x + L, y + L) for x, y in yttre_horn()]
+def kallare():
+    """Bottenplattans betong: ytterkonturen minskad med L-elementets yttre ben, 100 mm (betongens kant i kärnans
+    yttre yta)."""
+    return ytterkontur().buffer(-I.L_BEN, join_style=2)
 
 
 def balkar(plint):
@@ -141,18 +128,11 @@ def styvheter(Pt, Pb, E_betong):
     Pb.styvhet(D)
 
 
-def badd(Pb, k_falt, k_balk, k_300=None, zoner=()):
-    """Cellplast: k [N/mm³] per element (fördelat på noderna), under tjocka delar k_balk, annars k_falt.
-    zoner: rektanglar (x0, y0, x1, y1) med S300 (k_300) under tjocka delar."""
+def badd(Pb, k_falt, k_balk):
+    """Cellplast: k [N/mm³] per element (fördelat på noderna), under tjocka delar (balkar och plintar) k_balk, annars
+    k_falt."""
     Pb.springs = {}
     k = np.where(Pb.tjock, k_balk, k_falt)
-    s300 = np.zeros(len(k), bool)
-    for x0, y0, x1, y1 in zoner:
-        c = Pb.cen
-        s300 |= Pb.tjock & (c[:, 0] >= x0) & (c[:, 0] <= x1) & (c[:, 1] >= y0) & (c[:, 1] <= y1)
-    if s300.any():
-        k = np.where(s300, k_300, k)
-    Pb.s300 = s300
     kn = np.zeros(Pb.nn)
     for j in range(3):
         np.add.at(kn, Pb.tri[:, j], k * Pb.area / 3)
@@ -347,9 +327,7 @@ class System:
         Ev = BV.Ecm / (1 + I.KRYP_V) if lang else BV.Ecm     # väggarnas kärna, C30/37
         ke = I.EPS_KS if lang else 1.0                         # cellplast: 0,4 E_k långtid, E_k korttid
         Ef, Eb = I.EPS[eps_falt]["Ek"] * 1e-3 * ke, I.EPS[eps_balk]["Ek"] * 1e-3 * ke   # MPa
-        E3 = I.EPS["S300"]["Ek"] * 1e-3 * ke
-        zoner = s300_zoner()
-        badd(self.Pb, Ef / self.utf["t_eps"], Eb / I.T_FOT, E3 / I.T_FOT, zoner)   # före styvheten
+        badd(self.Pb, Ef / self.utf["t_eps"], Eb / I.T_FOT)                 # före styvheten
         styvheter(self.Pt, self.Pb, Ec)
         self.k_falt, self.k_balk = Ef / self.utf["t_eps"], Eb / I.T_FOT
         self.kopp = kopplingar(self.Pt, self.Pb, Ev)
@@ -390,7 +368,7 @@ if __name__ == "__main__":
     import time
     utf = sys.argv[1] if len(sys.argv) > 1 else "L300"
     t0 = time.time()
-    S_ = System(utf, [1000.0] * len(PEL), "S100", "S200", "lång")
+    S_ = System(utf, [1000.0] * len(PEL), I.EPS_FALT, I.EPS_BALK, "lång")
     print(f"topp {S_.Pt.ne} el, botten {S_.Pb.ne} el, dof {S_.ndof}, {time.time() - t0:.0f} s")
     F, mon = laster(S_.Pt, S_.Pb)
     for k in ("G", "S", "Qb"):

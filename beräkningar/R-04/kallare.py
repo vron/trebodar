@@ -40,13 +40,16 @@ SKIFT = 600.0                   # Kub-elementens höjd; det översta skiftet är
 C_IN, C_UT = I06.C_IN, I06.C_UT  # täckskikt till de vågräta järnen: insida 25, utsida 30
 UTF = I06.UTFORANDEN["L300"]    # bottenplattan: H 300, cellplast 200, kantbalk 200 (inklusive plattan)
 H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (S200 under balkarna), 450
+L_BEN = I06.L_BEN               # L-elementets yttre ben, 100: ytterkanten i väggens ytterliv, betongen 100 mm innanför
+B_L = L_BEN + B_BALK            # L-elementets bredd, 550
+BYGEL_SIDA, BALK_JARN = 33.0, 41.0   # balkarnas byglar och längsjärn (centrum) från balkens sida: täckskikt 30
 GLIPA_SMYG = T_EPS              # isolerad smyg vid öppningarna: cellplast 100 mellan kärnan och öppningen
 
 # armeringens lägen i väggen, från väggens ytterliv (yttervägg) eller från ena ytan (innervägg)
 X_H_UT = T_EPS + C_UT + 5.0                     # vågrätt järn vid utsidan, 135
 X_H_IN = T_EPS + T_KARNA - C_IN - 5.0           # vågrätt järn vid insidan, 220
 X_LODRAT = X_H_IN - 5.0 - 5.0                   # lodräta järn på insidan, innanför de vågräta, 210 (R-03)
-X_START = X_H_UT + 5.0 + 5.0                    # startjärn på utsidan, innanför de vågräta, 145
+X_START = L_BEN + BALK_JARN + 14.0              # startjärn på utsidan, innanför kantbalkens längsjärn, 155
 # de vågräta järnens höjder: ett per skift (s600) i de två nedre skiften, s300 i de två översta (TG 2216, K-06);
 # V3 s300 i hela höjden (byggskedet, K-06 4.2). Samma lägen som på R-03.4.
 Z_HOR = (575.0, 1175.0, 1475.0, 1775.0, 2040.0)
@@ -105,13 +108,15 @@ HEL = unary_union([v["hel"] for v in VAGGAR])
 
 
 def kallare():
-    """Källarens kontur i väggarnas ytterliv (= bottenplattans betongkant), utan delen med platta på mark (K-06)."""
+    """Källarens kontur i väggarnas ytterliv (= L-elementens ytterkant och modellens bottenplatta), utan delen med
+    platta på mark (K-06)."""
     k = Polygon(G["kontur"]).buffer(KI, join_style=2)
     ut = box(-500, VAGG["V3"]["c"] + T_VAGG / 2, VAGG["V20"]["c"] - T_VAGG / 2, 16500)
     return k.difference(ut)
 
 
 KALLARE = kallare()
+BETONG = KALLARE.buffer(-L_BEN, join_style=2)       # bottenplattans betong: kanten 100 mm innanför, i kärnans yttre yta
 for v in VAGGAR:
     # utsidan: den sida av centrumlinjen som ligger utanför källaren (ytterväggar); för innerväggar None
     if v["typ"] == "yttre":
@@ -125,11 +130,12 @@ for v in VAGGAR:
     v["innerliv"] = v["c"] - v["ute"] * T_VAGG / 2 if v["ute"] else None
 
 
-def horn():
-    """Källarens yttre (konvexa) och inåtgående hörn i väggarnas ytterliv."""
-    c = list(KALLARE.exterior.coords)[:-1]
+def horn(poly=None):
+    """Källarens yttre (konvexa) och inåtgående hörn i väggarnas ytterliv (eller i polygonen poly)."""
+    poly = KALLARE if poly is None else poly
+    c = list(poly.exterior.coords)[:-1]
     n = len(c)
-    ccw = KALLARE.exterior.is_ccw
+    ccw = poly.exterior.is_ccw
     kon, ina = [], []
     for i in range(n):
         a, b, d = c[i - 1], c[i], c[(i + 1) % n]
@@ -139,6 +145,7 @@ def horn():
 
 
 HORN_UT, HORN_IN = horn()
+_, HORN_IN_BETONG = horn(BETONG)                    # betongens inåtgående hörn (diagonaljärnen)
 
 
 def anslutningar():
@@ -216,8 +223,13 @@ PLINT = {r["namn"]: float(b) for r, b in zip(ROR, PL06["plint"])}   # plintarnas
 
 
 def kantbalk():
-    """Kantbalken: 450 mm längs källarens hela kontur (betongkanten i väggarnas ytterliv)."""
-    return KALLARE.difference(KALLARE.buffer(-B_BALK, join_style=2))
+    """Kantbalken: 450 mm längs bottenplattans hela betongkant, som ligger 100 mm innanför väggarnas ytterliv."""
+    return BETONG.difference(BETONG.buffer(-B_BALK, join_style=2))
+
+
+def l_element():
+    """L-elementen: 550 mm från väggarnas ytterliv, med det yttre benet 100 och foten under kantbalken."""
+    return KALLARE.difference(KALLARE.buffer(-B_L, join_style=2))
 
 
 def balkar_inre():
@@ -225,7 +237,7 @@ def balkar_inre():
     hörnen (ändarna förlängda en halv balkbredd) och fram till kantbalken."""
     y4, x19, x15 = VAGG["V4"]["c"], VAGG["V19"]["c"], VAGG["V15"]["c"]
     lin = [_linje(VAGG[n], VAGG[n]["a"], VAGG[n]["b"]) for n in ("V15", "V19")] + [LineString([(x19, y4), (x15, y4)])]
-    return unary_union([l.buffer(B_BALK / 2, cap_style="square") for l in lin]).intersection(KALLARE)
+    return unary_union([l.buffer(B_BALK / 2, cap_style="square") for l in lin]).intersection(BETONG)
 
 
 def plintar():
@@ -238,13 +250,6 @@ def ytor(g):
     if g.geom_type == "Polygon":
         return [g] if g.area > 1 else []
     return [p for gg in getattr(g, "geoms", []) for p in ytor(gg)]
-
-
-def s300():
-    """S300 under kantbalken 1,0 m åt båda håll från de yttre hörnen (K-06): en polygon per hörn."""
-    L = I06.S300_HORN
-    kb = kantbalk()
-    return [unary_union(ytor(box(x - L, y - L, x + L, y + L).intersection(kb))) for x, y in HORN_UT]
 
 
 def sv(x, n=0):

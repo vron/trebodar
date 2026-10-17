@@ -167,9 +167,6 @@ for u in I.UTFORANDEN:
                    kryp=f(e["balk"]["kryp"], 0), utn=pr(max(e["balk"]["uls_medel"] / e["balk"]["fdM"],
                                                             e["balk"]["perm"] / e["balk"]["fdP"],
                                                             e["balk"]["qp"] / e["balk"]["kryp"]))),
-        eps_3=dict(uls=f(e["s300"]["uls"], 0), perm=f(e["s300"]["perm"], 0), qp=f(e["s300"]["qp"], 0),
-                   fdM=f(e["s300"]["fdM"], 0), fdP=f(e["s300"]["fdP"], 0), kryp=f(e["s300"]["kryp"], 0),
-                   utn=pr(e["s300"]["utn"])),
         eps_f=dict(uls=f(e["falt"]["uls"], 0), fdM=f(e["falt"]["fdM"], 0), perm=f(e["falt"]["perm"], 0),
                    fdP=f(e["falt"]["fdP"], 0), qp=f(e["falt"]["qp"], 0), kryp=f(e["falt"]["kryp"], 0),
                    utn=pr(e["falt"]["utn"])),
@@ -213,7 +210,6 @@ D["glid"] = dict(Fx=f(gl["K0"]["Fx"], 0), Fy=f(-gl["K0"]["Fy"], 0), Fd=f(gl["K0"
                  my=f(gl["my"], 1), Rd=f(gl["Rd"], 0), utn=pr(gl["K0"]["utn"]), Fdk=f(gl["komp"]["Fd"], 0),
                  utnk=pr(gl["komp"]["utn"]))
 D["plint_bredd"] = f"{mm(min(p3['plint']))}–{mm(max(p3['plint']))}"
-D["horn_s300"] = str(len(M.yttre_horn()))
 
 # ------------------------------------------------------------------ kontroll av beräkningarna
 ones = lambda X, Y: np.ones_like(Y)
@@ -230,7 +226,7 @@ ys = np.linspace(0, VG.LS, 2001)
 Mh = pk * VG.LS ** 2 / 8
 D["valid"].update(Ms=f(Mh, 2))
 e3 = p3["eps"]["balk"]
-Ed = I.EPS_KS * I.EPS["S200"]["Ek"] / 1000          # MPa
+Ed = I.EPS_KS * I.EPS[I.EPS_BALK]["Ek"] / 1000      # MPa
 D["valid"].update(w_hand=f(e3["qp"] * 1e-3 * I.T_FOT / Ed + 0, 2), w_fe=f(p3["sattning"]["wmax"], 2),
                   sig=f(e3["qp"], 0), Ed=f(Ed * 1000, 0))
 # hållfasthetstillväxt: β_cc(7) för N-cement (SS-EN 1992-1-1 3.1.2), och mognadsfaktorn vid 10 °C

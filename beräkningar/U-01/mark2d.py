@@ -61,11 +61,12 @@ def geometri(P):
     bb, tb, tm = P["b_balk"], P["t_ben"], P["t_makadam"]
     zf, zk = -(hp + te), -(hb + tf)                           # cellplastens underkant i fält och under balkar
     zmin = min(zf, zk)
+    bl = tb + bb                                              # L-elementets bredd: ytterkanten i väggens ytterliv
     D = [("makadam", xv - tb, xo + tb, zmin - tm, 0.0)]
-    D += [("cellplast", xv + bb, xo - bb, zf, -hp), ("betong", xv + bb, xo - bb, -hp, 0.0)]
-    for x0, x1, f0, f1 in ((xv, xv + bb, xv - tb, xv + bb), (xo - bb, xo, xo - bb, xo + tb)):   # kantbalkar och fot
+    D += [("cellplast", xv + bl, xo - bl, zf, -hp), ("betong", xv + bl, xo - bl, -hp, 0.0)]
+    for x0, x1, f0, f1 in ((xv + tb, xv + bl, xv, xv + bl), (xo - bl, xo - tb, xo - bl, xo)):   # kantbalkar och fot
         D += [("betong", x0, x1, -hb, 0.0), ("cellplast", f0, f1, zk, -hb)]
-    D += [("cellplast", xv - tb, xv, -hb, 0.0), ("cellplast", xo, xo + tb, -hb, 0.0)]   # L-elementets ben
+    D += [("cellplast", xv, xv + tb, -hb, 0.0), ("cellplast", xo - tb, xo, -hb, 0.0)]   # L-elementets ben
     for _, xc, b in P["plint"]:
         D += [("betong", xc - b / 2, xc + b / 2, -hb, 0.0), ("cellplast", xc - b / 2, xc + b / 2, zk, -hb)]
     for x0, s in ((xv, 1), (xo, -1)):                         # väggarna, från kantbalken till bjälklaget
@@ -242,7 +243,7 @@ def kolumner(m):
         if not (g["xv"] < x < g["xo"]):
             continue
         typ = "falt"
-        if x < g["xv"] + P["b_balk"] or x > g["xo"] - P["b_balk"]:
+        if x < g["xv"] + P["t_ben"] + P["b_balk"] or x > g["xo"] - P["t_ben"] - P["b_balk"]:
             typ = "kant"
         for _, c, b in P["plint"]:
             if abs(x - c) < b / 2:

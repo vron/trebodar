@@ -44,7 +44,7 @@ def glidning():
         for f in s:
             s[f][k] += rikt * R[f]
         rows.append(dict(namn=v["namn"], R=R["K0"], Rkomp=R["komp"], rikt=("y" if ax == "h" else "x"), tecken=rikt))
-    S0 = M.System("L300", [1000.0] * len(M.PEL), "S100", "S200", "kort")
+    S0 = M.System("L300", [1000.0] * len(M.PEL), I.EPS_FALT, I.EPS_BALK, "kort")
     F, _ = M.laster(S0.Pt, S0.Pb)
     Gtot = float(F["G"][0::3].sum()) / 1e3
     MY = 0.3                                     # friktion i svagaste skiktet (plastfolie mellan cellplastskikten)

@@ -7,7 +7,7 @@ med kontroll_geometri05.py), K-06:s indata och egna uppgifter: öppningarnas br�
 modellen (modeller/trebodar.step) och jämför:
 
     - öppningarna i betongkärnan: läge längs väggen och bröstningens höjd (betongen);
-    - bottenplattans kontur, som ska ligga i väggarnas ytterliv;
+    - bottenplattans kontur, som ska ligga i väggarnas ytterliv (L-elementens ytterkant; betongen 100 mm innanför);
     - väggarnas höjd (betongkärnan från bottenplattans överkant till mellanbjälklagets underkant);
     - rörens tvärsnitt, matkällarens golv och kärnorna i anslutningarna, där modellen avviker från handlingarna
       tills punkterna i modeller/modell-todo.md är gjorda.
@@ -89,7 +89,7 @@ pl = Plan.tolka(f"z={O[2] + Z_GOLV - 250.0}").flytta(O[0], O[1])       # nära u
 ytor = [sd.yta for sd in snitt(m, plattor, pl) if not sd.yta.is_empty]
 modell_kontur = unary_union([p.buffer(0) for p in ytor])
 diff = modell_kontur.symmetric_difference(K.KALLARE).area
-rapport.append(f"  bottenplattan: modellen {modell_kontur.area / 1e6:.3f} m², R-05 {K.KALLARE.area / 1e6:.3f} m², "
+rapport.append(f"  bottenplattan (L-elementens ytterkant): modellen {modell_kontur.area / 1e6:.3f} m², R-05 {K.KALLARE.area / 1e6:.3f} m², "
                f"skillnad {diff / 1e6:.4f} m²")
 if diff > 1e4:
     fel.append(f"bottenplattans kontur: skillnad {diff / 1e6:.4f} m² mellan modellen och R-05")

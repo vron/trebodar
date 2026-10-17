@@ -25,7 +25,7 @@ from laster import KROPPAR
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PSI2_Q, PSI2_S = 0.3, 0.1
-EPS_FALT, EPS_BALK = "S100", "S200"
+EPS_FALT, EPS_BALK = I.EPS_FALT, I.EPS_BALK
 P_MAL = 30.0             # kPa: plintarnas storlek väljs för ungefär samma långtidstryck som under väggarna
 BAND = 250.0
 
@@ -150,7 +150,7 @@ M05GD = 0.91
 def spara(S, env, sls, lf, kr, plint, namn):
     import pickle
     pickle.dump(dict(env=env, sls=sls, kr=kr, plint=plint, xy_t=S.Pt.xy, tri_t=S.Pt.tri, xy_b=S.Pb.xy,
-                     tri_b=S.Pb.tri, tjock=S.Pb.tjock, s300=S.Pb.s300, h_el=S.Pb.h_el, a_nod=S.Pb.a_nod,
+                     tri_b=S.Pb.tri, tjock=S.Pb.tjock, h_el=S.Pb.h_el, a_nod=S.Pb.a_nod,
                      k=(S.k_falt, S.k_balk), lf_p=lf["p"], lf_kr=lf["kr"],
                      mt_SV=lf["mt"].get("SV"), mt_G=lf["mt"]["G"], wt=lf["w_t"], wb=lf["w_b"]),
                 open(os.path.join(HERE, namn), "wb"))

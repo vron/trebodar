@@ -56,9 +56,9 @@ h_balk      = 300
 
 [platta]
 h_platta    = 100       # bottenplatta i fält
-t_fot       = 100       # cellplast S200 under kantbalk och plintar (L-elementets fot)
-b_balk      = 450       # kantbalkens bredd innanför väggens ytterliv
-t_ben       = 100       # L-elementets yttre ben
+t_fot       = 100       # cellplast S300 under kantbalk och plintar (L-elementets fot)
+b_balk      = 450       # kantbalkens bredd, innanför L-elementets yttre ben
+t_ben       = 100       # L-elementets yttre ben: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför
 t_makadam   = 150
 golvvarme_z = 50        # slingornas centrum under plattans överkant (modellen)
 golvvarme_kant = 150    # slingorna börjar så långt från väggens insida
@@ -69,7 +69,7 @@ skikt       = [100, 150, 100]   # cellplast, betongkärna, cellplast (Sundolitt 
 # λ och ρc. Värden på säker sida: hög λ för cellplasten och låg λ för marken ger varmare mark under plattan.
 [material]
 betong      = [1.7, 2.1]    # SS-EN ISO 10456, 2 300 kg/m³
-cellplast   = [0.040, 0.04] # S100/S200 i fuktig miljö under plattan (deklarerat 0,033–0,036)
+cellplast   = [0.040, 0.04] # S100/S300 i fuktig miljö under plattan (deklarerat 0,033–0,036)
 makadam     = [0.7, 1.5]    # dränerad makadam, låg λ
 mark        = [2.0, 2.0]    # sand och grus, SS-EN ISO 13370 tabell 7 (berg: 3,5)
 

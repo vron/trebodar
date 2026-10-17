@@ -25,6 +25,8 @@ KI = 30.0                # mellanbjälklagets kant ligger 30 mm innanför vägge
 H_MB = 150.0             # mellanbjälklagets tjocklek (K-05)
 B_BALK = 450.0           # kantbalkens bredd: L-elementets bredd 550 minus det yttre benet 100
 T_FOT = 100.0            # cellplast under kantbalk och plintar (L-elementets fot)
+L_BEN = 100.0            # L-elementets yttre ben: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför,
+                         # så att väggens yttre cellplast står på benet och kärnan på kantbalkens yttersta 150 mm
 H_PLATTA = 100.0         # bottenplattans tjocklek i fält (Plattor.pdf)
 # bottenplattans utförande: L-element L300, 200 mm cellplast under plattan och 200 mm hög kantbalk (300 med foten)
 UTFORANDEN = {
@@ -105,8 +107,9 @@ EPS = {
     "S200": dict(fck=180.0, Ek=6000.0, kryp2=60.0),
     "S300": dict(fck=280.0, Ek=9000.0, kryp2=90.0),
 }
-# S300 under kantbalken vid källarens alla yttre hörn, 1,0 m åt båda håll (hörnstolparna på plan 1 och LD4_2)
-S300_HORN = 1000.0
+# Cellplast: S100 under plattan, S300 under alla balkar och plintar (L-elementens fot under kantbalken, där väggens
+# kärna står på balkens yttersta 150 mm). Bara två kvaliteter.
+EPS_FALT, EPS_BALK = "S100", "S300"
 EPS_GAMMA_M = 1.3        # med tillverkningskontroll
 EPS_KR = {"P": (0.40, 0.45), "M": (0.50, 0.55), "S": (0.60, 0.65)}   # k_r för f_k < 200 resp. ≥ 200 kPa
 EPS_KS = 0.40            # styvhet i bruksgränstillstånd för långtidslast (P, L)

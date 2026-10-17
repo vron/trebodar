@@ -108,10 +108,7 @@ def kontroll(utf):
     pperm = np.maximum(L["env"]["p_perm"], K["env"]["p_perm"])
     pqp = L["sls"]["p_qp"]
     eps = {}
-    s3 = np.zeros(len(xy), bool)
-    if L.get("s300") is not None and np.any(L["s300"]):
-        s3[np.unique(tri[L["s300"]])] = True
-    zoner = [("balk", tn & ~s3, "S200"), ("falt", ~tn, "S100")] + ([("s300", s3, "S300")] if s3.any() else [])
+    zoner = [("balk", tn, I.EPS_BALK), ("falt", ~tn, I.EPS_FALT)]
     for zon, m, grad in zoner:
         i = int(np.argmax(np.where(m, pmax, -1)))
         eps[zon] = dict(grad=grad, uls=float(pmax[m].max()), uls_xy=xy[i].tolist(), perm=float(pperm[m].max()),
@@ -121,12 +118,8 @@ def kontroll(utf):
         e["utn"] = max(e["uls"] / e["fdM"], e["perm"] / e["fdP"], e["qp"] / e["kryp"])
         # andel av ytan med tryck över hållfastheten
         e["over_M"] = float((pmax[m] > e["fdM"]).mean())
-    if s3.any():
-        eps["s300"]["zon"] = M.s300_zoner()
-    # punkter där balkarnas cellplast (S200) överskrids
-    over = tn & ~s3 & (pmax > eps["balk"]["fdM"])
-    eps["S300_noder"] = xy[over].tolist()
-    eps["S300"] = dict(fdM=eps_fd("S300", "M"), fdP=eps_fd("S300", "P"), kryp=I.EPS["S300"]["kryp2"])
+    # punkter där balkarnas och plintarnas cellplast överskrids
+    eps["over_noder"] = xy[tn & (pmax > eps["balk"]["fdM"])].tolist()
     out["eps"] = eps
     out["sattning"] = dict(wmax=float(L["sls"]["wb_qp"].max()), wmin=float(L["sls"]["wb_qp"].min()),
                            wt_max=float(L["sls"]["wt_qp"].max()))
@@ -264,7 +257,7 @@ def kontroll(utf):
                        topp_mu=float(mu[falt_n].max()) / 1e3, topp_xy=xy[falt_n][np.argmax(mu[falt_n])].tolist())
     # cellplastens största tryck medelvärdesbildat inom r = 150 mm (lokal hörntopp)
     trb = cKDTree(xy)
-    zb = tn & ~s3
+    zb = tn
     i = int(np.argmax(np.where(zb, pmax, 0)))
     g = [j for j in trb.query_ball_point(xy[i], 150.0) if zb[j]]
     out["eps"]["balk"]["uls_medel"] = float((pmax[g] * L["a_nod"][g]).sum() / L["a_nod"][g].sum())
@@ -300,11 +293,11 @@ if __name__ == "__main__":
         res[utf] = r
         e = r["eps"]
         print(f"== {utf}: plintar {r['plint']}")
-        for z in [z_ for z_ in ("balk", "falt", "s300") if z_ in e]:
+        for z in ("balk", "falt"):
             x = e[z]
             print(f"  cellplast {z} {x['grad']}: ULS {x['uls']:.0f} ({x['fdM']:.0f}) vid {np.round(x['uls_xy'])}, perm {x['perm']:.0f} ({x['fdP']:.0f}), "
                   f"qp {x['qp']:.0f} ({x['kryp']:.0f}) -> {x['utn']*100:.0f} %, andel över {x['over_M']*100:.1f} %")
-        print(f"  S300 behövs i {len(e['S300_noder'])} noder")
+        print(f"  balkarnas cellplast överskrids i {len(e['over_noder'])} noder")
         f = r["falt"]
         print(f"  fält: mu {f['mu']:.1f} mo {f['mo']:.1f} kNm/m (MRd {f['MRu']:.1f}/{f['MRo']:.1f}) {f['utn']*100:.0f} %; övergång {f['overgang_u']:.1f}/{f['overgang_o']:.1f}")
         for b in r["balkar"]:

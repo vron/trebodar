@@ -520,8 +520,9 @@ def anvisningar():
         "(K-06, R-03).",
         "Koordinater i mm enligt K-05; origo i skärningen mellan mellanbjälklagets kanter x = 0 och y = 0. Väggarnas "
         "ytterliv ligger 30 mm utanför bjälklagets kant. Höjder från bottenplattans överkant.",
-        "Vid öppningarna slutar betongkärnan 100 mm innanför den färdiga öppningen: smygen och bröstningen isoleras med "
-        "100 mm cellplast. Måtten på planen avser betongens öppningar.",
+        "Vid öppningarna slutar betongkärnan 100 mm innanför den färdiga öppningen: sidorna och bröstningen får "
+        "Sundolitts smyglist 100 × 350 med regel 45 × 195 (R-04.4 E). Överkanten är mellanbjälklagets underkant. "
+        "Måtten på planen avser betongens öppningar.",
         "I hörn och anslutningar går betongkärnorna ihop: cellplasten skärs bort där väggarna möts.",
     ]
 
@@ -541,7 +542,8 @@ def rortabell():
     rader = []
     for r in ROR:
         xs = " och ".join(sv(x) for x, _ in r["ror"])
-        rader.append([r["namn"], xs, sv(r["ror"][0][1]), "två rör, fotplåt 280 × 200" if r["n"] == 2 else ""])
+        rader.append([r["namn"], xs, sv(r["ror"][0][1]),
+                      "två rör, fotplåt 280 × 200 alt. 2 st 140 × 200" if r["n"] == 2 else ""])
     return dict(typ="tabell", kolumner=["Rör", "x", "y", ""], bredd=(0, 0, 0, 1), rader=rader,
                 just=["l", "r", "r", "l"], sz=6.2)
 
@@ -572,7 +574,7 @@ def blad_plan():
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text="Öppningar i betongen"),
         oppningstabell(),
-        dict(typ="text", sz=6.0, rader=["", "Betongens mått, färdig öppning inom parentes (100 mm cellplast i smygen "
+        dict(typ="text", sz=6.0, rader=["", "Betongens mått, färdig öppning inom parentes (smyglist 100 mm vid sidorna "
                                           "och på bröstningen). Överkant i mellanbjälklagets underkant, 2 100 över "
                                           "bottenplattan."]),
         dict(typ="rubrik", text="Rörens lägen (mitt)"),
@@ -842,8 +844,8 @@ def blad_elevationer():
         dict(typ="lista", sz=6.8, rader=[
             "Elevationerna visar betongkärnan; cellplasten är inte ritad. Måtten längs väggarna går till kärnans ändar, "
             "i hörnen till den vinkelräta väggens kärna (100 mm innanför ytterlivet, som planen R-04.1 mäter till). Den "
-            "färdiga öppningen (streckad) ligger 100 mm innanför betongen: smygen och bröstningen isoleras med 100 mm "
-            "cellplast.",
+            "färdiga öppningen (streckad) ligger 100 mm innanför betongen: Sundolitts smyglist med regel vid sidorna och "
+            "på bröstningen (R-04.4 E).",
             f"Skift: tre hela (600) och ett halvt (300). I ytterväggarna gjuts de tre hela skiften först, upp till "
             f"{sv(K.H_GJUT1)} (gjutfog, streckprickad), och det halva skiftet med mellanbjälklaget (K-06). "
             "Innerväggarna (V4–V6) gjuts i hela höjden före bjälklaget och får glidskikt (byggpapp) på krönet.",
@@ -870,7 +872,7 @@ def blad_elevationer():
                  text=f"lodräta järn Ø10 s200, insidan ({POS['lod']}, {POS['lod_under']})"),
             dict(form="linje", stil="ok", text=f"2 Ø12 vid öppningarna ({POS['opp_sida']}, {POS['opp_under']})"),
             dict(form="linje", stil="axel", text="gjutfog, 1 800 (ytterväggarna)"),
-            dict(form="linje", stil="dold", text="färdig öppning, 100 cellplast i smygen")]),
+            dict(form="linje", stil="dold", text="färdig öppning, smyglist 100 vid sidorna och bröstningen")]),
     ]
     return Blad(hd("R-04.3"), REVISIONER, kol, vyer)
 
@@ -927,7 +929,7 @@ Z_NAT_UK = -K.H_PLATTA + 30 + 3         # underkantsnätet, nedre lagret (centru
 
 def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True):
     """Bottenplattan L300 i sektion mellan xa och xb: platta 100 på 200 cellplast S100 (två skikt, plastfolie), balkar
-    (x0, x1) 200 höga på 100 S200. Näten går genom balkarna. kant: plattans kant vid xa (annars avbrott). balkarm:
+    (x0, x1) 200 höga på 100 S300. Näten går genom balkarna. kant: plattans kant vid xa (annars avbrott). balkarm:
     balkens längsjärn och byglar (inte i plintar). z = 0 i plattans överkant."""
     hp = K.H_PLATTA
     with v.lager("bottenplatta"):
@@ -943,7 +945,7 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True):
             prof += [(cur, -hp), (xb, -hp)]
         poly = [(xa, 0.0)] + [(prof[0][0], prof[0][1])] + prof[1:] + [(xb, prof[-1][1]), (xb, 0.0)]
         v.polygon(poly, fyll="betong", stil="normal")
-        # cellplast: S100 under plattan i två skikt med plastfolie, S200 100 mm under balkarna
+        # cellplast: S100 under plattan i två skikt med plastfolie, S300 100 mm under balkarna
         cur = xa
         for b0, b1 in sorted(balkar):
             if b0 > cur:
@@ -959,10 +961,11 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True):
         v.linje([(x0, -25 - 3), (xb, -25 - 3)], "uk_tunn")                    # Ø6 s150 överkant (R-05)
         v.linje([(xa + (30.0 if kant else 0.0), Z_NAT_UK), (xb, Z_NAT_UK)], "uk_tunn")   # Ø6 s150 underkant
         for b0, b1 in (balkar if balkarm else []):
-            for x in (b0 + 60, b1 - 60):
+            for x in (b0 + K.BALK_JARN, b1 - K.BALK_JARN):
                 v.cirkel(x, Z_BALK_UK, 5, fyll="#2c4a6e", stil=None, modell=True)
                 v.cirkel(x, Z_BALK_OK, 5, fyll="#2c4a6e", stil=None, modell=True)
-            v.linje([(b0 + 45, -28), (b0 + 45, Z_BYGEL), (b1 - 45, Z_BYGEL), (b1 - 45, -28)], "uk_tunn")
+            s_ = K.BYGEL_SIDA
+            v.linje([(b0 + s_, -28), (b0 + s_, Z_BYGEL), (b1 - s_, Z_BYGEL), (b1 - s_, -28)], "uk_tunn")
 
 
 def mellanbjalklag_snitt(v, xa, xb, kant=None):
@@ -991,14 +994,15 @@ def sektion_a():
     with v.lager("mark"):
         v.polygon([(-420, zl), (-110, zl), (-110, hf), (-420, hf - 7)], fyll="jord", stil=None)
         v.linje([(-420, hf - 7), (-110, hf)], "normal")
-        v.linje([(-108, -HB - K.T_FOT), (-108, 4), (-8, 4), (-8, hf + 60)], "dold")   # grundmursskiva, utanför L-elementet
+        v.linje([(-8, -HB - K.T_FOT), (-8, hf + 60)], "dold")             # grundmursskiva
         v.rekt(-55, hf - 50, -15, H + H_MB, fyll="#c9c3b8", stil="tunn")   # fasadsten (AR-01)
         v.rekt(-15, hf - 50, 0, H + H_MB, fyll="vit", stil="tunn")
-        v.rekt(-100, -HB, 0, 0, fyll="eps2", stil="tunn")                  # L-elementets yttre ben
-        v.rekt(-100, -HB - K.T_FOT, 0, -HB, fyll="eps2", stil="tunn")
-    bottenplatta_snitt(v, 0.0, 900.0, [(0.0, K.B_BALK)], kant=True)
+    bottenplatta_snitt(v, K.L_BEN, 900.0, [(K.L_BEN, K.B_L)], kant=True)
     with v.lager("bottenplatta"):
+        v.rekt(0, -HB, K.L_BEN, 0, fyll="eps2", stil="tunn")              # L-elementets yttre ben, i väggens ytterliv
+        v.rekt(0, -HB - K.T_FOT, K.B_L, -HB, fyll="eps2", stil="tunn")     # L-elementets fot
         v.linje([(0, -HB - K.T_FOT), (0, 0)], "normal")
+        v.linje([(K.L_BEN, -HB), (K.L_BEN, 0)], "normal")
         v.brott((900, -K.H_PLATTA - EPS_PL - 40), (900, 40), "tunn")
     kub_snitt(v, 0.0, 0.0, H + H_MB, kapad_ute=True)
     with v.lager("vagg"):
@@ -1014,14 +1018,14 @@ def sektion_a():
                 v.cirkel(x, z, 5, fyll="svart", stil=None, modell=True)
         v.linje([(K.X_LODRAT, 20), (K.X_LODRAT, Z_POS14 + 8)], "ok_tunn")       # lodräta järn, insidan
         v.linje([(xa, Z_POS14 - K.POS14["ben"]), (xa, Z_POS14), (xa + K.POS14["in_"], Z_POS14)], "ok")
-        v.linje([(K.X_START, Z_BALK_UK), (K.X_START, st["upp"])], "uk")       # startjärn (R-05), foten längs balken
-        v.cirkel(K.X_START, Z_BALK_UK, 5, fyll="#2c4a6e", stil=None, modell=True)
+        v.linje([(K.X_START + 330, Z_BALK_UK), (K.X_START, Z_BALK_UK), (K.X_START, st["upp"])], "uk")   # startjärn,
+        # foten 330 in i kantbalken (Sundolitt)
     with v.lager("matt"):
         kedja(v, [0.0, K.T_EPS, K.T_EPS + K.T_KARNA, K.T_VAGG], 1350.0, [1350.0] * 4, sz=5.6)
         zs = [0.0, K.SKIFT, 2 * K.SKIFT, K.H_GJUT1, H, H + H_MB]
         kedja(v, zs, 820.0, [K.T_VAGG + 13] * 5 + [820.0], sz=5.8, ax="y")
         kedja(v, [-HB - K.T_FOT, -HB, -K.H_PLATTA, 0.0], 820.0, [900.0] * 4, sz=5.6, ax="y")
-        kedja(v, [-100.0, 0.0, K.B_BALK], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 3, sz=5.6)
+        kedja(v, [0.0, K.L_BEN, K.B_L], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 3, sz=5.6)
     lst = [(f"vinkeljärn Ø{K.POS14['d']} s{K.POS14['s']}, {K.POS14['ben']:.0f} + {K.POS14['in_']:.0f} "
             f"(R-03 pos {POS03})", (xa + 300, Z_POS14), None),
            ("mellanbjälklag 150 (R-03)", (700, H + 75), None),
@@ -1031,10 +1035,11 @@ def sektion_a():
            ("gjutfog 1 800", (175, K.H_GJUT1), None),
            ("Kub 350-150: 100 + 150 + 100", (175, 1050), None),
            ("gips 13", (K.T_VAGG + 6, 700), None),
-           (f"startjärn Ø{st['d']} s{st['s']}, utsidan, fot längs balken (R-05 pos {POS05['start_ute']})",
+           (f"startjärn Ø{st['d']} s{st['s']}, utsidan, foten in i balken (R-05 pos {POS05['start_ute']})",
             (K.X_START, 350), None),
-           (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-05)", (300, -100), None),
-           (f"cellplast: {sv(EPS_PL)} S100, 100 S200 under balken", (700, -230), None)]
+           (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-05)", (420, -100), None),
+           (f"L-element L300: ben {sv(K.L_BEN)} under väggens cellplast, fot under balken", (50, -150), None),
+           (f"cellplast: {sv(EPS_PL)} S100 under plattan", (700, -230), None)]
     with v.lager("text"):
         v.text(-60, hf + 120, "fasadsten\n(AR-01)", a="rb", sz=5.8, col="gra", i=True)
         v.text(-260, 900, "fyllning\n(K-06)", a="cm", sz=5.8, col="gra", i=True, bg=True)
@@ -1154,8 +1159,26 @@ def detalj_t():
     return v
 
 
+SMYGLIST = dict(t=100.0, b=350.0, regel=(45.0, 195.0), spik=150.0)   # Sundolitt Kub U17 smyglist med regel 45 × 195
+
+
+def smyglist(v, kant, mitt, rikt, langs, plan=True):
+    """Sundolitts smyglist (100 × 350, kanal mot öppningen) med regel 45 × 195 i spåret och spik 150 genom regeln in
+    i kärnan. kant: kärnans ände (koordinat längs rikt), mitt: väggens mitt i tvärled, rikt: +1 om öppningen ligger åt
+    positivt håll. Tvärled är y i planen (plan=True) och x i sektionen."""
+    t, b = SMYGLIST["t"], SMYGLIST["b"]
+    tr, br = SMYGLIST["regel"]
+    a0, a1 = sorted((kant, kant + rikt * t))
+    r0, r1 = sorted((kant + rikt * (t - tr), kant + rikt * t))
+    s0, s1 = sorted((kant - rikt * (SMYGLIST["spik"] - t), kant + rikt * t))
+    R = (lambda a, b_, c, d: (a, c, b_, d)) if plan else (lambda a, b_, c, d: (c, a, d, b_))
+    v.rekt(*R(a0, a1, mitt - b / 2, mitt + b / 2), fyll="eps", stil="normal")
+    v.rekt(*R(r0, r1, mitt - br / 2, mitt + br / 2), fyll="#d9b77e", stil="tunn")      # regel 45 × 195
+    v.linje([(s0, mitt), (s1, mitt)] if plan else [(mitt, s0), (mitt, s1)], "stal")      # spik 150, ingjuten
+
+
 def detalj_oppning():
-    """E: öppning F1, smygen i plan (snitt 1,6 m) och bröstningen i sektion. 1:10"""
+    """E: öppning F1, smygen i plan (snitt 1,6 m) och bröstningen i sektion, med Sundolitts smyglist. 1:10"""
     s = 10.0
     o = OPPN[0]
     # plan: x längs väggen, x = 0 i kärnans ände, y = 0 i väggens ytterliv (utsidan nedåt)
@@ -1163,8 +1186,9 @@ def detalj_oppning():
     with v.lager("vagg"):
         v.rekt(-400, -K.T_VAGG, 0, 0, fyll="eps", stil="normal")
         v.rekt(-400, -K.T_VAGG + K.T_EPS, 0, -K.T_EPS, fyll="karna", stil="tunn")
-        v.rekt(0, -K.T_VAGG, K.T_EPS, 0, fyll="eps", stil="normal")                 # isolerad smyg
         v.brott((-400, -K.T_VAGG - 30), (-400, 30), "tunn")
+    with v.lager("smyg"):
+        smyglist(v, 0.0, -K.T_VAGG / 2, 1, None, plan=True)
     with v.lager("armering"):
         for y_, dy in ((-K.T_EPS - K.C_UT - 5, -11.0), (-K.T_VAGG + K.T_EPS + K.C_IN + 5, 11.0)):
             v.linje([(-390, y_), (-30, y_)], "normal")
@@ -1173,6 +1197,8 @@ def detalj_oppning():
         kedja(v, [-40.0, 0.0, K.T_EPS], 60.0, [0.0] * 3, sz=5.6)
     with v.lager("text"):
         v.text(170, -175, "öppning", a="lm", sz=6.0, col="gra", i=True)
+        v.hanvisning((80, -120), (170, 110), "smyglist 100 × 350 med regel 45 × 195,\nspik 150 ingjuten i kärnan",
+                     a="lm", sz=6.0)
         v.text(-200, -K.T_VAGG - 40, "ute", a="ct", sz=6.0, col="gra", i=True)
         v.hanvisning((-40, -K.T_EPS - K.C_UT - 13), (-300, -470), "2 Ø12, en vid var yta", bubbla=POS["opp_sida"],
                      a="lm", sz=6.0)
@@ -1182,8 +1208,9 @@ def detalj_oppning():
     with w.lager("vagg"):
         w.rekt(0, o["z0"] - 320, K.T_VAGG, o["z0"], fyll="eps", stil="normal")
         w.rekt(K.T_EPS, o["z0"] - 320, K.T_EPS + K.T_KARNA, o["z0"], fyll="karna", stil="tunn")
-        w.rekt(0, o["z0"], K.T_VAGG, o["z0"] + K.T_EPS, fyll="eps", stil="normal")    # isolerad bröstning
         w.brott((-30, o["z0"] - 320), (K.T_VAGG + 30, o["z0"] - 320), "tunn")
+    with w.lager("smyg"):
+        smyglist(w, o["z0"], K.T_VAGG / 2, 1, None, plan=False)
     zb = o["z0"] - 40.0
     with w.lager("armering"):
         for x_ in (K.X_H_UT + 23, K.X_H_IN - 23):                 # innanför öppningens järn (26) vid sidorna
@@ -1201,6 +1228,8 @@ def detalj_oppning():
                      bubbla=POS["lod_under"], a="lm", sz=6.0)
         w.text(-100, o["z0"] + K.T_EPS + 60, f"bröstning: betong {sv(o['z0'])}, färdig {sv(o['fardig'][2])}",
                a="lb", sz=6.0, col="gra")
+        w.hanvisning((K.T_VAGG / 2 + 60, o["z0"] + 80), (K.T_VAGG + 120, o["z0"] + 60),
+                     "regel och smyglist med\ninspektionshål", a="lm", sz=6.0)
     return [v, w]
 
 
@@ -1213,7 +1242,11 @@ def blad_sektioner():
             "25 %, sättmått 180–200 mm. Armering B500B. Täckande skikt till de vågräta järnen 25 mm mot insidan och 30 mm mot utsidan.",
             "Montering: elementen staplas i förband med armeringen i bindarnas hållare och stagas enligt Sundolitts "
             "anvisning, vid hörn och öppningar och annars cirka var 2 m. Kapade element och kanter vid öppningar "
-            "förstärks med plywood eller läkt. I hörn och anslutningar skärs cellplasten bort så att kärnorna går ihop.",
+            "förstärks med plywood eller läkt. I hörn och anslutningar skärs cellplasten bort så att kärnorna går ihop. "
+            "Öppningar enligt Sundolitt: smyglist Kub U17 vid sidorna och bröstningen, med regel 45 × 195 i spåret, "
+            "fäst med grov spik 150 mm (förborra) som gjuts in i betongen, minst tre per sida och fler vid större "
+            "öppningar. Smyglisterna stagas med tvärgående stag lodrätt och vågrätt. Bröstningens regel och smyglist "
+            "får inspektionshål så att fyllningen kan kontrolleras (detalj E).",
             "Gjutning (K-06): pump med reducerat tryck, högst 1 m per timme och högst 2,4 m per gjutning, ingen "
             "vibrator i väggarna. Först ytterväggarnas tre hela skift, upp till 1 800, och innerväggarna i hela "
             "höjden, 2 100. Fogen ruggas och rengörs; innerväggarnas krön avjämnas och får glidskikt (byggpapp). "
@@ -1230,7 +1263,7 @@ def blad_sektioner():
             dict(form="yta", fyll="karna", stil="tunn", text="betongkärna, Kub 350-150"),
             dict(form="yta", fyll="betong", stil="tunn", text="betong, bottenplatta och mellanbjälklag"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
-            dict(form="yta", fyll="eps2", stil="tunn", text="cellplast S200 (L-element, under balkar)"),
+            dict(form="yta", fyll="eps2", stil="tunn", text="cellplast S300 (L-element, under balkar)"),
             dict(form="punkt", r=0.4, text="vågräta järn Ø10 (21)"),
             dict(form="linje", stil="ok", text="vinkeljärn, lodräta järn i väggen"),
             dict(form="linje", stil="uk", text="startjärn och armering i bottenplattan (R-05)")]),
@@ -1273,7 +1306,8 @@ def detalj_ror():
     lst = [("topplåt 80 × 80 × 8 S235, kant i kant med plattans undersida", (0, Z(H) + 4), None),
            (f"rör {K.ROR_TEXT}", (K.PLAT / 2, Z(1900)), None),
            ("kälsvets a3 runt om, båda ändarna (P7: tre sidor)", (K.PLAT / 2, Z(H) - 4), None),
-           ("fotplåt 200 × 200 × 15 S355 (P7: 280 × 200 × 15)", (bx / 2 - 20, -tf / 2), None),
+           ("fotplåt 200 × 200 × 15 S355 (P7: 280 × 200 × 15 eller 2 st 140 × 200 × 15)", (bx / 2 - 20, -tf / 2),
+            None),
            (f"4 svetsbultar Ø{K.SVETSBULT[0]:.0f}, L = {K.SVETSBULT[1]:.0f}", (60, -tf - 40), None),
            ("plint (R-05)", (220, -HB + 40), None)]
     etiketter(v, lst, 380.0, Z(H + H_MB) + 120, 9.0, sz=6.2)
@@ -1298,6 +1332,8 @@ def fotplatar():
                        stil=None)
             for bxp, byp in K.BULT_LAGE[n]:
                 v.cirkel(bxp, byp, K.SVETSBULT[0] / 2, fyll=None, stil="dold", modell=True)
+            if n == 2:                                   # alternativt två plåtar 140 × 200, delade i mitten
+                v.linje([(0, -by / 2 + 2), (0, by / 2 + 25)], "axel")
         with v.lager("matt"):
             xb = sorted({p[0] for p in K.BULT_LAGE[n]})
             yb = sorted({p[1] for p in K.BULT_LAGE[n]})
@@ -1308,6 +1344,9 @@ def fotplatar():
                    sz=7.4, b=True)
             v.text(-bx / 2 - 55, by / 2 + 45 - 4.0 * s, f"{sv(bx)} × {sv(by)} × {sv(tf)} S355, 1:5", a="lb",
                    sz=6.2, col="gra")
+            if n == 2:
+                v.text(-bx / 2 - 55, -by / 2 - 9.0 * s, f"alternativt 2 fotplåtar {sv(bx / 2)} × {sv(by)} × {sv(tf)}, "
+                       "kant i kant vid streckprickad linje, 2 bultar var", a="lt", sz=6.0, col="gra")
         ut.append(v)
     return ut
 
@@ -1407,7 +1446,7 @@ def stal_ror():
         ["Rör", K.ROR_TEXT, str(n_ror), f"L = {sv(K.L_ROR)}"],
         ["Topplåt", "80 × 80 × 8, S235", str(n_ror), "svetsad på röret"],
         ["Fotplåt", "200 × 200 × 15, S355", str(n1), "ett rör"],
-        ["Fotplåt", "280 × 200 × 15, S355", str(n2), "P7, två rör"],
+        ["Fotplåt", "280 × 200 × 15, S355", str(n2), "P7, två rör (alternativt 2 st 140 × 200 × 15)"],
         ["Svetsbult", f"Ø{K.SVETSBULT[0]:.0f}, L = {K.SVETSBULT[1]:.0f}", str(4 * (n1 + n2)), "fyra per fotplåt"],
     ]
     return dict(typ="tabell", kolumner=["Del", "Utförande", "Antal", "Anm"], bredd=(0, 1, 0, 1), rader=rader,
@@ -1431,7 +1470,8 @@ def blad_ror():
             "har sin topplåt.",
             "Topplåt 80 × 80 × 8 S235, svetsad på röret och ingjuten kant i kant med mellanbjälklagets undersida "
             "(R-03). Över varje rör 2 + 2 Ø10 i underkant (R-03 pos 3).",
-            "Fotplåt S355 med fyra svetsbultar under, ingjuten kant i kant med plintens överkant (R-05); "
+            "Fotplåt S355 med fyra svetsbultar under, ingjuten kant i kant med plintens överkant (R-05). P7: en "
+            "fotplåt 280 × 200 × 15 eller alternativt 2 fotplåtar 140 × 200 × 15 kant i kant, med 2 svetsbultar var; "
             "bottenplattans nät läggs fritt från bultarna. Röret bär bara tryck; svetsen och bultarna håller det på "
             "plats.",
             "Svetsar: kälsvets a3 runt om mellan röret och plåtarna; vid P7, där rören ligger an mot varandra, på "

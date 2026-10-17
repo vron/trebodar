@@ -70,7 +70,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
     Skifthöjden är 400 mm och stenens underkant ligger 50 mm under färdig mark (stödvinkeln döljs). Stenens höjd på en stödvinkel är högst 2,0 m; vinkeln och gängstängerna behöver inte modelleras.
 
-14. **Valfritt: bottenplattans uppbyggnad.** `Bottenplatta` är en massiv kropp, 300 mm. Enligt R-05 är den 100 mm betong på 200 mm cellplast, med kantbalkar och balkar under innerväggarna 450 × 200 på 100 mm S200, plintar under rören (600–1 200 mm, R-05.1), L-element längs kanten och S300 under kantbalken vid de åtta yttre hörnen.
+14. **Valfritt: bottenplattans uppbyggnad.** `Bottenplatta` är en massiv kropp, 300 mm. Enligt R-05 är den 100 mm betong på 200 mm cellplast S100, med kantbalkar och balkar under innerväggarna 450 × 200 och plintar under rören (600–1 200 mm, R-05.1), alla på 100 mm S300. Längs kanten L-element L300 med ytterkanten i väggarnas ytterliv (= bottenplattans kant i modellen); betongen börjar 100 mm innanför, i kärnans yttre yta.
 
 ## Kontrollera och bestäm
 
