@@ -1,0 +1,25 @@
+# ------------------------------------------------------------------
+# Indata – U-02 Nock- och dalbalkar, lyft
+# Ändra värden här och kör:  python berakning.py
+# Balkarna (längd, plåtar, tvärsnitt och material) läses ur ../K-01/indata.toml.
+# Längder i mm, krafter i kN, spänningar i MPa.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Nock- och dalbalkar – lyft i två punkter"
+dokument    = "U-02"
+revision    = "A"
+datum       = "2026-10-17"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "K-01 rev C (nock- och dalbalkar), R-01"
+
+[lyft]
+dyn         = 2.0       # dynamisk faktor på egentyngden: ryck, inbromsning och ojämn hantering (stort; långsamt kranlyft ger 1,1–1,3)
+gamma_G     = 1.35      # lastfaktor på egentyngden
+k_mod       = 1.1       # limträ, momentan last (SS-EN 1995-1-1 tabell 3.1)
+vinkel      = 60        # minsta vinkel mellan stropp och balk [°]
+mal         = 0.5       # högsta utnyttjande med faktorerna ovan: dubbel marginal mot brott
+steg        = 100       # steg i lyftpunkternas avstånd vid iterationen [mm]
+avrunda     = 500       # rekommenderat avstånd avrundas uppåt till [mm]

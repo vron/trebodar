@@ -1,0 +1,4 @@
+__pycache__/
+fig_*.svg
+resultat.json
+*.pdf

@@ -162,6 +162,10 @@ nr = "U-01"
 namn = "Bottenplattan – temperatur och fukt under året"
 status = "klar"
 [[ovrig]]
+nr = "U-02"
+namn = "Nock- och dalbalkar – lyft i två punkter"
+status = "klar"
+[[ovrig]]
 nr = "AR-01"
 namn = "Arbetsritning fasadsten på källarväggarna"
 status = "klar"
