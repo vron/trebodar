@@ -56,7 +56,10 @@ Z_HOR = (575.0, 1175.0, 1475.0, 1775.0, 2040.0)
 Z_HOR_V3 = (275.0, 575.0, 875.0, 1175.0, 1475.0, 1775.0, 2040.0)
 # lodräta järn: från bottenplattan upp under mellanbjälklagets överkantsnät (R-03.4 sektion A)
 L_LODRAT = 2200.0
-ARM_V = (10, 200)               # Ø10 s200 på insidan i alla ytterväggar (K-06)
+ARM_V = (10, 200)               # Ø10 s200 på insidan där packningstrycket kräver det (K-06)
+ARM_V_TG = tuple(I06.ARM_V[0])  # Ø10 s300, TG 2216: övriga ytterväggar och under bröstningarna
+# lodräta järn per yttervägg (K-06: den glesaste armering som räcker, minst TG 2216:s)
+ARM_V_VAGG = {v["namn"]: tuple(v["arm"]) for v in R06["vaggar"] if "arm" in v}
 ARM_H = (I06.ARM_H["d"], I06.ARM_H["s"], I06.ARM_H["s_topp"])          # Ø10 s600, s300 i de två översta skiften
 STARTJARN = I06.STARTJARN       # Ø10 s300 på utsidan, 500 i kantbalken, 1 200 upp
 VINKEL_HORN = (750.0, 750.0)    # vinkeljärn i hörn och anslutningar, båda ytorna, i varje lager
@@ -253,7 +256,7 @@ def ytor(g):
 
 
 def sv(x, n=0):
-    return f"{x:,.{n}f}".replace(",", " ").replace(".", ",").replace("-", "−")
+    return f"{x:,.{n}f}".replace(",", "\u00a0").replace(".", ",").replace("-", "−")
 
 
 def svm(x):

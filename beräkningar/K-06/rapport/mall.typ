@@ -60,7 +60,7 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1
   columns: (44mm, 1fr),
   align: (left, left),
   table.header([Del], [Resultat]),
-  [Väggar mot jord, färdigt läge], [Lodräta järn #A.txt på insidan i alla ytterväggar. Böjning högst #D.vmax.utn (#D.vmax.namn), tvärkraft #D.vmax.utnV, fogen mot bottenplattan #D.fog.utnb],
+  [Väggar mot jord, färdigt läge], [Lodräta järn på insidan #A.txt i #D.armlist.tat och #D.armlist.gles_txt (TG 2216) i #D.armlist.gles. Böjning högst #D.vmax.utn (#D.vmax.namn), tvärkraft #D.vmax.utnV, fogen mot bottenplattan #D.fog.utnb],
   [Fasaden med öppningarna], [Pelarna #D.fasad.utn, bröstningen med 2 Ø12 under öppningarna],
   [Vertikal last], [Ytterväggar #D.vert.yutn (#D.vert.ynamn, med jordtrycket), innerväggar #D.vert.iutn],
   [LD4_2 i hörnet V2/V20], [#D.horn.utn],
@@ -122,12 +122,12 @@ TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är v�
   align: (left, left, left),
   table.header([Del], [Armering], [Kommentar]),
   [Vågräta järn], [2 Ø10 per skift, ett vid var yta, s600. I de två översta skiften s300], [TG 2216. I V3 s300 i hela höjden (@v3)],
-  [Lodräta järn], [#A.txt på insidan i alla ytterväggar, från bottenplattan upp till bjälklagets överkantsnät], [TG 2216 anger Ø10 s300; tätare för packningstrycket (@barformaga) och för lasterna över väggarna (@vert)],
+  [Lodräta järn], [På insidan, från bottenplattan upp till bjälklagets överkantsnät: #A.txt i #D.armlist.tat\; #D.armlist.gles_txt i #D.armlist.gles], [TG 2216 anger Ø10 s300; tätare där packningstrycket kräver det (@barformaga, @fasad)],
   [Startjärn], [#A.start på utsidan, 500 mm ned i kantbalken (bockade) och 1 200 mm upp i väggen], [TG 2216],
-  [Vinkeljärn till bjälklaget], [#A.txt, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-03],
+  [Vinkeljärn till bjälklaget], [Ø10 med samma avstånd som de lodräta järnen, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-03],
   [Hörn och anslutningar], [Vinkeljärn Ø10, 750 mm åt var håll, vid båda ytorna; skarvar minst #M.skarv mm], [TG 2216 figur 5–7; @fig-lokala[figur] c och d],
-  [Öppningar], [2 Ø12 över, under och längs sidorna, förankrade 600 mm förbi öppningen], [TG 2216],
-  [Innerväggar], [Vågräta järn och startjärn som ovan], [Inget jordtryck; glidskikt på krönet (R-03)],
+  [Öppningar], [2 Ø12 längs sidorna och under bröstningen, förankrade 600 mm förbi öppningen. Öppningarna går upp till bjälklaget, som har fri kant över dem (K-05)], [TG 2216],
+  [Innerväggar], [Vågräta järn som ovan, startjärn #A.start i kärnans mitt], [Inget jordtryck; glidskikt på krönet (R-03)],
 )
 
 == Jordtryck och packning <jordtryck>
@@ -158,15 +158,15 @@ Väggen räknas som en lodrät strimla, fritt upplagd mellan fogen mot bottenpla
 
 == Fasaden med öppningarna <fasad>
 
-Mot fasaden med öppningarna (#D.fasad.namn) är fyllningen #D.fasad.h m. Betongen i öppningarnas underkant ligger #D.fasad.bro m över bottenplattan; smygen och bröstningen isoleras med 100 mm cellplast. Pelarna mellan öppningarna går upp till bjälklaget. De bär jordtrycket från sin egen bredd och halva öppningarna intill, lodrätt mellan plattorna:
+Mot fasaden med öppningarna (#D.fasad.namn) är fyllningen #D.fasad.h m. Betongen i öppningarnas underkant ligger #D.fasad.bro m över bottenplattan; smygen och bröstningen har Sundolitts smyglist, 100 mm. Pelarna mellan öppningarna går upp till bjälklaget. De bär jordtrycket från sin egen bredd och halva öppningarna intill, lodrätt mellan plattorna:
 
 #tab(
-  columns: (auto, auto, auto, auto),
-  align: (left, right, right, right),
-  table.header([Pelare], [Bredd (m)], [Lastbredd / bredd], [$M_"Ed"$ (kNm/m)]),
-  ..D.fasad.pel.map(r => ([#r.namn], [#r.b], [#r.faktor], [#r.M])).flatten(),
+  columns: (auto, auto, auto, auto, auto, auto),
+  align: (left, right, right, right, left, right),
+  table.header([Pelare], [Bredd (m)], [Lastbredd / bredd], [$M_"Ed"$ (kNm/m)], [Lodräta järn], [Böjning]),
+  ..D.fasad.pel.map(r => ([#r.namn], [#r.b], [#r.faktor], [#r.M], [#r.arm], [#r.utn])).flatten(),
 )
-Största moment är #D.fasad.Mmax kNm/m, alltså #D.fasad.utn av #A.txt. Bröstningen under öppningarna spänner vågrätt mellan pelarna, högst #D.fasad.oppn m. Med #D.fasad.p kPa ger det #D.fasad.Mb kNm/m mot #D.fasad.MRdb kNm/m med de vågräta järnen och 2 Ø12 under öppningen.
+Varje pelare får den glesaste lodräta armering som räcker; högst #D.fasad.utn (#D.fasad.utnnamn). Bröstningen under öppningarna spänner vågrätt mellan pelarna, högst #D.fasad.oppn m. Med #D.fasad.p kPa ger det #D.fasad.Mb kNm/m mot #D.fasad.MRdb kNm/m med de vågräta järnen och 2 Ø12 under öppningen.
 
 == Vertikal last och lasterna över väggarna <vert>
 
@@ -183,7 +183,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 
 == Anslutningar och fogar <ansl>
 
-- *Topp:* i ytterväggarna gjuts det översta halva skiftet samtidigt med mellanbjälklaget. Kärnan och bjälklaget blir då en enhet, och bjälklaget vilar på hela kärnan (TG 2216 kräver minst 100 mm). Den yttre cellplasten i det översta skiftet kapas i bjälklagets underkant, och bjälklaget går ut till 30 mm från väggens ytterliv, med 30 mm kantisolering utanför (husets modell). Vinkeljärnen (#A.txt) förankrar väggen i bjälklaget. Största reaktion i toppen är #D.vmax.Rt kN/m.
+- *Topp:* i ytterväggarna gjuts det översta halva skiftet samtidigt med mellanbjälklaget. Kärnan och bjälklaget blir då en enhet, och bjälklaget vilar på hela kärnan (TG 2216 kräver minst 100 mm). Den yttre cellplasten i det översta skiftet kapas i bjälklagets underkant, och bjälklaget går ut till 30 mm från väggens ytterliv, med 30 mm kantisolering utanför (husets modell). Vinkeljärnen, med samma avstånd som de lodräta järnen, förankrar väggen i bjälklaget. Största reaktion i toppen är #D.vmax.Rt kN/m.
 - *Gjutfogen vid #M.gjut1 mm:* tvärkraften där är högst #D.fog.V18 kN/m. Med de lodräta järnen genom fogen och en uppruggad yta (6.2.5) är utnyttjandet #D.fog.utn18.
 - *Botten:* kärnan gjuts direkt på kantbalkens uppruggade överkant, och startjärnen går genom fogen. Bottenplattan är golvet som håller väggens fot, och kärnan står i kontakt med den, som TG 2216 kräver när fyllningen är högre än 1 m. Största reaktion i botten är #D.vmax.Rb kN/m. Fogen har bärförmågan #D.fog.vrb MPa (6.2.5: uppruggad yta, startjärnen, väggens egentyngd). Det ger högst #D.fog.utnb.
 - *Hörn och anslutningar:* vågräta järn med vinkeljärn enligt TG 2216 figur 5–7, se @fig-lokala[figur] c och d.
@@ -347,7 +347,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med balkar och plintar i en gjutning, med fotplåtarna kant i kant med plintarnas överkant, och rugga ytan under väggarna.
 5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.
-6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen #A.txt, de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.
+6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen (#A.txt och #D.armlist.gles_txt), de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.
 
 #v(6pt)
 #counter(heading).update(0)

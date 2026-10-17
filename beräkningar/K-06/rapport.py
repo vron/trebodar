@@ -76,12 +76,21 @@ D["vmax"] = dict(namn=vmax["namn"], utn=pr(vmax["dim"]["utn_M"]), M=f(vmax["dim"
                  fog=pr(max(v["dim"]["fog_botten"]["utn"] for v in fyllda)),
                  utn300=pr(vmax["dim"]["M"] / VG.MRd(VG.As(10, 300), VG.d_lodrat(10))),
                  Rt=f(max(v["dim"]["Rt"] for v in fyllda)), Rb=f(max(v["dim"]["Rb"] for v in fyllda)))
+# lodräta järn per vägg: tätare där det behövs, annars TG 2216:s Ø10 s300
+_av = {v["namn"]: tuple(v["arm"]) for v in R["vaggar"] if "arm" in v}
+_num = lambda n: int(n[1:])
+_tat = sorted((n for n, a in _av.items() if a != tuple(I.ARM_V[0])), key=_num)
+assert all(_av[n] == tuple(arm) for n in _tat), "fler än två lodräta armeringar"
+D["armlist"] = dict(tat=", ".join(_tat), gles=", ".join(sorted((n for n, a in _av.items() if a == tuple(I.ARM_V[0])),
+                                                               key=_num)),
+                    gles_txt=jarn(I.ARM_V[0]))
 fv = next(v for v in R["vaggar"] if v.get("fasad"))
 fd = fv["fasad_d"]
+_pmax = max(fd["pelare"], key=lambda p: p["utn"])
 D["fasad"] = dict(namn=fv["namn"], h=f(fv["fyll"][0], 2), L=f(fv["L"], 2), M=f(fv["dim"]["M"]),
-                  pel=[dict(namn=p["namn"], b=f(p["b"], 2), faktor=f(p["faktor"], 2), M=f(p["M"])) for p in fd["pelare"]],
-                  Mmax=f(max(p["M"] for p in fd["pelare"])), utn=pr(max(p["M"] for p in fd["pelare"]) /
-                                                                     VG.MRd(VG.As(*arm), VG.d_lodrat(arm[0]))),
+                  pel=[dict(namn=p["namn"], b=f(p["b"], 2), faktor=f(p["faktor"], 2), M=f(p["M"]), arm=jarn(p["arm"]),
+                            utn=pr(p["utn"])) for p in fd["pelare"]],
+                  Mmax=f(max(p["M"] for p in fd["pelare"])), utn=pr(_pmax["utn"]), utnnamn=_pmax["namn"],
                   oppn=f(fd["oppning"], 2), p=f(fd["p"]), Mb=f(fd["M_brostning"], 2), MRdb=f(fd["MRd_brostning"]),
                   bro=" och ".join(f(b, 2) for b in I.BROSTNING))
 # jämförelse: utan packningstrycket (bara vilojordtryck), 2,0 m fyllning

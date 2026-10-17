@@ -31,7 +31,7 @@ python rapport.py              # rapport/K-06_grund.pdf
 ## Viktiga antaganden
 
 - Sprängt berg med dränerad makadam, inget vattentryck. Fyllning 2,0 m mot de slutna fasaderna (V1 1,8 m), 1,8–0,8 m mot V14, 0,80 m mot fasaden med öppningarna, 1,7 m bakom V3 och V20 (plattan på mark, fylls före mellanbjälklaget). Vilojordtryck $K_0 = 1 - \sin 40°$, 2,5 kN/m² på marken, och packningstryck 19 kPa (lätt vibroplatta inom 1 m från väggen).
-- Väggarna: betongkärna C30/37 (Sundolitts B30), B500B, lodrät strimla mellan bottenplattan och bjälklaget; lodräta järn Ø10 s200 på insidan. V3 bär byggskedet vågrätt med 2 Ø10 s300.
+- Väggarna: betongkärna C30/37 (Sundolitts B30), B500B, lodrät strimla mellan bottenplattan och bjälklaget; lodräta järn på insidan, den glesaste som räcker per vägg: Ø10 s200 där packningstrycket kräver det, annars Ø10 s300 (TG 2216). V3 bär byggskedet vågrätt med 2 Ø10 s300.
 - Återfyllning när $f_{ck}(t)$ ≥ 20 MPa (SS-EN 1992-1-1 3.1.2 och mognadsålder enligt bilaga B).
 - Cellplast: $f_d = k_r f_{ck} / 1{,}3$, $E_k$ korttid och $0{,}4 E_k$ långtid. S100 under plattan och S300 under alla balkar och plintar (under kantbalken L-elementens fot; L-elementens ytterkant i väggens ytterliv).
 - Kärnan: kryptal 2,0, krympning 0,30 mm/m (påtvingad, faktor 1,0).

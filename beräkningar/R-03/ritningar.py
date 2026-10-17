@@ -46,6 +46,8 @@ K05P = json.load(open(os.path.join(K05, "rapport", "projekt.json"), encoding="ut
 NR = "R-03"
 REV, DATUM = "A", "2026-10-08"
 K06P = json.load(open(os.path.join(BER, "K-06", "rapport", "projekt.json"), encoding="utf-8"))
+R06 = json.load(open(os.path.join(BER, "K-06", "resultat.json"), encoding="utf-8"))
+S14 = {v["namn"]: v["arm"][1] for v in R06["vaggar"] if "arm" in v}   # vinkeljärnen: väggens lodräta järn (K-06)
 UNDERLAG = f"K-05 rev {K05P['revision']}, K-06 rev {K06P['revision']}"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
@@ -138,7 +140,7 @@ PLAC = dict(
     fri_text=((10390.0, 1000.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
     mark_text=(2700.0, 11250.0),
     snitt=dict(A=((12950, 8000), (13870, 8000), -1), B=((11660, 7150), (11660, 6100), -1),
-               C=((8100, 6350), (8100, 5450), 1), D=((9150, 9300), (10150, 9300), -1)),
+               C=((8700, 6300), (8700, 5780), -1), D=((9150, 9300), (10150, 9300), -1)),
     rubrik=(150.0, 2750.0), skalstock=(150.0, 1450.0),
 )
 
@@ -155,7 +157,7 @@ def lager_plattan(v, klipp=True):
             v.linje([a, b], "kontur")
         if klipp:
             v.brott((-250, YCUT), (4310 + 250, YCUT), "tunn")
-            v.ptext(4310 + 300, YCUT - 250, 1.0, 0, "Plattan fortsätter till y = 15 900,\nsamma armering",
+            v.ptext(4310 + 300, YCUT - 250, 1.0, 0, "Plattan fortsätter till y = 15\u00a0900,\nsamma armering",
                     a="lm", sz=6.6, col="gra", i=True)
         hx = [p[0] for p in G["hal"]]; hy = [p[1] for p in G["hal"]]
         v.polygon(G["hal"], fyll="hal", stil="kontur")
@@ -164,14 +166,21 @@ def lager_plattan(v, klipp=True):
         v.text(*PLAC["mark_text"], "Platta på mark\n(400 mm cellplast, K-06)", a="cm", sz=7.0, col="gra", i=True)
 
 
-def lager_vaggar(v):
-    """Källarväggarna (Kub 350-150) under plattan, streckade, och deras namn."""
+def lager_vaggar(v, namn=True):
+    """Källarväggarna (Kub 350-150) under plattan, streckade, och deras namn (namn=False: namnen ritas senare med
+    lager_vaggnamn, ovanpå zonerna)."""
     with v.lager("vaggar"):
         band = unary_union([F05.vaggband(w, G["E"], G["vagg"])[1] for w in G["vagg"]])
         for g in getattr(band, "geoms", [band]):
             v.linje(list(g.exterior.coords), "dold")
             for hh in g.interiors:
                 v.linje(list(hh.coords), "dold")
+    if namn:
+        lager_vaggnamn(v)
+
+
+def lager_vaggnamn(v):
+    with v.lager("vaggnamn"):
         for i, w in enumerate(G["vagg"], 1):
             ax_, c, a, b = w[:4]
             m = (a + b) / 2
@@ -267,7 +276,7 @@ def lager_origo(v):
         v.linje([(0, 0), (0, L)], "tunn"); v.pil((0, L + 150), (0, 1), langd=2.2, bredd=1.0)
         v.ptext(L + 150, 0, 1.0, 0, "x", a="lm", sz=7.5, i=True)
         v.ptext(0, L + 150, 0, 1.0, "y", a="cb", sz=7.5, i=True)
-        v.ptext(0, 0, -1.0, -1.0, "origo (0; 0)", a="rt", sz=6.4, col="gra")
+        v.ptext(0, 0, 1.0, -1.0, "origo (0; 0)", a="lt", sz=6.4, col="gra")
 
 
 def lager_rubrik(v, titel, skala, pos=None, skalstock=None):
@@ -298,6 +307,45 @@ def natsymbol(v, pos_x, pos_y, d, s, stil, text):
     v.text(X + 1.5 * v.s, Y + 1.5 * v.s, text, a="lb", sz=6.6, col="gra", i=True)
 
 
+def vaggspann(namn):
+    """Väggnamn i nummerordning med följder ihopslagna: V8, V9, V10, V12 -> "V8–V10, V12"."""
+    nr = sorted(int(n[1:]) for n in namn)
+    ut, i = [], 0
+    while i < len(nr):
+        j = i
+        while j + 1 < len(nr) and nr[j + 1] == nr[j] + 1:
+            j += 1
+        ut.append(f"V{nr[i]}" if j - i < 2 else f"V{nr[i]}–V{nr[j]}")
+        if j - i == 1:
+            ut[-1] = f"V{nr[i]}, V{nr[j]}"
+        i = j + 1
+    return ", ".join(ut)
+
+
+def pos3_jarn():
+    """2 + 2 Ø10 över varje rör (pos 3), L = 1 200 centrerade på röret. Vid trapphålet slutar järnen 25 mm från
+    hålkanten och går minst skarvlängden (650) bort från hålet. [(p0, p1, rör)]"""
+    yta = PLATTA.buffer(-C_KANT, join_style=2)
+    ut = []
+    for namn, x0, y0, x1, y1 in ROR:
+        x, y = (x0 + x1) / 2, (y0 + y1) / 2
+        for o in (-25.0, 25.0):
+            for a, b in (((x - 600, y + o), (x + 600, y + o)), ((x + o, y - 600), (x + o, y + 600))):
+                g = LineString([a, b]).intersection(yta)
+                seg = min((q for q in getattr(g, "geoms", [g]) if q.length > 1), key=lambda q: q.distance(Point(x, y)))
+                p0, p1 = seg.coords[0], seg.coords[-1]
+                if seg.length < 1199.0:
+                    L = max(seg.length, SKARV[10])
+                    if math.dist(p0, a) < 1 or math.dist(p0, b) < 1:      # p1 är klippt mot hålet: förläng p0
+                        ux, uy = (p0[0] - p1[0]) / seg.length, (p0[1] - p1[1]) / seg.length
+                        p0 = (p1[0] + ux * L, p1[1] + uy * L)
+                    else:
+                        ux, uy = (p1[0] - p0[0]) / seg.length, (p1[1] - p0[1]) / seg.length
+                        p1 = (p0[0] + ux * L, p0[1] + uy * L)
+                ut.append((p0, p1, namn))
+    return ut
+
+
 def lager_uk(v):
     """Underkant: nätet (pos 1, 2), 2 + 2 Ø10 över varje rör (pos 3) och täckskiktet vid de fria kanterna mot det
     fria (öppningarna i källarens ytterväggar)."""
@@ -306,13 +354,10 @@ def lager_uk(v):
         v.hanvisning(mal, till, f"fria kanter mot det fria (öppningarna i källarens\nytterväggar): täckskikt {C_KANT:.0f} mm mot kanten", a="lm", sz=6.6)
     with v.lager("armering_uk"):
         natsymbol(v, 1, 2, DU, SU, "uk", "hela plattan")
-        for _, x0, y0, x1, y1 in ROR:
-            x, y = (x0 + x1) / 2, (y0 + y1) / 2
-            for o in (-25.0, 25.0):
-                v.linje([(x - 600, y + o), (x + 600, y + o)], "uk_tunn")
-                v.linje([(x + o, y - 600), (x + o, y + 600)], "uk_tunn")
+        for p0, p1, _ in pos3_jarn():
+            v.linje([p0, p1], "uk_tunn")
         mal, till = PLAC["pos3"]
-        v.hanvisning(mal, till, "2+2 Ø10 L = 1 200 över varje rör", bubbla=3, a="lm")
+        v.hanvisning(mal, till, f"2+2 Ø10 L = 1\u00a0200 över varje rör (vid trapphålet {SKARV[10]})", bubbla=3, a="lm")
 
 
 def lager_zoner(v):
@@ -355,7 +400,7 @@ def lager_ok(v):
         hornet, bubbla = PLAC["pos13"]
         near = min(diag, key=lambda q: np.hypot((q[0][0] + q[1][0]) / 2 - hornet[0], (q[0][1] + q[1][1]) / 2 - hornet[1]))
         mid = ((near[0][0] + near[1][0]) / 2, (near[0][1] + near[1][1]) / 2)
-        v.hanvisning(mid, bubbla, f"2 Ø10 L = 1 200 diagonalt, alla inåtgående\nhörn och trapphålets hörn ({nh} hörn)",
+        v.hanvisning(mid, bubbla, f"2 Ø10 L = 1\u00a0200 diagonalt, alla inåtgående\nhörn och trapphålets hörn ({nh} hörn)",
                      bubbla=13, a="rm", sz=7.0)
         c14 = vagg("V14")[1]
         xv = c14 + G["E"] + VAGG_UTE - X_LODRAT                # vinkeljärnets lodräta ben (V14: insidan åt −x)
@@ -365,7 +410,8 @@ def lager_ok(v):
         ys = PLAC["pos14"]["y"]
         v.fordelning((xv - 100, ys[0] - 300), (xv - 100, ys[-1] + 300))
         v.hanvisning((xv - POS14["in_"], ys[1]), PLAC["pos14"]["bubbla"],
-                     f"vinkeljärn Ø{POS14['d']} s{POS14['s']} längs alla\nytterväggar, sektion A", bubbla=14, a="rm")
+                     f"vinkeljärn Ø{POS14['d']} s{POS14['s']} längs\nytterväggarna (s{max(S14.values())} i "
+                     f"{vaggspann([n for n, x in S14.items() if x != POS14['s']])}),\nsektion A", bubbla=14, a="rm")
 
 
 # ---------------------------------------------------------------- sektioner (lokala koordinater, mm)
@@ -453,15 +499,17 @@ def sektion_a():
         v.matt((xa, yb), (xa + POS14["in_"], yb), 3.0, sz=5.8, txt=sv(POS14["in_"]))
         v.matt((xa, yb - POS14["ben"]), (xa, yb), 3.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
         v.matt((420, H_GJUT1 - H_VAGG), (420, 0), 2.5, sida=-1, sz=5.8, txt=sv(H_VAGG - H_GJUT1))
-    etiketter(v, [("Ø8 s150, överkant", (1250, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
-                  (f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, under nätet", (xa + 300, yb), 14),
+    etiketter(v, [(f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, under nätet", (xa + 300, yb), 14),
+                  ("Ø8 s150, överkant", (900, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
                   ("Ø10 s150, underkant", (1100, YU2), 2), ("Ø10 s150, underkant", (1000, YU1), 1),
-                  ("kantisolering 30", (15, 60), None),
                   ("kärnan gjuts med bjälklaget (K-06)", (e + k / 2, -150), None),
                   ("gjutfog 300 under bjälklaget (K-06)", (e + 20, -300), None),
                   ("Kub 350-150, betongkärna 150 (K-06)", (e + 40, -500), None),
-                  (f"väggens lodräta järn Ø10 s{POS14['s']} (K-06)", (X_LODRAT, -750), None),
-                  ("fasadsten (AR-01), fyllning (K-06)", (-35, -600), None)], 1500, 340, 4.4)
+                  (f"väggens lodräta järn Ø10 s{POS14['s']} (K-06)", (X_LODRAT, -750), None)], 1500, 340, 4.4)
+    with v.lager("text"):
+        v.hanvisning((15, 100), (-90, 300), "kantisolering 30", a="rm", sz=6.4)
+        v.text(-70, -250, "fasadsten\n(AR-01)", a="rb", sz=6.0, col="gra", i=True)
+        v.text(-230, -1000, "fyllning\n(K-06)", a="cm", sz=6.0, col="gra", i=True, bg=True)
     with v.lager("rubrik"):
         v.rubrik(-400, ylo - 180, "SEKTION A–A  Yttervägg mot jord (V14)", skala=20, sz=9)
     return v
@@ -488,10 +536,10 @@ def sektion_b():
         v.matt((-330, 0), (-330, H), 3.0, sida=1, sz=6.2)
         v.matt((-230, 0), (-230, C_UK), 1.5, sida=1, sz=5.6, txt=f"{C_UK:.0f}")
         v.matt((-230, H - C_OK), (-230, H), 1.5, sida=1, sz=5.6, txt=f"{C_OK:.0f}")
-    etiketter(v, [("Ø8 s150, överkant", (330, YO1), 11),
-                  (f"{zp5['namn']}: Ø{zp5['tillagg'][0]} s{zp5['tillagg'][1]}, båda riktningarna", (275, YO2), None),
-                  ("2 + 2 Ø10 L = 1 200 över röret", (25, YU2), 3),
-                  ("Ø10 s150, underkant", (300, YU1), 1),
+    etiketter(v, [("Ø8 s150, överkant", (150, YO1), 11),
+                  (f"{zp5['namn']}: Ø{zp5['tillagg'][0]} s{zp5['tillagg'][1]}, båda riktningarna", (225, YO2), None),
+                  ("2 + 2 Ø10 L = 1\u00a0200 över röret", (25, YU2), 3),
+                  ("Ø10 s150, underkant", (150, YU1), 1),
                   ("topplåt 80×80×8 kant i kant med\nunderkanten (P7: två rör)", (40, 4), None),
                   ("rör VKR 80×80×4 S235", (40, -180), None)], 450, 250, 4.6)
     with v.lager("rubrik"):
@@ -581,13 +629,19 @@ def stalforteckning():
     for pos, d, sc, rikt in ((1, DU, SU, "x"), (2, DU, SU, "y"), (11, DO, SO, "x"), (12, DO, SO, "y")):
         n, tl = nat(d, sc, rikt)
         lagg(pos, d, "rak", f"s{sc}", n, "var.", tl, ("UK " if pos < 10 else "ÖK ") + f"{rikt}-led")
-    nr = len(ROR)
-    lagg(3, 10, "rak", "–", 4 * nr, "1 200", 4 * nr * 1.2, "UK över rören")
+    p3 = {}
+    for p0, p1, _ in pos3_jarn():
+        L = langd(math.dist(p0, p1) - 1)
+        p3[L] = p3.get(L, 0) + 1
+    for L in sorted(p3, reverse=True):
+        lagg(3, 10, "rak", "–", p3[L], sv(L), p3[L] * L / 1000, "UK över rören" + ("" if L >= 1200 else ", vid trapphålet"))
     _, nh = diagonaljarn()
-    lagg(13, 10, "rak", "–", 2 * nh, "1 200", 2 * nh * 1.2, "ÖK diagonalt")
-    n14 = int(sum(math.floor(abs(w[3] - w[2]) / POS14["s"]) + 1 for w in G["vagg"] if w[4] == "yttre"))
+    lagg(13, 10, "rak", "–", 2 * nh, "1\u00a0200", 2 * nh * 1.2, "ÖK diagonalt")
+    n14 = int(sum(math.floor(abs(w[3] - w[2]) / S14.get(f"V{i}", POS14["s"])) + 1
+                  for i, w in enumerate(G["vagg"], 1) if w[4] == "yttre"))
     L14 = POS14["ben"] + POS14["in_"]
-    lagg(14, 10, f"L {POS14['ben']}+{POS14['in_']}", f"s{POS14['s']}", n14, sv(L14), n14 * L14 / 1000, "vinkeljärn")
+    lagg(14, 10, f"L {POS14['ben']}+{POS14['in_']}", "/".join(f"s{x}" for x in sorted(set(S14.values()))), n14,
+         sv(L14), n14 * L14 / 1000, "vinkeljärn")
     zon = {}
     for zn in R["zoner"]:
         _, jarn = zonjarn(zn)
@@ -677,7 +731,8 @@ def blad_uk():
         dict(typ="lista", rader=anvisningar() + [
             "Underkantsnätet läggs på distanser 20 mm, högst 0,8 m isär.",
             "Minst två underkantsjärn i vardera riktningen ska passera över varje rör (SS-EN 1992-1-1 9.4.1(3)): "
-            "pos 3, bundna till nätet.",
+            f"pos 3, bundna till nätet. Vid trapphålet ({', '.join(sorted({n for p0, p1, n in pos3_jarn() if math.dist(p0, p1) < 1199}, key=lambda q: int(q[1:])))}) "
+            f"slutar järnen mot hålet 25 mm från hålkanten, L = {SKARV[10]}.",
             "Överkant, se R-03.3. Sektioner A–D, se R-03.4."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
@@ -695,9 +750,10 @@ def blad_uk():
 def blad_ok():
     v = planvy()
     lager_plattan(v)
-    lager_vaggar(v)
+    lager_vaggar(v, namn=False)
     v.med_diagonaler = True
     zrader = lager_zoner(v)
+    lager_vaggnamn(v)
     lager_ror(v)
     lager_ok(v)
     lager_origo(v)
@@ -709,8 +765,8 @@ def blad_ok():
             "Överkantsnätet läggs på armeringsstolar, högst 0,8 m isär.",
             f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
-            "Vinkeljärnen pos 14 sätts i ytterväggarnas betongkärna, bundna till väggens lodräta järn, innan "
-            "ytterväggarnas översta skift och bjälklaget gjuts (sektion A, K-06)."]),
+            "Vinkeljärnen pos 14 sätts i ytterväggarnas betongkärna, bundna till väggens lodräta järn och med samma "
+            "avstånd (R-04.2), innan ytterväggarnas översta skift och bjälklaget gjuts (sektion A, K-06)."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="ok", text="armering i överkant"),

@@ -453,13 +453,17 @@ def tabell():
             r["_dim"] = dim
         rows.append(r)
     fyllda = [r for r in rows if "dim" in r]
-    # en lodrät armering för alla ytterväggar med fyllning (den som den mest belastade väggen behöver)
+    # lodräta järn per vägg: den glesaste armering i I.ARM_V som räcker, minst TG 2216:s Ø10 s300 (I.ARM_V[0]); i
+    # ytterväggar utan fyllning TG 2216:s; i fasaden med öppningarna pelarna var för sig. arm: den tätaste, som
+    # byggskedet räknas med.
     arm = max((valj_lodrat(r["dim"]["M"]) for r in fyllda), key=lambda a: As(*a))
-    dia, s = arm
+    arm_vagg = {r["namn"]: (valj_lodrat(r["dim"]["M"]) if "dim" in r else tuple(I.ARM_V[0]))
+                for r in rows if r["typ"] == "yttre" and not r["fasad"]}
     for r in fyllda:
         dm = r["dim"]
+        dia, s = arm_vagg.get(r["namn"], tuple(I.ARM_V[0]))
         d = d_lodrat(dia)
-        dm.update(arm=arm, MRd=MRd(As(dia, s), d), VRd=VRdc(As(dia, s), d), d=d,
+        dm.update(arm=(dia, s), MRd=MRd(As(dia, s), d), VRd=VRdc(As(dia, s), d), d=d,
                   arm_min=valj_lodrat(dm["M"]))
         dm["utn_M"] = dm["M"] / dm["MRd"]
         dm["utn_V"] = max(dm["Rb"], dm["Rt"]) / dm["VRd"]
@@ -470,10 +474,17 @@ def tabell():
             v = next(x for x in alla if x["namn"] == r["namn"])
             v.update(M_Ed=dm["M"])
             r["fasad_d"] = fasad(v, dm["M"])
+            for p in r["fasad_d"]["pelare"]:
+                p["arm"] = valj_lodrat(p["M"])
+                p["MRd"] = MRd(As(*p["arm"]), d_lodrat(p["arm"][0]))
+                p["utn"] = p["M"] / p["MRd"]
+                arm_vagg[p["namn"]] = p["arm"]
     for r in rows:
         if r["namn"] in VAGG05:
             v = dict(namn=r["namn"], typ=r["typ"], M_Ed=r.get("dim", {}).get("M", 0.0))
-            r["vert"] = vertikal(v, arm)
+            r["vert"] = vertikal(v, arm_vagg.get(r["namn"], arm))
+            if r["namn"] in arm_vagg:
+                r["arm"] = list(arm_vagg[r["namn"]])
     return rows, arm
 
 

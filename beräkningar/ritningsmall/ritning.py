@@ -18,6 +18,7 @@ Elementen läggs i namngivna lager, som ritas i den ordning de skapas och kan d�
 import json
 import math
 import os
+import re
 
 import numpy as np
 
@@ -28,7 +29,7 @@ YTA = dict(x0=20.0, y0=10.0, x1=420.0 - 10.0 - 84.0, y1=297.0 - 10.0)
 
 
 def sv(x, n=0):
-    return f"{x:,.{n}f}".replace(",", " ").replace(".", ",").replace("-", "−")
+    return f"{x:,.{n}f}".replace(",", "\u00a0").replace(".", ",").replace("-", "−")
 
 
 def svm(x):
@@ -242,13 +243,33 @@ def huvud(nummer, titel, skala, underlag, datum, rev, status="KONSTRUKTION", gra
                 rev=rev, nummer=nummer)
 
 
+_ENHET = re.compile(r"(\d) (mm|cm|m|m²|m³|kg|kN|kPa|MPa|%|min|h|°C)(?![\w²³])")
+_BETECKNING = re.compile(r"\b([A-ZÅÄÖ]{1,3}|\d+)-(?=\w)")      # L-element, R-04.1, SS-EN, 350-150
+_INTERVALL = re.compile(r"(\w)([–/])(?=\w)")             # V4–V6, 30–60, V8/V17
+
+
+def _hardrum(x):
+    """Inga radbrytningar mellan tal och enhet, i beteckningar med bindestreck och i intervall (hårt mellanrum och
+    ordfog, U+2060)."""
+    if isinstance(x, str):
+        x = _ENHET.sub("\\1\u00a0\\2", x)
+        x = _BETECKNING.sub("\\1-\u2060", x)
+        return _INTERVALL.sub("\\1\\2\u2060", x)
+    if isinstance(x, list):
+        return [_hardrum(y) for y in x]
+    if isinstance(x, dict):
+        return {k: _hardrum(y) for k, y in x.items()}
+    return x
+
+
 class Blad:
     def __init__(self, huvud, revisioner, kolumn, vyer, block=()):
         """block: fristående textblock på ritytan, dict(x, y, w, innehall=[kolumnblock])."""
         self.d = dict(huvud=huvud, revisioner=revisioner, kolumn=kolumn, vyer=vyer, block=list(block))
 
     def spara(self, path):
-        d = dict(self.d, vyer=[v.json() for v in self.d["vyer"]])
+        d = dict(self.d, kolumn=_hardrum(self.d["kolumn"]), block=_hardrum(self.d["block"]),
+                 vyer=[v.json() for v in self.d["vyer"]])
         with open(path, "w", encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 

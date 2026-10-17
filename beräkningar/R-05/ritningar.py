@@ -76,7 +76,7 @@ TJOCK = unary_union([KANT, INRE] + list(PLINTAR.values())).intersection(BETONG)
 PLAN = R4.PLAN
 PLAC = dict(
     rubrik=(-200.0, 2500.0), skalstock=(-200.0, 1550.0),
-    natsymbol=(900.0, 4400.0, 1600.0),          # hörnet där järnen i nätsymbolen möts och järnens längd
+    natsymbol=(900.0, 4360.0, 1600.0),          # hörnet där järnen i nätsymbolen möts och järnens längd
     snitt=dict(A=((13150.0, 6100.0), (13990.0, 6100.0), -1), B=((9150.0, 9900.0), (10150.0, 9900.0), -1),
                C=((6200.0, 2190.0), (7780.0, 2190.0), -1)),
 )
@@ -137,9 +137,9 @@ def lager_balkmatt(v):
     with v.lager("matt"):
         # kantbalken längs V21 och V14, balken under V15 och V19
         kedja(v, [ytterliv("V21"), ytterliv("V21") + K.L_BEN, ytterliv("V21") + K.B_L], 5300.0, [5300.0] * 3,
-              sz=5.6)
+              sz=5.6, bg=True)
         kedja(v, [ytterliv("V14") - K.B_L, ytterliv("V14") - K.L_BEN, ytterliv("V14")], 9000.0, [9000.0] * 3,
-              sz=5.6)
+              sz=5.6, bg=True)
         c15 = VAGG["V15"]["c"]
         kedja(v, [c15 - BB / 2, c15 + BB / 2], 9200.0, [9200.0] * 2, sz=5.6)
         c4 = VAGG["V4"]["c"]
@@ -162,17 +162,18 @@ def lager_snitt(v):
 
 # ---------------------------------------------------------------- armering i plan (R-05.2)
 def natsymbol(v):
+    """Näten som två vinklar: underkant (blå) med det långa lodräta benet, överkant (röd) innanför."""
     X, Y, L = PLAC["natsymbol"]
     s = v.s
-    for (st, dy, posx, posy, txt) in (("uk", 0.0, POS["uk_x"], POS["uk_y"], "underkant"),
-                                      ("ok", 700.0, POS["ok_x"], POS["ok_y"], "överkant")):
-        x0, y0 = X, Y + dy
-        v.linje([(x0, y0), (x0 + L, y0)], st)
-        v.linje([(x0, y0), (x0, y0 + L * 0.45)], st)
-        v.bubbla(x0 + L + 2.6 * s, y0, posx)
-        v.text(x0 + L + 5.2 * s, y0, f"Ø{NAT[0]} s{NAT[1]} x-led, {txt}", a="lm", sz=6.6, bg=True)
-        v.bubbla(x0, y0 + L * 0.45 + 2.6 * s, posy)
-        v.text(x0 + 2.6 * s, y0 + L * 0.45 + 2.6 * s, f"Ø{NAT[0]} s{NAT[1]} y-led", a="lm", sz=6.6, bg=True)
+    for (st, dx, dy, ben, posx, posy, txt) in (("uk", 0.0, 0.0, 620.0, POS["uk_x"], POS["uk_y"], "underkant"),
+                                               ("ok", 150.0, 280.0, 150.0, POS["ok_x"], POS["ok_y"], "överkant")):
+        x0, y0 = X + dx, Y + dy
+        v.linje([(x0, y0), (X + L, y0)], st)
+        v.linje([(x0, y0), (x0, y0 + ben)], st)
+        v.bubbla(X + L + 2.6 * s, y0, posx)
+        v.text(X + L + 5.2 * s, y0, f"Ø{NAT[0]} s{NAT[1]} x-led, {txt}", a="lm", sz=6.6, bg=True)
+        v.bubbla(x0, y0 + ben + 2.6 * s, posy)
+        v.text(x0 + 2.6 * s, y0 + ben + 2.6 * s, f"Ø{NAT[0]} s{NAT[1]} y-led, {txt}", a="lm", sz=6.6, bg=True)
     v.text(X, Y - 1.5 * s, "hela plattan, även i balkar och plintar", a="lt", sz=6.4, col="gra", i=True)
 
 
@@ -287,11 +288,11 @@ def lager_armtext(v):
                      bubbla=POS["balk_uk"], a="rm", sz=6.4)
         r = K.ROR_D["P5"]
         p = PLINTAR["P5"]
-        v.hanvisning((p.bounds[0] + 30, r["mitt"][1] + 300), (10700.0, 7300.0), "plint: Ø8 s150 uk, båda riktningarna",
+        v.hanvisning((p.bounds[0] + 30, r["mitt"][1] + 300), (10700.0, 7000.0), "plint: Ø8 s150 uk, båda riktningarna",
                      bubbla=POS["plint"], a="rm", sz=6.4)
         dj = diagonaljarn()[0]
         m = ((dj[0][0] + dj[1][0]) / 2, (dj[0][1] + dj[1][1]) / 2)
-        v.hanvisning(m, (6200.0, 2900.0), "2 Ø10 L = 1 200 diagonalt, överkant, inåtgående hörn", bubbla=POS["diag"],
+        v.hanvisning(m, (6200.0, 2900.0), "2 Ø10 L = 1\u00a0200 diagonalt, överkant, inåtgående hörn", bubbla=POS["diag"],
                      a="lm", sz=6.4)
         st = [p_ for p_, typ, n in startjarn() if n == "V21"]
         v.hanvisning(st[len(st) // 2], (1300.0, 6900.0), "startjärn Ø10 s300, ytterväggarna", bubbla=POS["start_ute"],
@@ -302,46 +303,44 @@ def lager_armtext(v):
 
 
 # ---------------------------------------------------------------- sektioner (R-05.3)
-def grund(v, xa, xb, balkar, s300=False):
-    """Bottenplattan i sektion (R-04:s funktion) med L-elementets yttre ben vid x = 0 om en balk börjar där."""
-    R4.bottenplatta_snitt(v, xa, xb, balkar)
-
-
 def sektion_a():
-    """A–A: kantbalken i L-element (V14) med väggens start. x = 0 i ytterlivet, inåt positivt. 1:10"""
+    """A–A: kantbalken i L-element (V14) med väggens start. x = 0 i väggens ytterliv = L-elementets ytterkant, inåt
+    positivt; betongen börjar innanför L-elementets yttre ben. 1:10"""
     s = 10.0
-    v = Vy(x=24, y=12, w=120, h=96, skala=s, X0=-260.0, Y1=520.0)
+    v = Vy(x=24, y=12, w=120, h=96, skala=s, X0=-160.0, Y1=520.0)
     with v.lager("mark"):
-        v.rekt(-240, -HP - EPS - 120, 0, -HB - TF, fyll="grus", stil=None)
-        v.rekt(-K.T_FOT, -HB, 0, 0, fyll="eps2", stil="tunn")                 # L-elementets yttre ben
-        v.rekt(-K.T_FOT, -HB - TF, 0, -HB, fyll="eps2", stil="tunn")
-    R4.bottenplatta_snitt(v, 0.0, 850.0, [(0.0, BB)], kant=True)
+        v.rekt(-140, -HP - EPS - 120, K.L_BEN, -HB - TF, fyll="grus", stil=None)
+    R4.bottenplatta_snitt(v, K.L_BEN, 850.0, [(K.L_BEN, K.B_L)], kant=True)
     with v.lager("bottenplatta"):
+        v.rekt(0, -HB, K.L_BEN, 0, fyll="eps2", stil="tunn")                  # L-elementets yttre ben
+        v.rekt(0, -HB - TF, K.B_L, -HB, fyll="eps2", stil="tunn")             # L-elementets fot
         v.linje([(0, -HB - TF), (0, 0)], "normal")
+        v.linje([(K.L_BEN, -HB), (K.L_BEN, 0)], "normal")
         v.brott((850, -HP - EPS - 40), (850, 40), "tunn")
     R4.kub_snitt(v, 0.0, 0.0, 420.0, gips=True)
     with v.lager("vagg"):
         v.brott((-40, 420), (K.T_VAGG + 60, 420), "tunn")
     with v.lager("armering"):
         v.linje([(K.X_START + FOT_START, R4.Z_BALK_UK), (K.X_START, R4.Z_BALK_UK), (K.X_START, 400)], "uk")
+    xj, xu = K.B_L - K.BALK_JARN, K.B_L - K.BYGEL_SIDA       # balkens inre järn och bygelns inre ben
     with v.lager("matt"):
-        kedja(v, [-K.T_FOT, 0.0, BB], -HB - TF - 4.0 * s, [-HB - TF] * 3, sz=5.8)
-        kedja(v, [-HB - TF, -HB, -HP, 0.0], -K.T_FOT - 6.0 * s, [-K.T_FOT] * 4, sz=5.8, ax="y")
-        kedja(v, [-HB, -HB + C_UK], 600.0, [BB] * 2, sz=5.4, ax="y")
+        kedja(v, [0.0, K.L_BEN, K.B_L], -HB - TF - 4.0 * s, [-HB - TF] * 3, sz=5.8, bg=True)
+        kedja(v, [-HB - TF, -HB, -HP, 0.0], -6.0 * s, [0.0] * 4, sz=5.8, ax="y")
+        kedja(v, [-HB, -HB + C_UK], K.B_L + 150.0, [K.B_L] * 2, sz=5.4, ax="y")
         kedja(v, [0.0, K.X_START], -HB + 120, [-HB + 46] * 2, sz=5.4)
-    lst = [(f"startjärn Ø{START['d']} s{START['s']}, {START['upp']} upp, foten {sv(FOT_START)} in i balken",
+    lst = [(f"startjärn Ø{START['d']} s{START['s']}, {sv(START['upp'])} upp, foten {sv(FOT_START)} in i balken",
             (K.X_START, 250), POS["start_ute"]),
-           ("2 Ø10 i överkant", (390, -41), POS["balk_ok"]),
-           (f"Ø{NAT[0]} s{NAT[1]} i överkant, täckskikt {C_OK:.0f}", (800, -28), POS["ok_x"]),
-           ("U-byglar Ø6 s600", (405, -110), POS["bygel"]),
-           (f"Ø{NAT[0]} s{NAT[1]} i underkant, täckskikt {C_UK:.0f}", (800, -HP + C_UK + 3), POS["uk_x"]),
-           ("2 Ø10 i underkant", (390, -HB + 41), POS["balk_uk"]),
-           ("L-element L300: ben 100 under väggens cellplast, fot 100 S300", (275, -HB - 50), None),
-           (f"cellplast S100, {sv(EPS)} i två skikt, plastfolie emellan", (800, -HP - EPS / 4), None),
-           ("makadam på sprängt berg", (600, -HP - EPS - 60), None)]
-    etiketter(v, lst, 1000.0, 480.0, 4.4, sz=6.0)
+           ("2 Ø10 i överkant", (xj, R4.Z_BALK_OK), POS["balk_ok"]),
+           ("U-byglar Ø6 s600", (xu, -110), POS["bygel"]),
+           ("2 Ø10 i underkant", (xj, R4.Z_BALK_UK), POS["balk_uk"]),
+           (f"Ø{NAT[0]} s{NAT[1]} i överkant, täckskikt {C_OK:.0f}", (700, -28), POS["ok_x"]),
+           (f"Ø{NAT[0]} s{NAT[1]} i underkant, täckskikt {C_UK:.0f}", (700, -HP + C_UK + 3), POS["uk_x"]),
+           ("L-element L300: ben 100 under väggens cellplast, fot 100 S300", (520, -HB - 70), None),
+           (f"cellplast S100, {sv(EPS)} i två skikt, plastfolie emellan", (780, -HP - EPS / 4), None),
+           ("makadam på sprängt berg", (650, -HP - EPS - 60), None)]
+    etiketter(v, lst, 1000.0, 480.0, 4.4, sz=6.0)       # ordningen ger hänvisningslinjer utan korsningar
     with v.lager("rubrik"):
-        v.rubrik(-250, -HP - EPS - 120 - 7.0 * s, "SEKTION A–A  Kantbalk i L-element (V14)", skala=10, sz=9)
+        v.rubrik(-150, -HP - EPS - 120 - 7.0 * s, "SEKTION A–A  Kantbalk i L-element (V14)", skala=10, sz=9)
     return v
 
 
@@ -361,8 +360,8 @@ def sektion_b():
         v.linje([(0.0, R4.Z_BALK_UK), (0.0, 400)], "uk")                     # startjärn, foten 330 längs balken
         v.cirkel(0.0, R4.Z_BALK_UK, 5, fyll="#2c4a6e", stil=None, modell=True)
     with v.lager("matt"):
-        kedja(v, [-BB / 2, BB / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8)
-    lst = [(f"startjärn Ø{START['d']} s{START['s']} i kärnans mitt,\n{START['upp']} upp, foten {sv(FOT_START)} "
+        kedja(v, [-BB / 2, BB / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8, bg=True)
+    lst = [(f"startjärn Ø{START['d']} s{START['s']} i kärnans mitt,\n{sv(START['upp'])} upp, foten {sv(FOT_START)} "
             "längs balken", (0, 250), POS["start_inne"]),
            ("2 Ø10 i överkant", (165, -41), POS["balk_ok"]),
            ("U-byglar Ø6 s600", (180, -110), POS["bygel"]),
@@ -399,7 +398,7 @@ def sektion_c():
         v.rekt(-K.PLAT / 2 + 4, 0, K.PLAT / 2 - 4, 420, fyll="vit", stil=None)
         v.brott((-80, 420), (80, 420), "tunn")
     with v.lager("matt"):
-        kedja(v, [-b / 2, b / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8)
+        kedja(v, [-b / 2, b / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8, bg=True)
     lst = [("rör VKR 80×80×4 (R-04.5)", (K.PLAT / 2, 300), None),
            ("fotplåt 200 × 200 × 15 S355, kant i kant med plintens överkant", (bx / 2 - 20, -8), None),
            (f"4 svetsbultar Ø{K.SVETSBULT[0]:.0f}, L = {K.SVETSBULT[1]:.0f}", (60, -60), None),
@@ -440,11 +439,11 @@ def detalj_horn():
         kedja(v, [y - K.B_L, y - K.L_BEN, y], x + 3.0 * s, [x] * 3, sz=5.8, ax="y")
         kedja(v, [x - K.T_VAGG, x - K.T_EPS - K.T_KARNA, x - K.T_EPS, x], y - 900.0, [y - 900.0] * 4, sz=5.4)
     with v.lager("text"):
-        v.hanvisning((x - 50, y - 700), (x - 1250, y - 1000), "L-element, ytterkant i väggens ytterliv", a="lm",
+        v.hanvisning((x - 175, y - 450), (x - 700, y - 850), "väggens kärna (streckad, R-04)", a="rm", sz=6.0)
+        v.hanvisning((x - 50, y - 600), (x - 700, y - 1000), "L-element, ytterkant i väggens ytterliv", a="rm",
                      sz=6.0)
-        v.hanvisning((x - 300, y - 1150), (x - 1250, y - 1150), f"kantbalk {sv(BB)} på L-elementets fot", a="lm",
+        v.hanvisning((x - 300, y - 1150), (x - 700, y - 1150), f"kantbalk {sv(BB)} på L-elementets fot", a="rm",
                      sz=6.0)
-        v.hanvisning((x - 175, y - 450), (x - 1250, y - 850), "väggens kärna (streckad, R-04)", a="lm", sz=6.0)
         v.rubrik(x - 1430, y - 1300 - 6.0 * s, "DETALJ D  Yttre hörn i plan (V1/V14)", skala=20, sz=9)
         v.text(x - 1430, y - 1300 - 6.0 * s - 7.0 * s, "Samma vid alla hörn: L-elementets ytterkant i väggens ytterliv.",
                a="lb", sz=6.2, col="gra")
@@ -534,8 +533,8 @@ def plinttabell():
     for r in ROR:
         mx, my = r["mitt"]
         rader.append([r["namn"], sv(K.PLINT[r["namn"]]), sv(mx), sv(my),
-                      "två rör, fotplåt 280 × 200 alternativt 2 fotplåtar 140 × 200" if r["n"] == 2 else ""])
-    return dict(typ="tabell", kolumner=["Plint", "Sida", "x", "y", ""], bredd=(0, 0, 0, 0, 1), rader=rader,
+                      "två rör, fotplåt 280 × 200 eller 2 st 140 × 200 (R-04.5)" if r["n"] == 2 else ""])
+    return dict(typ="tabell", kolumner=["Plint", "Sida", "x", "y", "Anm"], bredd=(0, 0, 0, 0, 1), rader=rader,
                 just=["l", "r", "r", "r", "l"], sz=6.2)
 
 
@@ -627,7 +626,7 @@ def blad_armering():
             "kantbalken och i den korsande balken.",
             f"Plintar: Ø{PLINT_ARM[0]} s{PLINT_ARM[1]} i underkant, båda riktningarna ({POS['plint']}). Fotplåten "
             "gjuts in kant i kant med plintens överkant (R-04.5); näten läggs fritt från svetsbultarna.",
-            f"Inåtgående hörn: 2 Ø10, L = 1 200, i överkant diagonalt, 150 och 250 mm från hörnet ({POS['diag']}).",
+            f"Inåtgående hörn: 2 Ø10, L = 1\u00a0200, i överkant diagonalt, 150 och 250 mm från hörnet ({POS['diag']}).",
             f"Startjärn Ø10 s300, {sv(START['upp'])} upp och {sv(START['ned'])} i balken: den lodräta delen och "
             f"foten, {sv(FOT_START)}, på byglarna. Ytterväggarna på utsidan ({POS['start_ute']}, svarta), med foten "
             "vinkelrätt in i kantbalken (Sundolitt), också under bröstningarna vid F1–F3; innerväggarna i kärnans mitt "
@@ -646,7 +645,7 @@ def blad_armering():
 
 def blad_sektioner():
     vyer = [sektion_a(), sektion_b(), sektion_c(), detalj_horn()]
-    block = [dict(x=24, y=212, w=230, innehall=[
+    block = [dict(x=24, y=212, w=170, innehall=[
         dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning()])]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
