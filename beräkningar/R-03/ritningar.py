@@ -45,7 +45,8 @@ K05P = json.load(open(os.path.join(K05, "rapport", "projekt.json"), encoding="ut
 
 NR = "R-03"
 REV, DATUM = "A", "2026-10-08"
-UNDERLAG = f"K-05 rev {K05P['revision']}, K-06"
+K06P = json.load(open(os.path.join(BER, "K-06", "rapport", "projekt.json"), encoding="utf-8"))
+UNDERLAG = f"K-05 rev {K05P['revision']}, K-06 rev {K06P['revision']}"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 IND = R["indata"]
@@ -445,9 +446,9 @@ def sektion_a():
                     v.cirkel(x, yy, 5, fyll="svart", stil=None, modell=True)
     with v.lager("matt"):
         v.matt((1300, 0), (1300, H), 2.5, sida=-1, sz=6.2)
-        v.matt((0, ylo + 60), (e, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(e))
-        v.matt((e, ylo + 60), (e + k, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(k))
-        v.matt((e + k, ylo + 60), (350, ylo + 60), 2.5, sida=-1, sz=6.0, txt=sv(KUB[2]))
+        v.matt((0, ylo + 220), (e, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(e))
+        v.matt((e, ylo + 220), (e + k, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(k))
+        v.matt((e + k, ylo + 220), (350, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(KUB[2]))
         v.matt((0, H), (VAGG_UTE, H), 2.0, sz=5.8, txt=sv(VAGG_UTE))
         v.matt((xa, yb), (xa + POS14["in_"], yb), 3.0, sz=5.8, txt=sv(POS14["in_"]))
         v.matt((xa, yb - POS14["ben"]), (xa, yb), 3.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
@@ -521,7 +522,7 @@ def sektion_d():
         v.rekt(-175, -5, 175, 0, fyll="papp", stil=None)
     platta_snitt(v, -600, 600, "x")
     with v.lager("matt"):
-        v.matt((-175, -700), (175, -700), 2.5, sida=-1, sz=6.2)
+        v.matt((-175, -560), (175, -560), 2.5, sida=-1, sz=6.2)
     etiketter(v, [("glidskikt (byggpapp) på krönet; bjälklaget förankras inte i innerväggarna", (120, -3), None),
                   ("innervägg Kub 350-150 (K-06)", (0, -400), None)], 700, 150, 4.6)
     with v.lager("rubrik"):
@@ -618,7 +619,8 @@ def hd(nr):
 
 def anvisningar():
     return [
-        "Betong C25/30, exponeringsklass XC1, livslängd 50 år. Armering B500B.",
+        "Betong C25/30, exponeringsklass XC1, livslängd 50 år. Armering B500B. Bjälklaget får gjutas med "
+        "källarväggarnas betong, B30 enligt Sundolitt (K-06, R-04).",
         f"Täckskikt: underkant {C_UK:.0f} mm, överkant {C_OK:.0f} mm, kanter och hålkanter {C_KANT:.0f} mm, även "
         "mot de fria kanterna vid öppningarna i källarens ytterväggar.",
         f"Skarvlängd: Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm. Skarvar förskjuts minst 1,3 × skarvlängden.",
@@ -708,7 +710,7 @@ def blad_ok():
             f"Tilläggsjärnen i zonerna {R['zoner'][0]['namn']}–{R['zoner'][-1]['namn']} läggs i båda riktningarna i nätets lager och binds till nätet "
             "(s150: mitt emellan nätets järn). Där zonen når plattans kant förs järnen ut till kanten.",
             "Vinkeljärnen pos 14 sätts i ytterväggarnas betongkärna, bundna till väggens lodräta järn, innan "
-            "väggarnas översta skift och bjälklaget gjuts (sektion A, K-06)."]),
+            "ytterväggarnas översta skift och bjälklaget gjuts (sektion A, K-06)."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="ok", text="armering i överkant"),
@@ -728,6 +730,7 @@ def blad_sektioner():
     block = [dict(x=196, y=160, w=128, innehall=[
         dict(typ="rubrik", text="Stålförteckning, B500B"), stalforteckning(),
         dict(typ="text", sz=6.4, rader=[
+            "",
             f"Näten räknade över hela plattan (även plattan på mark) med en skarv per 12 m stång. "
             f"Skarvlängd Ø8 {SKARV[8]}, Ø10 {SKARV[10]}, Ø12 {SKARV[12]} mm."])])]
     kol = [
@@ -739,7 +742,7 @@ def blad_sektioner():
             "Ytterväggarnas översta halva skift gjuts samtidigt med bjälklaget, i den ordning K-06 anger. "
             "Bjälklagets form och stämp står för sig själva och hänger inte i Kub-elementen. "
             "Pos 14 binds till väggens lodräta järn före gjutning.",
-            "Innerväggarna får glidskikt (byggpapp) på krönet.",
+            "Innerväggarna gjuts i hela höjden före bjälklaget och får glidskikt (byggpapp) på krönet (R-04).",
             "Formrivning tidigast när betongen nått cirka 70 % av fck (provkroppar eller mognadsberäkning). "
             "Last under byggtiden högst 5 kN/m², punktlaster över rör eller vägg.",
             "Trägolv limmas först när betongens relativa fuktighet är under golvlimmets gräns (mätt enligt RBK). "

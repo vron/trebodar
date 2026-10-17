@@ -75,10 +75,11 @@ def balkar(plint):
     """Kantbalk längs hela konturen, balkar under innerväggarna och plintar (sida plint[i]) under rören."""
     poly = kallare()
     kant = poly.difference(poly.buffer(-I.B_BALK, join_style=2))
-    # V4–V6 står på en balk i hela linjen mellan V19 och V15, också under dörröppningarna
+    # V4–V6 står på en balk i hela linjen mellan V19 och V15, också under dörröppningarna. Ändarna förlängs en halv
+    # balkbredd, så att balkarna är hela i hörnen och når kantbalken.
     y4, x19, x15 = G["vagg"][3][1], G["vagg"][18][1], G["vagg"][14][1]
-    inre = unary_union([LineString(VAGGLIN[i]).buffer(I.B_BALK / 2, cap_style=2) for i in INRE] +
-                       [LineString([(x19, y4), (x15, y4)]).buffer(I.B_BALK / 2, cap_style=2)])
+    inre = unary_union([LineString(VAGGLIN[i]).buffer(I.B_BALK / 2, cap_style=3) for i in INRE] +
+                       [LineString([(x19, y4), (x15, y4)]).buffer(I.B_BALK / 2, cap_style=3)])
     pl = [box(x - b / 2, y - b / 2, x + b / 2, y + b / 2) for (x, y), b in zip(PEL, plint)]
     return poly, kant, inre.intersection(poly), unary_union(pl).intersection(poly)
 

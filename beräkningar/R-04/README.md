@@ -12,7 +12,7 @@ Ritningarna till källarens väggar av Sundolitt Kub 350-150 och rören under me
 
 `kallare.py` är källarens geometri för både R-04 och R-05: väggarna ur K-05:s `geometri.json` (centrumlinjer, betongkärnans ändar vid öppningarna), hörn och anslutningar, öppningarna med bröstningens höjd, rören (P7 två rör), bottenplattans kontur, balkar och plintar (K-06). Bröstningens höjd är R-04:s egen uppgift. Inget läses ur modellen; `verktyg/modellanalys/kontroll_r045.py` jämför `kallare.py` med modellen. `ritningar.py` är uppdelad i underlag, placeringar (`PLAN`, `PLAC`, `ELEV`), lager, blad och main.
 
-Positionsnummer: R-03 1–14, R-04 21–27, R-05 31–41.
+Positionsnummer: R-03 1–14, R-04 21–28, R-05 31–41. Stålförteckningarna räknas ur samma funktioner som ritar järnen.
 
 ## Köra
 

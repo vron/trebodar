@@ -221,10 +221,11 @@ def kantbalk():
 
 
 def balkar_inre():
-    """Balkar 450 mm under innerväggarna (K-06): V15, V19 och V4–V6 i hela linjen mellan V19 och V15."""
+    """Balkar 450 mm under innerväggarna (K-06): V15, V19 och V4–V6 i hela linjen mellan V19 och V15, hela även i
+    hörnen (ändarna förlängda en halv balkbredd) och fram till kantbalken."""
     y4, x19, x15 = VAGG["V4"]["c"], VAGG["V19"]["c"], VAGG["V15"]["c"]
     lin = [_linje(VAGG[n], VAGG[n]["a"], VAGG[n]["b"]) for n in ("V15", "V19")] + [LineString([(x19, y4), (x15, y4)])]
-    return unary_union([l.buffer(B_BALK / 2, cap_style="flat") for l in lin]).intersection(KALLARE)
+    return unary_union([l.buffer(B_BALK / 2, cap_style="square") for l in lin]).intersection(KALLARE)
 
 
 def plintar():

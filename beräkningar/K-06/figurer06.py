@@ -267,11 +267,11 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     ax.add_patch(Polygon([(0, yb), (450, yb), (450, -hp), (1750, -hp), (1750, 0), (0, 0)],
                          closed=True, fc=BETONG, ec=INK, lw=0.5, zorder=2))
     for x in (60, 390):
-        ax.add_patch(Circle((x, yb + 45), 9, fc=INK, zorder=5))
-        ax.add_patch(Circle((x, -35), 9, fc=INK, zorder=5))
-    ax.plot([45, 45, 405, 405], [-25, yb + 30, yb + 30, -25], color=INK, lw=0.6, zorder=5)
-    ax.plot([380, 1750], [-hp + 33] * 2, color=INK, lw=0.5, zorder=5)
-    ax.plot([380, 1750], [-28] * 2, color=INK, lw=0.5, zorder=5)
+        ax.add_patch(Circle((x, yb + 41), 9, fc=INK, zorder=5))        # på byglarna
+        ax.add_patch(Circle((x, -42), 9, fc=INK, zorder=5))            # under överkantsnätet
+    ax.plot([45, 45, 405, 405], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.6, zorder=5)
+    ax.plot([30, 1750], [-hp + 33] * 2, color=INK, lw=0.5, zorder=5)     # näten går genom balken
+    ax.plot([25, 1750], [-28] * 2, color=INK, lw=0.5, zorder=5)
     # väggen i två delar
     xs_h = (k0 + I.C_UT + 5, k1 - I.C_IN - 5)                       # vågräta järn
     x_v = k1 - I.C_IN - 10 - 5                                       # lodräta järn på insidan
@@ -298,7 +298,8 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
     ax.plot([x_v, x_v], [gap[1] + 15, yv + 3], color=FRI, lw=0.9, zorder=6)
     ax.plot([x_v - 14, x_v - 14, x_v - 14 + I.VINKEL["in_"]], [yv - I.VINKEL["ned"], yv, yv], color=FRI, lw=0.9,
             zorder=6)
-    ax.plot([x_s + 330, x_s, x_s], [yb + 30, yb + 30, gap[0] - 15], color=FRI, lw=0.9, zorder=6)
+    ax.plot([x_s, x_s], [yb + 41, gap[0] - 15], color=FRI, lw=0.9, zorder=6)          # foten 330 längs balken
+    ax.add_patch(Circle((x_s, yb + 41), 11, fc=FRI, zorder=7))
     # mellanbjälklaget och kantisoleringen; den yttre cellplasten i översta skiftet slutar i bjälklagets underkant
     ax.add_patch(Polygon([(I.KI, H), (1750, H), (1750, H + hm), (I.KI, H + hm)], closed=True, fc=BETONG, ec=INK,
                          lw=0.5, zorder=3))
@@ -347,7 +348,7 @@ def rita_detalj(path, arm, h_balk=200.0, t_eps=200.0):
            (f"lodräta järn Ø{dia} s{s} på insidan, upp till bjälklagets överkantsnät", (x_v, 1550), (900, 1650)),
            ("2 Ø10 per skift, ett vid var yta (s600; s300 i de två översta)", (xs_h[1], 1475), (900, 1420)),
            ("gips 13 mm, ingen ångspärr", (xi + 7, 1150 - 500), (900, 650)),
-           (f"startjärn Ø{I.STARTJARN['d']} s{I.STARTJARN['s']} på utsidan, 500 i kantbalken, 1 200 upp",
+           (f"startjärn Ø{I.STARTJARN['d']} s{I.STARTJARN['s']} på utsidan, 1 200 upp, foten längs kantbalken",
             (x_s, 450), (-400, 450)),
            (f"kantbalk 450 × {sv(h_balk)}: 2 Ø10 uk + 2 Ø10 ök, U-byglar Ø6 s600", (390, yb + 45), (700, yb - 60)),
            ("platta 100: Ø6 s150 i över- och underkant", (1300, -hp + 33), (1450, 200)),
@@ -453,18 +454,19 @@ def rita_lokala(path, h_balk=200.0, t_eps=200.0):
     xl, yl = (-800, 800), (-400, 470)
     ax = panel(0.25, 0.95, xl, yl)
     grund(ax, -750, 750, -225, 225)
-    for x in (-160, 160):
-        dot(ax, x, yb + 41); dot(ax, x, -36)
-    ax.plot([-175, -175, 175, 175], [-25, yb + 30, yb + 30, -25], color=INK, lw=0.7, zorder=6)
+    for x in (-165, 165):
+        dot(ax, x, yb + 41); dot(ax, x, -42)
+    ax.plot([-180, -180, 180, 180], [-28, yb + 33, yb + 33, -28], color=INK, lw=0.7, zorder=6)
     R(ax, -175, 0, e, 450, EPS, z=3); R(ax, -75, 0, kt, 450, KARNA, z=3); R(ax, 75, 0, e, 450, EPS, z=3)
-    ax.plot([-60, -60, -60], [-hp + 40, 0, 420], color=FRI, lw=0.9, zorder=6)
+    ax.plot([0, 0], [yb + 41, 420], color=FRI, lw=0.9, zorder=6)          # i kärnans mitt, foten längs balken
+    ax.add_patch(Circle((0, yb + 41), 11, fc=FRI, zorder=7))
     brott(ax, -230, 230, 400)
     matt(ax, -225, 225, ybot - 50, "450")
     ld = [("innervägg Kub 350-150 (V4–V6, V15, V19)", (0, 250), (-500, 330)),
-          ("startjärn Ø10 s300, 500 i balken, 1 200 upp", (-60, 120), (-520, 150)),
-          ("2 Ø10 i överkant", (160, -36), (520, 160)),
+          ("startjärn Ø10 s300 i kärnans mitt, 1 200 upp, foten längs balken", (0, 120), (-520, 150)),
+          ("2 Ø10 i överkant", (165, -42), (520, 160)),
           ("U-byglar Ø6 s600", (175, -110), (520, -20)),
-          ("2 Ø10 i underkant", (160, yb + 41), (520, -330)),
+          ("2 Ø10 i underkant", (165, yb + 41), (520, -330)),
           (f"cellplast S200, {sv(tf)} mm under balken", (-120, yb - 50), (-520, -330))]
     nummer(ax, ld)
     lista(0.1, 0.8, "b) Balk under innervägg", ld)
