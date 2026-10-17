@@ -1,6 +1,7 @@
 """
 K-06: huvudskript. Den samverkande modellen (berakning06.py, körs om res06_*.pkl saknas), kontrollerna av
-bottenplattan (kontroll06.py), väggarna och byggskedet (vaggar.py) och global stabilitet. Skriver resultat.json.
+bottenplattan (kontroll06.py), innerväggarnas inspänning i bjälklaget (innervaggar.py, körs om innervaggar.json
+saknas), väggarna och byggskedet (vaggar.py) och global stabilitet. Skriver resultat.json.
 
     python berakning.py          (cirka 10 min första gången)
 """
@@ -60,6 +61,9 @@ def main(om=False):
                      for v in ("lång", "kort")):
         subprocess.run([sys.executable, os.path.join(HERE, "berakning06.py")], check=True, cwd=HERE)
     subprocess.run([sys.executable, os.path.join(HERE, "kontroll06.py")], check=True, cwd=HERE)
+    if om or not os.path.exists(os.path.join(HERE, "innervaggar.json")):
+        subprocess.run([sys.executable, os.path.join(HERE, "innervaggar.py")], check=True, cwd=HERE)
+        VG.INNER = json.load(open(os.path.join(HERE, "innervaggar.json"), encoding="utf-8"))
     R = dict(indata=dict(K0=I.K0, KA=I.KA, fi=I.FI_JORD, gamma=I.GAMMA_JORD, q=I.Q_MARK, h_fyll_mark=I.H_FYLL_MARK,
                          g_mark=I.G_MARK, q_mark=I.Q_MARK_PLATTA, H=I.H_VAGG, Ls=VG.LS, sig_komp=I.SIG_KOMP,
                          P_platta=I.P_PLATTA, g_bygg=I.G_BYGG, q_bygg=I.Q_BYGG, e_topp=VG.E_TOPP))
@@ -72,6 +76,7 @@ def main(om=False):
     R["hornlast"] = VG.hornlast()
     R["platta"] = json.load(open(os.path.join(HERE, "kontroll06.json"), encoding="utf-8"))
     R["glidning"] = glidning()
+    R["innervaggar"] = VG.INNER
     json.dump(R, open(os.path.join(HERE, "resultat.json"), "w"), indent=1, ensure_ascii=False, default=float)
     print("klart")
 

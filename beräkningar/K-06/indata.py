@@ -94,6 +94,8 @@ C_IN, C_UT = 25.0, 30.0  # mot insidan (XC1) och mot utsidan, mot cellplast och 
 ARM_H = dict(d=10, s=600, s_topp=300)     # 2 Ø10 per skift, ett vid var yta; s300 i de två översta skiften (TG 2216)
 ARM_V = [(10, 300), (10, 200), (10, 150), (12, 150)]   # lodräta järn på insidan: TG 2216 anger Ø10 s300
 STARTJARN = dict(d=10, s=300, ned=500, upp=1200)       # på utsidan, i kantbalken och upp i väggen (TG 2216)
+ARM_INRE = (10, 300)     # innerväggarna, gjutna i ett med bjälklaget: lodräta järn i kärnans mitt, hela höjden upp under
+                         # bjälklagets överkantsnät, skarvade med startjärnen
 SKARV = 500.0            # skarvlängd, och vinkeljärn 750 mm åt var håll i hörn (TG 2216)
 VINKEL = dict(ned=650.0, in_=500.0)     # vinkeljärn till bjälklaget: ned i väggen och in under överkantsnätet (R-06)
 OPPNING = dict(n=2, d=12, forankring=600)               # runt öppningar (TG 2216)
@@ -101,7 +103,8 @@ OPPNING = dict(n=2, d=12, forankring=600)               # runt öppningar (TG 22
 # fästmassa och armeringsbruk, från 50 mm under mark till mellanbjälklagets överkant.
 G_KUB = 25 * T_KARNA / 1000 + 0.2 * 2 * T_EPS_V / 1000 + 0.11          # kN/m²
 G_STEN = 1.3                                                             # kN/m²
-H_GJUT1 = 1800.0         # första gjutningen: tre hela skift; det översta halva skiftet (300) gjuts med bjälklaget
+H_GJUT1 = 1800.0         # första gjutningen: tre hela skift i alla väggar; det översta halva skiftet (300) gjuts med
+                         # bjälklaget, också i innerväggarna
 
 # ------------------------------------------------------------------ cellplast (EPS-Sverige, WSP 10221233)
 # karakteristisk tryckhållfasthet f_ck och E-modul E_k (kPa) enligt tabell 1.2.2a

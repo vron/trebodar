@@ -456,14 +456,13 @@ def _fordela(t0, t1, s, med0=True, med1=True):
 
 
 def lodrata_t(w):
-    """Lägen längs ytterväggen w för de lodräta järnen Ø10 (22) på insidan, med väggens avstånd enligt K-06 (s200 eller
-    TG 2216:s s300): från den vinkelräta väggens kärna
-    + 50 vid hörn och anslutningar; vid en öppning fram till öppningens järn (26), 40 mm från kärnans ände."""
-    if w["ute"] is None:
-        return []
+    """Lägen längs väggen w för de lodräta järnen Ø10 (22), med väggens avstånd enligt K-06 (ytterväggar på insidan
+    s200 eller TG 2216:s s300, innerväggar i kärnans mitt s300): från den vinkelräta väggens kärna + 50 vid hörn och
+    anslutningar; vid en öppning fram till öppningens järn (26), 40 mm från kärnans ände."""
+    s_ = K.ARM_V_VAGG[w["namn"]][1] if w["ute"] is not None else K.ARM_INRE[1]
     t0, med0 = (w["mot_a"]["c"] + K.T_KARNA / 2 + 50.0, True) if w["mot_a"] else (w["a"] + 40.0, False)
     t1, med1 = (w["mot_b"]["c"] - K.T_KARNA / 2 - 50.0, True) if w["mot_b"] else (w["b"] - 40.0, False)
-    return _fordela(t0, t1, K.ARM_V_VAGG[w["namn"]][1], med0, med1)
+    return _fordela(t0, t1, s_, med0, med1)
 
 
 def lodrata_under(o):
@@ -473,10 +472,8 @@ def lodrata_under(o):
 
 
 def lodrata(w):
-    """Lodräta järn Ø10 på insidan av en yttervägg: punkter i plan."""
-    if w["ute"] is None:
-        return []
-    q = w["ytterliv"] - w["ute"] * K.X_LODRAT
+    """Lodräta järn Ø10 i plan: på ytterväggarnas insida och i innerväggarnas mitt."""
+    q = w["c"] if w["ute"] is None else w["ytterliv"] - w["ute"] * K.X_LODRAT
     return [(t, q) if w["ax"] == "h" else (q, t) for t in lodrata_t(w)]
 
 
@@ -493,10 +490,9 @@ def oppningsjarn_plan(o):
 
 def oppning_z(o):
     """Öppningens järn (26) i höjdled: från 600 under bröstningen (dörrar: från bottenplattan) upp under
-    mellanbjälklagets överkantsnät i ytterväggarna och till 30 mm under krönet i innerväggarna (glidskikt)."""
+    mellanbjälklagets överkantsnät."""
     za = (o["z0"] - K.OPP["forankring"]) if o["z0"] > 0 else 0.0
-    zb = K.L_LODRAT if o["typ"] == "yttre" else H - 30.0
-    return za, zb
+    return za, K.L_LODRAT
 
 
 def lager_armering(v):
@@ -540,10 +536,9 @@ def anvisningar():
         "ballast minskad 25 %, sättmått 180–200 mm. Armering B500B, täckskikt till de vågräta järnen 25 mm inne och "
         "30 mm ute. Höjd 2\u00a0100 till mellanbjälklagets underkant: tre hela skift (1\u00a0800) och ett halvt (300).",
         "Gjutning (K-06): pump med reducerat tryck, högst 1 m per timme och högst 2,4 m per gjutning, ingen vibrator. "
-        "Först ytterväggarnas tre hela skift, upp till 1\u00a0800, och innerväggarna (V4–V6, V15, V19) i hela höjden. "
-        "Fogen ruggas och rengörs; innerväggarnas krön avjämnas och får glidskikt (byggpapp), så att bjälklaget inte "
-        "förankras i dem. Ytterväggarnas halva skift gjuts med mellanbjälklaget: fyll skiftet, vänta 30–60 min, fyll "
-        "upp igen och gjut bjälklaget.",
+        "Först de tre hela skiften i alla väggar, upp till 1\u00a0800; fogen ruggas och rengörs. Det halva skiftet, "
+        "också i innerväggarna, gjuts med mellanbjälklaget: fyll skiftet, vänta 30–60 min, fyll upp igen och gjut "
+        "bjälklaget.",
         "Återfyllning först när betongen nått 20 MPa. V3 och V20 fylls till 1,7 m före mellanbjälklaget, övriga väggar "
         "efter. Inom 1 m från väggen lager om högst 0,2 m och lätt vibroplatta, högst 100 kg (K-06).",
         "Vid fönster och dörrar ligger den färdiga öppningen 100 mm innanför betongen: Sundolitts smyglist 100 × 350 "
@@ -629,9 +624,10 @@ def armeringstabell():
          f"2 Ø{d}/skift, s{s_}/s{st} ({POS['hor']})"],
         [", ".join(GLES), f"Ø{K.ARM_V_TG[0]} s{K.ARM_V_TG[1]} ({POS['lod']})", f"2 Ø{d}/skift, s{s_}/s{st} ({POS['hor']})"],
         ["V3", f"Ø{K.ARM_V[0]} s{K.ARM_V[1]} ({POS['lod']})", f"Ø{d} s300 båda ytorna ({POS['v3']})"],
-        [", ".join(inre), "startjärn (R-04)", f"2 Ø{d}/skift, s{s_}/s{st} ({POS['hor']})"],
+        [", ".join(inre), f"Ø{K.ARM_INRE[0]} s{K.ARM_INRE[1]} i mitten ({POS['lod']})",
+         f"2 Ø{d}/skift, s{s_}/s{st} ({POS['hor']})"],
     ]
-    return dict(typ="tabell", kolumner=["Väggar", "Lodrätt, insidan", "Vågrätt"], bredd=(1, 0, 0), rader=rader,
+    return dict(typ="tabell", kolumner=["Väggar", "Lodrätt (ytterväggar: insidan)", "Vågrätt"], bredd=(1, 0, 0), rader=rader,
                 just=["l", "l", "l"], sz=6.2)
 
 
@@ -674,7 +670,7 @@ def blad_armering():
         dict(typ="lista", sz=6.8, rader=[
             f"Vågräta järn: 2 Ø{d} per skift, ett vid var yta, s{s_} i de två nedre skiften och s{st} i "
             "de två översta, i alla väggar utom V3. Skarvlängd minst 500.",
-            "Lodräta järn: Ø10 på insidan i alla ytterväggar, delning enligt tabellen.",
+            "Lodräta järn Ø10: på insidan i ytterväggarna och i kärnans mitt i innerväggarna, delning enligt tabellen.",
             "V3: Ø10 s300 i båda ytorna i hela höjden. V3 bär fyllningen innan mellanbjälklaget gjuts (byggskedet).",
             "Hörn: vinkeljärn Ø10, 750 + 750, vid båda ytorna i varje lager, skarv 500 med de raka järnen. "
             "Anslutningar mot en genomgående vägg: vinkeljärn 900 + 750 genom kärnan och 750 längs den genomgående "
@@ -687,7 +683,7 @@ def blad_armering():
         dict(typ="symboler", rader=[
             dict(form="linje", stil="tunn", text="vågräta järn (planen visar ett lager)"),
             dict(form="linje", stil="ok", text="vinkeljärn i hörn och anslutningar"),
-            dict(form="punkt", r=0.32, text="lodräta järn Ø10 på insidan (tabellen)"),
+            dict(form="punkt", r=0.32, text="lodräta järn Ø10 (tabellen)"),
             dict(form="punkt", r=0.5, fyll="#b5463a", text="2 Ø12 längs öppningarnas sidor"),
             dict(form="bubbla", txt="21", text="positionsnummer (stålförteckning R-05.5)")]),
         dict(typ="rubrik", text="Väggarnas armering"),
@@ -722,8 +718,8 @@ def oppningar_langs(e):
 
 
 def lodrata_elev(e):
-    """Lodräta järn längs väggraden: [(x, z0, z1, pos)]; i ytterväggarna (22) upp under mellanbjälklagets
-    överkantsnät och under bröstningarna (28) upp till bröstningens järn (27)."""
+    """Lodräta järn längs väggraden: [(x, z0, z1, pos)]: (22) upp under mellanbjälklagets överkantsnät och under
+    bröstningarna (28) upp till bröstningens järn (27)."""
     ut = [(t, 0.0, K.L_LODRAT, POS["lod"]) for n in e["vaggar"] for t in lodrata_t(VAGG[n])]
     for o in oppningar_langs(e):
         if o["typ"] == "yttre":
@@ -766,11 +762,8 @@ def elevation(e):
         for z in (K.SKIFT, 2 * K.SKIFT):
             for (p0, p1) in _utan_oppningar(xa, xb, z, oppn):
                 v.linje([(p0, z), (p1, z)], "fin")
-        if ytter:                                   # innerväggarna gjuts i hela höjden före bjälklaget
-            for (p0, p1) in _utan_oppningar(xa, xb, K.H_GJUT1, oppn):
-                v.linje([(p0, K.H_GJUT1), (p1, K.H_GJUT1)], "axel")
-        else:
-            v.rekt(xa, H - 12, xb, H, fyll="papp", stil=None)
+        for (p0, p1) in _utan_oppningar(xa, xb, K.H_GJUT1, oppn):
+            v.linje([(p0, K.H_GJUT1), (p1, K.H_GJUT1)], "axel")
     with v.lager("armering"):
         zs = K.Z_HOR_V3 if v3 else K.Z_HOR
         for z in zs:
@@ -800,10 +793,6 @@ def elevation(e):
                 if t:
                     xm = min(((p + q) / 2 for p, q in zip(t, t[1:])), key=lambda m: abs(m - xm), default=xm)
                 kedja(v, [0.0, o["z0"], H], xm, [xm] * 3, sz=5.8, ax="y", bg=True)
-    if not ytter:
-        with v.lager("text"):
-            v.hanvisning((xa + 250, H - 6), (xa + 250, H + HMB + 450), "glidskikt (byggpapp) på krönet, R-06",
-                         a="lm", sz=6.0)
     with v.lager("rubrik"):
         v.rubrik(xa - 1250, -K.UTF["h_balk"] - 12.0 * s, e["titel"], skala=50, sz=8.5)
     return v
@@ -887,10 +876,10 @@ def blad_elevationer():
             f"{', '.join(sv(z) for z in K.Z_HOR)}. V3: s300 i hela höjden, "
             f"{', '.join(sv(z) for z in K.Z_HOR_V3)}. Järnen ligger i bindarnas hållare; höjderna kan avvika "
             "med elementens hållare.",
-            f"Lodräta järn: Ø10 på insidan av ytterväggarna, högst s{K.ARM_V[1]} eller "
-            f"s{K.ARM_V_TG[1]} enligt R-05.2, L = {sv(K.L_LODRAT)}, från 50 mm innanför den vinkelräta väggens kärna "
+            f"Lodräta järn: Ø10, L = {sv(K.L_LODRAT)}, i ytterväggarna på insidan, högst s{K.ARM_V[1]} eller "
+            f"s{K.ARM_V_TG[1]} enligt R-05.2, från 50 mm innanför den vinkelräta väggens kärna "
             f"fram till öppningarnas järn. Under bröstningarna Ø10 högst s{K.ARM_V_TG[1]} upp till bröstningens järn. "
-            "Innerväggarna har startjärn (R-04); startjärnen är inte ritade.",
+            f"Innerväggarna: Ø10 s{K.ARM_INRE[1]} i kärnans mitt, skarvade med startjärnen (R-04), som inte är ritade.",
             "Öppningar: 2 Ø12 längs sidorna.",
             "Mått i mm, höjder från bottenplattans överkant. Plan R-05.1, armering i plan R-05.2, "
             "stålförteckning R-05.5."]),
@@ -899,9 +888,9 @@ def blad_elevationer():
             dict(form="yta", fyll="karna", stil="tunn", text="betongkärna 150 (Kub 350-150)"),
             dict(form="linje", stil="uk_tunn", text=f"vågräta järn, ett vid var yta ({POS['hor']}; V3: {POS['v3']})"),
             dict(form="linje", stil="fordelning",
-                 text=f"lodräta järn Ø10, insidan ({POS['lod']}, {POS['lod_under']})"),
+                 text=f"lodräta järn Ø10 ({POS['lod']}, {POS['lod_under']})"),
             dict(form="linje", stil="ok", text=f"2 Ø12 vid öppningarna ({POS['opp_sida']}, {POS['opp_under']})"),
-            dict(form="linje", stil="axel", text="gjutfog, 1\u00a0800 (ytterväggarna)"),
+            dict(form="linje", stil="axel", text="gjutfog, 1\u00a0800"),
             dict(form="linje", stil="dold", text="färdig öppning, smyglist 100 vid sidorna och bröstningen")]),
     ]
     return Blad(hd("R-05.3"), REVISIONER, kol, vyer)
@@ -1092,7 +1081,7 @@ def sektion_a():
 
 
 def sektion_b():
-    """B–B: innervägg (V15) på balk i bottenplattan, glidskikt mot mellanbjälklaget. x = 0 i väggens mitt. 1:20"""
+    """B–B: innervägg (V15) på balk i bottenplattan, gjuten i ett med mellanbjälklaget. x = 0 i väggens mitt. 1:20"""
     s = 20.0
     v = Vy(x=144, y=12, w=102, h=168, skala=s, X0=-420.0, Y1=H + H_MB + 300.0)
     bb = K.B_BALK / 2
@@ -1100,11 +1089,10 @@ def sektion_b():
     with v.lager("bottenplatta"):
         for x in (-400, 400):
             v.brott((x, -K.H_PLATTA - EPS_PL - 40), (x, 40), "tunn")
-    kub_snitt(v, -K.T_VAGG / 2, 0.0, H, rikt=1, gips=False, fog=False)
+    kub_snitt(v, -K.T_VAGG / 2, 0.0, H, rikt=1, gips=False)
     with v.lager("vagg"):
         v.rekt(-K.T_VAGG / 2 - 13, 0, -K.T_VAGG / 2, H, fyll="vit", stil="tunn")
         v.rekt(K.T_VAGG / 2, 0, K.T_VAGG / 2 + 13, H, fyll="vit", stil="tunn")
-        v.rekt(-K.T_VAGG / 2, H - 5, K.T_VAGG / 2, H, fyll="papp", stil=None)        # glidskikt (R-06)
     mellanbjalklag_snitt(v, -400.0, 400.0)
     with v.lager("armering"):
         for z in K.Z_HOR:
@@ -1112,13 +1100,15 @@ def sektion_b():
                 v.cirkel(x, z, 5, fyll="svart", stil=None, modell=True)
         v.linje([(0.0, Z_BALK_UK), (0.0, K.STARTJARN["upp"])], "uk")         # startjärn, foten längs balken
         v.cirkel(0.0, Z_BALK_UK, 5, fyll="#2c4a6e", stil=None, modell=True)
+        v.linje([(12.0, 20.0), (12.0, Z_OK_NAT - DO05 / 2 - 5)], "ok_tunn")   # lodräta järn i mitten, upp under nätet
     with v.lager("matt"):
         kedja(v, [-bb, bb], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 2, sz=5.6, bg=True)
-        kedja(v, [-K.T_VAGG / 2, K.T_VAGG / 2], 1750.0, [1750.0] * 2, sz=5.6)
-    lst = [("glidskikt (byggpapp) på krönet (R-06)", (100, H - 3), None),
-           ("mellanbjälklag (R-06), inte förankrat", (250, H + 75), None),
+        kedja(v, [-K.T_VAGG / 2, K.T_VAGG / 2], 1750.0, [1750.0] * 2, sz=5.6, bg=True)
+    lst = [("mellanbjälklag (R-06), gjuts med väggens översta skift", (250, H + 75), None),
+           (f"Ø{K.ARM_INRE[0]} s{K.ARM_INRE[1]} i mitten, upp under överkantsnätet", (12, 1950), POS["lod"]),
+           ("gjutfog 1\u00a0800", (40, K.H_GJUT1), None),
            ("2 Ø10 per skift, ett vid var yta", (45, K.Z_HOR[3]), POS["hor"]),
-           ("Kub 350-150, gjuts i hela höjden före bjälklaget", (0, 1300), None),
+           ("Kub 350-150", (0, 1300), None),
            (f"startjärn Ø10 s300 i kärnans mitt, fot längs balken (R-04 pos {POS05['start_inne']})", (0, 600), None),
            (f"balk {sv(K.B_BALK)} × {sv(HB)} (R-04)", (150, -60), None)]
     etiketter(v, lst, 480.0, H + H_MB + 200, 6.6, sz=6.2)
@@ -1407,7 +1397,7 @@ def stalforteckning(mangd=False):
     rad(POS["hor"], d, "rak", f"s{s_}/s{st}", n21, "var.", m21 / 1000, "vågräta, alla väggar utom V3")
     nl = sum(len(lodrata_t(w)) for w in V)
     rad(POS["lod"], K.ARM_V[0], "rak", f"s{K.ARM_V[1]}/s{K.ARM_V_TG[1]}", nl, sv(K.L_LODRAT), nl * K.L_LODRAT / 1000,
-        "lodräta, ytterväggarnas insida")
+        "lodräta, ytterväggarnas insida och innerväggarnas mitt")
     # vinkeljärn i hörnen, grupperade efter benens längd (kortade ben avrundade nedåt till 20 mm)
     grupper = {}
     for pos, pl, n in hornjarn():

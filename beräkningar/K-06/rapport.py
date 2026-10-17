@@ -104,15 +104,25 @@ D["v18"] = f(_v18[0], 1)
 D["v1"] = f(I.FYLL["V1"]["h"][0], 1)
 # vertikal last
 yv = [v for v in R["vaggar"] if "vert" in v and v["vert"]["metod"] == "armerad"]
-iv = [v for v in R["vaggar"] if "vert" in v and v["vert"]["metod"] == "oarmerad"]
+iv = [v for v in R["vaggar"] if "vert" in v and v["vert"]["metod"] == "inre"]
 ym = max(yv, key=lambda v: v["vert"]["utn"])
 im = max(iv, key=lambda v: v["vert"]["utn"])
 nm = max(R["vaggar"], key=lambda v: v.get("vert", {}).get("N", 0))
 D["vert"] = dict(ynamn=ym["namn"], yN=f(ym["vert"]["N"]), yutn=pr(ym["vert"]["utn"]), yM=f(ym["vert"]["M"]),
-                 yMRd=f(ym["vert"]["MRd"]), inamn=im["namn"], iN=f(im["vert"]["N"]), iNRd=f(im["vert"]["NRd"], 0),
-                 iutn=pr(im["vert"]["utn"]), Phi=f(im["vert"]["Phi"], 2), Nmax=f(nm["vert"]["N"]), Nnamn=nm["namn"],
+                 yMRd=f(ym["vert"]["MRd"]), inamn=im["namn"], iN=f(im["vert"]["N"]), iM=f(im["vert"]["M"]),
+                 iMRd=f(im["vert"]["MRd"]), iM2=f(im["vert"]["M2"]), iutn=pr(im["vert"]["utn"]), Nmax=f(nm["vert"]["N"]), Nnamn=nm["namn"],
                  lam=f(ym["vert"]["lam"], 0), lam_lim=f(min(v["vert"]["lam_lim"] for v in yv if "dim" in v), 0),
                  M2=", ".join(v["namn"] for v in yv if v["vert"]["M2"] > 0) or "inga")
+# innerväggarna gjutna i ett med bjälklaget (innervaggar.py)
+IN = R["innervaggar"]
+_mt = max(iv, key=lambda v: v["vert"]["Mtopp"])
+_nt = min(iv, key=lambda v: v["vert"]["Nt"])
+_pl = IN["platta"]
+D["inre"] = dict(k=f(IN["k"], 0), Mt=f(_mt["vert"]["Mtopp"], 2), Mtn=_mt["namn"], Nt=f(-_nt["vert"]["Nt"]),
+                 Ntn=_nt["namn"], NRdt=f(_nt["vert"]["NRdt"], 0), Mtt=f(_nt["vert"]["Mt"], 2),
+                 MRdt=f(_nt["vert"]["MRdt"]), dm=f(_pl["okning"]), fran=f(_pl["fran"]), till=f(_pl["till"]),
+                 lager=_pl["lager"], MRdnat=f(VG.MRd(VG.As(8, 150), 150 - 25 - 12, 25)),
+                 dror=f(abs(IN["ror"]["andring"])), arm=f"Ø{I.ARM_INRE[0]} s{I.ARM_INRE[1]}")
 h = R["hornlast"]
 D["horn"] = dict(F=f(h["F"], 0), av=mm(h["av"]), ax=mm(h["ax"]), ay=mm(h["ay"]), d=mm(h["d"]), u=mm(h["u"]),
                  beta=f(h["beta"], 2), VRdmax=f(h["VRdmax"], 0), VRdc=f(h["VRdc"], 0), utn_max=pr(h["utn_max"]),

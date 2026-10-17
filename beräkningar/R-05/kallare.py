@@ -62,6 +62,7 @@ Z_HOR_V3 = (275.0, 575.0, 875.0, 1175.0, 1475.0, 1775.0, 2040.0)
 L_LODRAT = 2200.0
 ARM_V = (10, 200)               # Ø10 s200 på insidan där packningstrycket kräver det (K-06)
 ARM_V_TG = tuple(I06.ARM_V[0])  # Ø10 s300, TG 2216: övriga ytterväggar och under bröstningarna
+ARM_INRE = tuple(I06.ARM_INRE)  # Ø10 s300 i innerväggarnas mitt (gjutna i ett med bjälklaget, K-06)
 # lodräta järn per yttervägg (K-06: den glesaste armering som räcker, minst TG 2216:s)
 ARM_V_VAGG = {v["namn"]: tuple(v["arm"]) for v in R06["vaggar"] if "arm" in v}
 ARM_H = (I06.ARM_H["d"], I06.ARM_H["s"], I06.ARM_H["s_topp"])          # Ø10 s600, s300 i de två översta skiften

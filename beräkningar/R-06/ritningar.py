@@ -562,16 +562,22 @@ def sektion_c():
 
 
 def sektion_d():
-    """D–D: innervägg (V15, Kub 350-150) med glidskikt på krönet. x = 0 i väggens mitt, y = 0 i underkant. 1:20"""
+    """D–D: innervägg (V15, Kub 350-150), översta skiftet gjutet i ett med bjälklaget. x = 0 i väggens mitt, y = 0 i
+    underkant. 1:20"""
     v = Vy(x=24, y=14, w=165, h=62, skala=20, X0=-620, Y1=300)
-    kub(v, -175, -760, -5, gips=False)
+    kub(v, -175, -760, 0, gips=False)
+    e, k, _ = KUB
     with v.lager("vagg"):
-        v.rekt(-175, -5, 175, 0, fyll="papp", stil=None)
+        v.linje([(-175 + e, H_GJUT1 - H_VAGG), (-175 + e + k, H_GJUT1 - H_VAGG)], "dold")   # gjutfogen vid 1 800
     platta_snitt(v, -600, 600, "x")
+    with v.lager("armering"):
+        v.linje([(12, -740), (12, YO2 - DO / 2 - 5)], "ok_tunn")          # lodräta järn i kärnans mitt
     with v.lager("matt"):
-        v.matt((-175, -560), (175, -560), 2.5, sida=-1, sz=6.2)
-    etiketter(v, [("glidskikt (byggpapp) på krönet; bjälklaget förankras inte i innerväggarna", (120, -3), None),
-                  ("innervägg Kub 350-150 (K-06)", (0, -400), None)], 700, 150, 4.6)
+        v.matt((-175, -560), (175, -560), 2.5, sida=-1, sz=6.2, txt="")
+        v.text(0, -560 - 2.5 * v.s + 0.8 * v.s, "350", a="cb", sz=6.2, bg=True)
+    etiketter(v, [("Ø10 s300 i kärnans mitt, upp under överkantsnätet (R-05)", (12, -150), None),
+                  ("kärnans översta skift gjuts med bjälklaget, gjutfog 300 under (K-06)", (-40, H_GJUT1 - H_VAGG), None),
+                  ("innervägg Kub 350-150 (K-06)", (0, -450), None)], 700, 150, 4.6)
     with v.lager("rubrik"):
         v.rubrik(-600, -880, "SEKTION D–D  Innervägg (V15)", skala=20, sz=9)
     return v
@@ -794,10 +800,9 @@ def blad_sektioner():
             "Rörens topplåt gjuts in kant i kant med plattans underkant. Röret centreras under plåten. "
             "Rörens mitt enligt tabellen på R-06.2 och R-05.1; P7 är två rör tätt intill varandra.",
             "Överkantsarmeringens höjd kontrolleras före gjutning, särskilt vid rören.",
-            "Ytterväggarnas översta halva skift gjuts samtidigt med bjälklaget, i den ordning K-06 anger. "
+            "Väggarnas översta halva skift, också innerväggarnas, gjuts samtidigt med bjälklaget, i den ordning K-06 anger. "
             "Bjälklagets form och stämp står för sig själva och hänger inte i Kub-elementen. "
             "Pos 14 binds till väggens lodräta järn före gjutning.",
-            "Innerväggarna gjuts i hela höjden före bjälklaget och får glidskikt (byggpapp) på krönet (R-05).",
             "Formrivning tidigast när betongen nått cirka 70 % av fck (provkroppar eller mognadsberäkning). "
             "Last under byggtiden högst 5 kN/m², punktlaster över rör eller vägg.",
             "Trägolv limmas först när betongens relativa fuktighet är under golvlimmets gräns (mätt enligt RBK). "

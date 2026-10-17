@@ -113,7 +113,7 @@ Dimensionerande hållfasthet $f_d = k_r f_"ck" slash gamma_m$ med $gamma_m$ = 1,
 
 == Väggsystemet
 
-Kub 350-150 består av element 1 200 × 600 mm (halva element 300 mm), som staplas i förband och armeras innan kärnan gjuts. Plastbindare håller ihop cellplasten och har fästen för armeringen och för gipsskivorna på insidan. Väggen är #M.H mm hög: de tre hela skiften (#M.gjut1 mm) gjuts först, och i ytterväggarna gjuts det översta halva skiftet tillsammans med mellanbjälklaget. Innerväggarna gjuts i hela höjden före bjälklaget, som vilar på dem med ett glidskikt.
+Kub 350-150 består av element 1 200 × 600 mm (halva element 300 mm), som staplas i förband och armeras innan kärnan gjuts. Plastbindare håller ihop cellplasten och har fästen för armeringen och för gipsskivorna på insidan. Väggen är #M.H mm hög: de tre hela skiften (#M.gjut1 mm) gjuts först, och det översta halva skiftet gjuts tillsammans med mellanbjälklaget, i ytterväggarna och innerväggarna.
 
 TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är vår vägg: den hålls i toppen av ett gjutet bjälklag och i botten av golvet, med fyllning upp till 2,3 m. TG 2216 anger armeringen för det fallet, men den räknar inte med packning intill väggen. Väggarna dimensioneras därför här enligt SS-EN 1992-1-1, och armeringen är minst den som TG 2216 anger:
 
@@ -127,7 +127,7 @@ TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är v�
   [Vinkeljärn till bjälklaget], [Ø10 med samma avstånd som de lodräta järnen, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-06],
   [Hörn och anslutningar], [Vinkeljärn Ø10, 750 mm åt var håll, vid båda ytorna; skarvar minst #M.skarv mm], [TG 2216 figur 5–7; @fig-lokala[figur] c och d],
   [Öppningar], [2 Ø12 längs sidorna och under bröstningen, förankrade 600 mm förbi öppningen. Öppningarna går upp till bjälklaget, som har fri kant över dem (K-05)], [TG 2216],
-  [Innerväggar], [Vågräta järn som ovan, startjärn #A.start i kärnans mitt], [Inget jordtryck; glidskikt på krönet (R-06)],
+  [Innerväggar], [Vågräta järn som ovan, startjärn #A.start och lodräta järn #D.inre.arm i kärnans mitt, de lodräta från bottenplattan upp under bjälklagets överkantsnät], [Inget jordtryck; gjutna i ett med bjälklaget (@vert)],
 )
 
 == Jordtryck och packning <jordtryck>
@@ -172,7 +172,7 @@ Varje pelare får den glesaste lodräta armering som räcker; högst #D.fasad.ut
 
 Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som står direkt på väggen) och väggens last per meter i den samverkande modellen (@botten). Största värde är #D.vert.Nmax kN/m (#D.vert.Nnamn).
 - *Ytterväggar:* normalkraften med egentyngd och oavsiktlig excentricitet $l_0 slash 400$, tillsammans med momentet i @barformaga, eller i väggar utan fyllning momentet från lasterna över väggen. Högst #D.vert.yutn (#D.vert.ynamn: $M_"Ed"$ = #D.vert.yM mot $M_"Rd"$ = #D.vert.yMRd kNm/m med normalkraft). Normalkraften ökar momentkapaciteten, så kontrollen i @barformaga utan normalkraft ligger på säker sida. Andra ordningens moment (nominell krökning, 5.8.8) ingår där slankheten överskrider gränsen: #D.vert.M2.
-- *Innerväggar:* centrisk last (glidskikt på krönet), oarmerad vägg enligt 12.6.5.2 med $Phi$ = #D.vert.Phi, där slankheten ingår: högst #D.vert.iutn (#D.vert.inamn, #D.vert.iN mot #D.vert.iNRd kN/m).
+- *Innerväggar:* de gjuts i ett med bjälklaget och håller emot när plattan vrider sig över dem. K-05:s modell räknas med vridfjädrar längs innerväggarnas upplagslinjer, $k = 4 E I slash h$ = #D.inre.k kNm/m per radian och meter (kärnan osprucken, C30/37 korttid, fast fot: övre gräns för väggens moment), i samma kombinationer som K-05. Toppmomentet blir högst #D.inre.Mt kNm/m (#D.inre.Mtn). Nära hörnen mot V4–V6 vill plattan lyfta från väggarna: dragkraft högst #D.inre.Nt kN/m (#D.inre.Ntn, med #D.inre.Mtt kNm/m) mot #D.inre.NRdt kN/m för de lodräta järnen #D.inre.arm i kärnans mitt, och #D.inre.Mtt mot #D.inre.MRdt kNm/m. Med den största normalkraften, toppmomentet, $l_0 slash 400$ och andra ordningens moment (5.8.8) blir det högst #D.vert.iutn (#D.vert.inamn: #D.vert.iM kNm/m varav #D.vert.iM2 av andra ordningen, mot #D.vert.iMRd kNm/m). Plattan påverkas lite: dess dimensionerande moment ändras högst #D.inre.dm kNm/m (#D.inre.lager, #D.inre.fran → #D.inre.till kNm/m, under nätets #D.inre.MRdnat kNm/m) och rörlasterna högst #D.inre.dror kN, så K-05:s fritt upplagda modell gäller. Väggens fot för ner högst halva toppmomentet i balken under väggen.
 - *Lasterna över väggarna:* ytterväggarna på plan 1 står på bjälklaget #M.e_ut mm utanför kärnans yta. Det är mindre än halva bjälklagets tjocklek, så lasten går med en tryckstrimla direkt in i kärnan. Bjälklaget och kärnan gjuts samtidigt. Konsolmomentet till kärnans yta blir högst #D.kant.M kNm/m (#D.kant.q kN/m) mot #D.kant.MRd kNm/m för överkantsnätet.
 - *LD4_2* (K-05, #D.horn.F kN dimensionerande) står i hörnet V2/V20, #D.horn.ax och #D.horn.ay mm utanför kärnornas ytor. Bjälklaget ($d$ = #D.horn.d mm) räknas längs kärnornas ytor, $u$ = #D.horn.u mm:
   - tryckstrimlan: $V_"Ed"$ / $V_"Rd,max"$ = #D.horn.F / #D.horn.VRdmax kN (#D.horn.utn_max);
@@ -187,14 +187,14 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 - *Gjutfogen vid #M.gjut1 mm:* tvärkraften där är högst #D.fog.V18 kN/m. Med de lodräta järnen genom fogen och en uppruggad yta (6.2.5) är utnyttjandet #D.fog.utn18.
 - *Botten:* kärnan gjuts direkt på kantbalkens uppruggade överkant, och startjärnen går genom fogen. Bottenplattan är golvet som håller väggens fot, och kärnan står i kontakt med den, som TG 2216 kräver när fyllningen är högre än 1 m. Största reaktion i botten är #D.vmax.Rb kN/m. Fogen har bärförmågan #D.fog.vrb MPa (6.2.5: uppruggad yta, startjärnen, väggens egentyngd). Det ger högst #D.fog.utnb.
 - *Hörn och anslutningar:* vågräta järn med vinkeljärn enligt TG 2216 figur 5–7, se @fig-lokala[figur] c och d.
-- *Innerväggar:* de gjuts i hela höjden före bjälklaget. Krönet avjämnas och får glidskikt (byggpapp), och bjälklaget vilar på kärnan utan att vara förankrat i innerväggarna (R-06).
+- *Innerväggar:* som ytterväggarna gjuts de tre hela skiften först och det översta halva skiftet med bjälklaget. De lodräta järnen #D.inre.arm i kärnans mitt går genom fogen vid #M.gjut1 mm upp under bjälklagets överkantsnät, så att väggen och bjälklaget blir en enhet (@vert).
 
 == Utförande av väggarna <utf>
 
 - *Montering:* elementen staplas i förband med armeringen i bindarnas hållare. Väggarna riktas och stagas enligt Sundolitts anvisning: stag vid alla hörn och öppningar och annars cirka var 2 m, med skruv minst 140 mm i bindarna. Kapade element och kanter vid öppningar förstärks med plywood eller läkt.
 - *Gjutning:* pump med reducerat tryck, och betongen stiger högst 1 m per timme. Börja i ett hörn och gå runt väggarna i varv. Högst 2,4 m per gjutning, ingen vibrator i väggarna (stöt för hand vid behov). Kontrollera sättmåttet på plats. Gjut inte under −5 °C.
-- *Första gjutningen* är de tre hela skiften, upp till #M.gjut1 mm, och innerväggarna i hela höjden. Fogen i ytterväggarnas överkant ruggas och rengörs, och elementens knastar täcks. Innerväggarnas krön avjämnas och får glidskikt.
-- *Gjutning med bjälklaget:* bjälklagets form och stämp står för sig själva och får inte hänga i Kub-elementen. Ytterväggarnas översta skift fylls först. Efter 30–60 minuter, när betongen har satt sig, fylls de upp igen, och sedan gjuts bjälklaget. Bara bjälklaget vibreras.
+- *Första gjutningen* är de tre hela skiften i alla väggar, upp till #M.gjut1 mm. Fogen i överkant ruggas och rengörs, och elementens knastar täcks.
+- *Gjutning med bjälklaget:* bjälklagets form och stämp står för sig själva och får inte hänga i Kub-elementen. Väggarnas översta skift fylls först. Efter 30–60 minuter, när betongen har satt sig, fylls de upp igen, och sedan gjuts bjälklaget. Bara bjälklaget vibreras.
 - *Insida:* gips 13 mm (typ A) på all cellplast, också i smygar, skruvad i bindarna. Enligt TG 2216 ger det REI 30. Kärnan klarar REI 90 enligt SS-EN 1992-1-2 tabell 5.4 (150 mm ≥ 140 mm, axelavstånd 30 mm ≥ 25 mm). Gipset skyddar cellplasten och får inte vara genombrutet; eldosor enligt TG 2216. Ingen ångspärr behövs, eftersom halva isoleringen ligger utanför kärnan.
 - *Utsida under mark:* grundmursskiva med knopparna mot väggen och en avslutningslist upptill. Dränledning runt huset med fall minst 1:200. Ledningens högsta punkt ska ligga minst 200 mm under golvets överkant och under plattans cellplast. Ledningen och väggen omges med dränerande material, med fiberduk mot jorden. Marken ska falla från huset, minst 1:50 över 3 m.
 - *Utsida ovan mark:* fasadsten enligt AR-01. Den täcker all cellplast ovan mark, som TG 2216 kräver.
@@ -205,9 +205,9 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 
 + Gjut bottenplattan (@botten) med startjärnen ingjutna och uppruggad yta under väggarna.
 + Montera Kub-elementen med armering, vinkeljärn i hörnen och staga väggarna.
-+ Gjut de tre hela skiften (#M.gjut1 mm) i ytterväggarna och innerväggarna i hela höjden. Lägg glidskikt (byggpapp) på innerväggarnas avjämnade krön.
++ Gjut de tre hela skiften (#M.gjut1 mm) i alla väggar.
 + Fyll bakom V3 och V20 till #M.hfm m när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan 400 mm cellplast för plattan på mark.
-+ Montera ytterväggarnas översta halva skift, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
++ Montera väggarnas översta halva skift, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
 + Fyll mot övriga väggar när bjälklaget och det översta skiftet har nått $f_"ck" (t)$ ≥ #BY.regel MPa. Väggarna under har då härdat längre. Bjälklagets stämp får stå kvar; de påverkar inte väggarna.
 + Riv formen under bjälklaget enligt R-06.
 
@@ -347,7 +347,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med balkar och plintar i en gjutning, med fotplåtarna kant i kant med plintarnas överkant, och rugga ytan under väggarna.
 5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.
-6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen (#A.txt och #D.armlist.gles_txt), de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.
+6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen (#A.txt och #D.armlist.gles_txt, i innerväggarna #D.inre.arm), de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.
 
 #v(6pt)
 #counter(heading).update(0)

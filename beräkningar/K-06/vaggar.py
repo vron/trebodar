@@ -23,6 +23,8 @@ import indata as I
 HERE = os.path.dirname(os.path.abspath(__file__))
 R05 = json.load(open(os.path.join(I.K05, "resultat.json"), encoding="utf-8"))
 VAGG05 = {v["namn"]: v for v in R05["vaggar"]}
+_fi = os.path.join(HERE, "innervaggar.json")
+INNER = json.load(open(_fi, encoding="utf-8")) if os.path.exists(_fi) else None    # innervaggar.py
 from omhyllande import ULS as ULS05      # noqa: E402  (K-05:s kombinationer för lasterna från plan 1)
 
 GD = 0.91
@@ -249,7 +251,9 @@ def vertikal(v, arm):
     toppmomentet från lasterna över väggen, och oavsiktlig excentricitet l0/400) mot momentkapaciteten med
     normalkraft; andra ordningens moment med nominell krökning (5.8.8, K_r = K_φ = 1) om slankheten överskrider
     gränsen i 5.8.3.1.
-    Innerväggar (glidskikt på krönet, centrisk last): oarmerad vägg, 12.6.5.2."""
+    Innerväggar (gjutna i ett med bjälklaget): lodräta järn I.ARM_INRE i kärnans mitt; toppmomentet och den minsta
+    normalkraften ur K-05:s modell med väggarna som vridfjädrar (innervaggar.json). Den största normalkraften med
+    det största momentet, och den minsta (drag nära hörnen) med sitt moment."""
     w05 = VAGG05[v["namn"]]
     q = max(w05["qd_max"], q06(v["namn"]))
     egen = 1.35 * GD * I.G_KUB * H / 2
@@ -261,12 +265,18 @@ def vertikal(v, arm):
     lam_lim = 20 * 0.7 * 1.1 * 0.7 / math.sqrt(max(n_rel, 1e-6))
     M_Ed = v.get("M_Ed") or q_ovan(v["namn"]) * E_TOPP
     if v["typ"] == "inre":
-        e0 = 0.0
-        e = e0 + ei
-        fcd_pl = 0.8 * I.FCK_V / GC
-        Phi = min(1.14 * (1 - 2 * e / I.T_KARNA) - 0.02 * l0 / I.T_KARNA, 1 - 2 * e / I.T_KARNA)
-        NRd = I.T_KARNA * fcd_pl * Phi                       # kN/m
-        return dict(N=N, NRd=NRd, utn=N / NRd, Phi=Phi, e0=e0, lam=lam, lam_lim=lam_lim, metod="oarmerad")
+        iv = INNER["vaggar"][v["namn"]]
+        dia, s = I.ARM_INRE
+        d = I.T_KARNA / 2
+        Ast = As(dia, s)
+        M2 = N * (FYD / 200000) / (0.45 * d) * l0 ** 2 / 10 / 1000 if lam > lam_lim else 0.0
+        M = iv["M"] + N * ei / 1000 + M2
+        MR = MRd_N(N, Ast, d)
+        Nt, Mt = iv["Nmin"], iv["M_Nmin"]
+        MRt = MRd_N(Nt, Ast, d)
+        return dict(N=N, M=M, M2=M2, MRd=MR, Mtopp=iv["M"], Nt=Nt, Mt=Mt, MRdt=MRt, NRdt=Ast * FYD / 1e3,
+                    utn=max(M / MR, Mt / MRt, -Nt / (Ast * FYD / 1e3)), lam=lam, lam_lim=lam_lim, arm=(dia, s),
+                    metod="inre")
     dia, s = arm
     d = d_lodrat(dia)
     M2 = N * (FYD / 200000) / (0.45 * d) * l0 ** 2 / 10 / 1000 if lam > lam_lim else 0.0

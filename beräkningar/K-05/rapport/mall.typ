@@ -65,7 +65,7 @@ Laster, regler och förutsättningar enligt F-01.
 
 = Husets geometri
 
-Trapphålet är 2 070 × 828 mm. Källarväggarna är Sundolitt Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100. Plattan gjuts samtidigt med ytterväggarnas översta skift och vilar på hela kärnan. Den går ut till 30 mm från väggens ytterliv, alltså 70 mm ut över den yttre cellplasten, och där utanför ligger 30 mm kantisolering. Innerväggarna gjuts i hela höjden före plattan, som vilar på dem med ett glidskikt. Upplagslinjen ligger i kärnans mitt, 75 mm från kärnans insida (5.3.2.2). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar. Vid öppningarna slutar betongkärnan 100 mm innanför smygen, som är isolerad med cellplast, och upplagslinjerna och de fria kanterna följer kärnan.
+Trapphålet är 2 070 × 828 mm. Källarväggarna är Sundolitt Kub 350-150: cellplast 100 + betongkärna 150 + cellplast 100. Plattan gjuts samtidigt med ytterväggarnas översta skift och vilar på hela kärnan. Den går ut till 30 mm från väggens ytterliv, alltså 70 mm ut över den yttre cellplasten, och där utanför ligger 30 mm kantisolering. Också innerväggarnas översta skift gjuts med plattan. Plattan räknas fritt upplagd på alla väggar; K-06 visar att innerväggarnas inspänning ändrar plattans moment och rörlasterna obetydligt. Upplagslinjen ligger i kärnans mitt, 75 mm från kärnans insida (5.3.2.2). Rören är 2,1 m långa från bottenplattan till mellanbjälklagets underkant. #for d in D.dubbel [Vid #d, i trapphålets hörn, står två rör tätt intill varandra (avsnitt 4). ]Fria kanter finns vid trapphålet och vid öppningarna i källarens ytterväggar. Vid öppningarna slutar betongkärnan 100 mm innanför smygen, som är isolerad med cellplast, och upplagslinjerna och de fria kanterna följer kärnan.
 
 #figure(
   image("../fig_geometri.svg", width: 90%),
@@ -302,7 +302,7 @@ Den försiktiga metoden återger alltså SINTEF:s gräns. Mellanbjälklaget har 
 
 = Utförande och sättningar
 
-Utförandet anges på R-06: armering, täckskikt och distanser, rörens lägen och topplåtar, glidskikt på innerväggarnas krön, formrivning och last under byggtiden.
+Utförandet anges på R-06: armering, täckskikt och distanser, rörens lägen och topplåtar, formrivning och last under byggtiden.
 
 *Sättningar.* Plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. K-06 räknar grunden, källarväggarna, rören och mellanbjälklaget i en gemensam modell, så att skillnaden i sättning ingår, och visar att armeringen räcker.
 
