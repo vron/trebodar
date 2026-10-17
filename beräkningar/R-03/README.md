@@ -1,21 +1,17 @@
-# R-03 rev A – Konstruktionsritning mellanbjälklag
+# R-03 rev A – Bärande system i betong, översikt i 3D
 
-Ritningarna till mellanbjälklaget (F-01: R-03), i A3 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/). Underlag är K-05 (geometri och armering) och K-06 (källarväggarna av Sundolitt Kub 350-150 och vinkeljärnen från väggarna till bjälklaget).
+Ett blad (A3, den gemensamma mallen i [`../ritningsmall`](../ritningsmall/)) som visar betongarbetets bärande delar i 3D, utan mått, i den ordning de byggs: bottenplattan (delvis bortskuren, så att balkar, plintar, L-element och cellplast syns), källarväggarna och rören, mellanbjälklaget (delvis bortskuret) och ett snitt genom källarens västra del. Trästommen på plan 1 ingår inte.
 
-| Blad | Innehåll | Skala |
-|---|---|---|
-| R-03.1 | Översikt och yttermått, hela plattan inklusive plattan på mark, trapphålets läge | 1:100 |
-| R-03.2 | Armering i underkant, rörens lägen och topplåtar, snittmarkeringar | 1:50 |
-| R-03.3 | Armering i överkant, zonerna Ö1–Ö16, diagonaljärn, vinkeljärn från ytterväggarna | 1:50 |
-| R-03.4 | Sektioner A–D, detalj E (armeringens lägen), stålförteckning | 1:5, 1:10, 1:20 |
-
-`ritningar.py` är uppdelad i underlag, placeringar (`PLAC`, verkliga koordinater i mm för etiketter, symboler och snitt), lager (en funktion per lager), blad och main. Allt ritas i K-05:s koordinater (mm, origo i skärningen mellan plattkanterna x = 0 och y = 0); mallen skalar till papperet.
+| Fil | Innehåll |
+|---|---|
+| `scen.py` | Delarna i 3D ur samma geometri som R-04, R-05 och R-06 (`../R-05/kallare.py`) |
+| `rendera.py` | Renderare: parallellprojektion, djupbuffert, platt skuggning och konturer |
+| `ritningar.py` | Vyerna, hänvisningarna (placeras automatiskt på vit yta, utan korsande linjer) och bladet |
 
 ## Köra
 
 ```
-python beräkningar/K-05/berakning.py      # om K-05/resultat.json saknas
-python beräkningar/R-03/ritningar.py      # ritningar/R-03 Mellanbjälklag.pdf (R-03.1 … R-03.4)
+python beräkningar/R-03/ritningar.py      # ritningar/R-03 Bärande system i betong.pdf
 ```
 
-Ritningsserien blir en pdf, `R-03 Mellanbjälklag.pdf` i [`ritningar/`](../../ritningar/), med ett blad per sida. Varje blad har sin egen funktion i `ritningar.py` och kompileras för sig till `blad/` (och `R-03.x.json` här); båda versionshanteras inte. Ett lager kan döljas vid kompileringen, t.ex. `main(dolj=("vaggar",))`.
+Bilderna och bladet skapas i `blad/` (versionshanteras inte).

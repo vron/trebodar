@@ -1,4 +1,4 @@
-"""Kontroll av källarstommen och bottenplattan i R-04 och R-05 (beräkningar/R-04/kallare.py) mot Onshape-modellen.
+"""Kontroll av källarstommen och bottenplattan i R-04 och R-05 (beräkningar/R-05/kallare.py) mot Onshape-modellen.
 
     .venv/bin/python kontroll_r045.py
 
@@ -25,7 +25,7 @@ from shapely.ops import unary_union
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROT = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(ROT, "beräkningar", "R-04"))
+sys.path.insert(0, os.path.join(ROT, "beräkningar", "R-05"))
 from geometri import Plan, linjeprob, snitt  # noqa: E402
 from modell import Modell  # noqa: E402
 import kallare as K  # noqa: E402
@@ -76,12 +76,12 @@ for o in K.OPPNINGAR:
     lucka = min(luckor, key=lambda q: abs(q[0] - o["x0"]) + abs(q[1] - o["x1"])) if luckor else None
     zs = lodratt((o["x0"] + o["x1"]) / 2, c, Z_GOLV - 10, Z_GOLV + K.H_VAGG + 10, KARNA)
     z_brost = (max(b for a, b in zs) - Z_GOLV) if zs else 0.0
-    rapport.append(f"  {o['namn']}: modellen x {lucka}, bröstning {z_brost:.1f}; R-04 x ({o['x0']}, {o['x1']}), "
+    rapport.append(f"  {o['namn']}: modellen x {lucka}, bröstning {z_brost:.1f}; R-05 x ({o['x0']}, {o['x1']}), "
                    f"bröstning {o['z0']}")
     if lucka is None or abs(lucka[0] - o["x0"]) > TOL or abs(lucka[1] - o["x1"]) > TOL:
-        fel.append(f"{o['namn']}: öppningen i kärnan, R-04 {o['x0']}–{o['x1']}, modellen {lucka}")
+        fel.append(f"{o['namn']}: öppningen i kärnan, R-05 {o['x0']}–{o['x1']}, modellen {lucka}")
     if abs(z_brost - o["z0"]) > TOL:
-        fel.append(f"{o['namn']}: bröstningens höjd, R-04 {o['z0']}, modellen {z_brost:.1f}")
+        fel.append(f"{o['namn']}: bröstningens höjd, R-05 {o['z0']}, modellen {z_brost:.1f}")
 
 # ---------------------------------------------------------------- bottenplattans kontur
 plattor = m.valj("Bottenplatta*")
@@ -89,30 +89,30 @@ pl = Plan.tolka(f"z={O[2] + Z_GOLV - 250.0}").flytta(O[0], O[1])       # nära u
 ytor = [sd.yta for sd in snitt(m, plattor, pl) if not sd.yta.is_empty]
 modell_kontur = unary_union([p.buffer(0) for p in ytor])
 diff = modell_kontur.symmetric_difference(K.KALLARE).area
-rapport.append(f"  bottenplattan (L-elementens ytterkant): modellen {modell_kontur.area / 1e6:.3f} m², R-05 {K.KALLARE.area / 1e6:.3f} m², "
+rapport.append(f"  bottenplattan (L-elementens ytterkant): modellen {modell_kontur.area / 1e6:.3f} m², R-04 {K.KALLARE.area / 1e6:.3f} m², "
                f"skillnad {diff / 1e6:.4f} m²")
 if diff > 1e4:
-    fel.append(f"bottenplattans kontur: skillnad {diff / 1e6:.4f} m² mellan modellen och R-05")
+    fel.append(f"bottenplattans kontur: skillnad {diff / 1e6:.4f} m² mellan modellen och R-04")
 
 # ---------------------------------------------------------------- väggarnas höjd
 w = K.VAGG["V21"]
 zs = lodratt(w["c"], (w["a"] + w["b"]) / 2, Z_GOLV - 400, 200.0, KARNA)
 h = (max(b for a, b in zs) - min(a for a, b in zs)) if zs else 0.0
-rapport.append(f"  V21:s kärna z {zs} → höjd {h:.1f} (R-04 {K.H_VAGG})")
+rapport.append(f"  V21:s kärna z {zs} → höjd {h:.1f} (R-05 {K.H_VAGG})")
 if abs(h - K.H_VAGG) > TOL:
-    fel.append(f"väggarnas höjd: R-04 {K.H_VAGG}, modellen {h:.1f}")
+    fel.append(f"väggarnas höjd: R-05 {K.H_VAGG}, modellen {h:.1f}")
 
 # ---------------------------------------------------------------- kända avvikelser (modell-todo)
 kanda = []
 ror = m.valj("K Pillar*")
 storlek = sorted({round(d.bbox[3] - d.bbox[0]) for d in ror})
 if storlek != [round(K.PLAT)]:
-    kanda.append(f"rören i modellen är {storlek} mm breda, R-04 VKR {K.PLAT:.0f}×{K.PLAT:.0f}×4 (punkt 8)")
+    kanda.append(f"rören i modellen är {storlek} mm breda, R-05 VKR {K.PLAT:.0f}×{K.PLAT:.0f}×4 (punkt 8)")
 if len(ror) != sum(r["n"] for r in K.ROR):
-    kanda.append(f"modellen har {len(ror)} rör, R-04 {sum(r['n'] for r in K.ROR)} (P7 två rör, punkt 8)")
+    kanda.append(f"modellen har {len(ror)} rör, R-05 {sum(r['n'] for r in K.ROR)} (P7 två rör, punkt 8)")
 zm = lodratt(7000.0, 9300.0, Z_GOLV - 400, Z_GOLV + 50, m.valj("Bottenplatta matkällare"))
 if zm and abs(max(b for a, b in zm) - Z_GOLV) > TOL:
-    kanda.append(f"matkällarens golv i modellen z {max(b for a, b in zm):.1f}, R-05 {Z_GOLV} (punkt 10)")
+    kanda.append(f"matkällarens golv i modellen z {max(b for a, b in zm):.1f}, R-04 {Z_GOLV} (punkt 10)")
 for w in K.VAGGAR:
     # kärnan ska gå hela vägen till den vinkelräta väggens centrumlinje i hörn och anslutningar
     for ande, o in ((w["a"], w["mot_a"]), (w["b"], w["mot_b"])):

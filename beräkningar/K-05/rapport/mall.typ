@@ -161,7 +161,7 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
   [Armering], [B500B, $f_"yd"$ = #D.mat.fyd MPa],
   [Underkant], [Nät #D.mat.nat_uk i båda riktningarna, täckskikt #D.mat.c_uk mm],
   [Överkant], [Nät #D.mat.nat_ok i båda riktningarna, täckskikt #D.mat.c_ok mm],
-  [Fria kanter], [Båda näten går ut till kanten (trapphålet och öppningarna i källarens ytterväggar); nätet är kantarmering enligt 9.3.1.4(2). Täckskikt mot kanten enligt R-03],
+  [Fria kanter], [Båda näten går ut till kanten (trapphålet och öppningarna i källarens ytterväggar); nätet är kantarmering enligt 9.3.1.4(2). Täckskikt mot kanten enligt R-06],
   [Rör], [VKR 80×80×4 S235, kallformade (SS-EN 10219), L = 2,1 m, med topplåt 80×80×8 svetsad på röret och ingjuten kant i kant med plattans undersida. #for d in D.dubbel [#d: två rör tätt intill varandra i x-led, 160 × 80 mm, vart och ett med sin topplåt. ]],
 )
 
@@ -169,7 +169,7 @@ $Q$ omfattar nyttig last, lätta väggar och trappans nyttiga last. Den läggs p
 
 == Lokala förstärkningar
 
-Utöver näten läggs (lägen på R-03.2 och R-03.3):
+Utöver näten läggs (lägen på R-06.2 och R-06.3):
 - *vid varje rör* minst två underkantsjärn i vardera riktningen över röret (9.4.1(3)); där nätet inte gör det läggs 2 Ø10, L = 1,2 m;
 - *tilläggsjärn i överkant* i zonerna #D.zon_namn.first()–#D.zon_namn.last(), i nätets lager i båda riktningarna, där nätet inte räcker för böjning eller genomstansning, och vid P7, P14 och P17 oavsett beräkningen (tabellen);
 - *diagonaljärn* 2 Ø10, L = 1,2 m, i överkant vid plattans inåtgående hörn och trapphålets hörn.
@@ -302,7 +302,7 @@ Den försiktiga metoden återger alltså SINTEF:s gräns. Mellanbjälklaget har 
 
 = Utförande och sättningar
 
-Utförandet anges på R-03: armering, täckskikt och distanser, rörens lägen och topplåtar, glidskikt på innerväggarnas krön, formrivning och last under byggtiden.
+Utförandet anges på R-06: armering, täckskikt och distanser, rörens lägen och topplåtar, glidskikt på innerväggarnas krön, formrivning och last under byggtiden.
 
 *Sättningar.* Plattan är känslig för olika sättning mellan rör och väggar. 1 mm större sättning av alla rör än av väggarna ger tillskottsmoment cirka 22 kNm/m i överkant och 24 kNm/m i underkant (långtid, osprucket, utjämnat över 250 mm), lika mycket som momenten av lasterna. K-06 räknar grunden, källarväggarna, rören och mellanbjälklaget i en gemensam modell, så att skillnaden i sättning ingår, och visar att armeringen räcker.
 

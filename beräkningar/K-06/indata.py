@@ -95,7 +95,7 @@ ARM_H = dict(d=10, s=600, s_topp=300)     # 2 Ø10 per skift, ett vid var yta; s
 ARM_V = [(10, 300), (10, 200), (10, 150), (12, 150)]   # lodräta järn på insidan: TG 2216 anger Ø10 s300
 STARTJARN = dict(d=10, s=300, ned=500, upp=1200)       # på utsidan, i kantbalken och upp i väggen (TG 2216)
 SKARV = 500.0            # skarvlängd, och vinkeljärn 750 mm åt var håll i hörn (TG 2216)
-VINKEL = dict(ned=650.0, in_=500.0)     # vinkeljärn till bjälklaget: ned i väggen och in under överkantsnätet (R-03)
+VINKEL = dict(ned=650.0, in_=500.0)     # vinkeljärn till bjälklaget: ned i väggen och in under överkantsnätet (R-06)
 OPPNING = dict(n=2, d=12, forankring=600)               # runt öppningar (TG 2216)
 # Väggens egentyngd: kärna, cellplast och gips 13 mm. Fasadsten ovan mark på ytterväggarna (AR-01): granit 40 mm,
 # fästmassa och armeringsbruk, från 50 mm under mark till mellanbjälklagets överkant.

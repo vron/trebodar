@@ -1,12 +1,12 @@
 # Lastgeometrin i F-01, K-01, K-05 och K-06 mot Onshape-modellen
 
-Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, källarväggar) kontrolleras av [`kontroll_r031.py`](../kontroll_r031.py).
+Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, källarväggar) kontrolleras av [`kontroll_r061.py`](../kontroll_r061.py).
 
 **Omfattning.** Den geometri som bestämmer lasterna: takvinkel, lastbredder, lastytor, höjder, utsprång, lägen för linjelaster och fyllnadshöjder mot källarväggarna. Stödens exakta lägen under nock- och dalbalkarna ingår inte, eftersom trästommen där inte är fullständigt modellerad. Koordinater som i K-05: x, y från skärningen mellan plattkanterna, z från bjälklagets överkant, mm.
 
 ## Sammanfattning
 
-Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-03 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av:
+Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av:
 
 - **Plattan på mark:** handlingarna förutsätter 400 mm cellplast på fyllning upp till 1,7 m. Modellen är inte uppdaterad där och visar berget 75 mm under plattan.
 - **Bottenplattan i matkällaren:** K-06 räknar med bottenplatta i hela källaren. Modellen har ingen platta innanför V2, V15, V19 och V20, bara en remsa under väggarna.
@@ -41,7 +41,7 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 | Referenshöjd z | 7,0 m | cirka 5,5 m (nock 3,98 m och taktäckning över färdigt golv, mark 1,47 m under) | på säker sida |
 | e = min(b, 2h), vind längs nocken | 12 m | b = 14,1 m, 2h ≈ 11 m, e ≈ 11 m | på säker sida |
 
-## Bjälklag (K-05, R-03)
+## Bjälklag (K-05, R-06)
 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|

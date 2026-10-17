@@ -1,20 +1,25 @@
-# R-05 rev A – Konstruktionsritning bottenplatta
+# R-05 rev A – Konstruktionsritning källarstomme
 
-Ritningarna till bottenplattan i källaren (F-01: R-05), utförande L300 enligt K-06: 100 mm betong C25/30 på 200 mm cellplast S100, kantbalkar i L-element (ytterkanten i väggarnas ytterliv, betongen 100 mm innanför) och balkar under innerväggarna 450 × 200, plintar under rören; S300 under alla balkar och plintar. A3 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/).
+Ritningarna till källarens väggar av Sundolitt Kub 350-150 och rören under mellanbjälklaget (F-01: R-05), i A3 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/). Underlag är K-06 (väggarna: armering, hörn och anslutningar, öppningar, gjutning och återfyllning) och K-05 (väggarnas och rörens lägen, rören VKR 80×80×4 med topplåt).
 
 | Blad | Innehåll | Skala |
 |---|---|---|
-| R-05.1 | Plan: kontur i väggarnas ytterliv, kantbalkar, balkar, plintar med storlek, S300-zonerna, plinttabell | 1:50 |
-| R-05.2 | Armering: nät Ø6 s150 i båda lagren, balkarnas järn och byglar, plintarnas järn, diagonaljärn, startjärn till väggarna | 1:50 |
-| R-05.3 | Sektion A–A (kantbalk i L-element), B–B (balk under innervägg), C–C (plint med fotplåt), detalj D (S300 vid hörn), stålförteckning och cellplast | 1:10, 1:20, 1:50 |
+| R-05.1 | Plan med väggarnas ytterliv, öppningarna i betongen, rörens lägen med måttkedjor och tabell, öppningstabell | 1:50 |
+| R-05.2 | Väggarnas armering i plan: vågräta järn, lodräta järn, vinkeljärn i hörn och anslutningar, järn vid öppningarna | 1:50 |
+| R-05.3 | Elevationer av fasaden med F1–F3, V8/V9 med D1, V4–V6 med D2 och D3, V3 och V2 (typisk yttervägg) | 1:50 |
+| R-05.4 | Sektion A–A (yttervägg mot jord), B–B (innervägg), detalj C (hörn), D (anslutning), E (öppningens smyg och bröstning) | 1:10, 1:20 |
+| R-05.5 | Rör med topplåt och fotplåt, fotplåtarna i plan, stålförteckning för väggarna och rörens stål | 1:5, 1:10 |
 
-Geometrin kommer ur [`../R-04/kallare.py`](../R-04/kallare.py) (samma som R-04) och plintarnas storlek ur K-06:s `resultat.json`. `ritningar.py` använder också R-04:s måttkedjor och snitt genom bottenplattan.
+`kallare.py` är källarens geometri för både R-04 och R-05: väggarna ur K-05:s `geometri.json` (centrumlinjer, betongkärnans ändar vid öppningarna), hörn och anslutningar, öppningarna med bröstningens höjd, rören (P7 två rör), bottenplattans kontur, balkar och plintar (K-06). Bröstningens höjd är R-05:s egen uppgift. Inget läses ur modellen; `verktyg/modellanalys/kontroll_r045.py` jämför `kallare.py` med modellen. `ritningar.py` är uppdelad i underlag, placeringar (`PLAN`, `PLAC`, `ELEV`), lager, blad och main.
+
+Positionsnummer: R-06 1–14, R-05 21–28, R-04 31–41. Stålförteckningarna räknas ur samma funktioner som ritar järnen.
 
 ## Köra
 
 ```
+python beräkningar/K-05/berakning.py      # om K-05/resultat.json saknas
 python beräkningar/K-06/berakning.py      # om K-06/resultat.json saknas
-python beräkningar/R-05/ritningar.py      # ritningar/R-05 Bottenplatta.pdf (R-05.1 … R-05.3)
+python beräkningar/R-05/ritningar.py      # ritningar/R-05 Källarstomme.pdf (R-05.1 … R-05.5)
 ```
 
 Bladen kompileras var för sig till `blad/` (och `R-05.x.json` här); båda versionshanteras inte.

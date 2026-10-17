@@ -1,6 +1,6 @@
 # Ritningsmall A3
 
-Gemensam mall för alla ritningar (R-01 … R-05, AR-01), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
+Gemensam mall för alla ritningar (R-01 … R-04, AR-01), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
 
 | Fil | Innehåll |
 |---|---|
@@ -16,4 +16,4 @@ Ett blad kan också kompileras direkt:
 typst compile --root <repo> --input blad=/sökväg/till/blad.json [--input dolj=lager1,lager2] beräkningar/ritningsmall/ritning.typ ut.pdf
 ```
 
-Varje ritningsserie blir en pdf i `ritningar/` med ett blad per sida; bladen kompileras var för sig och slås ihop. Exempel: [`../R-03/ritningar.py`](../R-03/ritningar.py).
+Varje ritningsserie blir en pdf i `ritningar/` med ett blad per sida; bladen kompileras var för sig och slås ihop. Exempel: [`../R-06/ritningar.py`](../R-06/ritningar.py).

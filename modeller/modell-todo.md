@@ -4,7 +4,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 **Hitta platsen.** Lägen anges i K-05:s koordinater (x, y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant) och i Onshape (globalt): X = x − 12 147,7, Y = y − 1 292,1, Z = z + 13 939,9 (mm). Delarnas namn är modellträdets.
 
-**När modellen är uppdaterad:** exportera till `modeller/trebodar.step` och kör kontrollerna i `verktyg/modellanalys`. Beräkningarna läser inte modellen; där handlingarna ska följa ändringen rättas deras källfiler för hand, och sedan körs K-03, K-05, K-06, R-03, R-04 och R-05.
+**När modellen är uppdaterad:** exportera till `modeller/trebodar.step` och kör kontrollerna i `verktyg/modellanalys`. Beräkningarna läser inte modellen; där handlingarna ska följa ändringen rättas deras källfiler för hand, och sedan körs K-03, K-05, K-06, R-04, R-05, R-06 och R-03.
 
 ## Takstommen (K-01, K-03)
 
@@ -47,18 +47,18 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
 ## Källaren och grunden (K-05, K-06, R-04, R-05)
 
-8. **Rören som VKR 80×80×4 med topplåt och fotplåt.** Alla `K Pillar [1]`–`[19]` är massiva 140 × 140. Modellera dem enligt R-04.5: rör VKR 80×80×4 från bottenplattans överkant till mellanbjälklagets underkant (z −2 250…−150), topplåt 80×80×8 ingjuten i bjälklagets underkant (z −150…−142) och fotplåt 200×200×15 ingjuten i plintens överkant (z −2 265…−2 250). Rörens mitt som i modellen nu (R-04.1, tabellen).
+8. **Rören som VKR 80×80×4 med topplåt och fotplåt.** Alla `K Pillar [1]`–`[19]` är massiva 140 × 140. Modellera dem enligt R-05.5: rör VKR 80×80×4 från bottenplattans överkant till mellanbjälklagets underkant (z −2 250…−150), topplåt 80×80×8 ingjuten i bjälklagets underkant (z −150…−142) och fotplåt 200×200×15 ingjuten i plintens överkant (z −2 265…−2 250). Rörens mitt som i modellen nu (R-05.1, tabellen).
    - P7: `K Pillar [18]` vid (9 470; 5 950) (Onshape X −2 677,7, Y 4 657,9) står i trapphålets hörn. Lägg till ett likadant rör tätt intill i x-led, centrum (9 550; 5 950) (Onshape X −2 597,7, Y 4 657,9). Båda rören står på en gemensam fotplåt 280 × 200 × 15.
 
 9. **P2 1,5 mm för högt.** `K Pillar [13]` vid (7 101,7; 9 154,8) (Onshape X −5 046,1, Y 7 862,7) går z −2 248,5…−148,5, mot −2 250…−150 för övriga rör. Sänk den 1,5 mm.
 
-10. **Matkällarens bottenplatta som i resten av källaren.** `Bottenplatta matkällare`, x 4 370–9 470, y 7 490–11 040 (Onshape X −7 778…−2 678, Y 6 198–9 748). I modellen är golvet 200 mm lägre än i övriga källaren: 100 mm vid z −2 550…−2 450. Bottenplattan har samma uppbyggnad och nivå i hela källaren (K-06, R-05): överkant z −2 250, 300 mm (100 mm betong på 200 mm cellplast). Höj matkällarens golv till z −2 250, eller låt `Bottenplatta` gå igenom.
+10. **Matkällarens bottenplatta som i resten av källaren.** `Bottenplatta matkällare`, x 4 370–9 470, y 7 490–11 040 (Onshape X −7 778…−2 678, Y 6 198–9 748). I modellen är golvet 200 mm lägre än i övriga källaren: 100 mm vid z −2 550…−2 450. Bottenplattan har samma uppbyggnad och nivå i hela källaren (K-06, R-04): överkant z −2 250, 300 mm (100 mm betong på 200 mm cellplast). Höj matkällarens golv till z −2 250, eller låt `Bottenplatta` gå igenom.
 
 11. **Väggarnas kärnor går ihop i anslutningarna.** Där en vägg möter en genomgående vägg ligger det 200 mm cellplast (`Isoskal vägg 1`) mellan kärnorna:
     - V3 mot V19/V20 vid x 4 545, y 9 205 (Onshape X −7 602,7, Y 7 912,9): V3:s kärna (`Bkärna vägg 1`) slutar vid x 4 270, och V19/V20:s börjar vid x 4 470;
     - V15 mot V2 vid x 9 645, y 10 865 (Onshape X −2 502,7, Y 9 572,9): V15:s kärna slutar vid y 10 590, och V2:s börjar vid y 10 790.
 
-    Kärnorna gjuts ihop (R-04.4 detalj D): skär bort cellplasten där väggarna möts, så att V3:s kärna går in i V19/V20:s och V15:s in i V2:s.
+    Kärnorna gjuts ihop (R-05.4 detalj D): skär bort cellplasten där väggarna möts, så att V3:s kärna går in i V19/V20:s och V15:s in i V2:s.
 
 12. **Plattan på mark (plan 1): cellplast och fyllning.** Området under `Mittenplatta` vid x 0–4 545, y 9 205–15 900 (L-formen bakom V3 och V20; Onshape X −12 148…−7 603, Y 7 913–14 608). I modellen ligger berget 75 mm under plattan. Handlingarna (K-05, K-06) förutsätter 400 mm cellplast under plattan på dränerande fyllning upp till 1,7 m över bottenplattan.
 
@@ -70,7 +70,7 @@ Det som ska ändras i `trebodar.step` för att modellen ska stämma med handling
 
     Skifthöjden är 400 mm och stenens underkant ligger 50 mm under färdig mark (stödvinkeln döljs). Stenens höjd på en stödvinkel är högst 2,0 m; vinkeln och gängstängerna behöver inte modelleras.
 
-14. **Valfritt: bottenplattans uppbyggnad.** `Bottenplatta` är en massiv kropp, 300 mm. Enligt R-05 är den 100 mm betong på 200 mm cellplast S100, med kantbalkar och balkar under innerväggarna 450 × 200 och plintar under rören (600–1 200 mm, R-05.1), alla på 100 mm S300. Längs kanten L-element S300, höjd 300 och bredd 600 (ryggen 100, avfasad upptill), med ytterkanten i väggarnas ytterliv (= bottenplattans kant i modellen); betongen börjar 100 mm innanför, i kärnans yttre yta.
+14. **Valfritt: bottenplattans uppbyggnad.** `Bottenplatta` är en massiv kropp, 300 mm. Enligt R-04 är den 100 mm betong på 200 mm cellplast S100, med kantbalkar och balkar under innerväggarna 450 × 200 och plintar under rören (600–1 200 mm, R-04.1), alla på 100 mm S300. Längs kanten L-element S300, höjd 300 och bredd 600 (ryggen 100, avfasad upptill), med ytterkanten i väggarnas ytterliv (= bottenplattans kant i modellen); betongen börjar 100 mm innanför, i kärnans yttre yta.
 
 ## Kontrollera och bestäm
 

@@ -4,7 +4,7 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 
 | Fil | Innehåll |
 |---|---|
-| `bild/geometri.json` | Geometri: plattans kontur och trapphål, källarväggar och upplagslinjer, rör, platta på mark, fria kanter , stolparnas lägen på plan 1 och linjelasten från dalbalk 2. K-05:s egen källfil, som också K-06 och R-03 använder. Kontrolleras mot modellen med `verktyg/modellanalys/kontroll_geometri05.py` |
+| `bild/geometri.json` | Geometri: plattans kontur och trapphål, källarväggar och upplagslinjer, rör, platta på mark, fria kanter , stolparnas lägen på plan 1 och linjelasten från dalbalk 2. K-05:s egen källfil, som också K-06 och R-06 använder. Kontrolleras mot modellen med `verktyg/modellanalys/kontroll_geometri05.py` |
 | `laster.py` | Alla laster: utbredda laster (F-01), punktlaster LN/LD/LA ur K-01 och gaveltakstolarna, ytterväggar qY1–qY12, qD2, trappan qT, vindlyft. Indata överst i filen |
 | `platta.py` | FE för plattor (DKT-element): nät med lokal förfining, stöd (linje, rör som fjäder, bädd), laster, moment, reaktioner, Wood–Armer |
 | `ec2.py` | Material och kontroller enligt SS-EN 1992-1-1 med EKS; rörens knäckning |
@@ -31,7 +31,7 @@ python validering/vaggande.py    # cirka 10 min
 python rapport.py         # rapport/K-05_mellanbjalklag.pdf
 ```
 
-Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosextra-carlito`). Figurer, `resultat.json`, `*.npz` och PDF skapas i mappen och versionshanteras inte. Ritningarna R-03 (mellanbjälklaget) och R-04 (källarstommen) läser `bild/geometri.json` och `resultat.json`. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
+Typsnittet Carlito ska finnas i `/usr/share/fonts` (Debian/Ubuntu: `fonts-crosextra-carlito`). Figurer, `resultat.json`, `*.npz` och PDF skapas i mappen och versionshanteras inte. Ritningarna R-05 (källarstommen) och R-06 (mellanbjälklaget) läser `bild/geometri.json` och `resultat.json`. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
 
 ## Viktiga antaganden
 

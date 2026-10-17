@@ -124,10 +124,10 @@ TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är v�
   [Vågräta järn], [2 Ø10 per skift, ett vid var yta, s600. I de två översta skiften s300], [TG 2216. I V3 s300 i hela höjden (@v3)],
   [Lodräta järn], [På insidan, från bottenplattan upp till bjälklagets överkantsnät: #A.txt i #D.armlist.tat\; #D.armlist.gles_txt i #D.armlist.gles], [TG 2216 anger Ø10 s300; tätare där packningstrycket kräver det (@barformaga, @fasad)],
   [Startjärn], [#A.start på utsidan, 500 mm ned i kantbalken (bockade) och 1 200 mm upp i väggen], [TG 2216],
-  [Vinkeljärn till bjälklaget], [Ø10 med samma avstånd som de lodräta järnen, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-03],
+  [Vinkeljärn till bjälklaget], [Ø10 med samma avstånd som de lodräta järnen, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-06],
   [Hörn och anslutningar], [Vinkeljärn Ø10, 750 mm åt var håll, vid båda ytorna; skarvar minst #M.skarv mm], [TG 2216 figur 5–7; @fig-lokala[figur] c och d],
   [Öppningar], [2 Ø12 längs sidorna och under bröstningen, förankrade 600 mm förbi öppningen. Öppningarna går upp till bjälklaget, som har fri kant över dem (K-05)], [TG 2216],
-  [Innerväggar], [Vågräta järn som ovan, startjärn #A.start i kärnans mitt], [Inget jordtryck; glidskikt på krönet (R-03)],
+  [Innerväggar], [Vågräta järn som ovan, startjärn #A.start i kärnans mitt], [Inget jordtryck; glidskikt på krönet (R-06)],
 )
 
 == Jordtryck och packning <jordtryck>
@@ -187,7 +187,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 - *Gjutfogen vid #M.gjut1 mm:* tvärkraften där är högst #D.fog.V18 kN/m. Med de lodräta järnen genom fogen och en uppruggad yta (6.2.5) är utnyttjandet #D.fog.utn18.
 - *Botten:* kärnan gjuts direkt på kantbalkens uppruggade överkant, och startjärnen går genom fogen. Bottenplattan är golvet som håller väggens fot, och kärnan står i kontakt med den, som TG 2216 kräver när fyllningen är högre än 1 m. Största reaktion i botten är #D.vmax.Rb kN/m. Fogen har bärförmågan #D.fog.vrb MPa (6.2.5: uppruggad yta, startjärnen, väggens egentyngd). Det ger högst #D.fog.utnb.
 - *Hörn och anslutningar:* vågräta järn med vinkeljärn enligt TG 2216 figur 5–7, se @fig-lokala[figur] c och d.
-- *Innerväggar:* de gjuts i hela höjden före bjälklaget. Krönet avjämnas och får glidskikt (byggpapp), och bjälklaget vilar på kärnan utan att vara förankrat i innerväggarna (R-03).
+- *Innerväggar:* de gjuts i hela höjden före bjälklaget. Krönet avjämnas och får glidskikt (byggpapp), och bjälklaget vilar på kärnan utan att vara förankrat i innerväggarna (R-06).
 
 == Utförande av väggarna <utf>
 
@@ -209,7 +209,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 + Fyll bakom V3 och V20 till #M.hfm m när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan 400 mm cellplast för plattan på mark.
 + Montera ytterväggarnas översta halva skift, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
 + Fyll mot övriga väggar när bjälklaget och det översta skiftet har nått $f_"ck" (t)$ ≥ #BY.regel MPa. Väggarna under har då härdat längre. Bjälklagets stämp får stå kvar; de påverkar inte väggarna.
-+ Riv formen under bjälklaget enligt R-03.
++ Riv formen under bjälklaget enligt R-06.
 
 Sundolitt rekommenderar minst fyra veckors härdning och torkning innan det fylls mot väggarna. Det är ett allmänt råd som också gäller torkning före puts. TG 2216 kräver att väggar och bjälklag är gjutna och har härdat tillräckligt. Här räknas hur mycket som räcker.
 

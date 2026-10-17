@@ -1,8 +1,8 @@
 """
-R-00: betongarbetets bärande delar i 3D, ur samma källor som ritningarna: bottenplattan, källarväggarna och rören
-(R-04, R-05, K-06) och mellanbjälklaget (K-05, R-03).
+R-03: betongarbetets bärande delar i 3D, ur samma källor som ritningarna: bottenplattan, källarväggarna och rören
+(R-04, R-05, K-06) och mellanbjälklaget (K-05, R-06).
 
-Koordinater i mm enligt K-05 (x, y); z = 0 i bottenplattans överkant (som R-04), mellanbjälklagets överkant
+Koordinater i mm enligt K-05 (x, y); z = 0 i bottenplattans överkant (som R-05), mellanbjälklagets överkant
 z = 2 250. snitt: kropparna klipps i planet (behåll en sida av ett lodrätt plan), så att snittytorna blir kropparnas
 egna sidor.
 """
@@ -13,7 +13,7 @@ from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(HERE), "R-04"))
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "R-05"))
 import kallare as K  # noqa: E402
 
 H, HMB = K.H_VAGG, K.H_MB                         # 2 100, 150

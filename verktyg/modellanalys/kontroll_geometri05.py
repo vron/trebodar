@@ -2,7 +2,7 @@
 
     .venv/bin/python kontroll_geometri05.py
 
-geometri.json är K-05:s egen källfil och används av K-05, K-06 och R-03. Den uppdateras för hand. Den här
+geometri.json är K-05:s egen källfil och används av K-05, K-06 och R-06. Den uppdateras för hand. Den här
 kontrollen läser modellen (modeller/trebodar.step), räknar fram kontur, hål, väggar (vagg, stod), rör, mark, fria
 kanter och E på samma sätt som i källfilen och redovisar skillnaderna. Den skriver ingenting.
 stolpar, balkar, takstol och linjelaster i källfilen beskriver trästommen på plan 1 och kontrolleras inte här.

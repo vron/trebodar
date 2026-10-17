@@ -1,5 +1,5 @@
 """
-Källarens geometri för R-04 (källarstomme) och R-05 (bottenplatta), i K-05:s koordinater (mm, origo i skärningen
+Källarens geometri för R-04 (bottenplatta) och R-05 (källarstomme), i K-05:s koordinater (mm, origo i skärningen
 mellan mellanbjälklagets kanter x = 0 och y = 0, y uppåt) och höjder z från bottenplattans överkant.
 
 Underlag: K-05 (bild/geometri.json: väggarnas centrumlinjer, betongkärnans ändar vid öppningarna och rörens lägen;
@@ -52,13 +52,13 @@ GLIPA_SMYG = T_EPS              # isolerad smyg vid öppningarna: cellplast 100 
 # armeringens lägen i väggen, från väggens ytterliv (yttervägg) eller från ena ytan (innervägg)
 X_H_UT = T_EPS + C_UT + 5.0                     # vågrätt järn vid utsidan, 135
 X_H_IN = T_EPS + T_KARNA - C_IN - 5.0           # vågrätt järn vid insidan, 220
-X_LODRAT = X_H_IN - 5.0 - 5.0                   # lodräta järn på insidan, innanför de vågräta, 210 (R-03)
+X_LODRAT = X_H_IN - 5.0 - 5.0                   # lodräta järn på insidan, innanför de vågräta, 210 (R-06)
 X_START = L_BEN + BALK_JARN + 14.0              # startjärn på utsidan, innanför kantbalkens längsjärn, 155
 # de vågräta järnens höjder: ett per skift (s600) i de två nedre skiften, s300 i de två översta (TG 2216, K-06);
-# V3 s300 i hela höjden (byggskedet, K-06 4.2). Samma lägen som på R-03.4.
+# V3 s300 i hela höjden (byggskedet, K-06 4.2). Samma lägen som på R-06.4.
 Z_HOR = (575.0, 1175.0, 1475.0, 1775.0, 2040.0)
 Z_HOR_V3 = (275.0, 575.0, 875.0, 1175.0, 1475.0, 1775.0, 2040.0)
-# lodräta järn: från bottenplattan upp under mellanbjälklagets överkantsnät (R-03.4 sektion A)
+# lodräta järn: från bottenplattan upp under mellanbjälklagets överkantsnät (R-06.4 sektion A)
 L_LODRAT = 2200.0
 ARM_V = (10, 200)               # Ø10 s200 på insidan där packningstrycket kräver det (K-06)
 ARM_V_TG = tuple(I06.ARM_V[0])  # Ø10 s300, TG 2216: övriga ytterväggar och under bröstningarna
@@ -69,7 +69,7 @@ STARTJARN = I06.STARTJARN       # Ø10 s300 på utsidan, 500 i kantbalken, 1 200
 VINKEL_HORN = (750.0, 750.0)    # vinkeljärn i hörn och anslutningar, båda ytorna, i varje lager
 SKARV = I06.SKARV               # 500
 OPP = I06.OPPNING               # 2 Ø12, förankras 600 förbi öppningen
-POS14 = dict(d=10, s=200, ben=I06.VINKEL["ned"], in_=I06.VINKEL["in_"])   # R-03 pos 14: vinkeljärn till bjälklaget
+POS14 = dict(d=10, s=200, ben=I06.VINKEL["ned"], in_=I06.VINKEL["in_"])   # R-06 pos 14: vinkeljärn till bjälklaget
 
 
 # ------------------------------------------------------------------ väggarna

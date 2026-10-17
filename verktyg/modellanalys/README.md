@@ -55,7 +55,7 @@ Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna käll
 ```
 .venv/bin/python kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter
 .venv/bin/python kontroll_k03.py          # K-03:s geometri.json och K-05:s stolplägen
-.venv/bin/python kontroll_r031.py         # geometri.json och R-03.1:s måttkedjor
+.venv/bin/python kontroll_r061.py         # geometri.json och R-06.1:s måttkedjor
 .venv/bin/python kontroll_r045.py         # R-04/R-05: öppningar, bröstningar, bottenplattans kontur, väggarnas höjd
 .venv/bin/python kontroll_laster.py       # lastgeometrin i F-01, K-01, K-05 och K-06
 .venv/bin/python kontroll_balkplattor.py  # balkplåtarnas skärfiler mot K-01
@@ -84,8 +84,8 @@ V, F = m.nat(platta)           # triangelnät
 | `jamfor.py` | Jämförelse av en källfils data med modellens och redovisning av avvikelserna |
 | `kontroll_geometri05.py` | Kontroll av K-05:s `bild/geometri.json` (kontur, trapphål, källarväggar och upplagslinjer, rör, platta på mark, fria kanter) mot modellen |
 | `kontroll_k03.py` | Kontroll av K-03:s `geometri.json` (takbalkar, takfönster, takstolar, stolpar, huvudstolpen) och K-05:s stolplägen mot modellen |
-| `kontroll_r031.py` | Kontroll av mellanbjälklagets geometri i K-05/R-03 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, källarväggar) och R-03.1:s måttkedjor mot modellen |
-| `kontroll_r045.py` | Kontroll av källarstommen och bottenplattan i R-04 och R-05 (`beräkningar/R-04/kallare.py`: öppningarna i betongkärnan och bröstningarnas höjd, bottenplattans kontur, väggarnas höjd) mot modellen; redovisar också de kända avvikelserna i `modell-todo.md` (rören, matkällarens golv, kärnorna i anslutningarna) |
+| `kontroll_r061.py` | Kontroll av mellanbjälklagets geometri i K-05/R-06 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, källarväggar) och R-06.1:s måttkedjor mot modellen |
+| `kontroll_r045.py` | Kontroll av källarstommen och bottenplattan i R-04 och R-05 (`beräkningar/R-05/kallare.py`: öppningarna i betongkärnan och bröstningarnas höjd, bottenplattans kontur, väggarnas höjd) mot modellen; redovisar också de kända avvikelserna i `modell-todo.md` (rören, matkällarens golv, kärnorna i anslutningarna) |
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
 | `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |
 | `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |

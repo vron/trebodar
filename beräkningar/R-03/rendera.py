@@ -1,5 +1,5 @@
 """
-Enkel renderare för axonometriska bilder till R-00: plana polygoner i 3D, parallellprojektion, djupbuffert, platt
+Enkel renderare för axonometriska bilder till R-03: plana polygoner i 3D, parallellprojektion, djupbuffert, platt
 skuggning och konturer där ytorna byter (ID-buffert). Ger en bild (PNG) och projicerade punkter för hänvisningarna.
 
 Kroppar byggs som prismor ur en plan polygon (shapely, med hål) mellan två höjder, eller som lådor med godtycklig

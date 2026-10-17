@@ -13,7 +13,7 @@ Elementen läggs i namngivna lager, som ritas i den ordning de skapas och kan d�
     v = Vy(x=30, y=20, w=280, h=250, skala=50, X0=-500, Y1=12900)
     with v.lager("kontur"):
         v.linje([(0, 0), (1000, 0)], "kontur")
-    Blad(huvud("R-03.2", [...], "1:50"), revisioner, kolumn, [v]).kompilera(...)
+    Blad(huvud("R-06.2", [...], "1:50"), revisioner, kolumn, [v]).kompilera(...)
 """
 import json
 import math
@@ -253,7 +253,7 @@ def huvud(nummer, titel, skala, underlag, datum, rev, status="KONSTRUKTION", gra
 
 
 _ENHET = re.compile(r"(\d) (mm|cm|m|m²|m³|kg|kN|kPa|MPa|%|min|h|°C)(?![\w²³])")
-_BETECKNING = re.compile(r"\b([A-ZÅÄÖ]{1,3}|\d+)-(?=\w)")      # L-element, R-04.1, SS-EN, 350-150
+_BETECKNING = re.compile(r"\b([A-ZÅÄÖ]{1,3}|\d+)-(?=\w)")      # L-element, R-05.1, SS-EN, 350-150
 _INTERVALL = re.compile(r"(\w)([–/])(?=\w)")             # V4–V6, 30–60, V8/V17
 
 

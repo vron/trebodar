@@ -1,14 +1,14 @@
 """
-Kontroll av mellanbjälklagets geometri i K-05 och R-03 (bild/geometri.json) mot Onshape-modellen (exakt B-rep).
+Kontroll av mellanbjälklagets geometri i K-05 och R-06 (bild/geometri.json) mot Onshape-modellen (exakt B-rep).
 
-    ./.venv/bin/python kontroll_r031.py
+    ./.venv/bin/python kontroll_r061.py
 
 Jämför plattans kontur, trapphålet, rören, källarväggarna och de fria kanterna i geometri.json – underlaget för
-K-05, K-06 och ritningarna R-03 – med modellen, och R-03.1:s måttkedjor (lägen som i R-03/ritningar.py) med
+K-05, K-06 och ritningarna R-06 – med modellen, och R-06.1:s måttkedjor (lägen som i R-06/ritningar.py) med
 modellens hörn. K-05-koordinater: origo i skärningen mellan plattkanterna x = 0 och y = 0.
 geometri.json är K-05:s egen källfil (se kontroll_geometri05.py); avvikelser här betyder att modellen och
 källfilen inte stämmer överens.
-Bild: ut/R-03.1_kontroll.png
+Bild: ut/R-06.1_kontroll.png
 """
 import json
 import sys
@@ -82,7 +82,7 @@ for i, (ax_, c, a, b_, *_) in enumerate(G["vagg"], 1):
     lo, hi = c - 400 + min(t0 for t0, *_ in seg), c - 400 + max(t1 for _, t1, *_ in seg)
     rad(f"vägg V{i} centrum", round(c, 3), round((lo + hi) / 2, 3))
 
-# R-03.1:s måttkedjor: lägen som i R-03/ritningar.py (lager_yttermatt); hålets kedjor ur geometri.json
+# R-06.1:s måttkedjor: lägen som i R-06/ritningar.py (lager_yttermatt); hålets kedjor ur geometri.json
 XMAX, YMAX = K[:, 0].max(), K[:, 1].max()
 kedjor = {
     "under": ([0, 4500, 9310, XMAX], [0, xs[2], xs[3], xs[-1]]),
@@ -92,7 +92,7 @@ kedjor = {
     "hål vågrätt": ([0, H[:, 0].min(), H[:, 0].max(), XMAX], [0, hx[0], hx[-1], xs[-1]]),
     "hål lodrätt": ([1000, H[:, 1].min(), H[:, 1].max(), 12510], [ys[1], hy[0], hy[-1], ys[4]]),
 }
-print(f"\n  {'R-03.1 måttkedja':<22} {'ritningens mått':<40} {'modellens mått':<40}")
+print(f"\n  {'R-06.1 måttkedja':<22} {'ritningens mått':<40} {'modellens mått':<40}")
 for k, (r_, mo) in kedjor.items():
     rad(k, [round(v, 1) for v in np.diff(r_)], [round(v, 1) for v in np.diff(mo)])
 
@@ -104,7 +104,7 @@ for n, s in sd.items():
     if not s.yta.is_empty:
         ax.add_patch(_patch(s.yta, facecolor=s.del_.farg, edgecolor="black", lw=0.6, zorder=2))
 ax.add_patch(plt.Polygon(K, closed=True, fill=False, ec="red", lw=1.4, ls=(0, (5, 3)), zorder=4,
-                         label="geometri.json (K-05, R-03): kontur och trapphål"))
+                         label="geometri.json (K-05, R-06): kontur och trapphål"))
 ax.add_patch(plt.Polygon(H, closed=True, fill=False, ec="red", lw=1.4, ls=(0, (5, 3)), zorder=4))
 P = np.array(G["pelare"])
 ax.plot(mitt[:, 0], mitt[:, 1], "s", ms=6, mfc="none", mec="black", label="modellens rör", zorder=5)
@@ -116,5 +116,5 @@ ax.set_title(f"Mellanbjälklag: modellens snitt (fyllt) mot ritningsunderlaget (
 ax.legend(loc="upper right", fontsize=8)
 fig.tight_layout()
 (HERE / "ut").mkdir(exist_ok=True)
-fig.savefig(HERE / "ut" / "R-03.1_kontroll.png", dpi=150)
-print("ut/R-03.1_kontroll.png")
+fig.savefig(HERE / "ut" / "R-06.1_kontroll.png", dpi=150)
+print("ut/R-06.1_kontroll.png")
