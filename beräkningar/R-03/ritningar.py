@@ -274,8 +274,8 @@ def lager_origo(v):
         L = 900
         v.linje([(0, 0), (L, 0)], "tunn"); v.pil((L + 150, 0), (1, 0), langd=2.2, bredd=1.0)
         v.linje([(0, 0), (0, L)], "tunn"); v.pil((0, L + 150), (0, 1), langd=2.2, bredd=1.0)
-        v.ptext(L + 150, 0, 1.0, 0, "x", a="lm", sz=7.5, i=True)
-        v.ptext(0, L + 150, 0, 1.0, "y", a="cb", sz=7.5, i=True)
+        v.ptext(L + 150, 0, 0, 0.8, "x", a="cb", sz=7.5, i=True)      # bredvid pilarna, inte på måttens hjälplinjer
+        v.ptext(0, L + 150, 1.0, 0, "y", a="lm", sz=7.5, i=True)
         v.ptext(0, 0, 1.0, -1.0, "origo (0; 0)", a="lt", sz=6.4, col="gra")
 
 
@@ -491,18 +491,17 @@ def sektion_a():
                 for x in (e + 30 + 5, e + k - 25 - 5):
                     v.cirkel(x, yy, 5, fyll="svart", stil=None, modell=True)
     with v.lager("matt"):
-        v.matt((1300, 0), (1300, H), 2.5, sida=-1, sz=6.2)
         v.matt((0, ylo + 220), (e, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(e))
         v.matt((e, ylo + 220), (e + k, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(k))
         v.matt((e + k, ylo + 220), (350, ylo + 220), 2.5, sida=-1, sz=6.0, txt=sv(KUB[2]))
-        v.matt((0, H), (VAGG_UTE, H), 2.0, sz=5.8, txt=sv(VAGG_UTE))
+        v.matt((0, H), (VAGG_UTE, H), 2.0, sz=5.8, txt=sv(VAGG_UTE), ute="p1")
         v.matt((xa, yb), (xa + POS14["in_"], yb), 3.0, sz=5.8, txt=sv(POS14["in_"]))
-        v.matt((xa, yb - POS14["ben"]), (xa, yb), 3.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
+        v.matt((xa, yb - POS14["ben"]), (xa, yb), 2.0, sida=1, sz=5.8, txt=sv(POS14["ben"]))
         v.matt((420, H_GJUT1 - H_VAGG), (420, 0), 2.5, sida=-1, sz=5.8, txt=sv(H_VAGG - H_GJUT1))
     etiketter(v, [(f"vinkeljärn Ø{POS14['d']} s{POS14['s']}, under nätet", (xa + 300, yb), 14),
                   ("Ø8 s150, överkant", (900, YO1), 11), ("Ø8 s150, överkant", (1200, YO2), 12),
                   ("Ø10 s150, underkant", (1100, YU2), 2), ("Ø10 s150, underkant", (1000, YU1), 1),
-                  ("kärnan gjuts med bjälklaget (K-06)", (e + k / 2, -150), None),
+                  ("kärnan gjuts med bjälklaget (K-06)", (e + k / 2, -40), None),
                   ("gjutfog 300 under bjälklaget (K-06)", (e + 20, -300), None),
                   ("Kub 350-150, betongkärna 150 (K-06)", (e + 40, -500), None),
                   (f"väggens lodräta järn Ø10 s{POS14['s']} (K-06)", (X_LODRAT, -750), None)], 1500, 340, 4.4)
@@ -533,9 +532,9 @@ def sektion_b():
         v.brott((-90, -330), (90, -330), "tunn")
     with v.lager("matt"):
         v.matt((-40, -250), (40, -250), 3.0, sida=-1, sz=6.2)
-        v.matt((-330, 0), (-330, H), 3.0, sida=1, sz=6.2)
-        v.matt((-230, 0), (-230, C_UK), 1.5, sida=1, sz=5.6, txt=f"{C_UK:.0f}")
-        v.matt((-230, H - C_OK), (-230, H), 1.5, sida=1, sz=5.6, txt=f"{C_OK:.0f}")
+        v.matt((-300, 0), (-300, H), 3.0, sida=1, sz=6.2)
+        v.matt((-230, 0), (-230, C_UK), 1.5, sida=1, sz=5.6, txt=f"{C_UK:.0f}", ute="p0")
+        v.matt((-230, H - C_OK), (-230, H), 1.5, sida=1, sz=5.6, txt=f"{C_OK:.0f}", ute="p1")
     etiketter(v, [("Ø8 s150, överkant", (150, YO1), 11),
                   (f"{zp5['namn']}: Ø{zp5['tillagg'][0]} s{zp5['tillagg'][1]}, båda riktningarna", (225, YO2), None),
                   ("2 + 2 Ø10 L = 1\u00a0200 över röret", (25, YU2), 3),
@@ -554,7 +553,7 @@ def sektion_c():
     with v.lager("text"):
         v.text(-30, H / 2, "trapphål", a="rm", sz=6.6, col="gra", i=True)
     with v.lager("matt"):
-        v.matt((0, H), (C_KANT, H), 2.0, sz=5.6, txt=f"{C_KANT:.0f}")
+        v.matt((0, H), (C_KANT, H), 2.0, sz=5.6, txt=f"{C_KANT:.0f}", ute="p1")
     etiketter(v, [("båda näten går ut till hålkanten, täckskikt 25", (C_KANT + 5, YO2), None),
                   ("diagonaljärn vid hålets hörn, se R-03.3", (400, YO1), 13)], 800, 220, 4.6)
     with v.lager("rubrik"):
@@ -596,7 +595,7 @@ def detalj_e():
         v.matt((0, 0), (0, H), 8.0, sida=1, sz=6.2)
         v.matt((0, 0), (0, C_UK), 3.0, sida=1, sz=5.8, txt=f"{C_UK:.0f}")
         v.matt((0, H - C_OK), (0, H), 3.0, sida=1, sz=5.8, txt=f"{C_OK:.0f}")
-    etiketter(v, [("Ø8, lager 1", (270, H - C_OK - DO / 2), 11), ("Ø8, lager 2", (150, YO2), 12),
+    etiketter(v, [("Ø8, lager 1", (90, H - C_OK - DO / 2), 11), ("Ø8, lager 2", (150, YO2), 12),
                   ("Ø10, lager 2", (225, YU2), 2), ("Ø10, lager 1", (270, C_UK + DU / 2), 1)], 345, 175, 4.6)
     with v.lager("rubrik"):
         v.rubrik(-180, -60, "DETALJ E  Armeringens lägen", skala=5, sz=9)

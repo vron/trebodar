@@ -130,9 +130,10 @@ class Vy:
         for p in (p0, p1):
             self.cirkel(*p, 0.5, fyll="svart", stil=None)
 
-    def matt(self, p0, p1, avstand, txt=None, sz=7.0, ext=True, sida=1, hjalp_fran=None):
+    def matt(self, p0, p1, avstand, txt=None, sz=7.0, ext=True, sida=1, hjalp_fran=None, ute=None):
         """Måttlinje mellan p0 och p1, förskjuten avstand pappersmm åt vänster om riktningen p0→p1 (sida=-1 höger).
-        Snedstreck i ändarna, hjälplinjer från punkterna (eller från hjalp_fran) och text ovanför linjen."""
+        Snedstreck i ändarna, hjälplinjer från punkterna (eller från hjalp_fran) och text ovanför linjen. ute="p0"
+        eller "p1": texten utanför den änden (korta mått där texten inte ryms mellan strecken)."""
         p0, p1 = np.asarray(p0, float), np.asarray(p1, float)
         d = p1 - p0; L = np.linalg.norm(d)
         if L < 1e-6:
@@ -152,9 +153,13 @@ class Vy:
         if ang > 90.5 or ang < -89.5:
             ang += 180
         mid = (q0 + q1) / 2
+        txt = txt if txt is not None else svm(L)
+        if ute:                                          # bortom änden, förbi måttlinjens förlängning
+            bredd = len(txt) * 0.19 * sz + 0.8
+            mid = q1 + t * (2.1 + bredd / 2) * self.s if ute == "p1" else q0 - t * (2.1 + bredd / 2) * self.s
         nu = np.array([-math.sin(math.radians(ang)), math.cos(math.radians(ang))])
         pos = mid + nu * 0.8 * self.s
-        self.text(pos[0], pos[1], txt if txt is not None else svm(L), a="cb", sz=sz, rot=round(ang, 2))
+        self.text(pos[0], pos[1], txt, a="cb", sz=sz, rot=round(ang, 2))
 
     def _tick(self, q, t, n):
         sl = (np.asarray(t) + np.asarray(n)) / math.sqrt(2) * 1.1 * self.s

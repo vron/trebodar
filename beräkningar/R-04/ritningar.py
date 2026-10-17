@@ -1056,22 +1056,22 @@ def sektion_a():
     with v.lager("matt"):
         kedja(v, [0.0, K.T_EPS, K.T_EPS + K.T_KARNA, K.T_VAGG], 1350.0, [1350.0] * 4, sz=5.6)
         zs = [0.0, K.SKIFT, 2 * K.SKIFT, K.H_GJUT1, H, H + H_MB]
-        kedja(v, zs, 820.0, [K.T_VAGG + 13] * 5 + [820.0], sz=5.8, ax="y")
-        v.text((K.T_VAGG + 13 + 820.0) / 2, K.H_GJUT1 + 25, "gjutfog", a="cb", sz=5.6)
-        kedja(v, [-HB - K.T_FOT, -HB, -K.H_PLATTA, 0.0], 820.0, [900.0] * 4, sz=5.6, ax="y")
+        kedja(v, zs, 790.0, [K.T_VAGG + 13] * 5 + [790.0], sz=5.8, ax="y")
+        v.text((K.T_VAGG + 13 + 790.0) / 2, K.H_GJUT1 - 25, "gjutfog", a="ct", sz=5.6)
+        kedja(v, [-HB - K.T_FOT, -HB, -K.H_PLATTA, 0.0], 790.0, [900.0] * 4, sz=5.6, ax="y")
         kedja(v, [0.0, K.L_BEN, K.B_L], -HB - K.T_FOT - 3.5 * s, [-HB - K.T_FOT] * 3, sz=5.6, bg=True)
     lst = [(f"vinkeljärn Ø{K.POS14['d']} s{K.POS14['s']}, {K.POS14['ben']:.0f} + {K.POS14['in_']:.0f} "
             f"(R-03 pos {POS03})", (xa + 300, Z_POS14), None),
-           ("mellanbjälklag 150 (R-03)", (700, H + 75), None),
+           ("mellanbjälklag 150 (R-03)", (550, H + 75), None),
            (f"Ø10 s{K.ARM_V_VAGG['V2'][1]}, insidan, L = {sv(K.L_LODRAT)}", (K.X_LODRAT, 1600), POS["lod"]),
-           ("2 Ø10 per skift, ett vid var yta", (K.X_H_IN, K.Z_HOR[2]), POS["hor"]),
+           ("2 Ø10 per skift, ett vid var yta", (K.X_H_IN, K.Z_HOR[1]), POS["hor"]),
            ("Kub 350-150: 100 + 150 + 100", (175, 1050), None),
-           ("gips 13", (K.T_VAGG + 6, 700), None),
+           ("gips 13", (K.T_VAGG + 6, 1100), None),
            (f"startjärn Ø{st['d']} s{st['s']}, utsidan, foten in i balken (R-05 pos {POS05['start_ute']})",
             (K.X_START, 350), None),
            (f"L-element L300: ben {sv(K.L_BEN)} under väggens cellplast, fot under balken", (50, -150), None),
-           (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-05)", (420, -100), None),
-           (f"cellplast: {sv(EPS_PL)} S100 under plattan", (700, -230), None)]
+           (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-05)", (300, -100), None),
+           (f"cellplast: {sv(EPS_PL)} S100 under plattan", (640, -250), None)]
     with v.lager("text"):
         v.text(-60, hf + 120, "fasadsten\n(AR-01)", a="rb", sz=5.8, col="gra", i=True)
         v.hanvisning((15, H + 135), (-70, H + 270), "kantisolering 30", a="rm", sz=5.8)
