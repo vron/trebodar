@@ -9,10 +9,10 @@ namn        = "Fritidshus Trebodar, Resö, Tanum"
 objekt      = "Bottenplattan – temperatur och fukt under året"
 dokument    = "U-01"
 revision    = "A"
-datum       = "2026-10-09"
+datum       = "2026-10-18"
 upprattad   = "Viktor Ogeman"
 granskad    = ""
-underlag    = "K-06 rev A (bottenplatta och källarväggar), modeller/trebodar.step"
+underlag    = "K-06 rev A (bottenplatta och källarväggar), R-04 (bottenplatta), modeller/trebodar.step"
 
 # Sektion A–A tvärs husets största bredd, vid y = 6 000 i K-05:s koordinater. Väggarnas och rörens lägen läses
 # ur K-05/bild/geometri.json (modellen). Bottenplattans uppbyggnad enligt K-06.
@@ -20,35 +20,19 @@ underlag    = "K-06 rev A (bottenplatta och källarväggar), modeller/trebodar.s
 y           = 6000
 vagg_v      = "V21"
 vagg_o      = "V14"
-mark_v      = 1093      # markytan utanför V21 över bottenplattans överkant (modellen)
-mark_o      = 984       # markytan utanför V14 (modellen)
+mark_v      = 1093      # markytan utanför V21 över bottenplattans överkant (modellen, mätt 2026-10-18)
+mark_o      = 984       # markytan utanför V14 (modellen, mätt 2026-10-18)
 h_rum       = 2100      # fri höjd i källaren
 utforande   = "L300"    # cellplast och kantbalk enligt K-06, se [utforande]
 
-# Plintarnas sida (mm) under rören enligt K-06. Plintar som sektionen skär räknas som strimlor längs huset.
-[plintar]
-P1 = 1100
-P2 = 1100
-P3 = 1100
-P4 = 1100
-P5 = 1200
-P6 = 700
-P7 = 1100
-P8 = 1000
-P9 = 800
-P10 = 1100
-P11 = 900
-P12 = 800
-P13 = 600
-P14 = 700
-P15 = 1100
-P16 = 1000
-P17 = 1200
-P18 = 1200
-P19 = 1000
+# Plintarna: sidan läses ur K-06:s resultat.json (bottenplattan L300) och rörens lägen ur K-05:s geometri.json. Plintar
+# som sektionen skär räknas som strimlor längs huset. P7 är två rör tätt intill varandra i x-led (K-05); plintens mitt
+# ligger mitt emellan rören.
+[dubbelror]
+P7 = 80                 # det andra röret så långt åt +x [mm]
 
 [utforande.L300]
-t_eps       = 200       # cellplast S100 under plattan, två skikt med åldringsbeständig plastfolie emellan
+t_eps       = 200       # cellplast S100 under plattan i två skikt; plastfolien i ett plan 200 mm under överkant (R-04)
 h_balk      = 200       # kantbalk, balkar och plintar
 [utforande.L400]
 t_eps       = 300
@@ -132,6 +116,15 @@ T_golvvarme = 24.0
 namn        = "Luftens klimat: årsmedel 8 °C, amplitud 9 K"
 Tm          = 8.0
 A           = 9.0
+[[fall]]
+namn        = "Fyllning enligt K-06: 2,0 m mot V21, 1,23 m mot V14"
+mark_v      = 2000      # K-06: 2,0 m mot de slutna fasaderna
+mark_o      = 1230      # K-06: V14 0,8–1,8 m, linjärt längs väggen; vid y = 6 000 är det 1,23 m
+[[fall]]
+namn        = "Fyllning enligt K-06 och källaren 18 °C på sommaren"
+mark_v      = 2000
+mark_o      = 1230
+T_rum_sommar = 18.0
 [[fall]]
 namn        = "Fyllning 2,0 m mot båda väggarna"
 mark_v      = 2000

@@ -48,7 +48,8 @@ Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och in
 #figure(image("fig_sektion.svg", width: 100%), caption: [Sektion A–A med beräkningsmodellens geometri. Koordinater som i K-05. z räknas från bottenplattans överkant.])
 
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
-- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, med åldringsbeständig plastfolie mellan skikten;
+- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt;
+- åldringsbeständig plastfolie i ett plan över hela ytan, 200 mm under plattans överkant: mellan cellplastskikten och direkt under balkar och plintar, ut över L-elementens fot (R-04);
 - kantbalkar #s.h_balk mm i L-element (höjd 300, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Båda på 100 mm S300;
 - källarväggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100), gjutna direkt på kantbalken;
 - makadam på berg.
@@ -99,7 +100,7 @@ Resultatet gäller det periodiska tillståndet, alltså det tillstånd som marke
 
 = Fuktkriterier
 
-Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det 200 mm cellplast och plastfolie. Under plintar och kantbalkar är det 100 mm och ingen folie.
+Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det 200 mm cellplast med plastfolien i mitten. Under plintar och kantbalkar är det 100 mm, och folien ligger direkt under betongen; där är betongens underkant alltså också folien. Under L-elementens rygg finns bara cellplast upp till väggen och ingen folie, så där finns ingen yta som fukt kan samlas mot.
 
 + *Årsmedel:* $Delta T$ > 0 i medel över året, så att fukten i netto går nedåt.
 + *Varje dygn:* $Delta T$ > 0 hela året. Plattan är då alltid varmare än marken.
@@ -109,7 +110,7 @@ Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till k
 
 #figure(image("fig_ar.svg", width: 100%), caption: [Grundfallet under året. a) Temperaturer i fält där $Delta T$ är minst. b) $Delta T$ där den är minst för plattan i fält, plintarna och kantbalkarna. Skuggat: golvvärme.])
 
-Med golvvärme är $Delta T$ i medel #r.sam.v_falt K i fält, #r.sam.v_plint K under plintarna och #r.sam.v_kant K under kantbalkarna. När golvvärmen stängs av den 1 maj sjunker plattan på några dygn till rummets temperatur. Marken under husets mitt är då #b.falt.Tg °C och svalnar långsamt. I mitten av huset och under plintarna blir $Delta T$ därför negativ under #r.bas_n dygn, som lägst #b.falt.dT K den #b.falt.dag. Vid kanterna kyls marken av utomhusklimatet. Där är $Delta T$ som minst #b.kant.dT K, i början av september när markytan är som varmast.
+Med golvvärme är $Delta T$ i medel #r.sam.v_falt K i fält, #r.sam.v_plint K under plintarna och #r.sam.v_kant K under kantbalkarna. När golvvärmen stängs av den 1 maj sjunker plattan på några dygn till rummets temperatur. Marken under husets mitt är då #b.falt.Tg °C och svalnar långsamt. I mitten av huset och under plintarna blir $Delta T$ därför negativ under #r.bas_n dygn, som lägst #b.falt.dT K den #b.falt.dag. Vid kanterna kyls marken av utomhusklimatet. Där är $Delta T$ som minst #b.kant.dT K, den #b.kant.dag.
 
 #figure(image("fig_falt.svg", width: 100%), caption: [Temperaturfält i grundfallet. Isotermer med 2 K avstånd i a och b, 0,5 K i c och d. I c är marken under plattan och plintarna varmare än betongen.])
 
@@ -139,9 +140,10 @@ Varje fall ändrar ett eller två av grundfallets antaganden. Minsta $Delta T$ �
 
 #let mn(n) = r.sam.min.at(n)
 - *Kriterium 1* uppfylls med god marginal i alla fall. $Delta T$ är i årsmedel minst #r.sam.medel K, så fukten går i netto nedåt.
-- *Kriterium 2* uppfylls inte i grundfallet. Där är plattan i mitten av huset och plintarna kallare än marken under några veckor i maj. Kriteriet uppfylls, med lägsta $Delta T$ inom parentes:
-  - om källaren hålls vid 18 °C på sommaren (#mn("Källaren 18 °C på sommaren") K) eller vid 20 °C (#mn("Källaren 20 °C på sommaren") K);
+- *Kriterium 2* uppfylls inte i grundfallet. Där är plattan i mitten av huset och plintarna kallare än marken under några veckor i maj. Under kantbalkarna är $Delta T$ positiv hela året i alla fall. Kriteriet uppfylls, med lägsta $Delta T$ inom parentes:
+  - om källaren hålls vid 18 °C på sommaren (#mn("Källaren 18 °C på sommaren") K) eller vid 20 °C (#mn("Källaren 20 °C på sommaren") K), också med K-06:s fyllning mot väggarna och 18 °C (#mn("Fyllning enligt K-06 och källaren 18 °C på sommaren") K);
   - med husets verkliga grund, berg, även med en källare på 16 °C (#mn("Berg under huset, λ = 3,5") K).
+- *Fyllningen:* grundfallet har modellens markyta. Med K-06:s fyllning, som är högre, blir marken under plattan något varmare och lägsta $Delta T$ #mn("Fyllning enligt K-06: 2,0 m mot V21, 1,23 m mot V14") K i fält. Det ändrar inte bedömningen.
 - *Kriterium 3* uppfylls. Under perioden med omvänd gradient samlas som mest #r.sam.M_max g/m² i något av fallen. Det är försumbart mot #r.fukt.M_ref g/m², och fukten torkar ut inom #r.sam.M_dygn dygn, långt före nästa vår. Under plattan finns bara cellplast och betong, som inte tar skada av så lite fukt.
 - *L400* höjer det lägsta värdet i fält från #b.falt.dT till #r.sam.L400 K, men perioden med omvänd gradient finns kvar. Det som avgör är källarens temperatur på sommaren, inte cellplastens tjocklek.
 

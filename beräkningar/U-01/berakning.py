@@ -5,7 +5,8 @@ källaren i periodiskt tillstånd (det marken når efter många år), med känsl
     python berakning.py            -> U-01_bottenplatta_fukt.pdf
     python berakning.py figurer    -> bara grundfallet och figurerna
 
-Läser indata.toml och väggarnas och rörens lägen ur ../K-05/bild/geometri.json (modellen), räknar med mark2d.py,
+Läser indata.toml, väggarnas och rörens lägen ur ../K-05/bild/geometri.json (modellen) och plintarnas storlek ur
+../K-06/resultat.json, räknar med mark2d.py,
 ritar figurer och sätter ihop PDF via Typst (mall.typ).
 """
 import json
@@ -29,7 +30,10 @@ FONTS = HERE.parent / ".fonts"
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 G05 = json.load(open(HERE.parent / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
 VAGG = {f"V{i}": v for i, v in enumerate(G05["vagg"], 1)}
-PEL = {f"P{i}": p for i, p in enumerate(G05["pelare"], 1)}
+# plintarnas mitt (dubbelrör: mitt emellan rören) och sida ur K-06 (bottenplattan L300)
+PEL = {f"P{i}": (p[0] + IN["dubbelror"].get(f"P{i}", 0.0) / 2, p[1]) for i, p in enumerate(G05["pelare"], 1)}
+R06 = json.load(open(HERE.parent / "K-06" / "resultat.json", encoding="utf-8"))
+PLINT = {f"P{i}": float(b) for i, b in enumerate(R06["platta"]["L300"]["plint"], 1)}
 MANAD = ("januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober",
          "november", "december")
 TYPER = (("falt", "Platta i fält"), ("plint", "Plint"), ("kant", "Kantbalk"))
@@ -54,7 +58,7 @@ def par(fall):
     s, pl, kl, dr = IN["sektion"], IN["platta"], IN["klimat"], IN["drift"]
     P = dict(xc_v=VAGG[s["vagg_v"]][1] / 1000, xc_o=VAGG[s["vagg_o"]][1] / 1000, mark_v=s["mark_v"] / 1000,
              mark_o=s["mark_o"] / 1000, h_rum=s["h_rum"] / 1000, utforande=s["utforande"],
-             plint=sorted(((n, PEL[n][0] / 1000, b / 1000) for n, b in IN["plintar"].items() if abs(PEL[n][1] - s["y"]) < b / 2),
+             plint=sorted(((n, PEL[n][0] / 1000, b / 1000) for n, b in PLINT.items() if abs(PEL[n][1] - s["y"]) < b / 2),
                           key=lambda p: p[1]),
              vagg_skikt=IN["vagg"]["skikt"])
     P.update({k: v / 1000 for k, v in pl.items()})
@@ -135,7 +139,7 @@ FALL = [dict(f) for f in IN["fall"]]
 RES = [kor(FALL[0])]
 bas = RES[0]
 dag_v = int(bas["falt"]["dag"])                         # kritiskt dygn för plattan i fält och plintarna (våren)
-dag_k = int(bas["kant"]["dag"])                         # kritiskt dygn för kantbalken (sensommaren)
+dag_k = int(bas["kant"]["dag"])                         # kritiskt dygn för kantbalken
 DAG_F = {"vinter": 31, "var": dag_v, "kant": dag_k}
 bas = kor(FALL[0], falt=DAG_F.values())
 BARA_FIGURER = "figurer" in sys.argv[1:]
@@ -171,7 +175,8 @@ def rita_delar(ax, m, lw=0.4, fyll=True, kant=INK):
         ax.add_patch(Polygon(tri, closed=True, fc=FARG["betong"] if fyll else "none", ec=kant, lw=lw,
                              zorder=1.1 if fyll else 3))
     # folien mellan cellplastskikten och golvvärmen
-    ax.plot([g["xv"] + P["t_ben"] + P["b_balk"], g["xo"] - P["t_ben"] - P["b_balk"]], [g["zfolie"]] * 2, color=BLA, lw=0.6, ls=(0, (3, 1.5)), zorder=4)
+    # plastfolien i ett plan över hela ytan, under kantbalkarna och plintarna ut till L-elementens rygg (R-04)
+    ax.plot([g["xv"] + P["t_ben"], g["xo"] - P["t_ben"]], [g["zfolie"]] * 2, color=BLA, lw=0.6, ls=(0, (3, 1.5)), zorder=4)
     ax.plot([g["gv"][0], g["gv"][1]], [g["gv"][2]] * 2, color=ROD, lw=0.8, ls=(0, (1, 1)), zorder=4)
     for x0, x1, zm in ((m["ex"][0], g["xv"], P["mark_v"]), (g["xo"], m["ex"][-1], P["mark_o"])):
         ax.plot([x0, x1], [zm, zm], color=INK, lw=0.7, zorder=4)
@@ -340,11 +345,15 @@ def rita_falt(path, r):
     pan = [(gs[0, :], "vinter", hel, np.arange(-2, 28.5, 0.5), 2.0, "a) Vinter med golvvärme"),
            (gs[1, :], "var", hel, np.arange(-2, 28.5, 0.5), 2.0, "b) Våren, kritiskt dygn för plattan"),
            (gs[2, 0], "var", (xp - 2.2, xp + 2.2, -1.1, 0.35), np.arange(14, 19.01, 0.1), 0.5, "c) Förstoring av b"),
-           (gs[2, 1], "kant", (*kz, -1.1, 0.9), np.arange(12, 20.01, 0.1), 0.5, f"d) Kantbalken vid {vk}, sensommaren")]
+           (gs[2, 1], "kant", (*kz, -1.1, 0.9), None, None, f"d) Kantbalken vid {vk}, kritiskt dygn")]
     for spec, nyck, (x0, x1, z0, z1), niv, steg, titel in pan:
         ax = fig.add_subplot(spec)
         dag = DAG_F[nyck]
         F = np.ma.masked_invalid(M.faltvarde(m, r["F"][dag]))
+        if niv is None:                              # skala efter temperaturerna i förstoringen
+            w = F[(X > x0) & (X < x1) & (Z > z0) & (Z < z1)]
+            lo, hi = np.floor(float(w.min())), np.ceil(float(w.max()))
+            niv, steg = (np.arange(lo, hi + 0.01, 0.1), 0.5) if hi - lo <= 10 else (np.arange(lo, hi + 0.01, 0.25), 2.0)
         cs = ax.contourf(X, Z, np.clip(F, niv[0], niv[-1]), levels=niv, cmap="RdYlBu_r", extend="neither")
         cl = ax.contour(X, Z, F, levels=np.arange(np.ceil(niv[0]), niv[-1] + 1e-9, steg), colors=INK, linewidths=0.3)
         ax.clabel(cl, fontsize=5.5, fmt=(lambda v: fmt(v, 0 if steg >= 1 else 1)), inline_spacing=1)
@@ -355,7 +364,7 @@ def rita_falt(path, r):
                      if spec in (gs[0, :], gs[1, :]) else f"{titel}, {datum(dag)}", fontsize=7.5, loc="left")
         if spec not in (gs[0, :], gs[1, :]):
             cb = fig.colorbar(cs, ax=ax, orientation="horizontal", fraction=0.06, pad=0.14, aspect=40,
-                              ticks=np.arange(niv[0], niv[-1] + 1e-9, 1.0))
+                              ticks=np.arange(niv[0], niv[-1] + 1e-9, 1.0 if niv[-1] - niv[0] <= 10 else 4.0))
             cb.ax.tick_params(labelsize=6.3, length=2); cb.set_label("°C", fontsize=6.5, labelpad=1)
         elif spec == gs[1, :]:
             pb, pa = ax.get_position(), fig.axes[0].get_position()

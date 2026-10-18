@@ -241,11 +241,12 @@ def faltvarde(m, T):
 
 def kolumner(m):
     """Kolumner under plattan: typ (fält, kantbalk, plint), x och cellindex kring cellplastens över- och underkant
-    och folien. Gränsytans temperatur vägs med cellernas halva motstånd."""
+    och folien. Gränsytans temperatur vägs med cellernas halva motstånd. Under L-elementens rygg finns bara cellplast
+    upp till väggen, ingen betong och ingen folie (den slutar mot ryggen), så där bedöms ingen gränsyta."""
     g, P, xc, ez, zc = m["g"], m["P"], m["xc"], m["ez"], m["zc"]
     ut = []
     for i, x in enumerate(xc):
-        if not (g["xv"] < x < g["xo"]):
+        if not (g["xv"] + P["t_ben"] < x < g["xo"] - P["t_ben"]):
             continue
         typ = "falt"
         if x < g["xv"] + P["t_ben"] + P["b_balk"] or x > g["xo"] - P["t_ben"] - P["b_balk"]:
