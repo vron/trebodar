@@ -38,7 +38,7 @@ from ritning import Vy, Blad, huvud, sv, svm, PROJEKT  # noqa: E402
 # ================================================================== 1. underlag
 IN = tomllib.loads(open(os.path.join(HERE, "indata.toml"), encoding="utf-8").read())
 REV, DATUM = IN["projekt"]["revision"], IN["projekt"]["datum"]
-UNDERLAG = "Bygglov, K-05, R-05"
+UNDERLAG = "Bygglov, NBK, K-05, R-05"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 KO = IN["koordinater"]
@@ -375,10 +375,9 @@ def blad_plan():
             "Koordinater i SWEREF 99 12 00 (Tanums kommun), höjder i RH2000 (AR-02.2). Mått i mm. x, y är husets "
             "koordinater i K-05, med origo i mellanbjälklagets kanter.",
             "Utstakning och lägeskontroll görs av certifierad mättekniker (krav i bygglovet BYGG.2025.2278).",
-            f"Höjdreferens: fixpunkten {FIX['namn']}, {FIX['beskrivning']}, {rh(Z_FIX)} enligt situationsplanen "
-            f"(nybyggnadskartan). Alla höjder anges i RH2000 och relativt bulten, och mäts från bulten med "
-            f"avvägningsinstrument eller laser. Mätteknikern kontrollerar bultens höjd vid utstakningen. Bultens "
-            f"läge är mätt ur situationsplanen (±0,1 m), avstånden i översikten är ungefärliga.",
+            f"Höjdreferens: fixpunkten {FIX['namn']}, byggfixen på nybyggnadskartan (2025-11-12): "
+            f"{FIX['beskrivning']}, {rh(Z_FIX)}. Alla höjder anges i RH2000 och relativt dubben, och mäts från den "
+            f"med avvägningsinstrument eller laser. Dubbens läge är angivet i cm.",
             f"Fasadens hörn F1–F12 är utsättningsdata 09_91 (punkt 1–12). De stämmer med husets mått inom "
             f"{sv(max(1.0, math.ceil(RESTFEL.max())), 0)} mm. Bottenplattans (B) och plattan på marks (P) punkter är "
             f"beräknade med samma läge:",
@@ -409,7 +408,7 @@ def blad_sektion():
         ["Skärningspunkt fasad/takplan, nordvästra långsidan", rh(Z_S), rel(Z_S)[len(FIX["namn"]) + 1:],
          f"MMN + byggnadshöjd {svm(H['byggnadshojd'] * 1000)} (bygglov)"],
         ["Mellanplattans överkant = FG, färdigt golv plan 1", rh(Z_MB), rel(Z_MB)[len(FIX["namn"]) + 1:], "bygglov; betonggolv"],
-        [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "situationsplanen (nybyggnadskartan)"],
+        [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "nybyggnadskartan 2025-11-12 (byggfix)"],
         ["MMN, medelmarknivå", rh(Z_MMN), rel(Z_MMN)[len(FIX["namn"]) + 1:], "bygglov"],
         ["Bottenplattans överkant", rh(Z_BP), rel(Z_BP)[len(FIX["namn"]) + 1:],
          f"mellanplattans ök − {svm(H['h_bjalklag'] * 1000)} − {svm(H['h_kallare'] * 1000)} (K-05, K-06)"],
@@ -423,7 +422,7 @@ def blad_sektion():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
-            f"Höjder i RH2000 och relativt fixpunkten {FIX['namn']} ({rh(Z_FIX)}, stålbult i berg, se AR-02.1), i m. "
+            f"Höjder i RH2000 och relativt fixpunkten {FIX['namn']} ({rh(Z_FIX)}, gränsdubb i berg, se AR-02.1), i m. "
             "Mått i mm. Sektionen är en principskiss: takets uppbyggnad, takfoten och "
             "stommen visas inte. Snittets läge: AR-02.1.",
             f"FG {rh(Z_FG)} är mellanplattans överkant: betonggolv utan golvbeläggning.",

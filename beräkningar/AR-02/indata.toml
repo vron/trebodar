@@ -57,12 +57,12 @@ ny_mark_so  = 7.138     # ny marknivå vid sydöstra fasaden (bygglov, sektion E
 takvinkel   = 30        # grader (K-01); samma takfot (skärningspunkten) runt hela huset och i dalarna
 y_snitt     = 6000      # sektion A–A, i K-05:s y [mm]
 
-# Höjdreferens: stålbult i berg vid tomtens västra hörn, med höjden +7,76 (RH2000) på situationsplanen (ur
-# nybyggnadskartan 2025-11-11). Läget är mätt ur situationsplanen (rutnätet, som passning.py), cirka ±0,1 m.
-# Alla höjder på AR-02 anges i RH2000 och relativt bulten.
+# Höjdreferens: byggfixen på nybyggnadskartan (Tanums kommun, 2025-11-12, utgåva A; dwg-filens block Byggfix):
+# överkant gränsdubb i berg vid tomtens västra hörn, +7,76 (RH2000), läge i SWEREF 99 12 00 i cm. Den inmätta
+# gränspunkten i samma hörn ligger 5–8 mm därifrån. Alla höjder på AR-02 anges i RH2000 och relativt dubben.
 [fixpunkt]
 namn        = "FIX"
-beskrivning = "stålbult i berg vid tomtens västra hörn"
+beskrivning = "överkant gränsdubb i berg vid tomtens västra hörn"
 hojd        = 7.76
 N           = 6520149.77
 E           = 102329.26

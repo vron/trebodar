@@ -1,6 +1,6 @@
 # AR-02 rev A – Utsättning
 
-Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6). Utsättningspunkter för huset i SWEREF 99 12 00 (Tanums kommun) och de kritiska höjderna i RH2000: fasadens utsida, bottenplattans kant och plattan på marks kant med koordinater, och en sektion med cellplastens underkant under bottenplattan, bottenplattans och mellanplattans överkant (= färdigt golv, betonggolv), medelmarknivån och byggnadshöjden (medelmarknivån till skärningspunkten mellan fasad och takplan på den nordvästra långsidan). Alla höjder anges i RH2000 och relativt fixpunkten FIX, en stålbult i berg vid tomtens västra hörn (+7,76 enligt situationsplanen), som höjderna mäts från på bygget.
+Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6). Utsättningspunkter för huset i SWEREF 99 12 00 (Tanums kommun) och de kritiska höjderna i RH2000: fasadens utsida, bottenplattans kant och plattan på marks kant med koordinater, och en sektion med cellplastens underkant under bottenplattan, bottenplattans och mellanplattans överkant (= färdigt golv, betonggolv), medelmarknivån och byggnadshöjden (medelmarknivån till skärningspunkten mellan fasad och takplan på den nordvästra långsidan). Alla höjder anges i RH2000 och relativt fixpunkten FIX, byggfixen på nybyggnadskartan: överkant gränsdubb i berg vid tomtens västra hörn, +7,76, som höjderna mäts från på bygget.
 
 | Blad | Innehåll | Skala |
 |---|---|---|
@@ -13,7 +13,7 @@ Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt sa
 | `passning.py` | Kontroll: passar husets kontur mot bygglovets situationsplan (vektorerna i pdf:en: rutnätets kors och husets yta) |
 | `ritningar.py` | Bladen AR-02.1 och AR-02.2 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/) |
 
-Fasadens utsida ligger 95 mm utanför mellanbjälklagets kant runt hela huset: väggarnas regel (även gavlarnas) 30 mm, kontrollerat mot modellen med `verktyg/modellanalys`, och beklädnaden 65 mm (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Bottenplattans kontur kommer ur R-05:s `kallare.py`, mellanbjälklagets ur K-05:s `bild/geometri.json`. Husets läge (vridning och förflyttning) passas in i `ritningar.py` mot utsättningsdatans hörn, som ska stämma med fasadens mått inom 2 mm; bottenplattans och plattan på marks punkter beräknas med samma läge. Fixpunktens läge är mätt ur situationsplanen (cirka ±0,1 m).
+Fasadens utsida ligger 95 mm utanför mellanbjälklagets kant runt hela huset: väggarnas regel (även gavlarnas) 30 mm, kontrollerat mot modellen med `verktyg/modellanalys`, och beklädnaden 65 mm (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Bottenplattans kontur kommer ur R-05:s `kallare.py`, mellanbjälklagets ur K-05:s `bild/geometri.json`. Husets läge (vridning och förflyttning) passas in i `ritningar.py` mot utsättningsdatans hörn, som ska stämma med fasadens mått inom 2 mm; bottenplattans och plattan på marks punkter beräknas med samma läge. Fixpunktens läge och höjd kommer från nybyggnadskartan (2025-11-12, dwg-filens block Byggfix).
 
 ## Köra
 
