@@ -325,12 +325,17 @@ def sektion():
             pts += [(xn, zn), (b, Z_S)]
         v.linje(pts, "kontur")
         v.linje([(X_V - 650, Z_MMN), (X_H + 650, Z_MMN)], "axel")
+    # plattan på mark bakom snittet (bakom V3): L-elementens ytterkant och underkant, streckad
+    with v.lager("platta_pa_mark"):
+        xp0, xp1 = PLATTA.bounds[0], PLATTA.bounds[2]
+        v.linje([(xp0, Z_MB), (xp0, Z_MAK_P), (xp1, Z_MAK_P), (xp1, Z_MB_U)], "dold")
     # nivåer
     with v.lager("nivaer"):
         t = lambda z, txt: f"{rh(z)} ({rel(z)}) {txt}"
         niva(v, 1600, Z_MB, t(Z_MB, "mellanplattans ök = FG"), "l")
         niva(v, 1600, Z_BP, t(Z_BP, "bottenplattans ök"), "l")
-        niva(v, 3200, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
+        niva(v, 6000, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
+        niva(v, 1300, Z_MAK_P, t(Z_MAK_P, "plattan på mark bakom snittet, L-elementens uk"), "l", under=True)
         niva(v, 4300, Z_MAK, t(Z_MAK, "cellplastens uk under bottenplattan"), "l", under=True)
         niva(v, 9300, Z_DRAN, t(Z_DRAN, "dränering, avledning"), "l", under=True)
     # mått från MMN
@@ -445,6 +450,7 @@ def blad_sektion():
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="takplanets ovansida"),
             dict(form="linje", stil="axel", text="MMN"),
+            dict(form="linje", stil="dold", text=f"plattan på mark bakom snittet (L-element {svm(H['h_l_mark'] * 1000)})"),
             dict(form="yta", fyll="betong", stil="tunn", text="betong"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
             dict(form="yta", fyll=STEN, stil="tunn", text="fasadsten (AR-01)"),
