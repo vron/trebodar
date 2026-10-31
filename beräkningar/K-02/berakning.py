@@ -171,7 +171,7 @@ def rita_geometri(path):
         ax.text(xe, yl, txt, fontsize=6.3, ha="left", va="center")
     ax.annotate(f"stålplåt {g['balk_b']:g}×{g['plat_t']:g}", xy=(60, -5), xytext=(150, 160), fontsize=6.3, arrowprops=dict(arrowstyle="-", lw=0.4))
     ax.annotate(f"limträ {g['balk_b']:g}×{g['tra_h']:g}", xy=(-50, -95), xytext=(-420, 160), fontsize=6.3, arrowprops=dict(arrowstyle="-", lw=0.4))
-    ax.annotate(f"stålplåt {g['balk_b']:g}×{g['plat_t']:g}", xy=(-60, -185), xytext=(-360, -300), fontsize=6.3, arrowprops=dict(arrowstyle="-", lw=0.4))
+    ax.annotate(f"stålplåt {g['balk_b']:g}×{g['plat_t']:g}", xy=(-60, -info["H"] + g["plat_t"] / 2), xytext=(-360, -300), fontsize=6.3, arrowprops=dict(arrowstyle="-", lw=0.4))
     ax.set_xlim(-info["E"][4][0] - 10, info["E"][4][0] + 290); ax.set_ylim(info["E"][4][1] - 10, 200)
     ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(path, bbox_inches="tight", pad_inches=0.02); plt.close(fig)
@@ -208,8 +208,8 @@ def rita_profil(path, r):
     fig, ax = plt.subplots(figsize=(3.2, 2.4))
     ax.plot(T[o], -y[o], color="#1e1e1e", lw=0.9)
     for y0, y1, c in ((0, g["plat_t"], "#8d949c"), (g["plat_t"] + g["tra_h"], info["H"], "#8d949c"),
-                      (g["plat_t"], g["plat_t"] + g["tra_h"], "#f3e3c3"), (info["H"], -info["a3"][1], "#ffffff"),
-                      (-info["a3"][1], -info["a4"][1], "#d9d9d9")):
+                      (g["plat_t"], g["plat_t"] + g["tra_h"], "#f3e3c3"), (info["H"], -info["gips_topp"], "#ffffff"),
+                      (-info["gips_topp"], -info["a4"][1], "#d9d9d9")):
         ax.axhspan(y0, y1, color=c, lw=0, zorder=0)
     ax.set_ylim(-info["a4"][1] + 5, -5); ax.set_xlim(r["T_ute"] - 2, r["T_inne"] + 2)
     ax.set_xlabel("temperatur (°C)", fontsize=7); ax.set_ylabel("djup från balkens ovansida (mm)", fontsize=7)
@@ -256,6 +256,10 @@ R = {
     "psi": fmt(psi, 3), "L_tak": fmt(L_tak, 1),
     "dT_min": fmt(min(r["dT"] for r in RES), 0), "dT_max": fmt(max(r["dT"] for r in RES), 0),
     "ute_min": fmt(min(r["To"][0] for r in RES), 0),
+    "gips_text": (f"vars topp ligger {fmt(info['ficka'], 0)} mm under balkens underplåt mitt under nocken" if info["ficka"] > 0.5 else
+                  f"vars plan skulle mötas {fmt(-info['ficka'], 0)} mm ovanför balkens underkant; gipsen ligger därför an mot "
+                  "underplåten mitt under balken"),
+    "varm_text": "genom den tunna luftfickan och gipsskivan" if info["ficka"] > 0.5 else "genom gipsskivan, som ligger an mot den",
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 

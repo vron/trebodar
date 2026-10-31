@@ -5,7 +5,7 @@ Ritningarna till de fem nock- och dalbalkarna (F-01: R-01), i A3 med den gemensa
 | Blad | Innehåll | Skala |
 |---|---|---|
 | R-01.1 | Elevationer av de fem balkarna (plåtar, distansreglar, skruvzoner, snitt och stödens lägen), balkarnas lägen i huset | 1:50, 1:200 |
-| R-01.2 | Sektion A–A med plåt och B–B utan plåt (gemensamma för alla balkar), detalj C plåtände inne på balken, detalj D tre rader vid balkänden, plåt- och balkförteckning | 1:2,5, 1:5 |
+| R-01.2 | Sektion A–A med plåt och B–B utan plåt (gemensamma för alla balkar), detalj C plåtände inne på balken, detalj D plåten vid balkänden, plåt- och balkförteckning | 1:2,5, 1:5 |
 
 `ritningar.py` är uppdelad i underlag, placeringar (`PLAC`: balkarnas ordning, snittens lägen, planens läge), elevationer, plan, sektioner och detaljer, blad och main. Elevationerna ritas i balkens koordinater (x från balkens vänstra ände som i K-01, z = 0 i underkant), sektionerna i tvärsnittets (x från plåtens kant mot framsidan som i hålbilderna) och planen i K-05:s koordinater; mallen skalar till papperet.
 

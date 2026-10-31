@@ -128,7 +128,7 @@ Takstolarna är trianglar av två diagonaler och ett dragband med spikplåtar i 
   [Takstol], [Läge], [Bär], [$P_d$ (kN)], [Diagonal], [Utn.], [Dragband], [Utn.], [Spik], [Topp (mm)], [Skruv], [Topp], [Fot (mm)],
   ..r.st.map(t => (fet(t.dim, t.namn), [#t.text], [#t.stod], [#t.P], [#t.diag], [#t.ud], [#t.band], [#t.ub], [#t.spik], [#t.tkrav], [#t.nk], [#t.utopp], [#t.lfot])).flatten(),
 )
-#liten[Spik: ankarspik 4,0×40 per plåt och stav i foten, spikplåt 100×600×2,0 på båda sidor, #r.sp.Fv kN per spik (8.9, tunn plåt). Topp: tjocklek som krävs under balken, säte 200 mm (balkens bredd) med $f_"c,60,d"$ = #r.sp.ftopp MPa. Toppen har 45 mm och får toppklossar 45 mm på båda sidor, fästa med det antal skruv Ø6×90 som anges (#r.sp.Fvk_kloss kN per skruv). Utnyttjandet gäller 135 mm. Fot: minsta upplag på hammarbandet, $k_"c,90"$ = 1,5.]
+#liten[Spik: ankarspik 4,0×40 per plåt och stav i foten, spikplåt 100×600×2,0 på båda sidor, #r.sp.Fv kN per spik (8.9, tunn plåt). Topp: tjocklek som krävs under balken, säte #r.tb.balk_b mm (balkens bredd) med $f_"c,60,d"$ = #r.sp.ftopp MPa. Toppen har 45 mm och får toppklossar 45 mm på båda sidor, fästa med det antal skruv Ø6×90 som anges (#r.sp.Fvk_kloss kN per skruv). Utnyttjandet gäller 135 mm. Fot: minsta upplag på hammarbandet, $k_"c,90"$ = 1,5.]
 
 #figure(image("fig_takstol.svg", width: 100%), caption: [Mittakstolen L2M i elevation ur modellen, med last och krafter. Gaveltakstolarna har samma form men bär mindre.])
 

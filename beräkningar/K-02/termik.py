@@ -32,11 +32,19 @@ def geometri(g):
     reg["masonit"] = [tuple(P0), tuple(E[0]), tuple(E[1]), tuple(m1)]
     reg["isolering"] = [tuple(m1), tuple(E[1]), tuple(E[2]), tuple(i2)]
     a3, a4 = vid_x(d[3], 0.0), vid_x(d[4], 0.0)
-    reg["luft"] = [(0, -H), (B, -H), tuple(i2), tuple(E[2]), tuple(E[3]), tuple(a3)]
-    reg["gips"] = [tuple(a3), tuple(E[3]), tuple(E[4]), tuple(a4)]
+    if a3[1] < -H:                                      # gipsens plan möts under balken: luftficka under underplåten
+        reg["luft"] = [(0, -H), (B, -H), tuple(i2), tuple(E[2]), tuple(E[3]), tuple(a3)]
+        reg["gips"] = [tuple(a3), tuple(E[3]), tuple(E[4]), tuple(a4)]
+        gips_topp = a3[1]
+    else:                                               # balken når ned i gipsens plan: gipsen ligger an mot underplåten
+        tt = (H - d[3] * math.cos(a)) / math.sin(a)
+        xc = B + tt * math.cos(a) - d[3] * math.sin(a)  # där gipsens ovansida möter balkens underkant
+        reg["luft"] = [(xc, -H), (B, -H), tuple(i2), tuple(E[2]), tuple(E[3])]
+        reg["gips"] = [(0, -H), (xc, -H), tuple(E[3]), tuple(E[4]), tuple(a4)]
+        gips_topp = -H
     ytter = [((0, 0), (B, 0)), (tuple(P0), tuple(E[0]))]
     inner = [(tuple(a4), tuple(E[4]))]
-    return reg, ytter, inner, dict(s=s, n=n, d=d, a3=a3, a4=a4, E=E, H=H, B=B)
+    return reg, ytter, inner, dict(s=s, n=n, d=d, a3=a3, a4=a4, E=E, H=H, B=B, gips_topp=gips_topp, ficka=-H - a3[1])
 
 
 def natverk(reg, ytter, inner, ytor):

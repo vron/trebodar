@@ -138,9 +138,8 @@ c_T1, c_T2 = gd * 1.5 * la["psi0_T"], gd * 1.5             # temperatur som föl
 # ------------------------------------------------------------------ bruksgräns (lim + skruv)
 EI_st = 2 * Es * (I1 + A1 * a1 ** 2)
 EI_full = EI_st + Et * I2
-EI_tra190 = Et * b * Ht ** 3 / 12
+EI_tra = Et * b * Ht ** 3 / 12
 GA = Gt * b * hw
-EI_hea = Es * 36.92e6
 
 
 def w_falt(A, G, S, lo, hi, a_, b_, k_fn):
@@ -487,7 +486,7 @@ R = {
     "A_net": fmt(A_net, 0), "NuRd": fmt(NuRd / 1e3, 0), "Nb_400": fmt(NbRd(2 * sk["s_max"]) / 1e3, 0),
     "A_net3": fmt(A_net3, 0), "NuRd3": fmt(NuRd3 / 1e3, 0),
     "EI_st": fmt(EI_st / 1e12, 2), "EI_tr": fmt(Et * I2 / 1e12, 2), "EI_full": fmt(EI_full / 1e12, 2),
-    "EI_hea": fmt(EI_hea / 1e12, 2), "GA": fmt(GA / 1e6, 1),
+    "GA": fmt(GA / 1e6, 1),
     "cc_min": fmt(3 * min(sk["s_lista"]), 0), "cc_max": fmt(2 * sk["s_max"], 0),
     "s_min": fmt(min(sk["s_lista"]), 0), "s_max": fmt(sk["s_max"], 0),
     "a1_min": fmt(5 * d, 0), "a2_min": fmt(4 * d, 0), "a3_min": fmt(max(7 * d, 80), 0), "a4_min": fmt(3 * d, 0),
@@ -509,7 +508,7 @@ R = {
     "n_bitar": sum(len(bb["bitar"]) for bb in balkar) * 2,
     "lmax_nock": fmt(lmax_tra(LAST["nock"]["G"], LAST["nock"]["S"])[0] / 1000, 2),
     "lmax_dal": fmt(lmax_tra(LAST["dal"]["G"], LAST["dal"]["S"])[0] / 1000, 2),
-    "EI_tra190": fmt(EI_tra190 / 1e12, 2),
+    "EI_tra": fmt(EI_tra / 1e12, 2),
     "alfa_s": "12", "alfa_t": "5", "k_lim": fmt(k_lim, 0),
     "cT1": fmt(c_T1, 2), "cT2": fmt(c_T2, 2),
     "Ninf": fmt((st["alfa"] - tr["alfa"]) * 1 / (1 / (Es * A1) + 2 / (Et * b * hw)) / 1e3, 2),
@@ -518,8 +517,9 @@ R = {
               for k, n in (("To", "over"), ("Tu", "under"))},
     "temperatur": [dict(namn=T["namn"], over=fmt(T["over"], 0 if T["over"] == int(T["over"]) else 1),
                         under=fmt(T["under"], 0 if T["under"] == int(T["under"]) else 1),
-                        To=fmt(20 + T["over"], 0 if T["over"] == int(T["over"]) else 1),
-                        Tu=fmt(20 + T["under"], 0 if T["under"] == int(T["under"]) else 1)) for T in IN["temperatur"]],
+                        To=fmt(20 + T["over"], 0 if T["over"] == int(T["over"]) and T["under"] == int(T["under"]) else 1),
+                        Tu=fmt(20 + T["under"], 0 if T["over"] == int(T["over"]) and T["under"] == int(T["under"]) else 1))
+                   for T in IN["temperatur"]],
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o)), encoding="utf-8")
 

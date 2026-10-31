@@ -92,7 +92,7 @@ Lätta mellanväggar räknas som nyttig last i brottgränstillstånd, som 6.3.1.
 
 Stolparna under nock- och dalbalkarna och takstolarna redovisas i K-03 och balkarna i K-01. Stolparnas laster och lägen är desamma som där (punktlasttabellen, kolumnen Ursprung):
 
-- *Stolpe under en balk:* balkens stödreaktion enligt K-01. $R_d$ är K-01:s största dimensionerande reaktion (6.10b). Den delas upp i $G_k$ och $S_k$ i samma förhållande som balkens last i K-01 (nockbalk 2,01 + 3,75 kN/m, dalbalk 1,93 + 7,13 kN/m). Det ger rätt $R_d$ med snö som huvudlast och ligger på säker sida för övriga kombinationer.
+- *Stolpe under en balk:* balkens stödreaktion enligt K-01. $R_d$ är K-01:s största dimensionerande reaktion (6.10b). Den delas upp i $G_k$ och $S_k$ i samma förhållande som balkens last i K-01 (nockbalk #D.enh.k01_nock.at(0) + #D.enh.k01_nock.at(1) kN/m, dalbalk #D.enh.k01_dal.at(0) + #D.enh.k01_dal.at(1) kN/m). Det ger rätt $R_d$ med snö som huvudlast och ligger på säker sida för övriga kombinationer.
 - *Takstolens fot:* halva lasten i takstolens topp (balkens stödreaktion) och takstolens egen takremsa, (#D.enh.cc/2 + #D.enh.utspr) m × (nock–takfot + #D.enh.utspr) m, med takstolens egentyngd #D.enh.takstol kN. Gavlarnas takstolar står på hörnstolparna LA1–LA10, utom i mittre huskroppens övre gavel, där takstolen står på dalbalkarnas ändar (LD2_4 och LD4_2). Mittakstolen står på LD2_2 och LD4_1.
 - *Vindlyft* $W_d$ är K-01:s minsta reaktion, $1,0 G + gamma_d 1,5 W$. Också dalbalkarna lyfter: vid vind längs nockarna är det sug över hela taket, även i dalarna (SS-EN 1991-1-4 7.2.7 och tabell 7.4b), och med invändigt övertryck är suget större än takets egentyngd.
 - *Stolparnas yta:* minst 2 st 45×95. Stolpe B (LD4_1) är #D.stB_yta GL30h (K-03) och står direkt på plattan.
@@ -138,7 +138,7 @@ Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kan
   [qD2], [dalbalk 2 via bärande vägg], [x = #D.qD2.x, y #D.qD2.str], [#D.qD2.gk], [#D.qD2.sk], [], [], [plattan],
   [qT], [trappan, hålets kortsidor], [x = #D.qT.x], [#D.qT.gk], [$q_k$ #D.qT.qk], [], [], [plattan],
 )
-Vindlyft på dalbalk 2:s vägg: #D.qD2.wd kN/m längs qD2 (K-01: −18,6 kN för hela väggen). Totalt från plan 1: $G_k$ = #D.tot.ovanG kN och $S_k$ = #D.tot.ovanS kN. Snölasten är större än snö på hela taket, #D.snotak kN, eftersom K-01 räknar med att snön samlas i dalarna och med 2,5 m lastbredd för nockbalkarna (på säker sida).
+Vindlyft på dalbalk 2:s vägg: #D.qD2.wd kN/m längs qD2 (K-01: #D.enh.k01_lyft kN för hela väggen). Totalt från plan 1: $G_k$ = #D.tot.ovanG kN och $S_k$ = #D.tot.ovanS kN. Snölasten är större än snö på hela taket, #D.snotak kN, eftersom K-01 räknar med att snön samlas i dalarna och med 2,5 m lastbredd för nockbalkarna (på säker sida).
 
 == Lastkombinationer
 

@@ -134,10 +134,10 @@ snobredd    = 4.75      # all snö mellan nockarna (2,50 + 2,25) samlas i dalen 
 # Temperatur: ändring från limningstemperaturen +20 °C i över- och underplåt [K]. Balken antas ligga i
 # isoleringsskiktet med överplåten mot den kalla sidan. Linjär fördelning över höjden.
 [k02]
-dT          = [25, 34]  # skillnaden mellan plåtarna med rimliga variationer av ytövergångarna [K]
+dT          = [25, 35]  # skillnaden mellan plåtarna med rimliga variationer av ytövergångarna [K]
 [[temperatur]]
 namn        = "Vinter, uppvärmt hus"
-over        = -36.4     # överplåt −16,4 °C (K-02, −20 °C ute och +25 °C inne)
+over        = -36.6     # överplåt −16,6 °C (K-02, −20 °C ute och +25 °C inne)
 under       = -4.0      # underplåt +16,0 °C (K-02)
 
 [[temperatur]]

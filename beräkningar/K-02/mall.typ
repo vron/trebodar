@@ -46,7 +46,7 @@ Nockbalkarna består av limträ med stålplåtar i över- och underkant. Över- 
 
 #figure(image("fig_geometri.svg", width: 100%), caption: [Tvärsnitt genom nocken. Modellen omfattar #r.g.tak_langd mm tak, mätt längs takfallet, på var sida om balken.])
 
-Taket har takvinkeln #r.g.takvinkel°. Isoleringens ovansida ligger i balkens överkant. Under isoleringen finns en installationsspalt med glespanel och därunder gipsskivan, vars topp ligger strax under balkens underplåt.
+Taket har takvinkeln #r.g.takvinkel°. Isoleringens ovansida ligger i balkens överkant. Under isoleringen finns en installationsspalt med glespanel och därunder gipsskivan, #r.gips_text.
 
 #table(
   columns: (1fr, auto, auto, 2fr),
@@ -109,7 +109,7 @@ Halva tvärsnittet modelleras med symmetri i nockens mitt. Stationär värmeledn
   figure(image("fig_profil.svg", width: 62mm), caption: [Temperatur längs nockens mitt.]),
 )
 
-Balken är en köldbrygga genom isoleringen. Överplåten ligger direkt mot luftspalten och får nära uteluftens temperatur. Underplåten värms från rummet genom den tunna luftfickan och gipsskivan. Stålets höga värmeledningsförmåga gör att temperaturen i respektive plåt är i det närmaste jämn: överplåten #r.To_min till #r.To_max °C, underplåten #r.Tu_min till #r.Tu_max °C.
+Balken är en köldbrygga genom isoleringen. Överplåten ligger direkt mot luftspalten och får nära uteluftens temperatur. Underplåten värms från rummet #r.varm_text. Stålets höga värmeledningsförmåga gör att temperaturen i respektive plåt är i det närmaste jämn: överplåten #r.To_min till #r.To_max °C, underplåten #r.Tu_min till #r.Tu_max °C.
 
 #table(
   columns: (1fr, auto, auto, auto, auto, auto, auto),

@@ -48,7 +48,9 @@ D["enh"] = dict(g_betong=f(LA.G_BETONG, 2), g_golv=f(LA.G_GOLV, 2), gk=f(LA.G_BE
                 g_vagg=f(LA.G_VAGG), h_vagg=f(LA.H_VAGG), utspr=f(LA.UTSPRANG), cc=f(LA.CC_TAKBALK),
                 takstol=f(LA.G_TAKSTOL, 2), vinkel=f(LA.TAKVINKEL, 0), vagg_in=f(LA.VAGG_IN, 1),
                 tr_l=f(LA.TRAPPA["langd"]), tr_b=f(LA.TRAPPA["bredd"], 2), tr_g=f(LA.TRAPPA["g"]), tr_q=f(LA.TRAPPA["q"]),
-                t_mitt=f(2.405 / 2 + LA.UTSPRANG, 2), t_sida=f(2.155 / 2 + LA.UTSPRANG, 2))
+                t_mitt=f(2.405 / 2 + LA.UTSPRANG, 2), t_sida=f(2.155 / 2 + LA.UTSPRANG, 2),
+                k01_nock=[f(v, 2) for v in LA.K01_LAST["nock"]], k01_dal=[f(v, 2) for v in LA.K01_LAST["dal"]],
+                k01_lyft=f(LA.K01["D2"]["vagg_lyft"], 1))
 PL = {"platta": "plattan", "vägg": "källarvägg", "mark": "mark"}
 D["punkter"] = [dict(namn=p["namn"], urspr=p["urspr"], delar=p["delar"], x=mm(p["x"]), y=mm(p["y"]), Gk=f(p["Gk"]),
                      Sk=f(p["Sk"]), Rd=f(p["Rd"]), Wd=f(p["Wd"]) if p["Wd"] else "–", plats=PL[p["plats"]])

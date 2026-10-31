@@ -446,7 +446,7 @@ R = {
                ned=str(KL["nedbojning"])),
     "tb": dict(antal=str(len(GEO["takbalkar"])), n_typ=str(len(TYPER)), dim=TB_DIM["namn"], dimtext=TB_DIM["text"].lower(),
                h_ef=fmt(h_ef, 0), alfa=fmt(a_n, 2), kv=fmt(kv, 2), x=fmt(x_n, 0), z_sate=fmt(z_sate, 0),
-               h_lod=fmt(h_tb / math.cos(ALFA), 0), balk_h=fmt(UP["balk_h"], 0),
+               h_lod=fmt(h_tb / math.cos(ALFA), 0), balk_h=fmt(UP["balk_h"], 0), balk_b=fmt(UP["balk_b"], 0),
                fsate=fmt(f_sate, 2), Fv=fmt(Fv_skruv_d, 2), n_skruv=str(max(t["n_skruv"] for t in TYPER)),
                Fax=fmt(Fax_d, 2), lyft=fmt(max(t["lyft"] for t in TYPER), 2),
                ulyft=pct(max(t["lyft"] for t in TYPER) / Fax_d), ureg=pct(max(t["uregel"] for t in TYPER)),
