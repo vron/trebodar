@@ -169,3 +169,7 @@ status = "klar"
 nr = "AR-01"
 namn = "Arbetsritning fasadsten på källarväggarna"
 status = "klar"
+[[ovrig]]
+nr = "AR-02"
+namn = "Arbetsritning utsättning, koordinater och höjder"
+status = "klar"

@@ -1,0 +1,50 @@
+# ------------------------------------------------------------------
+# Indata – AR-02 Utsättning: koordinater och höjder
+# Ändra värden här och kör:  python ritningar.py
+# Plan: K-05:s koordinater (mm) från bild/geometri.json. Koordinater SWEREF 99 12 00 (m), höjder RH2000 (m).
+# ------------------------------------------------------------------
+
+[projekt]
+dokument    = "AR-02"
+revision    = "A"
+datum       = "2026-10-31"
+underlag    = "Bygglov BYGG.2025.2278 (situationsplan 200, sektion E 208), K-05, K-06"
+
+# K-05:s koordinater (x, y i mm) till SWEREF 99 12 00 (E, N i m):
+#   E = E0 + (x cos θ − y sin θ) / 1000,   N = N0 + (x sin θ + y cos θ) / 1000
+# Passat (passning.py) så att fasadens kontur enligt nedan täcker husets yta i bygglovets situationsplan (ritning
+# 200, rev 01, 2025-12-18, nybyggnadskarta 2025-11-11): kvarvarande avvikelse 0,29 m² av 134,7 m², hörnen 0–4 mm
+# från konturen utom två (11 och 37 mm). Situationsplanen är ritad med cirka 0,1 m noggrannhet.
+[koordinater]
+system      = "SWEREF 99 12 00"
+hojdsystem  = "RH2000"
+theta       = 131.2336  # grader
+E0          = 102372.007
+N0          = 6520165.177
+
+# Fasadens utsida: väggarnas regel (plan 1, även gavlarna) och källarväggarnas ytterliv ligger 30 mm utanför
+# mellanbjälklagets kant (K-05). Beklädnaden på plan 1 (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22) och
+# fasadstenen på källarväggarna (AR-01, kluven framsida högst 65 mm utanför cellplasten) går 65 mm längre ut.
+# Situationsplanens yta ger 64 mm.
+[fasad]
+regel       = 30        # väggens ytterliv (regel, källarväggens cellplast) utanför plattans kant [mm]
+beklad      = 65        # fasadens utsida utanför väggens ytterliv [mm]
+
+# Höjder i RH2000. FG är färdigt golv på plan 1 enligt bygglovet. Golvet (limmat trägolv) är 20 mm, så
+# bjälklagets överkant ligger 20 mm under FG.
+[hojder]
+fg          = 8.500     # färdigt golv plan 1 (bygglov)
+golv        = 0.020     # golvbeläggning på mellanbjälklaget
+h_bjalklag  = 0.150     # mellanbjälklaget (K-05)
+h_kallare   = 2.100     # bottenplattans överkant till bjälklagets underkant (K-05, R-05)
+h_platta    = 0.100     # bottenplattans betong i fält (R-04)
+t_cellplast = 0.200     # cellplast under plattan, makadamens överkant (R-04)
+t_makadam   = 0.150     # makadam, minst (U-01); berget sprängs och avjämnas under
+kallargolv_bygglov = 6.3
+mmn         = 7.68      # medelmarknivå (bygglov, sektion E)
+byggnadshojd = 3.468    # MMN till skärningspunkt vägg/takplan, nordvästra fasaden (bygglov)
+nockhojd    = 4.766     # MMN till högsta punkt (bygglov)
+ny_mark_nv  = 7.786     # ny marknivå vid nordvästra fasaden (bygglov, sektion E: 3 362 under skärningspunkten)
+ny_mark_so  = 7.138     # ny marknivå vid sydöstra fasaden (bygglov, sektion E: 4 010 under skärningspunkten)
+takvinkel   = 30        # grader (K-01); samma takfot (skärningspunkten) runt hela huset och i dalarna
+y_snitt     = 6000      # sektion A–A, i K-05:s y [mm]
