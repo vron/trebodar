@@ -370,7 +370,7 @@ def blad_plan():
         dict(typ="text", sz=6.8, rader=[f"x, y i mm (K-05), N, E och höjder i m. Höjder i RH2000 och relativt "
                                          f"fixpunkten {FIX['namn']} ({rh(Z_FIX)})."]),
         dict(typ="rubrik", text="Fasadens utsida (F)"), tabell("F"),
-        dict(typ="rubrik", text=f"Bottenplattans kant (B), ök {rh(Z_BP)} ({rel(Z_BP)})"), tabell("B"),
+        dict(typ="rubrik", text=f"Bottenplattans kant (B), L-elementens ytterkant, ök {rh(Z_BP)} ({rel(Z_BP)})"), tabell("B"),
         dict(typ="rubrik", text=f"Plattan på marks kant (P), ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
     ])]
@@ -395,14 +395,14 @@ def blad_plan():
             "Fasadens hörn F1–F12 är utsättningsdata. Bottenplattans (B) och plattan på marks (P) punkter är "
             "beräknade med samma läge:",
             f"E = E0 + (x cos θ − y sin θ)/1 000, N = N0 + (x sin θ + y cos θ)/1 000, med θ = "
-            f"{sv(math.degrees(TH), 4)}°, E0 = {sv(E0, 3)}, N0 = {sv(N0, 3)}.",
+            f"{sv(math.degrees(TH), 6)}°, E0 = {sv(E0, 4)}, N0 = {sv(N0, 4)}.",
             f"Plattan på mark (P, tillbyggnaden) har sin kant i mellanbjälklagets kant, {FASAD_UT} mm innanför "
             f"fasaden. Den ansluter till källarväggarna mot {B_MOT_P}.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="fasadens utsida (F)"),
-            dict(form="yta", fyll="betong", stil="dold", text="bottenplattan (B), källaren"),
+            dict(form="yta", fyll="betong", stil="dold", text="bottenplattan (B), L-elementens ytterkant"),
             dict(form="yta", fyll=PLATTA_F, stil="dold", text="plattan på mark (P)"),
             dict(form="punkt", text="utsättningspunkt"),
         ]),
