@@ -10,17 +10,29 @@ revision    = "A"
 datum       = "2026-10-31"
 underlag    = "Bygglov BYGG.2025.2278 (situationsplan 200, sektion E 208), K-05, K-06"
 
-# K-05:s koordinater (x, y i mm) till SWEREF 99 12 00 (E, N i m):
+# Fasadens hörn F1–F12 i SWEREF 99 12 00 (N, E i m): utsättningsdata 09_91, punkt 1–12, 2026-10-31. F1 är
+# hörnet x = 13 905, y = 905 i K-05:s koordinater, sedan medurs. Husets läge (vridning θ och förflyttning E0, N0) passas
+# in mot dem i ritningar.py:
 #   E = E0 + (x cos θ − y sin θ) / 1000,   N = N0 + (x sin θ + y cos θ) / 1000
-# Passat (passning.py) så att fasadens kontur enligt nedan täcker husets yta i bygglovets situationsplan (ritning
-# 200, rev 01, 2025-12-18, nybyggnadskarta 2025-11-11): kvarvarande avvikelse 0,29 m² av 134,7 m², hörnen 0–4 mm
-# från konturen utom två (11 och 37 mm). Situationsplanen är ritad med cirka 0,1 m noggrannhet.
+# Punkterna stämmer med fasadens mått inom 1 mm (restfel högst 0,6 mm).
 [koordinater]
 system      = "SWEREF 99 12 00"
 hojdsystem  = "RH2000"
-theta       = 131.2336  # grader
-E0          = 102372.007
-N0          = 6520165.177
+hornen      = [
+    [6520175.041, 102362.162],
+    [6520171.660, 102365.132],
+    [6520172.320, 102365.883],
+    [6520168.563, 102369.183],
+    [6520166.194, 102366.485],
+    [6520162.813, 102369.455],
+    [6520154.564, 102360.062],
+    [6520157.945, 102357.093],
+    [6520161.172, 102360.767],
+    [6520164.929, 102357.468],
+    [6520163.939, 102356.341],
+    [6520167.321, 102353.371],
+]
+restfel_max = 2.0       # största tillåtna avvikelse mellan punkterna och fasadens mått [mm]
 
 # Fasadens utsida: väggarnas regel (plan 1, även gavlarna) och källarväggarnas ytterliv ligger 30 mm utanför
 # mellanbjälklagets kant (K-05). Beklädnaden på plan 1 (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22) och

@@ -23,7 +23,7 @@ import sys
 import tomllib
 
 import numpy as np
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.geometry.polygon import orient
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,7 +42,6 @@ UNDERLAG = "Bygglov, K-05, R-05"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 KO = IN["koordinater"]
-TH, E0, N0 = math.radians(KO["theta"]), KO["E0"], KO["N0"]
 REGEL, BEKL = IN["fasad"]["regel"], IN["fasad"]["beklad"]
 assert REGEL == K.KI, "väggens ytterliv ska vara mellanbjälklagets kantisolering (K-06 KI)"
 FASAD_UT = REGEL + BEKL                                      # 95: fasadens utsida utanför mellanbjälklagets kant
@@ -64,9 +63,6 @@ def lokal(n, e):
     return (de * math.cos(TH) + dn * math.sin(TH), -de * math.sin(TH) + dn * math.cos(TH))
 
 
-FIX = IN["fixpunkt"]
-P_FIX = lokal(FIX["N"], FIX["E"])
-Z_FIX = FIX["hojd"] * 1000
 
 
 def rh(z):
@@ -87,11 +83,36 @@ def horn(poly, start):
     return c[i:] + c[:i]
 
 
-F = horn(FASAD, (-1e4, 2e4))                                 # F1 längst upp till vänster, medurs
-B = horn(BOTTEN, (-1e4, 1e4))                                # B1 vid plattan på mark, medurs
+F = horn(FASAD, (2e4, 0))                                    # F1 = utsättningsdatans punkt 1, medurs
+B = horn(BOTTEN, (2e4, 0))                                   # B1 innanför F1, medurs
+
+
+def passa(lok, sw):
+    """Vridning och förflyttning (minsta kvadrat) från K-05 (mm) till SWEREF (N, E i m): θ, E0, N0 och restfelen."""
+    P = np.array(lok) / 1000
+    Q = np.array([(e, n) for n, e in sw])
+    pc, qc = P.mean(0), Q.mean(0)
+    u, _, vt = np.linalg.svd((P - pc).T @ (Q - qc))
+    r = (u @ vt).T
+    assert np.linalg.det(r) > 0
+    t = qc - r @ pc
+    return math.atan2(r[1, 0], r[0, 0]), t[0], t[1], np.hypot(*((P @ r.T + t) - Q).T) * 1000
+
+
+HORN_SW = [tuple(p) for p in KO["hornen"]]
+assert len(HORN_SW) == len(F)
+TH, E0, N0, RESTFEL = passa(F, HORN_SW)
+assert RESTFEL.max() < KO["restfel_max"], f"utsättningsdatan avviker {RESTFEL.max():.1f} mm från fasadens mått"
+
+FIX = IN["fixpunkt"]
+P_FIX = lokal(FIX["N"], FIX["E"])
+Z_FIX = FIX["hojd"] * 1000
 P = [p for p in horn(PLATTA.buffer(0.01, join_style=2).buffer(-0.01, join_style=2), (-1e4, 2e4))
      if BOTTEN.exterior.distance(Polygon([(p[0] - 1, p[1] - 1), (p[0] + 1, p[1] - 1), (p[0] + 1, p[1] + 1),
                                           (p[0] - 1, p[1] + 1)])) > 1]   # plattan på marks fria hörn
+# bottenplattans kant mot plattan på mark: hörnen på snittet mot plattan på mark (källarväggarna V3 och V20)
+_ins = [i for i, p in enumerate(B) if PLATTA.distance(Point(p)) <= REGEL + 1]
+B_MOT_P = f"B{min(_ins) + 1}–B{max(_ins) + 1}"
 PUNKTER = [(f"F{i}", p) for i, p in enumerate(F, 1)] + [(f"B{i}", p) for i, p in enumerate(B, 1)] + \
           [(f"P{i}", p) for i, p in enumerate(P, 1)]
 
@@ -207,18 +228,19 @@ def oversikt():
             v.ptext(x, y, 2.4, -1.4 - i * 3.0, t, a="lt", sz=6.6)
         v.ptext(x, y, 2.4, -7.6, FIX["beskrivning"], a="lt", sz=6.4, col="gra")
     with v.lager("avstand"):
-        for namn in ("F1", "F6"):
+        hornen = [max((p for p in F if abs(p[0] - x) < 1), key=lambda p: p[1]) for x in (X_V, X_H)]  # övre hörnen
+        for namn in [f"F{F.index(p) + 1}" for p in hornen]:
             q = dict(PUNKTER)[namn]
             v.linje([P_FIX, q], "axel")
             m = np.add(P_FIX, q) / 2
             d = np.subtract(q, P_FIX); ang = math.degrees(math.atan2(d[1], d[0]))
             ang = ang + 180 if ang > 90 or ang < -90 else ang
             nrm = np.array([-math.sin(math.radians(ang)), math.cos(math.radians(ang))])
-            sid = 1 if namn == "F6" else -1
+            sid = 1 if dict(PUNKTER)[namn][0] > 0 else -1
             tp = m + nrm * v.m(1.0) * sid
             v.text(tp[0], tp[1], f"{sv(math.dist(P_FIX, q) / 1000, 1)} m", a="cb" if sid > 0 else "ct", sz=6.6,
                    rot=round(ang, 2), bg=True)
-            v.ptext(*q, -1.5 if namn == "F1" else 1.5, 1.2, namn, a="rb" if namn == "F1" else "lb", sz=6.6, b=True)
+            v.ptext(*q, 1.5 * sid, 1.2, namn, a="lb" if sid > 0 else "rb", sz=6.6, b=True)
     with v.lager("norr"):
         c = np.array([P_FIX[0] - 2000, 6000])
         d = np.array([math.sin(TH), math.cos(TH)])
@@ -326,7 +348,12 @@ def tabell(pre):
     rader = []
     for namn, (x, y) in PUNKTER + [(FIX["namn"], P_FIX)]:
         if namn.rstrip("0123456789") == pre:
-            n, e = sweref(x, y)
+            if pre == "F":                                     # utsättningsdatan som den är
+                n, e = HORN_SW[int(namn[1:]) - 1]
+            elif namn == FIX["namn"]:
+                n, e = FIX["N"], FIX["E"]
+            else:
+                n, e = sweref(x, y)
             rader.append([namn, svm(x), svm(y), sv(n, 3), sv(e, 3)])
     return dict(typ="tabell", kolumner=["Punkt", "x", "y", "N", "E"], bredd=(0.8, 1, 1, 1.9, 1.6),
                 just=["l", "r", "r", "r", "r"], rader=rader, sz=6.8)
@@ -352,19 +379,19 @@ def blad_plan():
             f"(nybyggnadskartan). Alla höjder anges i RH2000 och relativt bulten, och mäts från bulten med "
             f"avvägningsinstrument eller laser. Mätteknikern kontrollerar bultens höjd vid utstakningen. Bultens "
             f"läge är mätt ur situationsplanen (±0,1 m), avstånden i översikten är ungefärliga.",
-            f"Läget är passat mot bygglovets situationsplan (ritning 200): husets kontur är vriden och flyttad så att "
-            f"den täcker husets yta i planen. Läget är därför inte noggrannare än situationsplanen, cirka ±0,1 m. "
-            f"Måtten mellan punkterna är exakta. Kontrollera läget mot den reviderade situationsplanen före "
-            f"utstakningen.",
+            f"Fasadens hörn F1–F12 är utsättningsdata 09_91 (punkt 1–12). De stämmer med husets mått inom "
+            f"{sv(max(1.0, math.ceil(RESTFEL.max())), 0)} mm. Bottenplattans (B) och plattan på marks (P) punkter är "
+            f"beräknade med samma läge:",
             f"E = E0 + (x cos θ − y sin θ)/1 000, N = N0 + (x sin θ + y cos θ)/1 000, med θ = "
-            f"{sv(KO['theta'], 4)}°, E0 = {sv(E0, 3)}, N0 = {sv(N0, 3)}.",
+            f"{sv(math.degrees(TH), 4)}°, E0 = {sv(E0, 3)}, N0 = {sv(N0, 3)}.",
             f"Fasadens utsida (F) ligger {FASAD_UT} mm utanför mellanbjälklagets kant runt hela huset, även på "
-            f"gavlarna: regeln {REGEL} och beklädnaden {BEKL} (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Fasadstenen på källarväggarna har sin "
+            f"gavlarna: regeln {REGEL} och beklädnaden {BEKL} (utvändig gips 10, spikläkt 12, bärläkt 21, "
+            f"panel 22). Fasadstenen på källarväggarna har sin "
             f"framsida i samma liv (AR-01). Måtten över regelstommen är {2 * BEKL} mm mindre än fasadens.",
-            f"Bottenplattans kant (B) ligger i källarväggarnas ytterliv, {BEKL} mm innanför fasaden. B1–B3 är "
+            f"Bottenplattans kant (B) ligger i källarväggarnas ytterliv, {BEKL} mm innanför fasaden. {B_MOT_P} är "
             f"plattans kant mot plattan på mark, under källarväggarna V3 och V20.",
             f"Plattan på mark (P, tillbyggnaden) har sin kant i mellanbjälklagets kant, {FASAD_UT} mm innanför "
-            f"fasaden. Den ansluter till källarväggarna mot B1–B3.",
+            f"fasaden. Den ansluter till källarväggarna mot {B_MOT_P}.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

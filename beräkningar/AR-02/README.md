@@ -9,11 +9,11 @@ Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt sa
 
 | Fil | Innehåll |
 |---|---|
-| `indata.toml` | Koordinatsystemets passning (θ, E0, N0), fasadens skikt, höjderna ur bygglovet (FG, MMN, byggnadshöjd, ny mark) och K-05/K-06/R-04, fixpunkten |
-| `passning.py` | Passar K-05:s koordinater till SWEREF ur bygglovets situationsplan (vektorerna i pdf:en: rutnätets kors och husets yta). Resultatet förs in i `indata.toml` för hand |
+| `indata.toml` | Fasadens hörn i SWEREF ur utsättningsdatan (09_91), fasadens skikt, höjderna ur bygglovet (FG, MMN, byggnadshöjd, ny mark) och K-05/K-06/R-04, fixpunkten |
+| `passning.py` | Kontroll: passar husets kontur mot bygglovets situationsplan (vektorerna i pdf:en: rutnätets kors och husets yta) |
 | `ritningar.py` | Bladen AR-02.1 och AR-02.2 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/) |
 
-Fasadens utsida ligger 95 mm utanför mellanbjälklagets kant runt hela huset: väggarnas regel (även gavlarnas) 30 mm, kontrollerat mot modellen med `verktyg/modellanalys`, och beklädnaden 65 mm (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Bottenplattans kontur kommer ur R-05:s `kallare.py`, mellanbjälklagets ur K-05:s `bild/geometri.json`. Läget är passat mot situationsplanen och är inte noggrannare än den (cirka ±0,1 m); måtten mellan punkterna är exakta.
+Fasadens utsida ligger 95 mm utanför mellanbjälklagets kant runt hela huset: väggarnas regel (även gavlarnas) 30 mm, kontrollerat mot modellen med `verktyg/modellanalys`, och beklädnaden 65 mm (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Bottenplattans kontur kommer ur R-05:s `kallare.py`, mellanbjälklagets ur K-05:s `bild/geometri.json`. Husets läge (vridning och förflyttning) passas in i `ritningar.py` mot utsättningsdatans hörn, som ska stämma med fasadens mått inom 2 mm; bottenplattans och plattan på marks punkter beräknas med samma läge. Fixpunktens läge är mätt ur situationsplanen (cirka ±0,1 m).
 
 ## Köra
 

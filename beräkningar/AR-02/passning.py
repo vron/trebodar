@@ -8,7 +8,10 @@ Fasadens kontur i K-05:s koordinater (plattans kant + regel + beklädnad, utan p
 och förflyttning så att ytornas symmetriska skillnad blir minst, först med beklädnaden fri (som kontroll) och sedan
 med beklädnaden enligt indata.toml.
 
-    python passning.py        -> skriver resultatet; för in theta, E0, N0 i indata.toml för hand
+Husets läge på AR-02 kommer i stället från utsättningsdatan (indata.toml, [koordinater] hornen); passningen här är
+en kontroll av att den stämmer med situationsplanen.
+
+    python passning.py        -> skriver passningen och hörnens avstånd till konturen
 """
 import json
 import math
