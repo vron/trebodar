@@ -153,6 +153,19 @@ Gränsvärden för nedböjning. EKS anger inga värden, så de bestäms för pro
 
 = Handlingar till tekniskt samråd
 
+== Uppdaterade revisioner av bygglovsdokument
+
+Bygglovsritningar som har reviderats efter beslutet (D32, 2026-02-18). Ändringarna är små och lämnas in till kommunen.
+
+#table(
+  columns: (12mm, 1fr, 10mm, 20mm, 1.2fr),
+  align: (left, left, left, left, left),
+  [Nr], [Ritning], [Rev], [Datum], [Ändring],
+  ..r.bygglov.map(h => ([#h.nr], [#h.namn], [#h.rev], [#h.datum], [#h.andring])).flatten(),
+)
+
+== Konstruktionshandlingar
+
 Handlingarna motsvarar det som kallelsen till tekniskt samråd begär.
 
 #table(

@@ -85,6 +85,21 @@ sakerhetsklass = 2
 gamma_d     = 0.91
 livslangd   = 50
 
+# Uppdaterade revisioner av bygglovsdokument: bygglovsritningar som reviderats efter beslutet (D32, 2026-02-18) och
+# lämnas in till kommunen. Pdf:erna ligger i ritningar/.
+[[bygglov]]
+nr = "200"
+namn = "Situationsplan"
+rev = "02"
+datum = "2026-10-31"
+andring = "Rättat mått 3,5 till 3,59 m"
+[[bygglov]]
+nr = "201"
+namn = "Planritning"
+rev = "02"
+datum = "2026-10-31"
+andring = "Badrum, hall och kök uppdaterade"
+
 # Handlingar till tekniskt samråd. status: "klar", "upprättas", "inlämnad" eller "ej aktuell".
 [[handling]]
 nr = "F-01"
