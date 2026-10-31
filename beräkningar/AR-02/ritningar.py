@@ -49,7 +49,10 @@ FASAD_UT = REGEL + BEKL                                      # 95: fasadens utsi
 KONTUR = Polygon(K.G["kontur"])
 FASAD = KONTUR.buffer(FASAD_UT, join_style=2)
 BOTTEN = K.KALLARE                                           # bottenplattans kant = källarväggarnas ytterliv
-PLATTA = KONTUR.intersection(box(-500, BOTTEN.bounds[1], BOTTEN.bounds[2], 16500)).difference(BOTTEN)
+# plattan på mark byggs också med L-element: ytterkanten i väggarnas ytterliv, 30 mm utanför mellanbjälklagets kant
+# (som bottenplattan och modellens mellanplatta med kantisolering)
+PLATTA = KONTUR.buffer(REGEL, join_style=2).intersection(box(-500, BOTTEN.bounds[1], BOTTEN.bounds[2], 16500)) \
+    .difference(BOTTEN)
 
 
 def sweref(x, y):
@@ -125,6 +128,7 @@ Z_BP = Z_MB_U - H["h_kallare"] * 1000                        # bottenplattans ö
 Z_BP_U = Z_BP - H["h_platta"] * 1000
 Z_MAK = Z_BP_U - H["t_cellplast"] * 1000                     # makadamens överkant
 Z_BERG = Z_MAK - H["t_makadam"] * 1000                       # makadamens underkant (ritas bara)
+Z_MAK_P = Z_MB - H["h_l_mark"] * 1000                         # plattan på mark: L-elementens uk, makadamens ök
 Z_MMN = H["mmn"] * 1000
 Z_S = (H["mmn"] + H["byggnadshojd"]) * 1000                  # skärningspunkt fasad/takplan (ritar taket)
 Z_DRAN = H["dranering"] * 1000                               # avledning för dränvattnet
@@ -371,7 +375,7 @@ def blad_plan():
                                          f"fixpunkten {FIX['namn']} ({rh(Z_FIX)})."]),
         dict(typ="rubrik", text="Fasadens utsida (F)"), tabell("F"),
         dict(typ="rubrik", text=f"Bottenplattans kant (B), L-elementens ytterkant, ök {rh(Z_BP)} ({rel(Z_BP)})"), tabell("B"),
-        dict(typ="rubrik", text=f"Plattan på marks kant (P), ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
+        dict(typ="rubrik", text=f"Plattan på marks kant (P), L-elementens ytterkant, ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
     ])]
     # Underlag som inte står på ritningen:
@@ -396,14 +400,14 @@ def blad_plan():
             "beräknade med samma läge:",
             f"E = E0 + (x cos θ − y sin θ)/1 000, N = N0 + (x sin θ + y cos θ)/1 000, med θ = "
             f"{sv(math.degrees(TH), 6)}°, E0 = {sv(E0, 4)}, N0 = {sv(N0, 4)}.",
-            f"Plattan på mark (P, tillbyggnaden) har sin kant i mellanbjälklagets kant, {FASAD_UT} mm innanför "
-            f"fasaden. Den ansluter till källarväggarna mot {B_MOT_P}.",
+            f"Plattan på mark (P, tillbyggnaden) byggs med L-element, {svm(H['h_l_mark'] * 1000)} mm höga. P är "
+            f"L-elementens ytterkant, i linje med bottenplattans kant vid {B_MOT_P}.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="fasadens utsida (F)"),
             dict(form="yta", fyll="betong", stil="dold", text="bottenplattan (B), L-elementens ytterkant"),
-            dict(form="yta", fyll=PLATTA_F, stil="dold", text="plattan på mark (P)"),
+            dict(form="yta", fyll=PLATTA_F, stil="dold", text="plattan på mark (P), L-elementens ytterkant"),
             dict(form="punkt", text="utsättningspunkt"),
         ]),
     ]
@@ -413,6 +417,8 @@ def blad_plan():
 def blad_sektion():
     rader = [
         ["Mellanplattans överkant = FG, färdigt golv plan 1", rh(Z_MB), rel(Z_MB)[len(FIX["namn"]) + 1:], "bygglov; betonggolv"],
+        ["Plattan på mark: L-elementens och cellplastens underkant", rh(Z_MAK_P), rel(Z_MAK_P)[len(FIX["namn"]) + 1:],
+         f"plattans ök − L-element {svm(H['h_l_mark'] * 1000)}"],
         [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "nybyggnadskartan 2025-11-12 (byggfix)"],
         ["MMN, medelmarknivå", rh(Z_MMN), rel(Z_MMN)[len(FIX["namn"]) + 1:], "bygglov"],
         ["Bottenplattans överkant", rh(Z_BP), rel(Z_BP)[len(FIX["namn"]) + 1:],

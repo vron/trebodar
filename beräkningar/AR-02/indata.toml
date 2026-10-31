@@ -50,6 +50,7 @@ h_kallare   = 2.100     # bottenplattans överkant till bjälklagets underkant (
 h_platta    = 0.100     # bottenplattans betong i fält (R-04)
 t_cellplast = 0.200     # cellplast under plattan, makadamens överkant (R-04)
 t_makadam   = 0.150     # makadam, minst (U-01); berget sprängs och avjämnas under
+h_l_mark    = 0.500     # plattan på mark: L-elementens höjd; deras underkant och cellplastens underkant på makadamen
 mmn         = 7.68      # medelmarknivå (bygglov, sektion E)
 byggnadshojd = 3.468    # MMN till skärningspunkt vägg/takplan, nordvästra fasaden (bygglov); ritar bara taket
 dranering   = 5.814     # tillgänglig nivå för avledning av dränvattnet
