@@ -126,7 +126,8 @@ Z_BP_U = Z_BP - H["h_platta"] * 1000
 Z_MAK = Z_BP_U - H["t_cellplast"] * 1000                     # makadamens överkant
 Z_BERG = Z_MAK - H["t_makadam"] * 1000                       # makadamens underkant (ritas bara)
 Z_MMN = H["mmn"] * 1000
-Z_S = (H["mmn"] + H["byggnadshojd"]) * 1000                  # skärningspunkt fasad/takplan
+Z_S = (H["mmn"] + H["byggnadshojd"]) * 1000                  # skärningspunkt fasad/takplan (ritar taket)
+Z_DRAN = H["dranering"] * 1000                               # avledning för dränvattnet
 TAN = math.tan(math.radians(H["takvinkel"]))
 Z_MARK_NV, Z_MARK_SO = H["ny_mark_nv"] * 1000, H["ny_mark_so"] * 1000
 
@@ -194,6 +195,13 @@ def plan():
                 v.matt(p, q, 7.5, sida=-1, sz=6.8)
             else:
                 v.matt(p, q, 7.5, sz=6.8)
+    with v.lager("origo"):                                     # som R-05 och R-06
+        L = 900
+        v.linje([(0, 0), (L, 0)], "tunn"); v.pil((L + 150, 0), (1, 0), langd=2.2, bredd=1.0)
+        v.linje([(0, 0), (0, L)], "tunn"); v.pil((0, L + 150), (0, 1), langd=2.2, bredd=1.0)
+        v.ptext(L + 150, 0, 0, 0.8, "x", a="cb", sz=7.5, i=True)
+        v.ptext(0, L + 150, 1.0, 0, "y", a="lm", sz=7.5, i=True)
+        v.ptext(0, 0, 1.0, -1.0, "origo (0; 0)", a="lt", sz=6.4, col="gra")
     with v.lager("snitt"):
         v.snittpil((X_V - v.m(8), Y_SN), (X_H + v.m(8), Y_SN), "A", sida=1)
     with v.lager("norr"):
@@ -312,22 +320,19 @@ def sektion():
         for (a, b), (xn, zn) in zip(VINGAR, NOCKAR):
             pts += [(xn, zn), (b, Z_S)]
         v.linje(pts, "kontur")
-        v.cirkel(X_H, Z_S, 0.9, fyll="vit", stil="normal")
         v.linje([(X_V - 650, Z_MMN), (X_H + 650, Z_MMN)], "axel")
     # nivåer
     with v.lager("nivaer"):
         t = lambda z, txt: f"{rh(z)} ({rel(z)}) {txt}"
-        niva(v, X_H - 2 * s, Z_S, t(Z_S, "skärningspunkt fasad/takplan, nordvästra långsidan"), "r", under=True)
         niva(v, 1600, Z_MB, t(Z_MB, "mellanplattans ök = FG"), "l")
         niva(v, 1600, Z_BP, t(Z_BP, "bottenplattans ök"), "l")
         niva(v, 3200, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
         niva(v, 4300, Z_MAK, t(Z_MAK, "cellplastens uk under bottenplattan"), "l", under=True)
+        niva(v, 9300, Z_DRAN, t(Z_DRAN, "dränering, avledning"), "l", under=True)
     # mått från MMN
     with v.lager("matt"):
-        xb = X_H - 4200
-        v.matty([Z_MMN, Z_S], xb, [xb - 400, X_H - 120], texter=[f"byggnadshöjd {svm(Z_S - Z_MMN)}"])
         xk = 800
-        v.matty([Z_MAK, Z_BP, Z_MB_U, Z_MB, Z_S], xk, [xk + 400] * 5)
+        v.matty([Z_MAK, Z_BP, Z_MB_U, Z_MB], xk, [xk + 400] * 4)
     v.rubrik(X_V - 600, 13250, f"Sektion A–A, y = {svm(Y_SN)} (princip)", 50)
     return v
 
@@ -373,7 +378,8 @@ def blad_plan():
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
             "Koordinater i SWEREF 99 12 00 (Tanums kommun), höjder i RH2000 (AR-02.2). Mått i mm. x, y är husets "
-            "koordinater i K-05, med origo i mellanbjälklagets kanter.",
+            "koordinater, samma som i K-05 och på R-03–R-06: origo i skärningen mellan mellanbjälklagets kanter "
+            "x = 0 och y = 0.",
             "Utstakning och lägeskontroll görs av certifierad mättekniker (krav i bygglovet BYGG.2025.2278).",
             f"Höjdreferens: fixpunkten {FIX['namn']}, byggfixen på nybyggnadskartan (2025-11-12): "
             f"{FIX['beskrivning']}, {rh(Z_FIX)}. Alla höjder anges i RH2000 och relativt dubben, och mäts från den "
@@ -405,8 +411,6 @@ def blad_plan():
 
 def blad_sektion():
     rader = [
-        ["Skärningspunkt fasad/takplan, nordvästra långsidan", rh(Z_S), rel(Z_S)[len(FIX["namn"]) + 1:],
-         f"MMN + byggnadshöjd {svm(H['byggnadshojd'] * 1000)} (bygglov)"],
         ["Mellanplattans överkant = FG, färdigt golv plan 1", rh(Z_MB), rel(Z_MB)[len(FIX["namn"]) + 1:], "bygglov; betonggolv"],
         [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "nybyggnadskartan 2025-11-12 (byggfix)"],
         ["MMN, medelmarknivå", rh(Z_MMN), rel(Z_MMN)[len(FIX["namn"]) + 1:], "bygglov"],
@@ -414,6 +418,7 @@ def blad_sektion():
          f"mellanplattans ök − {svm(H['h_bjalklag'] * 1000)} − {svm(H['h_kallare'] * 1000)} (K-05, K-06)"],
         ["Cellplastens underkant under bottenplattan", rh(Z_MAK), rel(Z_MAK)[len(FIX["namn"]) + 1:],
          f"− platta {svm(H['h_platta'] * 1000)} − cellplast {svm(H['t_cellplast'] * 1000)} (R-04)"],
+        ["Dränering, tillgänglig nivå för avledning", rh(Z_DRAN), rel(Z_DRAN)[len(FIX["namn"]) + 1:], "–"],
     ]
     block = [dict(x=24, y=190, w=298, innehall=[
         dict(typ="rubrik", text="Höjder, RH2000"),
@@ -426,8 +431,6 @@ def blad_sektion():
             "Mått i mm. Sektionen är en principskiss: takets uppbyggnad, takfoten och "
             "stommen visas inte. Snittets läge: AR-02.1.",
             f"FG {rh(Z_FG)} är mellanplattans överkant: betonggolv utan golvbeläggning.",
-            "Byggnadshöjden (bygglovet) mäts från MMN till skärningspunkten mellan fasadens utsida och takplanets "
-            f"ovansida på den nordvästra långsidan. Taklutning {H['takvinkel']}°.",
             "Bottenplattans cellplast läggs på avjämnad makadam (R-04).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),

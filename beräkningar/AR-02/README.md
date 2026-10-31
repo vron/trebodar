@@ -1,6 +1,6 @@
 # AR-02 rev A – Utsättning
 
-Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6). Utsättningspunkter för huset i SWEREF 99 12 00 (Tanums kommun) och de kritiska höjderna i RH2000: fasadens utsida, bottenplattans kant och plattan på marks kant med koordinater, och en sektion med cellplastens underkant under bottenplattan, bottenplattans och mellanplattans överkant (= färdigt golv, betonggolv), medelmarknivån och byggnadshöjden (medelmarknivån till skärningspunkten mellan fasad och takplan på den nordvästra långsidan). Alla höjder anges i RH2000 och relativt fixpunkten FIX, byggfixen på nybyggnadskartan: överkant gränsdubb i berg vid tomtens västra hörn, +7,76, som höjderna mäts från på bygget.
+Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6). Utsättningspunkter för huset i SWEREF 99 12 00 (Tanums kommun) och de kritiska höjderna i RH2000: fasadens utsida, bottenplattans kant och plattan på marks kant med koordinater, och en sektion med cellplastens underkant under bottenplattan, bottenplattans och mellanplattans överkant (= färdigt golv, betonggolv), medelmarknivån och den tillgängliga nivån för avledning av dränvattnet. x, y är samma koordinater som i K-05 och på R-03–R-06. Alla höjder anges i RH2000 och relativt fixpunkten FIX, byggfixen på nybyggnadskartan: överkant gränsdubb i berg vid tomtens västra hörn, +7,76, som höjderna mäts från på bygget.
 
 | Blad | Innehåll | Skala |
 |---|---|---|
@@ -9,7 +9,7 @@ Egen arbetsritning för utförandet, ingår inte i handlingarna till tekniskt sa
 
 | Fil | Innehåll |
 |---|---|
-| `indata.toml` | Fasadens hörn i SWEREF ur utsättningsdatan (09_91), fasadens skikt, höjderna ur bygglovet (FG, MMN, byggnadshöjd, ny mark) och K-05/K-06/R-04, fixpunkten |
+| `indata.toml` | Fasadens hörn i SWEREF ur utsättningsdatan (09_91), fasadens skikt, höjderna ur bygglovet (FG, MMN, ny mark), dräneringens avledning och K-05/K-06/R-04, fixpunkten |
 | `passning.py` | Kontroll: passar husets kontur mot bygglovets situationsplan (vektorerna i pdf:en: rutnätets kors och husets yta) |
 | `ritningar.py` | Bladen AR-02.1 och AR-02.2 med den gemensamma mallen i [`../ritningsmall`](../ritningsmall/) |
 
