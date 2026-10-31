@@ -4,3 +4,6 @@
 # Python-miljöer
 .venv/
 .fonts/
+
+# Python-cache
+__pycache__/
