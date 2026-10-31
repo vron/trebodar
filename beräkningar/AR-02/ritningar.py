@@ -374,6 +374,14 @@ def blad_plan():
         dict(typ="rubrik", text=f"Plattan på marks kant (P), ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
     ])]
+    # Underlag som inte står på ritningen:
+    # - Höjderna mäts från dubben med avvägningsinstrument eller laser.
+    # - F1–F12 är utsättningsdata 09_91, punkt 1–12; de stämmer med husets mått inom 1 mm (passa(), RESTFEL).
+    # - Fasadens utsida ligger FASAD_UT = 95 mm utanför mellanbjälklagets kant runt hela huset, även på gavlarna:
+    #   regeln 30 och beklädnaden 65 (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Fasadstenen på
+    #   källarväggarna har sin framsida i samma liv (AR-01). Måtten över regelstommen är 130 mm mindre än fasadens.
+    # - Bottenplattans kant (B) ligger i källarväggarnas ytterliv, 65 mm innanför fasaden. B_MOT_P (B7–B9) är
+    #   plattans kant mot plattan på mark, under källarväggarna V3 och V20.
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
@@ -382,19 +390,12 @@ def blad_plan():
             "x = 0 och y = 0.",
             "Utstakning och lägeskontroll görs av certifierad mättekniker (krav i bygglovet BYGG.2025.2278).",
             f"Höjdreferens: fixpunkten {FIX['namn']}, byggfixen på nybyggnadskartan (2025-11-12): "
-            f"{FIX['beskrivning']}, {rh(Z_FIX)}. Alla höjder anges i RH2000 och relativt dubben, och mäts från den "
-            f"med avvägningsinstrument eller laser. Dubbens läge är angivet i cm.",
-            f"Fasadens hörn F1–F12 är utsättningsdata 09_91 (punkt 1–12). De stämmer med husets mått inom "
-            f"{sv(max(1.0, math.ceil(RESTFEL.max())), 0)} mm. Bottenplattans (B) och plattan på marks (P) punkter är "
-            f"beräknade med samma läge:",
+            f"{FIX['beskrivning']}, {rh(Z_FIX)}. Alla höjder anges i RH2000 och relativt dubben. Dubbens läge är "
+            f"angivet i cm.",
+            "Fasadens hörn F1–F12 är utsättningsdata. Bottenplattans (B) och plattan på marks (P) punkter är "
+            "beräknade med samma läge:",
             f"E = E0 + (x cos θ − y sin θ)/1 000, N = N0 + (x sin θ + y cos θ)/1 000, med θ = "
             f"{sv(math.degrees(TH), 4)}°, E0 = {sv(E0, 3)}, N0 = {sv(N0, 3)}.",
-            f"Fasadens utsida (F) ligger {FASAD_UT} mm utanför mellanbjälklagets kant runt hela huset, även på "
-            f"gavlarna: regeln {REGEL} och beklädnaden {BEKL} (utvändig gips 10, spikläkt 12, bärläkt 21, "
-            f"panel 22). Fasadstenen på källarväggarna har sin "
-            f"framsida i samma liv (AR-01). Måtten över regelstommen är {2 * BEKL} mm mindre än fasadens.",
-            f"Bottenplattans kant (B) ligger i källarväggarnas ytterliv, {BEKL} mm innanför fasaden. {B_MOT_P} är "
-            f"plattans kant mot plattan på mark, under källarväggarna V3 och V20.",
             f"Plattan på mark (P, tillbyggnaden) har sin kant i mellanbjälklagets kant, {FASAD_UT} mm innanför "
             f"fasaden. Den ansluter till källarväggarna mot {B_MOT_P}.",
         ]),
@@ -424,13 +425,14 @@ def blad_sektion():
         dict(typ="rubrik", text="Höjder, RH2000"),
         dict(typ="tabell", kolumner=["Nivå", "RH2000 (m)", f"Relativt {FIX['namn']} (m)", "Underlag"],
              bredd=(1.6, 0.6, 0.7, 2.4), just=["l", "r", "r", "l"], rader=rader, sz=6.8)])]
+    # Underlag som inte står på ritningen: sektionen visar inte takets uppbyggnad, takfoten och stommen; FG är
+    # betonggolv utan golvbeläggning.
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
             f"Höjder i RH2000 och relativt fixpunkten {FIX['namn']} ({rh(Z_FIX)}, gränsdubb i berg, se AR-02.1), i m. "
-            "Mått i mm. Sektionen är en principskiss: takets uppbyggnad, takfoten och "
-            "stommen visas inte. Snittets läge: AR-02.1.",
-            f"FG {rh(Z_FG)} är mellanplattans överkant: betonggolv utan golvbeläggning.",
+            "Mått i mm. Sektionen är en principskiss. Snittets läge: AR-02.1.",
+            f"FG {rh(Z_FG)} är mellanplattans överkant.",
             "Bottenplattans cellplast läggs på avjämnad makadam (R-04).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
