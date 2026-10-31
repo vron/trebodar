@@ -19,6 +19,7 @@ INK, BLA, ROD, GRA = "#1e1e1e", "#2c4a6e", "#b5463a", "#8a8a8a"
 TRA, LIMTRA, STAL, PLATTA = "#e9d7b0", "#dcc38f", "#5a5f66", "#f1efe9"
 TYPF = {"ÅII": "#c98b3a", "ÅIY": "#d9b36a", "ÅYI": "#6f8fb3", "ÅYY": "#a9bcd2"}
 CM = 1 / 2.54
+BALK = dict(b=190.0, h=200.0)          # nock- och dalbalkens tvärsnitt (K-01); sätts av berakning.py ur indata
 
 
 def _spara(fig, path):
@@ -33,7 +34,7 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
     for r in GEO["takbalkar"]:
         ax.plot([r["x0"], r["x1"]], [r["y"]] * 2, color=TYPF[r["typ"]], lw=0.9, zorder=1, solid_capstyle="butt")
     for b in GEO["balkar"]:
-        ax.add_patch(Rectangle((b["x"] - 100, b["y0"]), 200, b["y1"] - b["y0"], fc=STAL, ec="none", zorder=3))
+        ax.add_patch(Rectangle((b["x"] - BALK["b"] / 2, b["y0"]), BALK["b"], b["y1"] - b["y0"], fc=STAL, ec="none", zorder=3))
         namn = {"N": "Nockbalk ", "D": "Dalbalk "}[b["namn"][0]] + b["namn"][1]
         yt = {"N1": 9800, "D2": 2100, "N3": 9300, "D4": 8600, "N5": 13600}[b["namn"]]
         ax.text(b["x"], yt, namn, rotation=90, ha="center", va="center", fontsize=6.3, color="white", zorder=4,
@@ -86,7 +87,7 @@ def upplag(path, UP, TB, h_ef):
     """Takbalkens upplag mot nock- eller dalbalken: upplagsregel på balkens sida, hak i takbalken (snitt tvärs balken)."""
     fig, ax = plt.subplots(figsize=(11 * CM, 6.4 * CM))
     ta = math.tan(math.radians(30))
-    H, pl, B = UP["balk_h"], UP["plat"], 200
+    H, pl, B = UP["balk_h"], UP["plat"], UP["balk_b"]
     rb, rh = UP["regel_b"], UP["regel_h"]
     hv = TB["h"] / math.cos(math.radians(30))
     zs = pl + rh                                          # sätets nivå
@@ -140,7 +141,7 @@ def takstol(path, t, Pd, H, V):
                                zorder=4, alpha=0.9))
     xt = t["x_topp"]
     zt = max(s["z1"] for s in t["staver"] if "diag" in s["namn"])
-    ax.add_patch(Rectangle((xt - 100, zt - 78), 200, 190, fc=STAL, ec=INK, lw=0.5, zorder=5))
+    ax.add_patch(Rectangle((xt - BALK["b"] / 2, zt - 78), BALK["b"], BALK["h"], fc=STAL, ec=INK, lw=0.5, zorder=5))
     ax.text(xt - 140, zt + 30, "nockbalk 3\n(K-01)", ha="right", va="center", fontsize=6.3)
     ax.annotate("", (xt, zt + 120), (xt, zt + 520), arrowprops=dict(arrowstyle="-|>", lw=1.2, color=ROD))
     ax.text(xt + 60, zt + 420, f"$P_d$ = {Pd:.1f} kN".replace(".", ","), color=ROD, fontsize=7, ha="left")
@@ -170,7 +171,7 @@ def huvudstolpe(path, GEO, HS, kc, u):
     e = HS["e"]
     ax.add_patch(Rectangle((y0, 0), y1 - y0, zt, fc=TRA, ec=INK, lw=0.6, zorder=3))
     ax.add_patch(Rectangle((yc - e - 60, zt), 2 * e + 120, t["z1"] - t["z0"], fc=TRA, ec=INK, lw=0.6, zorder=3))
-    ax.add_patch(Rectangle((yc - e - 900, t["z1"]), 2 * e + 1800, 190, fc=STAL, ec=INK, lw=0.5, zorder=3))
+    ax.add_patch(Rectangle((yc - e - 900, t["z1"]), 2 * e + 1800, BALK["h"], fc=STAL, ec=INK, lw=0.5, zorder=3))
     ax.text(yc - 1200, t["z1"] + 95, "nockbalk 1 (K-01)", color="white", fontsize=6.3, va="center")
     for s in (1, -1):
         yA, zA = (y1 if s > 0 else y0), zt - (e - (y1 - y0) / 2)
@@ -187,7 +188,7 @@ def huvudstolpe(path, GEO, HS, kc, u):
     ax.annotate("", (yc + 330, 0), (yc + 330, HS["L"]), arrowprops=dict(arrowstyle="<->", lw=0.4))
     ax.text(yc + 360, HS["L"] / 2, f"{HS['L']:.0f}", rotation=90, va="center", fontsize=6.3)
     ax.annotate("", (yc, t["z1"] + 260), (yc + e, t["z1"] + 260), arrowprops=dict(arrowstyle="<->", lw=0.4))
-    ax.plot([yc, yc], [t["z1"] + 190, t["z1"] + 300], color=INK, lw=0.4)
+    ax.plot([yc, yc], [t["z1"] + BALK["h"], t["z1"] + 300], color=INK, lw=0.4)
     ax.text(yc + e / 2, t["z1"] + 290, f"{e:.0f}", ha="center", fontsize=6.3)
     ax.text(yc - 80, 1500, "4 st 45×120 C24\nsida vid sida", rotation=90, ha="center", va="center", fontsize=6.3)
     ax.plot([yc - 1200, yc + 1200], [0, 0], color=INK, lw=1.0)

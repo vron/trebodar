@@ -43,7 +43,7 @@
 
 = Konstruktion
 
-Nock- och dalbalkarna är limträ #r.geo.b × #r.hw mm i hel längd. I fält där limträet inte räcker till förses balken med plattstål #r.geo.b × #r.geo.t_pl i över- och underkant och får samma yttermått som HE 200 A, #r.geo.b × #r.geo.h_tot mm. Där plåt saknas sätts distansreglar #r.distans.tjocklek mm på ovan- och undersidan. Plåtarna tar böjmomentet som tryck- och dragkraft, och limträet för över tvärkraften mellan dem. Plåtarna fästs med lim och skruv. I brottgränstillståndet tillgodoräknas endast skruvarna, i bruksgränstillståndet även limmet.
+Nock- och dalbalkarna är limträ #r.geo.b × #r.hw mm i hel längd. I fält där limträet inte räcker till förses balken med plattstål #r.geo.b × #r.geo.t_pl i över- och underkant och får yttermåttet #r.geo.b × #r.geo.h_tot mm. Där plåt saknas sätts distansreglar #r.distans.tjocklek mm på ovan- och undersidan. Plåtarna tar böjmomentet som tryck- och dragkraft, och limträet för över tvärkraften mellan dem. Plåtarna fästs med lim och skruv. I brottgränstillståndet tillgodoräknas endast skruvarna, i bruksgränstillståndet även limmet.
 
 Plåtarna ligger i de långa fälten och går ut till balkänden där de når den. Övriga fält klarar limträet ensamt.
 
@@ -170,7 +170,7 @@ där $w_T$ är nedböjningen från temperaturskillnaden mellan plåtarna (avsnit
 
 = Temperaturpåverkan
 
-Stål utvidgas mer än trä: $alpha_s$ = #r.alfa_s × 10#super[−6] /K och längs fibrerna $alpha_t$ = #r.alfa_t × 10#super[−6] /K (SS-EN 1991-1-5 tabell C.1). Plåtarna limmas och skruvas vid cirka +20 °C. När temperaturen sedan ändras vill plåten ändra längd mer än limträet, och limmet och skruvarna hindrar det. Balken ligger i takets isolering med överplåten mot den kalla sidan, så över- och underplåt får dessutom olika temperatur. Vinterfallet med uppvärmt hus kommer från K-02, som räknar temperaturfältet kring nocken. Vid −20 °C ute och +25 °C inne blir plåtarna där −16,5 °C och +14,8 °C, och skillnaden mellan dem är 24–33 K med rimliga variationer av ytövergångarna. Följande fall räknas, med linjär temperaturfördelning över höjden:
+Stål utvidgas mer än trä: $alpha_s$ = #r.alfa_s × 10#super[−6] /K och längs fibrerna $alpha_t$ = #r.alfa_t × 10#super[−6] /K (SS-EN 1991-1-5 tabell C.1). Plåtarna limmas och skruvas vid cirka +20 °C. När temperaturen sedan ändras vill plåten ändra längd mer än limträet, och limmet och skruvarna hindrar det. Balken ligger i takets isolering med överplåten mot den kalla sidan, så över- och underplåt får dessutom olika temperatur. Vinterfallet med uppvärmt hus kommer från K-02, som räknar temperaturfältet kring nocken. Vid −20 °C ute och +25 °C inne blir plåtarna där #r.k02_T.To °C och #r.k02_T.Tu °C, och skillnaden mellan dem är #r.k02_dT K med rimliga variationer av ytövergångarna. Följande fall räknas, med linjär temperaturfördelning över höjden:
 
 #table(
   columns: (1fr, auto, auto),

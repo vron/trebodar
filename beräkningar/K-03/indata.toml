@@ -70,7 +70,8 @@ material = "C24"
 regel_b = 45            # upplagsregelns bredd (vågrätt, under takbalken)
 regel_h = 45            # regelns höjd = hakets höjd i lodled ovanför balkens underplåt
 plat = 10               # balkens underplåt; regeln sitter på limträet ovanför plåten
-balk_h = 190            # nock- och dalbalkens höjd (K-01)
+balk_h = 200            # nock- och dalbalkens höjd (K-01)
+balk_b = 190            # nock- och dalbalkens bredd (K-01)
 skruv_d = 6.0           # skruv genom regeln in i limträet
 skruv_L = 100
 skruv_My = 9500.0       # flytmoment [Nmm], minst enligt ETA
@@ -224,9 +225,9 @@ gamla = "D"
 # (modellen visar bara den ena). Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
 [huvudstolpe]
 L = 2900                # golv till strävornas fäste (K-01)
-N_d = 49.0              # K-01, stolpe 4 st 45×120
-M_d = 2.90              # K-01
-F_strava = 42.8         # strävornas största lodräta kraft mot balken (K-01)
+N_d = 49.3              # K-01, stolpe 4 st 45×120
+M_d = 2.68              # K-01
+F_strava = 43.6         # strävornas största lodräta kraft mot balken (K-01)
 e = 770                 # strävans fäste i balken från stolpen (K-01)
 strava_b = 45
 strava_h = 120

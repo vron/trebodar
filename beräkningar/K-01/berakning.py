@@ -156,7 +156,7 @@ def w_falt(A, G, S, lo, hi, a_, b_, k_fn):
         U, _, _ = m.los(np.full((i1 - i0, 1), q), [na, nb])
         w += -U[0:3 * len(xs):3, 0]
         xm = np.clip(xs, a_, b_) - a_
-        w += q * xm * (b_ - a_ - xm) / (2 * Gt / (1 + fak) * b * hw)     # skjuvdeformation (liv 170, konservativt)
+        w += q * xm * (b_ - a_ - xm) / (2 * Gt / (1 + fak) * b * hw)     # skjuvdeformation (bara limträet, konservativt)
     A.egenskaper(E2fin)
     sel = (xs >= a_) & (xs <= b_)
     return float(w[sel].max())
@@ -513,6 +513,9 @@ R = {
     "alfa_s": "12", "alfa_t": "5", "k_lim": fmt(k_lim, 0),
     "cT1": fmt(c_T1, 2), "cT2": fmt(c_T2, 2),
     "Ninf": fmt((st["alfa"] - tr["alfa"]) * 1 / (1 / (Es * A1) + 2 / (Et * b * hw)) / 1e3, 2),
+    "k02_dT": "–".join(str(v) for v in IN["k02"]["dT"]),
+    "k02_T": {k: ("+" if 20 + IN["temperatur"][0][n] > 0 else "") + fmt(20 + IN["temperatur"][0][n], 1)
+              for k, n in (("To", "over"), ("Tu", "under"))},
     "temperatur": [dict(namn=T["namn"], over=fmt(T["over"], 0 if T["over"] == int(T["over"]) else 1),
                         under=fmt(T["under"], 0 if T["under"] == int(T["under"]) else 1),
                         To=fmt(20 + T["over"], 0 if T["over"] == int(T["over"]) else 1),

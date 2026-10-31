@@ -101,7 +101,7 @@ forbehandling_tra  = "Ren och torr"
 limfog      = "heltäckande"
 pressning   = "Skruvarna dras fast medan limmet är färskt"
 hardning    = "enligt limtillverkarens anvisning"
-k_lim       = 4300      # fogens skjuvstyvhet per mm balk [N/mm²] ≈ G·b/30 mm (trä närmast limfogen)
+k_lim       = 4100      # fogens skjuvstyvhet per mm balk [N/mm²] ≈ G·b/30 mm (trä närmast limfogen)
 L_slapp     = 500       # känslighetskontroll: längd närmast varje plåtände där limmet antas ha släppt [mm]
 
 [laster]
@@ -133,6 +133,8 @@ snobredd    = 4.75      # all snö mellan nockarna (2,50 + 2,25) samlas i dalen 
 
 # Temperatur: ändring från limningstemperaturen +20 °C i över- och underplåt [K]. Balken antas ligga i
 # isoleringsskiktet med överplåten mot den kalla sidan. Linjär fördelning över höjden.
+[k02]
+dT          = [25, 34]  # skillnaden mellan plåtarna med rimliga variationer av ytövergångarna [K]
 [[temperatur]]
 namn        = "Vinter, uppvärmt hus"
 over        = -36.4     # överplåt −16,4 °C (K-02, −20 °C ute och +25 °C inne)
@@ -157,7 +159,7 @@ jamfor_utan_temperatur = true   # räkna även skruvantal utan temperaturpåverk
 [jamforelse]   # rev B (K-01 rev B 2026-10-03): plåt i hela balklängden
 revB_skruv  = 750       # utan temperaturpåverkan, som redovisat i rev B
 revB_skruv_T = 954      # rev B:s layout räknad med temperaturfallen ovan
-revB_stal_kg = 1650     # 2 × 52,6 m plåt 200×10
+revB_stal_kg = 1650     # 2 × 52,6 m plåt (rev B:s tvärsnitt)
 
 # ------------------------------------------------------------------
 # Balkar. x räknas från vänster balkände enligt skisserna.

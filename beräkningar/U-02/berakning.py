@@ -8,7 +8,7 @@ rapporten) räknas också lyft i en punkt och gaffeltruck i mitten.
 
 Läser indata.toml och balkarna ur ../K-01/indata.toml (och K-01:s resultat.json för jämförelsen med de
 dimensionerande snittkrafterna). Egentyngd: limträ med plåtar där plåt finns, annars limträ med distansreglar.
-Styvhet: plåtarna fullt samverkande med limträet (limmade); utan plåt bara limträet 200 × 170.
+Styvhet: plåtarna fullt samverkande med limträet (limmade); utan plåt bara limträet (K-01:s tvärsnitt).
 """
 import json
 import math
@@ -32,7 +32,7 @@ LY = IN["lyft"]
 # ------------------------------------------------------------------ tvärsnitt och material (K-01)
 g, st, tr, di = K01["geometri"], K01["stal"], K01["tra"], K01["distans"]
 b, t, H = g["b"], g["t_pl"], g["h_tot"]
-hw = H - 2 * t                                                         # limträ 170
+hw = H - 2 * t                                                         # limträets höjd
 Es, Et = st["E"], tr["E0mean"]
 q_plat = (2 * b * t * st["densitet"] + b * hw * tr["rho_mean"]) * 1e-9 * 9.81      # N/mm (kN/m)
 q_utan = (2 * b * di["tjocklek"] * di["densitet"] + b * hw * tr["rho_mean"]) * 1e-9 * 9.81
@@ -176,7 +176,7 @@ R = dict(
     ly=dict(dyn=sv(LY["dyn"], 1), gG=sv(LY["gamma_G"], 2), faktor=sv(FAKTOR, 2), kmod=sv(LY["k_mod"], 1),
             kh=sv(kh, 2), fmd=sv(f_md, 1), fyd=sv(f_yd, 0), vinkel=str(LY["vinkel"]), mal=f"{LY['mal']:.0%}".replace("%", " %"),
             s=sv(S_REK), steg=sv(LY["steg"]), avrunda=sv(LY["avrunda"]),
-            q_plat=sv(q_plat, 2), q_utan=sv(q_utan, 2)),
+            q_plat=sv(q_plat, 2), q_utan=sv(q_utan, 2), b=sv(b, 0), hw=sv(hw, 0), t=sv(t, 0)),
     balkar=[dict(namn=B["namn"], L=sv(r["L"]), W=sv(r["W"], 1), xc=sv(r["xc"]),
                  x1=sv(r["sp"][0]), x2=sv(r["sp"][1]), smin=sv(smin[B["namn"]]),
                  F=sv(max(r["R"]) / math.sin(TH), 1), Md=sv(r["Md"], 1), s_tra=sv(r["s_tra"], 1),

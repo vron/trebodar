@@ -64,17 +64,17 @@ TRAPPA = dict(langd=3.0, bredd=0.83, g=1.0, q=2.0)       # horisontell längd [m
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
 # x från balkens vänstra ände; balkens läge i plan enligt geometri.json (balkar)
 K01 = {
-    "N1": dict(typ="nock", stod={"A": (0, 7.3, -3.0), "B": (1900, 19.8, -6.5), "C": (3800, 9.9, -16.9),
-                                  "D": (5700, 49.0, -12.3), "E": (11570, 21.5, -6.3)}),
-    "D2": dict(typ="dal", stod={"B": (10070, 21.2, -4.5)}, vagg_lyft=-18.6, vagg=(0, 6487)),
-    "N3": dict(typ="nock", stod={"A": (85, 8.0, -3.4), "B": (2185, 23.9, -7.2), "C": (5985, 36.6, -9.4),
+    "N1": dict(typ="nock", stod={"A": (0, 7.4, -3.0), "B": (1900, 19.9, -6.6), "C": (3800, 9.9, -17.3),
+                                  "D": (5700, 49.3, -12.4), "E": (11570, 21.4, -6.3)}),
+    "D2": dict(typ="dal", stod={"B": (10070, 21.2, -4.5)}, vagg_lyft=-18.7, vagg=(0, 6487)),
+    "N3": dict(typ="nock", stod={"A": (85, 8.0, -3.4), "B": (2185, 23.9, -7.1), "C": (5985, 36.7, -9.4),
                                   "D": (10985, 18.9, -6.2)}),
-    "D4": dict(typ="dal", stod={"A": (90, 14.0, -3.8), "B": (2340, 54.2, -9.0), "C": (7390, 31.0, -6.0)}),
-    "N5": dict(typ="nock", stod={"A": (95, 17.5, -6.1), "B": (4675, 30.9, -7.1), "C": (7375, 32.6, -7.4),
+    "D4": dict(typ="dal", stod={"A": (90, 14.0, -4.1), "B": (2340, 54.3, -9.0), "C": (7390, 30.9, -6.0)}),
+    "N5": dict(typ="nock", stod={"A": (95, 17.4, -6.1), "B": (4675, 31.0, -7.1), "C": (7375, 32.7, -7.5),
                                   "D": (12275, 18.6, -6.4)}),
 }
 # Balkarnas last per meter i K-01 (G och S, kN/m): ger fördelningen G/S av en reaktion
-K01_LAST = {"nock": (2.01, 3.75), "dal": (1.93, 7.13)}
+K01_LAST = {"nock": (2.00, 3.75), "dal": (1.92, 7.13)}
 GD = 0.91
 # Snö per huskropp (för ojämn snö: snö på en eller två huskroppar). Dalbalkarna bär från båda sidor.
 KROPPAR = ("V", "M", "H")               # vänster, mittre, höger huskropp (figur 1)

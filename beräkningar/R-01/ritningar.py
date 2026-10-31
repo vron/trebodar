@@ -49,9 +49,10 @@ UNDERLAG = f"K-01 rev {IN['projekt']['revision']}"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 GEO, SK, ST, TR, LIM, DIST = IN["geometri"], IN["skruv"], IN["stal"], IN["tra"], IN["lim"], IN["distans"]
-B, T, H, HW = float(GEO["b"]), float(GEO["t_pl"]), float(GEO["h_tot"]), float(GEO["h_tra"])   # 200, 10, 190, 170
+B, T, H, HW = float(GEO["b"]), float(GEO["t_pl"]), float(GEO["h_tot"]), float(GEO["h_tra"])   # 190, 10, 200, 180
+LTD, PLD, DISTD = f"{B:g}×{HW:g}", f"{B:g}×{T:g}", f"{B:g}×{DIST['tjocklek']}"      # limträ, plåt, distansregel
 GLIPA = float(DIST["glipa"])
-RADER2, RADER3 = SK["rader2"], SK["rader3"]           # [45, 155], [45, 100, 155]
+RADER2, RADER3 = SK["rader2"], SK["rader3"]           # [45, 145], [45, 95, 145]
 RHO = ST["densitet"] * 1e-9                            # kg/mm³
 
 def tal(s):
@@ -118,6 +119,7 @@ for bi, br in zip(IN["balk"], R["balkar"]):
 
 # ================================================================== 2. placeringar
 ORDNING = ["NB1", "NB3", "NB5", "DB2", "DB4"]        # nockbalkarna överst, dalbalkarna under med planen bredvid
+TRE_RADER = [k for k in ORDNING if any(z["rader"] == 3 for z in BALKAR[k]["zoner"])]   # balkar med zoner i tre rader
 PLAC = dict(
     elev=dict(x=24.0, y0=14.0, dy=46.0, X0=-700.0),     # vyernas vänsterkant, första radens överkant, radavstånd
     # snitten: x i balken där A–A (med plåt) och B–B (utan plåt) markeras
@@ -251,7 +253,7 @@ def plan():
             b = BALKAR[k]
             g = b["plan"]
             x, y0, y1 = g["x"], g["y0"], g["y1"]
-            v.rekt(x - 100, y0, x + 100, y1, fyll="stal", stil=None)
+            v.rekt(x - B / 2, y0, x + B / 2, y1, fyll="stal", stil=None)
             # x = 0 och riktningen
             xa = x + 1.6 * s
             v.linje([(xa, y0), (xa, y0 + 1400)], "tunn")
@@ -317,7 +319,8 @@ def sektion_a():
         skruv(v, r1, H, ner=True, streckad=True)
         skruv(v, B - r0, 0, ner=False)
         skruv(v, B - r1, 0, ner=False, streckad=True)
-        v.linje([(RADER3[1], -3), (RADER3[1], H + 3)], "axel")
+        if TRE_RADER:
+            v.linje([(RADER3[1], -3), (RADER3[1], H + 3)], "axel")
     with v.lager("matt"):
         v.matt((0, H + SK["huvud"]), (B, H + SK["huvud"]), 5.0, sz=6.4)
         v.kedja([(0, -SK["huvud"]), (r0, -SK["huvud"]), (r1, -SK["huvud"]), (B, -SK["huvud"])], 4.0, sida=-1, sz=6.2)
@@ -325,14 +328,15 @@ def sektion_a():
         v.matt((B, 0), (B, H), 9.5, sida=-1, sz=6.4)
         v.matt((0, H), (0, H - SK["langd"]), 3.0, sida=-1, sz=6.0)
         v.matt((0, H - T), (0, H - SK["langd"]), 7.5, sida=-1, sz=6.0, txt=f"{SK['langd'] - T:.0f} i limträet")
-    etiketter(v, [("överplåt 200×10 S355J2+N", (178, H - 4)),
-                  ("epoxilim, heltäckande", (185, H - T)),
+    etiketter(v, [(f"överplåt {PLD} {ST['kvalitet']}", (B - 22, H - 4)),
+                  ("epoxilim, heltäckande", (B - 15, H - T)),
                   ("streckat: skruv i den\nandra raden", (r1 + 3, H - 45)),
-                  (f"limträ {TR['kvalitet']} 200×170", (178, 120)),
-                  ("mittraden (100) där skruv-\nzonen har tre rader (DB4)", (RADER3[1], 95)),
+                  (f"limträ {TR['kvalitet']} {LTD}", (B - 22, 120)),
+                  *([(f"mittraden ({RADER3[1]:g}) där skruv-\nzonen har tre rader ({', '.join(TRE_RADER)})", (RADER3[1], 95))]
+                    if TRE_RADER else []),
                   (f"skruv {SK['produkt'].split(' ', 1)[1]} eller\nlikvärdig i varje hål, hål Ø{SK['hal']:g}\n"
                    f"i plåten, förborrning i limträet", (B - r0 + 4, 45)),
-                  ("underplåt 200×10 S355J2+N", (178, 4))], B + 44, H + 25, 13.4)
+                  (f"underplåt {PLD} {ST['kvalitet']}", (B - 22, 4))], B + 44, H + 25, 13.4)
     with v.lager("rubrik"):
         v.rubrik(-15, -48, "SEKTION A–A  Med plåt", skala=2.5, sz=9)
     return v
@@ -346,9 +350,9 @@ def sektion_b():
         v.matt((0, H), (B, H), 5.0, sz=6.4)
         v.kedja([(B, 0), (B, T), (B, H - T), (B, H)], 3.5, sida=-1, sz=6.2)
         v.matt((B, 0), (B, H), 9.5, sida=-1, sz=6.4)
-    etiketter(v, [(f"distansregel 200×{DIST['tjocklek']}, trä\neller plywood, limmas eller\nhäftas, inte bärande", (170, H - 4)),
-                  (f"limträ {TR['kvalitet']} 200×170", (178, 110)),
-                  (f"distansregel 200×{DIST['tjocklek']}", (170, 4))], B + 44, H + 10, 26.0)
+    etiketter(v, [(f"distansregel {DISTD}, trä\neller plywood, limmas eller\nhäftas, inte bärande", (B - 30, H - 4)),
+                  (f"limträ {TR['kvalitet']} {LTD}", (B - 22, 110)),
+                  (f"distansregel {DISTD}", (B - 30, 4))], B + 44, H + 10, 26.0)
     with v.lager("rubrik"):
         v.rubrik(-15, -48, "SEKTION B–B  Utan plåt", skala=2.5, sz=9)
     return v
@@ -431,7 +435,7 @@ def detalj_c():
 
 
 def detalj_d():
-    """D: plåten vid balkänden med tre rader (DB4-1 vid x = 7 480), sedd uppifrån. 1:5"""
+    """D: plåten vid balkänden (DB4-1 vid x = 7 480), sedd uppifrån, med zonens rader. 1:5"""
     k, bit = "DB4", 1
     L = BALKAR[k]["L"]
     x0 = L - 420
@@ -442,11 +446,12 @@ def detalj_d():
         v.matt((hal[-1][0], B), (L, B), 4.0, sz=6.2)
         v.matt((hal[-2][0], B), (hal[-1][0], B), 4.0, sz=6.2, txt="s")
         xr = [h[0] for h in hal if h[1] == hal[-1][1]]
-        v.matt((xr[-2], 0), (xr[-1], 0), 5.0, sida=-1, sz=6.2, txt=f"3s = {xr[-1] - xr[-2]:.0f}")
+        n = len(rader)
+        v.matt((xr[-2], 0), (xr[-1], 0), 5.0, sida=-1, sz=6.2, txt=f"{n}s = {xr[-1] - xr[-2]:.0f}")
     with v.lager("rubrik"):
-        v.rubrik(x0 - 55, -70, "DETALJ D  Tre rader vid balkänden", skala=5, sz=9)
+        v.rubrik(x0 - 55, -70, f"DETALJ D  Plåten vid balkänden, {'tre' if n == 3 else 'två'} rader", skala=5, sz=9)
         v.text(x0 - 55, -70 - 8.0 * 5, f"Exempel: {k}-{bit} vid balkänden x = {svm(L)}, s = {hal[-1][0] - hal[-2][0]:.0f}. "
-               "3s = c/c i varje rad. Första skruv 100 från balkänden.", a="lb", sz=6.4, col="gra")
+               f"{n}s = c/c i varje rad. Första skruv {SK['ande']} från balkänden.", a="lb", sz=6.4, col="gra")
     return v
 
 
@@ -469,8 +474,8 @@ def blad_elevationer():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.9, rader=[
-            f"Limträ {TR['kvalitet']} 200×170 i hel längd. Plattstål 200×10 {ST['kvalitet']} i över- och underkant där "
-            "plåt anges, limmat och skruvat. I övrigt distansreglar 200×10. Balkens höjd 190 mm. Sektioner och "
+            f"Limträ {TR['kvalitet']} {LTD} i hel längd. Plattstål {PLD} {ST['kvalitet']} i över- och underkant där "
+            f"plåt anges, limmat och skruvat. I övrigt distansreglar {DISTD}. Balkens höjd {H:g} mm. Sektioner och "
             "detaljer: R-01.2.",
             "x räknas från balkens vänstra ände (x = 0). Plåtarna och skruvzonerna är inte symmetriska. Balkens "
             "vänstra ände märks med balkens namn och x = 0, så att balken kan monteras åt rätt håll (planen).",
@@ -480,13 +485,13 @@ def blad_elevationer():
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
-            dict(form="yta", fyll="limtra", stil="tunn", text=f"limträ {TR['kvalitet']} 200×170"),
-            dict(form="linje", stil="plat", text="plattstål 200×10, över- och underplåt"),
-            dict(form="linje", stil="distans", text="distansregel 200×10"),
+            dict(form="yta", fyll="limtra", stil="tunn", text=f"limträ {TR['kvalitet']} {LTD}"),
+            dict(form="linje", stil="plat", text=f"plattstål {PLD}, över- och underplåt"),
+            dict(form="linje", stil="distans", text=f"distansregel {DISTD}"),
             dict(form="stod", text="stöd"),
             dict(form="yta", fyll="stodyta", stil="", text="stöd, vägg"),
             dict(form="yta", fyll="vit", stil="tunn", text="skruvzon, två rader"),
-            dict(form="yta", fyll="zon", stil="tunn", text="skruvzon, tre rader")]),
+            *([dict(form="yta", fyll="zon", stil="tunn", text="skruvzon, tre rader")] if TRE_RADER else [])]),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0),
              rader=[[nr, ", ".join(t[1:]), sk] for nr, t, sk, _ in BLADEN], just=["l", "l", "l"], sz=6.6),
@@ -525,13 +530,13 @@ def balkforteckning():
 def blad_sektioner():
     vyer = [sektion_a(), sektion_b(), *detalj_c(), detalj_d()]
     block = [dict(x=178, y=218, w=144, innehall=[
-        dict(typ="rubrik", text="Plåtar, S355J2+N 200×10 (modeller/balkplattor)"), platforteckning()])]
+        dict(typ="rubrik", text=f"Plåtar, {ST['kvalitet']} {PLD} (modeller/balkplattor)"), platforteckning()])]
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.9, rader=[
-            f"Limträ {TR['kvalitet']} enligt {TR['standard']}, 200×170 i hel längd. Fuktkvot {TR['fuktkvot']}. "
+            f"Limträ {TR['kvalitet']} enligt {TR['standard']}, {LTD} i hel längd. Fuktkvot {TR['fuktkvot']}. "
             "Klimatklass 1.",
-            f"Plåtar: plattstål 200×10 {ST['kvalitet']} enligt {ST['standard']}, laserskurna enligt DXF- och STEP-filerna "
+            f"Plåtar: plattstål {PLD} {ST['kvalitet']} enligt {ST['standard']}, laserskurna enligt DXF- och STEP-filerna "
             "i modeller/balkplattor/, en fil per plåt. Bitarna skarvas inte.",
             f"Hål Ø{SK['hal']:g} genomgående, cylindriska, utan försänkning. Varje plåt märks med sitt namn, en pil mot "
             "balkens vänstra ände och framsidans kant (y = 0). Över- och underplåt har speglade hålbilder och kan inte bytas.",
@@ -549,7 +554,7 @@ def blad_sektioner():
             "Skruvarna dras medan limmet är färskt, i ett drag tills huvudet ligger an mot plåten, med "
             f"momentbegränsare eller momentnyckel ({SK['produkt'].split(' ', 1)[1]}: högst {SK['moment']} Nm), "
             "inte med slagskruvdragare.",
-            f"Distansreglar 200×{DIST['tjocklek']} där plåt saknas: {DIST['material'].lower()}. "
+            f"Distansreglar {DISTD} där plåt saknas: {DIST['material'].lower()}. "
             f"{DIST['fastsattning']}. Glipa {GLIPA:.0f} mm mot plåtänden.",
             "Annat lim eller ändrade hål kräver ny kontroll enligt K-01.",
         ]),

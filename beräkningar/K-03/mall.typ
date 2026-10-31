@@ -99,7 +99,7 @@ Takbalkarna är fritt upplagda mellan balkarnas centrumlinjer eller till ytterv�
 #figure(image("fig_upplag.svg", width: 80%), caption: [Takbalkarnas upplag mot nockbalken, snitt tvärs balken. Vid dalbalken på samma sätt, spegelvänt.])
 
 #[
-    Takbalkens överkant ligger i balkens överkant, i isoleringens nivå (K-02). Takbalken är 196 mm hög i lodled, balken 190 mm. Takbalken vilar därför med ett hak på en upplagsregel 45×45 C24 längs balkens sida, ovanför underplåten. Sätet ligger #r.tb.z_sate mm över balkens underkant.
+    Takbalkens överkant ligger i balkens överkant, i isoleringens nivå (K-02). Takbalken är #r.tb.h_lod mm hög i lodled, balken #r.tb.balk_h mm. Takbalken vilar med ett hak på en upplagsregel 45×45 C24 längs balkens sida, ovanför underplåten. Sätet ligger #r.tb.z_sate mm över balkens underkant.
 
     - *Hak:* dimensionerande för typ #r.tb.dim, #r.tb.umax.
     - *Upplagsregeln:* tryck vinkelrätt fibrerna #r.tb.ureg. Skruv Ø6×100 genom regeln in i limträet bär #r.tb.Fv kN var (8.6, enkelskäriga trä–trä). Det krävs #r.tb.n_skruv skruv per takbalk.

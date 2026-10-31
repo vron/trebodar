@@ -252,7 +252,7 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     u_band = H * 1e3 / (45 * hb) / (C24.kh(hb) * C24.ft0d)
     n_spik = math.ceil(H / 2 / Fv_spik_d)
     u_plat = H / 2 / N_plat
-    t_krav = P * 1e3 / (200 * f_topp)                    # erforderlig tjocklek i toppen, säte 200 mm (balkens bredd)
+    t_krav = P * 1e3 / (UP["balk_b"] * f_topp)           # erforderlig tjocklek i toppen, säte = balkens bredd
     kloss = t_krav > 45 or TK.get("alla", False)
     n_kloss = math.ceil(P * 2 * TK["t"] / (45 + 2 * TK["t"]) / Fv_kloss_d) if kloss else 0
     l_fot = V * 1e3 / (45 * 1.5 * C24.fc90d)             # erforderlig upplagslängd på hammarbandet
@@ -404,6 +404,7 @@ BRIST_STOLPAR = {"LD4_1", "LD4_2", "LN1_1"}
 import figurer03 as F  # noqa: E402
 
 L2M = next(t for t in ST if t["namn"] == "Stol L2M")
+F.BALK = dict(b=UP["balk_b"], h=UP["balk_h"])
 F.oversikt(HERE / "fig_oversikt.svg", GEO, G05, ST, STOLPAR, huvud, BRIST_STOLPAR)
 F.upplag(HERE / "fig_upplag.svg", UP, TB, h_ef)
 F.takstol(HERE / "fig_takstol.svg", L2M, L2M["P"], L2M["H"], L2M["V"])
@@ -445,6 +446,7 @@ R = {
                ned=str(KL["nedbojning"])),
     "tb": dict(antal=str(len(GEO["takbalkar"])), n_typ=str(len(TYPER)), dim=TB_DIM["namn"], dimtext=TB_DIM["text"].lower(),
                h_ef=fmt(h_ef, 0), alfa=fmt(a_n, 2), kv=fmt(kv, 2), x=fmt(x_n, 0), z_sate=fmt(z_sate, 0),
+               h_lod=fmt(h_tb / math.cos(ALFA), 0), balk_h=fmt(UP["balk_h"], 0),
                fsate=fmt(f_sate, 2), Fv=fmt(Fv_skruv_d, 2), n_skruv=str(max(t["n_skruv"] for t in TYPER)),
                Fax=fmt(Fax_d, 2), lyft=fmt(max(t["lyft"] for t in TYPER), 2),
                ulyft=pct(max(t["lyft"] for t in TYPER) / Fax_d), ureg=pct(max(t["uregel"] for t in TYPER)),

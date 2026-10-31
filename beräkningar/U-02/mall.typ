@@ -38,7 +38,7 @@
 
 = Syfte och förutsättningar
 
-Nock- och dalbalkarna (K-01) är limträ GL30c 200 × 170 med limmade och skruvade stålplåtar 200 × 10 i över- och underkant på delar av längden. Här kontrolleras att egentyngden inte skadar balkarna när de lyfts i två punkter, med stroppar i en triangel upp till kroken, och vilket avstånd mellan lyftpunkterna som behövs.
+Nock- och dalbalkarna (K-01) är limträ GL30c #l.b × #l.hw med limmade och skruvade stålplåtar #l.b × #l.t i över- och underkant på delar av längden. Här kontrolleras att egentyngden inte skadar balkarna när de lyfts i två punkter, med stroppar i en triangel upp till kroken, och vilket avstånd mellan lyftpunkterna som behövs.
 
 - *Egentyngd:* #l.q_plat kN/m med plåtar, #l.q_utan kN/m utan (limträ och distansreglar). Plåtarna samverkar fullt med limträet (limmade); utan plåt bär limträet ensamt.
 - *Lastfaktor:* #l.gG × dynamisk faktor #l.dyn = #l.faktor på egentyngden: ryck, inbromsning och ojämn hantering, långt över ett långsamt kranlyft (1,1–1,3).

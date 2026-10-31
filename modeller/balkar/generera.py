@@ -4,7 +4,7 @@ Kompletta 3D-modeller av nock- och dalbalkarna (K-01): en STEP-sammanställning 
     python generera.py
 
 Varje balk består av separata delar med namn och färg:
-    limträ 200×170 i hel längd, stålplåtar i över- och underkant och distansreglar 200×10 där plåt saknas.
+    limträ i hel längd, stålplåtar i över- och underkant och distansreglar där plåt saknas (mått ur K-01).
 Stålplåtarna läses in från ../balkplattor/*.step, så att geometrin är exakt densamma som i skärfilerna
 (kör ../balkplattor/generera.py först). Balklängd, plåtlägen och distansreglarnas glipa läses från
 ../../beräkningar/K-01/indata.toml och hålbilderna.
@@ -23,9 +23,9 @@ ROT = HERE.parent.parent
 K01 = ROT / "beräkningar" / "K-01"
 PLATAR = HERE.parent / "balkplattor"
 IN = tomllib.loads((K01 / "indata.toml").read_text(encoding="utf-8"))
-B = IN["geometri"]["b"]                    # 200
+B = IN["geometri"]["b"]                    # 190
 T = IN["geometri"]["t_pl"]                 # 10
-HW = IN["geometri"]["h_tra"]               # 170
+HW = IN["geometri"]["h_tra"]               # 180
 GLIPA = IN["distans"]["glipa"]             # 5
 KORT = {"nock": "NB", "dal": "DB"}
 
