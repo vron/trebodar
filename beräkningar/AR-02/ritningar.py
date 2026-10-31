@@ -1,7 +1,7 @@
 """
 AR-02 Utsättning: egen arbetsritning för utförandet (F-01 avsnitt 6), A3 med ../ritningsmall:
 
-    AR-02.1  Plan med utsättningspunkter och koordinater     1:100, 1:500, 1:10
+    AR-02.1  Plan med utsättningspunkter och koordinater     1:100, 1:500
     AR-02.2  Sektion med höjder                              1:50
 
 Underlag: indata.toml (koordinatsystemets passning ur passning.py, fasadens skikt, höjderna ur bygglovet),
@@ -11,7 +11,7 @@ papperet.
 
 Filen är uppdelad i:
     1. Underlag           konturer, punkter, koordinater och höjder
-    2. Vyer               plan, detalj och sektion
+    2. Vyer               plan, översikt och sektion
     3. Blad               högerkolumn, tabeller och ritningshuvud
     4. main               skriver AR-02.x.json och PDF:en i ritningar/
 
@@ -98,12 +98,12 @@ PUNKTER = [(f"F{i}", p) for i, p in enumerate(F, 1)] + [(f"B{i}", p) for i, p in
 # höjder (RH2000, m → mm i sektionen)
 H = IN["hojder"]
 Z_FG = H["fg"] * 1000
-Z_MB = Z_FG - H["golv"] * 1000                               # mellanbjälklagets överkant
+Z_MB = Z_FG                                                  # mellanplattans överkant = FG (betonggolv)
 Z_MB_U = Z_MB - H["h_bjalklag"] * 1000
 Z_BP = Z_MB_U - H["h_kallare"] * 1000                        # bottenplattans överkant
 Z_BP_U = Z_BP - H["h_platta"] * 1000
 Z_MAK = Z_BP_U - H["t_cellplast"] * 1000                     # makadamens överkant
-Z_BERG = Z_MAK - H["t_makadam"] * 1000                       # sprängbotten, högst
+Z_BERG = Z_MAK - H["t_makadam"] * 1000                       # makadamens underkant (ritas bara)
 Z_MMN = H["mmn"] * 1000
 Z_S = (H["mmn"] + H["byggnadshojd"]) * 1000                  # skärningspunkt fasad/takplan
 TAN = math.tan(math.radians(H["takvinkel"]))
@@ -115,9 +115,6 @@ XS_F = sorted({round(p[0], 1) for p in F})                   # −95, 4 405, 9 4
 X_V, X_H = XS_F[0], XS_F[-1]
 VINGAR = list(zip(XS_F[:-1], XS_F[1:]))
 NOCKAR = [((a + b) / 2, Z_S + (b - a) / 2 * TAN) for a, b in VINGAR]
-Z_TOPP = max(z for _, z in NOCKAR)
-assert abs(Z_S - (H["mmn"] + H["nockhojd"]) * 1000 + min(b - a for a, b in VINGAR) / 2 * TAN) < 2, \
-    "bygglovets nockhöjd ska vara sidobyggnadernas nock"
 
 # källarväggarna och plattan i sektionen (K-06): väggens ytterliv 30 utanför mellanbjälklagets kant
 T_EPS, T_KARNA = K.T_EPS, K.T_KARNA
@@ -193,41 +190,6 @@ def plan():
 PLATTA_HORN = horn(PLATTA.buffer(0.01, join_style=2).buffer(-0.01, join_style=2), (-1e4, 2e4))
 
 
-def detalj():
-    """Hörnet F12/B12 i plan: mellanbjälklagets kant, väggens ytterliv (= bottenplattans kant) och fasadens utsida."""
-    xk, yk = XK_V, F[-1][1] + FASAD_UT                       # mellanbjälklagets hörn vid F12
-    v = Vy(x=22, y=228, w=182, h=57, skala=10, X0=xk - 1420, Y1=yk + 260)
-    with v.lager("ytor"):
-        v.polygon([(xk, yk), (xk + 400, yk), (xk + 400, yk + 250), (xk, yk + 250)], fyll="betong", stil=None)
-        v.polygon([(xk - REGEL, yk - REGEL), (xk + 400, yk - REGEL), (xk + 400, yk), (xk, yk), (xk, yk + 250),
-                   (xk - REGEL, yk + 250)], fyll="eps", stil=None)
-        v.polygon([(xk - FASAD_UT, yk - FASAD_UT), (xk + 400, yk - FASAD_UT), (xk + 400, yk - REGEL),
-                   (xk - REGEL, yk - REGEL), (xk - REGEL, yk + 250), (xk - FASAD_UT, yk + 250)], fyll=PANEL, stil=None)
-        skikt = np.cumsum([10, 12, 21])                        # utvändig gips, spikläkt, bärläkt, panel
-        for s in skikt:
-            o = REGEL + s
-            v.linje([(xk - o, yk + 250), (xk - o, yk - o), (xk + 400, yk - o)], "fin")
-    with v.lager("linjer"):
-        for o, st in ((FASAD_UT, "kontur"), (REGEL, "normal"), (0, "normal")):
-            v.linje([(xk - o, yk + 250), (xk - o, yk - o), (xk + 400, yk - o)], st)
-    with v.lager("matt"):
-        v.mattx([xk - FASAD_UT, xk - REGEL, xk], yk + 190, [yk + 150] * 3, sz=6.4)
-        v.matty([yk - FASAD_UT, yk - REGEL, yk], xk + 330, [xk + 290] * 3, sz=6.4)
-    with v.lager("text"):
-        tx = xk - 700                                          # textens högra ände, vågräta hänvisningar
-        for txt, mal in (("F  fasadens utsida", (xk - FASAD_UT, yk + 170)),
-                         ("B  bottenplattans kant = väggens ytterliv", (xk - REGEL, yk + 95)),
-                         ("mellanbjälklagets och plattan på marks kant", (xk, yk + 20))):
-            v.hanvisning(mal, (tx, mal[1]), None)
-            v.text(tx - v.m(1), mal[1], txt, a="rm", sz=6.6, bg=True)
-        mal = (xk + 200, yk - FASAD_UT + 30)
-        v.hanvisning(mal, (tx, yk - 150), None)
-        v.text(tx - v.m(1), yk - 150, "beklädnad: utvändig gips 10, spikläkt 12, bärläkt 21, panel 22", a="rm", sz=6.6,
-               bg=True)
-    v.rubrik(xk - 1400, yk + 340, "Detalj 1, hörnet F12/B12, lika runt huset", 10)
-    return v
-
-
 def oversikt():
     """Husets läge mot fixpunkten, 1:500, med avstånden från fixpunkten till de närmaste hörnen."""
     v = Vy(x=212, y=142, w=108, h=142, skala=500, X0=-6000, Y1=P_FIX[1] + 9000)
@@ -240,7 +202,10 @@ def oversikt():
         k = r / math.sqrt(2)
         v.linje([(x - k, y - k), (x + k, y + k)], "normal"); v.linje([(x - k, y + k), (x + k, y - k)], "normal")
         v.ptext(x, y, 2.4, 1.2, f"{FIX['namn']} {rh(Z_FIX)}", a="lb", sz=7.0, b=True)
-        v.ptext(x, y, 2.4, -1.6, FIX["beskrivning"], a="lt", sz=6.4, col="gra")
+        n, e = FIX["N"], FIX["E"]
+        for i, t in enumerate((f"N {sv(n, 3)}   E {sv(e, 3)}", f"x {svm(round(x))}   y {svm(round(y))}")):
+            v.ptext(x, y, 2.4, -1.4 - i * 3.0, t, a="lt", sz=6.6)
+        v.ptext(x, y, 2.4, -7.6, FIX["beskrivning"], a="lt", sz=6.4, col="gra")
     with v.lager("avstand"):
         for namn in ("F1", "F6"):
             q = dict(PUNKTER)[namn]
@@ -325,34 +290,20 @@ def sektion():
         for (a, b), (xn, zn) in zip(VINGAR, NOCKAR):
             pts += [(xn, zn), (b, Z_S)]
         v.linje(pts, "kontur")
-        for x in (X_V, X_H):
-            v.cirkel(x, Z_S, 0.9, fyll="vit", stil="normal")
+        v.cirkel(X_H, Z_S, 0.9, fyll="vit", stil="normal")
         v.linje([(X_V - 650, Z_MMN), (X_H + 650, Z_MMN)], "axel")
     # nivåer
     with v.lager("nivaer"):
         t = lambda z, txt: f"{rh(z)} ({rel(z)}) {txt}"
-        xm = NOCKAR[1][0]
-        niva(v, xm, Z_TOPP, t(Z_TOPP, "högsta punkt"), "l")
-        for xn, zn in (NOCKAR[0], NOCKAR[2]):
-            niva(v, xn, zn, t(zn, "nock"), "l")
-        niva(v, X_V + 2 * s, Z_S, t(Z_S, "skärningspunkt fasad/takplan"), "l", under=True)
-        niva(v, X_H - 2 * s, Z_S, t(Z_S, "skärningspunkt fasad/takplan"), "r", under=True)
-        for xd, _ in VINGAR[1:]:
-            niva(v, xd, Z_S, t(Z_S, "dal"), "l", under=True)
-        niva(v, 1600, Z_FG, t(Z_FG, "FG, färdigt golv"), "l")
-        niva(v, 12300, Z_MB, t(Z_MB, "bjälklagets ök"), "r", under=True)
+        niva(v, X_H - 2 * s, Z_S, t(Z_S, "skärningspunkt fasad/takplan, nordvästra långsidan"), "r", under=True)
+        niva(v, 1600, Z_MB, t(Z_MB, "mellanplattans ök = FG"), "l")
         niva(v, 1600, Z_BP, t(Z_BP, "bottenplattans ök"), "l")
         niva(v, 3200, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
-        niva(v, X_V - 330, Z_MARK_SO, t(Z_MARK_SO, "ny mark, sydöstra fasaden"), "l", txt_x=1000)
-        niva(v, X_H + 330, Z_MARK_NV, t(Z_MARK_NV, "ny mark, nordvästra fasaden"), "r", txt_x=13300)
-        niva(v, 4300, Z_MAK, t(Z_MAK, "makadamens ök (cellplastens uk)"), "l", under=True)
-        niva(v, 9300, Z_BERG, t(Z_BERG, "sprängbotten, högst (makadam minst 150)"), "l", under=True)
+        niva(v, 4300, Z_MAK, t(Z_MAK, "cellplastens uk under bottenplattan"), "l", under=True)
     # mått från MMN
     with v.lager("matt"):
         xb = X_H - 4200
         v.matty([Z_MMN, Z_S], xb, [xb - 400, X_H - 120], texter=[f"byggnadshöjd {svm(Z_S - Z_MMN)}"])
-        xn = NOCKAR[1][0] - 700
-        v.matty([Z_MMN, Z_TOPP], xn, [xn - 400, NOCKAR[1][0] - 60], texter=[f"nockhöjd {svm(round(Z_TOPP - Z_MMN))}"])
         xk = 800
         v.matty([Z_MAK, Z_BP, Z_MB_U, Z_MB, Z_S], xk, [xk + 400] * 5)
     v.rubrik(X_V - 600, 13250, f"Sektion A–A, y = {svm(Y_SN)} (princip)", 50)
@@ -361,7 +312,7 @@ def sektion():
 
 # ================================================================== 3. blad
 BLADEN = [
-    ("AR-02.1", ["Utsättning", "Plan och koordinater"], "1:100, 1:500, 1:10", "AR-02.1 Utsättning, plan och koordinater"),
+    ("AR-02.1", ["Utsättning", "Plan och koordinater"], "1:100, 1:500", "AR-02.1 Utsättning, plan och koordinater"),
     ("AR-02.2", ["Utsättning", "Sektion och höjder"], "1:50", "AR-02.2 Utsättning, sektion och höjder"),
 ]
 
@@ -386,7 +337,7 @@ def blad_plan():
         dict(typ="rubrik", text="Utsättningspunkter, SWEREF 99 12 00"),
         dict(typ="text", sz=6.8, rader=[f"x, y i mm (K-05), N, E och höjder i m. Höjder i RH2000 och relativt "
                                          f"fixpunkten {FIX['namn']} ({rh(Z_FIX)})."]),
-        dict(typ="rubrik", text=f"Fasadens utsida (F), FG {rh(Z_FG)} ({rel(Z_FG)})"), tabell("F"),
+        dict(typ="rubrik", text="Fasadens utsida (F)"), tabell("F"),
         dict(typ="rubrik", text=f"Bottenplattans kant (B), ök {rh(Z_BP)} ({rel(Z_BP)})"), tabell("B"),
         dict(typ="rubrik", text=f"Plattan på marks kant (P), ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
@@ -408,7 +359,7 @@ def blad_plan():
             f"E = E0 + (x cos θ − y sin θ)/1 000, N = N0 + (x sin θ + y cos θ)/1 000, med θ = "
             f"{sv(KO['theta'], 4)}°, E0 = {sv(E0, 3)}, N0 = {sv(N0, 3)}.",
             f"Fasadens utsida (F) ligger {FASAD_UT} mm utanför mellanbjälklagets kant runt hela huset, även på "
-            f"gavlarna: regeln {REGEL} och beklädnaden {BEKL} (detalj 1). Fasadstenen på källarväggarna har sin "
+            f"gavlarna: regeln {REGEL} och beklädnaden {BEKL} (utvändig gips 10, spikläkt 12, bärläkt 21, panel 22). Fasadstenen på källarväggarna har sin "
             f"framsida i samma liv (AR-01). Måtten över regelstommen är {2 * BEKL} mm mindre än fasadens.",
             f"Bottenplattans kant (B) ligger i källarväggarnas ytterliv, {BEKL} mm innanför fasaden. B1–B3 är "
             f"plattans kant mot plattan på mark, under källarväggarna V3 och V20.",
@@ -423,32 +374,20 @@ def blad_plan():
             dict(form="punkt", text="utsättningspunkt"),
         ]),
     ]
-    return Blad(hd("AR-02.1"), REVISIONER, kol, [plan(), detalj(), oversikt()], block)
+    return Blad(hd("AR-02.1"), REVISIONER, kol, [plan(), oversikt()], block)
 
 
 def blad_sektion():
-    zn_lov = (H["mmn"] + H["nockhojd"]) * 1000
-    m = lambda z: sv(z / 1000, 3)
     rader = [
-        ["Högsta punkt, mittenbyggnadens nock", rh(Z_TOPP), rel(Z_TOPP)[len(FIX["namn"]) + 1:],
-         f"skärningspunkten + {svm((VINGAR[1][1] - VINGAR[1][0]) / 2)} · tan {H['takvinkel']}°; "
-         f"{svm(round(Z_TOPP - Z_MMN))} över MMN"],
-        ["Sidobyggnadernas nock", rh(NOCKAR[0][1]), rel(NOCKAR[0][1])[len(FIX["namn"]) + 1:],
-         f"skärningspunkten + {svm((VINGAR[0][1] - VINGAR[0][0]) / 2)} · tan {H['takvinkel']}°; bygglovets "
-         f"nockhöjd {svm(H['nockhojd'] * 1000)} över MMN (+{m(zn_lov)})"],
-        ["Skärningspunkt fasad/takplan, takfot och dalar", rh(Z_S), rel(Z_S)[len(FIX["namn"]) + 1:],
-         f"MMN + byggnadshöjd {svm(H['byggnadshojd'] * 1000)} (bygglov), nordvästra fasaden"],
-        ["FG, färdigt golv plan 1", rh(Z_FG), rel(Z_FG)[len(FIX["namn"]) + 1:], "bygglov"],
-        ["Mellanbjälklagets överkant", rh(Z_MB), rel(Z_MB)[len(FIX["namn"]) + 1:], f"FG − golv {svm(H['golv'] * 1000)}"],
-        ["Ny mark, nordvästra fasaden", rh(Z_MARK_NV), rel(Z_MARK_NV)[len(FIX["namn"]) + 1:], "bygglov (sektion E)"],
+        ["Skärningspunkt fasad/takplan, nordvästra långsidan", rh(Z_S), rel(Z_S)[len(FIX["namn"]) + 1:],
+         f"MMN + byggnadshöjd {svm(H['byggnadshojd'] * 1000)} (bygglov)"],
+        ["Mellanplattans överkant = FG, färdigt golv plan 1", rh(Z_MB), rel(Z_MB)[len(FIX["namn"]) + 1:], "bygglov; betonggolv"],
         [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "situationsplanen (nybyggnadskartan)"],
         ["MMN, medelmarknivå", rh(Z_MMN), rel(Z_MMN)[len(FIX["namn"]) + 1:], "bygglov"],
-        ["Ny mark, sydöstra fasaden", rh(Z_MARK_SO), rel(Z_MARK_SO)[len(FIX["namn"]) + 1:], "bygglov (sektion E)"],
-        ["Bottenplattans överkant, golv i källaren", rh(Z_BP), rel(Z_BP)[len(FIX["namn"]) + 1:],
-         f"bjälklagets uk − {svm(H['h_kallare'] * 1000)} (K-06); bygglovet anger +{sv(H['kallargolv_bygglov'], 1)}"],
-        ["Makadamens överkant, cellplastens underkant", rh(Z_MAK), rel(Z_MAK)[len(FIX["namn"]) + 1:],
+        ["Bottenplattans överkant", rh(Z_BP), rel(Z_BP)[len(FIX["namn"]) + 1:],
+         f"mellanplattans ök − {svm(H['h_bjalklag'] * 1000)} − {svm(H['h_kallare'] * 1000)} (K-05, K-06)"],
+        ["Cellplastens underkant under bottenplattan", rh(Z_MAK), rel(Z_MAK)[len(FIX["namn"]) + 1:],
          f"− platta {svm(H['h_platta'] * 1000)} − cellplast {svm(H['t_cellplast'] * 1000)} (R-04)"],
-        ["Sprängbotten, högst", rh(Z_BERG), rel(Z_BERG)[len(FIX["namn"]) + 1:], f"makadam minst {svm(H['t_makadam'] * 1000)} (U-01)"],
     ]
     block = [dict(x=24, y=190, w=298, innehall=[
         dict(typ="rubrik", text="Höjder, RH2000"),
@@ -460,16 +399,10 @@ def blad_sektion():
             f"Höjder i RH2000 och relativt fixpunkten {FIX['namn']} ({rh(Z_FIX)}, stålbult i berg, se AR-02.1), i m. "
             "Mått i mm. Sektionen är en principskiss: takets uppbyggnad, takfoten och "
             "stommen visas inte. Snittets läge: AR-02.1.",
-            f"FG +{sv(H['fg'], 3)} är färdigt golv på plan 1. Mellanbjälklagets överkant ligger "
-            f"{svm(H['golv'] * 1000)} mm lägre (golvet).",
-            "Skärningspunkten mellan fasadens utsida och takplanets ovansida ligger på samma höjd runt hela huset "
-            f"och i dalarna. Taklutning {H['takvinkel']}°.",
-            f"Mittenbyggnaden är {svm(VINGAR[1][1] - VINGAR[1][0])} mm bred och sidobyggnaderna "
-            f"{svm(VINGAR[0][1] - VINGAR[0][0])} mm, så mittenbyggnadens nock blir {svm(round(Z_TOPP - NOCKAR[0][1]))} "
-            f"mm högre än sidobyggnadernas. Bygglovets nockhöjd ({svm(H['nockhojd'] * 1000)}) är sidobyggnadernas.",
-            f"Byggnadshöjden mäts från MMN vid den nordvästra fasaden, där marken är högst (+{sv(H['ny_mark_nv'], 3)}).",
-            f"Under plattan: minst {svm(H['t_makadam'] * 1000)} mm makadam på sprängt och avjämnat berg. "
-            f"Plattans cellplast ligger direkt på makadamen.",
+            f"FG {rh(Z_FG)} är mellanplattans överkant: betonggolv utan golvbeläggning.",
+            "Byggnadshöjden (bygglovet) mäts från MMN till skärningspunkten mellan fasadens utsida och takplanets "
+            f"ovansida på den nordvästra långsidan. Taklutning {H['takvinkel']}°.",
+            "Bottenplattans cellplast läggs på avjämnad makadam (R-04).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
