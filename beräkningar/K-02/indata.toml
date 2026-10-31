@@ -16,9 +16,9 @@ underlag    = "K-01 rev C (nock- och dalbalkar)"
 
 [geometri]
 takvinkel   = 30        # [°]
-balk_b      = 200       # balkens bredd [mm]
+balk_b      = 190       # balkens bredd [mm]
 plat_t      = 10        # stålplåt [mm]
-tra_h       = 170       # limträ mellan plåtarna [mm]
+tra_h       = 180       # limträ mellan plåtarna [mm]
 masonit     = 3         # hård träfiberskiva på isoleringens ovansida [mm]
 isolering   = 170       # träfiberisolering mellan takbalkarna [mm] (takbalkar 45×170)
 installation = 45       # luftspalt för installationer [mm]

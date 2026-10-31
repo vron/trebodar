@@ -15,12 +15,12 @@ granskad    = ""        # lämnas tomt om ingen granskare anges
 regelverk   = "EKS 12 (BFS 2011:10 med ändringar t.o.m. BFS 2022:4)"
 
 [geometri]
-b           = 200       # bredd plåt = bredd limträ [mm]
+b           = 190       # bredd plåt = bredd limträ [mm]
 t_pl        = 10        # plåttjocklek [mm]
-h_tot       = 190       # total höjd med plåtar [mm]
-h_tra       = 170       # limträets höjd i hela längden [mm]; samma som mellan plåtarna, ingen fräsning
+h_tot       = 200       # total höjd med plåtar [mm]
+h_tra       = 180       # limträets höjd i hela längden [mm]; samma som mellan plåtarna, ingen fräsning
 
-[distans]   # reglar där plåt saknas, bara för att hålla yttermåttet 190; räknas inte i bärförmågan
+[distans]   # reglar där plåt saknas, bara för att hålla yttermåttet 200; räknas inte i bärförmågan
 tjocklek    = 10        # [mm], samma som plåten
 material    = "Trä eller plywood, valfri kvalitet"
 fastsattning = "Limmas med vanligt trälim eller häftas/spikas; inga krav på limprocessen"
@@ -84,8 +84,8 @@ hal         = 13.0      # håldiameter i plåten enligt tillverkaren [mm], cylin
 forborr     = 6         # förborrning i limträet enligt tillverkaren (barrträ) [mm]
 moment      = 35        # högsta åtdragningsmoment enligt tillverkaren [Nm]; inte slagskruvdragare
 R_tjock_k   = 7.37      # tillverkarens F_v,k, tjock plåt, utan förborrning, rho_k 385 [kN] (jämförelse)
-rader2      = [45, 155] # radernas lägen från plåtkant, två rader [mm]
-rader3      = [45, 100, 155] # tre rader där delningen är tätare än s_tre_rader [mm]
+rader2      = [45, 145] # radernas lägen från plåtkant, två rader [mm]
+rader3      = [45, 95, 145] # tre rader där delningen är tätare än s_tre_rader [mm]
 s_tre_rader = 35        # s under detta värde: tre rader
 ande        = 100       # första skruv från balkände [mm], ≥ 10d (tabell 8.6) och ≥ 80 mm (tabell 8.4)
 ande_plat   = 40        # första skruv från plåtände inne på balken [mm] (plåtkant, ≥ 1,2 d0)
@@ -135,8 +135,8 @@ snobredd    = 4.75      # all snö mellan nockarna (2,50 + 2,25) samlas i dalen 
 # isoleringsskiktet med överplåten mot den kalla sidan. Linjär fördelning över höjden.
 [[temperatur]]
 namn        = "Vinter, uppvärmt hus"
-over        = -36.5     # överplåt −16,5 °C (K-02, −20 °C ute och +25 °C inne)
-under       = -5.2      # underplåt +14,8 °C (K-02)
+over        = -36.4     # överplåt −16,4 °C (K-02, −20 °C ute och +25 °C inne)
+under       = -4.0      # underplåt +16,0 °C (K-02)
 
 [[temperatur]]
 namn        = "Vinter, ouppvärmt hus"
