@@ -10,6 +10,7 @@ from .fonster_och_dorrar import fonster_och_dorrar
 from .isolering import isolering
 from .stomme import stomme
 from .tak import tak
+from .trappa import trappa
 
 
 def montage() -> Montage:
@@ -23,4 +24,5 @@ def montage() -> Montage:
     m.lagg(installationer.montage())
     m.lagg(isolering.montage())
     m.lagg(invandigt.montage())
+    m.lagg(trappa.montage())
     return m

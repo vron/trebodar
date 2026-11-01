@@ -14,6 +14,7 @@ _VIRKE = rendering(farg2="#b48a55", riktning="x", tvars="y", arsring=4.0)
 C24 = Material("C24", "Konstruktionsvirke C24", 420, "#d8b47c", 0.7, textur="tra", rendering=_VIRKE, cad="#d9b77e")
 # läkt (ströläkt, spikläkt, installationsläkt) som eget material, så att den skiljer sig från stommen
 C24_LAKT = Material("Läkt", "Läkt C24", 420, "#d8b47c", 0.7, textur="tra", rendering=_VIRKE, cad="#eee3a0")
+FURU = Material("Furu", "Furu, hyvlad (trappa)", 500, "#d9a56b", 0.6, textur="tra", rendering=_VIRKE, cad="#c98a52")
 GL30H = Material("GL30h", "Limträ GL30h", 430, "#e0bb82", 0.65, textur="limtra",
                  rendering=rendering(farg2="#c09a62", riktning="x", tvars="y", lamell="z", lamelltjocklek=45.0),
                  cad="#d39552")
