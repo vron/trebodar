@@ -146,6 +146,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Toppklossar på gavelstolarna**: en kloss på insidan (utsidan är fasad), så att balken vilar på 90 mm.
 - **Innerdörrar**: ID2 börjar efter karmstolpen LD2_2, ID5 slutar före den nya stolpen LN1_1 och ID6 börjar vid
   stolpen LD4_1.
+- **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket, utan dörr och med
+  fasad, isolering och insida över öppningen.
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.

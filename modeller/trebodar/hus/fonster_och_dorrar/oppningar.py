@@ -1,7 +1,9 @@
 """Öppningarna i ytterväggarna: fönster (F) och dörrar (D) per vägg, numrerade längs väggen.
 
 Lägen i väggens system (skelett.VAGGAR): u längs väggen och z från bjälklagets överkant, som karmens yttermått i
-Onshape-modellen. Fasaden får hål här och fönster- och dörrmodulen sätter karmar och glas i dem.
+Onshape-modellen. Huvudentrén 1SO-D1 (planritning 201) saknades där; bara öppningen i regelverket fanns, och dörren
+ligger i den. Fasaden, isoleringen och insidan får hål här och fönster- och dörrmodulen sätter karmar, blad och glas
+i dem.
 """
 from __future__ import annotations
 
@@ -37,6 +39,7 @@ _R = (
     ("1NV", "dörr", 3035, 4035, 0, 2100, "wdoor_21x10_red"),
     ("1SO", "fönster", 1118, 1718, 1400, 2000, "window_6x6_red"),
     ("1SO", "fönster", 2318, 2918, 1400, 2000, "window_6x6_red"),
+    ("1SO", "dörr", 5080, 6080, 0, 2100, ""),                    # huvudentrén (planritning 201)
     ("1SO", "fönster", 10718, 11318, 1400, 2000, "window_6x6_red"),
     ("1SV", "fönster", 1135, 3235, 0, 2186, "window_21x21_red"),
     ("2NO", "fönster", 645, 1645, 1100, 2100, "window_10x10_gray"),

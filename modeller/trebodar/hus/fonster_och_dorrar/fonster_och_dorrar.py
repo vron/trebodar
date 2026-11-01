@@ -19,7 +19,8 @@ KARM_B = 70.0
 
 
 def enhet(o: Oppning) -> Montage:
-    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} ({o.onshape} i Onshape)")
+    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)}" +
+                (f" ({o.onshape} i Onshape)" if o.onshape else ""))
     dorr = o.typ in ("dörr", "skjutdörr")
     zi0 = o.z0 + (0.0 if dorr or o.typ == "fönsterdörr" else KARM_B)
     karm = box(o.u0, o.u1, W0, W1, o.z0, o.z1) - box(o.u0 + KARM_B, o.u1 - KARM_B, W0 - 1, W1 + 1, zi0, o.z1 - KARM_B)
