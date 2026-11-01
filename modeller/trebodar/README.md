@@ -173,8 +173,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Lätta innerväggar (bara syllarna finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02), trappan,
-takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och ventilation, och marken mot källarväggarna
-där Onshape-modellen saknar mark (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur
-Onshape-modellen (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller)
-är förenklad bort.
+Lätta innerväggar (bara syllarna finns) och gipsen på de bärande innerväggarna, våtrummets golv (golvet på plan 1
+är betongplattan, AR-02), trappan, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
+ventilation, och marken mot källarväggarna där Onshape-modellen saknar mark (se `modeller/modell-todo.md`). Marken,
+avloppet och golvvärmen läses ur Onshape-modellen (`modeller/referens/delar/`). L-elementens avfasning (50 mm i
+ryggens överkant, som betongen fyller) är förenklad bort.
