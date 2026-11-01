@@ -53,7 +53,7 @@ def dokument(rot: Montage, karna: Karna, unika_produkter: bool = True) -> TDocSt
             s = BRepBuilderAPI_Copy(s, True, False).Shape()
         l = st.AddShape(s, False, False)
         _namn(l, produktnamn(instans, d) if unika_produkter else d.namn)
-        ct.SetColor(l, _farg(d.material.farg), XCAFDoc_ColorSurf)
+        ct.SetColor(l, _farg(d.material.cad_farg), XCAFDoc_ColorSurf)
         delade[id(d)] = l
         return l
 

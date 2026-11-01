@@ -19,7 +19,7 @@ from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.tak.tak import REGIONER
-from trebodar.material import C24, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
+from trebodar.material import C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
@@ -93,7 +93,7 @@ def utsida(kod: str) -> Montage:
         m.lagg(p.montage())
 
     def lakt(namn: str, typ: str, t: float, bitar: list[Polygon]) -> None:
-        p = Plan(kod, f"{namn} {kod}", t, beskrivning=f"{namn} {fmt(t)}×45 C24", material=C24)
+        p = Plan(kod, f"{namn} {kod}", t, beskrivning=f"{namn} {fmt(t)}×45 C24", material=C24_LAKT)
         for b in bitar:
             for q in P.polygoner(b.intersection(fas).difference(oppen), 45 * 100):
                 p.profil(P.kontur(q), w - t, w, typ=typ)

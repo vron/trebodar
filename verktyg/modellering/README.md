@@ -45,14 +45,15 @@ egen modell (t.ex. för beställning). Utdata:
   av plana ytor, t.ex. kluven sten), booleska operationer, plan som kapar, speglingar. Likadana delar får samma recept
   och blir samma nät i GLB, samma rad i materiallistan och (med `--delade`) samma produkt i STEP.
 - **Modellträd** (`modell.py`): `Del` (recept och material) och `Montage` (placerade instanser av delar och
-  montage, i montagets eget koordinatsystem). `Placering` (`placering.py`) är en stel transform, exakt för vridningar
+  montage, i montagets eget koordinatsystem). Ett `Material` har två utseenden: CAD-färgen (`cad`) för STEP, GLB
+  och webbvisaren och det verkliga utseendet (färg, grovhet, metall och ett procedurellt material) för renderingen. `Placering` (`placering.py`) är en stel transform, exakt för vridningar
   med multiplar av 90°.
 - **Kärna** (`karna.py`): OCCT via OCP. Varje unikt recept byggs en gång; B-rep, egenskaper och triangelnät sparas i
   `.cache/former.sqlite`. Saknade recept byggs i parallella processer (alla kärnor). Hela huset byggs från tom cache
   på några sekunder, därefter på bråkdelen av en sekund.
 - **Export** (`export/`): STEP AP242 (OCCT XCAF; varje placerad del en egen produkt med instansens namn, eller
-  delade produkter med `--delade`; utan 2D-kurvor på ytorna, som läsarna räknar fram), GLB (eget skrivprogram: hierarki, delade nät, PBR-material, UV i delens system så
-  att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
+  delade produkter med `--delade`; utan 2D-kurvor på ytorna, som läsarna räknar fram), GLB (eget skrivprogram: hierarki, delade nät, material i CAD-färgerna med det verkliga
+  utseendet i `extras`, UV i delens system så att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
 - **Kontroll** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
   processer: gemensam volym (krock över 5 mm³), anliggande plana ytor (kontaktarea), minsta avstånd (glipor 0,01–2
   mm, utom mellan delar som båda ligger an mot en tredje). Resultaten per par cachas med nyckel från recepten och
@@ -68,7 +69,8 @@ egen modell (t.ex. för beställning). Utdata:
   system; det som skiljer delar av samma material åt (stenar, plåtbanor) slumpas per objekt. Himmel och sol eller
   mulet, en kamera per vy, Cycles på GPU, färgåtergivning Khronos PBR Neutral.
 - **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, vyer, delarnas kanter och snitt i
-  x, y och z. Där ett snitt skär en del räknas tvärsnittet ut ur nätet och ritas i delens färg med svart kontur, som
+  x, y och z. Materialen listas med sina CAD-färger och kan döljas var för sig (t.ex. isolering och gips för att se
+  stommen); en ruta växlar till de verkliga färgerna. Där ett snitt skär en del räknas tvärsnittet ut ur nätet och ritas i delens färg med svart kontur, som
   i en sektionsritning. Klick visar delens namn, sökväg och material, dubbelklick sätter rotationscentrum och hjulet
   zoomar mot pekaren.
 

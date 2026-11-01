@@ -23,7 +23,7 @@ from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
-from trebodar.material import ANGBROMS, C24, GIPS
+from trebodar.material import ANGBROMS, C24_LAKT, GIPS
 
 FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0          # installationsskikt 45×45, gips 2 × 12,5
 SKIVA = 12.5
@@ -147,7 +147,7 @@ def _tak(kod: str) -> Montage:
     hinder_s = [h[:4] for h in hinder]                     # ångbroms och läkt: mot hindren
     hinder_g = _med_fri(hinder)                            # gips: med avstånd
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
-             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24),
+             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
              "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
     for y0, y1 in _strackor(kod):
         delar = [(y0, y1)]
@@ -205,7 +205,7 @@ def _tak(kod: str) -> Montage:
                             bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e)) if d[1] - d[0] > 1.0]
                     for c, e in bitar:
                         lager["lakt"].profil([(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e,
-                                             typ="IL", material=C24)
+                                             typ="IL", material=C24_LAKT)
     for p in lager.values():
         if p.bitar:
             m.lagg(p.montage())
@@ -277,7 +277,7 @@ def _vagg_insida(kod: str) -> Montage:
             hal_lista.append(box(min(us), z0, max(us), z1))
     oppet = unary_union(hal_lista) if hal_lista else Polygon()
     w = S.T_STOMME
-    for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24),
+    for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT),
                               ("Gips", GIPS_T, "GI", GIPS)):
         p = Plan(kod, f"{namn} {kod}", t, material=mat)
         if namn == "Installationsskikt":

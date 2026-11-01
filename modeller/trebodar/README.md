@@ -46,14 +46,17 @@ väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets ski
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
-| Ett nytt material eller utseende | `material.py`: densitet, färg och renderingens typ med parametrar |
+| Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 
 Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`.
 
 ## Material och rendering
 
-Varje material (`material.py`) har densitet och färg (STEP, Onshape, materiallistan) och för renderingen en typ med
-parametrar, t.ex. `textur="bradpanel", rendering=rendering(riktning="y", tvars="x", bredd=145, kvistar=3.5,
+Varje material (`material.py`) har densitet, materiallistans enhet och två utseenden. CAD-färgen (`cad`) används i
+STEP, Onshape och webbvisaren och är vald så att olika slags delar skiljer sig åt, i stil med ritningarna: stommens
+virke gulbrunt, läkt ljusgul (eget material, `C24_LAKT`), limträ bärnsten, isolering rosa och laxröd, cellplast
+ljusblå, gips vit och utegips grågrön, ångbromsen blå, betong gråbeige, stål blågrått, mark grön. Det verkliga
+utseendet (`farg` och renderingens typ med parametrar) används i renderingen, t.ex. `textur="bradpanel", rendering=rendering(riktning="y", tvars="x", bredd=145, kvistar=3.5,
 behandling="jarnvitriol", ...)`. Renderingen bygger materialen procedurellt i Blender (inga bildtexturer); typerna och
 deras parametrar står i [`verktyg/modellering/blender/material.py`](../../verktyg/modellering/blender/material.py).
 Riktningarna gäller delens eget system: virke har x längs fibrerna; fasadens skivor x längs väggen och y uppåt (stående

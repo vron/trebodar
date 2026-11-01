@@ -20,7 +20,7 @@ from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, Takfonster
-from trebodar.material import C24, GLAS, HDF, KARM, PAPP, RASPONT, TAKPLAT
+from trebodar.material import C24_LAKT, GLAS, HDF, KARM, PAPP, RASPONT, TAKPLAT
 
 
 @dataclass(frozen=True)
@@ -126,7 +126,7 @@ def _lakt_lagen(kod: str) -> list[float]:
 
 
 def _strolakt(t: S.Takfall, kod: str, fonster: tuple[Takfonster, ...]) -> Montage:
-    p = Plan(kod, f"Ströläkt {kod}", 45.0, beskrivning="Ströläkt 34×45 C24 (luftspalten 34 mm)", material=C24)
+    p = Plan(kod, f"Ströläkt {kod}", 45.0, beskrivning="Ströläkt 34×45 C24 (luftspalten 34 mm)", material=C24_LAKT)
     for y in _lakt_lagen(kod):
         r = next((r for r in REGIONER[kod] if r.y0 <= y + 22.5 < r.y1), None)
         if r is None:

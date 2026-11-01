@@ -21,6 +21,9 @@
   .rad input[type=range] { flex: 1; }
   ul { list-style: none; margin: 0; padding-left: 14px; } li > span { cursor: pointer; }
   li.stangd > ul { display: none; } .pil { display: inline-block; width: 12px; color: var(--dim); }
+  .ruta { display: inline-block; width: 12px; height: 12px; border: 1px solid #0005; vertical-align: -2px;
+          margin: 0 5px 0 3px; border-radius: 2px; }
+  #material { padding-left: 0; } #material li { margin: 1px 0; }
   #info { position: fixed; right: 10px; bottom: 10px; max-width: 420px; background: var(--panel); padding: 8px 10px;
           border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); font-size: 12px; display: none; word-break: break-word; }
   #laddar { position: fixed; inset: 0; display: grid; place-items: center; font-size: 15px; color: var(--dim); }
@@ -40,6 +43,9 @@
   <div class="rad"><label><input type="checkbox" id="kz"> z</label><input type="range" id="sz"></div>
   <div class="rad"><label><input type="checkbox" id="vand"> vänd snitten</label>
     <label style="margin-left: 12px"><input type="checkbox" id="kanter" checked> kanter</label></div>
+  <h2>Material</h2>
+  <div class="rad"><label><input type="checkbox" id="verklig"> verkliga färger (som i renderingen)</label></div>
+  <ul id="material"></ul>
   <h2>Modellträdet</h2><ul id="trad"></ul>
 </aside>
 <button id="knapp">▶ Meny</button>
@@ -186,7 +192,7 @@ function byggSnitt() {
   for (const plan of aktivaPlan) {
     const ovriga = aktivaPlan.filter(q => q !== plan);
     for (const o of delar) {
-      if (o.material.transparent || !synlig(o)) continue;
+      if (o.material.transparent || !o.material.visible || !synlig(o)) continue;
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
       lada.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
       if (plan.intersectsBox(lada)) snittyta(o, plan, ovriga);
@@ -293,6 +299,36 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
     o.add(new THREE.LineSegments(kanter.get(o.geometry), kantMaterial));
   }
   document.getElementById("kanter").onchange = e => { kantMaterial.visible = e.target.checked; };
+  // materialen: CAD-färgen (standard) eller den verkliga färgen, och synlighet per material
+  const perMaterial = new Map();
+  for (const o of delar) {
+    o.userData.cad = o.material.color.clone();
+    if (!perMaterial.has(o.material.name)) perMaterial.set(o.material.name, []);
+    perMaterial.get(o.material.name).push(o);
+  }
+  const lista = document.getElementById("material");
+  for (const [namn, ms] of [...perMaterial].sort((a, b) => a[0].localeCompare(b[0], "sv"))) {
+    const li = document.createElement("li");
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = true;
+    cb.onchange = () => {
+      for (const o of ms) { o.material.visible = cb.checked; for (const c of o.children) c.visible = cb.checked; }
+      planeraSnitt();
+    };
+    const ruta = document.createElement("span"); ruta.className = "ruta";
+    ruta.style.background = "#" + ms[0].userData.cad.getHexString(THREE.SRGBColorSpace);
+    const d = ms[0].material.userData;
+    li.title = d.beskrivning || "";
+    li.append(cb, ruta, document.createTextNode(`${namn} (${ms.length})`));
+    lista.append(li);
+  }
+  document.getElementById("verklig").onchange = e => {
+    for (const o of delar) {
+      const v = o.material.userData.verklig, m = o.material;
+      if (e.target.checked && v) { m.color.set(v.farg); m.metalness = v.metall; m.roughness = v.grovhet; }
+      else { m.color.copy(o.userData.cad); m.metalness = 0; m.roughness = 0.75; }
+    }
+    planeraSnitt();
+  };
   lada = new THREE.Box3().setFromObject(modell);
   // snittens intervall i modellens mm
   const mn = lada.min, mx = lada.max;

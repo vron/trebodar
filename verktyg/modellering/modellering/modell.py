@@ -14,16 +14,23 @@ Parameter = float | str
 
 @dataclass(frozen=True)
 class Material:
+    """Ett material med två utseenden: CAD-färgen (STEP, Onshape, webbvisaren), vald så att olika slags delar skiljer
+    sig åt, och det verkliga utseendet för renderingen (farg, grovhet, metall och det procedurella materialet)."""
     namn: str                        # kort namn, t.ex. "C24", "GL30c", "S355", "Gips"
     beskrivning: str                 # för materiallistan, t.ex. "Konstruktionsvirke C24"
     densitet: float                  # kg/m³
-    farg: str                        # "#rrggbb", sRGB (STEP, Onshape, rendering)
+    farg: str                        # "#rrggbb", sRGB: verklig färg (rendering)
     grovhet: float = 0.8             # PBR roughness
     metall: float = 0.0              # PBR metallic
     textur: str | None = None        # procedurellt material vid rendering (Blender), t.ex. "tra", "bradpanel"
     enhet: str = "st"                # materiallistans enhet: "st" (styck med kapmått), "m2", "m3", "kg"
     opacitet: float = 1.0            # < 1 för glas o.d.
     rendering: tuple[tuple[str, Parameter], ...] = ()   # parametrar till det procedurella materialet
+    cad: str = ""                    # "#rrggbb", CAD-färgen; tom: den verkliga färgen
+
+    @property
+    def cad_farg(self) -> str:
+        return self.cad or self.farg
 
     def renderdata(self) -> dict[str, Parameter]:
         """Allt som renderingen behöver om materialet: typ, färg och parametrar."""

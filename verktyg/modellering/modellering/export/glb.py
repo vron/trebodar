@@ -63,10 +63,12 @@ def skriv(rot: Montage, fil: Path, karna: Karna, extra: dict[str, Any] | None = 
     def material(d: Del) -> int:
         m = d.material
         if m.namn not in mat_index:
-            rgb = [_linjar(int(m.farg[i:i + 2], 16) / 255) for i in (1, 3, 5)]
+            # CAD-färgen, matt; det verkliga utseendet följer med i extras (Blender bygger sina egna material)
+            rgb = [_linjar(int(m.cad_farg[i:i + 2], 16) / 255) for i in (1, 3, 5)]
             mat: dict[str, Any] = {"name": m.namn, "pbrMetallicRoughness": {
-                "baseColorFactor": rgb + [m.opacitet], "metallicFactor": m.metall, "roughnessFactor": m.grovhet},
-                "extras": {"textur": m.textur, "densitet": m.densitet, "beskrivning": m.beskrivning}}
+                "baseColorFactor": rgb + [m.opacitet], "metallicFactor": 0.0, "roughnessFactor": 0.75},
+                "extras": {"textur": m.textur, "densitet": m.densitet, "beskrivning": m.beskrivning,
+                           "verklig": {"farg": m.farg, "metall": m.metall, "grovhet": m.grovhet}}}
             if m.opacitet < 1:
                 mat["alphaMode"] = "BLEND"
             materials.append(mat)
