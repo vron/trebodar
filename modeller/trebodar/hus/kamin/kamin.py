@@ -17,6 +17,7 @@ from modellering import Del, Form, Montage, Placering, box, cylinder
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.byggdelar.ror import ror
 from trebodar.material import GLAS, KALCIUMSILIKAT, KAMIN, ROSTFRITT
 
 # insatsen (Rais 600)
@@ -37,14 +38,6 @@ SKORSTEN_D, SKORSTEN_INRE = 250.0, 150.0
 FRI = 50.0                                  # avstånd till brännbart vid genomföringen
 X_SK, Y_SK = 6590.0, 5710.0                 # skorstenens mitt: förbi nockbalken och dess upplagsregel, i facket
 OVER_NOCK = 800.0
-
-
-def _ror(a: tuple[float, float, float], b: tuple[float, float, float], d: float, t: float) -> Form:
-    """Rör med ytterdiametern d och godset t från a till b."""
-    v = [b[i] - a[i] for i in range(3)]
-    langd = math.sqrt(sum(c * c for c in v))
-    x = (1.0, 0.0, 0.0) if abs(v[0]) < 0.9 * langd else (0.0, 1.0, 0.0)
-    return (cylinder(d / 2, langd) - cylinder(d / 2 - t, langd)).placerad(Placering.axlar(a, x, v))
 
 
 def _z_tak(x: float) -> float:
@@ -88,7 +81,7 @@ def montage() -> Montage:
     # rökstosen, rökröret och skorstenen
     ys = Y_FRONT - STOS_FRAN_FRONT
     zt = z0 + h
-    m.lagg(Del(f"Rökstos Ø{STOS_D:g}", _ror((X_MITT, ys, zt), (X_MITT, ys, zt + STOS_H), STOS_D, 3.0), KAMIN),
+    m.lagg(Del(f"Rökstos Ø{STOS_D:g}", ror((X_MITT, ys, zt), (X_MITT, ys, zt + STOS_H), STOS_D, 3.0), KAMIN),
            Placering(), "KM-STOS")
     horisontellt = math.hypot(X_MITT - X_SK, ys - Y_SK)
     a = (X_MITT, ys, zt + STOS_H)
@@ -97,15 +90,15 @@ def montage() -> Montage:
     z_sk = _innertak(SKORSTEN_D / 2) - 300.0
     for i, (p, q) in enumerate(((a, b1), (b1, c), (c, (X_SK, Y_SK, z_sk))), 1):
         langd = math.dist(p, q)
-        m.lagg(Del(f"Rökrör Ø{ROR_D:g} L={langd:.0f}", _ror(p, q, ROR_D, ROR_T), KAMIN), Placering(), f"KM-ROR{i}")
+        m.lagg(Del(f"Rökrör Ø{ROR_D:g} L={langd:.0f}", ror(p, q, ROR_D, ROR_T), KAMIN), Placering(), f"KM-ROR{i}")
     z_topp = _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK
     m.lagg(Del(f"Isolerad skorsten Ø{SKORSTEN_INRE:g}/Ø{SKORSTEN_D:g}",
-               _ror((X_SK, Y_SK, z_sk), (X_SK, Y_SK, z_topp), SKORSTEN_D, (SKORSTEN_D - SKORSTEN_INRE) / 2), ROSTFRITT),
+               ror((X_SK, Y_SK, z_sk), (X_SK, Y_SK, z_topp), SKORSTEN_D, (SKORSTEN_D - SKORSTEN_INRE) / 2), ROSTFRITT),
            Placering(), "KM-SKORSTEN")
     m.lagg(Del("Regnhuv", cylinder(SKORSTEN_D / 2 + FRI, 40.0, (X_SK, Y_SK, z_topp)), ROSTFRITT), Placering(), "KM-HUV")
     # takgenomföringens krage: täcker hålet i taket, från takets nedre sida upp 100 mm över dess övre
     r = SKORSTEN_D / 2 + FRI
     za, zb = _z_tak(X_SK - r) - 80.0, _z_tak(X_SK + r) + 100.0
-    m.lagg(Del("Takgenomföring, krage", _ror((X_SK, Y_SK, za), (X_SK, Y_SK, zb), 2 * r, FRI), ROSTFRITT), Placering(),
+    m.lagg(Del("Takgenomföring, krage", ror((X_SK, Y_SK, za), (X_SK, Y_SK, zb), 2 * r, FRI), ROSTFRITT), Placering(),
            "KM-KRAGE")
     return m
