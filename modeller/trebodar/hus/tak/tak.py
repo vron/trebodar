@@ -2,20 +2,21 @@
 
 Skikt från takbalkarna och utåt: hårdboard 3 mm, ströläkt 34×45 (luftspalten), råspont 20, underlagspapp och
 bandtäckt zink-magnesiumplåt 0,6. Plåten ligger i banor 525 mm breda längs takfallet, med stående falsar 25 mm
-höga mellan banorna (halva falsen på var bana) och lika breda kantbanor vid gavlarna. Ströläkten ligger på varje takbalk och takstol och två mellan i varje fack (så att
-hårdboarden inte trycks upp mot råsponten när isoleringen blåses in), med uppehåll 600 mm ovanför och nedanför
-takfönstren (U-03). Skikten slutar lodrätt vid takbalkarnas ände vid takfoten, i nock- och dallinjerna och i
+höga mellan banorna (halva falsen på var bana) och lika breda kantbanor vid gavlarna. Ströläkten ligger på varje
+takbalk och takstol och två mellan i varje fack (så att hårdboarden inte trycks upp mot råsponten när isoleringen
+blåses in), med uppehåll 600 mm ovanför och nedanför takfönstren (U-03). Skikten slutar lodrätt vid takbalkarnas ände vid takfoten, i nock- och dallinjerna och i
 gavlarnas fasadliv.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-
 from typing import Sequence
 
 from modellering import Del, Material, Montage, Placering, lada
 
 from trebodar import skelett as S
+from trebodar.byggdelar import lagen
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
@@ -55,8 +56,6 @@ REGIONER = {
                                                                      _lodr(NOCK[3]))],
     "3NV": [Region(Y3[0], Y3[1], _lodr(FALT["3NV"].takfot), _lodr(NOCK[3]))],
 }
-# takstolarnas ytterbalkar (stöd för ströläkten), y-band per huskropp
-TAKSTOLAR = {1: (3560.0, 15885.0), 2: (-30.0, 5950.0, 10995.0), 3: (970.0, 12495.0)}
 OMLUFT = 600.0               # uppehåll i ströläkten ovanför och nedanför takfönstren, längs takfallet (U-03)
 FALS_CC = 525.0              # plåtbanornas bredd (falsarnas delning längs y)
 FALS_B = 8.0                 # falsens bredd, hälften på var bana
@@ -113,10 +112,21 @@ def _falsar(kod: str, fonster: tuple[Takfonster, ...]) -> list[float]:
     return ut
 
 
+def _takstolar(kropp: int) -> set[float]:
+    """Takstolarnas ytterbalkar i huskroppen (lägsta y): på var sida om nocken stolens högsta sneda delar (X), de
+    med överkanten i takplanet."""
+    nock = S.HUSKROPPAR[kropp].nock
+    sidor: dict[tuple[str, bool], list[tuple[float, float]]] = {}
+    for grupp, namn, (x0, y0, _, x1, _, z1) in lagen.takstolar():
+        if grupp.rsplit(" ", 1)[-1].startswith(str(kropp)) and re.fullmatch(r"\w+-X\d+", namn):
+            sidor.setdefault((grupp, x0 + x1 > 2 * nock), []).append((z1, y0))
+    return {y0 for ds in sidor.values() for z1, y0 in ds if z1 > max(z for z, _ in ds) - 1.0}
+
+
 def _lakt_lagen(kod: str) -> list[float]:
     """Ströläktens lägen (lägsta y): på takbalkar och takstolar, två mellan i varje fack (jämnt fördelade)."""
     t = S.TAKFALL[kod]
-    stod = sorted(set(FALT[kod].y) | {y for y in TAKSTOLAR[t.kropp]})
+    stod = sorted(set(FALT[kod].y) | _takstolar(t.kropp))
     ut = list(stod)
     for a, b in zip(stod, stod[1:]):
         if b - a > 90:

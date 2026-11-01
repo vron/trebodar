@@ -34,11 +34,19 @@ väggen (w = 0 stommens utsida) och z uppåt; deras delar skrivs som regel(u), s
 liggande(u0, u1, z) och profil([...]). Takets delar räknas fram ur takfallen i `skelett.py`: ändras takplanet,
 väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets skikt, isolering och innertak med.
 
+Varje läge skrivs på ett ställe. Det som handlingarna bestämmer (väggarnas, takbalkarnas, takstolarnas och
+stolparnas lägen, öppningarna) står i `skelett.py` eller i montagets egen fil. Det som ska passa mot det (skikt,
+isolering, fasad, läkt, syllar) räknas fram ur `skelett.py` eller ur stommens delar:
+[`byggdelar/lagen.py`](byggdelar/lagen.py) ger delarnas lägen i huset ur montagen, t.ex. takstolarnas ytterbalkar
+för ströläkten och delarna som de invändiga skikten går runt. Nya detaljer byggs på samma sätt, så att de följer med
+när stommen ändras.
+
 ## Så ändrar du
 
 | Ändring | Var |
 |---|---|
 | Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
+| En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
 | En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
 | Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |

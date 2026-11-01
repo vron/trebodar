@@ -35,7 +35,8 @@ def montage() -> Montage:
     m = Montage("Stolpar", beskrivning="Fristående stolpar under nock- och dalbalkarna (K-03)")
     nb1 = S.BALKAR["NB1"].uk
     m.lagg(_flerlager("LN1_1", 11565.0, 2747.5, 2842.5, nb1))
-    m.lagg(_flerlager("LN1_2", 11565.0, 4638.5, 4733.5, nb1, syll=(4651.0, 4721.0, (10980.0, 13745.0))))
+    m.lagg(_flerlager("LN1_2", 11565.0, 4638.5, 4733.5, nb1,
+                      syll=(4651.0, 4721.0, (10980.0, S.TAKFALL["3NV"].x_insida))))       # syllen till 3NV
     m.lagg(ln1_3.montage())
     ld41 = Plan("LD4_1", "Stolpe LD4_1", 140.0, beskrivning="Stolpe B, limträ GL30h 140×140 (K-03)")
     ld41.lada("R", 4475 - 70, 4475 + 70, 5855 - 70, 5855 + 70, 0.0, S.BALKAR["DB4"].uk, "z", GL30H)

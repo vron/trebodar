@@ -13,37 +13,49 @@ from shapely.ops import unary_union
 from modellering import Del, Montage, i_foraldern, omslutande
 
 from trebodar import skelett as S
+from trebodar.byggdelar import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
+from trebodar.hus.stomme.prefab.takstolar.takstolar import STOLAR
 from trebodar.hus.stomme.prefab.yttervaggar.yttervaggar import VAGGAR as VAGGMODULER
 from trebodar.material import MINERALULL, TRAFIBER
 
 GAVELVAGGAR = {1: ("1NO", "1SV"), 2: ("2NO", "2SV"), 3: ("3NO", "3SV")}
-TAKSTOLSVAGGAR = {"2C"}          # innerväggar med takstol (och toppklossar 45 mm på var sida)
-KLOSS = 45.0
-TAKFOTSVAGG_UT = {"1SO": -30.0, "1NV": 4340.0, "2SO": 4470.0, "2NV": 9340.0, "3SO": 9470.0, "3NV": 13840.0}
+TAKSTOLSVAGGAR = set(STOLAR) & set(S.INNERVAGGAR)       # innerväggar med takstol (mittstolen 2C)
+
+
+def _med_takstol(kod: str) -> tuple[float, float]:
+    """Väggens utbredning i y med takstolen som står på den (gavelstolen 2NO har sneda delar och mittstolen 2C
+    toppklossar utanför väggens tjocklek)."""
+    v = S.VAGGAR[kod]
+    ys = [v.origo[1], v.origo[1] + v.w[1] * v.tjocklek]
+    ys += [y for g, _, (_, y0, _, _, y1, _) in lagen.takstolar() if g.endswith(f"/Takstol {kod}") for y in (y0, y1)]
+    return min(ys), max(ys)
+
+
+def _gavel_insida(kod: str) -> float:
+    """Gavelns insida (y) mot takets fack: gavelväggens eller gavelstolens, den som når längst in."""
+    y0, y1 = _med_takstol(kod)
+    return y1 if S.YTTERVAGGAR[kod].w[1] > 0 else y0
 
 
 def _fack(kod: str) -> list[tuple[float, float]]:
-    """Facken (y0, y1) mellan takbalkar och gavelväggarnas insida."""
+    """Facken (y0, y1) mellan takbalkar och gavlarnas insida."""
     t = S.TAKFALL[kod]
     g0, g1 = GAVELVAGGAR[t.kropp]
-    y_in0 = S.YTTERVAGGAR[g0].origo[1] + S.T_STOMME          # NO-gavelns insida
-    if g0 == "2NO":
-        y_in0 += 45.0                                          # takstolens inre sneda delar (2NO-X02, X03)
-    y_in1 = S.YTTERVAGGAR[g1].origo[1] - S.T_STOMME          # SV-gavelns insida
+    y_in0, y_in1 = _gavel_insida(g0), _gavel_insida(g1)
     kanter = [y_in0] + sorted(FALT[kod].y) + [y_in1]
     ut = []
     for a, b in zip(kanter, kanter[1:]):
         y0 = a if a == y_in0 else a + 45.0
         if b - y0 > 30:
             ut.append((y0, b))
-    # facken delas där en bärande innervägg eller mittstolen 2C (med toppklossar) står, och vid dalbalkarnas ändar
-    hinder = [(v.origo[1], v.origo[1] + v.tjocklek + (KLOSS if kod_v in TAKSTOLSVAGGAR else 0.0))
-              for kod_v, v in S.INNERVAGGAR.items() if int(kod_v[0]) == t.kropp and abs(v.u[0]) > 0.5]
+    # facken delas där en bärande innervägg (med takstol) står, och vid dalbalkarnas ändar
+    hinder = [_med_takstol(kod_v) for kod_v, v in S.INNERVAGGAR.items()
+              if int(kod_v[0]) == t.kropp and abs(v.u[0]) > 0.5]
     for y0, y1 in hinder:
         ut = [d for a, b in ut for d in ((a, min(b, y0)), (max(a, y1), b)) if d[1] - d[0] > 30]
     f = FALT[kod]
@@ -63,7 +75,7 @@ def tak(kod: str) -> Montage:
     for y0, y1 in _fack(kod):
         ym = 0.5 * (y0 + y1)
         nedre = L.Kant("lodratt", _sida(dal.kod, t) + t.riktning * 45.0 if dal and dal.y0 <= ym <= dal.y1
-                       else TAKFOTSVAGG_UT[kod])
+                       else t.x_utsida)
         bitar = [(nedre, ovre, y0, y1)]
         for fo in f.fonster:
             if fo.y0 - 1 <= y0 and y1 <= fo.y1 + 1:            # fönstrets fack: under och över avväxlingarna

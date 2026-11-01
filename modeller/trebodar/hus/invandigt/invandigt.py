@@ -14,9 +14,10 @@ from __future__ import annotations
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage, i_foraldern, omslutande
+from modellering import Montage
 
 from trebodar import skelett as S
+from trebodar.byggdelar import lagen
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
@@ -51,29 +52,12 @@ def _fritt_under_balkarna() -> float:
 assert _fritt_under_balkarna() >= FRI, "innertakets yttre gipsskiva går inte fri under nock- och dalbalkarna"
 
 
-def _stommen() -> list[tuple[str, tuple[float, float, float, float, float, float]]]:
-    """Ytterväggarnas, innerväggarnas och stolparnas delar som (grupp, omslutande låda i huset)."""
-    from trebodar.hus.stomme.prefab.innervaggar import innervaggar
-    from trebodar.hus.stomme.prefab.stolpar import stolpar
-    from trebodar.hus.stomme.prefab.yttervaggar import yttervaggar
-    ut = []
-    for mont in (yttervaggar.montage(), innervaggar.montage(), stolpar.montage()):
-        for vag, d, pl in mont.platta():
-            b = omslutande(d.form)
-            if b is not None:
-                ut.append((vag.rsplit("/", 1)[0], i_foraldern(b, pl)))
-    return ut
-
-
-STOMMEN = _stommen()
-
-
 def _hinder_tak(t: S.Takfall, x_lo: float, x_hi: float) -> list[tuple[float, float, float, float, bool]]:
     """Väggar och stolpar som når upp till innertaket i takfallet (mellan x_lo och x_hi), som (x0, x1, y0, y1,
     stolpe) per grupp: delar som går över gipsens underkant där innertaket är lägst ovanför dem. Takfotsväggen
     räknas inte (innertaket går över den)."""
     lador: dict[str, list[float]] = {}
-    for grupp, (x0, y0, _, x1, y1, z1) in STOMMEN:
+    for grupp, _, (x0, y0, _, x1, y1, z1) in lagen.prefab():
         if grupp.endswith(f"Vägg {t.kod}") or not (x0 < x_hi and x_lo < x1):
             continue
         x = max(x0, x_lo) if t.riktning > 0 else min(x1, x_hi)           # där innertaket är lägst över delen
@@ -93,7 +77,8 @@ def _utan_hinder(k0: L.Kant, k1: L.Kant, s0: float, s1: float,
                  hinder: list[tuple[float, float, float, float]]) -> list[tuple[float, float, L.Kant, L.Kant]]:
     """Skiktets bitar mellan kanterna och y = s0 … s1 utanför hindren (x0, x1, y0, y1): (y0, y1, kant, kant)."""
     kl, kh = sorted((k0, k1), key=lambda k: k.x)
-    ys = sorted({s0, s1} | {y for x0, x1, y0, y1 in hinder for y in (y0, y1) if s0 < y < s1 and x0 < kh.x and kl.x < x1})
+    ys = sorted({s0, s1} | {y for x0, x1, y0, y1 in hinder for y in (y0, y1)
+                            if s0 < y < s1 and x0 < kh.x and kl.x < x1})
     ut = []
     for a, b in zip(ys, ys[1:]):
         intervall = [(kl.x, kh.x)]
@@ -202,7 +187,8 @@ def _tak(kod: str) -> Montage:
                     bitar = [(s0, s1)]
                     for hx0, hx1, hy0, hy1 in hinder_s:
                         if hx0 < bx1 and bx0 < hx1:
-                            bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e)) if d[1] - d[0] > 1.0]
+                            bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e))
+                                     if d[1] - d[0] > 1.0]
                     for c, e in bitar:
                         lager["lakt"].profil([(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e,
                                              typ="IL", material=C24_LAKT)
@@ -213,9 +199,8 @@ def _tak(kod: str) -> Montage:
 
 
 def _hinder() -> list[tuple[Polygon, float, float]]:
-    """Delar som står mot ytterväggarnas insida: bärande innerväggar, syllar, stolparnas syllar och dalbalkarnas
-    ändar, som (plan, z0, z1)."""
-    from trebodar.hus.stomme.prefab.innervaggar.syllar import SYLLAR
+    """Delar som står mot ytterväggarnas insida: bärande innerväggar, innerväggarnas och stolparnas delar (t.ex.
+    syllarna) och dalbalkarnas ändar, som (plan, z0, z1)."""
     ut = []
     for v in S.INNERVAGGAR.values():
         ox, oy = v.origo
@@ -225,10 +210,9 @@ def _hinder() -> list[tuple[Polygon, float, float]]:
         h = [(ox, oy), (ox + ux * v.langd, oy + uy * v.langd), (ox + ux * v.langd + wx * t, oy + uy * v.langd + wy * t),
              (ox + wx * t, oy + wy * t)]
         ut.append((Polygon(h).buffer(15.0, join_style=2), 0.0, 4000.0))
-    for x0, x1, y0, y1 in SYLLAR:
-        ut.append((box(x0, y0, x1, y1), 0.0, 45.0))
-    ut.append((box(10980, 4651, 13745, 4721), 0.0, 45.0))            # syllen vid LN1_2
-    ut.append((box(10980, 6542, 13745, 6612), 0.0, 45.0))            # syllen vid LN1_3
+    for grupp, _, (x0, y0, z0, x1, y1, z1) in lagen.prefab():
+        if not grupp.startswith("Ytterväggar/"):
+            ut.append((box(x0, y0, x1, y1), z0, z1))
     for b in S.BALKAR.values():
         ut.append((box(b.x - S.BALK_B / 2, b.y0, b.x + S.BALK_B / 2, b.y1), b.uk, b.ok))
     return ut
@@ -283,7 +267,8 @@ def _vagg_insida(kod: str) -> Montage:
         if namn == "Installationsskikt":
             # liggande läkt c/c 600 och överst i väggen (på gavlarna upp till snedtaket)
             rader = [0.0] + ([topp - LAKT] if kod in S.TAKFALL else [])
-            rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1)) if all(abs(z - r) >= LAKT for r in rader)]
+            rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1))
+                      if all(abs(z - r) >= LAKT for r in rader)]
             for z in sorted(rader):
                 for q in P.polygoner(box(u0, z, u1, z + LAKT).intersection(yta).difference(oppet), 45 * 100):
                     p.profil(P.kontur(q), w, w + t, typ=typ, material=mat)

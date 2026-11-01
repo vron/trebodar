@@ -44,5 +44,5 @@ def montage() -> Montage:
         for p in (fot, topp, _spegla(fot), _spegla(topp)):
             m.tvarprofil(p, x0, x1, typ="P", material=SPIKPLAT)
         m.lada("P", x0, x1, YM - 50, YM + 50, ZT - 290, ZT + 110, "z", SPIKPLAT)
-    m.lada("S", X0 - 595, 13745, YM - 60, YM + 10, 0, 45, "u")             # syll under stolpen
+    m.lada("S", X0 - 595, S.TAKFALL["3NV"].x_insida, YM - 60, YM + 10, 0, 45, "u")    # syll under stolpen, till 3NV
     return m.montage()

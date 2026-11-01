@@ -8,7 +8,7 @@ gavelns skikt runt hörnet; i innerhörnen går långsidans skikt ut i hörnet.
 """
 from __future__ import annotations
 
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
 from modellering import Material, Montage
@@ -31,10 +31,24 @@ PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_FALUROD}
 # renderingens skruvrader i panelen följer spikläkten: c/c CC från fasadens underkant, mitt på läkten
 assert all((dict(p.rendering)["skruv_cc"], dict(p.rendering)["skruv_start"]) == (CC, Z_UK + LAKT_B / 2)
            for p in PANEL.values())
-# fasadens utsträckning längs väggen (u), med hörnen enligt ovan
-FASAD_U = {"1SO": (-95.0, 12275.0), "1NO": (-65.0, 4435.0), "1SV": (-65.0, 4435.0), "1NV": (0.0, 4890.0),
-           "2NO": (-65.0, 4935.0), "2SO": (0.0, 3590.0), "2NV": (-95.0, 905.0), "2SV": (160.0, 5160.0),
-           "3NO": (160.0, 4660.0), "3NV": (-95.0, 11475.0), "3SV": (-65.0, 4435.0), "3SO": (-95.0, 1405.0)}
+STOMMENS_UTSIDA = Polygon(S.KONTUR).buffer(S.STOMME_UT, join_style=2)
+
+
+def fasad_u(kod: str) -> tuple[float, float]:
+    """Fasadens utsträckning längs väggen (u). Långsidornas stomme står mellan gavlarnas och gavlarnas stomme går
+    till långsidornas insida i innerhörnen. I ytterhörnen går gavelns skikt runt hörnet och långsidans till gavelns
+    stomme; i innerhörnen går långsidans skikt ut i hörnet och gavelns till långsidans fasad."""
+    v = S.YTTERVAGGAR[kod]
+    pl = v.placering()
+    ut = []
+    for u, r in ((0.0, -1.0), (v.langd, 1.0)):
+        inne = STOMMENS_UTSIDA.contains(Point(pl.punkt((u + r * 10.0, -10.0, 0.0))[:2]))     # huset fortsätter
+        if kod in GAVLAR:
+            d = -(S.T_STOMME + S.T_FASAD) if inne else S.T_FASAD
+        else:
+            d = 0.0 if inne else S.T_STOMME
+        ut.append(u + r * d)
+    return ut[0], ut[1]
 
 
 def tak_underkant(x: float, y: float) -> float | None:
@@ -61,7 +75,7 @@ def _lagen(fasta: set[float], cc: list[float], b: float = LAKT_B) -> list[float]
 def kontur(kod: str) -> Polygon:
     """Fasadens kontur i väggens (u, z)."""
     v = S.YTTERVAGGAR[kod]
-    u0, u1 = FASAD_U[kod]
+    u0, u1 = fasad_u(kod)
     if kod not in GAVLAR:
         return box(u0, Z_UK, u1, S.H_VAGG)
     # gavel: överkanten följer takplanen; brytpunkter vid nockar och dalar
@@ -101,7 +115,7 @@ def utsida(kod: str) -> Montage:
 
     skikt("Utegips", "UG", UTEGIPS_T, UTEGIPS, "Utegips 10 mm")
     w -= UTEGIPS_T
-    u0, u1 = FASAD_U[kod]
+    u0, u1 = fasad_u(kod)
     zt = fas.bounds[3]
     fasta = {u0, u1 - LAKT_B}
     for o in OPPNINGAR.get(kod, []):

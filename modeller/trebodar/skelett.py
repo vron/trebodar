@@ -126,6 +126,11 @@ class Takfall:
     x_insida: float              # takfotsväggens insida
     riktning: int                # +1 om planet stiger mot växande x, −1 annars
 
+    @property
+    def x_utsida(self) -> float:
+        """Takfotsväggens utsida (stommens yttre yta)."""
+        return self.x_insida - self.riktning * T_STOMME
+
     def z_underkant(self, x: float) -> float:
         return H_VAGG + TAKLYFT + self.riktning * (x - self.x_insida) * TAN
 
