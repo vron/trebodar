@@ -41,6 +41,21 @@
          border-radius: 4px; background: transparent; color: var(--ink); }
   #traffar { padding-left: 0; } #traffar li { cursor: pointer; padding: 2px 0; } .vag { color: var(--dim); font-size: 11px; }
   .namn.markerad { background: color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 3px; }
+  #matverktyg { position: fixed; top: 10px; right: 10px; z-index: 3; background: var(--panel); border-radius: 6px;
+                box-shadow: 0 0 8px rgba(0,0,0,.2); padding: 3px 5px; font-size: 13px; text-align: right; }
+  #matverktyg button { padding: 2px 7px; }
+  #matverktyg button.aktiv { background: #e8590c; border-color: #e8590c; color: #fff; }
+  #mathjalp { color: var(--dim); font-size: 11.5px; padding: 0 3px 2px; display: none; }
+  .snapp { position: fixed; z-index: 4; display: none; pointer-events: none; width: 10px; height: 10px; margin: -7px 0 0 -7px;
+           border: 2px solid #e8590c; border-radius: 50%; }
+  .snapp.horn { border-radius: 1px; background: #e8590c55; }
+  .snapp.mitt { border-radius: 1px; transform: rotate(45deg); }
+  .snapp.yta { width: 5px; height: 5px; margin: -4px 0 0 -4px; background: #e8590c; }
+  #snappstart { border-color: #1c7ed6; background: #1c7ed655; }
+  .etikett { position: fixed; z-index: 4; pointer-events: none; transform: translate(-50%, -135%); background: var(--panel);
+             color: var(--ink); border: 1px solid #e8590c; border-radius: 4px; padding: 1px 6px; font-size: 12.5px;
+             white-space: nowrap; text-align: center; }
+  .etikett small { display: block; color: var(--dim); font-size: 10.5px; }
 </style>
 </head>
 <body>
@@ -50,7 +65,8 @@
   <div class="rad" style="justify-content: space-between"><h1>Fritidshus Trebodar</h1><button id="stang">◀</button></div>
   <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för
     information, dubbelklicka för att kretsa kring den; hjulet zoomar mot pekaren. Högerklicka på en del, i trädet
-    eller på ett material för att visa bara det eller tona ner resten; Esc avslutar.</div>
+    eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
+    parallella kanter med knapparna uppe till höger (K, A, P).</div>
   <h2>Vyer</h2><div id="vyer"></div>
   <h2>Snitt</h2>
   <div class="rad"><label><input type="checkbox" id="kx"> x</label><input type="range" id="sx"></div>
@@ -69,6 +85,11 @@
 <div id="info"></div>
 <div id="meny"></div>
 <div id="fokus"><span></span> <button id="avsluta">Avsluta</button></div>
+<div id="matverktyg">Mät: <button data-lage="kant" title="Längden av en rak kant, också i ett snitt (K)">kant</button><button
+  data-lage="avstand" title="Avståndet mellan två punkter (A)">avstånd</button><button data-lage="parallell"
+  title="Vinkelrätt avstånd mellan två parallella kanter (P)">parallella</button><button id="rensa"
+  title="Ta bort mätningarna">rensa</button><div id="mathjalp"></div></div>
+<div class="snapp" id="snapp"></div><div class="snapp horn" id="snappstart"></div>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -78,6 +99,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { Line2 } from "three/addons/lines/Line2.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineGeometry } from "three/addons/lines/LineGeometry.js";
 
 const el = document.getElementById("vy");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -194,7 +218,10 @@ function snittyta(o, plan, ovriga) {
   }
   const mat = snittMaterial.get(o.material).clone();
   mat.clippingPlanes = ovriga;
-  snittGrupp.add(new THREE.Mesh(g, mat));
+  const yta = new THREE.Mesh(g, mat);
+  g.computeBoundingBox();
+  Object.assign(yta.userData, { del: o, slingor, lada: g.boundingBox.clone() });     // för mätningen
+  snittGrupp.add(yta);
   const lin = [];
   for (const sl of slingor) sl.forEach((p, i) => { const q = sl[(i + 1) % sl.length]; lin.push(p.x, p.y, p.z, q.x, q.y, q.z); });
   const lg = new THREE.BufferGeometry();
@@ -223,6 +250,7 @@ function planeraSnitt() { if (!planerat) { planerat = true; requestAnimationFram
 
 // med panelen öppen på en bred skärm ligger kamerans mitt (och kretsens mitt) i den fria delen av fönstret
 let panelBredd = 0;
+const linjeMaterialen = [];            // mätningens linjer (bredd i pixlar)
 function storlek() {
   const w = el.clientWidth, h = el.clientHeight, panel = document.getElementById("panel");
   panelBredd = !panel.classList.contains("dold") && w > 640 ? panel.offsetWidth : 0;
@@ -230,6 +258,7 @@ function storlek() {
   camera.aspect = (w + panelBredd) / h;
   if (panelBredd) camera.setViewOffset(w + panelBredd, h, 0, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
+  for (const m of linjeMaterialen) m.resolution.set(w, h);
 }
 window.addEventListener("resize", storlek); storlek();
 
@@ -398,7 +427,7 @@ function stangMeny() { meny.style.display = "none"; }
 document.addEventListener("pointerdown", e => { if (!meny.contains(e.target)) stangMeny(); });
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  if (meny.style.display === "block") stangMeny(); else if (fokus) avsluta();
+  if (meny.style.display === "block") stangMeny(); else if (fokus && !matLage) avsluta();
 });
 document.getElementById("avsluta").onclick = avsluta;
 
@@ -427,6 +456,7 @@ renderer.domElement.addEventListener("dblclick", e => {
   if (t.length) controls.target.copy(t[0].point);
 });
 renderer.domElement.addEventListener("click", e => {
+  if (matLage) return;
   const traffar = traff(e);
   const info = document.getElementById("info");
   if (!traffar.length) { info.style.display = "none"; return; }
@@ -456,6 +486,231 @@ renderer.domElement.addEventListener("pointerup", e => {
   const o = t[0].object;
   visaMeny(e.clientX, e.clientY, nivaer(o), [o.userData.del, o.userData.material].filter(Boolean).join(" · ") || kallad(o));
 });
+
+// ---------------------------------------------------------------- mätning
+// Lägen: "kant" mäter en rak kant (också i ett snitt), "avstand" avståndet mellan två punkter och "parallell" det
+// vinkelräta avståndet mellan två parallella kanter. Pekaren snäpper till hörn, kanters mitt, kanter och snittets
+// konturer (i den ordningen) och annars till ytan; punkter som skyms av andra delar räknas inte. Måtten i mm.
+const HORN_PX = 12, KANT_PX = 10;
+const matGrupp = new THREE.Group(); scene.add(matGrupp);
+function linjeMat(farg, bredd = 2.5) {
+  const m = new LineMaterial({ color: farg, linewidth: bredd, depthTest: false, transparent: true });
+  m.resolution.set(el.clientWidth, el.clientHeight); linjeMaterialen.push(m); return m;
+}
+const matLinje = linjeMat(0xe8590c), valLinje = linjeMat(0x1c7ed6), hovLinje = linjeMat(0xe8590c, 4);
+function linje(punkter, mat) {
+  const g = new LineGeometry(); g.setPositions(punkter.flatMap(p => [p.x, p.y, p.z]));
+  const l = new Line2(g, mat); l.computeLineDistances(); l.renderOrder = 10; return l;
+}
+let matLage = null, matStart = null, hovring = null;
+const matningar = [], tillfalligt = [];          // { objekt, etikett, ankare }
+const snappMark = document.getElementById("snapp"), startMark = document.getElementById("snappstart");
+const mm = v => (v * 1000).toLocaleString("sv-SE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " mm";
+
+function tillSkarm(p) {
+  const v = p.clone().project(camera), r = renderer.domElement.getBoundingClientRect();
+  return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height, fram: Math.abs(v.z) < 1 };
+}
+const arMatbar = d => d.material.visible && !d.userData.tonad && synlig(d);
+function traffLangsStralen() {
+  // träffar längs strålen på synliga delar och snittytor, närmast först
+  const ok = t => !(t.object.material.clippingPlanes || []).some(pl => pl.distanceToPoint(t.point) < 0);
+  return [...ray.intersectObjects(delar.filter(arMatbar), false),
+          ...ray.intersectObjects(snittGrupp.children.filter(c => c.isMesh), false)]
+    .filter(ok).sort((a, b) => a.distance - b.distance);
+}
+function syns(p) {
+  const dir = p.clone().sub(camera.position), avst = dir.length();
+  ray.set(camera.position, dir.normalize());
+  const t = traffLangsStralen()[0];
+  return !t || t.distance >= avst - 0.003 - avst * 5e-4;
+}
+function delKanter(d) {
+  // delens ritade kanter i världen, två punkter per kant (likadana delar delar kantgeometri, så per del)
+  if (!d.userData.kantPunkter) {
+    const p = d.children.find(c => c.isLineSegments).geometry.attributes.position;
+    const ut = new Float32Array(p.count * 3), v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(d.matrixWorld); v.toArray(ut, 3 * i); }
+    d.userData.kantPunkter = ut;
+  }
+  return d.userData.kantPunkter;
+}
+function klipp(a, b) {
+  // kantens del på den synliga sidan av snitten, eller null
+  let t0 = 0, t1 = 1;
+  for (const pl of aktivaPlan) {
+    const da = pl.distanceToPoint(a), db = pl.distanceToPoint(b);
+    if (da < 0 && db < 0) return null;
+    if (da < 0) t0 = Math.max(t0, da / (da - db)); else if (db < 0) t1 = Math.min(t1, da / (da - db));
+  }
+  return t1 - t0 > 1e-9 ? [a.clone().lerp(b, t0), a.clone().lerp(b, t1)] : null;
+}
+function kandidater(punkt, marg) {
+  // kanterna på delar och snittytor nära punkten: { a, b, kalla (delen eller snittytan), slinga }
+  const ut = [];
+  for (const d of delar) {
+    if (!arMatbar(d)) continue;
+    if (!d.userData.lada) d.userData.lada = new THREE.Box3().setFromObject(d);
+    if (d.userData.lada.distanceToPoint(punkt) > marg) continue;
+    const k = delKanter(d);
+    for (let i = 0; i < k.length; i += 6) {
+      const s = klipp(new THREE.Vector3().fromArray(k, i), new THREE.Vector3().fromArray(k, i + 3));
+      if (s) ut.push({ a: s[0], b: s[1], kalla: d });
+    }
+  }
+  for (const y of snittGrupp.children) {
+    if (!y.userData.slingor || y.userData.lada.distanceToPoint(punkt) > marg) continue;
+    y.userData.slingor.forEach((sl, n) => sl.forEach((p, i) => ut.push({ a: p, b: sl[(i + 1) % sl.length], kalla: y, slinga: n })));
+  }
+  return ut;
+}
+function helKant(k, kand) {
+  // hela den raka kanten som kanten ingår i: kanter i samma linje på samma del (eller snittkontur) som når varandra
+  const d = k.b.clone().sub(k.a).normalize(), lagen = q => q.clone().sub(k.a).dot(d);
+  const ilinjen = q => q.clone().sub(k.a).cross(d).length() < 2e-4;
+  const samma = kand.filter(q => q.kalla === k.kalla && q.slinga === k.slinga && ilinjen(q.a) && ilinjen(q.b));
+  let t0 = 0, t1 = lagen(k.b), vaxte = true;
+  while (vaxte) {
+    vaxte = false;
+    for (const q of samma) {
+      const lo = Math.min(lagen(q.a), lagen(q.b)), hi = Math.max(lagen(q.a), lagen(q.b));
+      if (lo <= t1 + 1e-5 && hi >= t0 - 1e-5 && (lo < t0 - 1e-7 || hi > t1 + 1e-7)) {
+        t0 = Math.min(t0, lo); t1 = Math.max(t1, hi); vaxte = true;
+      }
+    }
+  }
+  return { a: k.a.clone().addScaledVector(d, t0), b: k.a.clone().addScaledVector(d, t1) };
+}
+function snappa(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(mus, camera);
+  const stral = ray.ray.clone();
+  let t = traffLangsStralen()[0];
+  const paYtan = !!t;
+  // pekaren bredvid en tunn del: strålar runt pekaren hittar delen, så att dess kanter och hörn kan snäppas
+  for (const [dx, dy] of paYtan ? [] : [[7, 0], [-7, 0], [0, 7], [0, -7], [5, 5], [-5, 5], [5, -5], [-5, -5]]) {
+    mus.set(((e.clientX + dx - r.left) / r.width) * 2 - 1, -((e.clientY + dy - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(mus, camera);
+    if ((t = traffLangsStralen()[0])) break;
+  }
+  if (!t) return null;
+  const px = t.distance * 2 * Math.tan(camera.fov * Math.PI / 360) / r.height;     // en pixel i världen vid träffen
+  const kand = kandidater(t.point, (HORN_PX + 2) * px + 0.002);
+  const avstPx = p => { const q = tillSkarm(p); return Math.hypot(q.x - e.clientX, q.y - e.clientY); };
+  const horn = [];
+  for (const k of kand) for (const p of [k.a, k.b]) { const d = avstPx(p); if (d <= HORN_PX) horn.push({ d, p }); }
+  horn.sort((a, b) => a.d - b.d);
+  for (const h of horn.slice(0, 4)) if (syns(h.p)) return { typ: "horn", punkt: h.p.clone() };
+  let narmast = null;
+  const pS = new THREE.Vector3(), pK = new THREE.Vector3();
+  for (const k of kand) {
+    stral.distanceSqToSegment(k.a, k.b, pS, pK);
+    const d = avstPx(pK);
+    if (d <= KANT_PX && (!narmast || d < narmast.d)) narmast = { d, punkt: pK.clone(), kant: k };
+  }
+  if (narmast && syns(narmast.punkt)) {
+    const hel = helKant(narmast.kant, kand), mitt = hel.a.clone().add(hel.b).multiplyScalar(0.5);
+    if (avstPx(mitt) <= HORN_PX && syns(mitt)) return { typ: "mitt", punkt: mitt, hel };
+    return { typ: "kant", punkt: narmast.punkt, hel };
+  }
+  return paYtan ? { typ: "yta", punkt: t.point.clone() } : null;
+}
+function etikett(text, under = "") {
+  const div = document.createElement("div"); div.className = "etikett";
+  div.textContent = text;
+  if (under) { const s = document.createElement("small"); s.textContent = under; div.append(s); }
+  document.body.append(div); return div;
+}
+function matning(punkter, text, under, lista = matningar, mat = matLinje) {
+  const l = linje(punkter, mat); matGrupp.add(l);
+  const ankare = punkter[0].clone().add(punkter[punkter.length - 1]).multiplyScalar(0.5);
+  lista.push({ objekt: l, etikett: text ? etikett(text, under) : null, ankare });
+}
+function taBort(lista) {
+  for (const m of lista) { matGrupp.remove(m.objekt); m.objekt.geometry.dispose(); if (m.etikett) m.etikett.remove(); }
+  lista.length = 0;
+}
+function avstandText(a, b) {
+  const d = b.clone().sub(a);       // scenens (x, y, z) = modellens (x, z, −y)
+  return [mm(d.length()), `Δx ${mm(d.x)} · Δy ${mm(-d.z)} · Δz ${mm(d.y)}`];
+}
+const HJALP = { kant: "Klicka på en kant", avstand: "Klicka på två punkter", parallell: "Klicka på två parallella kanter" };
+function satMatLage(lage) {
+  matLage = matLage === lage ? null : lage;
+  matStart = null; taBort(tillfalligt); hovring = null;
+  snappMark.style.display = startMark.style.display = "none";
+  for (const b of document.querySelectorAll("#matverktyg [data-lage]")) b.classList.toggle("aktiv", b.dataset.lage === matLage);
+  const hj = document.getElementById("mathjalp");
+  hj.textContent = matLage ? HJALP[matLage] + " · Esc avbryter" : ""; hj.style.display = matLage ? "block" : "none";
+  renderer.domElement.style.cursor = matLage ? "crosshair" : "";
+  if (matLage) document.getElementById("info").style.display = "none";
+}
+function matKlick(e) {
+  const s = snappa(e);
+  if (!s) return;
+  if (matLage === "avstand") {
+    if (!matStart) { matStart = { punkt: s.punkt }; return; }
+    matning([matStart.punkt, s.punkt], ...avstandText(matStart.punkt, s.punkt));
+  } else if (matLage === "kant") {
+    if (s.hel) matning([s.hel.a, s.hel.b], mm(s.hel.b.distanceTo(s.hel.a)));
+    return;
+  } else if (matLage === "parallell") {
+    if (!s.hel) return;
+    if (!matStart) { matStart = { kant: s.hel }; matning([s.hel.a, s.hel.b], null, "", tillfalligt, valLinje); return; }
+    const k1 = matStart.kant, k2 = s.hel;
+    const d1 = k1.b.clone().sub(k1.a).normalize(), d2 = k2.b.clone().sub(k2.a).normalize();
+    const vinkel = Math.acos(Math.min(1, Math.abs(d1.dot(d2)))) * 180 / Math.PI;
+    const m2 = k2.a.clone().add(k2.b).multiplyScalar(0.5);
+    const p1 = k1.a.clone().addScaledVector(d1, m2.clone().sub(k1.a).dot(d1));
+    if (vinkel < 0.5) matning([p1, m2], "∥ " + mm(m2.distanceTo(p1)), vinkel > 0.01 ? `vinkel ${vinkel.toFixed(2)}°` : "");
+    else matning([k1.a.clone().add(k1.b).multiplyScalar(0.5), m2], `vinkel ${vinkel.toFixed(1)}°`, "kanterna är inte parallella");
+  }
+  matStart = null; taBort(tillfalligt);
+}
+let hovPlan = null;
+function hovra(e) {
+  hovring = snappa(e);
+  snappMark.className = "snapp " + (hovring ? hovring.typ : "");
+  snappMark.style.display = hovring ? "block" : "none";
+  for (const m of tillfalligt.filter(m => m.hov)) { matGrupp.remove(m.objekt); m.objekt.geometry.dispose(); if (m.etikett) m.etikett.remove(); }
+  const kvar = tillfalligt.filter(m => !m.hov); tillfalligt.length = 0; tillfalligt.push(...kvar);
+  if (!hovring) return;
+  const ny = tillfalligt.length;
+  if (hovring.hel && matLage !== "avstand") matning([hovring.hel.a, hovring.hel.b], null, "", tillfalligt, hovLinje);
+  if (matLage === "avstand" && matStart) matning([matStart.punkt, hovring.punkt], ...avstandText(matStart.punkt, hovring.punkt), tillfalligt);
+  for (const m of tillfalligt.slice(ny)) m.hov = true;
+}
+renderer.domElement.addEventListener("pointermove", e => {
+  if (!matLage || e.buttons) return;
+  if (!hovPlan) hovPlan = requestAnimationFrame(() => { hovPlan = null; hovra(e); });
+});
+let vansterNer = null;
+renderer.domElement.addEventListener("pointerdown", e => { vansterNer = e.button === 0 && !e.ctrlKey ? [e.clientX, e.clientY] : null; });
+renderer.domElement.addEventListener("pointerup", e => {
+  if (!matLage || !vansterNer || Math.hypot(e.clientX - vansterNer[0], e.clientY - vansterNer[1]) > 5) return;
+  vansterNer = null; matKlick(e); hovra(e);
+});
+for (const b of document.querySelectorAll("#matverktyg [data-lage]")) b.onclick = () => satMatLage(b.dataset.lage);
+document.getElementById("rensa").onclick = () => { taBort(matningar); matStart = null; taBort(tillfalligt); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const k = { k: "kant", a: "avstand", p: "parallell" }[e.key.toLowerCase()];
+  if (k && !e.metaKey && !e.ctrlKey && !e.altKey) satMatLage(k);
+  if (e.key === "Escape" && matLage) { if (matStart) { matStart = null; taBort(tillfalligt); } else satMatLage(matLage); }
+});
+function flyttaEtiketter() {
+  for (const m of [...matningar, ...tillfalligt]) {
+    if (!m.etikett) continue;
+    const q = tillSkarm(m.ankare);
+    m.etikett.style.display = q.fram ? "block" : "none"; m.etikett.style.left = q.x + "px"; m.etikett.style.top = q.y + "px";
+  }
+  for (const [mark, p] of [[snappMark, hovring && hovring.punkt], [startMark, matStart && matStart.punkt]]) {
+    if (!p) { if (mark === startMark) mark.style.display = "none"; continue; }
+    const q = tillSkarm(p); mark.style.left = q.x + "px"; mark.style.top = q.y + "px";
+    if (mark === startMark) mark.style.display = "block";
+  }
+}
 
 document.getElementById("stang").onclick = () => { document.getElementById("panel").classList.add("dold"); storlek(); };
 document.getElementById("knapp").onclick = () => { document.getElementById("panel").classList.remove("dold"); storlek(); };
@@ -557,8 +812,8 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
   document.getElementById("laddar").remove();
 }, undefined, e => { document.getElementById("laddar").textContent = "Kunde inte läsa modellen: " + e.message; });
 
-window.visare = { scene, camera, controls, gaTill, byggSnitt, fokusera, malObjekt, visaAllt };   // för felsökning
-renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+window.visare = { scene, camera, controls, gaTill, byggSnitt, fokusera, malObjekt, visaAllt, snappa, satMatLage };
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); flyttaEtiketter(); });
 </script>
 </body>
 </html>

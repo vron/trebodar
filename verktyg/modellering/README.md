@@ -75,7 +75,10 @@ egen modell (t.ex. för beställning). Utdata:
   material, dubbelklick sätter rotationscentrum och hjulet zoomar mot pekaren. Högerklick på en del (delen och
   grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
   genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
-  `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk.
+  `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. Mätverktygen uppe till höger mäter
+  en rak kant (K), avståndet mellan två punkter med Δx, Δy och Δz (A) och det vinkelräta avståndet mellan två
+  parallella kanter (P), också på snittets konturer; pekaren snäpper till hörn, kanters mitt, kanter och ytor, och
+  kanter som delas upp i nätet räknas som en.
 
 `mod onshape` läser API-nycklarna ur `lokalt/onshape.json` i repot (versionshanteras inte; `access_key`,
 `secret_key` och eventuellt `mapp`) eller ur miljövariablerna `ONSHAPE_ACCESS_KEY` och `ONSHAPE_SECRET_KEY`. Ett
