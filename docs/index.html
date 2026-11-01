@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trebodar 3D</title>
+<style>
+  :root { --bg: #f4f3ef; --panel: #ffffff; --ink: #222; --dim: #777; --accent: #2f6f8f; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1d20; --panel: #26292d; --ink: #e8e6e1; --dim: #9a9a9a; --accent: #6fb3d3; } }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.35 system-ui, sans-serif; }
+  #vy { position: fixed; inset: 0; }
+  #panel { position: fixed; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw; background: var(--panel);
+           overflow: auto; padding: 12px 14px; box-shadow: 0 0 12px rgba(0,0,0,.15); transform: translateX(0); transition: transform .2s; }
+  #panel.dold { transform: translateX(-100%); }
+  #knapp { position: fixed; top: 10px; left: 10px; z-index: 2; display: none; }
+  #panel.dold ~ #knapp { display: block; }
+  h1 { font-size: 16px; margin: 0 0 4px; } h2 { font-size: 13px; margin: 14px 0 6px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  button { font: inherit; padding: 4px 8px; margin: 2px; border: 1px solid #8884; background: transparent; color: var(--ink); border-radius: 4px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  .rad { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .rad input[type=range] { flex: 1; }
+  ul { list-style: none; margin: 0; padding-left: 14px; } li > span { cursor: pointer; }
+  li.stangd > ul { display: none; } .pil { display: inline-block; width: 12px; color: var(--dim); }
+  #info { position: fixed; right: 10px; bottom: 10px; max-width: 420px; background: var(--panel); padding: 8px 10px;
+          border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); font-size: 12px; display: none; word-break: break-word; }
+  #laddar { position: fixed; inset: 0; display: grid; place-items: center; font-size: 15px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div id="vy"></div>
+<div id="laddar">Laddar modellen …</div>
+<aside id="panel">
+  <div class="rad" style="justify-content: space-between"><h1>Fritidshus Trebodar</h1><button id="stang">◀</button></div>
+  <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för information.</div>
+  <h2>Vyer</h2><div id="vyer"></div>
+  <h2>Snitt</h2>
+  <div class="rad"><label><input type="checkbox" id="kx"> x</label><input type="range" id="sx"></div>
+  <div class="rad"><label><input type="checkbox" id="ky"> y</label><input type="range" id="sy"></div>
+  <div class="rad"><label><input type="checkbox" id="kz"> z</label><input type="range" id="sz"></div>
+  <div class="rad"><label><input type="checkbox" id="vand"> vänd snitten</label></div>
+  <h2>Modellträdet</h2><ul id="trad"></ul>
+</aside>
+<button id="knapp">▶ Meny</button>
+<div id="info"></div>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const el = document.getElementById("vy");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.localClippingEnabled = true;
+el.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#f4f3ef");
+const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x666655, 1.6));
+const sol = new THREE.DirectionalLight(0xffffff, 1.6); sol.position.set(-10, 20, 12); scene.add(sol);
+
+// modellens mm (z upp) -> scenens m (y upp): (x, y, z) -> (x, z, -y)
+const tillScen = p => new THREE.Vector3(p[0] / 1000, p[2] / 1000, -p[1] / 1000);
+const plan = { x: new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), y: new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
+               z: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0) };
+let modell, lada;
+
+function storlek() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", storlek); storlek();
+
+function gaTill(v) {
+  camera.position.copy(tillScen(v.kamera)); controls.target.copy(tillScen(v.mal));
+  camera.fov = 2 * Math.atan(18 / (v.brannvidd || 35)) * 180 / Math.PI; camera.updateProjectionMatrix();
+}
+
+function snitt() {
+  const aktiva = [];
+  const vand = document.getElementById("vand").checked ? -1 : 1;
+  for (const a of ["x", "y", "z"]) {
+    if (!document.getElementById("k" + a).checked) continue;
+    const v = Number(document.getElementById("s" + a).value) / 1000;
+    const p = plan[a];
+    const n = { x: [-1, 0, 0], y: [0, 0, 1], z: [0, -1, 0] }[a].map(c => c * vand);
+    p.normal.set(...n);
+    p.constant = a === "x" ? v * vand : a === "y" ? v * vand : v * vand;
+    aktiva.push(p);
+  }
+  modell.traverse(o => { if (o.isMesh) o.material.clippingPlanes = aktiva; });
+}
+
+function trad(obj, ul, djup) {
+  for (const barn of obj.children) {
+    if (barn.isMesh && barn.children.length === 0) continue;
+    const li = document.createElement("li");
+    const harBarn = barn.children.some(c => !c.isMesh || c.children.length);
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = true;
+    cb.onchange = () => { barn.visible = cb.checked; };
+    const pil = document.createElement("span"); pil.className = "pil"; pil.textContent = harBarn ? "▸" : "";
+    const namn = document.createElement("span"); namn.textContent = " " + barn.name;
+    li.append(pil, cb, namn);
+    if (harBarn) {
+      const sub = document.createElement("ul"); li.append(sub); li.classList.add("stangd");
+      let byggd = false;
+      pil.onclick = namn.onclick = () => {
+        if (!byggd) { trad(barn, sub, djup + 1); byggd = true; }
+        li.classList.toggle("stangd"); pil.textContent = li.classList.contains("stangd") ? "▸" : "▾";
+      };
+    }
+    ul.append(li);
+  }
+}
+
+const ray = new THREE.Raycaster(), mus = new THREE.Vector2();
+renderer.domElement.addEventListener("click", e => {
+  const r = renderer.domElement.getBoundingClientRect();
+  mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(mus, camera);
+  const traffar = ray.intersectObject(modell, true).filter(t => {
+    const p = t.point; let ok = true; let o = t.object;
+    while (o) { if (!o.visible) { ok = false; break; } o = o.parent; }
+    for (const pl of (t.object.material.clippingPlanes || [])) if (pl.distanceToPoint(p) < 0) ok = false;
+    return ok;
+  });
+  const info = document.getElementById("info");
+  if (!traffar.length) { info.style.display = "none"; return; }
+  let o = traffar[0].object; while (o && !o.userData.sokvag) o = o.parent;
+  const d = (o || traffar[0].object).userData;
+  info.innerHTML = `<b>${(o || traffar[0].object).name}</b><br>${d.sokvag || ""}<br>${d.del || ""}` +
+                   `${d.material ? " · " + d.material : ""}${d.artikel ? "<br>" + d.artikel : ""}`;
+  info.style.display = "block";
+});
+
+document.getElementById("stang").onclick = () => document.getElementById("panel").classList.add("dold");
+document.getElementById("knapp").onclick = () => document.getElementById("panel").classList.remove("dold");
+
+const vyer = await (await fetch("vyer.json")).json();
+new GLTFLoader().load("modell/trebodar.glb", gltf => {
+  modell = gltf.scene; scene.add(modell);
+  modell.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.side = THREE.DoubleSide; } });
+  lada = new THREE.Box3().setFromObject(modell);
+  // snittens intervall i modellens mm
+  const mn = lada.min, mx = lada.max;
+  const intervall = { x: [mn.x, mx.x], y: [-mx.z, -mn.z], z: [mn.y, mx.y] };
+  for (const a of ["x", "y", "z"]) {
+    const s = document.getElementById("s" + a);
+    s.min = Math.round(intervall[a][0] * 1000); s.max = Math.round(intervall[a][1] * 1000); s.step = 10;
+    s.value = Math.round((intervall[a][0] + intervall[a][1]) * 500);
+    s.oninput = snitt; document.getElementById("k" + a).onchange = snitt;
+  }
+  document.getElementById("vand").onchange = snitt;
+  const vy = document.getElementById("vyer");
+  for (const [namn, v] of Object.entries(vyer)) {
+    const b = document.createElement("button"); b.textContent = namn; b.onclick = () => gaTill(v); vy.append(b);
+  }
+  gaTill(Object.values(vyer)[0]);
+  const rot = modell.children[0] && modell.children[0].name === "z-upp" ? modell.children[0] : modell;
+  trad(rot, document.getElementById("trad"), 0);
+  document.getElementById("laddar").remove();
+}, undefined, e => { document.getElementById("laddar").textContent = "Kunde inte läsa modellen: " + e.message; });
+
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>

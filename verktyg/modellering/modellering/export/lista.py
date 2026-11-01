@@ -5,6 +5,7 @@ import csv
 import json
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -33,7 +34,7 @@ def index(rot: Montage, karna: Karna, fil: Path) -> list[dict[str, object]]:
 
 def materiallista(rot: Montage, karna: Karna, csvfil: Path, mdfil: Path) -> None:
     karna.forbered(d.form for _, d, _ in rot.platta())
-    grupper: dict[tuple[str, str], dict[str, object]] = {}
+    grupper: dict[tuple[str, str], dict[str, Any]] = {}
     for vag, d, _ in rot.platta():
         k = (d.material.namn, d.namn)
         if k not in grupper:
@@ -41,7 +42,7 @@ def materiallista(rot: Montage, karna: Karna, csvfil: Path, mdfil: Path) -> None
             grupper[k] = {"material": d.material.namn, "beskrivning": d.material.beskrivning, "del": d.namn,
                           "enhet": d.material.enhet, "matt": e.matt, "volym": e.volym,
                           "massa": e.volym * 1e-9 * d.material.densitet, "antal": 0, "artikel": d.artikel or ""}
-        grupper[k]["antal"] = int(grupper[k]["antal"]) + 1  # type: ignore[call-overload]
+        grupper[k]["antal"] = int(grupper[k]["antal"]) + 1
     rader = sorted(grupper.values(), key=lambda g: (str(g["material"]), str(g["del"])))
     csvfil.parent.mkdir(parents=True, exist_ok=True)
     with open(csvfil, "w", newline="", encoding="utf-8") as f:
@@ -50,21 +51,21 @@ def materiallista(rot: Montage, karna: Karna, csvfil: Path, mdfil: Path) -> None
                     "massa_kg", "artikel"])
         for g in rader:
             m = g["matt"]
-            w.writerow([g["material"], g["del"], g["antal"], *(f"{v:.1f}" for v in m),  # type: ignore[union-attr]
-                        f"{float(g['volym']) * 1e-9:.6f}", f"{float(g['massa']):.2f}",  # type: ignore[arg-type]
-                        f"{float(g['massa']) * int(g['antal']):.1f}", g["artikel"]])  # type: ignore[arg-type, call-overload]
+            w.writerow([g["material"], g["del"], g["antal"], *(f"{v:.1f}" for v in m),
+                        f"{float(g['volym']) * 1e-9:.6f}", f"{float(g['massa']):.2f}",
+                        f"{float(g['massa']) * int(g['antal']):.1f}", g["artikel"]])
     tot: dict[str, list[float]] = defaultdict(lambda: [0.0, 0.0, 0.0])
     for g in rader:
         t = tot[f"{g['material']} – {g['beskrivning']}"]
-        n = int(g["antal"])  # type: ignore[call-overload]
+        n = int(g["antal"])
         t[0] += n
-        t[1] += float(g["volym"]) * 1e-9 * n  # type: ignore[arg-type]
-        t[2] += float(g["massa"]) * n  # type: ignore[arg-type]
+        t[1] += float(g["volym"]) * 1e-9 * n
+        t[2] += float(g["massa"]) * n
     md = ["# Materiallista", "", "| Material | Antal delar | Volym (m³) | Massa (kg) |", "|---|---:|---:|---:|"]
     md += [f"| {k} | {v[0]:.0f} | {v[1]:.3f} | {v[2]:.0f} |" for k, v in sorted(tot.items())]
     md += ["", "| Material | Del | Antal | Mått (mm) | Massa (kg) |", "|---|---|---:|---|---:|"]
     for g in rader:
         m = g["matt"]
-        md.append(f"| {g['material']} | {g['del']} | {g['antal']} | {' × '.join(f'{v:g}' for v in m)} | "  # type: ignore[union-attr]
-                  f"{float(g['massa']) * int(g['antal']):.1f} |")  # type: ignore[arg-type, call-overload]
+        md.append(f"| {g['material']} | {g['del']} | {g['antal']} | {' × '.join(f'{v:g}' for v in m)} | "
+                  f"{float(g['massa']) * int(g['antal']):.1f} |")
     mdfil.write_text("\n".join(md) + "\n", encoding="utf-8")

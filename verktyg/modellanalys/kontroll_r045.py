@@ -4,7 +4,7 @@
 
 kallare.py bygger källarens geometri för R-04 och R-05 ur K-05:s geometri.json (väggarna och rören, kontrollerade
 med kontroll_geometri05.py), K-06:s indata och egna uppgifter: öppningarnas bröstning. Den här kontrollen läser
-modellen (modeller/trebodar.step) och jämför:
+modellen (modeller/referens/trebodar-onshape.step) och jämför:
 
     - öppningarna i betongkärnan: läge längs väggen och bröstningens höjd (betongen);
     - bottenplattans kontur, som ska ligga i väggarnas ytterliv (L-elementens ytterkant; betongen 100 mm innanför);
@@ -27,13 +27,13 @@ ROT = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(ROT, "beräkningar", "R-05"))
 from geometri import Plan, linjeprob, snitt  # noqa: E402
-from modell import Modell  # noqa: E402
+from modell import REFERENS, Modell  # noqa: E402
 import kallare as K  # noqa: E402
 
 TOL = 0.5
 Z_GOLV = -K.H_VAGG - K.H_MB          # bottenplattans överkant i K-05:s z (−2 250)
 
-m = Modell(tyst=True)
+m = Modell(REFERENS, tyst=True)
 _pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])
 KARNA = m.valj("Bkärna")

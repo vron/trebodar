@@ -42,10 +42,11 @@ from OCP.collections import List_TopoDS_Shape
 from . import form as F
 from .placering import Placering
 
-KARNA_VERSION = 1              # höj när byggandet av former ändras (ogiltigförklarar cachen)
+KARNA_VERSION = 2              # höj när byggandet av former ändras (ogiltigförklarar cachen)
 ROT = Path(__file__).resolve().parents[3]                       # repots rot
 STANDARD_CACHE = Path(__file__).resolve().parents[1] / ".cache" / "former.sqlite"
-NAT_KORDA = 0.5                # triangulering: största kordavvikelse [mm]
+NAT_KORDA = 0.5                # triangulering: största kordavvikelse [mm], minst; större för stora delar
+NAT_KORDA_REL = 0.0005         # ... som andel av delens diagonal
 NAT_VINKEL = 0.3               # triangulering: största vinkelavvikelse [rad]
 FUZZY = 1e-6                   # toleransen i booleska operationer [mm]
 
@@ -265,8 +266,11 @@ def egenskaper(f: F.Form, s: TopoDS_Shape) -> Egenskaper:
 
 
 def triangulera(s: TopoDS_Shape) -> Nat:
-    """Triangelnät med egna hörn per yta (skarpa kanter)."""
-    BRepMesh_IncrementalMesh(s, NAT_KORDA, False, NAT_VINKEL, False)
+    """Triangelnät med egna hörn per yta (skarpa kanter). Kordavvikelsen växer med delens storlek; vinkelgränsen
+    ger ändå minst ~20 segment per cirkel."""
+    b = bbox(s, optimal=False)
+    diag = math.dist(b[:3], b[3:])
+    BRepMesh_IncrementalMesh(s, max(NAT_KORDA, NAT_KORDA_REL * diag), False, NAT_VINKEL, False)
     V, N, Fs, Y = [], [], [], []
     nv = 0
     ex = TopExp_Explorer(s, TopAbs_FACE)
@@ -360,7 +364,7 @@ class Karna:
         unika: dict[str, F.Form] = {}
         for f in former:
             unika.setdefault(self.nyckel(f), f)
-        kanda = set()
+        kanda: set[str] = set()
         nycklar = list(unika)
         for i in range(0, len(nycklar), 500):
             del_ = nycklar[i:i + 500]
@@ -404,7 +408,9 @@ class Karna:
         k = self._sakra(f)
         if k not in self._egenskaper:
             d = json.loads(self._rad(k, "egenskaper"))
-            self._egenskaper[k] = Egenskaper(**{n: tuple(v) if isinstance(v, list) else v for n, v in d.items()})
+            self._egenskaper[k] = Egenskaper(volym=float(d["volym"]), area=float(d["area"]), bbox=tuple(d["bbox"]),
+                                             tyngdpunkt=tuple(d["tyngdpunkt"]), matt=tuple(d["matt"]),
+                                             solider=int(d["solider"]), giltig=bool(d["giltig"]))
         return self._egenskaper[k]
 
     def nat(self, f: F.Form) -> Nat:

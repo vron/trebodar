@@ -3,7 +3,7 @@
     .venv/bin/python kontroll_geometri05.py
 
 geometri.json är K-05:s egen källfil och används av K-05, K-06 och R-06. Den uppdateras för hand. Den här
-kontrollen läser modellen (modeller/trebodar.step), räknar fram kontur, hål, väggar (vagg, stod), rör, mark, fria
+kontrollen läser modellen (modeller/referens/trebodar-onshape.step), räknar fram kontur, hål, väggar (vagg, stod), rör, mark, fria
 kanter och E på samma sätt som i källfilen och redovisar skillnaderna. Den skriver ingenting.
 stolpar, balkar, takstol och linjelaster i källfilen beskriver trästommen på plan 1 och kontrolleras inte här.
 
@@ -29,12 +29,12 @@ KALLA = os.path.join(ROT, "beräkningar", "K-05", "bild", "geometri.json")
 sys.path.insert(0, HERE)
 from geometri import Plan, linjeprob, snitt  # noqa: E402
 from jamfor import jamfor, redovisa  # noqa: E402
-from modell import Modell  # noqa: E402
+from modell import REFERENS, Modell  # noqa: E402
 
 Z_VAGG = -200.0              # nivå för väggarnas ändar och öppningar: strax under bjälklaget (uk -150)
 Z_MITT = -1000.0             # nivå för väggarnas centrumlinje
 
-m = Modell(tyst=True)
+m = Modell(REFERENS, tyst=True)
 _pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])          # origo och bjälklagets överkant
 VAGG = m.valj("Bkärna,Isoskal")

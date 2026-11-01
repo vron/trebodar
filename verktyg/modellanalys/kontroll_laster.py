@@ -22,7 +22,7 @@ from shapely.ops import unary_union
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
 from geometri import Plan, linjeprob, snitt, ytanalys  # noqa: E402
-from modell import Modell  # noqa: E402
+from modell import REFERENS, Modell  # noqa: E402
 
 ROT = HERE.parent.parent
 G05 = json.loads((ROT / "beräkningar" / "K-05" / "bild" / "geometri.json").read_text(encoding="utf-8"))
@@ -31,7 +31,7 @@ VAGG_IN = float(re.search(r"^VAGG_IN = ([\d.]+)", (ROT / "beräkningar" / "K-05"
     encoding="utf-8"), re.M).group(1))
 sys.path.insert(0, str(ROT / "beräkningar" / "K-06"))
 import indata as K06  # noqa: E402
-m = Modell(tyst=True)
+m = Modell(REFERENS, tyst=True)
 _pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])
 TAN30 = np.tan(np.radians(30))

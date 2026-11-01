@@ -23,12 +23,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from geometri import Plan, linjeprob, snitt  # noqa: E402
-from modell import Modell  # noqa: E402
+from modell import REFERENS, Modell  # noqa: E402
 from ritning import _patch  # noqa: E402
 
 ROT = HERE.parent.parent
 G = json.load(open(ROT / "beräkningar" / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
-m = Modell()
+m = Modell(REFERENS)
 platta = m.valj("Mittenplatta")
 betong = [d for d in platta if d.namn == "Mittenplatta"][0]
 b = betong.bbox

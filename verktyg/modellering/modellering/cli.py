@@ -38,10 +38,21 @@ def valj(rot: Montage, vag: str | None) -> Montage:
 
 
 def filnamn(m: Montage) -> str:
-    t = m.namn.lower().replace(" ", "-")
+    t = m.namn.lower()
     for a, b in (("å", "a"), ("ä", "a"), ("ö", "o")):
         t = t.replace(a, b)
-    return t
+    return "-".join(d for d in "".join(c if c.isalnum() else " " for c in t).split())
+
+
+def _utan(m: Montage, utom: list[str], vag: str = "") -> Montage:
+    """Kopia av trädet utan delar och montage vars sökväg innehåller någon av texterna."""
+    ny = Montage(m.namn, m.kod, m.beskrivning)
+    for i in m.barn:
+        v = f"{vag}/{i.namn}" if vag else f"{m.namn}/{i.namn}"
+        if any(u in v for u in utom):
+            continue
+        ny.lagg(_utan(i.barn, utom, v) if isinstance(i.barn, Montage) else i.barn, i.placering, i.namn)
+    return ny
 
 
 def trad(m: Montage, djup: int, nivå: int = 0, namn: str | None = None) -> None:
@@ -62,24 +73,38 @@ def trad(m: Montage, djup: int, nivå: int = 0, namn: str | None = None) -> None
 def main(argv: list[str] | None = None) -> None:
     a = argparse.ArgumentParser(prog="mod", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = a.add_subparsers(dest="kommando", required=True)
-    t = sub.add_parser("trad", help="modellträdet")
-    t.add_argument("--djup", type=int, default=4)
-    t.add_argument("--del", dest="vag")
-    b = sub.add_parser("bygg", help="bygg och exportera")
-    b.add_argument("--del", dest="vag")
-    b.add_argument("--format", default="step,glb,lista,index")
-    b.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
-    b.add_argument("--ut", type=Path, default=UT)
-    k = sub.add_parser("kontroll", help="krockar, kontakter och glipor")
-    k.add_argument("--del", dest="vag")
-    k.add_argument("--ut", type=Path, default=UT)
-    j = sub.add_parser("jamfor", help="jämför med referensmodellen (Onshape)")
-    j.add_argument("--del", dest="vag")
-    j.add_argument("--urval", default=None, help="del av referensens sökväg, t.ex. 'Stomme prefab'")
-    j.add_argument("--ny", default=None, help="del av modellens sökväg att jämföra med")
-    j.add_argument("--ut", type=Path, default=UT)
+    pt = sub.add_parser("trad", help="modellträdet")
+    pt.add_argument("--djup", type=int, default=4)
+    pt.add_argument("--del", dest="vag")
+    pb = sub.add_parser("bygg", help="bygg och exportera")
+    pb.add_argument("--del", dest="vag")
+    pb.add_argument("--format", default="step,glb,lista,index")
+    pb.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
+    pb.add_argument("--ut", type=Path, default=UT)
+    pk = sub.add_parser("kontroll", help="krockar, kontakter och glipor")
+    pk.add_argument("--del", dest="vag")
+    pk.add_argument("--ut", type=Path, default=UT)
+    pr = sub.add_parser("rendera", help="rendera vyer med Blender (Cycles)")
+    pr.add_argument("vyer", nargs="*", help="vyernas namn (standard: alla i trebodar.vyer)")
+    pr.add_argument("--bredd", type=int, default=400)
+    pr.add_argument("--sampel", type=int, default=32)
+    pr.add_argument("--ut", type=Path, default=UT)
+    pr.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
+    wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
+    wb.add_argument("--ut", type=Path, default=ROT / "docs")
+    sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
+    pj = sub.add_parser("jamfor", help="jämför med referensmodellen (Onshape)")
+    pj.add_argument("--del", dest="vag")
+    pj.add_argument("--urval", default=None, help="del av referensens sökväg, t.ex. 'Stomme prefab'")
+    pj.add_argument("--ny", default=None, help="del av modellens sökväg att jämföra med")
+    pj.add_argument("--ut", type=Path, default=UT)
     arg = a.parse_args(argv)
 
+    if arg.kommando == "typ":
+        import subprocess
+        mapp = Path(__file__).resolve().parents[1]
+        raise SystemExit(subprocess.run([sys.executable, "-m", "mypy", "--config-file", str(mapp / "mypy.ini"),
+                                         "-p", "modellering", "-p", "trebodar"], cwd=mapp).returncode)
     t0 = time.perf_counter()
     rot = valj(ladda(), getattr(arg, "vag", None))
     t1 = time.perf_counter()
@@ -108,6 +133,42 @@ def main(argv: list[str] | None = None) -> None:
         if "index" in format_:
             lista.index(rot, karna, arg.ut / f"{namn}-index.json")
             print(f"  index {arg.ut / (namn + '-index.json')}")
+    elif arg.kommando == "rendera":
+        import json
+        import subprocess
+        from .export import glb
+        vyer = importlib.import_module("trebodar.vyer").VYER
+        fil = arg.ut / f"{filnamn(rot)}.glb"
+        glb.skriv(rot, fil, karna)
+        (arg.ut / "bilder").mkdir(parents=True, exist_ok=True)
+        (arg.ut / "vyer.json").write_text(json.dumps(vyer, ensure_ascii=False))
+        skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
+        cmd = [arg.blender, "-b", "--factory-startup", "-P", str(skript), "--", str(fil), str(arg.ut / "vyer.json"),
+               str((arg.ut / "bilder").resolve()), "--bredd", str(arg.bredd), "--sampel", str(arg.sampel)]
+        for v in arg.vyer:
+            cmd += ["--vy", v]
+        t = time.perf_counter()
+        ut = subprocess.run(cmd, capture_output=True, text=True)
+        for rad in ut.stdout.splitlines():
+            if rad.startswith("RENDERAD"):
+                print("  " + rad)
+        if ut.returncode:
+            print(ut.stdout[-3000:], ut.stderr[-3000:])
+        print(f"  ({time.perf_counter() - t:.0f} s)")
+    elif arg.kommando == "webb":
+        import json
+        import shutil
+        from .export import glb
+        vy_mod = importlib.import_module("trebodar.vyer")
+        utom = getattr(vy_mod, "WEBB_UTOM", [])
+        webbrot = _utan(rot, utom)
+        (arg.ut / "modell").mkdir(parents=True, exist_ok=True)
+        glb.skriv(webbrot, arg.ut / "modell" / "trebodar.glb", karna)
+        (arg.ut / "vyer.json").write_text(json.dumps(vy_mod.VYER, ensure_ascii=False, indent=1))
+        shutil.copy(Path(__file__).resolve().parents[1] / "webb" / "index.html", arg.ut / "index.html")
+        (arg.ut / ".nojekyll").write_text("")
+        print(f"  {arg.ut}: index.html, vyer.json, modell/trebodar.glb "
+              f"({(arg.ut / 'modell' / 'trebodar.glb').stat().st_size / 1e6:.1f} MB, utan {', '.join(utom) or '–'})")
     elif arg.kommando == "jamfor":
         from . import jamfor
         ref = importlib.import_module("trebodar.referens")

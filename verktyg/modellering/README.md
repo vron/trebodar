@@ -1,8 +1,8 @@
 # Modellering – ramverk för den kodgenererade modellen
 
-Ramverket bygger husets 3D-modell ur geometriskripten i [`modeller/trebodar`](../../modeller/trebodar/) och exporterar
-den. Geometriskripten beskriver bara geometri som data (recept: rätblock, prismor med hål, booleska operationer,
-plan som kapar, placeringar) och vet inget om exportformaten.
+Ramverket bygger husets 3D-modell ur geometriskripten i [`modeller/trebodar`](../../modeller/trebodar/), exporterar
+den och kontrollerar den. Geometriskripten beskriver bara geometri som data (recept: rätblock, prismor med hål,
+booleska operationer, plan som kapar, placeringar) och material; de vet inget om exportformaten.
 
 ## Installation
 
@@ -11,7 +11,7 @@ uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python -r requirements.txt
 ```
 
-Kör sedan allt via `./mod` (använder `.venv`).
+Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Applications/Blender.app`).
 
 ## Kommandon
 
@@ -19,24 +19,49 @@ Kör sedan allt via `./mod` (använder `.venv`).
 |---|---|
 | `./mod trad [--djup N] [--del VÄG]` | Modellträdet med antal delar |
 | `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/` |
-| `./mod kontroll [--del VÄG]` | Krockar (gemensam volym), kontakter (anliggande ytor), glipor 0,01–2 mm och delar utan kontakt |
-| `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med referensmodellen (Onshape) och skriver en namntabell |
+| `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt |
+| `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
+| `./mod rendera [VY …] [--bredd 400] [--sampel 32]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py` |
+| `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
+| `./mod typ` | Typkontroll (mypy) av ramverket och modellen |
 
-`--del` väljer ett delträd med sökvägen under roten, t.ex. `--del "Hus/Stomme/Stomme prefab"` (exporteras som en egen
-modell, t.ex. för beställning).
+`--del` väljer ett delträd med sökvägen under roten, t.ex. `--del "Hus/Stomme/Stomme prefab"`, som exporteras som en
+egen modell (t.ex. för beställning). Utdata:
+
+| Fil i `modeller/trebodar/ut/` | Innehåll |
+|---|---|
+| `trebodar.step` | STEP AP242 med sammanställningar, namn och färger (Onshape, `./ma` i modellanalys) |
+| `trebodar.glb` | glTF med delade nät, material och metadata (Blender, webben) |
+| `trebodar-materiallista.md`, `.csv` | Materiallista per del och per material: antal, kapmått, volym, massa |
+| `trebodar-index.json` | Alla delar med sökväg, material, omslutande låda, volym, massa och tyngdpunkt |
+| `trebodar-kontroll.md` | Kontrollens rapport |
+| `trebodar-jamforelse.md`, `-namntabell.csv` | Jämförelsen med Onshape-modellen |
+| `bilder/*.png` | Renderingarna |
 
 ## Hur det fungerar
 
-- **Recept** (`form.py`): oföränderliga, hashbara värden. Likadana delar får samma recept och blir samma produkt i STEP
-  och samma nät i GLB.
-- **Modellträd** (`modell.py`): `Del` (recept + material) och `Montage` (placerade instanser av delar och montage, i
-  montagets eget koordinatsystem). `Placering` (`placering.py`) är en stel transform, exakt för 90°-vridningar.
-- **Kärna** (`karna.py`): OCCT via OCP. Varje unikt recept byggs en gång; resultatet (B-rep, egenskaper och
-  triangelnät) sparas i `.cache/former.sqlite`. Saknade recept byggs i parallella processer (alla kärnor).
-- **Export** (`export/`): STEP AP242 med sammanställningar, namn och färger; GLB med delade nät, PBR-material och
-  metadata; materiallista (CSV och Markdown); index över alla delar (JSON).
-- **Kontroller** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
-  processer. Resultaten per par cachas (nyckel: recepten och deras relativa placering).
-- **Jämförelse** (`jamfor.py`): varje referensdel paras med den genererade del som har störst gemensam volym.
+- **Recept** (`form.py`): oföränderliga, hashbara värden. Likadana delar får samma recept och blir samma nät i GLB,
+  samma rad i materiallistan och (med `--delade`) samma produkt i STEP.
+- **Modellträd** (`modell.py`): `Del` (recept och material) och `Montage` (placerade instanser av delar och
+  montage, i montagets eget koordinatsystem). `Placering` (`placering.py`) är en stel transform, exakt för vridningar
+  med multiplar av 90°.
+- **Kärna** (`karna.py`): OCCT via OCP. Varje unikt recept byggs en gång; B-rep, egenskaper och triangelnät sparas i
+  `.cache/former.sqlite`. Saknade recept byggs i parallella processer (alla kärnor). Hela huset byggs från tom cache
+  på några sekunder, därefter på bråkdelen av en sekund.
+- **Export** (`export/`): STEP AP242 (OCCT XCAF; varje placerad del en egen produkt med instansens namn, eller
+  delade produkter med `--delade`), GLB (eget skrivprogram: hierarki, delade nät, PBR-material, UV i delens system så
+  att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
+- **Kontroll** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
+  processer: gemensam volym (krock över 5 mm³), anliggande plana ytor (kontaktarea), minsta avstånd (glipor 0,01–2
+  mm, utom mellan delar som båda ligger an mot en tredje). Resultaten per par cachas med nyckel från recepten och
+  deras relativa placering. Avsiktliga överlapp mellan material (t.ex. spikplåt under utegips) och numeriska skärvor
+  under 5 mm³ (mot krökta ytor) redovisas för sig. Modellen anger avsiktliga överlapp i `trebodar/kontrollregler.py`.
+- **Jämförelse** (`jamfor.py`, `referens.py`, `prisma.py`): varje referensdel paras med den genererade del som har
+  störst gemensam volym; identisk, städad (minst 98 % gemensamt), ändrad, ersatt eller borttagen.
+- **Rendering** (`blender/rendera.py`): Blender i bakgrunden läser GLB, sätter procedurella material efter
+  materialnamnen, himmel och sol, kamera, och renderar med Cycles på GPU.
+- **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, snitt i x, y och z, vyer och
+  information om den del man klickar på.
 
-STEP-filen kan analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma ... --fil ../../modeller/trebodar/ut/trebodar.step`).
+STEP-filen analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma …`, som läser den genererade modellen
+som standard).

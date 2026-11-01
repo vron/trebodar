@@ -1,8 +1,8 @@
 # Modellanalys – verktyg för STEP-sammanställningar
 
-Läser en STEP-fil (t.ex. Onshape-exporten av huset, `modeller/trebodar.step`) med exakt B-rep-geometri, delnamn och färger, och svarar på frågor om den: översikt, delträd, exakta koordinater, 3D-bilder från valfri vinkel med snittklipp, 2D-snittritningar med mm-koordinater, linjeprober (skikttjocklekar), avstånd, krockar och skillnader mellan versioner.
+Läser en STEP-fil (som standard den kodgenererade modellen, `modeller/trebodar/ut/trebodar.step`, som byggs med `verktyg/modellering/mod bygg`) med exakt B-rep-geometri, delnamn och färger, och svarar på frågor om den: översikt, delträd, exakta koordinater, 3D-bilder från valfri vinkel med snittklipp, 2D-snittritningar med mm-koordinater, linjeprober (skikttjocklekar), avstånd, krockar och skillnader mellan versioner.
 
-Standardfil: `../../modeller/trebodar.step`. Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
+Standardfil: `../../modeller/trebodar/ut/trebodar.step` (kodgenererad, K-05:s koordinater). Onshape-modellen: `--fil ../../modeller/referens/trebodar-onshape.step`. Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
 
 ## Installation
 
@@ -50,7 +50,7 @@ Bilder hamnar i `ut/` om inte `--ut` anges.
 
 ## Underlag till beräkningarna
 
-Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. Kör dem när modellen har ändrats:
+Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser ännu Onshape-modellen (`modeller/referens/trebodar-onshape.step`) och ska flyttas över till den kodgenererade modellens namn. Kör dem när modellen har ändrats:
 
 ```
 .venv/bin/python kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter

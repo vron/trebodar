@@ -4,7 +4,7 @@ takstolar, stolpar och huvudstolpen.
 
     .venv/bin/python kontroll_k03.py
 
-geometri.json är K-03:s egen källfil och uppdateras för hand. Den här kontrollen läser modeller/trebodar.step,
+geometri.json är K-03:s egen källfil och uppdateras för hand. Den här kontrollen läser modeller/referens/trebodar-onshape.step,
 räknar fram samma data och redovisar skillnaderna. Den skriver ingenting. Koordinater som i K-05: x, y från
 skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant, mm. Stolparna söks kring K-05:s
 punktlaster (LN, LD, LA) eller kring sökpunkten i K-03:s indata.toml ([[stolpe]] sok); sökpunkten jämförs inte.
@@ -22,7 +22,7 @@ ROT = HERE.parent.parent
 K03 = ROT / "beräkningar" / "K-03"
 sys.path.insert(0, str(HERE))
 from jamfor import jamfor, redovisa  # noqa: E402
-from modell import Modell  # noqa: E402
+from modell import REFERENS, Modell  # noqa: E402
 
 IN = tomllib.loads((K03 / "indata.toml").read_text(encoding="utf-8"))
 G05 = json.load(open(ROT / "beräkningar" / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
@@ -46,7 +46,7 @@ def huvudaxlar(m, d, O):
 
 
 def main():
-    m = Modell(tyst=True)
+    m = Modell(REFERENS, tyst=True)
     platta = [d for d in m.valj("Mittenplatta") if d.namn == "Mittenplatta"][0]
     b = platta.bbox
     O = np.array([b[0], b[1], b[5]])                     # som K-05: plattkanternas skärning och plattans överkant

@@ -16,6 +16,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from multiprocessing import get_context
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -76,7 +77,7 @@ def _form(k: str):  # type: ignore[no-untyped-def]
     return f[k]  # type: ignore[index]
 
 
-def _plana_ytor(k: str) -> list[tuple[np.ndarray, float, object]]:
+def _plana_ytor(k: str) -> list[tuple[np.ndarray, float, Any]]:
     """Plana ytor i formens eget system: (normal utåt, d, polygon i ytans plan (shapely))."""
     yc = _W["ytor"]
     if k in yc:  # type: ignore[operator]
