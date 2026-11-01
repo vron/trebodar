@@ -152,8 +152,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
   skjutdörrar med BLAD och SKENA.
-- **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S12 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
-  KM-OMFATTNING, KM-STOS, KM-ROR1–3, KM-SKORSTEN, KM-HUV, KM-KRAGE.
+- **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
+  KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT, KM-GALLER.
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
   röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
   (undre och övre lagret).
@@ -212,9 +212,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   fyllnadshöjder.
 - **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
   (K-05 räknar med en 3,0 m lång trappa).
-- **Kaminen** enligt planritning 201 och Rais ritning 11-0000-6550: insatsen i öppningen i 2C mot allrummet, kroppen i
-  en kåpa av kalciumsilikat (de lätta väggarna L7, L13 och L14) och väggarna runt trapphålet (L6, L7); underkanten
-  450 över golvet, skorstenen 800 mm över nocken (antaget).
+- **Kaminen** enligt planritning 201 och Rais måttritning och monteringsanvisning (11-6520): insatsen i öppningen i 2C
+  mot allrummet, inbyggd i en innbyggingskasse av 50 mm kalciumsilikat (kåpan av de lätta väggarna L7, L13 och L14 och
+  fronten i öppningen, 920 × 498 × 1 600) med konvektionsöppningar 300 och 550 cm² och plåt över den övre; skorstenens
+  isolerade del börjar i kassen och går genom plåten. Förbränningsluften (AirSystem) i kanal Ø120 genom bjälklaget och
+  källaren ut genom V12. Underkanten 450 över golvet och skorstenen 800 mm över nocken (antaget).
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.

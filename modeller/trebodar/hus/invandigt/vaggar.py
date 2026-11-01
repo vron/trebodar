@@ -33,7 +33,7 @@ from trebodar.material import KALCIUMSILIKAT
 
 from .invandigt import FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T
 
-SKIVOR_KAMIN = (("Kalciumsilikat", 25.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa
+SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
 
 T = 70.0                        # de lätta väggarnas stomme
 CC = 600.0
@@ -70,8 +70,8 @@ LATTA = (
              syll=False),
     Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),
     Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot kaminens kåpa"),
-    Lattvagg("L13", (6320.0, 5480.0), _PX, 7278.0 - 6320.0, "kaminens kåpa, norra sidan"),
-    Lattvagg("L14", (6390.0, 5550.0), _PY, 5900.0 - 5550.0, "kaminens kåpa, västra sidan"),
+    Lattvagg("L13", (6288.0, 5452.0), _PX, 7278.0 - 6288.0, "kaminens kåpa, norra sidan"),
+    Lattvagg("L14", (6358.0, 5522.0), _PY, 5900.0 - 5522.0, "kaminens kåpa, västra sidan"),
 )
 VAGGAR = {lv.kod: lv.vagg for lv in LATTA}
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
