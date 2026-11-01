@@ -172,7 +172,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   plåtar, bottenplattan på en nivå med kantbalk, balkar, plintar och L-element, källarväggarnas kärnor ihopgjutna,
   plattan på mark med cellplast och fyllning, fasadstenen 15 mm ut, dubbel takbalk vid TF1, karmstolparna LD2_1 och
   LD2_2 i väggen 2B vid trapphålets långsidor.
-- **Toppklossar på gavelstolarna**: en kloss på insidan (utsidan är fasad), så att balken vilar på 90 mm.
+- **Toppklossar**: en kloss per takstol, på gavelstolarnas insida (utsidan är fasad) och på mittstolen 2C:s nordöstra
+  sida, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom gipsen), så att balken vilar på 90 mm.
 - **Innerväggar och innerdörrar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med
   OSB och gips (i badrummet plywood, gips, tätskikt och kakel), skikt på de bärande innerväggarna och skjutdörrar
   utanpå väggarna. 2B är sluten söder om trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den

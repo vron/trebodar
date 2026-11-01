@@ -6,7 +6,8 @@ Profilerna är takstolens delar som i Onshape-modellen. Reglerna här ger de än
   takplanen (skelett.TAKLYFT); deras fötter förlängs ner till sätet (lodrätt i yttre änden, längs kanten i den inre);
 - ståndarna förlängs upp till de lyfta diagonalerna;
 - diagonalernas topp kapas plant i balkens underkant, och toppklossar 45 mm, lika höga som diagonalerna och 600 mm
-  långa, skruvas på sidan av toppen (gavelstolar: en kloss på insidan, eftersom utsidan är fasad);
+  långa, skruvas på sidan av toppen: gavelstolarna har en kloss på insidan (utsidan är fasad) och mittstolen 2C en på
+  den nordöstra sidan, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom väggens gips);
 - spikplåtarna är 2,0 mm (K-03) och sitter utanpå; plåtarna i toppen ersätts av klossarna på den sidan.
 """
 from __future__ import annotations
@@ -65,6 +66,7 @@ class Takstol(Plan):
     """En takstol. `balk` är nock- eller dalbalken som vilar på toppen, `utsida` anger om w 0 är fasad."""
     balk: str = "NB5"
     utsida: bool = True
+    klossar: tuple[int, ...] = ()        # sidorna med toppkloss: −1 vid w0, +1 vid w1 (standard: insidan, eller båda)
     diagonaler: list[tuple[list[tuple[float, float]], float, float]] = field(default_factory=list)
     ovriga: list[tuple[Polygon, float, float]] = field(default_factory=list)
     plattor: list[tuple[float, float, float, float, float, float, bool]] = field(default_factory=list)
@@ -137,7 +139,8 @@ class Takstol(Plan):
         kloss = topp.intersection(box(uc - KLOSS_L / 2, -1e5, uc + KLOSS_L / 2, 1e5))
         w0 = min(a for _, a, _ in self.diagonaler)
         w1 = max(b for _, _, b in self.diagonaler)
-        sidor = [(w1, w1 + KLOSS_T)] if self.utsida else [(w0 - KLOSS_T, w0), (w1, w1 + KLOSS_T)]
+        sidor = [(w0 - KLOSS_T, w0) if s < 0 else (w1, w1 + KLOSS_T)
+                 for s in (self.klossar or ((1,) if self.utsida else (-1, 1)))]
         for a, b in sidor:
             k = kloss
             for poly, p0, p1 in self.ovriga:                # andra delar på klossens sida
@@ -161,7 +164,7 @@ class Takstol(Plan):
         return super().montage()
 
 
-def takstol(kod: str, vagg: str, balk: str, utsida: bool) -> Takstol:
+def takstol(kod: str, vagg: str, balk: str, utsida: bool, klossar: tuple[int, ...] = ()) -> Takstol:
     v = S.VAGGAR[vagg]
     return Takstol(kod, f"Takstol {kod}", v.tjocklek, beskrivning=f"Takstol på väggen {vagg} under {balk}",
-                   balk=balk, utsida=utsida)
+                   balk=balk, utsida=utsida, klossar=klossar)
