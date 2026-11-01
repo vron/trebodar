@@ -77,8 +77,8 @@ deras parametrar står i [`verktyg/modellering/blender/material.py`](../../verkt
 Riktningarna gäller delens eget system: virke har x längs fibrerna; fasadens skivor x längs väggen och y uppåt (stående
 brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (råspont `riktning="z"`).
 
-- **Fasaden**: stående sågade granbrädor 22×145 med Falu rödfärg (`PANEL_FALUROD`) eller järnvitriol
-  (`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. Panelen är en skiva per vägg; renderingen ritar
+- **Fasaden**: stående sågade granbrädor 22×145, den södra huskroppen (1) med Falu rödfärg (`PANEL_FALUROD`) och de
+  andra två med järnvitriol (`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. Panelen är en skiva per vägg; renderingen ritar
   brädorna, var och en sågad ur en stock (årsringar i flammor, kvistar som ådringen böjer runt, sågad yta, strimmor,
   färgskiftning per bräda) och skruvarna i spikläktens rader (kontrolleras mot `fasad.py`).
 - **Taket**: plåten är banor med falsar i modellen; varje bana skiftar något i ton och glans och buktar mellan falsarna.

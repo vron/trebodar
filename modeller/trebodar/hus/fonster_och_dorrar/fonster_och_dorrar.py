@@ -11,7 +11,7 @@ from modellering import Del, Montage, Placering, box
 from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.invandigt.invandigt import SKIVOR_T
-from trebodar.material import DORRBLAD, GLAS, KARM
+from trebodar.material import DORRBLAD, FURU, GLAS, KARM
 
 from .oppningar import INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
@@ -58,7 +58,7 @@ def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
         s0, s1 = max([a - d.bredd] + [g1 + 10.0 for _, g1 in grannar if g1 <= a]), b
     s0, s1 = max(s0, min(a, SKIVOR_T + 10.0)), min(s1, max(b, v.langd - SKIVOR_T - 10.0))     # inte förbi grannväggarna
     m = Montage(d.kod, d.kod, f"Skjutdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
-    m.lagg(Del(f"Dörrblad {fmt(b - a)}×{fmt(d.hojd + 30)}", box(a, b, wa, wb, 10.0, d.hojd + 40.0), DORRBLAD),
+    m.lagg(Del(f"Dörrblad trä {fmt(b - a)}×{fmt(d.hojd + 30)}", box(a, b, wa, wb, 10.0, d.hojd + 40.0), FURU),
            Placering(), f"{d.kod}-BLAD")
     m.lagg(Del(f"Skena {fmt(s1 - s0)}", box(s0, s1, sa, sb, d.hojd + 40.0, d.hojd + 80.0), KARM), Placering(),
            f"{d.kod}-SKENA")

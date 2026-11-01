@@ -56,6 +56,10 @@
              color: var(--ink); border: 1px solid #e8590c; border-radius: 4px; padding: 1px 6px; font-size: 12.5px;
              white-space: nowrap; text-align: center; }
   .etikett small { display: block; color: var(--dim); font-size: 10.5px; }
+  #matinfo { position: fixed; right: 10px; top: 92px; z-index: 3; display: none; background: var(--panel);
+             border: 1px solid #e8590c; border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); padding: 6px 10px;
+             font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+  #matinfo b { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -92,6 +96,7 @@
   title="Vinkelrätt avstånd mellan två parallella kanter (P)">parallella</button><button id="rensa"
   title="Ta bort mätningarna">rensa</button><div id="mathjalp"></div></div>
 <div class="snapp" id="snapp"></div><div class="snapp horn" id="snappstart"></div>
+<div id="matinfo"></div>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -633,9 +638,15 @@ function taBort(lista) {
   for (const m of lista) { matGrupp.remove(m.objekt); m.objekt.geometry.dispose(); if (m.etikett) m.etikett.remove(); }
   lista.length = 0;
 }
-function avstandText(a, b) {
+function komponenter(a, b) {
   const d = b.clone().sub(a);       // scenens (x, y, z) = modellens (x, z, −y)
-  return [mm(d.length()), `Δx ${mm(d.x)} · Δy ${mm(-d.z)} · Δz ${mm(d.y)}`];
+  return `Δx ${mm(d.x)}<br>Δy ${mm(-d.z)}<br>Δz ${mm(d.y)}`;
+}
+function visaInfo(rubrik, a, b, extra = "") {
+  // den senaste mätningen med komponenterna längs modellens x, y och z
+  const box = document.getElementById("matinfo");
+  box.innerHTML = `${rubrik}<br><b>${mm(b.distanceTo(a))}</b><br>${komponenter(a, b)}${extra ? "<br>" + extra : ""}`;
+  box.style.display = "block";
 }
 const HJALP = { kant: "Klicka på en kant", avstand: "Klicka på två punkter", parallell: "Klicka på två parallella kanter" };
 function satMatLage(lage) {
@@ -653,9 +664,10 @@ function matKlick(e) {
   if (!s) return;
   if (matLage === "avstand") {
     if (!matStart) { matStart = { punkt: s.punkt }; return; }
-    matning([matStart.punkt, s.punkt], ...avstandText(matStart.punkt, s.punkt));
+    matning([matStart.punkt, s.punkt], mm(s.punkt.distanceTo(matStart.punkt)));
+    visaInfo("Avstånd", matStart.punkt, s.punkt);
   } else if (matLage === "kant") {
-    if (s.hel) matning([s.hel.a, s.hel.b], mm(s.hel.b.distanceTo(s.hel.a)));
+    if (s.hel) { matning([s.hel.a, s.hel.b], mm(s.hel.b.distanceTo(s.hel.a))); visaInfo("Kant", s.hel.a, s.hel.b); }
     return;
   } else if (matLage === "parallell") {
     if (!s.hel) return;
@@ -665,8 +677,10 @@ function matKlick(e) {
     const vinkel = Math.acos(Math.min(1, Math.abs(d1.dot(d2)))) * 180 / Math.PI;
     const m2 = k2.a.clone().add(k2.b).multiplyScalar(0.5);
     const p1 = k1.a.clone().addScaledVector(d1, m2.clone().sub(k1.a).dot(d1));
-    if (vinkel < 0.5) matning([p1, m2], "∥ " + mm(m2.distanceTo(p1)), vinkel > 0.01 ? `vinkel ${vinkel.toFixed(2)}°` : "");
-    else matning([k1.a.clone().add(k1.b).multiplyScalar(0.5), m2], `vinkel ${vinkel.toFixed(1)}°`, "kanterna är inte parallella");
+    if (vinkel < 0.5) {
+      matning([p1, m2], "∥ " + mm(m2.distanceTo(p1)));
+      visaInfo("Vinkelrätt avstånd mellan parallella kanter", p1, m2, vinkel > 0.01 ? `vinkel ${vinkel.toFixed(2)}°` : "");
+    } else matning([k1.a.clone().add(k1.b).multiplyScalar(0.5), m2], `vinkel ${vinkel.toFixed(1)}°`, "kanterna är inte parallella");
   }
   matStart = null; taBort(tillfalligt);
 }
@@ -680,7 +694,7 @@ function hovra(e) {
   if (!hovring) return;
   const ny = tillfalligt.length;
   if (hovring.hel && matLage !== "avstand") matning([hovring.hel.a, hovring.hel.b], null, "", tillfalligt, hovLinje);
-  if (matLage === "avstand" && matStart) matning([matStart.punkt, hovring.punkt], ...avstandText(matStart.punkt, hovring.punkt), tillfalligt);
+  if (matLage === "avstand" && matStart) matning([matStart.punkt, hovring.punkt], mm(hovring.punkt.distanceTo(matStart.punkt)), "", tillfalligt);
   for (const m of tillfalligt.slice(ny)) m.hov = true;
 }
 renderer.domElement.addEventListener("pointermove", e => {
@@ -694,7 +708,9 @@ renderer.domElement.addEventListener("pointerup", e => {
   vansterNer = null; matKlick(e); hovra(e);
 });
 for (const b of document.querySelectorAll("#matverktyg [data-lage]")) b.onclick = () => satMatLage(b.dataset.lage);
-document.getElementById("rensa").onclick = () => { taBort(matningar); matStart = null; taBort(tillfalligt); };
+document.getElementById("rensa").onclick = () => {
+  taBort(matningar); matStart = null; taBort(tillfalligt); document.getElementById("matinfo").style.display = "none";
+};
 document.addEventListener("keydown", e => {
   if (e.target.tagName === "INPUT") return;
   const k = { k: "kant", a: "avstand", p: "parallell" }[e.key.toLowerCase()];

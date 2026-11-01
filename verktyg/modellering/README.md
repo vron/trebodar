@@ -79,8 +79,8 @@ egen modell (t.ex. för beställning). Utdata:
   grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
   genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
   `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. Mätverktygen uppe till höger mäter
-  en rak kant (K), avståndet mellan två punkter med Δx, Δy och Δz (A) och det vinkelräta avståndet mellan två
-  parallella kanter (P), också på snittets konturer; pekaren snäpper till hörn, kanters mitt, kanter och ytor, och
+  en rak kant (K), avståndet mellan två punkter (A) och det vinkelräta avståndet mellan två parallella kanter (P),
+  också på snittets konturer, och visar den senaste mätningen med Δx, Δy och Δz i en ruta under knapparna; pekaren snäpper till hörn, kanters mitt, kanter och ytor, och
   kanter som delas upp i nätet räknas som en.
 
 `mod onshape` läser API-nycklarna ur `lokalt/onshape.json` i repot (versionshanteras inte; `access_key`,
