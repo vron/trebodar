@@ -19,7 +19,7 @@ Husets modell är koden i `modeller/trebodar/` (se dess README): geometriskript 
 - `ritningar/` – en pdf per ritningsserie med ett blad per sida (t.ex. `R-06 Mellanbjälklag.pdf`). Varje blad har egen källa i `beräkningar/R-xx/` (arbetsritningarna i `beräkningar/AR-xx/`). Reviderade bygglovsritningar (`200 Situationsplan.pdf` osv.) är färdiga pdf:er utan källa här; de listas i F-01 avsnitt 5.1.
 - `modeller/` – `trebodar/` den kodgenererade modellen, `referens/` Onshape-modellen (fryst), balkar och balkplåtar som STEP (med DXF). `modeller/modell-todo.md` listar det som ska ändras i modellen för att stämma med handlingarna. Lägg till punkter när handlingarna kräver något som modellen saknar, och ta bort dem när modellen är uppdaterad.
 - `verktyg/modellering/` – ramverket som bygger modellen: kärna (OCCT, cache, parallellt), export (STEP, GLB, materiallista), kontroll av krockar och kontakter, jämförelse med referensen, rendering (Blender) och webbvisaren.
-- `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`). Kontrollerna läser den kodgenererade modellen (bygg den först med `./mod bygg`), utom `kontroll_k03.py`, som ännu läser Onshape-modellen i `modeller/referens/`.
+- `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`). Kontrollerna läser den kodgenererade modellen (bygg den först med `./mod bygg`).
 - `docs/` – webbvisaren (three.js) med modellen, publicerad med GitHub Pages på https://vron.github.io/trebodar/ (det som är incheckat på `main`); byggs med `./mod webb` och checkas in när modellen ändras.
 
 ## Arbetssätt

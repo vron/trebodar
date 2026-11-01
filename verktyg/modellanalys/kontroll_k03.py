@@ -1,16 +1,18 @@
 """
-Kontroll av K-03:s geometri (beräkningar/K-03/geometri.json) mot Onshape-modellen: takbalkar, takfönster,
-takstolar, stolpar och huvudstolpen.
+Kontroll av K-03:s geometri (beräkningar/K-03/geometri.json) mot modellen: nock- och dalbalkar, takbalkar,
+takfönster, takstolar, stolpar och huvudstolpen, och K-05:s stolplägen.
 
     .venv/bin/python kontroll_k03.py
 
-geometri.json är K-03:s egen källfil och uppdateras för hand. Den här kontrollen läser modeller/referens/trebodar-onshape.step,
-räknar fram samma data och redovisar skillnaderna. Den skriver ingenting. Koordinater som i K-05: x, y från
-skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant, mm. Stolparna söks kring K-05:s
-punktlaster (LN, LD, LA) eller kring sökpunkten i K-03:s indata.toml ([[stolpe]] sok); sökpunkten jämförs inte.
-Väggarna (gipsskivorna) avgör åt vilket håll en stolpe är stagad.
+geometri.json är K-03:s egen källfil och uppdateras för hand. Den här kontrollen läser modellen
+(modeller/trebodar/ut/trebodar.step), parar källfilens delar med modellens på läget (källfilens namn är
+Onshape-modellens, t.ex. takbalkstyperna och takstolarnas stavar, och jämförs inte) och redovisar per grupp
+antalet och de största avvikelserna. Den skriver ingenting. Koordinater som i K-05: x, y från skärningen mellan
+mellanbjälklagets kanter, z från bjälklagets överkant, mm. Stolparna söks kring K-03:s sökpunkter
+(indata.toml, [[stolpe]] sok) och K-05:s punktlaster.
 """
 import json
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -21,131 +23,146 @@ HERE = Path(__file__).parent
 ROT = HERE.parent.parent
 K03 = ROT / "beräkningar" / "K-03"
 sys.path.insert(0, str(HERE))
-from jamfor import jamfor, redovisa  # noqa: E402
-from modell import REFERENS, Modell  # noqa: E402
+from modell import Modell  # noqa: E402
 
 IN = tomllib.loads((K03 / "indata.toml").read_text(encoding="utf-8"))
-G05 = json.load(open(ROT / "beräkningar" / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
-BALKAR = {"HEA200 NV": "N1", "HEA200 NVb": "D2", "HEA200 M": "N3", "HEA200 SEb": "D4", "HEA200 SE": "N5"}
+BALKAR = {"N1": "NB1", "D2": "DB2", "N3": "NB3", "D4": "DB4", "N5": "NB5"}
+TAKSTOLAR = {"Stol 1NO": "1NO", "Stol 1SV": "1SV", "Stol 2NO": "2NO", "Stol L2M": "2C", "Stol 2SV": "2SV",
+             "Stol 3NO": "3NO", "3SV": "3SV"}
 SOK_STOLPE = 120.0          # stolpens delar: centrum inom detta avstånd från sökpunkten i plan [mm]
-GLIPA_VAGG = 30.0           # stolpen räknas som stagad av en vägg om gipsskivan ligger högst så här långt bort [mm]
-r1 = lambda v: round(float(v), 1)
-
-
-def huvudaxlar(m, d, O):
-    """Längd, bredd och höjd längs delens huvudaxlar (PCA på nätet) och längdriktningen."""
-    V, _ = m.nat(d)
-    V = np.asarray(V, float) - O
-    c = V.mean(0)
-    w, U = np.linalg.eigh(np.cov((V - c).T))
-    U = U[:, ::-1]
-    P = (V - c) @ U
-    ext = P.max(0) - P.min(0)
-    a = U[:, 0] * np.sign(U[np.argmax(np.abs(U[:, 0])), 0])
-    return ext, a
+TOL = 1.0                   # [mm]
 
 
 def main():
-    m = Modell(REFERENS, tyst=True)
-    platta = [d for d in m.valj("Mittenplatta") if d.namn == "Mittenplatta"][0]
-    b = platta.bbox
-    O = np.array([b[0], b[1], b[5]])                     # som K-05: plattkanternas skärning och plattans överkant
-    stomme = m.valj("Regelstomme Ny")
+    m = Modell(tyst=True)
+    O = np.array([*m.valj("MB-B")[0].bbox[:2], m.valj("MB-B")[0].bbox[5]])    # K-05:s origo och bjälklagets ök
+    stomme = m.valj("Stomme")
 
-    def bb(d):
-        q = np.array(d.bbox) - np.concatenate([O, O])
-        return dict(x0=r1(q[0]), y0=r1(q[1]), z0=r1(q[2]), x1=r1(q[3]), y1=r1(q[4]), z1=r1(q[5]))
+    def lada(ds):
+        b = np.array(m.bbox(ds)) - np.concatenate([O, O])
+        return dict(x0=b[0], y0=b[1], z0=b[2], x1=b[3], y1=b[4], z1=b[5])
 
-    ut = dict(kalla=dict(fil=m.fil.name, hash=m.hash), origo=[r1(v) for v in O])
-    # nock- och dalbalkar
-    ut["balkar"] = []
+    kalla = json.loads((K03 / "geometri.json").read_text(encoding="utf-8"))
+    rapport, fel = [], []
+
+    def jamfor_tal(grupp, par, falt):
+        """Största avvikelse per fält för parade (källfil, modell)."""
+        if not par:
+            return
+        st = {f: max(abs(k[f] - mo[f]) for k, mo in par) for f in falt}
+        avv = {f: v for f, v in st.items() if v > TOL}
+        rapport.append(f"  {grupp}: {len(par)} parade" + (", största avvikelse " + ", ".join(
+            f"{f} {v:.1f}" for f, v in avv.items()) if avv else ", stämmer"))
+        if avv:
+            fel.append(f"{grupp}: " + ", ".join(f"{f} upp till {v:.1f} mm" for f, v in avv.items()))
+
+    def para(kallor, modeller, nyckel):
+        """Para varje källfilsdel med närmaste modelldel (nyckel: funktion till en punkt)."""
+        kvar, par = list(modeller), []
+        for k in kallor:
+            if not kvar:
+                break
+            j = int(np.argmin([np.hypot(*(np.subtract(nyckel(k), nyckel(mo)))) for mo in kvar]))
+            par.append((k, kvar.pop(j)))
+        return par, kvar
+
+    # ---------------------------------------------------------------- nock- och dalbalkar
+    rapport.append("Nock- och dalbalkar")
+    par = []
+    for b in kalla["balkar"]:
+        q = lada([d for d in stomme if d.grupp.endswith("/" + BALKAR[b["namn"]])])
+        par.append((b, dict(x=(q["x0"] + q["x1"]) / 2, y0=q["y0"], y1=q["y1"], zu=q["z0"], zo=q["z1"])))
+    jamfor_tal("balkarna", par, ("x", "y0", "y1", "zu", "zo"))
+
+    # ---------------------------------------------------------------- takbalkar
+    rapport.append("Takbalkar")
+    tb = []
     for d in stomme:
-        if d.namn in BALKAR:
-            q = bb(d)
-            ut["balkar"].append(dict(namn=BALKAR[d.namn], modell=d.namn, x=r1((q["x0"] + q["x1"]) / 2),
-                                     y0=q["y0"], y1=q["y1"], zu=q["z0"], zo=q["z1"]))
-    # takbalkar
-    ut["takbalkar"] = []
-    for d in stomme:
-        if d.namn.startswith("Å"):
-            q = bb(d)
-            ut["takbalkar"].append(dict(typ=d.namn.split(" [")[0], x0=q["x0"], x1=q["x1"],
-                                        y=r1((q["y0"] + q["y1"]) / 2), z0=q["z0"], z1=q["z1"]))
-    # takfönster: par av avväxlingsreglar med samma y-läge
-    tf = [bb(d) | dict(namn=d.namn) for d in stomme if d.namn.startswith("R TF t")]
+        if "/Takbalkar/" in d.sokvag and re.fullmatch(r"\w+-T\d+", d.namn):
+            q = lada([d])
+            tb.append(dict(x0=q["x0"], x1=q["x1"], y=(q["y0"] + q["y1"]) / 2, z0=q["z0"], z1=q["z1"]))
+    rapport.append(f"  {len(kalla['takbalkar'])} i källfilen, {len(tb)} i modellen")
+    if len(kalla["takbalkar"]) != len(tb):
+        fel.append(f"takbalkar: {len(kalla['takbalkar'])} i källfilen, {len(tb)} i modellen")
+    par, kvar = para(kalla["takbalkar"], tb, lambda r: ((r["x0"] + r["x1"]) / 2, r["y"]))
+    jamfor_tal("takbalkarna", par, ("x0", "x1", "y", "z0", "z1"))
+
+    # ---------------------------------------------------------------- takfönster (avväxlingarna)
+    rapport.append("Takfönster")
+    av = [lada([d]) for d in stomme if "/Takbalkar/" in d.sokvag and re.fullmatch(r"\w+-A\d+", d.namn)]
     grupper = {}
-    for t in tf:
-        grupper.setdefault((t["y0"], t["y1"], t["x0"] < 6905), []).append(t)
-    ut["fonster"] = []
-    for nr, ((y0, y1, _), ts) in enumerate(sorted(grupper.items(), key=lambda g: (g[0][1], g[0][0])), 1):
+    for a in av:
+        grupper.setdefault((round(a["y0"]), round(a["y1"])), []).append(a)
+    tf = []
+    for (y0, y1), ts in sorted(grupper.items()):
         ts.sort(key=lambda t: t["z0"])
-        xa, xb = min(t["x0"] for t in ts), max(t["x1"] for t in ts)
-        sida = [r for r in ut["takbalkar"] if r["x0"] <= xa + 1 and r["x1"] >= xb - 1]
-        vid0 = [r for r in sida if y0 - 100 < r["y"] < y0]
-        vid1 = [r for r in sida if y1 < r["y"] < y1 + 100]
-        inne = [r for r in ut["takbalkar"] if y0 < r["y"] < y1 and r["x1"] > xa and r["x0"] < xb]
-        ut["fonster"].append(dict(nr=nr, y0=y0, y1=y1, x0=ts[0]["x1"], x1=ts[-1]["x0"], z_under=ts[0]["z0"], z_over=ts[-1]["z0"],
-                                  vaxlar=[[t["x0"], t["x1"], t["z0"], t["z1"]] for t in ts],
-                                  trimmer=[len(vid0), len(vid1)], kortlingar=len(inne)))
-    # takstolar
-    ut["takstolar"] = []
-    for T in IN["takstol"]:
-        if T["namn"].startswith("Stol"):
-            delar = [d for d in stomme if d.grupp.endswith(T["namn"] + " <1>")]
-        else:                                             # takstolen ligger i gavelväggens grupp
-            delar = [d for d in stomme if d.grupp.endswith(T["namn"] + " <1>") and d.namn.split(" [")[0] in (
-                f"{T['namn']} diag", f"{T['namn']} extra", f"{T['namn']} bottom", "Sp 100x400", "Sp 100x600")]
-        staver, platar = [], []
-        for d in delar:
-            q = bb(d)
-            if d.namn.startswith("Sp "):
-                platar.append(dict(namn=d.namn.split(" [")[0], x0=q["x0"], x1=q["x1"], z0=q["z0"], z1=q["z1"]))
-                continue
-            ext, a = huvudaxlar(m, d, O)
-            staver.append(dict(namn=d.namn, x0=q["x0"], x1=q["x1"], z0=q["z0"], z1=q["z1"], y0=q["y0"], y1=q["y1"],
-                               L=r1(ext[0]), h=r1(ext[1]), b=r1(ext[2]), ax=round(float(a[0]), 3), az=round(float(a[2]), 3)))
-        y = float(np.mean([(s["y0"] + s["y1"]) / 2 for s in staver]))
-        ut["takstolar"].append(dict(namn=T["namn"], y=r1(y), staver=staver, platar=platar))
-    # väggar (gipsskivor) och stolpar
-    gips = [bb(d) | dict(namn=d.namn) for d in m.valj("gyp_w*")]
-    vert = []
-    for d in stomme:
-        q = bb(d)
-        if q["z1"] - q["z0"] > 1000 and (q["x1"] - q["x0"]) < 200 and (q["y1"] - q["y0"]) < 200:
-            vert.append(q | dict(namn=d.namn, grupp=d.grupp.split("/")[-1]))
-    ut["stolpar"] = []
+        tf.append(dict(y0=y0, y1=y1, z_under=ts[0]["z0"], z_over=ts[-1]["z0"], n=len(ts)))
+    par, _ = para(kalla["fonster"], tf, lambda f: ((f["y0"] + f["y1"]) / 2, 0.0))
+    jamfor_tal("öppningarna", par, ("y0", "y1", "z_under", "z_over"))
+
+    # ---------------------------------------------------------------- takstolar
+    rapport.append("Takstolar")
+    for T in kalla["takstolar"]:
+        kod = TAKSTOLAR[T["namn"]]
+        ds = [d for d in stomme if d.grupp.endswith(f"/Takstol {kod}") and re.fullmatch(r"\w+-[DXUR]\d+", d.namn)]
+        staver = [lada([d]) for d in ds if d.namn.split("-")[1][0] in "DXU" or T["namn"] == "Stol 2SV"]
+        par, kvar = para(T["staver"], staver, lambda s: ((s["x0"] + s["x1"]) / 2, (s["z0"] + s["z1"]) / 2))
+        if len(T["staver"]) != len(staver):
+            rapport.append(f"  {T['namn']} (Takstol {kod}): {len(T['staver'])} stavar i källfilen, {len(staver)} i modellen")
+            fel.append(f"{T['namn']}: {len(T['staver'])} stavar i källfilen, {len(staver)} i modellen")
+        jamfor_tal(f"{T['namn']} (Takstol {kod})", par, ("x0", "x1", "z0", "z1"))
+
+    # ---------------------------------------------------------------- stolpar
+    rapport.append("Stolpar")
     sys.path.insert(0, str(ROT / "beräkningar" / "K-05"))
-    import laster as L05                                  # stolparnas lägen: K-05:s punktlaster, sökpunkt i indata vid behov
+    import laster as L05                                  # K-05:s punktlaster och stolplägen
     sok = {p["namn"]: (p["x"], p["y"]) for p in L05.punktlaster()}
     sok.update({S["namn"]: tuple(S["sok"]) for S in IN["stolpe"] if "sok" in S})
+    vert = [(d, lada([d])) for d in stomme if d.storlek[2] > 1000 and d.storlek[0] < 200 and d.storlek[1] < 200]
+    kalla_st = {s["namn"]: s for s in kalla["stolpar"]}
     for namn, (x, y) in sok.items():
-        S = dict(namn=namn)
-        delar = [v for v in vert if abs((v["x0"] + v["x1"]) / 2 - x) <= SOK_STOLPE and abs((v["y0"] + v["y1"]) / 2 - y) <= SOK_STOLPE]
-        stagad = ""
-        if delar:
-            X0, X1 = min(v["x0"] for v in delar), max(v["x1"] for v in delar)
-            Y0, Y1 = min(v["y0"] for v in delar), max(v["y1"] for v in delar)
-            for g in gips:
-                dx = max(g["x0"] - X1, 0, X0 - g["x1"])
-                dy = max(g["y0"] - Y1, 0, Y0 - g["y1"])
-                if dx <= GLIPA_VAGG and dy <= GLIPA_VAGG and g["z1"] > 2000:
-                    stagad += "x" if (g["x1"] - g["x0"]) > (g["y1"] - g["y0"]) else "y"
-        ut["stolpar"].append(dict(namn=S["namn"], sok=[x, y], stagad="".join(sorted(set(stagad))),
-                                  delar=[dict(namn=v["namn"], grupp=v["grupp"], x0=v["x0"], x1=v["x1"], y0=v["y0"], y1=v["y1"],
-                                              z0=v["z0"], z1=v["z1"]) for v in delar]))
-    # huvudstolpens delar (för figuren)
-    ut["huvudstolpe"] = [bb(d) | dict(namn=d.namn) for d in stomme if d.grupp.split("/")[-1].startswith("L3 Vert") and not d.namn.startswith("Sp")]
-    kalla = json.loads((K03 / "geometri.json").read_text(encoding="utf-8"))
-    kod = redovisa("K-03 geometri.json", jamfor(kalla, ut, utelamna=(".sok",)))
-    # K-05:s stolplägen (laster.STOLPLAGEN) mot stolparnas mitt i modellen
-    fel = []
-    for s_ in ut["stolpar"]:
-        d = s_["delar"]
-        if s_["namn"] in L05.STOLPLAGEN and d:
-            c = ((min(v["x0"] for v in d) + max(v["x1"] for v in d)) / 2, (min(v["y0"] for v in d) + max(v["y1"] for v in d)) / 2)
-            fel += [f"{s_['namn']}: K-05 {L05.STOLPLAGEN[s_['namn']]}, modellen ({c[0]:.0f}, {c[1]:.0f})"
-                    for k in (0, 1) if abs(L05.STOLPLAGEN[s_["namn"]][k] - c[k]) > 1.0][:1]
-    return max(kod, redovisa("K-05 laster.STOLPLAGEN", fel))
+        delar = [q for d, q in vert if abs((q["x0"] + q["x1"]) / 2 - x) <= SOK_STOLPE
+                 and abs((q["y0"] + q["y1"]) / 2 - y) <= SOK_STOLPE]
+        k = kalla_st.get(namn)
+        kd = k["delar"] if k else []
+        c_m = ((min(q["x0"] for q in delar) + max(q["x1"] for q in delar)) / 2,
+               (min(q["y0"] for q in delar) + max(q["y1"] for q in delar)) / 2) if delar else None
+        c_k = ((min(q["x0"] for q in kd) + max(q["x1"] for q in kd)) / 2,
+               (min(q["y0"] for q in kd) + max(q["y1"] for q in kd)) / 2) if kd else None
+        z_m = (min(q["z0"] for q in delar), max(q["z1"] for q in delar)) if delar else None
+        z_k = (min(q["z0"] for q in kd), max(q["z1"] for q in kd)) if kd else None
+        avv = []
+        if len(delar) != len(kd):
+            avv.append(f"{len(kd)} delar i källfilen, {len(delar)} i modellen")
+        if c_m and c_k and max(abs(c_m[0] - c_k[0]), abs(c_m[1] - c_k[1])) > TOL:
+            avv.append(f"mitt ({c_k[0]:.0f}, {c_k[1]:.0f}) → ({c_m[0]:.0f}, {c_m[1]:.0f})")
+        if z_m and z_k and max(abs(z_m[0] - z_k[0]), abs(z_m[1] - z_k[1])) > TOL:
+            avv.append(f"z {z_k[0]:.0f}–{z_k[1]:.0f} → {z_m[0]:.0f}–{z_m[1]:.0f}")
+        rapport.append(f"  {namn}: " + ("; ".join(avv) if avv else "stämmer"))
+        if avv:
+            fel.append(f"stolpe {namn}: " + "; ".join(avv))
+        if namn in L05.STOLPLAGEN and c_m:
+            s = L05.STOLPLAGEN[namn]
+            if max(abs(s[0] - c_m[0]), abs(s[1] - c_m[1])) > TOL:
+                fel.append(f"K-05 laster.STOLPLAGEN {namn}: {s}, modellen ({c_m[0]:.0f}, {c_m[1]:.0f})")
+
+    # ---------------------------------------------------------------- huvudstolpen (LN1_3 med strävor)
+    rapport.append("Huvudstolpen")
+    hs = [lada([d]) for d in stomme if d.grupp.endswith("/Stolpe LN1_3") and not re.fullmatch(r"\w+-P\d+", d.namn)]
+    par, _ = para(kalla["huvudstolpe"], hs, lambda s: ((s["y0"] + s["y1"]) / 2, (s["z0"] + s["z1"]) / 2))
+    if len(kalla["huvudstolpe"]) != len(hs):
+        fel.append(f"huvudstolpen: {len(kalla['huvudstolpe'])} delar i källfilen, {len(hs)} i modellen")
+    jamfor_tal("huvudstolpens delar", par, ("x0", "x1", "y0", "y1", "z0", "z1"))
+
+    print(f"modell: {m.fil.name} ({m.hash})")
+    print("\n".join(rapport))
+    if fel:
+        print(f"\nK-03 geometri.json avviker från modellen ({len(fel)}):")
+        print("\n".join("  " + f for f in fel))
+        return 1
+    print("\nK-03 geometri.json: allt stämmer med modellen.")
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
