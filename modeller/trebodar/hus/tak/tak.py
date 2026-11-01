@@ -4,8 +4,9 @@ Skikt från takbalkarna och utåt: hårdboard 3 mm, ströläkt 34×45 (luftspalt
 bandtäckt zink-magnesiumplåt 0,6. Plåten ligger i banor 525 mm breda längs takfallet, med stående falsar 25 mm
 höga mellan banorna (halva falsen på var bana) och lika breda kantbanor vid gavlarna. Ströläkten ligger på varje
 takbalk och takstol och två mellan i varje fack (så att hårdboarden inte trycks upp mot råsponten när isoleringen
-blåses in), med uppehåll 600 mm ovanför och nedanför takfönstren (U-03). Skikten slutar lodrätt vid takbalkarnas ände vid takfoten, i nock- och dallinjerna och i
-gavlarnas fasadliv.
+blåses in), med uppehåll 600 mm ovanför och nedanför takfönstren (U-03). Skikten slutar lodrätt i nock- och
+dallinjerna och i gavlarnas fasadliv. Vid takfoten slutar hårdboarden på isolerstoppet i ytterväggens liv
+(isolering.py), ströläkten vid takbalkarnas ände och råsponten, pappen och plåten 20 mm utanför den.
 """
 from __future__ import annotations
 
@@ -66,12 +67,20 @@ SKIKT = (("Hårdboard", "HD", L.HARDBOARD, HDF), ("Råspont", "RP", L.RASPONT, R
          ("Underlagspapp", "UP", L.PAPP, PAPP), ("Takplåt", "TP", L.PLAT, TAKPLAT))
 
 
+def _vid_takfoten(kod: str, typ: str) -> list[Region]:
+    """Regionerna med skiktets kant vid takfoten: hårdboarden till ytterväggens liv (isolerstoppet), råsponten,
+    pappen och plåten RASPONT_UT utanför takbalkarnas ände."""
+    t, f = S.TAKFALL[kod], FALT[kod]
+    x = t.x_utsida if typ == "HD" else f.takfot - t.riktning * L.RASPONT_UT if typ in ("RP", "UP", "TP") else f.takfot
+    return [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else r for r in REGIONER[kod]]
+
+
 def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], material: Material,
            fonster: tuple[Takfonster, ...], falsar: Sequence[float] = ()) -> Montage:
     """Skiktet i bitar: y-intervall mellan regionernas kanter, fönstren (vid fönstren en bit nedanför och en
     ovanför öppningen) och falsarna (plåtbanor med halva falsen vid de kanter som är falsar)."""
     p = Plan(kod, f"{namn} {kod}", 1.0, beskrivning=material.beskrivning, material=material)
-    for r in REGIONER[kod]:
+    for r in _vid_takfoten(kod, typ):
         fo = [f for f in fonster if r.y0 < f.y0 < r.y1]
         fs = {y for y in falsar if r.y0 < y < r.y1}
         ys = sorted({r.y0, r.y1, *(f.y0 for f in fo), *(min(f.y1, r.y1) for f in fo), *fs})

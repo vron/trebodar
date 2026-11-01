@@ -1,8 +1,10 @@
 """Isoleringen: träfiber mellan takbalkarna (F-01: 170 mm) och mineralull i ytterväggarnas regelfack (95 mm).
 
-Taket: i varje fack mellan takbalkar (och takstolarnas ytterbalkar), från ytterväggens utsida till nockbalkens
-eller dalbalkens sida, mellan takbalkarnas över- och underkant (vågrätt avskuren i hammarbandets överkant) och
-utanför takfönstrens öppningar och avväxlingar. Väggarna: regelfacken, dvs. väggens yta minus alla reglar och
+Taket: i varje fack mellan takbalkar (och takstolarnas ytterbalkar), från isolerstoppet vid takfoten till
+nockbalkens eller dalbalkens sida, mellan takbalkarnas över- och underkant (vågrätt avskuren i hammarbandets
+överkant) och utanför takfönstrens öppningar och avväxlingar. Isolerstoppet är en bräda 22 mm på hammarbandet i
+ytterväggens liv i varje fack vid takfoten, upp till takbalkarnas överkant och kapad efter takplanet; hårdboarden
+slutar på den. Väggarna: regelfacken, dvs. väggens yta minus alla reglar och
 öppningar, genom hela stommen.
 """
 from __future__ import annotations
@@ -17,11 +19,12 @@ from trebodar.byggdelar import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
+from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
 from trebodar.hus.stomme.prefab.takstolar.takstolar import STOLAR
 from trebodar.hus.stomme.prefab.yttervaggar.yttervaggar import VAGGAR as VAGGMODULER
-from trebodar.material import MINERALULL, TRAFIBER
+from trebodar.material import C24, MINERALULL, TRAFIBER
 
 GAVELVAGGAR = {1: ("1NO", "1SV"), 2: ("2NO", "2SV"), 3: ("3NO", "3SV")}
 TAKSTOLSVAGGAR = set(STOLAR) & set(S.INNERVAGGAR)       # innerväggar med takstol (mittstolen 2C)
@@ -74,8 +77,20 @@ def tak(kod: str) -> Montage:
     dal = S.BALKAR[f.dal] if f.dal else None
     for y0, y1 in _fack(kod):
         ym = 0.5 * (y0 + y1)
-        nedre = L.Kant("lodratt", _sida(dal.kod, t) + t.riktning * 45.0 if dal and dal.y0 <= ym <= dal.y1
-                       else t.x_utsida)
+        if dal and dal.y0 <= ym <= dal.y1:
+            nedre = L.Kant("lodratt", _sida(dal.kod, t) + t.riktning * 45.0)
+        else:
+            # takfoten: isolerstoppet på hammarbandet, isoleringen innanför
+            ut, inne = L.Kant("lodratt", t.x_utsida), L.Kant("lodratt", t.x_utsida + t.riktning * L.STOPP_T)
+            q = L.profil(t, -S.TAKBALK_H, 0.0, ut, inne)
+            assert q
+            stopp = Polygon(q).intersection(box(-1e5, S.H_VAGG, 1e5, 1e5))
+            # i takfönstrens fack går kortlingen till takfoten mitt i facket
+            ky = [0.5 * (fo.y0 + fo.y1) for fo in f.fonster if fo.y0 - 1 <= y0 and y1 <= fo.y1 + 1]
+            for a0, a1 in ([(y0, ky[0] - 22.5), (ky[0] + 22.5, y1)] if ky else [(y0, y1)]):
+                p.profil([(float(x), float(z)) for x, z in list(stopp.exterior.coords)[:-1]], a0, a1, typ="IS",
+                         material=C24, bas_namn=f"Isolerstopp {fmt(L.STOPP_T)}×{fmt(stopp.bounds[3] - S.H_VAGG)}")
+            nedre = inne
         bitar = [(nedre, ovre, y0, y1)]
         for fo in f.fonster:
             if fo.y0 - 1 <= y0 and y1 <= fo.y1 + 1:            # fönstrets fack: under och över avväxlingarna
