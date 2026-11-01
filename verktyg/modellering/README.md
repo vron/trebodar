@@ -72,7 +72,10 @@ egen modell (t.ex. för beställning). Utdata:
   och snitt i x, y och z. Materialen listas med sina CAD-färger och kan döljas var för sig (t.ex. isolering och gips
   för att se stommen); en ruta växlar till de verkliga färgerna. Där ett snitt skär en del räknas tvärsnittet ut ur
   nätet och ritas i delens färg med svart kontur, som i en sektionsritning. Klick visar delens namn, sökväg och
-  material, dubbelklick sätter rotationscentrum och hjulet zoomar mot pekaren. Högerklick på en del (delen och
+  material. Navigeringen som i CAD-program: hjulet för kameran mot punkten under pekaren (ett steg är en andel av
+  avståndet dit, och rotationscentrum följer med, så att man kommer hur nära som helst och genom väggar), vridning och
+  panorering sker kring djupet för punkten där man tar tag, dubbelklick sätter rotationscentrum och piltangenterna och
+  PgUp/PgDn går genom huset. Högerklick på en del (delen och
   grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
   genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
   `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. Mätverktygen uppe till höger mäter

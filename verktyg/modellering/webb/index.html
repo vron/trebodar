@@ -64,8 +64,10 @@
 <aside id="panel">
   <div class="rad" style="justify-content: space-between"><h1>Fritidshus Trebodar</h1><button id="stang">◀</button></div>
   <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för
-    information, dubbelklicka för att kretsa kring den; hjulet zoomar mot pekaren. Högerklicka på en del, i trädet
-    eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
+    information. Hjulet för kameran mot punkten under pekaren, hur nära som helst och genom väggar; dra med vänster
+    knapp för att vrida och med höger för att panorera, kring punkten där du tar tag; dubbelklick sätter
+    rotationscentrum. Piltangenterna går genom huset (PgUp/PgDn upp och ned, Skift fortare). Högerklicka på en del, i
+    trädet eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
     parallella kanter med knapparna uppe till höger (K, A, P).</div>
   <h2>Vyer</h2><div id="vyer"></div>
   <h2>Snitt</h2>
@@ -113,7 +115,7 @@ scene.background = new THREE.Color(getComputedStyle(document.body).getPropertyVa
 const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.zoomToCursor = true;                  // zooma mot muspekaren; dubbelklicka på en del för att kretsa kring den
+controls.zoomToCursor = true;                  // två fingrar; hjulet har egen hantering (navigering nedan)
 // omgivning för reflexer, så att metall (takplåten) inte blir svart
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.6;
@@ -712,6 +714,70 @@ function flyttaEtiketter() {
   }
 }
 
+// ---------------------------------------------------------------- navigering
+// Som i CAD-program: hjulet för kameran mot punkten under pekaren, ett steg en andel av avståndet dit (minst 20 mm),
+// och rotationscentrum följer med, så att man inte närmar sig en fast punkt allt långsammare. Vridning och panorering
+// sker kring djupet för punkten där man tar tag. Piltangenterna går genom huset. Närplanet följer avståndet.
+const STEG = 0.002;                    // hjulets steg: andel av avståndet per enhet deltaY (ett hjulklick ≈ 18 %)
+function underPekaren(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(mus, camera);
+  const t = traffLangsStralen()[0];
+  return { riktning: ray.ray.direction.clone(), punkt: t ? t.point.clone() : null };
+}
+function centrumPaDjup(punkt) {
+  // rotationscentrum på kamerans axel, på punktens djup: vyn hoppar inte
+  const axel = new THREE.Vector3(); camera.getWorldDirection(axel);
+  const djup = punkt.clone().sub(camera.position).dot(axel);
+  if (djup > 0.01) controls.target.copy(camera.position).addScaledVector(axel, djup);
+}
+renderer.domElement.addEventListener("wheel", e => {
+  e.preventDefault(); e.stopImmediatePropagation();          // OrbitControls zoomar bara med två fingrar
+  const { riktning, punkt } = underPekaren(e);
+  const d = punkt ? punkt.distanceTo(camera.position) : controls.target.distanceTo(camera.position);
+  const f = 1 - Math.exp(-e.deltaY * STEG);                  // > 0 utåt, < 0 inåt
+  const steg = -Math.sign(f) * Math.max(Math.abs(f) * d, 0.02 * Math.abs(f) / 0.18);
+  const flytt = riktning.multiplyScalar(steg);
+  camera.position.add(flytt); controls.target.add(flytt);
+  if (punkt) centrumPaDjup(punkt);
+}, { passive: false, capture: true });
+renderer.domElement.addEventListener("pointerdown", e => {
+  if (matLage && e.button === 0) return;
+  const { punkt } = underPekaren(e);
+  if (punkt) centrumPaDjup(punkt);
+}, true);
+const tangenter = new Set(), GANG = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown"];
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" || !GANG.includes(e.key)) return;
+  tangenter.add(e.key); e.preventDefault();
+});
+document.addEventListener("keyup", e => tangenter.delete(e.key));
+window.addEventListener("blur", () => tangenter.clear());
+let fortare = false;
+document.addEventListener("keydown", e => { fortare = e.shiftKey; });
+document.addEventListener("keyup", e => { fortare = e.shiftKey; });
+function ga(dt) {
+  if (!tangenter.size) return;
+  const fram = new THREE.Vector3(); camera.getWorldDirection(fram); fram.y = 0; fram.normalize();
+  const hoger = new THREE.Vector3().crossVectors(fram, camera.up).normalize();
+  const v = new THREE.Vector3();
+  if (tangenter.has("ArrowUp")) v.add(fram);
+  if (tangenter.has("ArrowDown")) v.sub(fram);
+  if (tangenter.has("ArrowRight")) v.add(hoger);
+  if (tangenter.has("ArrowLeft")) v.sub(hoger);
+  if (tangenter.has("PageUp")) v.y += 1;
+  if (tangenter.has("PageDown")) v.y -= 1;
+  if (v.lengthSq() === 0) return;
+  v.normalize().multiplyScalar(1.4 * dt * (fortare ? 4 : 1));          // gångfart 1,4 m/s
+  camera.position.add(v); controls.target.add(v);
+}
+function narplan() {
+  const d = camera.position.distanceTo(controls.target);
+  const near = Math.min(0.05, Math.max(0.002, d / 300));
+  if (Math.abs(camera.near - near) > 0.2 * near) { camera.near = near; camera.updateProjectionMatrix(); }
+}
+
 document.getElementById("stang").onclick = () => { document.getElementById("panel").classList.add("dold"); storlek(); };
 document.getElementById("knapp").onclick = () => { document.getElementById("panel").classList.remove("dold"); storlek(); };
 
@@ -813,7 +879,11 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
 }, undefined, e => { document.getElementById("laddar").textContent = "Kunde inte läsa modellen: " + e.message; });
 
 window.visare = { scene, camera, controls, gaTill, byggSnitt, fokusera, malObjekt, visaAllt, snappa, satMatLage };
-renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); flyttaEtiketter(); });
+const klocka = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  ga(Math.min(klocka.getDelta(), 0.1)); narplan();
+  controls.update(); renderer.render(scene, camera); flyttaEtiketter();
+});
 </script>
 </body>
 </html>
