@@ -7,3 +7,7 @@
 
 # Python-cache
 __pycache__/
+
+# Modellering: cache och genererade filer (byggs med verktyg/modellering/mod)
+verktyg/modellering/.cache/
+modeller/trebodar/ut/

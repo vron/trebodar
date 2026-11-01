@@ -1,0 +1,56 @@
+"""Yttervägg 3NV: högra huskroppens långsida mot NV.
+
+Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["3NV"]): u från (13840; 1065) i växande y, w genom väggen inåt från stommens utsida, z uppåt från bjälklagets överkant.
+"""
+from modellering import Montage
+
+from trebodar.byggdelar.regelvagg import regelvagg
+
+
+def montage() -> Montage:
+    v = regelvagg("3NV")
+    v.syll(0, 3495)
+    v.regel(0)
+    v.hammarband(0, 3495)
+    v.regel(515)
+    v.liggande(560, 1360, 1255)
+    v.liggande(560, 1360, 2100)
+    v.regel(1072.5, z1=1255)
+    v.regel(1072.5, z0=2145)
+    v.regel(1360)
+    v.regel(2215)
+    v.regel(2260, z1=1255)
+    v.liggande(2260, 3060, 1255)
+    v.liggande(2260, 3060, 2100)
+    v.regel(2260, z0=2145)
+    v.regel(3060)
+    v.regel(3472.5)
+    v.syll(3495, 8295)
+    v.hammarband(3495, 8295)
+    v.regel(3915)
+    v.liggande(3960, 4760, 1255)
+    v.liggande(3960, 4760, 2100)
+    v.regel(4672.5, z1=1255)
+    v.regel(4672.5, z0=2145)
+    v.regel(4760)
+    v.regel(5272.5)
+    v.regel(5872.5)
+    v.regel(6472.5)
+    v.regel(7072.5)
+    v.liggande(7117.5, 8117.5, 1055)
+    v.liggande(7117.5, 8117.5, 2100)
+    v.liggande(7117.5, 8117.5, 2400)
+    v.regel(8117.5)
+    v.regel(8272.5)
+    v.syll(8295, 11380)
+    v.hammarband(8295, 11380)
+    v.regel(8925)
+    v.liggande(8970, 9970, 1055)
+    v.liggande(8970, 9970, 2100)
+    v.liggande(8970, 9970, 2400)
+    v.regel(9472.5, z1=1055)
+    v.regel(9472.5, z0=2145, z1=2400)
+    v.regel(9970)
+    v.regel(10672.5)
+    v.regel(11335)
+    return v.montage()

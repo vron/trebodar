@@ -1,0 +1,33 @@
+"""Material: densitet, utseende (STEP, Onshape, rendering) och materiallistans enhet."""
+from modellering import Material
+
+C24 = Material("C24", "Konstruktionsvirke C24", 420, "#d8b47c", 0.75, textur="tra")
+GL30H = Material("GL30h", "Limträ GL30h", 430, "#e0bb82", 0.7, textur="limtra")
+GL30C = Material("GL30c", "Limträ GL30c", 430, "#e3c08a", 0.7, textur="limtra")
+DISTANS = Material("Distansregel", "Distansregel trä eller plywood 10 mm", 450, "#efdcae", 0.8, textur="tra")
+S355 = Material("S355", "Stål S355J2+N, zinkrik grundfärg", 7850, "#6f747b", 0.45, 1.0, textur="stal", enhet="kg")
+S235 = Material("S235", "Stål S235", 7850, "#7a7f86", 0.45, 1.0, textur="stal", enhet="kg")
+SPIKPLAT = Material("Spikplåt", "Spikplåt S250GD+Z 2,0 mm", 7850, "#b8bcc2", 0.4, 1.0, textur="zink", enhet="st")
+HDF = Material("Hårdboard", "Hårdboard (masonit) 3 mm", 950, "#7b5a3c", 0.7, textur="masonit", enhet="m2")
+RASPONT = Material("Råspont", "Råspont 20 mm", 450, "#d9bb8a", 0.8, textur="tra", enhet="m2")
+PAPP = Material("Underlagspapp", "Underlagspapp T-Roof YEP 2500", 1100, "#26272a", 0.9, textur="papp", enhet="m2")
+TAKPLAT = Material("Takplåt", "Zink-magnesiumbelagd stålplåt 0,6 mm", 7850, "#8e959b", 0.35, 1.0, textur="takplat",
+                   enhet="m2")
+UTEGIPS = Material("Utegips", "Utegips 9,5 mm", 750, "#e8e4da", 0.9, textur="gips", enhet="m2")
+PANEL = Material("Panel", "Träpanel 22 mm", 450, "#b98b5a", 0.8, textur="panel", enhet="m2")
+GIPS = Material("Gips", "Gipsskiva 12,5 mm", 720, "#f2f1ec", 0.9, textur="gips", enhet="m2")
+TRAFIBER = Material("Träfiberisolering", "Lösull av träfiber", 45, "#c9a46a", 1.0, textur="isolering", enhet="m3")
+MINERALULL = Material("Mineralull", "Mineralullsskiva", 30, "#e8d27a", 1.0, textur="isolering", enhet="m3")
+ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,
+                    textur="folie", enhet="m2", opacitet=0.6)
+BETONG = Material("Betong", "Betong C30/37", 2400, "#a5a5a5", 0.95, textur="betong", enhet="m3")
+CELLPLAST = Material("Cellplast", "Cellplast EPS S100", 20, "#f6d2df", 0.95, textur="cellplast", enhet="m3")
+CELLPLAST_S300 = Material("Cellplast S300", "Cellplast EPS S300", 30, "#f2bfd2", 0.95, textur="cellplast", enhet="m3")
+GRANIT = Material("Granit", "Beklädnadsgranit Bohus Grå", 2650, "#b5aba7", 0.8, textur="sten", enhet="m2")
+BERG = Material("Berg", "Berg", 2700, "#7f7f7f", 1.0, textur="berg", enhet="m3")
+FYLLNING = Material("Fyllning", "Dränerande fyllning", 1900, "#8c867c", 1.0, textur="grus", enhet="m3")
+MARK = Material("Mark", "Uppfyllnad", 1800, "#5d7f3e", 1.0, textur="mark", enhet="m3")
+GLAS = Material("Glas", "Fönsterglas", 2500, "#9fc4d8", 0.05, textur="glas", opacitet=0.35)
+KARM = Material("Karm", "Fönster- och dörrkarm", 500, "#3d4247", 0.6, textur="karm")
+DORRBLAD = Material("Dörrblad", "Dörrblad", 500, "#9d8540", 0.6, textur="dorr")
+INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.6, textur="ror")

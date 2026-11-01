@@ -1,0 +1,4 @@
+#!/bin/sh
+# Kör modelleringsverktyget med verktygets egen Python-miljö (.venv). Se README.md.
+D="$(cd "$(dirname "$0")" && pwd)"
+exec "$D/.venv/bin/python" -c "import sys; sys.path.insert(0, '$D'); from modellering.cli import main; main()" "$@"
