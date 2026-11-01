@@ -176,6 +176,12 @@ def main(argv: list[str] | None = None) -> None:
         from .export import step
         fil = arg.ut / f"{filnamn(rot)}.step"
         step.skriv(rot, fil, karna, unika_produkter=not arg.delade)
+
+        def montage(m: Montage) -> int:
+            return sum(1 + montage(i.barn) for i in m.barn if isinstance(i.barn, Montage))
+        if (n := montage(rot) + 1) > onshape.MAX_SAMMANSTALLNINGAR:
+            print(f"  OBS: {n} montage; Onshape behåller högst {onshape.MAX_SAMMANSTALLNINGAR} sammanställningar per "
+                  f"import och slår ihop de djupaste nivåerna. Ladda upp delträd (--del) för hela strukturen.")
         git = subprocess.run(["git", "-C", str(ROT), "describe", "--always", "--dirty=*"], capture_output=True,
                              text=True).stdout.strip()
         namn = arg.dokument or f"{rot.namn} {datetime.date.today().isoformat()} {git}".strip()

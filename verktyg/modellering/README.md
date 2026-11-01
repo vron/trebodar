@@ -72,7 +72,9 @@ egen modell (t.ex. för beställning). Utdata:
 
 `mod onshape` läser API-nycklarna ur `lokalt/onshape.json` i repot (versionshanteras inte; `access_key`,
 `secret_key` och eventuellt `mapp`) eller ur miljövariablerna `ONSHAPE_ACCESS_KEY` och `ONSHAPE_SECRET_KEY`. Ett
-gratiskonto i Onshape kan bara skapa publika dokument; då krävs `--publik`.
+gratiskonto i Onshape kan bara skapa publika dokument; då krävs `--publik`. Onshape behåller högst 100
+sammanställningar per import och slår ihop de djupaste nivåerna i större modeller (hela huset har drygt 300); ladda
+upp delträd med `--del` (t.ex. `"Hus/Stomme/Stomme prefab"`) för att få hela strukturen.
 
 STEP-filen analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma …`, som läser den genererade modellen
 som standard).

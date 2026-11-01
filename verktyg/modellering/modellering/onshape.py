@@ -24,6 +24,7 @@ BAS = "https://cad.onshape.com"
 API = "/api/v10"
 NYCKELFIL = ROT / "lokalt" / "onshape.json"
 STANDARDMAPP = "TrebodarAuto"
+MAX_SAMMANSTALLNINGAR = 100      # Onshape behåller högst så många per import; djupare nivåer slås ihop
 JSON = "application/json;charset=UTF-8; qs=0.09"
 
 
