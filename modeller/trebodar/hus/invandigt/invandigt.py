@@ -11,7 +11,7 @@ inte modellerade.
 """
 from __future__ import annotations
 
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
 from modellering import Montage
@@ -24,15 +24,24 @@ from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
-from trebodar.material import ANGBROMS, C24_LAKT, GIPS
+from trebodar.hus.rum import BADRUM
+from trebodar.material import ANGBROMS, C24_LAKT, GIPS, KAKEL, OSB, PLYWOOD, TATSKIKT
 
-FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0          # installationsskikt 45×45, gips 2 × 12,5
-SKIVA = 12.5
+FOLIE, LAKT = 0.4, 45.0                        # ångbroms och installationsskikt 45×45
+# skivorna på väggarna, från reglarna eller installationsläkten och utåt: OSB och gips, i badrummet plywood, gips,
+# tätskikt med fix och kakel (namn, tjocklek, typ, material)
+SKIVOR = (("OSB", 12.0, "OS", OSB), ("Gips", 13.0, "GI", GIPS))
+SKIVOR_VATRUM = (("Plywood", 15.0, "PW", PLYWOOD), ("Gips", 12.0, "GI", GIPS), ("Tätskikt", 3.0, "TS", TATSKIKT),
+                 ("Kakel", 8.0, "KA", KAKEL))
+SKIVOR_T = sum(t for _, t, _, _ in SKIVOR)
+SKIVOR_VATRUM_T = sum(t for _, t, _, _ in SKIVOR_VATRUM)
+SKIVA = 12.5                                   # innertakets gipsskivor
 TAK_W = (-S.TAKBALK_H - FOLIE, -S.TAKBALK_H)                 # under takbalkarnas underkant
 LAKT_W = (TAK_W[0] - LAKT, TAK_W[0])
 GIPS_INRE_W = (LAKT_W[0] - SKIVA, LAKT_W[0])
 GIPS_YTTRE_W = (GIPS_INRE_W[0] - SKIVA, GIPS_INRE_W[0])
-INSIDA_T = FOLIE + LAKT + GIPS_T
+INSIDA_T = FOLIE + LAKT + SKIVOR_T
+INSIDA_VATRUM_T = FOLIE + LAKT + SKIVOR_VATRUM_T
 CC = 400.0
 FRI = 5.0                  # gipsens avstånd till stolpar, strävor och väggar som går genom innertaket
 
@@ -129,6 +138,7 @@ def _tak(kod: str) -> Montage:
     dal = S.BALKAR[f.dal] if f.dal else None
     hinder = _hinder_tak(t, *sorted((min(t.x_insida, dal.x) if dal and t.riktning > 0 else
                                      max(t.x_insida, dal.x) if dal else t.x_insida, ovre_g.x)))
+    hinder += [(*b, False) for b in _badrumsremsor(t)]
     hinder_s = [h[:4] for h in hinder]                     # ångbroms och läkt: mot hindren
     hinder_g = _med_fri(hinder)                            # gips: med avstånd
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
@@ -237,13 +247,50 @@ def _yta(kod: str, u0: float, u1: float) -> Polygon:
     return Polygon([(u0, 0.0), (u1, 0.0)] + [(u, z(u)) for u in reversed(us)])
 
 
+def _badrum_langs(kod: str, u0: float, u1: float, w0: float, w1: float) -> list[tuple[float, float]]:
+    """Badrummets utbredning längs väggen kod (u-intervall) i bandet w0–w1 från stommens yttre yta."""
+    pl = S.YTTERVAGGAR[kod].placering()
+    band = Polygon([pl.punkt((u0, w0, 0))[:2], pl.punkt((u1, w0, 0))[:2], pl.punkt((u1, w1, 0))[:2],
+                    pl.punkt((u0, w1, 0))[:2]])
+    Pi = pl.invers()
+    ut = []
+    for g in P.polygoner(BADRUM.intersection(band)):
+        us = [Pi.punkt((x, y, 0.0))[0] for x, y in g.exterior.coords]
+        ut.append((min(us), max(us)))
+    return sorted(ut)
+
+
+def _badrumsremsor(t: S.Takfall) -> list[tuple[float, float, float, float]]:
+    """Där badrummet ligger mot en gavel är gavelns insida tjockare och innertaket slutar vid den: remsorna (x0, x1,
+    y0, y1) mellan den vanliga insidans och våtrumsskiktets yta."""
+    ut = []
+    for kod, v in S.YTTERVAGGAR.items():
+        if kod in S.TAKFALL or int(kod[0]) != t.kropp:
+            continue
+        pl = v.placering()
+        for a, b in _badrum_langs(kod, 0.0, v.langd, S.T_STOMME, S.T_STOMME + INSIDA_VATRUM_T):
+            horn = [pl.punkt((u, S.T_STOMME + w, 0))[:2] for u in (a, b) for w in (INSIDA_T, INSIDA_VATRUM_T)]
+            ut.append((min(x for x, _ in horn), max(x for x, _ in horn), min(y for _, y in horn), max(y for _, y in horn)))
+    return ut
+
+
+def _insida_t(kod: str, u: float) -> float:
+    """Ytterväggens insida (ångbroms, läkt och skivor) vid u: tjockare i badrummet."""
+    pl = S.YTTERVAGGAR[kod].placering()
+    x, y, _ = pl.punkt((u, S.T_STOMME + 30.0, 0.0))
+    return INSIDA_VATRUM_T if BADRUM.contains(Point(x, y)) else INSIDA_T
+
+
 def _vagg_insida(kod: str) -> Montage:
-    """Ytterväggens insida: ångbroms, liggande installationsläkt 45×45 c/c 600, gips 2 × 12,5."""
+    """Ytterväggens insida: ångbroms, liggande installationsläkt 45×45 c/c 600, OSB och gips (i badrummet plywood,
+    gips, tätskikt och kakel)."""
     v = S.YTTERVAGGAR[kod]
-    m = Montage(f"Insida {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5")
+    m = Montage(f"Insida {kod}", beskrivning="Ångbroms, installationsskikt 45, OSB 12 och gips 13 (i badrummet plywood "
+                                             "15, gips 12, tätskikt och kakel)")
     # från grannväggarnas insidor: u från T_STOMME till langd − T_STOMME där väggen möter en annan vägg i hörnen
     # långsidorna står mellan gavlarna och går ut i hörnen; gavlarnas insida börjar vid långsidornas insida
-    u0, u1 = S.T_STOMME + INSIDA_T, v.langd - S.T_STOMME - INSIDA_T
+    u0 = S.T_STOMME + _insida_t(kod, S.T_STOMME + 1.0)
+    u1 = v.langd - S.T_STOMME - _insida_t(kod, v.langd - S.T_STOMME - 1.0)
     if kod in S.TAKFALL:
         u0, u1 = 0.0, v.langd
     yta = _yta(kod, u0, u1)
@@ -252,7 +299,8 @@ def _vagg_insida(kod: str) -> Montage:
     # delar som står mot väggens insida: deras utbredning i u och z tas bort
     pl = v.placering()
     band = Polygon([pl.punkt((u0, S.T_STOMME, 0))[:2], pl.punkt((u1, S.T_STOMME, 0))[:2],
-                    pl.punkt((u1, S.T_STOMME + INSIDA_T, 0))[:2], pl.punkt((u0, S.T_STOMME + INSIDA_T, 0))[:2]])
+                    pl.punkt((u1, S.T_STOMME + INSIDA_VATRUM_T, 0))[:2],
+                    pl.punkt((u0, S.T_STOMME + INSIDA_VATRUM_T, 0))[:2]])
     Pi = pl.invers()
     for poly, z0, z1 in HINDER:
         g = poly.intersection(band)
@@ -261,8 +309,7 @@ def _vagg_insida(kod: str) -> Montage:
             hal_lista.append(box(min(us), z0, max(us), z1))
     oppet = unary_union(hal_lista) if hal_lista else Polygon()
     w = S.T_STOMME
-    for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT),
-                              ("Gips", GIPS_T, "GI", GIPS)):
+    for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT)):
         p = Plan(kod, f"{namn} {kod}", t, material=mat)
         if namn == "Installationsskikt":
             # liggande läkt c/c 600 och överst i väggen (på gavlarna upp till snedtaket)
@@ -277,6 +324,20 @@ def _vagg_insida(kod: str) -> Montage:
                 p.skiva(P.kontur(q), P.hal(q), w, w + t, typ, mat, f"{namn} {kod}")
         m.lagg(p.montage())
         w += t
+    # skivorna: våtrumsskikt där badrummet ligger mot väggen, annars OSB och gips
+    bad = _badrum_langs(kod, u0, u1, S.T_STOMME, S.T_STOMME + INSIDA_VATRUM_T)
+    vanligt = box(u0, -1.0, u1, topp + 1.0).difference(unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad]))
+    plan: dict[str, Plan] = {}
+    for omrade, skivor in ((vanligt, SKIVOR), (unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad]), SKIVOR_VATRUM)):
+        ws = w
+        for namn, t, typ, mat in skivor:
+            p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", t, material=mat))
+            for q in P.polygoner(yta.intersection(omrade).difference(oppet)):
+                p.skiva(P.kontur(q), P.hal(q), ws, ws + t, typ, mat, f"{namn} {kod}")
+            ws += t
+    for p in plan.values():
+        if p.bitar:
+            m.lagg(p.montage())
     return m
 
 
