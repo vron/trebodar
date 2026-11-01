@@ -8,9 +8,9 @@ modellen (modeller/trebodar/ut/trebodar.step) och jämför:
 
     - öppningarna i betongkärnan: läge längs väggen och bröstningens höjd (betongen);
     - bottenplattans kontur, som ska ligga i väggarnas ytterliv (L-elementens ytterkant; betongen 100 mm innanför);
+    - bottenplattans kantbalk, balkar under innerväggarna och plintar (R-04.1) och L-elementen i plan;
     - väggarnas höjd (betongkärnan från bottenplattans överkant till mellanbjälklagets underkant);
-    - rörens tvärsnitt, matkällarens golv och kärnorna i anslutningarna, där modellen avviker från handlingarna
-      tills punkterna i modeller/modell-todo.md är gjorda.
+    - rörens tvärsnitt och antal, matkällarens golv och att kärnorna går ihop i hörn och anslutningar.
 
 Koordinater i mm som i K-05 (x, y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant).
 Skriver ingenting.
@@ -83,16 +83,28 @@ for o in K.OPPNINGAR:
     if abs(z_brost - o["z0"]) > TOL:
         fel.append(f"{o['namn']}: bröstningens höjd, R-05 {o['z0']}, modellen {z_brost:.1f}")
 
-# ---------------------------------------------------------------- bottenplattans kontur
-plattor = m.valj("BP-B,BP-C")
-pl = Plan.tolka(f"z={O[2] + Z_GOLV - 250.0}").flytta(O[0], O[1])       # nära underkanten: båda plattorna
-ytor = [sd.yta for sd in snitt(m, plattor, pl) if not sd.yta.is_empty]
-modell_kontur = unary_union([p.buffer(0) for p in ytor])
-diff = modell_kontur.symmetric_difference(K.KALLARE).area
-rapport.append(f"  bottenplattan (L-elementens ytterkant): modellen {modell_kontur.area / 1e6:.3f} m², R-04 {K.KALLARE.area / 1e6:.3f} m², "
-               f"skillnad {diff / 1e6:.4f} m²")
-if diff > 1e4:
-    fel.append(f"bottenplattans kontur: skillnad {diff / 1e6:.4f} m² mellan modellen och R-04")
+# ---------------------------------------------------------------- bottenplattan
+def plansnitt(z, delar):
+    """Delarnas snitt i planet z (K-05) som en yta i K-05:s x, y."""
+    pl = Plan.tolka(f"z={O[2] + z}").flytta(O[0], O[1])
+    ytor = [sd.yta for sd in snitt(m, delar, pl) if not sd.yta.is_empty]
+    return unary_union([p.buffer(0) for p in ytor])
+
+
+def jamfor_yta(namn, modell, r04):
+    diff = modell.symmetric_difference(r04).area
+    rapport.append(f"  {namn}: modellen {modell.area / 1e6:.3f} m², R-04 {r04.area / 1e6:.3f} m², "
+                   f"skillnad {diff / 1e6:.4f} m²")
+    if diff > 1e4:
+        fel.append(f"{namn}: skillnad {diff / 1e6:.4f} m² mellan modellen och R-04")
+
+
+platta = m.valj("/Bottenplatta/")
+jamfor_yta("bottenplattan (L-elementens ytterkant)", plansnitt(Z_GOLV - 250.0, platta), K.KALLARE)
+jamfor_yta("bottenplattans betong", plansnitt(Z_GOLV - 50.0, m.valj("BP-B")), K.BETONG)
+jamfor_yta("kantbalk, balkar och plintar (R-04.1)", plansnitt(Z_GOLV - 150.0, m.valj("BP-KB,BP-IB,BP-PL")),
+           unary_union([K.kantbalk(), K.balkar_inre()] + list(K.plintar().values())).intersection(K.BETONG))
+jamfor_yta("L-elementens fot", plansnitt(Z_GOLV - 250.0, m.valj("BP-L")), K.l_element())
 
 # ---------------------------------------------------------------- väggarnas höjd
 w = K.VAGG["V21"]
@@ -102,17 +114,17 @@ rapport.append(f"  V21:s kärna z {zs} → höjd {h:.1f} (R-05 {K.H_VAGG})")
 if abs(h - K.H_VAGG) > TOL:
     fel.append(f"väggarnas höjd: R-05 {K.H_VAGG}, modellen {h:.1f}")
 
-# ---------------------------------------------------------------- kända avvikelser (modell-todo)
-kanda = []
+# ---------------------------------------------------------------- rören, matkällarens golv, kärnornas anslutningar
 ror = [d for d in m.delar if d.namn.startswith("P") and d.namn.endswith("-R")]
 storlek = sorted({round(d.bbox[3] - d.bbox[0]) for d in ror})
+rapport.append(f"  rören: {len(ror)} st, {storlek} mm breda (R-05 {sum(r['n'] for r in K.ROR)} st VKR {K.PLAT:.0f})")
 if storlek != [round(K.PLAT)]:
-    kanda.append(f"rören i modellen är {storlek} mm breda, R-05 VKR {K.PLAT:.0f}×{K.PLAT:.0f}×4 (punkt 8)")
+    fel.append(f"rören i modellen är {storlek} mm breda, R-05 VKR {K.PLAT:.0f}×{K.PLAT:.0f}×4")
 if len(ror) != sum(r["n"] for r in K.ROR):
-    kanda.append(f"modellen har {len(ror)} rör, R-05 {sum(r['n'] for r in K.ROR)} (P7 två rör, punkt 8)")
+    fel.append(f"modellen har {len(ror)} rör, R-05 {sum(r['n'] for r in K.ROR)} (P7 två rör)")
 zm = lodratt(7000.0, 9300.0, Z_GOLV - 400, Z_GOLV + 50, m.valj("BP-B"))
 if zm and abs(max(b for a, b in zm) - Z_GOLV) > TOL:
-    kanda.append(f"matkällarens golv i modellen z {max(b for a, b in zm):.1f}, R-04 {Z_GOLV} (punkt 10)")
+    fel.append(f"matkällarens golv i modellen z {max(b for a, b in zm):.1f}, R-04 {Z_GOLV}")
 for w in K.VAGGAR:
     # kärnan ska gå hela vägen till den vinkelräta väggens centrumlinje i hörn och anslutningar
     for ande, o in ((w["a"], w["mot_a"]), (w["b"], w["mot_b"])):
@@ -124,16 +136,13 @@ for w in K.VAGGAR:
         iv = prob(p_in, p_slut, Z_GOLV + 1000.0, KARNA)
         L = float(np.hypot(p_slut[0] - p_in[0], p_slut[1] - p_in[1]))
         if not iv or iv[0][0] > 1 or iv[0][1] < L - 1:
-            kanda.append(f"{w['namn']} mot {o['namn']}: kärnorna går inte ihop i modellen (punkt 11)")
+            fel.append(f"{w['namn']} mot {o['namn']}: kärnorna går inte ihop i modellen")
 
 if __name__ == "__main__":
     print(f"modell: {m.fil.name} ({m.hash})")
     print("\n".join(rapport))
-    if kanda:
-        print("Kända avvikelser, i modeller/modell-todo.md:")
-        print("\n".join("  " + k for k in kanda))
     if fel:
         print("R-04/R-05 avviker från modellen:")
         print("\n".join("  " + f for f in fel))
         sys.exit(1)
-    print("R-04/R-05: allt stämmer med modellen (utom de kända avvikelserna).")
+    print("R-04/R-05: allt stämmer med modellen.")

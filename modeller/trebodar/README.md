@@ -53,6 +53,7 @@ när stommen ändras.
 | Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
+| Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 
@@ -88,7 +89,8 @@ justeringar i Blender; ändringar som ska vara kvar görs i `material.py`.
 Trebodar
 ├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen)
 └── Hus
-    ├── Grund                   bottenplatta, källarväggar V1–V21, rör P1–P19, plattan på mark, fasadsten per vägg
+    ├── Grund                   bottenplatta (kantbalk, balkar, plintar, L-element), källarväggar V1–V21, rör P1–P19,
+    │                           plattan på mark, fasadsten per vägg
     ├── Mellanbjälklag          betongplatta 150 med trapphål, kantisolering
     ├── Stomme
     │   ├── Stomme prefab       trästommen ovanför bjälklaget, en beställning
@@ -131,6 +133,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY innertakets yttre
   gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, VI vägg. Takplåtens banor heter
   TP och numreras längs takfallet.
+- **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
+  röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
+  (undre och övre lagret).
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
   nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
 
@@ -150,10 +155,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   regeln så högt att haket får fullt säte.
 - **Luftspalten** 34 mm: ströläkt 34×45 på hårdboard 3 mm, på varje takbalk och takstol och två mellan i varje fack,
   uppehåll 600 mm ovanför och nedanför takfönstren (U-03).
-- **Modell-todo** 1–13, 18 och 19: strävor på båda sidor om LN1_3, LD4_1 GL30h 140×140, LD4_2 fyra reglar, ny
-  stolpe LN1_1, toppklossar på takstolarna, kortlingar vid takfönstren, rören VKR 80×80×4 med plåtar, bottenplattan
-  på en nivå, källarväggarnas kärnor ihopgjutna, plattan på mark med cellplast och fyllning, fasadstenen 15 mm ut,
-  dubbel takbalk vid TF1, karmstolparna LD2_1 och LD2_2 i väggen 2B vid trapphålets långsidor (K-05).
+- **Enligt handlingarna** (K-03, K-05, K-06, R-04, R-05): strävor på båda sidor om LN1_3, LD4_1 GL30h 140×140,
+  LD4_2 fyra reglar, ny stolpe LN1_1, toppklossar på takstolarna, kortlingar vid takfönstren, rören VKR 80×80×4 med
+  plåtar, bottenplattan på en nivå med kantbalk, balkar, plintar och L-element, källarväggarnas kärnor ihopgjutna,
+  plattan på mark med cellplast och fyllning, fasadstenen 15 mm ut, dubbel takbalk vid TF1, karmstolparna LD2_1 och
+  LD2_2 i väggen 2B vid trapphålets långsidor.
 - **Toppklossar på gavelstolarna**: en kloss på insidan (utsidan är fasad), så att balken vilar på 90 mm.
 - **Innerdörrar**: ID2 börjar efter karmstolpen LD2_2, ID5 slutar före den nya stolpen LN1_1 och ID6 börjar vid
   stolpen LD4_1.
@@ -167,6 +173,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Lätta innerväggar (bara syllarna finns), golv, vindskivor, takfotsplåtar, hängrännor, el och ventilation. Marken,
-avloppet och golvvärmen läses ur Onshape-modellen (`modeller/referens/delar/`). Bottenplattans balkar, plintar och
-L-element (modell-todo 14) och marken mot källarväggarna (modell-todo 17) är förenklade bort.
+Lätta innerväggar (bara syllarna finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02), trappan,
+takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och ventilation, och marken mot källarväggarna
+där Onshape-modellen saknar mark (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur
+Onshape-modellen (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller)
+är förenklad bort.

@@ -14,6 +14,8 @@ from modellering import Placering
 
 # ------------------------------------------------------------------ nivåer och mått
 H_BJALKLAG = 150.0          # mellanbjälklagets tjocklek (z −150 … 0)
+H_KALLARE = 2100.0          # källarens fria höjd: bottenplattans överkant till bjälklagets underkant (K-06)
+Z_BOTTENPLATTA = -H_BJALKLAG - H_KALLARE      # bottenplattans överkant, z −2 250
 H_VAGG = 2490.0             # ytterväggarnas höjd: hammarbandets överkant
 T_STOMME = 95.0             # väggstommen 45×95
 STOMME_UT = 30.0            # stommens utsida utanför bjälklagets kant (K-05)

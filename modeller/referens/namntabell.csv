@@ -1,7 +1,7 @@
 referens;modellen;status;gemensam_andel
 Hus Mark/Berg;Trebodar/Mark/Berg;ändrad;0.7261
 Hus Mark/Sovrumsavsats;Trebodar/Mark/Sovrumsavsats;ändrad;0.9602
-Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9585
+Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9571
 Hus Mark/Hus Struktur <1>/Beklädnad liten;Trebodar/Hus/Grund/Fasadsten/Fasadsten 1SO/1SO-FM01;ersatt;0.3000
 Hus Mark/Hus Struktur <1>/Värmeslingor källare;Trebodar/Hus/Installationer/VVS/Golvvärme källare;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta isolering;Trebodar/Hus/Mellanbjälklag/MB-C;städad;1.0000
@@ -17,7 +17,7 @@ Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P14/P14
 Hus Mark/Hus Struktur <1>/Källaren <1>/Isoskal vägg 1;Trebodar/Hus/Grund/Källarväggar/V14/V14-C1;ersatt;0.0966
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P10/P10-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P19/P19-R;ersatt;0.0620
-Hus Mark/Hus Struktur <1>/Källaren <1>/Bottenplatta matkällare;Trebodar/Hus/Grund/Bottenplatta/BP-C;ersatt;0.1264
+Hus Mark/Hus Struktur <1>/Källaren <1>/Bottenplatta matkällare;Trebodar/Hus/Grund/Bottenplatta/BP-C1-2;ändrad;0.5161
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P13/P13-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/Bkärna vägg 4;Trebodar/Hus/Grund/Källarväggar/V5/V5-K;städad;1.0000
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P5/P5-R;ersatt;0.0620
@@ -30,7 +30,7 @@ Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P2/P2-R
 Hus Mark/Hus Struktur <1>/Källaren <1>/Isoskal vägg 2;Trebodar/Hus/Grund/Källarväggar/V5/V5-C1;städad;1.0000
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P15/P15-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P8/P8-R;ersatt;0.0620
-Hus Mark/Hus Struktur <1>/Källaren <1>/Bottenplatta;Trebodar/Hus/Grund/Bottenplatta/BP-C;ersatt;0.0897
+Hus Mark/Hus Struktur <1>/Källaren <1>/Bottenplatta;Trebodar/Hus/Grund/Bottenplatta/BP-B;ersatt;0.3198
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P12/P12-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P18/P18-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P7/P7-1-R;ersatt;0.0620
@@ -85,7 +85,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p5;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_t2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI02;ersatt;0.3316
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p8;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p1;;borttagen;
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/door;Trebodar/Hus/Fasad/Utsida 1SO/Utegips 1SO/1SO-UG01;ersatt;0.0634
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/door;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/1SO-D1/1SO-D1-BLAD;ersatt;0.2914
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/StructSovrum;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/wdoor_21x9_gray;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/3SV-D1/3SV-D1-KARM;ersatt;0.3367
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/window_21x21_red;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/1SV-F1/1SV-F1-KARM;ersatt;0.2553

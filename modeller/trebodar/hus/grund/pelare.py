@@ -8,7 +8,7 @@ from modellering import Del, Montage, Placering, box, prisma
 from trebodar import skelett as S
 from trebodar.material import S235, S355
 
-Z0, Z1 = -2250.0, -S.H_BJALKLAG
+Z0, Z1 = S.Z_BOTTENPLATTA, -S.H_BJALKLAG
 VKR, T_VKR = 80.0, 4.0
 TOPP_T, FOT_T = 8.0, 15.0
 # rörens mitt (K-05), P7 med två rör
@@ -61,11 +61,14 @@ def topplatar() -> list[tuple[float, float, float, float]]:
     return ut
 
 
+def fotplat_mitt() -> dict[str, tuple[float, float]]:
+    """Fotplåtarnas mitt i plan per rör (för P7 mellan rören): lastytans mitt, där plinten står."""
+    return {namn: (x + (ANTAL.get(namn, 1) - 1) * VKR / 2, y) for namn, (x, y) in PELARE.items()}
+
+
 def fotplatar() -> list[tuple[float, float, float, float]]:
     ut = []
-    for namn, (x, y) in PELARE.items():
-        n = ANTAL.get(namn, 1)
-        b, d = plater(n)
-        xm = x + (n - 1) * VKR / 2
+    for namn, (xm, y) in fotplat_mitt().items():
+        b, d = plater(ANTAL.get(namn, 1))
         ut.append((xm - b / 2, xm + b / 2, y - d / 2, y + d / 2))
     return ut

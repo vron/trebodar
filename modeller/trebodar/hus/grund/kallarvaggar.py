@@ -19,7 +19,7 @@ from trebodar import skelett as S
 from trebodar.byggdelar.polygon import polygoner, prisma_ur
 from trebodar.material import BETONG, CELLPLAST
 
-Z0, Z1 = -2250.0, -S.H_BJALKLAG
+Z0, Z1 = S.Z_BOTTENPLATTA, -S.H_BJALKLAG
 KARNA, CELL = 150.0, 100.0
 
 
