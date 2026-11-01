@@ -30,7 +30,8 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
 6. **Marken mot K-06.** K-06:s fyllnadshöjder ligger över Onshape-modellens mark vid V7 och V18 (sovrumsavsatsen,
    överkant −742; K-06 −250) och V21 (uppfyllnaden −807 … −670); modellen följer K-06 inom 1,5 m från väggarna. På höger
    huskropp täcker K-06:s fyllning fasadstenen (AR-01, från z −2 150) vid V1 (fyllning till −450), V9 (−2 250 … −1 450)
-   och V14 (−1 450 … −450). Bestäm marknivåerna där (och AR-01:s utbredning eller K-06:s fyllnadshöjder).
+   och V14 (−1 450 … −450). Bestäm marknivåerna där (och AR-01:s utbredning eller K-06:s fyllnadshöjder). Panelen
+   går ned till marken enligt `fasad.MARKNIVA`, som då ändras med.
 7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
 

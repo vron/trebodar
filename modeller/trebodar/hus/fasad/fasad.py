@@ -3,8 +3,9 @@
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
 en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
-Fasaden börjar i bjälklagets underkant (z −150), där fasadstenen tar vid, och slutar vid takfötterna under
-takbalkarnas sätesplan (z 2 490) och i gavlarna mot takets hårdboard. I ytterhörnen går
+Fasaden går ned till marken (MARKNIVA) och på väggarna med fasadsten till stenens överkant i bjälklagets
+underkant (z −150); upptill slutar den vid takfötterna under takbalkarnas sätesplan (z 2 490) och i gavlarna mot
+takets hårdboard. I ytterhörnen går
 gavelns skikt runt hörnet; i innerhörnen går långsidans skikt ut i hörnet.
 """
 from __future__ import annotations
@@ -23,6 +24,20 @@ from trebodar.hus.tak.tak import REGIONER
 from trebodar.material import C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
+# marken vid fasaden (u, z) per vägg: panelens underkant. Ur markmodellen (K-06:s fyllning mot källarväggarna,
+# Onshape-modellens mark och makadamen runt plattan på mark), högsta punkt 0–150 mm utanför väggen och grundens delar
+# i fasadens skikt, 2 mm över den sluttande marken; marknivåerna är inte bestämda (modell-todo). Väggarna med fasadsten (3NO, 3NV, 3SV) och 2NV, som
+# står på källarväggen, slutar i Z_UK.
+MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
+    "1NO": ((-65, -250), (4435, -250)),
+    "1SO": ((-95, -222), (2555, -222), (3755, -497), (5105, -497), (5130, -250), (12275, -250)),
+    "1SV": ((-65, -398), (2285, -222), (4435, -223)),
+    "1NV": ((0, -250), (1500, -250), (1525, -394), (4890, -394)),
+    "2NO": ((-65, -250), (10, -250), (35, -1450), (4935, -1450)),
+    "2SV": ((160, -250), (5160, -250)),
+    "2SO": ((0, -250), (3590, -250)),
+    "3SO": ((-95, -250), (1405, -250)),
+}
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
 LAKT_B = 45.0
 CC = 600.0
@@ -65,20 +80,35 @@ def tak_underkant(x: float, y: float) -> float | None:
 
 
 def _lagen(fasta: set[float], cc: list[float], b: float = LAKT_B) -> list[float]:
-    """Läktlägen: de fasta (ändar, öppningar) och de jämnt fördelade som inte överlappar en fast."""
-    ut = sorted(fasta)
+    """Läktlägen: de fasta (ändar, öppningar; av två som skulle överlappa den lägre) och de jämnt fördelade som inte
+    överlappar en fast."""
+    ut: list[float] = []
+    for v in sorted(fasta):
+        if not ut or v - ut[-1] >= b:
+            ut.append(v)
     for v in cc:
         if all(abs(v - f) >= b for f in ut):
             ut.append(v)
     return sorted(ut)
 
 
+def underkant(kod: str) -> list[tuple[float, float]]:
+    """Fasadens underkant (u, z) från u0 till u1: marken eller Z_UK."""
+    u0, u1 = fasad_u(kod)
+    mark = MARKNIVA.get(kod)
+    if mark is None:
+        return [(u0, Z_UK), (u1, Z_UK)]
+    assert abs(mark[0][0] - u0) < 1e-6 and abs(mark[-1][0] - u1) < 1e-6, (kod, mark, u0, u1)
+    return [(float(u), float(z)) for u, z in mark]
+
+
 def kontur(kod: str) -> Polygon:
     """Fasadens kontur i väggens (u, z)."""
     v = S.YTTERVAGGAR[kod]
     u0, u1 = fasad_u(kod)
+    under = underkant(kod)
     if kod not in GAVLAR:
-        return box(u0, Z_UK, u1, S.H_VAGG)
+        return Polygon(under + [(u1, S.H_VAGG), (u0, S.H_VAGG)])
     # gavel: överkanten följer takplanen; brytpunkter vid nockar och dalar
     y = v.origo[1] - v.w[1] * S.T_FASAD / 2           # mitt i fasadskiktet
     x_av = lambda u: v.origo[0] + v.u[0] * u           # noqa: E731
@@ -91,12 +121,12 @@ def kontur(kod: str) -> Polygon:
         assert z is not None, (kod, x)
         topp.append(((x - v.origo[0]) * v.u[0], z))
     topp.sort()
-    return Polygon([(u0, Z_UK), (u1, Z_UK)] + topp[::-1])
+    return Polygon(under + topp[::-1])
 
 
 def utsida(kod: str) -> Montage:
     fas = kontur(kod)
-    karmar = [o.karm for o in OPPNINGAR.get(kod, []) if o.z1 > Z_UK]          # fasaden går fram till karmen
+    karmar = [o.karm for o in OPPNINGAR.get(kod, [])]                  # fasaden går fram till karmen
     hal = [box(*k) for k in karmar]
     oppen = unary_union(hal) if hal else Polygon()
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
@@ -124,12 +154,14 @@ def utsida(kod: str) -> Montage:
         fasta |= {ku0 - LAKT_B, ku1}
     fasta = {u for u in fasta if u0 - 1e-6 <= u <= u1 - LAKT_B + 1e-6}
     lagen = _lagen(fasta, [u0 + CC * k for k in range(1, int((u1 - u0) // CC) + 1) if u0 + CC * k < u1 - LAKT_B])
-    lakt("Ströläkt", "SR", STRO_T, [box(u, Z_UK, u + LAKT_B, zt) for u in lagen])
+    zu = fas.bounds[1]
+    lakt("Ströläkt", "SR", STRO_T, [box(u, zu, u + LAKT_B, zt) for u in lagen])
     w -= STRO_T
-    fasta = {Z_UK}
+    fasta = {Z_UK, zu}                                   # och vid fasadens underkant
     for _, kz0, _, kz1 in karmar:
-        fasta |= {z for z in (kz0 - LAKT_B, kz1) if z >= Z_UK - 1e-6}
-    rader = _lagen(fasta, [Z_UK + CC * k for k in range(1, int((zt - Z_UK) // CC) + 1)])
+        fasta |= {z for z in (kz0 - LAKT_B, kz1) if z >= zu - 1e-6}
+    # raderna c/c CC från bjälklagets underkant, uppåt och nedåt till marken
+    rader = _lagen(fasta, [Z_UK + CC * k for k in range(-int((Z_UK - zu) // CC), int((zt - Z_UK) // CC) + 1) if k])
     lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader])
     w -= SPIK_T
     panel = PANEL[int(kod[0])]

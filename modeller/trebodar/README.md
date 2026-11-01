@@ -56,6 +56,7 @@ när stommen ändras.
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
+| Marken vid fasaden (panelens underkant) | `hus/fasad/fasad.py` (`MARKNIVA` per vägg, ur markmodellen; ändras när marknivåerna bestäms) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
