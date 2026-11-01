@@ -2,10 +2,10 @@
 2 × 12,5 under takbalkarna och på ytterväggarnas insida.
 
 Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
-slutar vid en dalbalk, med uppehåll vid de bärande innerväggarna och mittstolen och öppningar för takfönstren.
-Gipsen från två takfall möts i en skarp linje i nocken och under dalbalkarna: installationsskiktet under taket är
-70 mm (läkt 45×70 på högkant), så att gipsen går fri under balkarna, medan ångbromsen och läkten slutar vid
-balkarna. Stolpar och strävor som står under balkarna går genom gipsen. Ytterväggarnas insida går från bjälklaget
+slutar vid en dalbalk, med uppehåll vid mittstolen och öppningar för takfönstren. Under taket: korslagd läkt 45
+(F-01) och gips 2 × 12,5. Den yttre gipsskivan går fri under nock- och dalbalkarna och möter grannfallets i en
+skarp linje i nocken och under dalbalkarna; ångbromsen, läkten och den inre gipsskivan slutar vid balkarna.
+Väggar, stolpar och strävor som står under innertaket går skikten runt. Ytterväggarnas insida går från bjälklaget
 upp till innertaket; gavlarnas insida följer snedtaket upp till takbalkarnas underkant. Lätta innerväggar är ännu
 inte modellerade.
 """
@@ -25,29 +25,30 @@ from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
 from trebodar.material import ANGBROMS, C24, GIPS
 
-FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0          # ytterväggarnas insida: installationsskikt 45×45
-LAKT_TAK, LAKT_B = 70.0, 45.0                   # under taket: läkt 45×70 på högkant
+FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0          # installationsskikt 45×45, gips 2 × 12,5
+SKIVA = 12.5
 TAK_W = (-S.TAKBALK_H - FOLIE, -S.TAKBALK_H)                 # under takbalkarnas underkant
-LAKT_W = (TAK_W[0] - LAKT_TAK, TAK_W[0])
-GIPS_W = (LAKT_W[0] - GIPS_T, LAKT_W[0])
+LAKT_W = (TAK_W[0] - LAKT, TAK_W[0])
+GIPS_INRE_W = (LAKT_W[0] - SKIVA, LAKT_W[0])
+GIPS_YTTRE_W = (GIPS_INRE_W[0] - SKIVA, GIPS_INRE_W[0])
 INSIDA_T = FOLIE + LAKT + GIPS_T
 CC = 400.0
 FRI = 5.0                  # gipsens avstånd till stolpar, strävor och väggar som går genom innertaket
 
 
 def _fritt_under_balkarna() -> float:
-    """Minsta avstånd mellan innertakets gips och nock- och dalbalkarnas underkant: i nocken är gipsen högst i
-    nocklinjen, vid en dalbalk vid balkens underkant på takfallets sida."""
+    """Minsta avstånd mellan innertakets yttre gipsskiva och nock- och dalbalkarnas underkant: i nocken är skivan
+    högst i nocklinjen, vid en dalbalk vid balkens underkant på takfallets sida."""
     ut = []
     for kod, f in FALT.items():
         t = S.TAKFALL[kod]
         for b in (S.BALKAR[k] for k in (f.nock, f.dal) if k):
             x = b.x if b.typ == "nock" else b.x + t.riktning * S.BALK_B / 2
-            ut.append(b.uk - (t.z_overkant(x) + GIPS_W[1] / S.COS))
+            ut.append(b.uk - (t.z_overkant(x) + GIPS_YTTRE_W[1] / S.COS))
     return min(ut)
 
 
-assert _fritt_under_balkarna() >= FRI, "innertakets gips går inte fri under nock- och dalbalkarna"
+assert _fritt_under_balkarna() >= FRI, "innertakets yttre gipsskiva går inte fri under nock- och dalbalkarna"
 
 
 def _stommen() -> list[tuple[str, tuple[float, float, float, float, float, float]]]:
@@ -76,7 +77,7 @@ def _hinder_tak(t: S.Takfall, x_lo: float, x_hi: float) -> list[tuple[float, flo
         if grupp.endswith(f"Vägg {t.kod}") or not (x0 < x_hi and x_lo < x1):
             continue
         x = max(x0, x_lo) if t.riktning > 0 else min(x1, x_hi)           # där innertaket är lägst över delen
-        if z1 <= t.z_overkant(x) + GIPS_W[0] / S.COS + 1.0:
+        if z1 <= t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS + 1.0:
             continue
         g = lador.setdefault(grupp, [x0, x1, y0, y1])
         g[:] = [min(g[0], x0), max(g[1], x1), min(g[2], y0), max(g[3], y1)]
@@ -135,9 +136,9 @@ def _strackor(kod: str) -> list[list[float]]:
 def _tak(kod: str) -> Montage:
     t = S.TAKFALL[kod]
     f = FALT[kod]
-    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 70 och gips 2 × 12,5 under takbalkarna")
-    # ångbromsen och läkten slutar 10 mm från nockbalken och vid dalbalkens upplagsregel; gipsen går till nocklinjen
-    # och dallinjen, där den möter gipsen från grannfallet
+    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna")
+    # ångbromsen, läkten och den inre gipsskivan slutar 10 mm från nockbalken och vid dalbalkens upplagsregel; den yttre
+    # gipsskivan går till nocklinjen och dallinjen, där den möter grannfallets
     ovre = L.Kant("lodratt", _sida(f.nock, t) - t.riktning * 10.0)
     ovre_g = L.Kant("lodratt", S.BALKAR[f.nock].x)
     dal = S.BALKAR[f.dal] if f.dal else None
@@ -146,7 +147,7 @@ def _tak(kod: str) -> Montage:
     hinder_s = [h[:4] for h in hinder]                     # ångbroms och läkt: mot hindren
     hinder_g = _med_fri(hinder)                            # gips: med avstånd
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
-             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT_TAK, material=C24),
+             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24),
              "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
     for y0, y1 in _strackor(kod):
         delar = [(y0, y1)]
@@ -172,10 +173,11 @@ def _tak(kod: str) -> Montage:
                     q = L.profil(t, *TAK_W, ka, kb)
                     if q:
                         lager["folie"].profil(q, sa, sb, typ="AB", material=ANGBROMS)
-                for sa, sb, ga, gb in _utan_hinder(g0, g1, s0, s1, hinder_g):
-                    q = L.profil(t, *GIPS_W, ga, gb)
-                    if q:
-                        lager["gips"].profil(q, sa, sb, typ="GI", material=GIPS)
+                for (ga0, ga1), w, typ in (((k0, k1), GIPS_INRE_W, "GI"), ((g0, g1), GIPS_YTTRE_W, "GY")):
+                    for sa, sb, ga, gb in _utan_hinder(ga0, ga1, s0, s1, hinder_g):
+                        q = L.profil(t, *w, ga, gb)
+                        if q:
+                            lager["gips"].profil(q, sa, sb, typ=typ, material=GIPS)
                 # installationsskiktets läkt längs y, c/c 400 längs takfallet, avbruten vid hindren
                 q = L.profil(t, *LAKT_W, k0, k1)
                 if not q:
@@ -185,11 +187,11 @@ def _tak(kod: str) -> Montage:
                 langd = (x_hi - x_lo) / S.COS
                 n = int(langd // CC)
                 for i in range(n + 1):
-                    s = min(i * CC, langd - LAKT_B)
+                    s = min(i * CC, langd - LAKT)
                     # läktens läge: s mm upp längs planet från den nedre kanten
                     x_start = x_lo if t.riktning > 0 else x_hi
                     xa = x_start + t.riktning * s * S.COS
-                    xb = x_start + t.riktning * (s + LAKT_B) * S.COS
+                    xb = x_start + t.riktning * (s + LAKT) * S.COS
                     pl = L.profil(t, *LAKT_W, L.Kant("vinkelrat", min(xa, xb)), L.Kant("vinkelrat", max(xa, xb)))
                     if not pl:
                         continue
@@ -241,7 +243,7 @@ def _yta(kod: str, u0: float, u1: float) -> Polygon:
     v = S.YTTERVAGGAR[kod]
     if kod in S.TAKFALL:
         t = S.TAKFALL[kod]
-        return box(u0, 0.0, u1, t.z_overkant(t.x_insida) + GIPS_W[0] / S.COS)
+        return box(u0, 0.0, u1, t.z_overkant(t.x_insida) + GIPS_YTTRE_W[0] / S.COS)
     fall = [t for t in S.TAKFALL.values() if t.kropp == int(kod[0])]
 
     def z(u: float) -> float:

@@ -117,7 +117,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
   hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt. Fasad: UG utegips, SR ströläkt, SP spikläkt, PA
-  panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips. Isolering: TI tak, VI vägg. Takplåtens banor heter
+  panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY innertakets yttre
+  gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, VI vägg. Takplåtens banor heter
   TP och numreras längs takfallet.
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
   nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
