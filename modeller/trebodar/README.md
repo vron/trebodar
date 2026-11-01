@@ -54,6 +54,8 @@ när stommen ändras.
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
+| Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg |
+| Marken | `mark/mark.py`: schaktet runt plattan på mark och fyllnadshöjderna mot källarväggarna (`FYLLNAD`, K-06) |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 
@@ -87,10 +89,11 @@ justeringar i Blender; ändringar som ska vara kvar görs i `material.py`.
 
 ```
 Trebodar
-├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen)
+├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen), schaktet runt plattan på mark,
+│                               fyllningen mot källarväggarna (K-06)
 └── Hus
     ├── Grund                   bottenplatta (kantbalk, balkar, plintar, L-element), källarväggar V1–V21, rör P1–P19,
-    │                           plattan på mark, fasadsten per vägg
+    │                           plattan på mark (L-element 500, AR-02), fasadsten per vägg
     ├── Mellanbjälklag          betongplatta 150 med trapphål, kantisolering
     ├── Stomme
     │   ├── Stomme prefab       trästommen ovanför bjälklaget, en beställning
@@ -136,6 +139,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
   röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
   (undre och övre lagret).
+- **Plattan på mark**: PM-L L-elementen, PM-C1 och PM-C2 cellplasten (undre och övre lagret), PM-M makadamen, PM-F
+  den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 osv.
+  fyllningen mot källarväggen.
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
   nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
 
@@ -165,6 +171,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   stolpen LD4_1.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket, utan dörr och med
   fasad, isolering och insida över öppningen.
+- **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
+  fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
+  dränerande fyllning i ett schakt i berget 100 mm utanför plattan. Marken mot källarväggarna upp till K-06:s
+  fyllnadshöjder.
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.
@@ -175,6 +185,5 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 Lätta innerväggar (bara syllarna finns) och gipsen på de bärande innerväggarna, våtrummets golv (golvet på plan 1
 är betongplattan, AR-02), trappan, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
-ventilation, och marken mot källarväggarna där Onshape-modellen saknar mark (se `modeller/modell-todo.md`). Marken,
-avloppet och golvvärmen läses ur Onshape-modellen (`modeller/referens/delar/`). L-elementens avfasning (50 mm i
-ryggens överkant, som betongen fyller) är förenklad bort.
+ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
+(`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

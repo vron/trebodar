@@ -44,7 +44,11 @@ DORRBLAD = Material("Dörrblad", "Dörrblad", 500, "#3d4246", 0.5, cad="#7a7f88"
 # ------------------------------------------------------------------ skivor och folier
 HDF = Material("Hårdboard", "Hårdboard (masonit) 3 mm", 950, "#6b4a2f", 0.7, enhet="m2", cad="#6b4a2f")
 UTEGIPS = Material("Utegips", "Utegips 10 mm", 750, "#d4cdb2", 0.9, enhet="m2", cad="#c5d3b4")
-GIPS = Material("Gips", "Gipsskiva 12,5 mm", 720, "#eeece6", 0.9, enhet="m2", cad="#f2f2ee")
+GIPS = Material("Gips", "Gipsskiva", 720, "#eeece6", 0.9, enhet="m2", cad="#f2f2ee")
+OSB = Material("OSB", "OSB/3", 620, "#c8a46c", 0.8, enhet="m2", cad="#c59a5f")
+PLYWOOD = Material("Plywood", "Plywood (våtrum)", 520, "#d2b383", 0.7, enhet="m2", cad="#d8a679")
+TATSKIKT = Material("Tätskikt", "Tätskikt och fix (våtrum)", 1400, "#4f6d8a", 0.6, enhet="m2", cad="#4f7fc0")
+KAKEL = Material("Kakel", "Kakel och klinker", 2000, "#e9ebe8", 0.3, enhet="m2", cad="#8cc7c2")
 ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,
                     textur="folie", enhet="m2", opacitet=0.6, cad="#5fb3d9")
 PAPP = Material("Underlagspapp", "Underlagspapp T-Roof YEP 2500", 1100, "#1d1e20", 0.9, textur="papp", enhet="m2",
@@ -80,6 +84,8 @@ BERG = Material("Berg", "Berg", 2700, "#77716a", 1.0, textur="berg", enhet="m3",
                 cad="#9c978d")
 FYLLNING = Material("Fyllning", "Dränerande fyllning", 1900, "#8c867c", 1.0, textur="grus", enhet="m3",
                     rendering=rendering(farg2="#6c665c"), cad="#d9cba6")
+MAKADAM = Material("Makadam", "Makadam 16–32", 1600, "#7d7a74", 1.0, textur="grus", enhet="m3",
+                   rendering=rendering(farg2="#5c5955"), cad="#aab4bf")
 MARK = Material("Mark", "Uppfyllnad", 1800, "#62744a", 1.0, textur="mark", enhet="m3",
                 rendering=rendering(farg2="#4a5935"), cad="#b9cf9a")
 

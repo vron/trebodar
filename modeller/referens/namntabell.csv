@@ -1,11 +1,11 @@
 referens;modellen;status;gemensam_andel
-Hus Mark/Berg;Trebodar/Mark/Berg;ändrad;0.7261
+Hus Mark/Berg;Trebodar/Mark/Berg;ändrad;0.7136
 Hus Mark/Sovrumsavsats;Trebodar/Mark/Sovrumsavsats;ändrad;0.9602
-Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9571
+Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9557
 Hus Mark/Hus Struktur <1>/Beklädnad liten;Trebodar/Hus/Grund/Fasadsten/Fasadsten 1SO/1SO-FM01;ersatt;0.3000
 Hus Mark/Hus Struktur <1>/Värmeslingor källare;Trebodar/Hus/Installationer/VVS/Golvvärme källare;identisk;1.0000
-Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta isolering;Trebodar/Hus/Mellanbjälklag/MB-C;städad;1.0000
-Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta;Trebodar/Hus/Mellanbjälklag/MB-B;städad;1.0000
+Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta isolering;Trebodar/Hus/Mellanbjälklag/MB-C;ändrad;0.7472
+Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta;Trebodar/Hus/Mellanbjälklag/MB-B;städad;0.9930
 Hus Mark/Hus Struktur <1>/Beklädnad stor;Trebodar/Hus/Grund/Fasadsten/Fasadsten 3NV/3NV-FM01;ersatt;0.1870
 Hus Mark/Hus Struktur <1>/Avloppssystem;Trebodar/Hus/Installationer/VVS/Avlopp;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P1/P1-R;ersatt;0.0620

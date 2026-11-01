@@ -22,6 +22,7 @@ import sys
 
 import numpy as np
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -70,7 +71,10 @@ gammal = json.load(open(KALLA, encoding="utf-8"))
 # ---------------------------------------------------------------- platta och trapphål
 pl = Plan.tolka(f"z={O[2] - 75}").flytta(O[0], O[1])
 yta = [s.yta for s in snitt(m, [_pl], pl)][0]
-yttre = np.array(yta.exterior.coords)[:-1]
+# konturen: betongen, kantisoleringen och L-elementens rygg vid plattan på mark (där betongen slutar vid ryggen,
+# AR-02) bildar väggarnas ytterliv, 30 mm utanför plattans kant
+liv = unary_union([s.yta.buffer(0) for s in snitt(m, m.valj("MB-B,MB-C,PM-L"), pl)])
+yttre = np.array(Polygon(liv.exterior).buffer(-30.0, join_style=2).exterior.coords)[:-1]
 inre = np.array(yta.interiors[0].coords)[:-1]
 kontur = [[heltal(v) for v in yttre[np.argmin(np.hypot(*(yttre - p).T))]] for p in np.array(gammal["kontur"], float)]
 assert len(yttre) == len(kontur) and abs(Polygon(kontur).area - Polygon(yttre).area) < 1, \

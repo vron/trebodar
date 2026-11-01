@@ -21,6 +21,8 @@ import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+from shapely.geometry import Polygon  # noqa: E402
+from shapely.ops import unary_union  # noqa: E402
 
 from geometri import Plan, linjeprob, snitt  # noqa: E402
 from modell import Modell  # noqa: E402
@@ -36,7 +38,10 @@ O = np.array([b[0], b[1], b[5]])                     # skärningen mellan plattk
 plan = Plan.tolka(f"z={(b[2] + b[5]) / 2}").flytta(O[0], O[1])
 sd = {s.del_.namn: s for s in snitt(m, platta, plan)}
 yta = sd["MB-B"].yta
-ytter = np.array(yta.exterior.coords)[:-1]
+# konturen: betongen, kantisoleringen och L-elementens rygg vid plattan på mark (där betongen slutar vid ryggen,
+# AR-02) bildar väggarnas ytterliv, 30 mm utanför plattans kant
+liv = unary_union([s.yta.buffer(0) for s in snitt(m, m.valj("MB-B,MB-C,PM-L"), plan)])
+ytter = np.array(Polygon(liv.exterior).buffer(-30.0, join_style=2).exterior.coords)[:-1]
 hal = np.array(yta.interiors[0].coords)[:-1]
 xs = sorted({round(v, 3) for v in ytter[:, 0]})
 ys = sorted({round(v, 3) for v in ytter[:, 1]})

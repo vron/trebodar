@@ -4,14 +4,17 @@ fasadstenen.
 Bottenplattan (K-06 utförande L300, R-04) med överkanten z −2 250: betong 100 på cellplast 200, kantbalk och balkar
 under innerväggarna 450 × 200 (med plattan) och plintar under rören, alla på 100 mm cellplast S300, och L-element S300
 längs kanten (ytterkanten i väggarnas ytterliv, betongen börjar 100 mm innanför, i kärnans yttre yta). Plattan på
-mark på plan 1 (bakom V3 och V20): 400 mm cellplast under mellanbjälklaget på dränerande fyllning upp till 1,7 m över
-bottenplattan. Fasadstenen (AR-01) i fasadsten.py.
+mark på plan 1 (bakom V3 och V20, AR-02): mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i
+väggarnas ytterliv), cellplast 350 under plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför
+plattan. Fasadstenen (AR-01) i fasadsten.py.
 """
 from __future__ import annotations
 
 import json
 from functools import lru_cache
 from pathlib import Path
+
+from typing import Any
 
 from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
@@ -20,7 +23,7 @@ from modellering import Del, Montage, Placering, box, minus
 
 from trebodar import skelett as S
 from trebodar.byggdelar.polygon import polygoner, prisma_ur
-from trebodar.material import BETONG, CELLPLAST, CELLPLAST_S300, FYLLNING
+from trebodar.material import BETONG, CELLPLAST, CELLPLAST_S300, FYLLNING, MAKADAM
 
 from . import fasadsten, kallarvaggar, pelare
 
@@ -31,6 +34,10 @@ H_PLATTA, H_BALK, H_L = 100.0, 200.0, 300.0      # plattan, balkarna med plattan
 B_BALK = 450.0                   # kantbalk och balkar under innerväggarna
 L_BEN, B_L = 100.0, 600.0        # L-elementets rygg (betongen börjar vid dess insida) och bredd
 INRE_BALKAR = ("V15", "V19")     # balkar under innerväggarna, och linjen V4–V6 mellan dem (K-06)
+# plattan på mark (AR-02): L-element 500 med fot 100, cellplast 100 + 250 under plattan, makadam 150
+H_L_MARK, T_FOT_MARK, T_MAKADAM = 500.0, 100.0, 150.0
+SCHAKT_UT = 100.0                # bergschaktet runt plattan på mark, utanför L-elementen
+MARK_UK = -2315.0                # markmodellens underkant (Onshape-modellens berg och uppfyllnad)
 MARK_PLATTA = ((0.0, 9205.0), (4545.0, 9205.0), (4545.0, 11010.0), (4310.0, 11010.0), (4310.0, 15900.0),
                (0.0, 15900.0))   # plattan på mark på plan 1 (K-05)
 
@@ -94,15 +101,41 @@ def bottenplatta() -> Montage:
     return m
 
 
+@lru_cache(maxsize=1)
+def markplatta() -> tuple[Polygon, Any, Polygon, Polygon]:
+    """Plattan på mark i väggarnas ytterliv (L-elementens ytterkant), dess fria kanter (inte mot källaren) och
+    L-elementens rygg och fot i plan."""
+    kallare = kallarvaggar.ytterkontur()
+    p = max(polygoner(Polygon(MARK_PLATTA).buffer(S.STOMME_UT, join_style=2).difference(kallare)), key=lambda g: g.area)
+    fri = p.exterior.difference(kallare)
+    rygg = fri.buffer(L_BEN, cap_style="flat", join_style="mitre").intersection(p)
+    fot = fri.buffer(B_L, cap_style="flat", join_style="mitre").intersection(p)
+    return p, fri, rygg, fot
+
+
+def markschakt() -> Polygon:
+    """Schaktet i berget runt plattan på mark: SCHAKT_UT utanför de fria kanterna, fram till källarväggarna."""
+    p, fri, _, _ = markplatta()
+    return p.union(fri.buffer(SCHAKT_UT, cap_style="flat", join_style="mitre")).difference(kallarvaggar.ytterkontur())
+
+
 def platta_pa_mark() -> Montage:
-    m = Montage("Plattan på mark", beskrivning="Under mellanbjälklaget på plan 1: 400 cellplast på fyllning")
-    # fram till källarväggarnas cellplast (V3, V20): källarens kontur tas bort
-    p = Polygon(MARK_PLATTA).difference(kallarvaggar.ytterkontur())
-    for i, g in enumerate(polygoner(p), 1):
-        m.lagg(Del("Cellplast 400 under plattan på mark", prisma_ur(g, -S.H_BJALKLAG - 400.0, -S.H_BJALKLAG),
-                   CELLPLAST), Placering(), f"PM-C{i}")
-        m.lagg(Del("Dränerande fyllning", prisma_ur(g, Z_BP, -S.H_BJALKLAG - 400.0), FYLLNING), Placering(),
-               f"PM-F{i}")
+    m = Montage("Plattan på mark", beskrivning="L-element 500, cellplast 350 och makadam 150 under mellanbjälklaget "
+                                                "på plan 1 (AR-02)")
+    p, _, rygg, fot = markplatta()
+    z_uk, z_mak = -H_L_MARK, -H_L_MARK - T_MAKADAM
+    z_fot = z_uk + T_FOT_MARK
+    m.lagg(Del("L-element S300 höjd 500", prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, 0.0), CELLPLAST_S300),
+           Placering(), "PM-L")
+    for i, g in enumerate(polygoner(p.difference(fot), 1e4)):
+        m.lagg(Del("Cellplast S100 100, undre lagret", prisma_ur(g, z_uk, z_fot), CELLPLAST), Placering(),
+               "PM-C1" + (f"-{i + 1}" if i else ""))
+    for i, g in enumerate(polygoner(p.difference(rygg), 1e4)):
+        m.lagg(Del("Cellplast S100 250, övre lagret", prisma_ur(g, z_fot, -S.H_BJALKLAG), CELLPLAST), Placering(),
+               "PM-C2" + (f"-{i + 1}" if i else ""))
+    schakt = markschakt()
+    m.lagg(Del("Makadam 150", prisma_ur(schakt, z_mak, z_uk), MAKADAM), Placering(), "PM-M")
+    m.lagg(Del("Dränerande fyllning", prisma_ur(schakt, MARK_UK, z_mak), FYLLNING), Placering(), "PM-F")
     return m
 
 
