@@ -1,10 +1,10 @@
-"""Kontroll av mellanbjälklagets geometri i K-05 (beräkningar/K-05/bild/geometri.json) mot Onshape-modellen.
+"""Kontroll av mellanbjälklagets geometri i K-05 (beräkningar/K-05/bild/geometri.json) mot modellen.
 
     .venv/bin/python kontroll_geometri05.py
 
 geometri.json är K-05:s egen källfil och används av K-05, K-06 och R-06. Den uppdateras för hand. Den här
-kontrollen läser modellen (modeller/referens/trebodar-onshape.step), räknar fram kontur, hål, väggar (vagg, stod), rör, mark, fria
-kanter och E på samma sätt som i källfilen och redovisar skillnaderna. Den skriver ingenting.
+kontrollen läser modellen (modeller/trebodar/ut/trebodar.step), räknar fram kontur, hål, väggar (vagg, stod), rör,
+mark, fria kanter och E på samma sätt som i källfilen och redovisar skillnaderna. Den skriver ingenting.
 stolpar, balkar, takstol och linjelaster i källfilen beskriver trästommen på plan 1 och kontrolleras inte här.
 
 Koordinater i mm, x åt höger, y uppåt, origo i skärningen mellan plattkanterna x = 0 och y = 0 (plattans nedre
@@ -29,16 +29,16 @@ KALLA = os.path.join(ROT, "beräkningar", "K-05", "bild", "geometri.json")
 sys.path.insert(0, HERE)
 from geometri import Plan, linjeprob, snitt  # noqa: E402
 from jamfor import jamfor, redovisa  # noqa: E402
-from modell import REFERENS, Modell  # noqa: E402
+from modell import Modell  # noqa: E402
 
 Z_VAGG = -200.0              # nivå för väggarnas ändar och öppningar: strax under bjälklaget (uk -150)
 Z_MITT = -1000.0             # nivå för väggarnas centrumlinje
 
-m = Modell(REFERENS, tyst=True)
-_pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
+m = Modell(tyst=True)
+_pl = [d for d in m.delar if d.namn == "MB-B"][0]                # mellanbjälklagets betong
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])          # origo och bjälklagets överkant
-VAGG = m.valj("Bkärna,Isoskal")
-KARNA = m.valj("Bkärna")
+KARNA = m.valj("V*-K,F*-B-K")                                   # källarväggarnas och bröstningarnas betongkärnor
+VAGG = KARNA + m.valj("V*-C*,F*-B-C*")                         # och cellplasten
 
 
 def r3(v):
@@ -80,7 +80,9 @@ hx1, hy1 = inre.max(0)
 hal = [[r3(hx0), r3(hy0)], [r3(hx1), r3(hy0)], [r3(hx1), r3(hy1)], [r3(hx0), r3(hy1)]]
 
 # ---------------------------------------------------------------- rör (numreringen P1–P19 behålls)
-ror = [d for d in m.delar if d.namn.startswith("K Pillar")]
+# rören: det första röret i varje rör (P7 är två rör, det andra 80 mm åt +x som i K-05:s DUBBELROR)
+ror = [d for d in m.delar if d.namn.startswith("P") and (d.namn.endswith("-R") and d.namn.count("-") == 1
+                                                        or d.namn.endswith("-1-R"))]
 mitt = np.array([[(d.bbox[0] + d.bbox[3]) / 2 - O[0], (d.bbox[1] + d.bbox[4]) / 2 - O[1]] for d in ror])
 pelare, tagna = [], set()
 for x, y in gammal["pelare"]:

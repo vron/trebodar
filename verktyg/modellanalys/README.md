@@ -50,7 +50,7 @@ Bilder hamnar i `ut/` om inte `--ut` anges.
 
 ## Underlag till beräkningarna
 
-Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser ännu Onshape-modellen (`modeller/referens/trebodar-onshape.step`) och ska flyttas över till den kodgenererade modellens namn. Kör dem när modellen har ändrats:
+Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser den kodgenererade modellen (bygg den först med `verktyg/modellering/mod bygg`; de varnar om STEP-filen är äldre än modellens kod), utom `kontroll_k03.py`, som ännu läser Onshape-modellen (`modeller/referens/trebodar-onshape.step`). Kör dem när modellen har ändrats:
 
 ```
 .venv/bin/python kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter

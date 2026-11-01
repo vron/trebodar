@@ -1,10 +1,10 @@
-"""Kontroll av källarstommen och bottenplattan i R-04 och R-05 (beräkningar/R-05/kallare.py) mot Onshape-modellen.
+"""Kontroll av källarstommen och bottenplattan i R-04 och R-05 (beräkningar/R-05/kallare.py) mot modellen.
 
     .venv/bin/python kontroll_r045.py
 
 kallare.py bygger källarens geometri för R-04 och R-05 ur K-05:s geometri.json (väggarna och rören, kontrollerade
 med kontroll_geometri05.py), K-06:s indata och egna uppgifter: öppningarnas bröstning. Den här kontrollen läser
-modellen (modeller/referens/trebodar-onshape.step) och jämför:
+modellen (modeller/trebodar/ut/trebodar.step) och jämför:
 
     - öppningarna i betongkärnan: läge längs väggen och bröstningens höjd (betongen);
     - bottenplattans kontur, som ska ligga i väggarnas ytterliv (L-elementens ytterkant; betongen 100 mm innanför);
@@ -27,16 +27,16 @@ ROT = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(ROT, "beräkningar", "R-05"))
 from geometri import Plan, linjeprob, snitt  # noqa: E402
-from modell import REFERENS, Modell  # noqa: E402
+from modell import Modell  # noqa: E402
 import kallare as K  # noqa: E402
 
 TOL = 0.5
 Z_GOLV = -K.H_VAGG - K.H_MB          # bottenplattans överkant i K-05:s z (−2 250)
 
-m = Modell(REFERENS, tyst=True)
-_pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
+m = Modell(tyst=True)
+_pl = [d for d in m.delar if d.namn == "MB-B"][0]
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])
-KARNA = m.valj("Bkärna")
+KARNA = m.valj("V*-K,F*-B-K")                                  # källarväggarnas och bröstningarnas kärnor
 
 
 def prob(p1, p2, z, delar):
@@ -84,7 +84,7 @@ for o in K.OPPNINGAR:
         fel.append(f"{o['namn']}: bröstningens höjd, R-05 {o['z0']}, modellen {z_brost:.1f}")
 
 # ---------------------------------------------------------------- bottenplattans kontur
-plattor = m.valj("Bottenplatta*")
+plattor = m.valj("BP-B,BP-C")
 pl = Plan.tolka(f"z={O[2] + Z_GOLV - 250.0}").flytta(O[0], O[1])       # nära underkanten: båda plattorna
 ytor = [sd.yta for sd in snitt(m, plattor, pl) if not sd.yta.is_empty]
 modell_kontur = unary_union([p.buffer(0) for p in ytor])
@@ -104,13 +104,13 @@ if abs(h - K.H_VAGG) > TOL:
 
 # ---------------------------------------------------------------- kända avvikelser (modell-todo)
 kanda = []
-ror = m.valj("K Pillar*")
+ror = [d for d in m.delar if d.namn.startswith("P") and d.namn.endswith("-R")]
 storlek = sorted({round(d.bbox[3] - d.bbox[0]) for d in ror})
 if storlek != [round(K.PLAT)]:
     kanda.append(f"rören i modellen är {storlek} mm breda, R-05 VKR {K.PLAT:.0f}×{K.PLAT:.0f}×4 (punkt 8)")
 if len(ror) != sum(r["n"] for r in K.ROR):
     kanda.append(f"modellen har {len(ror)} rör, R-05 {sum(r['n'] for r in K.ROR)} (P7 två rör, punkt 8)")
-zm = lodratt(7000.0, 9300.0, Z_GOLV - 400, Z_GOLV + 50, m.valj("Bottenplatta matkällare"))
+zm = lodratt(7000.0, 9300.0, Z_GOLV - 400, Z_GOLV + 50, m.valj("BP-B"))
 if zm and abs(max(b for a, b in zm) - Z_GOLV) > TOL:
     kanda.append(f"matkällarens golv i modellen z {max(b for a, b in zm):.1f}, R-04 {Z_GOLV} (punkt 10)")
 for w in K.VAGGAR:

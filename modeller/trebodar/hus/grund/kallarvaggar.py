@@ -148,6 +148,8 @@ def montage() -> Montage:
 
 
 def ytterkontur() -> Polygon:
-    """Källarens kontur (cellplastens utsida), för bottenplattan."""
+    """Källarens kontur (cellplastens utsida runt hela källaren), för bottenplattan och plattan på mark. Väggarna
+    bildar en ring som dörrarna bryter; öppningarna sluts (upp till 2 m) innan konturen tas."""
     alla = unary_union([_cellplast_rekt(v) for v in VAGGAR] + [_rekt(v, *_karna(v), KARNA / 2) for v in VAGGAR])
-    return Polygon(max(getattr(alla, "geoms", [alla]), key=lambda g: g.area).exterior)
+    sluten = alla.buffer(1000.0, join_style=2).buffer(-1000.0, join_style=2)
+    return Polygon(max(getattr(sluten, "geoms", [sluten]), key=lambda g: g.area).exterior)

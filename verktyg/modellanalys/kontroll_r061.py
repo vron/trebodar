@@ -1,5 +1,5 @@
 """
-Kontroll av mellanbjälklagets geometri i K-05 och R-06 (bild/geometri.json) mot Onshape-modellen (exakt B-rep).
+Kontroll av mellanbjälklagets geometri i K-05 och R-06 (bild/geometri.json) mot modellen (exakt B-rep).
 
     ./.venv/bin/python kontroll_r061.py
 
@@ -23,19 +23,19 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from geometri import Plan, linjeprob, snitt  # noqa: E402
-from modell import REFERENS, Modell  # noqa: E402
+from modell import Modell  # noqa: E402
 from ritning import _patch  # noqa: E402
 
 ROT = HERE.parent.parent
 G = json.load(open(ROT / "beräkningar" / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
-m = Modell(REFERENS)
-platta = m.valj("Mittenplatta")
-betong = [d for d in platta if d.namn == "Mittenplatta"][0]
+m = Modell()
+platta = m.valj("MB-B,MB-C")                          # mellanbjälklagets betong och kantisolering
+betong = [d for d in platta if d.namn == "MB-B"][0]
 b = betong.bbox
 O = np.array([b[0], b[1], b[5]])                     # skärningen mellan plattkanterna x = 0 och y = 0, överkant
 plan = Plan.tolka(f"z={(b[2] + b[5]) / 2}").flytta(O[0], O[1])
 sd = {s.del_.namn: s for s in snitt(m, platta, plan)}
-yta = sd["Mittenplatta"].yta
+yta = sd["MB-B"].yta
 ytter = np.array(yta.exterior.coords)[:-1]
 hal = np.array(yta.interiors[0].coords)[:-1]
 xs = sorted({round(v, 3) for v in ytter[:, 0]})
@@ -67,14 +67,15 @@ rad("trapphål x", [H[:, 0].min(), H[:, 0].max()], [hx[0], hx[-1]])
 rad("trapphål y", [H[:, 1].min(), H[:, 1].max()], [hy[0], hy[-1]])
 
 # rör
-ror = [d for d in m.delar if d.namn.startswith("K Pillar")]
+ror = [d for d in m.delar if d.namn.startswith("P") and (d.namn.endswith("-R") and d.namn.count("-") == 1
+                                                   or d.namn.endswith("-1-R"))]           # första röret per rör (P7: två rör)
 mitt = np.array([[(d.bbox[0] + d.bbox[3]) / 2 - O[0], (d.bbox[1] + d.bbox[4]) / 2 - O[1]] for d in ror])
 for i, (x, y) in enumerate(G["pelare"], 1):
     j = int(np.argmin(np.hypot(mitt[:, 0] - x, mitt[:, 1] - y)))
     rad(f"rör P{i}", [x, y], [round(v, 3) for v in mitt[j]])
 
 # källarväggarnas centrumlinjer (tvärs mitt på väggen, 1 m under bjälklaget)
-VAGG = m.valj("Bkärna,Isoskal")
+VAGG = m.valj("V*-K,F*-B-K,V*-C*,F*-B-C*")              # källarväggarnas kärnor och cellplast
 for i, (ax_, c, a, b_, *_) in enumerate(G["vagg"], 1):
     s = (a + b_) / 2
     p1, p2 = ((s, c - 400, -1000), (s, c + 400, -1000)) if ax_ == "h" else ((c - 400, s, -1000), (c + 400, s, -1000))

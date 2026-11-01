@@ -1,5 +1,5 @@
 """
-Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot Onshape-modellen: lastbredder, lastytor, höjder och
+Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen: lastbredder, lastytor, höjder och
 fyllnadshöjder. Stödens exakta lägen kontrolleras inte (trästommen under nock- och dalbalkarna är inte fullständigt
 modellerad).
 
@@ -22,7 +22,7 @@ from shapely.ops import unary_union
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
 from geometri import Plan, linjeprob, snitt, ytanalys  # noqa: E402
-from modell import REFERENS, Modell  # noqa: E402
+from modell import Modell  # noqa: E402
 
 ROT = HERE.parent.parent
 G05 = json.loads((ROT / "beräkningar" / "K-05" / "bild" / "geometri.json").read_text(encoding="utf-8"))
@@ -31,8 +31,8 @@ VAGG_IN = float(re.search(r"^VAGG_IN = ([\d.]+)", (ROT / "beräkningar" / "K-05"
     encoding="utf-8"), re.M).group(1))
 sys.path.insert(0, str(ROT / "beräkningar" / "K-06"))
 import indata as K06  # noqa: E402
-m = Modell(REFERENS, tyst=True)
-_pl = [d for d in m.delar if d.namn == "Mittenplatta"][0]
+m = Modell(tyst=True)
+_pl = [d for d in m.delar if d.namn == "MB-B"][0]                # mellanbjälklagets betong
 O = np.array([_pl.bbox[0], _pl.bbox[1], _pl.bbox[5]])
 TAN30 = np.tan(np.radians(30))
 rader = []
@@ -45,6 +45,16 @@ def bb(d):
 
 def del_(namn):
     return [d for d in m.delar if d.namn == namn][0]
+
+
+class _Grupp:
+    """Ett montages omslutande låda (t.ex. en nock- eller dalbalk med plåtar)."""
+    def __init__(self, namn):
+        ds = [d for d in m.delar if d.grupp.endswith("/" + namn)]
+        self.bbox = m.bbox(ds)
+
+
+KARNOR, CELLPLAST = "V*-K,F*-B-K", "V*-C*,F*-B-C*"                # källarväggarnas kärnor och cellplast
 
 
 def rad(grupp, storhet, handling, modell, bedomning):
@@ -68,7 +78,7 @@ def plansnitt(z, urval):
 
 
 # ---------------------------------------------------------------- tak
-R = [d for d in m.delar if d.namn.startswith("Å")]
+R = [d for d in m.delar if "/Takbalkar/" in d.sokvag and re.fullmatch(r"\w+-T\d+", d.namn)]     # takbalkarna
 plan, _, _ = ytanalys(m.form(R[0]))
 lut = sorted({round(np.degrees(np.arccos(abs(n[2]))), 2) for (n, _), _ in plan.items() if 0.1 < abs(n[2]) < 0.99})
 rad("Tak", "takvinkel", "30°", " / ".join(f"{v:g}°" for v in lut), "stämmer")
@@ -83,7 +93,7 @@ cc = np.concatenate([np.diff(sorted(v)) for v in fack.values() if len(v) > 1])
 rad("Tak", "takbalkar", "45×170 c/c 600", f"{yt[0]:g}×{djup[0]:.0f}, c/c {np.median(cc):.0f} ({len(R)} st, "
     f"glesare vid öppningar)", "stämmer")
 
-B = {k: bb(del_(f"HEA200 {v}")) for k, v in dict(N1="NV", D2="NVb", N3="M", D4="SEb", N5="SE").items()}
+B = {k: bb(_Grupp(v)) for k, v in dict(N1="NB1", D2="DB2", N3="NB3", D4="DB4", N5="NB5").items()}
 xc = {k: (b[0] + b[3]) / 2 for k, b in B.items()}
 rad("Tak", "avstånd mellan nockarna N5–N3–N1", "4 750 (K-01 snöbredd dal)",
     f"{xc['N3'] - xc['N5']:.0f} / {xc['N1'] - xc['N3']:.0f}", "stämmer")
@@ -97,7 +107,7 @@ for k, g in (("D2", ("N3", "N1")), ("D4", ("N5", "N3"))):
         "påverkar inte lastbredderna; bara figurerna i K-05")
 
 # Ytterväggarnas läge (takfotsväggarnas stöd) och takfot
-vagg = {"vänster": "1SO <1>", "höger": "3NV <1>", "mittre vänster": "2SO <1>", "mittre höger": "2NV <1>"}
+vagg = {"vänster": "Vägg 1SO", "höger": "Vägg 3NV", "mittre vänster": "Vägg 2SO", "mittre höger": "Vägg 2NV"}
 vx = {}
 for k, g in vagg.items():
     ds = [d for d in m.delar if d.grupp.endswith("/" + g)]
@@ -119,7 +129,7 @@ eave = {"vänster": min(x0s), "höger": max(x1s),
 uts = [abs(eave[k] - rand[k]) for k in eave]
 rad("Tak", "takutsprång vid takfot", "0,2 m (K-05)", f"takbalkarna {min(uts):.0f} mm utanför plattkanten "
     f"({min(uts) - 30:.0f} mm utanför väggliv)", "K-05 på säker sida")
-gav = [bb(d) for d in m.delar if "/Stol " in d.sokvag]
+gav = [bb(d) for d in m.delar if "/Takstol " in d.sokvag]
 rad("Tak", "takutsprång vid gavel", "0,2 m (K-05)", "takstolens yttersida 30 mm utanför plattkanten, "
     "inga takbalkar utanför gaveln", "K-05 på säker sida")
 
@@ -148,16 +158,19 @@ tak = unary_union([box(eave["vänster"], B["N5"][1], 4310 + u, B["N5"][4]),     
                    box(9500 - u, B["N1"][1], eave["höger"], B["N1"][4])]).area / 1e6
 rad("Tak", "takets planarea (snö på hela taket)", f"{tak_k05:.1f} m² → 1,5 × A = {1.5 * tak_k05:.0f} kN (K-05)",
     f"{tak:.1f} m² → {1.5 * tak:.0f} kN", "K-05 på säker sida")
-gips = ytanalys(m.form(m.valj("gyp_c_f1")[0]))[0]
-dd = sorted({round(abs(d), 1) for (n, d), _ in gips.items() if 0.1 < abs(n[2]) < 0.99})
-t_gips = min(b - a for a, b in zip(dd, dd[1:]))
+_t = []
+for urval in ("1SO-GI01", "1SO-GY01", "1SO-IL01"):                  # innertakets två gipsskivor och läkten
+    yt = ytanalys(m.form(m.valj(urval)[0]))[0]
+    dd = sorted({round(abs(d), 1) for (n, d), _ in yt.items() if 0.1 < abs(n[2]) < 0.99})
+    _t.append(min(b - a for a, b in zip(dd, dd[1:])))
 rad("Tak", "innertak: gips och installationsspalt", "2 × 12,5 mm gips, korslagda reglar 45 mm (F-01)",
-    f"{t_gips:.0f} mm gips, spalt 45 mm under takbalkarna", "F-01 på säker sida")
+    f"gips {_t[0]:.1f} + {_t[1]:.1f} mm, läkt {_t[2]:.0f} mm under takbalkarna",
+    "stämmer" if [round(v, 1) for v in _t] == [12.5, 12.5, 45.0] else "AVVIKER")
 
 # ---------------------------------------------------------------- vind
-pl1 = plansnitt(-75, "Mellanplatta")
+pl1 = plansnitt(-75, "MB-B,MB-C")
 bredd = eave["höger"] - eave["vänster"]
-nock = max(bb(d)[5] for d in R + [del_(f"HEA200 {v}") for v in ("M", "NV")])
+nock = max(bb(d)[5] for d in R + [_Grupp(v) for v in ("NB3", "NB1")])
 markniva = []
 for x, y in [(7000, -600), (5000, -600), (14400, 2000), (14400, 7000), (-600, 4500), (11000, 13100)]:
     r = mark(x, y)
@@ -189,21 +202,21 @@ rad("Bjälklag", "plattan på mark (utan källare under)", f"{markplatta.area / 
     "källarväggarna V3/V20 inom 5 mm från K-05", "stämmer")
 rad("Bjälklag", "trappan", "3,0 m lång, 0,83 m bred (K-05)", f"hålets bredd {(hm.bounds[3] - hm.bounds[1]) / 1000:.3f} m; "
     "trappan finns inte i modellen", "bredden stämmer")
-pel = [d for d in m.delar if d.namn.startswith("K Pillar")]
+pel = [d for d in m.delar if d.namn.startswith("P") and d.namn.endswith("-R")]
 rad("Källare", "fri höjd bottenplatta–bjälklag (rörens längd)", "2 100 mm (K-05, K-06)",
     f"{np.median([d.storlek[2] for d in pel]):.0f} mm ({len(pel)} rör)", "stämmer")
 
 # ---------------------------------------------------------------- källare
-vg = plansnitt(-2000, "Bkärna,Isoskal")
-bp = plansnitt(-2400, "Bottenplatta")
+vg = plansnitt(-2000, KARNOR + "," + CELLPLAST)
+bp = plansnitt(-2300, "BP-B")
 kallare = unary_union([Polygon(g.exterior) for g in getattr(bp, "geoms", [bp])])   # matkällaren fylls i
 golv = kallare.difference(vg)
 # källarväggarnas skikt: vågrät linje genom V14 vid y = 6 000, 1 m under bjälklaget
 _c14 = G05["vagg"][13][1]
-_sk = [(t0, t1, d.namn) for t0, t1, d, *_ in linjeprob(m, m.valj("Bkärna,Isoskal"),
+_sk = [(t0, t1, d.namn) for t0, t1, d, *_ in linjeprob(m, m.valj(KARNOR + "," + CELLPLAST),
                                                      np.array([_c14 - 400, 6000, -1000]) + O,
                                                      np.array([_c14 + 400, 6000, -1000]) + O)]
-_skikt = " + ".join(f"{('betongkärna' if n.startswith('Bkärna') else 'cellplast')} {t1 - t0:.0f}" for t0, t1, n in _sk)
+_skikt = " + ".join(f"{('betongkärna' if n.endswith('-K') else 'cellplast')} {t1 - t0:.0f}" for t0, t1, n in _sk)
 _ut = _c14 - 400 + max(t1 for _, t1, _ in _sk) - G05["kontur"][4][0]
 _ok = [round(t1 - t0) for t0, t1, _ in _sk] == [100, 150, 100] and abs(_ut - K06.KI) < 0.5
 rad("Källare", "källarväggarna, Kub 350-150 (V14)", f"cellplast 100 + betongkärna 150 + cellplast 100, ytterliv "
@@ -211,8 +224,8 @@ rad("Källare", "källarväggarna, Kub 350-150 (V14)", f"cellplast 100 + betongk
     "stämmer" if _ok else "AVVIKER")
 rad("Källare", "golvyta för nyttig last", "359 kN / (2,0 + 0,7) = 133 m² (K-06)",
     f"{golv.area / 1e6:.1f} m² innanför väggarna", "K-06 på säker sida")
-rad("Källare", "bottenplatta i matkällaren", "platta 100 mm i hela källaren (K-06)",
-    "ingen platta innanför V2/V15/V19–V20, bara en remsa under väggarna", "modellen avviker (kontrollera)")
+rad("Källare", "bottenplatta i hela källaren", f"platta 100 mm i hela källaren, {kallare.area / 1e6:.1f} m² (K-06, R-04)",
+    f"{bp.area / 1e6:.1f} m² betong", "stämmer" if abs(bp.area - kallare.area) < 1e4 else "AVVIKER")
 
 # ---------------------------------------------------------------- fyllning mot källarväggarna
 UT = {"V1": (0, 1), "V2": (0, 1), "V3": (0, 1), "V7": (0, -1), "V9": (0, -1), "V14": (1, 0), "V16": (-1, 0),
@@ -253,10 +266,15 @@ for n, fy in K06.FYLL.items():
         bed = "K-06 på säker sida"
     rad("Fyllning", n, f"{k[0]:.2f}–{k[1]:.2f} m över bottenplattans ök (K-06)",
         f"{min(hv):.2f}–{max(hv):.2f} m ({material})", bed)
-r = lodlinje(2000, 12000, m.valj("Berg,Uppfyllnad"))
-rad("Fyllning", "under plattan på mark", "400 mm cellplast på fyllning upp till 1,7 m (K-06)",
-    f"berget {max(b for _, b, _ in r) - TOPP_BP:.0f} mm över bottenplattans ök, "
-    f"{-150 - max(b for _, b, _ in r):.0f} mm under plattan", "AVVIKER: inget utrymme för 400 mm cellplast")
+r = {d.namn[:4]: (a, b) for a, b, d in lodlinje(2000, 12000, m.valj("PM-C*,PM-F*"))}
+if "PM-C" in r and "PM-F" in r:
+    t_c, fyll = r["PM-C"][1] - r["PM-C"][0], r["PM-F"][1] - TOPP_BP
+    rad("Fyllning", "under plattan på mark", "400 mm cellplast på fyllning upp till 1,7 m (K-06)",
+        f"cellplast {t_c:.0f} mm på fyllning upp till {fyll / 1000:.2f} m över bottenplattans ök",
+        "stämmer" if abs(t_c - 400) < 1 and abs(fyll - 1700) < 1 else "AVVIKER")
+else:
+    rad("Fyllning", "under plattan på mark", "400 mm cellplast på fyllning upp till 1,7 m (K-06)",
+        "ingen cellplast eller fyllning under plattan i modellen", "AVVIKER")
 
 # ---------------------------------------------------------------- F-01 areor
 plan1 = Polygon(pl1.exterior).area / 1e6      # till ytterliv (platta + kantisolering), trapphålet medräknat
@@ -277,8 +295,8 @@ def rita_vaggens_lage(ut):
     fig, axs = plt.subplots(1, 2, figsize=(11, 7.5))
     delar = [d for d in m.delar if not d.namn.startswith(("Uppf", "Berg"))]
     for ax, (titel, grupp, lim, kant, ut_) in zip(axs, [
-            ("Vänster långsida: plan 1 vägg 1SO över V21", "1SO <1>", (-400, 500), 0.0, -1),
-            ("Höger långsida: plan 1 vägg 3NV över V14", "3NV <1>", (13310, 14210), 13810.0, 1)]):
+            ("Vänster långsida: plan 1 vägg 1SO över V21", "Vägg 1SO", (-400, 500), 0.0, -1),
+            ("Höger långsida: plan 1 vägg 3NV över V14", "Vägg 3NV", (13310, 14210), 13810.0, 1)]):
         y = regel_y(grupp, 6000)
         for s_ in snitt(m, delar, Plan.tolka(f"y={O[1] + y}").flytta(O[0], O[2])):
             for p in _polygoner(s_.yta):

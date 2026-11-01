@@ -16,6 +16,7 @@ Enhet mm, STEP-filens globala koordinatsystem. Färger i sRGB 0–1.
 """
 import hashlib
 import json
+import sys
 import re
 import time
 from dataclasses import dataclass, field
@@ -58,6 +59,16 @@ class Del:
         return self.sokvag.rsplit("/", 1)[0] if "/" in self.sokvag else ""
 
 
+def _varna_om_gammal(fil):
+    """Varna om modellens kod eller indata har ändrats efter att STEP-filen byggdes (mod bygg)."""
+    kallor = [*(ROT / "modeller" / "trebodar").rglob("*.py"), *(ROT / "verktyg" / "modellering" / "modellering").rglob("*.py"),
+              ROT / "beräkningar" / "K-01" / "indata.toml", ROT / "beräkningar" / "AR-01" / "indata.toml"]
+    nyast = max((k for k in kallor if k.exists()), key=lambda k: k.stat().st_mtime)
+    if nyast.stat().st_mtime > Path(fil).stat().st_mtime + 1:
+        print(f"OBS: {nyast.relative_to(ROT)} är nyare än {Path(fil).name}; kör verktyg/modellering/mod bygg",
+              file=sys.stderr)
+
+
 def filhash(fil):
     return hashlib.sha1(Path(fil).read_bytes()).hexdigest()[:12]
 
@@ -69,6 +80,8 @@ class Modell:
             if self.fil == STANDARD:
                 raise FileNotFoundError(f"{self.fil} saknas: bygg modellen med verktyg/modellering/mod bygg")
             raise FileNotFoundError(self.fil)
+        if self.fil == STANDARD:
+            _varna_om_gammal(self.fil)
         self.hash = filhash(self.fil)
         self.cache = CACHE / f"{self.fil.stem}-{self.hash}"
         if not (self.cache / "index.json").exists() or json.loads(
