@@ -16,7 +16,7 @@ from trebodar.byggdelar.virke import fmt
 from trebodar.hus.invandigt.invandigt import INSIDA_VATRUM_T, SKIVOR_T, _insida_t
 from trebodar.material import FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
 
-from .oppningar import DORRAR, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
+from .oppningar import DORRAR, FICKA_UT, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
 W_UT = -S.T_FASAD                    # karmens utsida i panelens utsida
 SMYG_T, BANK_T = 15.0, 22.0          # smygbrädor och fönsterbänk
@@ -67,17 +67,37 @@ def enhet(o: Oppning) -> Montage:
 SKJUT_T, SKJUT_GLAPP, OVERLAPP = 40.0, 10.0, 30.0       # skjutdörrens blad, avståndet till väggens skikt
 
 
+def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
+    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (läkten i fickan på var sida, invandigt/vaggar.py)
+    täcker öppningen och går FICKA_UT in i fickan; skenan under överstycket över öppningen och fickan."""
+    from trebodar.hus.invandigt.vaggar import FICKA_SKENA, vaggdef
+    v = vaggdef(d.vagg)
+    wm = v.tjocklek / 2
+    a, b = d.fickan
+    ba, bb = (d.u0, d.u1 + FICKA_UT) if d.mot > 0 else (d.u0 - FICKA_UT, d.u1)
+    m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
+    m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", box(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0,
+                                                                   d.hojd + 10.0), FURU), Placering(), f"{d.kod}-BLAD")
+    u0, u1 = min(d.u0, a), max(d.u1, b)
+    m.lagg(Del(f"Skena fickdörr {fmt(u1 - u0)}", box(u0, u1, wm - 10.0, wm + 10.0, d.hojd + 10.0, d.hojd + FICKA_SKENA),
+               KARM), Placering(), f"{d.kod}-SKENA")
+    return m, v.placering()
+
+
 def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     """Skjutdörren utanpå väggen, stängd: bladet täcker öppningen och skenan går en dörrbredd till åt det håll dörren
     öppnas, men inte in över en annan dörr på samma sida av väggen."""
     from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
+    if d.ficka:
+        return fickdorr(d)
     v = vaggdef(d.vagg)
     t = skiktets_tjocklek(d.vagg, d.sida, (d.u0 + d.u1) / 2)
     yta = -t if d.sida < 0 else v.tjocklek + t                      # skiktets yta, skenan sitter på den
     wa, wb = sorted((yta + d.sida * SKJUT_GLAPP, yta + d.sida * (SKJUT_GLAPP + SKJUT_T)))
     sa, sb = sorted((yta, yta + d.sida * (2 * SKJUT_GLAPP + SKJUT_T)))
     a, b = d.u0 - d.fore, d.u1 + d.efter
-    grannar = [(o.u0 - o.fore, o.u1 + o.efter) for o in INNERDORRAR if o.vagg == d.vagg and o.sida == d.sida and o != d]
+    grannar = [(o.u0 - o.fore, o.u1 + o.efter) for o in INNERDORRAR
+               if o.vagg == d.vagg and o.sida == d.sida and o != d and not o.ficka]
     if d.mot > 0:
         s0, s1 = a, min([b + d.bredd] + [g0 - 10.0 for g0, _ in grannar if g0 >= b])
     else:

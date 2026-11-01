@@ -29,11 +29,13 @@ from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGA
 from trebodar.hus.rum import BADRUM, KAMINKAPA
 from trebodar.hus.tak.tak import REGIONER
 
-from trebodar.material import KALCIUMSILIKAT
+from trebodar.material import C24_LAKT, KALCIUMSILIKAT
 
 from .invandigt import FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T
 
 SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
+FICKA_LAKT, FICKA_CC = 10.0, 300.0           # fickdörrens ficka: läkt 10×45 mot var sida, c/c
+FICKA_SKENA = 50.0                           # fickdörrens skena under överstycket (bladets överkant 10 över öppningen)
 
 T = 70.0                        # de lätta väggarnas stomme
 CC = 600.0
@@ -247,24 +249,39 @@ def _stomme(lv: Lattvagg) -> Montage:
             p.profil(P.kontur(q), 0.0, T, typ=typ)
 
     dorrar = [d for d in INNERDORRAR if d.vagg == lv.kod]
+    # dörrarnas utsträckning i stommen (öppningen och fickdörrarnas ficka) och överstyckets underkant
+    spann = [(min(d.u0, *d.fickan), max(d.u1, *d.fickan)) if d.ficka else (d.u0, d.u1) for d in dorrar]
+    over = [d.hojd + (FICKA_SKENA if d.ficka else 0.0) for d in dorrar]
     if lv.syll:
         for q in P.polygoner(box(0.0, 0.0, L, H_VIRKE).difference(
-                unary_union([box(d.u0, -1.0, d.u1, H_VIRKE + 1.0) for d in dorrar] or [Polygon()]))):
+                unary_union([box(a, -1.0, b, H_VIRKE + 1.0) for a, b in spann] or [Polygon()]))):
             lagg("S", q)
     lagg("H", Polygon([(u, z - H_VIRKE) for u, z in topp] + [(u, z) for u, z in topp[::-1]]))
-    # reglar: vid ändarna, c/c 600 och vid dörrarnas sidor (i dörröppningarna bara kortreglar över överstycket)
-    lagen_u = sorted({0.0, L - H_VIRKE} | {d.u0 - H_VIRKE for d in dorrar} | {d.u1 for d in dorrar})
+    # reglar: vid ändarna, c/c 600 och vid dörrarnas sidor (i dörröppningarna och fickorna bara kortreglar över
+    # överstycket)
+    lagen_u = sorted({0.0, L - H_VIRKE} | {a - H_VIRKE for a, _ in spann} | {b for _, b in spann})
     for k in range(1, int(L // CC) + 1):
         if all(abs(k * CC - u) >= H_VIRKE for u in lagen_u):
             lagen_u.append(k * CC)
     for u in sorted(lagen_u):
         if not 0.0 <= u <= L - H_VIRKE + 1e-6:
             continue
-        z0 = next((d.hojd + H_VIRKE for d in dorrar if u + H_VIRKE > d.u0 + 1e-6 and u < d.u1 - 1e-6), H_VIRKE)
+        z0 = next((zo + H_VIRKE for (a, b), zo in zip(spann, over) if u + H_VIRKE > a + 1e-6 and u < b - 1e-6),
+                  H_VIRKE)
         lagg("R", Polygon([(u, z0), (u + H_VIRKE, z0), (u + H_VIRKE, ztopp(u + H_VIRKE) - H_VIRKE),
                            (u, ztopp(u) - H_VIRKE)]))
-    for d in dorrar:
-        lagg("L", box(d.u0, d.hojd, d.u1, d.hojd + H_VIRKE))
+    for (a, b), zo in zip(spann, over):
+        lagg("L", box(a, zo, b, zo + H_VIRKE))
+    # fickdörrarnas fickor: läkt 10×45 c/c 300 mot båda sidorna, från golvet till överstycket
+    for d, zo in zip(dorrar, over):
+        if not d.ficka:
+            continue
+        a, b = d.fickan
+        us = [a + H_VIRKE * (d.mot < 0)] + [u for u in (a + k * FICKA_CC for k in range(1, int((b - a) // FICKA_CC) + 1))
+                                            if u < b - 2 * H_VIRKE]
+        for u in us:
+            for w0, w1 in ((0.0, FICKA_LAKT), (T - FICKA_LAKT, T)):
+                p.lada("F", u, u + H_VIRKE, w0, w1, 0.0, zo, "z", material=C24_LAKT)
     return p.montage()
 
 

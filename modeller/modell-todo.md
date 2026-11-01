@@ -34,3 +34,7 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    går ned till marken enligt `fasad.MARKNIVA`, som då ändras med.
 7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
+8. **Fickdörrar.** Innerdörrarna ska vara inbyggda i väggarna. Bara ID1 (L11) har plats för fickan (dörrbredden + 50
+   mm vägg utan anslutande vägg eller annan dörr); ID2 (2B) har L6 och 2C på var sida om öppningen, ID3 och ID4 (L2)
+   har L3 mellan sig och för kort vägg mot L1 och L4, ID5 (L1) har 80 mm till L2 och ID6 är hela väggen L12. Bestäm
+   väggarnas och dörrarnas lägen (planritning 201) eller vilka som blir skjutdörrar utanpå eller slagdörrar.

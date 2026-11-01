@@ -105,7 +105,8 @@ OPPNINGAR["2NO"] += _kallarfonster()
 class Innerdorr:
     """En innerdörr i en bärande innervägg (skelett.INNERVAGGAR) eller en lätt vägg (invandigt.vaggar.LATTA):
     öppningen u0–u1 längs väggen och skjutdörren utanpå väggen på sidan w < 0 (sida −1) eller w > tjockleken (+1),
-    som öppnas åt växande (mot +1) eller minskande u. Bladet går fore och efter förbi öppningen."""
+    som öppnas åt växande (mot +1) eller minskande u. Bladet går fore och efter förbi öppningen. En fickdörr (ficka)
+    går in i en ficka i väggen åt det håll den öppnas (FICKA_UT längre än öppningen)."""
     kod: str
     vagg: str
     u0: float
@@ -116,15 +117,25 @@ class Innerdorr:
     mot: int = 1
     fore: float = 30.0
     efter: float = 30.0
+    ficka: bool = False
 
     @property
     def bredd(self) -> float:
         return self.u1 - self.u0
 
+    @property
+    def fickan(self) -> tuple[float, float]:
+        """Fickans utsträckning längs väggen (u), från öppningens kant."""
+        lp = self.bredd + FICKA_UT
+        return (self.u1, self.u1 + lp) if self.mot > 0 else (self.u0 - lp, self.u0)
+
+
+FICKA_UT = 50.0              # fickdörrens blad går så långt in i fickan i stängt läge
+
 
 # skjutdörrarna enligt planritning 201 rev 02, med modellens väggar
 INNERDORRAR = (
-    Innerdorr("ID1", "L11", 920.0, 1820.0, -1, rum="badrummet (dörr 900)"),
+    Innerdorr("ID1", "L11", 920.0, 1820.0, -1, rum="badrummet (dörr 900)", ficka=True),
     Innerdorr("ID2", "2B", 3992.0, 4826.0, -1, 2200.0, "trappan till källaren, mellan karmstolparna LD2_1 och LD2_2"),
     # korridorens hörn vid L1 och L2: ID5 öppnas mot väster och slutar före korridorväggen, ID3 börjar efter ID5:s blad
     Innerdorr("ID3", "L2", 120.0, 1066.0, 1, rum="kontoret i höger huskropp"),

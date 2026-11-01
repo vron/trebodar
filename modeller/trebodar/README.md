@@ -152,7 +152,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter TP och numreras längs takfallet.
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
-  skjutdörrar med BLAD och SKENA.
+  skjutdörrar med BLAD och SKENA (ID1 fickdörr, fickans läkt F i väggen).
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT, KM-GALLER.
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
