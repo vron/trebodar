@@ -31,13 +31,15 @@
 <div id="laddar">Laddar modellen …</div>
 <aside id="panel">
   <div class="rad" style="justify-content: space-between"><h1>Fritidshus Trebodar</h1><button id="stang">◀</button></div>
-  <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för information.</div>
+  <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för
+    information, dubbelklicka för att kretsa kring den; hjulet zoomar mot pekaren.</div>
   <h2>Vyer</h2><div id="vyer"></div>
   <h2>Snitt</h2>
   <div class="rad"><label><input type="checkbox" id="kx"> x</label><input type="range" id="sx"></div>
   <div class="rad"><label><input type="checkbox" id="ky"> y</label><input type="range" id="sy"></div>
   <div class="rad"><label><input type="checkbox" id="kz"> z</label><input type="range" id="sz"></div>
-  <div class="rad"><label><input type="checkbox" id="vand"> vänd snitten</label></div>
+  <div class="rad"><label><input type="checkbox" id="vand"> vänd snitten</label>
+    <label style="margin-left: 12px"><input type="checkbox" id="kanter" checked> kanter</label></div>
   <h2>Modellträdet</h2><ul id="trad"></ul>
 </aside>
 <button id="knapp">▶ Meny</button>
@@ -62,10 +64,11 @@ scene.background = new THREE.Color(getComputedStyle(document.body).getPropertyVa
 const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.zoomToCursor = true;                  // zooma mot muspekaren; dubbelklicka på en del för att kretsa kring den
 // omgivning för reflexer, så att metall (takplåten) inte blir svart
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.6;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x666655, 1.6));
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb8b4a8, 1.6));     // ljust även underifrån (innertak)
 const sol = new THREE.DirectionalLight(0xffffff, 1.6); sol.position.set(-10, 20, 12); scene.add(sol);
 
 // modellens mm (z upp) -> scenens m (y upp): (x, y, z) -> (x, z, -y)
@@ -73,6 +76,125 @@ const tillScen = p => new THREE.Vector3(p[0] / 1000, p[2] / 1000, -p[1] / 1000);
 const plan = { x: new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), y: new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
                z: new THREE.Plane(new THREE.Vector3(0, -1, 0), 0) };
 let modell, lada;
+// delarnas kanter (linjer där ytorna möts) och snittytor: där ett snitt skär en del räknas delens tvärsnitt ut ur
+// nätet och ritas som en plan yta i delens färg med svart kontur, som en sektion i en ritning
+const kantMaterial = new THREE.LineBasicMaterial({ color: 0x262626 });
+const KANTVINKEL = 25;                 // grader mellan ytor för att en kant ska ritas
+const konturMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+const snittMaterial = new Map();       // delens material -> snittytans material
+const snittGrupp = new THREE.Group();
+scene.add(snittGrupp);
+let delar = [], aktivaPlan = [], planerat = false;
+
+function synlig(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
+
+function tvarsnitt(o, plan) {
+  // delens tvärsnitt i planet som slutna slingor av punkter (i världen); näten är slutna kroppar
+  const pos = o.geometry.attributes.position, idx = o.geometry.index;
+  const lok = plan.clone().applyMatrix4(o.matrixWorld.clone().invert());
+  const n = pos.count, d = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const v = lok.normal.x * pos.getX(i) + lok.normal.y * pos.getY(i) + lok.normal.z * pos.getZ(i) + lok.constant;
+    d[i] = Math.abs(v) < 1e-9 ? 1e-9 : v;
+  }
+  const P = new THREE.Vector3(), Q = new THREE.Vector3();
+  const punkt = (i, j) => {
+    const t = d[i] / (d[i] - d[j]);
+    P.fromBufferAttribute(pos, i); Q.fromBufferAttribute(pos, j);
+    return P.lerp(Q, t).applyMatrix4(o.matrixWorld).clone();
+  };
+  const nyckel = v => `${Math.round(v.x * 1e5)},${Math.round(v.y * 1e5)},${Math.round(v.z * 1e5)}`;
+  const grannar = new Map(), punkter = new Map();
+  const m = idx ? idx.count : n;
+  for (let k = 0; k < m; k += 3) {
+    const t = [0, 1, 2].map(j => idx ? idx.getX(k + j) : k + j);
+    const s = [];
+    for (let j = 0; j < 3; j++) {
+      const a = t[j], b = t[(j + 1) % 3];
+      if ((d[a] > 0) !== (d[b] > 0)) s.push(punkt(a, b));
+    }
+    if (s.length !== 2) continue;
+    const [ka, kb] = s.map(nyckel);
+    if (ka === kb) continue;
+    punkter.set(ka, s[0]); punkter.set(kb, s[1]);
+    if (!grannar.has(ka)) grannar.set(ka, []);
+    if (!grannar.has(kb)) grannar.set(kb, []);
+    grannar.get(ka).push(kb); grannar.get(kb).push(ka);
+  }
+  const slingor = [], besokt = new Set();
+  for (const start of grannar.keys()) {
+    if (besokt.has(start)) continue;
+    const slinga = [];
+    let k = start, fore = null;
+    while (k && !besokt.has(k)) {
+      besokt.add(k); slinga.push(punkter.get(k));
+      const nasta = grannar.get(k).find(x => x !== fore && !besokt.has(x));
+      fore = k; k = nasta;
+    }
+    if (slinga.length >= 3) slingor.push(slinga);
+  }
+  return slingor;
+}
+
+function snittyta(o, plan, ovriga) {
+  const slingor = tvarsnitt(o, plan);
+  if (!slingor.length) return;
+  // planets system: u, v i planet
+  const nrm = plan.normal, u = new THREE.Vector3(), v = new THREE.Vector3();
+  u.set(Math.abs(nrm.x) < 0.9 ? 1 : 0, Math.abs(nrm.x) < 0.9 ? 0 : 1, 0).cross(nrm).normalize();
+  v.crossVectors(nrm, u);
+  const platt = slingor.map(sl => sl.map(p => new THREE.Vector2(p.dot(u), p.dot(v))));
+  const inuti = (pt, poly) => {
+    let inne = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++)
+      if ((poly[i].y > pt.y) !== (poly[j].y > pt.y) &&
+          pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x) inne = !inne;
+    return inne;
+  };
+  const djup = platt.map((pl, i) => platt.filter((q, j) => j !== i && inuti(pl[0], q)).length);
+  const pos = [];
+  platt.forEach((ytter, i) => {
+    if (djup[i] % 2) return;
+    const hal = platt.filter((q, j) => djup[j] === djup[i] + 1 && inuti(q[0], ytter));
+    const punkter3 = [slingor[i], ...hal.map(h => slingor[platt.indexOf(h)])].flat();
+    for (const tri of THREE.ShapeUtils.triangulateShape(ytter, hal))
+      for (const k of tri) pos.push(punkter3[k].x, punkter3[k].y, punkter3[k].z);
+  });
+  if (!pos.length) return;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  if (!snittMaterial.has(o.material)) {
+    snittMaterial.set(o.material, new THREE.MeshBasicMaterial({ color: o.material.color.clone().multiplyScalar(0.8),
+      side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+  }
+  const mat = snittMaterial.get(o.material).clone();
+  mat.clippingPlanes = ovriga;
+  snittGrupp.add(new THREE.Mesh(g, mat));
+  const lin = [];
+  for (const sl of slingor) sl.forEach((p, i) => { const q = sl[(i + 1) % sl.length]; lin.push(p.x, p.y, p.z, q.x, q.y, q.z); });
+  const lg = new THREE.BufferGeometry();
+  lg.setAttribute("position", new THREE.Float32BufferAttribute(lin, 3));
+  const lm = konturMaterial.clone(); lm.clippingPlanes = ovriga;
+  snittGrupp.add(new THREE.LineSegments(lg, lm));
+}
+
+function byggSnitt() {
+  planerat = false;
+  for (const c of snittGrupp.children) { c.geometry.dispose(); c.material.dispose(); }
+  snittGrupp.clear();
+  const lada = new THREE.Box3();
+  for (const plan of aktivaPlan) {
+    const ovriga = aktivaPlan.filter(q => q !== plan);
+    for (const o of delar) {
+      if (o.material.transparent || !synlig(o)) continue;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      lada.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+      if (plan.intersectsBox(lada)) snittyta(o, plan, ovriga);
+    }
+  }
+}
+
+function planeraSnitt() { if (!planerat) { planerat = true; requestAnimationFrame(byggSnitt); } }
 
 function storlek() {
   const w = el.clientWidth, h = el.clientHeight;
@@ -98,15 +220,20 @@ function snitt() {
     aktiva.push(p);
   }
   modell.traverse(o => { if (o.isMesh) o.material.clippingPlanes = aktiva; });
+  kantMaterial.clippingPlanes = aktiva;
+  aktivaPlan = aktiva;
+  planeraSnitt();
 }
 
+const delbarn = o => o.children.filter(c => !c.isLineSegments);
+
 function trad(obj, ul, djup) {
-  for (const barn of obj.children) {
-    if (barn.isMesh && barn.children.length === 0) continue;
+  for (const barn of delbarn(obj)) {
+    if (barn.isMesh && delbarn(barn).length === 0) continue;
     const li = document.createElement("li");
-    const harBarn = barn.children.some(c => !c.isMesh || c.children.length);
+    const harBarn = delbarn(barn).some(c => !c.isMesh || delbarn(c).length);
     const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = true;
-    cb.onchange = () => { barn.visible = cb.checked; };
+    cb.onchange = () => { barn.visible = cb.checked; planeraSnitt(); };
     const pil = document.createElement("span"); pil.className = "pil"; pil.textContent = harBarn ? "▸" : "";
     const namn = document.createElement("span"); namn.textContent = " " + barn.name;
     li.append(pil, cb, namn);
@@ -123,16 +250,23 @@ function trad(obj, ul, djup) {
 }
 
 const ray = new THREE.Raycaster(), mus = new THREE.Vector2();
-renderer.domElement.addEventListener("click", e => {
+function traff(e) {
   const r = renderer.domElement.getBoundingClientRect();
   mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(mus, camera);
-  const traffar = ray.intersectObject(modell, true).filter(t => {
+  return ray.intersectObject(modell, true).filter(t => t.object.isMesh).filter(t => {
     const p = t.point; let ok = true; let o = t.object;
     while (o) { if (!o.visible) { ok = false; break; } o = o.parent; }
     for (const pl of (t.object.material.clippingPlanes || [])) if (pl.distanceToPoint(p) < 0) ok = false;
     return ok;
   });
+}
+renderer.domElement.addEventListener("dblclick", e => {
+  const t = traff(e);
+  if (t.length) controls.target.copy(t[0].point);
+});
+renderer.domElement.addEventListener("click", e => {
+  const traffar = traff(e);
   const info = document.getElementById("info");
   if (!traffar.length) { info.style.display = "none"; return; }
   let o = traffar[0].object; while (o && !o.userData.sokvag) o = o.parent;
@@ -148,7 +282,17 @@ document.getElementById("knapp").onclick = () => document.getElementById("panel"
 const vyer = await (await fetch("vyer.json")).json();
 new GLTFLoader().load("modell/trebodar.glb", gltf => {
   modell = gltf.scene; scene.add(modell);
-  modell.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.side = THREE.DoubleSide; } });
+  modell.traverse(o => { if (o.isMesh) delar.push(o); });
+  modell.updateMatrixWorld(true);
+  const kanter = new Map();                    // en kantgeometri per nät (likadana delar delar nät)
+  for (const o of delar) {
+    const m = o.material = o.material.clone();
+    m.side = m.transparent ? THREE.DoubleSide : THREE.FrontSide;      // snittytorna täcker de skurna delarna
+    m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 1;    // kanterna ovanpå ytorna
+    if (!kanter.has(o.geometry)) kanter.set(o.geometry, new THREE.EdgesGeometry(o.geometry, KANTVINKEL));
+    o.add(new THREE.LineSegments(kanter.get(o.geometry), kantMaterial));
+  }
+  document.getElementById("kanter").onchange = e => { kantMaterial.visible = e.target.checked; };
   lada = new THREE.Box3().setFromObject(modell);
   // snittens intervall i modellens mm
   const mn = lada.min, mx = lada.max;
@@ -170,6 +314,7 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
   document.getElementById("laddar").remove();
 }, undefined, e => { document.getElementById("laddar").textContent = "Kunde inte läsa modellen: " + e.message; });
 
+window.visare = { scene, camera, controls, gaTill, byggSnitt };        // för felsökning i webbläsarens konsol
 renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
 </script>
 </body>
