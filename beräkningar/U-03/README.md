@@ -17,7 +17,7 @@ Geometrin är tagen ur K-03:s `geometri.json` (nock- och dalbalkar, takbalkarnas
 
 ```
 pip install -r requirements.txt
-python berakning.py            # alla fall parallellt (högst 12 processer, ca 1 h), figurer, resultat.json, PDF
+python berakning.py            # alla 43 fall parallellt (högst 12 processer, ca 1,5 h), figurer, resultat.json, PDF
 python berakning.py rapport    # bara figurer och PDF ur sparade resultat
 python berakning.py fall bas   # bara angivna fall
 ```

@@ -26,10 +26,10 @@ bta         = "270 + 30"     # m²
 
 # Takets egenvikt per m² takyta (mätt längs takfallet). Vikt i kg/m². Trä 500 kg/m³ (på säker sida).
 [[tak]]
-skikt = "Bandtäckt plåt 0,6 mm inklusive falsar"
+skikt = "Bandtäckt zink-magnesiumplåt 0,6 mm inklusive falsar"
 kg = 5.0
 [[tak]]
-skikt = "Underlagstäckning"
+skikt = "Underlagspapp (bitumen)"
 kg = 3.0
 [[tak]]
 skikt = "Råspont 20 mm, 500 kg/m³"

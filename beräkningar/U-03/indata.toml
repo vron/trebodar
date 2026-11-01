@@ -11,12 +11,12 @@ dokument    = "U-03"
 revision    = "A"
 datum       = "2026-10-31"
 upprattad   = "Viktor Ogeman"
-underlag    = "K-03 rev A (takets geometri), F-01 rev A (takets uppbyggnad), AR-02 (husets riktning), ERA5 2013–2023"
+underlag    = "K-03 rev A, K-05 (takets geometri), F-01 rev A (uppbyggnad), planritning 201 rev 02, AR-02 (riktning), ERA5 2013–2023"
 
 # Takets geometri i K-05:s koordinater: väggliv och gavlar (K-05, K-03), takbalkarnas ändar vid takfötterna (K-03)
 [tak]
 lutning     = 30        # [°]
-azimut_x    = 318.0     # lokala +x mot NV: 318,7° i SWEREF 99 TM (AR-02, θ = 131,29°), 318,0° mot geografiska norr
+azimut_x    = 318.0     # lokala +x mot NV: 318,7° i SWEREF 99 12 00 (AR-02, θ = 131,29°), 318,0° mot geografiska norr
 utsprang    = 70        # takbalkarna når 70 mm utanför fasadens yttersida vid takfötterna (K-03) [mm]
 cc          = 600       # takbalkar och ströläkt [mm]
 lakt_b      = 45        # ströläktens bredd [mm]
@@ -222,6 +222,57 @@ spalt = 36
 T_tomt = 10.0
 fukttillskott_tomt = 2.0
 tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "rek"
+namn = "Rekommenderat: spalt 36 mm, omluftning 300 mm"
+omluft = true
+spalt = 36
+omluft_l = 300
+[[fall]]
+id = "rek_vind05"
+namn = "Rekommenderat, vindtryck × 0,5"
+omluft = true
+spalt = 36
+omluft_l = 300
+vind = 0.5
+[[fall]]
+id = "rek_vind025"
+namn = "Rekommenderat, vindtryck × 0,25"
+omluft = true
+spalt = 36
+omluft_l = 300
+vind = 0.25
+[[fall]]
+id = "tomt15"
+namn = "Omluftning, huset tomt oktober–april: inne 15 °C, fukttillskott 2 g/m³"
+omluft = true
+T_tomt = 15.0
+fukttillskott_tomt = 2.0
+tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "rek_tomt15"
+namn = "Rekommenderat, huset tomt oktober–april: inne 15 °C"
+omluft = true
+spalt = 36
+omluft_l = 300
+T_tomt = 15.0
+fukttillskott_tomt = 2.0
+tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "rek_tomt"
+namn = "Rekommenderat, huset tomt oktober–april: inne 10 °C"
+omluft = true
+spalt = 36
+omluft_l = 300
+T_tomt = 10.0
+fukttillskott_tomt = 2.0
+tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "takfot_strypt_vind025"
+namn = "Omluftning, strypta takfötter, vindtryck × 0,25"
+omluft = true
+zeta_takfot = 11.0
+vind = 0.25
 [[fall]]
 id = "omluft300"
 namn = "Omluftning med 300 mm uppehåll"

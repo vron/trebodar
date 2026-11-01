@@ -101,17 +101,19 @@ def sammanfatta(fid, d, K=None):
     ar = dagar.astype("datetime64[Y]").astype(int) + 1970
     M_ar = {int(a): float(d["dag_Mr"][ar == a].max()) for a in np.unique(ar)}
     vag_c = np.repeat([vag[i] for i in range(nf)], nc)
-    lang, kort = vag_c > 15, vag_c < 7
+    fon_f = np.zeros(nf, bool)                                                # remsorna med takfönster
+    for f in IN["tak"]["fonster"]:
+        fon_f |= (d["yc"] > f["y"][0]) & (d["yc"] < f["y"][1])
+    fon_c = np.repeat(fon_f, nc)
+    lang, kort = (vag_c > 15) & ~fon_c, (vag_c < 7) & ~fon_c
     M_ar_lang = {int(a): float(d["dag_Mr"][ar == a][:, lang].max()) for a in np.unique(ar)}
     M_ar_kort = {int(a): float(d["dag_Mr"][ar == a][:, kort].max()) for a in np.unique(ar)}
     A = d["L"] * d["w"]
     bad = d["bad"].reshape(nf, nc).any(axis=1) if d["bad"].any() else None
-    fon = np.zeros(nf, bool)                                                  # remsorna med takfönster
-    for f in IN["tak"]["fonster"]:
-        fon |= (d["yc"] > f["y"][0]) & (d["yc"] < f["y"][1])
+    fon = fon_f
     vfon = np.abs(d["Qfall"][utv][:, fon]) / d["A_fl"][fon] if fon.any() else None
     return dict(id=fid, namn=FALL[fid]["namn"], M=float(d["Mr_max"].max()), M_iso=float(d["Mm_max"].max()),
-                Mf=Mf, Mmf=Mmf, kf=kf, fasad=float(d["fasad"][kf]), yc=float(d["yc"][kf]), x0=float(d["x0"][kf]),
+                Mf=Mf, Mmf=Mmf, kf=kf, fon_kf=bool(fon_f[kf]), fasad=float(d["fasad"][kf]), yc=float(d["yc"][kf]), x0=float(d["x0"][kf]),
                 x1=float(d["x1"][kf]), vag=vag[kf], v_med=float(np.median(v[:, kf])), v_lag=float((v[:, kf] < 0.02).mean()),
                 v_med_alla=float(np.median(v)), M_ar=M_ar, M_ar_lang=M_ar_lang, M_ar_kort=M_ar_kort,
                 vag_f=np.array([vag[i] for i in range(nf)]),
@@ -193,10 +195,11 @@ def fig_omluft(plt):
     ax.text(1480, y1f + 500, "1 000", fontsize=6, va="center", rotation=90)
     ax.text(0, L + 60, "mot nock", ha="center", va="bottom", fontsize=6.3)
     ax.text(0, -L - 60, "mot takfot", ha="center", va="top", fontsize=6.3)
-    ax.text(1700, 1250, "Uppehåll i ströläkten (blått) på avväxlingarna och kortlingen:\nminst 300 mm fritt per läktlinje inom 1 m ovanför och\n"
-            "under fönstret, högst 150–200 mm vardera, förskjutna\nmellan linjerna så att råsponten alltid bärs.", fontsize=6.3, va="center")
+    ax.text(1700, 1250, "Uppehåll i ströläkten (blått) på avväxlingarna och kortlingen:\n"
+            f"minst {FALL['rek']['omluft_l']:g} mm fritt per läktlinje inom 1 m ovanför och\n"
+            "under fönstret, högst 200 mm vardera, förskjutna\nmellan linjerna så att råsponten alltid bärs.", fontsize=6.3, va="center")
     ax.text(1700, -200, "Luften i de två facken som fönstret bryter går åt sidan\ngenom uppehållen, förbi fönstret i grannfacken och\n"
-            "tillbaka ovanför det. Spalten 30 mm fri höjd.", fontsize=6.3, va="center")
+            f"tillbaka ovanför det. Spalten {FALL['rek']['spalt']:g} mm fri höjd.", fontsize=6.3, va="center")
     ax.text(1700, -1300, "Ljust: takbalk 45, avväxling (dubbel takbalk) och kortling.\nMörkt: ströläkt 45.", fontsize=6.3, va="center")
     ax.set_xlim(-1400, 4600); ax.set_ylim(-L - 250, L + 250); ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(HERE / "fig_omluft.svg", bbox_inches="tight", pad_inches=0.02)
@@ -227,17 +230,17 @@ def flodesstat(D, K):
 def fig_ar(plt, S, F):
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.0, 1.9), gridspec_kw=dict(width_ratios=[1.6, 1]))
     ar = list(range(2014, 2024))
-    for fid, namn, c, ls in (("malad", "målad plåt", "#9a9a9a", "-"), ("omluft", "zink-magnesium", "#d4502f", "-"),
-                             ("vind05", "vindtryck × 0,5", "#ec9a4a", "-"), ("vind025", "× 0,25", "#f3c14a", "-"),
+    for fid, namn, c, ls in (("malad", "målad plåt, full vind", "#9a9a9a", "-"), ("omluft", "zink-magnesium, full vind", "#d4502f", "-"),
+                             ("vind05", "vindtryck × 0,5", "#ec9a4a", "-"), ("vind025", "vindtryck × 0,25", "#f3c14a", "-"),
                              ("oventilerad", "oventilerad", "#4a6fa5", "-")):
         if fid not in S:
             continue
-        a1.plot(ar, [S[fid]["M_ar_kort"][a] for a in ar], color=c, lw=1.0, ls="-", marker="o", ms=2.2, label=namn)
+        a1.plot(ar, [S[fid]["M_ar"][a] for a in ar], color=c, lw=1.0, ls="-", marker="o", ms=2.2, label=namn)
         a1.plot(ar, [S[fid]["M_ar_lang"][a] for a in ar], color=c, lw=0.8, ls=(0, (3, 2)))
     a1.axhline(1.0, color="#555555", lw=0.5, ls=":")
     a1.set_xticks(ar); a1.set_xticklabels([str(a)[2:] for a in ar], fontsize=6.3); a1.tick_params(labelsize=6.3)
     a1.set_ylabel("M, största under året", fontsize=6.5)
-    a1.set_title("a) Mögelindex på råspontens undersida. Heldraget: väg 5,4–5,9 m, streckat: 16,3 m", fontsize=7, loc="left")
+    a1.set_title("a) Mögelindex på råspontens undersida. Heldraget: hela taket, streckat: väg 16,3 m utan fönsterfack", fontsize=7, loc="left")
     a1.legend(fontsize=6, frameon=False, ncol=2, loc="upper left")
     lab = ["alla timmar", "lugnt, sol", "lugnt, natt"]
     x = np.arange(3)
@@ -272,10 +275,12 @@ def fig_plan(plt, S, D):
     import math
     T = IN["tak"]
     linjer = geometri.nock_och_dallinjer(IN["byggnad"])
-    paneler = (("bas", "a) Handlingarna"), ("omluft", "b) Omluftning vid fönstren"), ("omluft_gavel", "c) b + gavelöppningar"),
-               ("omluft_samling_gavel", "d) c + kanal längs nock och dal"), ("malad", "e) b med målad plåt"))
+    paneler = (("bas", "a) Som ritat, 30 mm"), ("omluft", "b) 30 mm, omluftning vid fönstren"), ("omluft_gavel", "c) b + gavelöppningar"),
+               ("vind025", "d) b, vindtryck × 0,25"), ("rek_vind025", "e) 36 mm, omluftning 300 mm, × 0,25"),
+               ("malad", "f) b med målad plåt"))
     paneler = tuple(p_ for p_ in paneler if p_[0] in S)
-    fig, axs = plt.subplots(1, len(paneler), figsize=(7.0, 2.45 * 4 / len(paneler)))
+    fig, axs = plt.subplots(2, 3, figsize=(7.0, 5.2))
+    axs = axs.ravel()
     th = math.radians(450 - T["azimut_x"])                      # norr i K-05:s koordinater: (sin θ, cos θ), θ = 450° − azimut för +x
     for ax, (fid, titel) in zip(axs, paneler):
         s, d = S[fid], D[fid]
@@ -297,8 +302,8 @@ def fig_plan(plt, S, D):
                 typ, x, y0, y1 = next(l for l in linjer if l[1] == gv["x"])
                 y = (y0 if gv["ande"] == "y0" else y1) / 1000
                 dy = -0.6 if gv["ande"] == "y0" else 0.6
-                ax.annotate("", (x / 1000, y), (x / 1000, y + dy), arrowprops=dict(arrowstyle="<->", lw=0.6, color="#1f5fa8",
-                            shrinkA=0, shrinkB=0, mutation_scale=5))
+                ax.annotate("", (x / 1000, y), (x / 1000, y + dy), arrowprops=dict(arrowstyle="<|-|>", lw=0.8, color="#1f5fa8",
+                            shrinkA=0, shrinkB=0, mutation_scale=7))
         ax.set_title(titel, fontsize=7, loc="left", pad=2)
         ax.text(-0.2, -1.25, f"M max {fmt(s['M'], 2)}", fontsize=6.5, ha="left", va="top")
         ax.set_xlim(-0.6, 16.6); ax.set_ylim(-2.0, 16.9); ax.set_aspect("equal"); ax.axis("off")
@@ -313,37 +318,47 @@ def fig_plan(plt, S, D):
     ax.annotate("", c + dn * 0.9, c - dn * 0.5, arrowprops=dict(arrowstyle="-|>", lw=0.6, color="#333333", mutation_scale=6))
     ax.text(*(c + dn * 1.5), "N", fontsize=6, ha="center", va="center")
     h = [Rectangle((0, 0), 1, 1, facecolor=c_, edgecolor="#bbbbbb", lw=0.3) for _, c_, _ in MFARG]
-    fig.legend(h, [t for _, _, t in MFARG], loc="lower center", ncol=5, fontsize=6.3, frameon=False, handlelength=1.2,
-               bbox_to_anchor=(0.5, -0.05), title="Mögelindex M på råspontens undersida, största värdet 2014–2023 per takfall",
-               title_fontsize=6.3)
-    fig.subplots_adjust(left=0.0, right=1.0, top=0.93, bottom=0.12, wspace=0.03)
+    fig.legend(h, [t for _, _, t in MFARG], loc="lower center", ncol=5, fontsize=6.5, frameon=False, handlelength=1.2,
+               bbox_to_anchor=(0.5, -0.02), title="Mögelindex M på råspontens undersida, största värdet 2014–2023 per takfall",
+               title_fontsize=6.5)
+    fig.subplots_adjust(left=0.0, right=1.0, top=0.96, bottom=0.07, wspace=0.03, hspace=0.12)
     fig.savefig(HERE / "fig_plan.svg", bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
 
 
-TABELL = ["bas", "omluft", "omluft_gavel", "omluft_samling", "omluft_samling_gavel", "vind05", "vind025", "vind0", "gavel_vind05",
-          "s25", "s36", "s45", "s36_vind05", "s25_vind025", "s36_vind025", "s45_vind025", "s36_tomt", "omluft300", "takfot_strypt", "masonit006", "masonit06", "bad", "bad_sd10", "fukt6", "tomt_vinter", "zm_ny", "zm_patina", "malad",
-          "vat", "takfot_strypt_vat", "bas_vat",
-          "oventilerad", "oventilerad_vat", "utan_fonster"]
-KORT = {"bas": "Handlingarna: fönstren bryter facken", "omluft": "Omluftning vid fönstren (rekommenderat)",
+TABELL = [("Utförande", ["rek", "bas", "omluft", "omluft300", "omluft_gavel", "omluft_samling", "omluft_samling_gavel", "utan_fonster"]),
+          ("Vind och spalt", ["rek_vind05", "rek_vind025", "vind05", "vind025", "vind0", "gavel_vind05", "s25", "s36", "s45", "s36_vind05",
+                              "s25_vind025", "s36_vind025", "s45_vind025", "takfot_strypt", "takfot_strypt_vind025"]),
+          ("Plåt", ["zm_ny", "zm_patina", "malad"]),
+          ("Inneklimat och vindskiva", ["bad", "bad_sd10", "fukt6", "tomt15", "tomt_vinter", "rek_tomt15", "rek_tomt", "s36_tomt",
+                                        "masonit006", "masonit06"]),
+          ("Byggfukt och oventilerat", ["vat", "takfot_strypt_vat", "bas_vat", "oventilerad", "oventilerad_vat"])]
+TABELL_ID = [f for _, ids in TABELL for f in ids]
+KORT = {"rek": "*Rekommenderat: 36 mm, omluftning 300 mm*", "rek_vind05": "Rekommenderat, vindtryck × 0,5",
+        "rek_vind025": "Rekommenderat, vindtryck × 0,25", "tomt15": "Tomt okt–apr: inne 15 °C, 30 mm",
+        "rek_tomt15": "Rekommenderat, tomt: inne 15 °C", "rek_tomt": "Rekommenderat, tomt: inne 10 °C",
+        "takfot_strypt_vind025": "Strypta takfötter, vindtryck × 0,25",
+        "bas": "Som ritat: fönstren bryter facken (30 mm)", "omluft": "30 mm, omluftning 600 mm",
         "omluft_gavel": "+ gavelöppningar", "omluft_samling": "+ kanal längs nock och dal",
         "omluft_samling_gavel": "+ kanal och gavelöppningar", "vind05": "Vindtryck × 0,5", "vind025": "Vindtryck × 0,25",
         "vind0": "Ingen vind, bara sol och stigkraft", "gavel_vind05": "Gavelöppningar, vindtryck × 0,5", "s25": "Spalt 25 mm",
         "s45": "Spalt 45 mm", "s36": "Spalt 36 mm", "s25_vind025": "Spalt 25 mm, vindtryck × 0,25",
         "s36_vind025": "Spalt 36 mm, vindtryck × 0,25", "s36_vind05": "Spalt 36 mm, vindtryck × 0,5",
-        "s36_tomt": "Spalt 36 mm, tomt okt–apr", "s45_vind025": "Spalt 45 mm, vindtryck × 0,25", "omluft300": "Omluftning 300 mm", "masonit006": "Vindskiva Sd 0,06 m", "masonit06": "Vindskiva Sd 0,6 m",
+        "s36_tomt": "Spalt 36 mm, tomt okt–apr", "s45_vind025": "Spalt 45 mm, vindtryck × 0,25", "omluft300": "30 mm, omluftning 300 mm", "masonit006": "Vindskiva Sd 0,06 m", "masonit06": "Vindskiva Sd 0,6 m",
         "bad": "Badrummet fuktklass 4, Intello Plus", "bad_sd10": "Badrummet fuktklass 4, Sd 10 m där",
-        "fukt6": "Hela huset fuktklass 3", "tomt_vinter": "Tomt okt–apr: inne 10 °C, 2 g/m³",
+        "fukt6": "Hela huset fuktklass 3", "tomt_vinter": "Tomt okt–apr: inne 10 °C, 30 mm",
         "zm_ny": "Ny blank plåt: α 0,55, ε 0,12", "zm_patina": "Åldrad plåt: α 0,8, ε 0,4", "malad": "Målad plåt: α 0,6, ε 0,9",
-        "takfot_strypt": "Strypta takfötter (förlust × 4)",
+        "takfot_strypt": "Strypta takfötter (4 × tryckfall)",
         "takfot_strypt_vat": "Strypta takfötter, råspont 20 % vid stängning", "vat": "Råspont 20 % vid stängning",
-        "bas_vat": "Handlingarna, råspont 20 % vid stängning", "oventilerad": "Oventilerad (takfötter stängda)",
+        "bas_vat": "Som ritat, råspont 20 % vid stängning", "oventilerad": "Oventilerad (takfötter stängda)",
         "oventilerad_vat": "Oventilerad, råspont 20 % vid stängning", "utan_fonster": "Utan takfönster"}
 
 
 def lage(s):
+    if s["M"] < 0.1:
+        return "–"
     rikt = "SO" if abs(s["fasad"] - (IN["tak"]["azimut_x"] + 180) % 360) < 1 else "NV"
-    return f"{rikt}, {fmt(s['vag'], 1)} m"
+    return f"{rikt}, fönsterfack" if s["fon_kf"] else f"{rikt}, {fmt(s['vag'], 1)} m"
 
 
 def resultat_json(S, D, K, F):
@@ -351,13 +366,12 @@ def resultat_json(S, D, K, F):
     g = IN["tak"]
     om = S["omluft"]
     rad = []
-    for fid in TABELL:
-        if fid not in S:
-            continue
-        x = S[fid]
-        var = lage(x)
-        rad.append(dict(id=fid, namn=KORT[fid], M=fmt(x["M"], 2), yta1=fmt(x["yta1"], 0), Miso=fmt(x["M_iso"], 2),
-                        v=fmt(x["v_med_alla"], 2), var=var))
+    for grupp, ids in TABELL:
+        rad.append(dict(grupp=True, namn=grupp))
+        for fid in ids:
+            x = S[fid]
+            rad.append(dict(grupp=False, id=fid, namn=KORT[fid], M=fmt(x["M"], 2), yta1=fmt(x["yta1"], 0),
+                            Miso=fmt(x["M_iso"], 2), v=fmt(x["v_med_alla"], 2), var=lage(x)))
     utv = K["t"] >= np.datetime64(IN["klimat"]["utvardering"])
     # varför takfallen skiljer: sol nov–mars och råspontens RF under vintern i de korta vägarna (omluftningsfallet)
     man = K["t"].astype("datetime64[M]").astype(int) % 12 + 1
@@ -375,6 +389,8 @@ def resultat_json(S, D, K, F):
     R = {
         "projekt": IN["projekt"],
         "sam": dict(sol_SO=fmt(sol["SO"], 0), sol_NV=fmt(sol["NV"], 0), rf_SO=fmt(100 * rf["SO"], 0), rf_NV=fmt(100 * rf["NV"], 0)),
+        "rek": dict(spalt=fmt(FALL["rek"]["spalt"], 0), omluft=fmt(FALL["rek"]["omluft_l"], 0),
+                    oppning=fmt(FALL["rek"]["spalt"] * FALL["rek"]["omluft_l"], 0)),
         "g": dict(lutning=fmt(g["lutning"], 0), spalt=fmt(IN["uppbyggnad"]["spalt"], 0), cc=fmt(g["cc"], 0), vag_max="16,3",
                   vagar="5,4, 5,9, 11,1 eller 16,3", remsor=str(len(np.unique(D["omluft"]["remsa"]))), celler=str(IN["modell"]["celler"]),
                   varv=str(IN["modell"]["varv"]), yta=fmt(om["yta"], 0)),
@@ -410,7 +426,7 @@ if __name__ == "__main__":
             for fid, sek in ex.map(kor_fall, ids):
                 print(f"{fid}: {sek:.0f} s", flush=True)
     S, D, K, F = rapport()
-    if all(f in S for f in TABELL):
+    if all(f in S for f in TABELL_ID):
         resultat_json(S, D, K, F)
         import typst
         pdf = HERE / f"{IN['projekt']['dokument']}_takets_luftspalt.pdf"
