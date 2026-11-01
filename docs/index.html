@@ -229,8 +229,13 @@ function snittyta(o, plan, ovriga) {
   g.computeBoundingBox();
   Object.assign(yta.userData, { del: o, slingor, lada: g.boundingBox.clone() });     // för mätningen
   snittGrupp.add(yta);
-  const lin = [];
-  for (const sl of slingor) sl.forEach((p, i) => { const q = sl[(i + 1) % sl.length]; lin.push(p.x, p.y, p.z, q.x, q.y, q.z); });
+  // konturen 0,8 mm framför snittytorna (mot den bortskurna sidan, där betraktaren är), så att gränsen mellan två
+  // delar syns även när grannens snittyta har samma färg
+  const ut = plan.normal.clone().multiplyScalar(-0.0008), lin = [];
+  for (const sl of slingor) sl.forEach((p, i) => {
+    const q = sl[(i + 1) % sl.length];
+    lin.push(p.x + ut.x, p.y + ut.y, p.z + ut.z, q.x + ut.x, q.y + ut.y, q.z + ut.z);
+  });
   const lg = new THREE.BufferGeometry();
   lg.setAttribute("position", new THREE.Float32BufferAttribute(lin, 3));
   const lm = konturMaterial.clone(); lm.clippingPlanes = ovriga;
