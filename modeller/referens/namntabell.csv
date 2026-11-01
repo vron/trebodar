@@ -5,7 +5,7 @@ Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9557
 Hus Mark/Hus Struktur <1>/Beklädnad liten;Trebodar/Hus/Grund/Fasadsten/Fasadsten 1SO/1SO-FM01;ersatt;0.3000
 Hus Mark/Hus Struktur <1>/Värmeslingor källare;Trebodar/Hus/Installationer/VVS/Golvvärme källare;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta isolering;Trebodar/Hus/Mellanbjälklag/MB-C;ändrad;0.7472
-Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta;Trebodar/Hus/Mellanbjälklag/MB-B;städad;0.9930
+Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta;Trebodar/Hus/Mellanbjälklag/MB-B;städad;0.9929
 Hus Mark/Hus Struktur <1>/Beklädnad stor;Trebodar/Hus/Grund/Fasadsten/Fasadsten 3NV/3NV-FM01;ersatt;0.1870
 Hus Mark/Hus Struktur <1>/Avloppssystem;Trebodar/Hus/Installationer/VVS/Avlopp;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P1/P1-R;ersatt;0.0620
@@ -37,8 +37,8 @@ Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P7/P7-1
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P11/P11-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p4;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3sv;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3SV/Gips 3SV/3SV-GI01;ersatt;0.1656
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1no_p2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2NV/Gips 2NV/2NV-GI01;ersatt;0.1584
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_br2a;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI03;ersatt;0.1674
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1no_p2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2NV/Gips 2NV/2NV-GI01;ersatt;0.1608
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_br2a;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI03;ersatt;0.1703
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_c_f1;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3nv_p2;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L4/Gips L4/L4-GI03;ersatt;0.3506
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1i1_p1;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1D/OSB 1D/1D-OS01;ersatt;0.4736
@@ -51,26 +51,26 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ll2;Trebodar/Hus/Invändigt/Inn
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p9;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L9/Gips L9/L9-GI01;ersatt;0.4837
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1sv;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SV/Gips 1SV/1SV-GI01;ersatt;0.1687
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad3;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L11/Plywood L11/L11-PW01;ersatt;0.3616
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_p1;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI01;ersatt;0.1697
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_p1;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI01;ersatt;0.1725
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev4;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L1/Gips L1/L1-GI05;ersatt;0.2694
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2_m_2;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2A/OSB 2A/2A-OS01;ersatt;0.4742
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI01;ersatt;0.1663
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI01;ersatt;0.1693
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2_m_1;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2B/Gips 2B/2B-GI02;ersatt;0.2804
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ll;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2B/Gips 2B/2B-GI03;ersatt;0.4652
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad8;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1A/Plywood 1A/1A-PW01;ersatt;0.3496
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad6;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1NO/Plywood 1NO/1NO-PW01;ersatt;0.1658
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad7;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Plywood 1SO/1SO-PW01;ersatt;0.1650
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad7;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Plywood 1SO/1SO-PW01;ersatt;0.1665
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1no;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2NO/Gips 2NO/2NO-GI01;ersatt;0.1743
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1nv;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1NV/Gips 1NV/1NV-GI01;ersatt;0.1600
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1nv;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1NV/Gips 1NV/1NV-GI01;ersatt;0.1634
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2_m_2;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2A/OSB 2A/2A-OS02;ersatt;0.4742
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3so;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3SO/Gips 3SO/3SO-GI01;ersatt;0.1235
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3so;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3SO/Gips 3SO/3SO-GI01;ersatt;0.1280
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad1;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1B/Plywood 1B/1B-PW01;ersatt;0.3715
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1i1_p1;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1D/OSB 1D/1D-OS02;ersatt;0.4736
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev4;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L1/Gips L1/L1-GI04;ersatt;0.2694
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p7;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L11/Gips L11/L11-GI03;ersatt;0.3097
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2bw;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2SV/Gips 2SV/2SV-GI01;ersatt;0.1175
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3nv_p1;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI04;ersatt;0.1687
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_br1a;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI02;ersatt;0.1674
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3nv_p1;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI04;ersatt;0.1717
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_br1a;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 3NV/Gips 3NV/3NV-GI02;ersatt;0.1703
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2_mida;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2B/Gips 2B/2B-GI05;ersatt;0.4391
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad2;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C/Plywood 1C/1C-PW01;ersatt;0.3718
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_2_m_3;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2B/Gips 2B/2B-GI02;ändrad;0.5055
@@ -80,9 +80,9 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/tempbench;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p6;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C/Gips 1C/1C-GI01;ändrad;0.5089
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad5;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L9/Plywood L9/L9-PW01;ersatt;0.3451
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev3;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 2B/Gips 2B/2B-GI01;ändrad;0.5078
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p11;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2SO/Gips 2SO/2SO-GI01;ersatt;0.1564
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p11;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2SO/Gips 2SO/2SO-GI01;ersatt;0.1597
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p5;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1B/Gips 1B/1B-GI03;ändrad;0.5034
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_t2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI03;ersatt;0.1698
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_t2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI03;ersatt;0.1732
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p8;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L10/Gips L10/L10-GI02;ersatt;0.4305
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p1;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1A/Gips 1A/1A-GI02;ändrad;0.5052
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/door;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/1SO-D1/1SO-D1-BLAD;ersatt;0.3369
@@ -108,7 +108,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/window_10x10_gray;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/3NV-F5/3NV-F5-KARM;ersatt;0.2271
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/window_10x10_red;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/1NO-F1/1NO-F1-KARM;ersatt;0.2271
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/window_21x6_gray;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/3NO-F1/3NO-F1-KARM;ersatt;0.2423
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/DörrSmårum <5>/DörrbladSmårum;;borttagen;
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/DörrSmårum <5>/DörrbladSmårum;Trebodar/Hus/Fönster och dörrar/Innerdörrar/ID1/ID1-BLAD;ändrad;0.8988
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/DörrSmårum <5>/SidaSmårum;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L11/Plywood L11/L11-PW01;ersatt;0.2576
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/DörrSmårum <5>/SidaSmårum;Trebodar/Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt L11/OSB L11/L11-OS02;ersatt;0.4777
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/wdoor_21x9_gray;Trebodar/Hus/Fönster och dörrar/Ytterväggarnas fönster och dörrar/3SO-D1/3SO-D1-KARM;ersatt;0.1776
@@ -163,7 +163,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/R IB 3g3 l;Trebodar/Hus/Invändigt/Innerväggar/Lätta väggar/Vägg L1/L1-S01;ändrad;0.9073
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/ÅII;Trebodar/Hus/Stomme/Stomme prefab/Takbalkar/Takfall 2SO/2SO-T06;ändrad;0.9233
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/R TF t;Trebodar/Hus/Stomme/Stomme prefab/Takbalkar/Takfall 1SO/TF3-A1;ändrad;0.8436
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/R IB 3g b1;Trebodar/Hus/Invändigt/Innerväggar/Lätta väggar/Vägg L11/L11-S02;ersatt;0.1282
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/R IB 3g b1;Trebodar/Hus/Invändigt/Innerväggar/Lätta väggar/Vägg L11/L11-S02;ändrad;0.6818
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/ÅYY;Trebodar/Hus/Stomme/Stomme prefab/Takbalkar/Takfall 3NV/3NV-T07;ändrad;0.9367
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/ÅYY;Trebodar/Hus/Stomme/Stomme prefab/Takbalkar/Takfall 1NV/1NV-T14;ändrad;0.9367
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/NN2_C;Trebodar/Hus/Stomme/Nock- och dalbalkar/NB1/NB1-LT;ersatt;0.0170
@@ -448,14 +448,14 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/R 2NO window top/btm 2;Trebodar/Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 2NO/2NO-L04;städad;0.9960
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-K01;ersatt;0.0085
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/2NO extra;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-X01;ändrad;0.9085
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0004
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0003
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/2NO diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-D01;ändrad;0.9541
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/2NO extra;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-X04;ändrad;0.9085
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x400;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0003
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x400;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0002
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/2NO diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-D02;ändrad;0.9541
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/2NO btm;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2NO/2NO-U01;städad;1.0000
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0004
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2NO/Utegips 2NO/2NO-UG01;ersatt;0.0003
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/Stol 2NO <1>/Sp 100x600;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/R 2NO top;Trebodar/Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 2NO/2NO-H01;städad;0.9951
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2NO <1>/R 2NO window;Trebodar/Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 2NO/2NO-R01;städad;0.9983
@@ -490,14 +490,14 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x600;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-P01;ersatt;0.5000
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/3NO diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-D01;ändrad;0.9533
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/R St mid 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-R03;städad;0.9899
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1NO/Utegips 1NO/1NO-UG01;ersatt;0.0005
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1NO/Utegips 1NO/1NO-UG01;ersatt;0.0004
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-K01;ersatt;0.0078
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/R St small 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-R01;ändrad;0.9666
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/3NO diag in;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-D02;ändrad;0.9530
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/3NO btm;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-U01;städad;1.0000
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/R St out 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-R04;städad;0.9845
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/R St out 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1NO/1NO-R02;städad;0.9845
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1NO/Utegips 1NO/1NO-UG01;ersatt;0.0005
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1NO <1>/Stol 1NO <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1NO/Utegips 1NO/1NO-UG01;ersatt;0.0004
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/L3 Vert <3>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Stolpar/Stolpe LN1_3/LN1_3-D05;ersatt;0.0061
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/L3 Vert <3>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Stolpar/Stolpe LN1_3/LN1_3-D01;ersatt;0.0070
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/L3 Vert <3>/R L3 VertTop;Trebodar/Hus/Stomme/Stomme prefab/Stolpar/Stolpe LN1_3/LN1_3-L02;ändrad;0.5395
@@ -523,7 +523,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-P01;ersatt;0.5000
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/2SV diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-D02;ändrad;0.9532
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/2SV btm;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-U01;städad;1.0000
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2SV/Utegips 2SV/2SV-UG01;ersatt;0.0010
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2SV/Utegips 2SV/2SV-UG01;ersatt;0.0009
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/R St out 2S;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-R02;städad;0.9879
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/R St small 2S;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-R05;ändrad;0.9793
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-P04;ersatt;0.5000
@@ -532,7 +532,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-K01;ersatt;0.0078
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/R St small 2S;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-R01;ändrad;0.9793
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x400;Trebodar/Hus/Fasad/Utsida 2SV/Utegips 2SV/2SV-UG01;ersatt;0.0006
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2SV/Utegips 2SV/2SV-UG01;ersatt;0.0010
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 2SV/Utegips 2SV/2SV-UG01;ersatt;0.0009
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/Stol 2SV <1>/R St mid 2S;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 2SV/2SV-R03;städad;0.9915
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/2SV vert;Trebodar/Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 2SV/LD4_2-1;städad;0.9991
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/2SV <1>/2SV vert;Trebodar/Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 2SV/LD2_4-3;städad;0.9991
@@ -684,14 +684,14 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-P04;ersatt;0.5000
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x400;Trebodar/Hus/Fasad/Utsida 1SV/Utegips 1SV/1SV-UG01;ersatt;0.0004
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/R St out 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-R04;städad;0.9845
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1SV/Utegips 1SV/1SV-UG01;ersatt;0.0006
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1SV/Utegips 1SV/1SV-UG01;ersatt;0.0005
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/1SV diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-D02;ändrad;0.9533
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/1SV diag;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-D01;ändrad;0.9533
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x400;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-K01;ersatt;0.0078
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/R St small 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-R05;ändrad;0.9666
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/1SV extra;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-X01;ändrad;0.9084
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/R St mid 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-R03;städad;0.9899
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1SV/Utegips 1SV/1SV-UG01;ersatt;0.0006
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Fasad/Utsida 1SV/Utegips 1SV/1SV-UG01;ersatt;0.0005
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/1SV extra;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-X02;ändrad;0.9084
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/Sp 100x600;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-P02;ersatt;0.5000
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/InklExtraStructure <1>/Inkl DoorWind <1>/Regelstomme Ny <1>/Stomme prefab <1>/1SV <1>/Stol 1SV <1>/R St out 1//3;Trebodar/Hus/Stomme/Stomme prefab/Takstolar/Takstol 1SV/1SV-R02;städad;0.9845
