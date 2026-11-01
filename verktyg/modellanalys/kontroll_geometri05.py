@@ -75,7 +75,8 @@ yta = [s.yta for s in snitt(m, [_pl], pl)][0]
 # AR-02) bildar väggarnas ytterliv, 30 mm utanför plattans kant
 liv = unary_union([s.yta.buffer(0) for s in snitt(m, m.valj("MB-B,MB-C,PM-L"), pl)])
 yttre = np.array(Polygon(liv.exterior).buffer(-30.0, join_style=2).exterior.coords)[:-1]
-inre = np.array(yta.interiors[0].coords)[:-1]
+# trapphålet: plattans största hål (genomföringar för installationer, t.ex. kaminens förbränningsluft, räknas inte)
+inre = np.array(max(yta.interiors, key=lambda r: Polygon(r).area).coords)[:-1]
 kontur = [[heltal(v) for v in yttre[np.argmin(np.hypot(*(yttre - p).T))]] for p in np.array(gammal["kontur"], float)]
 assert len(yttre) == len(kontur) and abs(Polygon(kontur).area - Polygon(yttre).area) < 1, \
     "konturen har ändrat form – kontrollera hörnens ordning"
