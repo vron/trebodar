@@ -71,7 +71,7 @@ class Takstol(Plan):
 
     def _snappa(self, pts: Sequence[Sequence[float]]) -> list[tuple[float, float]]:
         """Hörn inom 0,01 mm från ett takplan läggs exakt i planet (Onshape-modellens tal har fyra decimaler)."""
-        v = S.VAGGAR[self.kod if self.kod in S.VAGGAR else "2C"]
+        v = S.VAGGAR[self.kod]                         # takstolen heter som väggen den står på
         kropp = next(k.nr for k in S.HUSKROPPAR.values() if abs(k.nock - S.BALKAR[self.balk].x) < 1)
         plan = [t for t in S.TAKFALL.values() if t.kropp == kropp]
         ut = []
@@ -107,7 +107,7 @@ class Takstol(Plan):
 
     def _balk_u(self) -> float:
         """Balkens centrumlinje i väggens u (balkarna går längs y, gavelväggarna längs x)."""
-        v = S.VAGGAR[self.kod if self.kod in S.VAGGAR else "2C"]
+        v = S.VAGGAR[self.kod]
         return (S.BALKAR[self.balk].x - v.origo[0]) * v.u[0]
 
     def underram(self, pts: Sequence[Sequence[float]], w0: float, w1: float) -> Takstol:

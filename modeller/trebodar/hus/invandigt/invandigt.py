@@ -109,8 +109,9 @@ def _hinder() -> list[tuple[Polygon, float, float]]:
         ox, oy = v.origo
         ux, uy = v.u
         wx, wy = v.w
-        h = [(ox, oy), (ox + ux * v.langd, oy + uy * v.langd), (ox + ux * v.langd + wx * 115, oy + uy * v.langd + wy * 115),
-             (ox + wx * 115, oy + wy * 115)]
+        t = v.tjocklek + 20.0                         # väggen och stolpar som sticker ut ur den
+        h = [(ox, oy), (ox + ux * v.langd, oy + uy * v.langd), (ox + ux * v.langd + wx * t, oy + uy * v.langd + wy * t),
+             (ox + wx * t, oy + wy * t)]
         ut.append((Polygon(h).buffer(15.0, join_style=2), 0.0, 4000.0))
     for x0, x1, y0, y1 in SYLLAR:
         ut.append((box(x0, y0, x1, y1), 0.0, 45.0))

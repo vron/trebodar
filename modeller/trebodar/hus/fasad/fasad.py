@@ -11,7 +11,7 @@ from __future__ import annotations
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage
+from modellering import Material, Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar import polygon as P
@@ -83,7 +83,7 @@ def utsida(kod: str) -> Montage:
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
     w = 0.0
 
-    def skikt(namn: str, typ: str, t: float, material, del_namn: str) -> None:  # type: ignore[no-untyped-def]
+    def skikt(namn: str, typ: str, t: float, material: Material, del_namn: str) -> None:
         p = Plan(kod, f"{namn} {kod}", t, beskrivning=material.beskrivning, material=material)
         for g in P.polygoner(fas.difference(oppen)):
             p.skiva(P.kontur(g), P.hal(g), w - t, w, typ, material, f"{del_namn} {kod}")

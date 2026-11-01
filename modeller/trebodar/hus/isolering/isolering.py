@@ -10,7 +10,7 @@ from __future__ import annotations
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage, i_foraldern, omslutande
+from modellering import Del, Montage, i_foraldern, omslutande
 
 from trebodar import skelett as S
 from trebodar.byggdelar import polygon as P
@@ -22,6 +22,8 @@ from trebodar.hus.stomme.prefab.yttervaggar.yttervaggar import VAGGAR as VAGGMOD
 from trebodar.material import MINERALULL, TRAFIBER
 
 GAVELVAGGAR = {1: ("1NO", "1SV"), 2: ("2NO", "2SV"), 3: ("3NO", "3SV")}
+TAKSTOLSVAGGAR = {"2C"}          # innerväggar med takstol (och toppklossar 45 mm på var sida)
+KLOSS = 45.0
 TAKFOTSVAGG_UT = {"1SO": -30.0, "1NV": 4340.0, "2SO": 4470.0, "2NV": 9340.0, "3SO": 9470.0, "3NV": 13840.0}
 
 
@@ -40,8 +42,8 @@ def _fack(kod: str) -> list[tuple[float, float]]:
         if b - y0 > 30:
             ut.append((y0, b))
     # facken delas där en bärande innervägg eller mittstolen 2C (med toppklossar) står, och vid dalbalkarnas ändar
-    hinder = {1: [(7115.0, 7185.0), (8185.0, 8255.0), (10952.5, 11047.5)], 2: [(2152.5, 2247.5), (5900.0, 6040.0)],
-              3: []}[t.kropp]
+    hinder = [(v.origo[1], v.origo[1] + v.tjocklek + (KLOSS if kod_v in TAKSTOLSVAGGAR else 0.0))
+              for kod_v, v in S.INNERVAGGAR.items() if int(kod_v[0]) == t.kropp and abs(v.u[0]) > 0.5]
     for y0, y1 in hinder:
         ut = [d for a, b in ut for d in ((a, min(b, y0)), (max(a, y1), b)) if d[1] - d[0] > 30]
     f = FALT[kod]
@@ -85,7 +87,8 @@ def vagg(kod: str) -> Montage:
     """Regelfacken i ytterväggen: ytor som delarna och öppningarna (i u–z) helt omsluter."""
     upptaget = []
     for i in VAGGMODULER[kod].montage().barn:
-        b = omslutande(i.barn.form)                        # type: ignore[union-attr]
+        assert isinstance(i.barn, Del)
+        b = omslutande(i.barn.form)
         assert b is not None
         u0, _, z0, u1, _, z1 = i_foraldern(b, i.placering)
         upptaget.append(box(u0, z0, u1, z1))

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from modellering import Del, Montage, Placering, lada
+from modellering import Del, Material, Montage, Placering, lada
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
@@ -59,21 +59,26 @@ SKIKT = (("Hårdboard", "HD", L.HARDBOARD, HDF), ("Råspont", "RP", L.RASPONT, R
          ("Underlagspapp", "UP", L.PAPP, PAPP), ("Takplåt", "TP", L.PLAT, TAKPLAT))
 
 
-def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], material, fonster) -> Montage:  # type: ignore[no-untyped-def]
+def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], material: Material,
+           fonster: tuple[Takfonster, ...]) -> Montage:
     p = Plan(kod, f"{namn} {kod}", 1.0, beskrivning=material.beskrivning, material=material)
     for r in REGIONER[kod]:
         # y-intervall utanför och innanför fönstren i regionen
         fo = sorted((f for f in fonster if r.y0 < f.y0 < r.y1), key=lambda f: f.y0)
         y = r.y0
         for f in fo:
-            p.profil(L.profil(t, *w, r.nedre, r.nock), y, f.y0, typ=typ)                     # type: ignore[arg-type]
+            hel = L.profil(t, *w, r.nedre, r.nock)
+            if hel:
+                p.profil(hel, y, f.y0, typ=typ)
             under = L.profil(t, *w, r.nedre, L.Kant("vinkelrat", f.x_ned))
             over = L.profil(t, *w, L.Kant("vinkelrat", f.x_upp), r.nock)
             for q in (under, over):
                 if q:
                     p.profil(q, f.y0, f.y1, typ=typ)
             y = f.y1
-        p.profil(L.profil(t, *w, r.nedre, r.nock), y, r.y1, typ=typ)                         # type: ignore[arg-type]
+        hel = L.profil(t, *w, r.nedre, r.nock)
+        if hel:
+            p.profil(hel, y, r.y1, typ=typ)
     return p.montage()
 
 
@@ -89,7 +94,7 @@ def _lakt_lagen(kod: str) -> list[float]:
     return sorted(ut)
 
 
-def _strolakt(t: S.Takfall, kod: str, fonster) -> Montage:  # type: ignore[no-untyped-def]
+def _strolakt(t: S.Takfall, kod: str, fonster: tuple[Takfonster, ...]) -> Montage:
     p = Plan(kod, f"Ströläkt {kod}", 45.0, beskrivning="Ströläkt 34×45 C24 (luftspalten 34 mm)", material=C24)
     for y in _lakt_lagen(kod):
         r = next((r for r in REGIONER[kod] if r.y0 <= y + 22.5 < r.y1), None)

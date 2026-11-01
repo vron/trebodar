@@ -12,6 +12,7 @@ import csv
 import tomllib
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from modellering import Del, Montage, Placering, lada, prisma
 
@@ -23,7 +24,7 @@ K01 = ROT / "beräkningar" / "K-01"
 
 
 @lru_cache(maxsize=1)
-def indata() -> dict:  # type: ignore[type-arg]
+def indata() -> dict[str, Any]:
     return tomllib.loads((K01 / "indata.toml").read_text(encoding="utf-8"))
 
 
