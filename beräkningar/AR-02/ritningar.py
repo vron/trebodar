@@ -131,7 +131,14 @@ Z_BERG = Z_MAK - H["t_makadam"] * 1000                       # makadamens underk
 Z_MAK_P = Z_MB - H["h_l_mark"] * 1000                         # plattan på mark: L-elementens uk, makadamens ök
 Z_MMN = H["mmn"] * 1000
 Z_S = (H["mmn"] + H["byggnadshojd"]) * 1000                  # skärningspunkt fasad/takplan (ritar taket)
-Z_DRAN = H["dranering"] * 1000                               # avledning för dränvattnet
+# befintligt, inmätt (inmatning.toml): dräneringsbrunnen och dess utgående rör, avledningen för dränvattnet
+INM = tomllib.loads(open(os.path.join(HERE, "inmatning.toml"), encoding="utf-8").read())
+BRUNN, GOLV_G = INM["brunn"], INM["gammalt_golv"]
+P_BRUNN = lokal(BRUNN["N"], BRUNN["E"])
+Z_BRUNN = BRUNN["hojd"] * 1000
+Z_DRAN = Z_BRUNN - BRUNN["ror_under"] * 1000                 # utgående rörets överkant
+R_ROR = BRUNN["ror_d"] * 1000 / 2
+Z_GOLV_G = GOLV_G["hojd"] * 1000
 TAN = math.tan(math.radians(H["takvinkel"]))
 Z_MARK_NV, Z_MARK_SO = H["ny_mark_nv"] * 1000, H["ny_mark_so"] * 1000
 
@@ -199,6 +206,11 @@ def plan():
                 v.matt(p, q, 7.5, sida=-1, sz=6.8)
             else:
                 v.matt(p, q, 7.5, sz=6.8)
+    with v.lager("brunn"):                                     # befintlig dräneringsbrunn (inmätt)
+        x, y = P_BRUNN
+        v.cirkel(x, y, 1.6, fyll="vit", stil="normal")
+        v.cirkel(x, y, R_ROR, fyll="svart", stil=None, modell=True)
+        v.hanvisning((x, y), (x - 2600, y + 1500), f"brunn, ök {rh(Z_BRUNN)}", punkt=False, sz=6.4)
     with v.lager("origo"):                                     # som R-05 och R-06
         L = 900
         v.linje([(0, 0), (L, 0)], "tunn"); v.pil((L + 150, 0), (1, 0), langd=2.2, bredd=1.0)
@@ -337,7 +349,11 @@ def sektion():
         niva(v, 6000, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
         niva(v, 1300, Z_MAK_P, t(Z_MAK_P, "plattan på mark bakom snittet, L-elementens uk"), "l", under=True)
         niva(v, 4300, Z_MAK, t(Z_MAK, "cellplastens uk under bottenplattan"), "l", under=True)
-        niva(v, 9300, Z_DRAN, t(Z_DRAN, "dränering, avledning"), "l", under=True)
+        niva(v, 9300, Z_DRAN, t(Z_DRAN, "utgående rör ø110 ur brunnen, ök"), "l", under=True)
+    # utgående rör ur brunnen, i brunnens x (brunnen ligger vid y ≈ P_BRUNN[1], framför snittet)
+    with v.lager("ror"):
+        v.cirkel(P_BRUNN[0], Z_DRAN - R_ROR, R_ROR, fyll="vit", stil="normal", modell=True)
+        v.linje([(P_BRUNN[0], Z_DRAN), (9300, Z_DRAN)], "tunn")
     # mått från MMN
     with v.lager("matt"):
         xk = 800
@@ -382,6 +398,11 @@ def blad_plan():
         dict(typ="rubrik", text=f"Bottenplattans kant (B), L-elementens ytterkant, ök {rh(Z_BP)} ({rel(Z_BP)})"), tabell("B"),
         dict(typ="rubrik", text=f"Plattan på marks kant (P), L-elementens ytterkant, ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
+        dict(typ="rubrik", text=f"Dräneringsbrunnen (befintlig, inmätt), ök {rh(Z_BRUNN)}, utgående rör ø110 ök "
+                                f"{rh(Z_DRAN)}"),
+        dict(typ="tabell", kolumner=["Punkt", "x", "y", "N", "E"], bredd=(0.8, 1, 1, 1.9, 1.6),
+             just=["l", "r", "r", "r", "r"], sz=6.8,
+             rader=[["Brunn", svm(round(P_BRUNN[0])), svm(round(P_BRUNN[1])), sv(BRUNN["N"], 3), sv(BRUNN["E"], 3)]]),
     ])]
     # Underlag som inte står på ritningen:
     # - Höjderna mäts från dubben med avvägningsinstrument eller laser.
@@ -414,6 +435,7 @@ def blad_plan():
             dict(form="yta", fyll="betong", stil="dold", text="bottenplattan (B), L-elementens ytterkant"),
             dict(form="yta", fyll=PLATTA_F, stil="dold", text="plattan på mark (P), L-elementens ytterkant"),
             dict(form="punkt", text="utsättningspunkt"),
+            dict(form="bubbla", txt="•", text="dräneringsbrunn (befintlig, inmätt) med utgående rör ø110"),
         ]),
     ]
     return Blad(hd("AR-02.1"), REVISIONER, kol, [plan(), oversikt()], block)
@@ -426,12 +448,17 @@ def blad_sektion():
          f"plattans ök − L-element {svm(H['h_l_mark'] * 1000)}"],
         [f"Fixpunkt {FIX['namn']}, {FIX['beskrivning']}", rh(Z_FIX), "±0", "nybyggnadskartan 2025-11-12 (byggfix)"],
         ["MMN, medelmarknivå", rh(Z_MMN), rel(Z_MMN)[len(FIX["namn"]) + 1:], "bygglov"],
+        ["Dräneringsbrunnen (befintlig), överkant", rh(Z_BRUNN), rel(Z_BRUNN)[len(FIX["namn"]) + 1:],
+         "inmätt 2026-11-01 (GNSS)"],
         ["Bottenplattans överkant", rh(Z_BP), rel(Z_BP)[len(FIX["namn"]) + 1:],
          f"mellanplattans ök − {svm(H['h_bjalklag'] * 1000)} − {svm(H['h_kallare'] * 1000)} (K-05, K-06)"],
         ["Cellplastens underkant under bottenplattan", rh(Z_MAK), rel(Z_MAK)[len(FIX["namn"]) + 1:],
          f"− platta {svm(H['h_platta'] * 1000)} − cellplast {svm(H['t_cellplast'] * 1000)} (R-04)"],
-        ["Dränering, tillgänglig nivå för avledning", rh(Z_DRAN), rel(Z_DRAN)[len(FIX["namn"]) + 1:], "–"],
+        ["Utgående rör ø110 ur brunnen, överkant: avledning för dränvattnet", rh(Z_DRAN),
+         rel(Z_DRAN)[len(FIX["namn"]) + 1:], f"brunnens ök − {svm(BRUNN['ror_under'] * 1000)}"],
     ]
+    rader.insert(1, ["Golvet i det gamla huset", rh(Z_GOLV_G), rel(Z_GOLV_G)[len(FIX["namn"]) + 1:],
+                     "inmätt 2026-11-01 (GNSS)"])
     block = [dict(x=24, y=190, w=298, innehall=[
         dict(typ="rubrik", text="Höjder, RH2000"),
         dict(typ="tabell", kolumner=["Nivå", "RH2000 (m)", f"Relativt {FIX['namn']} (m)", "Underlag"],
@@ -445,6 +472,8 @@ def blad_sektion():
             "Mått i mm. Sektionen är en principskiss. Snittets läge: AR-02.1.",
             f"FG {rh(Z_FG)} är mellanplattans överkant.",
             "Bottenplattans cellplast läggs på avjämnad makadam (R-04).",
+            f"Dräneringsbrunnen är befintlig och inmätt (läge AR-02.1, y = {svm(round(P_BRUNN[1]))}); dess utgående rör "
+            f"ø110 är ritat i brunnens x. Överkant rör = brunnens överkant − {svm(BRUNN['ror_under'] * 1000)}.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

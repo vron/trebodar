@@ -1,0 +1,25 @@
+# ------------------------------------------------------------------
+# Inmätning på tomten 2026-11-01: befintliga höjder och lägen, GNSS (Sitevision), stånghöjd 0,25 m.
+# Koordinater SWEREF 99 12 00 (m), höjder RH2000 (m). Läses av ritningar.py.
+#
+# Två omgångar (13:45–13:51 och 15:28–15:30), varje punkt mätt 10–20 gånger. Punkterna grupperas i lådor om
+# 0,2 × 0,2 × 0,2 m; mätningar mer än 30 mm från gruppens median tas bort (en: FIX i omgång 2, 59 mm lågt och 37 mm
+# ur läge). Varje omgång förskjuts i höjd så att dess medelvärde på FIX blir +7,760 (omgång 1 −1,8 mm, omgång 2
+# −18,5 mm); höjderna nedan är medelvärdet av omgångarnas korrigerade medelvärden. Spridning inom en omgång 1–6 mm.
+# ------------------------------------------------------------------
+
+# Golvet i det gamla huset, mätt utanför huset mellan huset och FIX. Två ställen 8 cm från varandra:
+# +8,477 och +8,468.
+[gammalt_golv]
+hojd    = 8.473
+N       = 6520160.123
+E       = 102354.300
+
+# Dräneringsbrunnen: överkant brunn, två ställen på kanten 12 cm från varandra: +6,918 och +6,919. Utgående rör
+# ø110: överkant 1,16 m under brunnens överkant (måttband).
+[brunn]
+hojd    = 6.919
+N       = 6520172.879
+E       = 102363.724
+ror_under = 1.160       # brunnens överkant till utgående rörs överkant
+ror_d   = 0.110         # rörets ytterdiameter
