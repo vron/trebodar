@@ -118,12 +118,18 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  -> {arg.ut / (namn + '-jamforelse.md')}, {arg.ut / (namn + '-namntabell.csv')}")
     elif arg.kommando == "kontroll":
         from . import kontroll
-        r = kontroll.kor(rot, karna)
+        try:
+            regler = importlib.import_module("trebodar.kontrollregler")
+            tillatna = getattr(regler, "TILLATNA_OVERLAPP", None)
+        except ModuleNotFoundError:
+            tillatna = None
+        r = kontroll.kor(rot, karna, tillatna=tillatna)
         fil = arg.ut / f"{filnamn(rot)}-kontroll.md"
         kontroll.rapport(r, fil)
         ogiltiga = [d.namn for d in {id(d): d for _, d, _ in rot.platta()}.values()
                     if not karna.egenskaper(d.form).giltig]
-        print(f"  {r.par} par ({r.nya_par} nya), {len(r.krockar)} krockar, {len(r.glipor)} glipor, "
+        print(f"  {r.par} par ({r.nya_par} nya), {len(r.krockar)} krockar, {len(r.tillatna)} tillåtna överlapp, "
+              f"{len(r.glipor)} glipor, "
               f"{len(r.kontakter)} kontakter, {len(r.fria)} delar utan kontakt, {len(ogiltiga)} ogiltiga former "
               f"({r.sekunder:.1f} s) -> {fil}")
         for x, y, v in sorted(r.krockar, key=lambda q: -q[2])[:15]:

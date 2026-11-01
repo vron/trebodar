@@ -37,6 +37,7 @@ class Resultat:
     kontakter: list[tuple[str, str, float]] = field(default_factory=list)     # (a, b, area mm²)
     glipor: list[tuple[str, str, float]] = field(default_factory=list)        # (a, b, avstånd mm)
     fria: list[str] = field(default_factory=list)                             # delar utan kontakt
+    tillatna: list[tuple[str, str, float, str]] = field(default_factory=list)  # (a, b, volym, motivering)
     sekunder: float = 0.0
     nya_par: int = 0
 
@@ -183,7 +184,9 @@ def _jobb(paket: list[tuple[str, str, str, tuple[tuple[float, ...], ...]]]) -> l
 
 # ------------------------------------------------------------------ kontrollen
 
-def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | None = None) -> Resultat:
+def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | None = None,
+        tillatna: dict[frozenset[str], str] | None = None) -> Resultat:
+    """`tillatna`: materialpar (frozenset av två materialnamn) vars överlapp är avsiktliga, med motivering."""
     t0 = time.perf_counter()
     poster: list[tuple[str, Del, Placering]] = list(rot.platta())
     karna.forbered(d.form for _, d, _ in poster)
@@ -238,11 +241,16 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             kanda[pk] = json.loads(js)
     ut = Resultat(delar=len(poster), par=len(kandidater), nya_par=len(saknas))
     kontakt = np.zeros(len(poster), dtype=bool)
+    kanter: list[tuple[str, str]] = []
     for (i, j), pk in zip(kandidater, parnycklar):
         r = kanda[pk]
         a, b = poster[i][0], poster[j][0]
         if r["volym"] > TOL_KROCK:
-            ut.krockar.append((a, b, r["volym"]))
+            par = frozenset((poster[i][1].material.namn, poster[j][1].material.namn))
+            if tillatna and par in tillatna:
+                ut.tillatna.append((a, b, r["volym"], tillatna[par]))
+            else:
+                ut.krockar.append((a, b, r["volym"]))
             kontakt[i] = kontakt[j] = True
         elif r.get("area", 0.0) > 0.5:
             ut.kontakter.append((a, b, r["area"]))
@@ -251,6 +259,13 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             ut.glipor.append((a, b, r["avstand"]))
         elif r.get("avstand", 1e9) <= TOL_KONTAKT:
             kontakt[i] = kontakt[j] = True                 # kant- eller punktkontakt
+            kanter.append((a, b))
+    # glipor mellan delar som båda ligger an mot en tredje del (t.ex. skikt med ett skikt emellan) redovisas inte
+    grannar: dict[str, set[str]] = {}
+    for a, b in [(a, b) for a, b, _ in ut.kontakter + ut.krockar] + kanter:
+        grannar.setdefault(a, set()).add(b)
+        grannar.setdefault(b, set()).add(a)
+    ut.glipor = [(a, b, d) for a, b, d in ut.glipor if not (grannar.get(a, set()) & grannar.get(b, set()))]
     ut.fria = [poster[i][0] for i in range(len(poster)) if not kontakt[i]]
     ut.sekunder = time.perf_counter() - t0
     return ut
@@ -261,6 +276,8 @@ def rapport(r: Resultat, fil: Path | None = None) -> str:
              f"{r.delar} delar, {r.par} par nära varandra ({r.nya_par} nya), {r.sekunder:.1f} s.", "",
              f"## Krockar ({len(r.krockar)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³" for a, b, v in sorted(r.krockar, key=lambda x: -x[2])]
+    rader += ["", f"## Tillåtna överlapp ({len(r.tillatna)})", ""]
+    rader += [f"- `{a}` och `{b}`: {v:.0f} mm³ ({m})" for a, b, v, m in r.tillatna]
     rader += ["", f"## Glipor 0,01–2 mm ({len(r.glipor)})", ""]
     rader += [f"- `{a}` och `{b}`: {d:.3f} mm" for a, b, d in sorted(r.glipor, key=lambda x: x[2])]
     rader += ["", f"## Delar utan kontakt med andra ({len(r.fria)})", ""]

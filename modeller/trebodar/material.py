@@ -13,7 +13,7 @@ RASPONT = Material("Råspont", "Råspont 20 mm", 450, "#d9bb8a", 0.8, textur="tr
 PAPP = Material("Underlagspapp", "Underlagspapp T-Roof YEP 2500", 1100, "#26272a", 0.9, textur="papp", enhet="m2")
 TAKPLAT = Material("Takplåt", "Zink-magnesiumbelagd stålplåt 0,6 mm", 7850, "#8e959b", 0.35, 1.0, textur="takplat",
                    enhet="m2")
-UTEGIPS = Material("Utegips", "Utegips 9,5 mm", 750, "#e8e4da", 0.9, textur="gips", enhet="m2")
+UTEGIPS = Material("Utegips", "Utegips 10 mm", 750, "#e8e4da", 0.9, textur="gips", enhet="m2")
 PANEL = Material("Panel", "Träpanel 22 mm", 450, "#b98b5a", 0.8, textur="panel", enhet="m2")
 GIPS = Material("Gips", "Gipsskiva 12,5 mm", 720, "#f2f1ec", 0.9, textur="gips", enhet="m2")
 TRAFIBER = Material("Träfiberisolering", "Lösull av träfiber", 45, "#c9a46a", 1.0, textur="isolering", enhet="m3")
