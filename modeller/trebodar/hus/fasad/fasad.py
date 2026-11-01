@@ -1,9 +1,10 @@
 """Fasaderna utanpå ytterväggarnas regelverk: en grupp per vägg med utegips, ströläkt, spikläkt och panel.
 
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
-öppningarna), spikläkt 21×45 liggande c/c 600 (och vid öppningarnas över- och underkant) och panel 22 mm (förenklad,
-en skiva per vägg). Fasaden börjar i bjälklagets underkant (z −150), där fasadstenen tar vid, och slutar vid
-takfötterna under takbalkarnas sätesplan (z 2 490) och i gavlarna mot takets hårdboard. I ytterhörnen går
+karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
+en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
+Fasaden börjar i bjälklagets underkant (z −150), där fasadstenen tar vid, och slutar vid takfötterna under
+takbalkarnas sätesplan (z 2 490) och i gavlarna mot takets hårdboard. I ytterhörnen går
 gavelns skikt runt hörnet; i innerhörnen går långsidans skikt ut i hörnet.
 """
 from __future__ import annotations
@@ -95,7 +96,8 @@ def kontur(kod: str) -> Polygon:
 
 def utsida(kod: str) -> Montage:
     fas = kontur(kod)
-    hal = [box(o.u0, o.z0, o.u1, o.z1) for o in OPPNINGAR.get(kod, [])]
+    karmar = [o.karm for o in OPPNINGAR.get(kod, []) if o.z1 > Z_UK]          # fasaden går fram till karmen
+    hal = [box(*k) for k in karmar]
     oppen = unary_union(hal) if hal else Polygon()
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
     w = 0.0
@@ -118,15 +120,15 @@ def utsida(kod: str) -> Montage:
     u0, u1 = fasad_u(kod)
     zt = fas.bounds[3]
     fasta = {u0, u1 - LAKT_B}
-    for o in OPPNINGAR.get(kod, []):
-        fasta |= {o.u0 - LAKT_B, o.u1}
+    for ku0, _, ku1, _ in karmar:
+        fasta |= {ku0 - LAKT_B, ku1}
     fasta = {u for u in fasta if u0 - 1e-6 <= u <= u1 - LAKT_B + 1e-6}
     lagen = _lagen(fasta, [u0 + CC * k for k in range(1, int((u1 - u0) // CC) + 1) if u0 + CC * k < u1 - LAKT_B])
     lakt("Ströläkt", "SR", STRO_T, [box(u, Z_UK, u + LAKT_B, zt) for u in lagen])
     w -= STRO_T
     fasta = {Z_UK}
-    for o in OPPNINGAR.get(kod, []):
-        fasta |= {z for z in (o.z0 - LAKT_B, o.z1) if z >= Z_UK - 1e-6}
+    for _, kz0, _, kz1 in karmar:
+        fasta |= {z for z in (kz0 - LAKT_B, kz1) if z >= Z_UK - 1e-6}
     rader = _lagen(fasta, [Z_UK + CC * k for k in range(1, int((zt - Z_UK) // CC) + 1)])
     lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader])
     w -= SPIK_T

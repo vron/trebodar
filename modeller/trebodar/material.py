@@ -102,4 +102,9 @@ SPIKPLAT = Material("Spikplåt", "Spikplåt S250GD+Z 2,0 mm", 7850, "#b8bcc2", 0
 # ------------------------------------------------------------------ fönster, dörrar och installationer
 GLAS = Material("Glas", "Fönsterglas", 2500, "#cfe3ea", 0.02, textur="glas", opacitet=0.35, cad="#a9d8ec")
 KARM = Material("Karm", "Fönster- och dörrkarm", 500, "#26292c", 0.5, cad="#414950")
+FONSTERTRA = Material("Fönsterträ", "Lamellimmad furu, vitmålad NCS S 0502-Y (fönster, dörrar, smyg)", 500,
+                     "#efede6", 0.55, cad="#e6dcc4")
+FONSTERALU = Material("Fönsteraluminium", "Aluminiumbeklädnad, pulverlackerad (fönster och dörrar)", 2700,
+                     "#2e3135", 0.45, cad="#4a525a")
+HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")

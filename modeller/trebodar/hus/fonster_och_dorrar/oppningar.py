@@ -1,22 +1,27 @@
-"""Öppningarna i ytterväggarna: fönster (F) och dörrar (D) per vägg, numrerade längs väggen.
+"""Öppningarna i ytterväggarna: fönster (F) och dörrar (D) per vägg, numrerade längs väggen, med produkttyp.
 
-Lägen i väggens system (skelett.VAGGAR): u längs väggen och z från bjälklagets överkant, som karmens yttermått i
-Onshape-modellen. Huvudentrén 1SO-D1 (planritning 201) saknades där; bara öppningen i regelverket fanns, och dörren
-ligger i den. Fasaden, isoleringen och insidan får hål här och fönster- och dörrmodulen sätter karmar, blad och glas
-i dem.
+Lägen i väggens system (skelett.VAGGAR): u längs väggen och z från bjälklagets överkant. Måtten är regelverkets
+öppning (Onshape-modellens mått), som är Elitfönsters modulmått: karmen är 20 mm mindre (byggdelar/fonster.py).
+Huvudentrén 1SO-D1 (planritning 201) saknades i Onshape-modellen; bara öppningen i regelverket fanns. Källarens
+fönster F1–F3 (R-05) står i väggen 2NO:s system under bjälklaget. Fasaden, isoleringen och insidan får hål här och
+fönster- och dörrmodulen sätter produkterna i dem.
+
+Typerna: "vridfönster", "fast fönster", "fönsterdörr" (helglasad), "skjutdörr" (lyftglid, fyra delar) och
+"ytterdörr".
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from trebodar import skelett as S
+from trebodar.byggdelar.fonster import DREV
 
 
 @dataclass(frozen=True)
 class Oppning:
     kod: str                 # t.ex. "1SO-F1"
     vagg: str
-    typ: str                 # "fönster", "dörr", "skjutdörr", "fönsterdörr"
+    typ: str                 # produkttyp, se ovan
     u0: float
     u1: float
     z0: float
@@ -31,45 +36,69 @@ class Oppning:
     def hojd(self) -> float:
         return self.z1 - self.z0
 
+    @property
+    def karm(self) -> tuple[float, float, float, float]:
+        """Karmens yttermått (u0, z0, u1, z1): DREV innanför öppningen runt om."""
+        return (self.u0 + DREV, self.z0 + DREV, self.u1 - DREV, self.z1 - DREV)
+
 
 _R = (
-    ("1NO", "fönster", 750, 1750, 1100, 2100, "window_10x10_red"),
-    ("1NO", "fönsterdörr", 3000, 3600, 0, 2100, "window_21x6_red"),
-    ("1NV", "fönster", 865, 1865, 1100, 2100, "window_10x10_red"),
-    ("1NV", "dörr", 3035, 4035, 0, 2100, "wdoor_21x10_red"),
-    ("1SO", "fönster", 1118, 1718, 1400, 2000, "window_6x6_red"),
-    ("1SO", "fönster", 2318, 2918, 1400, 2000, "window_6x6_red"),
-    ("1SO", "dörr", 5080, 6080, 0, 2100, ""),                    # huvudentrén (planritning 201)
-    ("1SO", "fönster", 10718, 11318, 1400, 2000, "window_6x6_red"),
-    ("1SV", "fönster", 1135, 3235, 0, 2186, "window_21x21_red"),
-    ("2NO", "fönster", 645, 1645, 1100, 2100, "window_10x10_gray"),
-    ("2NO", "fönster", 2045, 3045, 1100, 2100, "window_10x10_gray"),
-    ("2SO", "dörr", 490, 1590, 0, 2100, "wdoor_21x11_gray"),
+    ("1NO", "vridfönster", 750, 1750, 1100, 2100, "window_10x10_red"),
+    ("1NO", "fast fönster", 3000, 3600, 0, 2100, "window_21x6_red"),
+    ("1NV", "vridfönster", 865, 1865, 1100, 2100, "window_10x10_red"),
+    ("1NV", "fönsterdörr", 3035, 4035, 0, 2100, "wdoor_21x10_red"),
+    ("1SO", "fast fönster", 1118, 1718, 1400, 2000, "window_6x6_red"),
+    ("1SO", "fast fönster", 2318, 2918, 1400, 2000, "window_6x6_red"),
+    ("1SO", "ytterdörr", 5080, 6080, 0, 2100, ""),                    # huvudentrén (planritning 201)
+    ("1SO", "fast fönster", 10718, 11318, 1400, 2000, "window_6x6_red"),
+    ("1SV", "fast fönster", 1135, 3235, 0, 2186, "window_21x21_red"),
+    ("2NO", "vridfönster", 645, 1645, 1100, 2100, "window_10x10_gray"),
+    ("2NO", "vridfönster", 2045, 3045, 1100, 2100, "window_10x10_gray"),
+    ("2SO", "fönsterdörr", 490, 1590, 0, 2100, "wdoor_21x11_gray"),
     ("2SV", "skjutdörr", 260, 5060, 0, S.BALKAR["DB2"].uk - 45, "slidedoor"),   # upp till hammarbandet
-    ("3NO", "fönsterdörr", 995, 1595, 0, 2100, "window_21x6_gray"),
-    ("3NO", "fönster", 2845, 3845, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "fönster", 560, 1360, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "fönster", 2260, 3060, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "fönster", 3960, 4760, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "fönster", 7117.5, 8117.5, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "fönster", 8970, 9970, 1100, 2100, "window_10x10_gray"),
-    ("3SO", "dörr", 172.5, 1072.5, 0, 2100, "wdoor_21x9_gray"),
-    ("3SV", "fönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
-    ("3SV", "dörr", 2775, 3675, 0, 2100, "wdoor_21x9_gray"),
+    ("3NO", "fast fönster", 995, 1595, 0, 2100, "window_21x6_gray"),
+    ("3NO", "vridfönster", 2845, 3845, 1100, 2100, "window_10x10_gray"),
+    ("3NV", "vridfönster", 560, 1360, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vridfönster", 2260, 3060, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vridfönster", 3960, 4760, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vridfönster", 7117.5, 8117.5, 1100, 2100, "window_10x10_gray"),
+    ("3NV", "vridfönster", 8970, 9970, 1100, 2100, "window_10x10_gray"),
+    ("3SO", "fönsterdörr", 172.5, 1072.5, 0, 2100, "wdoor_21x9_gray"),
+    ("3SV", "vridfönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
+    ("3SV", "fast fönster", 2775, 3675, 0, 2100, "wdoor_21x9_gray"),
 )
+DORRAR = ("fönsterdörr", "skjutdörr", "ytterdörr")
 
 
 def _numrera() -> dict[str, list[Oppning]]:
     ut: dict[str, list[Oppning]] = {}
     for vagg, typ, u0, u1, z0, z1, ref in sorted(_R, key=lambda r: (r[0], r[2])):
         lst = ut.setdefault(vagg, [])
-        bokstav = "D" if typ in ("dörr", "skjutdörr") else "F"
+        bokstav = "D" if typ in DORRAR else "F"
         n = sum(1 for o in lst if o.kod.split("-")[1][0] == bokstav) + 1
         lst.append(Oppning(f"{vagg}-{bokstav}{n}", vagg, typ, float(u0), float(u1), float(z0), float(z1), ref))
     return ut
 
 
+def _kallarfonster() -> list[Oppning]:
+    """Källarens fönster (vridfönster) i fasadens plan ovanför, väggen 2NO (cellplastens utsida i w = 0): mellan
+    smygarnas cellplast och från bröstningens cellplast till bjälklagets underkant (kallarvaggar)."""
+    from trebodar.hus.grund import kallarvaggar as K
+    v = S.YTTERVAGGAR["2NO"]
+    vaggar = {k.namn: k for k in K.VAGGAR}
+    ut = []
+    for namn, va, vb, zb in K.OPPNINGAR:
+        if zb <= 0:
+            continue
+        a, b = vaggar[va], vaggar[vb]
+        assert a.riktning == b.riktning == "h" and abs(a.c - K.KARNA / 2 - K.CELL - v.origo[1]) < 1e-6
+        x0, x1 = max(a.a, a.b) + K.CELL, min(b.a, b.b) - K.CELL
+        ut.append(Oppning(namn, "2NO", "vridfönster", x0 - v.origo[0], x1 - v.origo[0], K.Z0 + zb + K.CELL, K.Z1))
+    return ut
+
+
 OPPNINGAR = _numrera()
+OPPNINGAR["2NO"] += _kallarfonster()
 
 
 @dataclass(frozen=True)

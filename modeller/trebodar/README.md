@@ -48,7 +48,8 @@ när stommen ändras.
 | Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
 | En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
 | En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
-| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
+| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, modulmått och produkttyp) och väggens regelverk; fasad, isolering, insida och smyg följer med |
+| Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
@@ -109,7 +110,7 @@ Trebodar
     │   └── Nock- och dalbalkar NB1, DB2, NB3, DB4, NB5 (K-01), en egen beställning
     ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt i banor; TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
-    ├── Fönster och dörrar      ytterväggarnas fönster och dörrar, innerdörrar
+    ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
@@ -135,7 +136,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   LA1–LA10 (K-03, K-05); reglar som bildar en stolpe heter som stolpen (LD2_1-1, LA5-2). **Takfönster** TF1–TF3.
   **Källarväggar** V1–V21, bröstningarna F1-B–F3-B, **rör** P1–P19 (P7 två rör) (K-05, K-06, R-05).
 - **Fönster och dörrar** i ytterväggarna: väggen och F eller D med nummer längs väggen (1SO-F1, 2SV-D1);
-  innerdörrar ID1–ID6.
+  källarens fönster F1–F3 (R-05); innerdörrar ID1–ID6. Delarna: KARM, KARMALU (aluminiumbeklädnad), BOTTEN
+  (bottenstyckets eller tröskelns aluminiumprofil), BAGE, BAGEALU, GLAS, BLAD (ytterdörren), TROSKEL; skjutdörrens
+  delar FV, SV, SH, FH (fast och skjutbar, vänster och höger); i öppningen DREV, SMYG-V/H/O/U och BANK.
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
@@ -185,8 +188,14 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   utanpå väggarna. 2B är sluten söder om trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den
   lätta väggen L12). I korridorens hörn i höger huskropp går ID3 90 mm längre söderut och ID5 slutar före korridorväggen,
   så att bladen går fria. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
-- **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket, utan dörr och med
-  fasad, isolering och insida över öppningen.
+- **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
+  helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, med
+  aluminiumbeklädnaden i panelens utsida och panelen fram till karmen. Typerna: vridfönster 10×10 och 8×8 och i
+  källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
+  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt
+  smygbrädor och fönsterbänk av vitmålad furu, i badrummet kakel.
+- **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
+  fönsterdörrens karm och ett tätt dörrblad (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
   dränerande fyllning i ett schakt i berget 100 mm utanför plattan. Marken mot källarväggarna upp till K-06:s
@@ -204,6 +213,6 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
+Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
 ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

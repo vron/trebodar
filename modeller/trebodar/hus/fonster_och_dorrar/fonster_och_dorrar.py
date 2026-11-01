@@ -1,40 +1,66 @@
-"""Fönster och dörrar, förenklade: karm runt öppningen och glas eller dörrblad. Ytterväggarnas öppningar och
-innerdörrarna (skjutdörrar utanpå väggen, planritning 201 rev 02) står i oppningar.py.
+"""Fönster och dörrar: Elitfönsters produkter (byggdelar/fonster.py) i ytterväggarnas öppningar och innerdörrarna
+(skjutdörrar utanpå väggen, planritning 201 rev 02). Öppningarna och produkttyperna står i oppningar.py.
 
-Karmen går från fasadens utsida (w −65) 149 mm in i väggen, 70 mm bred; glas 24 mm och dörrblad 40 mm i karmens
-mitt.
+Karmen sitter med aluminiumbeklädnaden i panelens utsida (w −65) och 10 mm drevmån runt om i regelverkets öppning
+(modulmåttet), drevad med mineralull. Fasaden går fram till karmen (fasad.py). Invändigt: smygbrädor 15 mm av
+vitmålad furu från karmen till väggens yta och fönsterbänk 22 mm med 20 mm utstick och öron 30 mm (dörrarna har
+ingen); i badrummet kakel runt om. Källarens fönster sitter i cellplastens smyg, utan smygbrädor.
 """
 from __future__ import annotations
 
 from modellering import Del, Montage, Placering, box
 
 from trebodar import skelett as S
+from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.invandigt.invandigt import SKIVOR_T
-from trebodar.material import DORRBLAD, FURU, GLAS, KARM
+from trebodar.hus.invandigt.invandigt import INSIDA_VATRUM_T, SKIVOR_T, _insida_t
+from trebodar.material import FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
 
-from .oppningar import INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
+from .oppningar import DORRAR, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
-W0, W1 = -S.T_FASAD, -S.T_FASAD + 149.0        # karmens djup i väggen
-KARM_B = 70.0
+W_UT = -S.T_FASAD                    # karmens utsida i panelens utsida
+SMYG_T, BANK_T = 15.0, 22.0          # smygbrädor och fönsterbänk
+BANK_UT, BANK_ORA = 20.0, 30.0       # fönsterbänkens utstick från väggen och öron förbi öppningen
+KAKEL_T = 12.0                       # badrummets smyg (kakel på skiva, förenklat)
 
 
 def enhet(o: Oppning) -> Montage:
-    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)}" +
+    """Produkten i öppningen med drevning, smyg och fönsterbänk, i väggens system."""
+    funktion, djup = F.PRODUKTER[o.typ]
+    b, h = o.bredd - 2 * F.DREV, o.hojd - 2 * F.DREV
+    w_karm = W_UT + djup                                 # karmens insida
+    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (modul)" +
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
-    dorr = o.typ in ("dörr", "skjutdörr")
-    zi0 = o.z0 + (0.0 if dorr or o.typ == "fönsterdörr" else KARM_B)
-    karm = box(o.u0, o.u1, W0, W1, o.z0, o.z1) - box(o.u0 + KARM_B, o.u1 - KARM_B, W0 - 1, W1 + 1, zi0, o.z1 - KARM_B)
-    m.lagg(Del(f"Karm {o.typ} {fmt(o.bredd)}×{fmt(o.hojd)}", karm, KARM), Placering(), f"{o.kod}-KARM")
-    if o.typ == "dörr":
-        blad = box(o.u0 + KARM_B, o.u1 - KARM_B, -10.0, 30.0, zi0 + 10, o.z1 - KARM_B)
-        m.lagg(Del(f"Dörrblad {fmt(o.bredd - 2 * KARM_B)}×{fmt(o.z1 - KARM_B - zi0 - 10)}", blad, DORRBLAD),
-               Placering(), f"{o.kod}-BLAD")
-    else:
-        glas = box(o.u0 + KARM_B, o.u1 - KARM_B, 0.0, 24.0, zi0 + (KARM_B if o.typ != "fönster" else 0.0),
-                   o.z1 - KARM_B)
-        m.lagg(Del(f"Glas {fmt(o.bredd - 2 * KARM_B)}×{fmt(o.z1 - KARM_B - zi0)}", glas, GLAS), Placering(),
-               f"{o.kod}-GLAS")
+    plac = Placering.flytt(o.u0 + F.DREV, w_karm, o.z0 + F.DREV)
+    for i in funktion(o.kod, b, h).barn:
+        m.lagg(i.barn, plac @ i.placering, i.namn)
+    drev = box(o.u0, o.u1, 0.0, w_karm, o.z0, o.z1) - box(o.u0 + F.DREV, o.u1 - F.DREV, -1.0, w_karm + 1.0,
+                                                          o.z0 + F.DREV, o.z1 - F.DREV)
+    m.lagg(Del(f"Drevning {fmt(o.bredd)}×{fmt(o.hojd)}", drev, MINERALULL), Placering(), f"{o.kod}-DREV")
+    if o.z1 <= 0.0:                                      # källaren: cellplastens smyg
+        return m
+    t = _insida_t(o.vagg, (o.u0 + o.u1) / 2)
+    w_yta = S.T_STOMME + t                               # väggens insida
+    u0, u1, z0, z1 = o.u0, o.u1, o.z0, o.z1
+    if t == INSIDA_VATRUM_T:
+        k = KAKEL_T
+        for namn, f in (("V", box(u0, u0 + k, w_karm, w_yta, z0, z1)), ("H", box(u1 - k, u1, w_karm, w_yta, z0, z1)),
+                        ("U", box(u0 + k, u1 - k, w_karm, w_yta, z0, z0 + k)),
+                        ("O", box(u0 + k, u1 - k, w_karm, w_yta, z1 - k, z1))):
+            m.lagg(Del(f"Smyg kakel {fmt(w_yta - w_karm)}", f, KAKEL), Placering(), f"{o.kod}-SMYG-{namn}")
+        return m
+    # smygbrädorna står på fönsterbänken, vid dörrarna på golvet och vid skjutdörren på tröskeln, som går in i rummet
+    zb = z0 + (BANK_T if o.typ not in DORRAR else F.DREV + F.S_TROSKEL if o.typ == "skjutdörr" else 0.0)
+    if o.typ not in DORRAR:
+        bank = box(u0, u1, w_karm, w_yta, z0, z0 + BANK_T) | box(u0 - BANK_ORA, u1 + BANK_ORA, w_yta, w_yta + BANK_UT,
+                                                                 z0, z0 + BANK_T)
+        m.lagg(Del(f"Fönsterbänk {fmt(o.bredd + 2 * BANK_ORA)}×{fmt(w_yta - w_karm + BANK_UT)}×{fmt(BANK_T)}", bank,
+                   FONSTERTRA), Placering(), f"{o.kod}-BANK")
+    d = w_yta - w_karm
+    for namn, f in (("V", box(u0, u0 + SMYG_T, w_karm, w_yta, zb, z1)),
+                    ("H", box(u1 - SMYG_T, u1, w_karm, w_yta, zb, z1)),
+                    ("O", box(u0 + SMYG_T, u1 - SMYG_T, w_karm, w_yta, z1 - SMYG_T, z1))):
+        m.lagg(Del(f"Smygbräda {fmt(d)}×{fmt(SMYG_T)}", f, FONSTERTRA), Placering(), f"{o.kod}-SMYG-{namn}")
     return m
 
 
@@ -66,7 +92,7 @@ def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
 
 
 def montage() -> Montage:
-    m = Montage("Fönster och dörrar", beskrivning="Fönster, ytterdörrar och innerdörrar (förenklade)")
+    m = Montage("Fönster och dörrar", beskrivning="Fönster och ytterdörrar (Elitfönster) och innerdörrar")
     ytter = Montage("Ytterväggarnas fönster och dörrar")
     for kod, lst in OPPNINGAR.items():
         for o in lst:
