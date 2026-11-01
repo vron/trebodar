@@ -58,7 +58,7 @@ X_SK, Y_SK = 6590.0, 5710.0                 # skorstenens mitt: förbi nockbalke
 OVER_NOCK = 800.0
 # förbränningsluften
 LUFT_D, LUFT_FRAN_FRONT = 120.0, 122.0      # kanalen och anslutningen under insatsen (bakom fronten)
-LUFT_Z = -250.0                             # kanalen i källaren, under bjälklaget
+LUFT_Z = -400.0                             # kanalen i källaren, 250 under bjälklaget (väggen hel närmast under det)
 LUFT_X_KALLARE = 6740.0                     # kanalen mot norr i källaren, väster om pelaren P12
 LUFT_X_UT, LUFT_Y_VAGG = 7700.0, 1000.0     # genom V12; kanalen vänder mot väggen vid y 1 000
 LUFT_FRI = 5.0                              # hålen runt kanalen
