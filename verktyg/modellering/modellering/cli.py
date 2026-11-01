@@ -3,6 +3,7 @@
     mod trad [--djup N] [--del VÄG]
     mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]
     mod kontroll [--del VÄG]
+    mod onshape [--del VÄG] [--dokument NAMN] [--mapp NAMN] [--publik]
 """
 from __future__ import annotations
 
@@ -94,6 +95,13 @@ def main(argv: list[str] | None = None) -> None:
     wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
     wb.add_argument("--ut", type=Path, default=ROT / "docs")
     sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
+    po = sub.add_parser("onshape", help="ladda upp modellen (STEP) till ett nytt dokument i Onshape")
+    po.add_argument("--del", dest="vag")
+    po.add_argument("--dokument", help="dokumentets namn (standard: montaget, datum och git-version)")
+    po.add_argument("--mapp", help="mappen på översta nivån i Onshape (standard: nyckelfilens eller TrebodarAuto)")
+    po.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
+    po.add_argument("--publik", action="store_true", help="publikt dokument (krävs för Onshapes gratiskonton)")
+    po.add_argument("--ut", type=Path, default=UT)
     pj = sub.add_parser("jamfor", help="jämför med referensmodellen (Onshape)")
     pj.add_argument("--del", dest="vag")
     pj.add_argument("--urval", default=None, help="del av referensens sökväg, t.ex. 'Stomme prefab'")
@@ -161,6 +169,25 @@ def main(argv: list[str] | None = None) -> None:
         if ut.returncode:
             print(ut.stdout[-3000:], ut.stderr[-3000:])
         print(f"  ({time.perf_counter() - t:.0f} s)")
+    elif arg.kommando == "onshape":
+        import datetime
+        import subprocess
+        from . import onshape
+        from .export import step
+        fil = arg.ut / f"{filnamn(rot)}.step"
+        step.skriv(rot, fil, karna, unika_produkter=not arg.delade)
+        git = subprocess.run(["git", "-C", str(ROT), "describe", "--always", "--dirty=*"], capture_output=True,
+                             text=True).stdout.strip()
+        namn = arg.dokument or f"{rot.namn} {datetime.date.today().isoformat()} {git}".strip()
+        print(f"  STEP {fil} ({fil.stat().st_size / 1e6:.1f} MB), laddar upp som \"{namn}\" …")
+        t = time.perf_counter()
+        adress, k, did, wid = onshape.ladda_upp(fil, namn, arg.mapp, f"{rot.beskrivning} (git {git})", arg.publik)
+        flikar = k.flikar(did, wid)
+        typer: dict[str, int] = {}
+        for f in flikar:
+            typer[f["elementType"]] = typer.get(f["elementType"], 0) + 1
+        print(f"  importerad på {time.perf_counter() - t:.0f} s: {', '.join(f'{n} {t_}' for t_, n in typer.items())}, "
+              f"{len(k.delar(did, wid))} delar\n  {adress}")
     elif arg.kommando == "webb":
         import json
         import shutil

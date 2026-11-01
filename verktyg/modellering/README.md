@@ -24,6 +24,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod rendera [VY …] [--bredd 400] [--sampel 32] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py`; `--blend` sparar scenen |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
 | `./mod typ` | Typkontroll (mypy) av ramverket och modellen |
+| `./mod onshape [--del VÄG] [--dokument NAMN] [--mapp NAMN] [--publik]` | Bygger STEP och laddar upp den till ett nytt dokument i en mapp i Onshape (standard `TrebodarAuto`) via Onshapes API, väntar på importen och redovisar flikar och delar |
 
 `--del` väljer ett delträd med sökvägen under roten, t.ex. `--del "Hus/Stomme/Stomme prefab"`, som exporteras som en
 egen modell (t.ex. för beställning). Utdata:
@@ -68,6 +69,10 @@ egen modell (t.ex. för beställning). Utdata:
   mulet, en kamera per vy, Cycles på GPU, färgåtergivning Khronos PBR Neutral.
 - **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, snitt i x, y och z, vyer och
   information om den del man klickar på.
+
+`mod onshape` läser API-nycklarna ur `lokalt/onshape.json` i repot (versionshanteras inte; `access_key`,
+`secret_key` och eventuellt `mapp`) eller ur miljövariablerna `ONSHAPE_ACCESS_KEY` och `ONSHAPE_SECRET_KEY`. Ett
+gratiskonto i Onshape kan bara skapa publika dokument; då krävs `--publik`.
 
 STEP-filen analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma …`, som läser den genererade modellen
 som standard).
