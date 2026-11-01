@@ -25,7 +25,8 @@ from OCP.BRep import BRep_Builder, BRep_Tool
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
 from OCP.BRepBndLib import BRepBndLib
 from OCP.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon,
-                                BRepBuilderAPI_MakeWire, BRepBuilderAPI_Transform)
+                                BRepBuilderAPI_MakeSolid, BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing,
+                                BRepBuilderAPI_Transform)
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.BRepGProp import BRepGProp
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
@@ -33,7 +34,8 @@ from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepP
 from OCP.BRepTools import BRepTools
 from OCP.gp import gp_Ax2, gp_Circ, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
 from OCP.GProp import GProp_GProps
-from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED, TopAbs_SOLID
+from OCP.ShapeFix import ShapeFix_Solid
+from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, TopAbs_SOLID
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS, TopoDS_Shape
@@ -146,6 +148,8 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
         return s
     if isinstance(f, F.Cylinder):
         return BRepPrimAPI_MakeCylinder(gp_Ax2(gp_Pnt(*f.origo), gp_Dir(0, 0, 1)), f.radie, f.hojd).Shape()
+    if isinstance(f, F.Polyeder):
+        return _polyeder(f)
     if isinstance(f, F.Transf):
         return BRepBuilderAPI_Transform(bygg(f.form), trsf(f.placering), True).Shape()
     if isinstance(f, F.Diff):
@@ -175,6 +179,24 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
             BRepTools.Read_s(s, str(fil), BRep_Builder())
         return s
     raise TypeError(f"okänt recept: {type(f).__name__}")
+
+
+def _polyeder(f: F.Polyeder) -> TopoDS_Shape:
+    """Plana ytor ur hörnen, sydda till ett skal och en solid med utåtvända ytor."""
+    sy = BRepBuilderAPI_Sewing(1e-4)
+    for yta in f.ytor:
+        poly = BRepBuilderAPI_MakePolygon()
+        for i in yta:
+            poly.Add(gp_Pnt(*f.horn[i]))
+        poly.Close()
+        sy.Add(BRepBuilderAPI_MakeFace(poly.Wire(), True).Face())
+    sy.Perform()
+    ex = TopExp_Explorer(sy.SewedShape(), TopAbs_SHELL)
+    if not ex.More():
+        raise RuntimeError("polyedern blev inget skal")
+    fix = ShapeFix_Solid(BRepBuilderAPI_MakeSolid(TopoDS.Shell(ex.Current())).Solid())
+    fix.Perform()
+    return fix.Solid()
 
 
 def _vinkelratt(n: Sequence[float]) -> tuple[float, float, float]:
@@ -207,10 +229,11 @@ class Nat:
 
 
 def _matt(f: F.Form, s: TopoDS_Shape) -> tuple[float, float, float]:
-    """Kapmått: exakt för rätblock och prismor (minsta rektangel kring profilen), annars OCCT:s OBB."""
+    """Kapmått: exakt för rätblock och prismor (minsta rektangel kring profilen), annars OCCT:s OBB. En union
+    får basens (första delens) mått, t.ex. en plåt med falsar."""
     g = f
-    while isinstance(g, F.Transf):
-        g = g.form
+    while isinstance(g, (F.Transf, F.Union)):
+        g = g.form if isinstance(g, F.Transf) else g.delar[0]
     if isinstance(g, F.Lada):
         d = [g.dx, g.dy, g.dz]
     elif isinstance(g, F.Prisma):

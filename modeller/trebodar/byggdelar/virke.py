@@ -7,7 +7,7 @@ from typing import Sequence
 
 import numpy as np
 
-from modellering import Del, Lada, Material, Placering, Prisma, lada, prisma
+from modellering import Del, Form, Lada, Material, Placering, Prisma, Union, lada, prisma
 
 _DELAR: dict[tuple[str, str], Del] = {}
 _PROFILNR: dict[str, int] = {}
@@ -71,9 +71,13 @@ def _minsta_rektangel(P: np.ndarray) -> tuple[float, float, float]:
     return best[1], best[2], best[3]
 
 
-def virke_profil(pts: Sequence[Sequence[float]], t: float, material: Material, prefix: str = "") -> tuple[Del, Placering]:
+def virke_profil(pts: Sequence[Sequence[float]], t: float, material: Material, prefix: str = "",
+                 tillagg: Sequence[tuple[Sequence[Sequence[float]], float, float]] = (),
+                 bas_namn: str | None = None) -> tuple[Del, Placering]:
     """Virke med en godtycklig profil i förälderns xy-plan, tjockleken t längs förälderns +z (z 0 … t).
-    Delens eget x läggs längs profilens längdriktning (minsta omslutande rektangel)."""
+    Delens eget x läggs längs profilens längdriktning (minsta omslutande rektangel). `tillagg` är fler profiler
+    (punkter, z0, tjocklek) i samma plan, sammanslagna med huvudprofilen (t.ex. plåt med falsar); delens mått är
+    huvudprofilens."""
     P = np.asarray(pts, dtype=float)
     ang, L, B = _minsta_rektangel(P)
     # vinklar nära multiplar av 90° avrundas, så att raka bitar får exakta placeringar
@@ -82,22 +86,27 @@ def virke_profil(pts: Sequence[Sequence[float]], t: float, material: Material, p
     if abs(q - round(q)) < 1e-9:
         c, s = [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)][round(q) % 4]
     Rm = np.array([[c, -s], [s, c]])
-    lok = P @ Rm                                  # punkterna i det vridna systemet
-    mn = lok.min(axis=0)
-    lok = lok - mn
-    lok = np.round(lok, 6)
+    mn = (P @ Rm).min(axis=0)                     # punkterna i det vridna systemet, från hörnet
     o = Rm @ mn
-    form = prisma([tuple(p) for p in lok], t)
-    if _area(lok) < 0:
-        form = prisma([tuple(p) for p in lok[::-1]], t)
+    form: Form = _prisma(P @ Rm - mn, t)
+    if tillagg:
+        form = Union((form, *(_prisma(np.asarray(p2, dtype=float) @ Rm - mn, dz, z0) for p2, z0, dz in tillagg)))
     nyckel = form.nyckel()
     k = (nyckel, material.namn)
     if k not in _DELAR:
-        bas = f"{material.namn} {fmt(min(B, t))}×{fmt(max(B, t))} L={fmt(L)}"
+        bas = bas_namn or f"{prefix}{material.namn} {fmt(min(B, t))}×{fmt(max(B, t))} L={fmt(L)}"
         n = _PROFILNR[bas] = _PROFILNR.get(bas, 0) + 1
-        _DELAR[k] = Del(f"{prefix}{bas} kapad {n}", form, material)
+        _DELAR[k] = Del(f"{bas} kapad {n}", form, material)
     pl = Placering(((c, -s, 0.0), (s, c, 0.0), (0.0, 0.0, 1.0)), (float(o[0]), float(o[1]), 0.0))
     return _DELAR[k], pl
+
+
+def _prisma(lok: np.ndarray, t: float, z0: float = 0.0) -> Prisma:
+    """Prisma med profilen moturs (samma recept oavsett punkternas ordning)."""
+    lok = np.round(lok, 6)
+    if _area(lok) < 0:
+        lok = lok[::-1]
+    return prisma([tuple(p) for p in lok], t, z0=z0)
 
 
 def _area(p: np.ndarray) -> float:

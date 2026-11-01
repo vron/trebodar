@@ -3,8 +3,7 @@ fasadstenen.
 
 Bottenplattan (K-06, R-04): 100 mm betong på 200 mm cellplast i hela källaren med överkanten z −2 250 (balkar,
 plintar och L-element förenklade bort). Plattan på mark på plan 1 (bakom V3 och V20): 400 mm cellplast under
-mellanbjälklaget på dränerande fyllning upp till 1,7 m över bottenplattan. Fasadstenen (AR-01): beklädnadsgranit
-50 mm, 15 mm utanför källarväggarnas cellplast.
+mellanbjälklaget på dränerande fyllning upp till 1,7 m över bottenplattan. Fasadstenen (AR-01) i fasadsten.py.
 """
 from __future__ import annotations
 
@@ -14,9 +13,9 @@ from modellering import Del, Montage, Placering, box, minus
 
 from trebodar import skelett as S
 from trebodar.byggdelar.polygon import polygoner, prisma_ur
-from trebodar.material import BETONG, CELLPLAST, FYLLNING, GRANIT
+from trebodar.material import BETONG, CELLPLAST, FYLLNING
 
-from . import kallarvaggar, pelare
+from . import fasadsten, kallarvaggar, pelare
 
 Z_BP = -2250.0                   # bottenplattans överkant
 MARK_PLATTA = ((0.0, 9205.0), (4545.0, 9205.0), (4545.0, 11010.0), (4310.0, 11010.0), (4310.0, 15900.0),
@@ -47,21 +46,11 @@ def platta_pa_mark() -> Montage:
     return m
 
 
-def fasadsten() -> Montage:
-    """Beklädnadsgranit 50 mm, baksidan 15 mm utanför cellplasten (AR-01), som i Onshape-modellen flyttad 15 mm."""
-    m = Montage("Fasadsten", beskrivning="Beklädnadsgranit Bohus Grå 50 mm, 15 mm utanför cellplasten (AR-01)")
-    stor = Polygon([(9470, 905), (13905, 905), (13905, 12605), (9470, 12605), (9470, 12555), (13855, 12555),
-                    (13855, 955), (9470, 955)])
-    m.lagg(Del("Fasadsten stor", prisma_ur(stor, -2150.0, -S.H_BJALKLAG), GRANIT), Placering(), "FS1")
-    m.lagg(Del("Fasadsten liten", box(-95, -45, 3560, 8060, -1540, -740), GRANIT), Placering(), "FS2")
-    return m
-
-
 def montage() -> Montage:
     m = Montage("Grund", beskrivning="Bottenplatta, källarväggar, rör, plattan på mark och fasadsten")
     m.lagg(bottenplatta())
     m.lagg(kallarvaggar.montage())
     m.lagg(pelare.montage())
     m.lagg(platta_pa_mark())
-    m.lagg(fasadsten())
+    m.lagg(fasadsten.montage())
     return m

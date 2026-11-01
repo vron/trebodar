@@ -50,6 +50,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const el = document.getElementById("vy");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -61,6 +62,9 @@ scene.background = new THREE.Color(getComputedStyle(document.body).getPropertyVa
 const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+// omgivning för reflexer, så att metall (takplåten) inte blir svart
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.6;
 scene.add(new THREE.HemisphereLight(0xffffff, 0x666655, 1.6));
 const sol = new THREE.DirectionalLight(0xffffff, 1.6); sol.position.set(-10, 20, 12); scene.add(sol);
 

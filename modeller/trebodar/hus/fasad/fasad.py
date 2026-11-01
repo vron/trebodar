@@ -28,6 +28,9 @@ CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
 # panelens utförande per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_FALUROD}
+# renderingens skruvrader i panelen följer spikläkten: c/c CC från fasadens underkant, mitt på läkten
+assert all((dict(p.rendering)["skruv_cc"], dict(p.rendering)["skruv_start"]) == (CC, Z_UK + LAKT_B / 2)
+           for p in PANEL.values())
 # fasadens utsträckning längs väggen (u), med hörnen enligt ovan
 FASAD_U = {"1SO": (-95.0, 12275.0), "1NO": (-65.0, 4435.0), "1SV": (-65.0, 4435.0), "1NV": (0.0, 4890.0),
            "2NO": (-65.0, 4935.0), "2SO": (0.0, 3590.0), "2NV": (-95.0, 905.0), "2SV": (160.0, 5160.0),

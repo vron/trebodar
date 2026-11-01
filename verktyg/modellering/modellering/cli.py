@@ -146,7 +146,7 @@ def main(argv: list[str] | None = None) -> None:
         material = {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}
         (arg.ut / "material.json").write_text(json.dumps(material, ensure_ascii=False, indent=1))
         skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
-        cmd = [arg.blender, "-b", "--factory-startup", "-P", str(skript), "--", str(fil),
+        cmd = [arg.blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript), "--", str(fil),
                str(arg.ut / "material.json"), str(arg.ut / "vyer.json"), str((arg.ut / "bilder").resolve()),
                "--bredd", str(arg.bredd), "--sampel", str(arg.sampel)]
         for v in arg.vyer:

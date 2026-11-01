@@ -6,7 +6,8 @@ material, sätt himmel, sol och en kamera per vy, rendera med Cycles och spara e
 
 material.json: {materialnamn: {"typ": ..., "farg": "#rrggbb", parametrar ...}} (från modellens material).
 vyer.json: {namn: {"kamera": [x, y, z], "mal": [x, y, z], "brannvidd": mm, "sol": [azimut, höjd], "inne": bool,
-"dolj": [delar av sökvägar]}} i modellens mm (z upp). GLB-importen ger meter med z upp.
+"molnigt": bool, "dolj": [delar av sökvägar]}} i modellens mm (z upp). GLB-importen ger meter med z upp. Molnigt:
+jämnt ljus från en ljusgrå himmel utan sol (som på foton i mulet väder, bra för att bedöma material).
 """
 import argparse
 import json
@@ -44,7 +45,8 @@ sc.world = w
 w.use_nodes = True
 sky = w.node_tree.nodes.new("ShaderNodeTexSky")
 bg = w.node_tree.nodes["Background"]
-w.node_tree.links.new(sky.outputs["Color"], bg.inputs["Color"])
+moln = w.node_tree.nodes.new("ShaderNodeRGB")
+moln.outputs[0].default_value = (0.80, 0.82, 0.85, 1.0)
 sol = bpy.data.objects.new("Sol", bpy.data.lights.new("Sol", "SUN"))
 sc.collection.objects.link(sol)
 sol.data.angle = math.radians(0.6)
@@ -77,7 +79,11 @@ except Exception:
     pass
 sc.render.resolution_x = arg.bredd
 sc.render.resolution_y = round(arg.bredd * 0.66)
-sc.view_settings.view_transform = "AgX"
+# Khronos PBR Neutral återger materialens färger troget även i sol (AgX bleker mättade färger mot vitt)
+try:
+    sc.view_settings.view_transform = "Khronos PBR Neutral"
+except TypeError:
+    sc.view_settings.view_transform = "AgX"
 
 
 def stall_in(v: dict) -> None:
@@ -92,10 +98,12 @@ def stall_in(v: dict) -> None:
         sky.sun_rotation = math.radians(az)
     except Exception:
         pass
-    inne = v.get("inne", False)
-    bg.inputs["Strength"].default_value = 0.6 if inne else 0.25
+    inne, molnigt = v.get("inne", False), v.get("molnigt", False)
+    w.node_tree.links.new((moln if molnigt else sky).outputs[0], bg.inputs["Color"])
+    bg.inputs["Strength"].default_value = 1.0 if molnigt else 0.6 if inne else 0.25
+    sol.hide_render = molnigt
     sol.rotation_euler = (math.radians(90 - el), 0, math.radians(-az))
-    sc.view_settings.exposure = 1.5 if inne else 0.0
+    sc.view_settings.exposure = 1.2 if inne else -0.3
 
 
 for namn, v in VYER.items():

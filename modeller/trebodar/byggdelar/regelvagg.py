@@ -62,10 +62,13 @@ class Plan:
         return self.liggande(u0, u1, (self.hojd if z1 is None else z1) - 45.0, w0=w0, w1=w1, typ="H")
 
     def profil(self, pts: Sequence[Sequence[float]], w0: float = 0.0, w1: float | None = None, typ: str = "R",
-               material: Material | None = None, namn: str | None = None) -> Plan:
-        """Virke med profilen (u, z) genom väggen från w0 till w1."""
+               material: Material | None = None, namn: str | None = None,
+               tillagg: Sequence[tuple[Sequence[Sequence[float]], float, float]] = (),
+               bas_namn: str | None = None) -> Plan:
+        """Virke med profilen (u, z) genom väggen från w0 till w1. `tillagg`: fler profiler (punkter, avstånd från
+        w1, tjocklek) i samma del (virke_profil)."""
         w1 = self.tjocklek if w1 is None else w1
-        d, p = virke_profil(pts, w1 - w0, material or self.material)
+        d, p = virke_profil(pts, w1 - w0, material or self.material, tillagg=tillagg, bas_namn=bas_namn)
         # profilens system: x = u, y = z, extruderad längs −w från w1
         bas = Placering(((1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)), (0.0, w1, 0.0))
         self.bitar.append(_Bit(typ, d, bas @ p, (min(x for x, _ in pts), min(z for _, z in pts)), namn))

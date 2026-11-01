@@ -90,6 +90,8 @@ def skriv(rot: Montage, fil: Path, karna: Karna, unika_produkter: bool = True) -
     Interface_Static.SetCVal_s("write.step.unit", "MM")
     Interface_Static.SetCVal_s("write.step.product.name", rot.namn)
     w = STEPCAFControl_Writer()
+    # inga 2D-kurvor på ytorna (läsarna räknar fram dem), efter att skrivaren har registrerat inställningen
+    Interface_Static.SetIVal_s("write.surfacecurve.mode", 0)
     w.SetColorMode(True)
     w.SetNameMode(True)
     w.Transfer(doc, STEPControl_AsIs)

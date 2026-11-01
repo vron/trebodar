@@ -40,8 +40,9 @@ egen modell (t.ex. för beställning). Utdata:
 
 ## Hur det fungerar
 
-- **Recept** (`form.py`): oföränderliga, hashbara värden. Likadana delar får samma recept och blir samma nät i GLB,
-  samma rad i materiallistan och (med `--delade`) samma produkt i STEP.
+- **Recept** (`form.py`): oföränderliga, hashbara värden: rätblock, prismor med hål, cylindrar, polyedrar (fria former
+  av plana ytor, t.ex. kluven sten), booleska operationer, plan som kapar, speglingar. Likadana delar får samma recept
+  och blir samma nät i GLB, samma rad i materiallistan och (med `--delade`) samma produkt i STEP.
 - **Modellträd** (`modell.py`): `Del` (recept och material) och `Montage` (placerade instanser av delar och
   montage, i montagets eget koordinatsystem). `Placering` (`placering.py`) är en stel transform, exakt för vridningar
   med multiplar av 90°.
@@ -49,7 +50,7 @@ egen modell (t.ex. för beställning). Utdata:
   `.cache/former.sqlite`. Saknade recept byggs i parallella processer (alla kärnor). Hela huset byggs från tom cache
   på några sekunder, därefter på bråkdelen av en sekund.
 - **Export** (`export/`): STEP AP242 (OCCT XCAF; varje placerad del en egen produkt med instansens namn, eller
-  delade produkter med `--delade`), GLB (eget skrivprogram: hierarki, delade nät, PBR-material, UV i delens system så
+  delade produkter med `--delade`; utan 2D-kurvor på ytorna, som läsarna räknar fram), GLB (eget skrivprogram: hierarki, delade nät, PBR-material, UV i delens system så
   att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
 - **Kontroll** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
   processer: gemensam volym (krock över 5 mm³), anliggande plana ytor (kontaktarea), minsta avstånd (glipor 0,01–2
@@ -60,9 +61,11 @@ egen modell (t.ex. för beställning). Utdata:
   störst gemensam volym; identisk, städad (minst 98 % gemensamt), ändrad, ersatt eller borttagen.
 - **Rendering** (`blender/rendera.py`, `blender/material.py`): Blender i bakgrunden läser GLB och bygger ett
   procedurellt material för varje material i modellen ur dess typ och parametrar (`material.json`, som `mod rendera`
-  skriver): virke med årsringar, limträ med lameller, sågade brädor (täckfärg, järnvitriol, obehandlat) med fogar och
-  färgskiftning per bräda, falsad plåt, stenbeklädnad i skift, betong, berg, mark, glas m.fl., utan bildtexturer.
-  Riktningarna anges i delens eget system. Himmel och sol, en kamera per vy, Cycles på GPU.
+  skriver), utan bildtexturer: virke med årsringar, limträ med lameller, sågade brädor (täckfärg, järnvitriol,
+  obehandlat; varje bräda sågad ur en stock med årsringar, kvistar, sågad yta och strimmor, skruvar i rader), plåt i
+  banor, kluven granit (mineralkorn, brottytor), betong, bruk, berg, mark, glas m.fl. Riktningarna anges i delens eget
+  system; det som skiljer delar av samma material åt (stenar, plåtbanor) slumpas per objekt. Himmel och sol eller
+  mulet, en kamera per vy, Cycles på GPU, färgåtergivning Khronos PBR Neutral.
 - **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, snitt i x, y och z, vyer och
   information om den del man klickar på.
 

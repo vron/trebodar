@@ -82,6 +82,14 @@ class Cylinder(Form):
 
 
 @dataclass(frozen=True)
+class Polyeder(Form):
+    """Sluten kropp av plana månghörningar: hörnen och ytorna som index i hörnen (i ordning runt ytan, valfri
+    riktning). Grannytor delar hörn exakt. För fria former som stenens kluvna framsida."""
+    horn: tuple[Vek, ...]
+    ytor: tuple[tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
 class Diff(Form):
     bas: Form
     verktyg: tuple[Form, ...]
@@ -168,6 +176,10 @@ def cylinder(radie: float, hojd: float, origo: Sequence[float] = (0.0, 0.0, 0.0)
     return Cylinder(float(radie), float(hojd), _v(origo))
 
 
+def polyeder(horn: Sequence[Sequence[float]], ytor: Sequence[Sequence[int]]) -> Polyeder:
+    return Polyeder(tuple(_v(p) for p in horn), tuple(tuple(int(i) for i in y) for y in ytor))
+
+
 def minus(form: Form, verktyg: Iterable[Form]) -> Form:
     """form minus alla verktyg (en boolesk operation)."""
     v = tuple(verktyg)
@@ -190,6 +202,9 @@ def omslutande(f: Form) -> Lada6 | None:
     if isinstance(f, Cylinder):
         o = f.origo
         return (o[0] - f.radie, o[1] - f.radie, o[2], o[0] + f.radie, o[1] + f.radie, o[2] + f.hojd)
+    if isinstance(f, Polyeder):
+        H = np.array(f.horn, dtype=float)
+        return tuple(float(v) for v in (*H.min(0), *H.max(0)))  # type: ignore[return-value]
     if isinstance(f, (Diff, Kapad)):
         return omslutande(f.bas if isinstance(f, Diff) else f.form)
     if isinstance(f, (Union, Snitt)):

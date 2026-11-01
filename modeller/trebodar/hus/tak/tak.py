@@ -1,7 +1,8 @@
 """Yttertaket ovanpå takbalkarna (F-01, U-03), ett montage per takfall och ett för takfönstren.
 
 Skikt från takbalkarna och utåt: hårdboard 3 mm, ströläkt 34×45 (luftspalten), råspont 20, underlagspapp och
-bandtäckt zink-magnesiumplåt 0,6. Ströläkten ligger på varje takbalk och takstol och två mellan i varje fack (så att
+bandtäckt zink-magnesiumplåt 0,6. Plåten ligger i banor 525 mm breda längs takfallet, med stående falsar 25 mm
+höga mellan banorna (halva falsen på var bana) och lika breda kantbanor vid gavlarna. Ströläkten ligger på varje takbalk och takstol och två mellan i varje fack (så att
 hårdboarden inte trycks upp mot råsponten när isoleringen blåses in), med uppehåll 600 mm ovanför och nedanför
 takfönstren (U-03). Skikten slutar lodrätt vid takbalkarnas ände vid takfoten, i nock- och dallinjerna och i
 gavlarnas fasadliv.
@@ -10,11 +11,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from typing import Sequence
+
 from modellering import Del, Material, Montage, Placering, lada
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
+from trebodar.byggdelar.virke import fmt
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, Takfonster
 from trebodar.material import C24, GLAS, HDF, KARM, PAPP, RASPONT, TAKPLAT
 
@@ -54,32 +58,59 @@ REGIONER = {
 # takstolarnas ytterbalkar (stöd för ströläkten), y-band per huskropp
 TAKSTOLAR = {1: (3560.0, 15885.0), 2: (-30.0, 5950.0, 10995.0), 3: (970.0, 12495.0)}
 OMLUFT = 600.0               # uppehåll i ströläkten ovanför och nedanför takfönstren, längs takfallet (U-03)
+FALS_CC = 525.0              # plåtbanornas bredd (falsarnas delning längs y)
+FALS_B = 8.0                 # falsens bredd, hälften på var bana
+FALS_FRI = 30.0              # falsarna minst så långt från fönstrens och regionernas kanter
+assert dict(TAKPLAT.rendering)["avstand"] == FALS_CC         # renderingens banor
 
 SKIKT = (("Hårdboard", "HD", L.HARDBOARD, HDF), ("Råspont", "RP", L.RASPONT, RASPONT),
          ("Underlagspapp", "UP", L.PAPP, PAPP), ("Takplåt", "TP", L.PLAT, TAKPLAT))
 
 
 def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], material: Material,
-           fonster: tuple[Takfonster, ...]) -> Montage:
+           fonster: tuple[Takfonster, ...], falsar: Sequence[float] = ()) -> Montage:
+    """Skiktet i bitar: y-intervall mellan regionernas kanter, fönstren (vid fönstren en bit nedanför och en
+    ovanför öppningen) och falsarna (plåtbanor med halva falsen vid de kanter som är falsar)."""
     p = Plan(kod, f"{namn} {kod}", 1.0, beskrivning=material.beskrivning, material=material)
     for r in REGIONER[kod]:
-        # y-intervall utanför och innanför fönstren i regionen
-        fo = sorted((f for f in fonster if r.y0 < f.y0 < r.y1), key=lambda f: f.y0)
-        y = r.y0
-        for f in fo:
-            hel = L.profil(t, *w, r.nedre, r.nock)
-            if hel:
-                p.profil(hel, y, f.y0, typ=typ)
-            under = L.profil(t, *w, r.nedre, L.Kant("vinkelrat", f.x_ned))
-            over = L.profil(t, *w, L.Kant("vinkelrat", f.x_upp), r.nock)
-            for q in (under, over):
-                if q:
-                    p.profil(q, f.y0, f.y1, typ=typ)
-            y = f.y1
-        hel = L.profil(t, *w, r.nedre, r.nock)
-        if hel:
-            p.profil(hel, y, r.y1, typ=typ)
+        fo = [f for f in fonster if r.y0 < f.y0 < r.y1]
+        fs = {y for y in falsar if r.y0 < y < r.y1}
+        ys = sorted({r.y0, r.y1, *(f.y0 for f in fo), *(min(f.y1, r.y1) for f in fo), *fs})
+        for a, b in zip(ys, ys[1:]):
+            f = next((f for f in fo if f.y0 <= a and b <= f.y1), None)
+            kanter = [(r.nedre, r.nock)] if f is None else [(r.nedre, L.Kant("vinkelrat", f.x_ned)),
+                                                           (L.Kant("vinkelrat", f.x_upp), r.nock)]
+            for k0, k1 in kanter:
+                q = L.profil(t, *w, k0, k1)
+                if not q:
+                    continue
+                if not falsar:
+                    p.profil(q, a, b, typ=typ)
+                    continue
+                # banan: delens z går från b (0) mot a; halva falsen vid de kanter som är falsar
+                fals = L.profil(t, *L.FALS, k0, k1)
+                h = min(FALS_B / 2, b - a)
+                tillagg = [(fals, z0, h) for z0, kant in ((0.0, b), (b - a - h, a)) if fals and kant in fs]
+                p.profil(q, a, b, typ=typ, tillagg=tillagg, bas_namn=f"{namn} bana {fmt(b - a)}")
     return p.montage()
+
+
+def _falsar(kod: str, fonster: tuple[Takfonster, ...]) -> list[float]:
+    """Falsarnas lägen (y) i takfallet: banor FALS_CC breda och lika breda kantbanor vid gavlarna; en fals nära en
+    fönsterkant eller en regionkant flyttas FALS_FRI från den."""
+    rs = REGIONER[kod]
+    y0, y1 = min(r.y0 for r in rs), max(r.y1 for r in rs)
+    n = int((y1 - y0) // FALS_CC)
+    kant = (y1 - y0 - (n - 1) * FALS_CC) / 2
+    hinder = {r.y0 for r in rs} | {r.y1 for r in rs} | {f.y0 for f in fonster} | {f.y1 for f in fonster}
+    ut = []
+    for k in range(n):
+        y = y0 + kant + k * FALS_CC
+        for e in sorted(hinder, key=lambda e: abs(e - y)):
+            if abs(y - e) < FALS_FRI:
+                y = e + FALS_FRI if y >= e else e - FALS_FRI
+        ut.append(y)
+    return ut
 
 
 def _lakt_lagen(kod: str) -> list[float]:
@@ -127,7 +158,7 @@ def takfall(kod: str) -> Montage:
     m.lagg(_skiva(t, kod, "Hårdboard", "HD", L.HARDBOARD, HDF, fonster))
     m.lagg(_strolakt(t, kod, fonster))
     for namn, typ, w, mat in SKIKT[1:]:
-        m.lagg(_skiva(t, kod, namn, typ, w, mat, fonster))
+        m.lagg(_skiva(t, kod, namn, typ, w, mat, fonster, _falsar(kod, fonster) if typ == "TP" else ()))
     return m
 
 

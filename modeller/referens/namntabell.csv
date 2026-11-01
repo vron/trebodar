@@ -2,11 +2,11 @@ referens;modellen;status;gemensam_andel
 Hus Mark/Berg;Trebodar/Mark/Berg;ändrad;0.7261
 Hus Mark/Sovrumsavsats;Trebodar/Mark/Sovrumsavsats;ändrad;0.9602
 Hus Mark/Uppfyllnad;Trebodar/Mark/Uppfyllnad;ändrad;0.9585
-Hus Mark/Hus Struktur <1>/Beklädnad liten;Trebodar/Hus/Grund/Fasadsten/FS2;ändrad;0.5056
+Hus Mark/Hus Struktur <1>/Beklädnad liten;Trebodar/Hus/Grund/Fasadsten/Fasadsten 1SO/1SO-FM01;ersatt;0.3000
 Hus Mark/Hus Struktur <1>/Värmeslingor källare;Trebodar/Hus/Installationer/VVS/Golvvärme källare;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta isolering;Trebodar/Hus/Mellanbjälklag/MB-C;städad;1.0000
 Hus Mark/Hus Struktur <1>/Mellanplatta <1>/Mittenplatta;Trebodar/Hus/Mellanbjälklag/MB-B;städad;1.0000
-Hus Mark/Hus Struktur <1>/Beklädnad stor;Trebodar/Hus/Grund/Fasadsten/FS1;ersatt;0.4259
+Hus Mark/Hus Struktur <1>/Beklädnad stor;Trebodar/Hus/Grund/Fasadsten/Fasadsten 3NV/3NV-FM01;ersatt;0.1870
 Hus Mark/Hus Struktur <1>/Avloppssystem;Trebodar/Hus/Installationer/VVS/Avlopp;identisk;1.0000
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P1/P1-R;ersatt;0.0620
 Hus Mark/Hus Struktur <1>/Källaren <1>/K Pillar;Trebodar/Hus/Grund/Rör/P16/P16-R;ersatt;0.0620
@@ -82,7 +82,7 @@ Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_bad5;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_3_ev3;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p11;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 2SO/Gips 2SO/2SO-GI01;ersatt;0.3047
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p5;;borttagen;
-Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_t2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI02;ersatt;0.3280
+Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_1so_t2;Trebodar/Hus/Invändigt/Ytterväggarnas insida/Insida 1SO/Gips 1SO/1SO-GI02;ersatt;0.3309
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p8;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/gyp_w_l2l_p1;;borttagen;
 Hus Mark/Hus Struktur <1>/InklGipsum <1>/door;Trebodar/Hus/Fasad/Utsida 1SO/Utegips 1SO/1SO-UG01;ersatt;0.0634

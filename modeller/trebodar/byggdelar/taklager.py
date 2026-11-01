@@ -18,6 +18,7 @@ STROLAKT = (3.0, 37.0)               # 34×45 på hårdboarden
 RASPONT = (37.0, 57.0)
 PAPP = (57.0, 59.0)
 PLAT = (59.0, 59.6)
+FALS = (59.6, 84.6)                  # stående fals 25 mm på plåten
 
 
 @dataclass(frozen=True)

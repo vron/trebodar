@@ -41,8 +41,9 @@ väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets ski
 | Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
 | En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
 | Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
-| Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren) |
-| Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` |
+| Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
+| Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
+| Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, färg och renderingens typ med parametrar |
@@ -52,16 +53,23 @@ Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`.
 ## Material och rendering
 
 Varje material (`material.py`) har densitet och färg (STEP, Onshape, materiallistan) och för renderingen en typ med
-parametrar, t.ex. `textur="bradpanel", rendering=rendering(riktning="y", tvars="x", bredd=145, fog=4,
-behandling="tackfarg")`. Renderingen bygger materialen procedurellt i Blender (inga bildtexturer); typerna och deras
-parametrar står i [`verktyg/modellering/blender/material.py`](../../verktyg/modellering/blender/material.py).
+parametrar, t.ex. `textur="bradpanel", rendering=rendering(riktning="y", tvars="x", bredd=145, kvistar=3.5,
+behandling="jarnvitriol", ...)`. Renderingen bygger materialen procedurellt i Blender (inga bildtexturer); typerna och
+deras parametrar står i [`verktyg/modellering/blender/material.py`](../../verktyg/modellering/blender/material.py).
 Riktningarna gäller delens eget system: virke har x längs fibrerna; fasadens skivor x längs väggen och y uppåt (stående
-brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (råspont `riktning="z"`, falsad plåt
-`riktning="x"`).
+brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (råspont `riktning="z"`).
 
-Fasaden har stående sågade granbrädor 22 mm med Falu rödfärg (`PANEL_FALUROD`) eller järnvitriol
-(`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. `./mod rendera --blend` sparar också scenen
-(`ut/trebodar.blend`) med materialen och en kamera per vy, för egna justeringar i Blender.
+- **Fasaden**: stående sågade granbrädor 22×145 med Falu rödfärg (`PANEL_FALUROD`) eller järnvitriol
+  (`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. Panelen är en skiva per vägg; renderingen ritar
+  brädorna, var och en sågad ur en stock (årsringar i flammor, kvistar som ådringen böjer runt, sågad yta, strimmor,
+  färgskiftning per bräda) och skruvarna i spikläktens rader (kontrolleras mot `fasad.py`).
+- **Taket**: plåten är banor med falsar i modellen; varje bana skiftar något i ton och glans och buktar mellan falsarna.
+- **Fasadstenen**: stenarna är egna delar med kluven framsida (triangelnät, 30–50 mm tjock); renderingen ger granitens
+  mineralkorn, små brottytor och skiftningen mellan stenarna.
+
+Vyerna (`vyer.py`) har sol eller `molnigt` (jämnt ljus som på foton i mulet väder, bra för att bedöma material).
+`./mod rendera --blend` sparar också scenen (`ut/trebodar.blend`) med materialen och en kamera per vy, för egna
+justeringar i Blender; ändringar som ska vara kvar görs i `material.py`.
 
 ## Modellträdet
 
@@ -69,7 +77,7 @@ Fasaden har stående sågade granbrädor 22 mm med Falu rödfärg (`PANEL_FALURO
 Trebodar
 ├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen)
 └── Hus
-    ├── Grund                   bottenplatta, källarväggar V1–V21, rör P1–P19, plattan på mark, fasadsten
+    ├── Grund                   bottenplatta, källarväggar V1–V21, rör P1–P19, plattan på mark, fasadsten per vägg
     ├── Mellanbjälklag          betongplatta 150 med trapphål, kantisolering
     ├── Stomme
     │   ├── Stomme prefab       trästommen ovanför bjälklaget, en beställning
@@ -79,7 +87,7 @@ Trebodar
     │   │   ├── Stolpar         LN1_1, LN1_2, LN1_3, LD4_1
     │   │   └── Takbalkar       Takfall 1SO, 1NV, 2SO, 2NV, 3SO, 3NV (takbalkar, avväxlingar, kortlingar, upplagsreglar)
     │   └── Nock- och dalbalkar NB1, DB2, NB3, DB4, NB5 (K-01), en egen beställning
-    ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt; takfönster TF1–TF3
+    ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt i banor; TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      ytterväggarnas fönster och dörrar, innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
@@ -109,7 +117,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
   hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt. Fasad: UG utegips, SR ströläkt, SP spikläkt, PA
-  panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips. Isolering: TI tak, VI vägg.
+  panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips. Isolering: TI tak, VI vägg. Takplåtens banor heter
+  TP och numreras längs takfallet.
+- **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
+  nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
 
 ## Avsiktliga skillnader mot Onshape-modellen
 
@@ -134,7 +145,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Toppklossar på gavelstolarna**: en kloss på insidan (utsidan är fasad), så att balken vilar på 90 mm.
 - **Innerdörrar**: ID2 börjar efter karmstolpen LD2_2, ID5 slutar före den nya stolpen LN1_1 och ID6 börjar vid
   stolpen LD4_1.
-- **Nytt**: tak- och fasadskikt, isolering, invändiga skikt, källarväggarna V1–V21 enligt K-05, rören P1–P19.
+- **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
+  och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
+  Onshape-modellen.
+- **Nytt**: tak- och fasadskikt, takplåten i banor med falsar, isolering, invändiga skikt, källarväggarna V1–V21
+  enligt K-05, rören P1–P19.
 
 ## Inte modellerat ännu
 
