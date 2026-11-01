@@ -21,7 +21,7 @@ from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.grund import fasadsten
-from trebodar.hus.tak.tak import REGIONER
+from trebodar.hus.tak.tak import tak_underkant
 from trebodar.material import C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
@@ -85,18 +85,6 @@ def fasadens_u(kod: str) -> tuple[float, float]:
     """Hela fasadens utsträckning längs väggen (alla skikt)."""
     us = [fasad_u(kod, d) for d in (UG_DJUP, LAKT_DJUP, PANEL_DJUP)]
     return min(u for u, _ in us), max(u for _, u in us)
-
-
-def tak_underkant(x: float, y: float) -> float | None:
-    """Takets hårdboards undersida (takbalkarnas överkant) i punkten (x, y), om taket täcker den."""
-    z = []
-    for kod, regioner in REGIONER.items():
-        t = S.TAKFALL[kod]
-        for r in regioner:
-            xa, xb = sorted((r.nedre.x, r.nock.x))
-            if r.y0 - 1e-6 <= y <= r.y1 + 1e-6 and xa - 1e-6 <= x <= xb + 1e-6:
-                z.append(t.z_overkant(x))
-    return min(z) if z else None
 
 
 def _lagen(fasta: set[float], cc: list[float], b: float = LAKT_B) -> list[float]:

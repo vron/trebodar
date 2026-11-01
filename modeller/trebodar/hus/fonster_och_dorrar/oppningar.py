@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from trebodar import skelett as S
 from trebodar.byggdelar.fonster import DREV
+from trebodar.hus.grund import kallarvaggar as K
 
 
 @dataclass(frozen=True)
@@ -83,7 +84,6 @@ def _numrera() -> dict[str, list[Oppning]]:
 def _kallarfonster() -> list[Oppning]:
     """Källarens fönster (vridfönster) i fasadens plan ovanför, väggen 2NO (cellplastens utsida i w = 0): mellan
     smygarnas cellplast och från bröstningens cellplast till bjälklagets underkant (kallarvaggar)."""
-    from trebodar.hus.grund import kallarvaggar as K
     v = S.YTTERVAGGAR["2NO"]
     vaggar = {k.namn: k for k in K.VAGGAR}
     ut = []

@@ -57,6 +57,18 @@ REGIONER = {
                                                                      _lodr(NOCK[3]))],
     "3NV": [Region(Y3[0], Y3[1], _lodr(FALT["3NV"].takfot), _lodr(NOCK[3]))],
 }
+def tak_underkant(x: float, y: float) -> float | None:
+    """Takets hårdboards undersida (takbalkarnas överkant) i punkten (x, y), om taket täcker den."""
+    z = []
+    for kod, rs in REGIONER.items():
+        t = S.TAKFALL[kod]
+        for r in rs:
+            xa, xb = sorted((r.nedre.x, r.nock.x))
+            if r.y0 - 1e-6 <= y <= r.y1 + 1e-6 and xa - 1e-6 <= x <= xb + 1e-6:
+                z.append(t.z_overkant(x))
+    return min(z) if z else None
+
+
 OMLUFT = 600.0               # uppehåll i ströläkten ovanför och nedanför takfönstren, längs takfallet (U-03)
 FALS_CC = 525.0              # plåtbanornas bredd (falsarnas delning längs y)
 FALS_B = 8.0                 # falsens bredd, hälften på var bana

@@ -277,9 +277,9 @@ def _stomme(lv: Lattvagg) -> Montage:
         if not d.ficka:
             continue
         a, b = d.fickan
-        us = [a + H_VIRKE * (d.mot < 0)] + [u for u in (a + k * FICKA_CC for k in range(1, int((b - a) // FICKA_CC) + 1))
-                                            if u < b - 2 * H_VIRKE]
-        for u in us:
+        mun = d.u1 if d.mot > 0 else d.u0 - H_VIRKE          # läkten vid fickans öppning, sedan c/c mot fickans slut
+        us = [mun + d.mot * k * FICKA_CC for k in range(int((b - a) // FICKA_CC) + 1)]
+        for u in (u for u in us if a - 1e-6 <= u <= b - H_VIRKE + 1e-6):
             for w0, w1 in ((0.0, FICKA_LAKT), (T - FICKA_LAKT, T)):
                 p.lada("F", u, u + H_VIRKE, w0, w1, 0.0, zo, "z", material=C24_LAKT)
     return p.montage()

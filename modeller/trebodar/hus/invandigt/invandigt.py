@@ -3,8 +3,9 @@
 
 Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
 slutar vid en dalbalk, med uppehåll vid mittstolen och öppningar för takfönstren. Under taket: korslagd läkt 45
-(F-01), med en läkt längs takfallet vid gavlarna bakom gipsens kant, och gips 2 × 12,5. Den yttre gipsskivan går fri under nock- och dalbalkarna och möter grannfallets i en
-skarp linje i nocken och under dalbalkarna; ångbromsen, läkten och den inre gipsskivan slutar vid balkarna.
+(F-01), med en läkt längs takfallet vid gavlarna bakom gipsens kant, och gips 2 × 12,5. Den yttre gipsskivan går fri
+under nock- och dalbalkarna och möter grannfallets i en skarp linje i nocken och under dalbalkarna; ångbromsen,
+läkten och den inre gipsskivan slutar vid balkarna.
 Väggar, stolpar och strävor som står under innertaket går skikten runt. Ytterväggarnas insida går från bjälklaget
 upp till innertaket, kapad längs det så att gipsen möts i en skarp linje; gavlarnas insida följer snedtaket upp till
 takbalkarnas underkant och innertaket slutar mot den. Skivorna på väggarna: OSB 12
@@ -18,12 +19,13 @@ from functools import cache
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage, Placering
+from modellering import Montage, Placering, lada
 
 from trebodar import skelett as S
 from trebodar.byggdelar import lagen
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar import polygon as P
+from trebodar.byggdelar.genomforing import genomfor
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
@@ -283,7 +285,8 @@ def _badrumsremsor(t: S.Takfall) -> list[tuple[float, float, float, float]]:
         pl = v.placering()
         for a, b in _badrum_langs(kod, 0.0, v.langd, S.T_STOMME, S.T_STOMME + INSIDA_VATRUM_T):
             horn = [pl.punkt((u, S.T_STOMME + w, 0))[:2] for u in (a, b) for w in (INSIDA_T, INSIDA_VATRUM_T)]
-            ut.append((min(x for x, _ in horn), max(x for x, _ in horn), min(y for _, y in horn), max(y for _, y in horn)))
+            xs, ys = [x for x, _ in horn], [y for _, y in horn]
+            ut.append((min(xs), max(xs), min(ys), max(ys)))
     return ut
 
 
@@ -344,9 +347,10 @@ def _vagg_insida(kod: str) -> Montage:
         w += t
     # skivorna: våtrumsskikt där badrummet ligger mot väggen, annars OSB och gips
     bad = _badrum_langs(kod, u0, u1, S.T_STOMME, S.T_STOMME + INSIDA_VATRUM_T)
-    vanligt = box(u0, -1.0, u1, topp + 1.0).difference(unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad]))
+    vatrum = unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad])
+    vanligt = box(u0, -1.0, u1, topp + 1.0).difference(vatrum)
     plan: dict[str, Plan] = {}
-    for omrade, skivor in ((vanligt, SKIVOR), (unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad]), SKIVOR_VATRUM)):
+    for omrade, skivor in ((vanligt, SKIVOR), (vatrum, SKIVOR_VATRUM)):
         ws = w
         for namn, t, typ, mat in skivor:
             p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", t, material=mat))
@@ -364,14 +368,12 @@ def _vagg_insida(kod: str) -> Montage:
 def _kapa_vid_innertaket(m: Montage, kod: str, u0: float, u1: float) -> None:
     """Takfotsväggens insida kapas längs innertakets underkant, så att innertakets gips går över väggens skivor och
     möter dem i en skarp linje (väggens översta läkt och innertakets nedersta läkt bakom skivornas kanter)."""
-    from trebodar.byggdelar.genomforing import genomfor
-    from modellering import lada as lada_
     t = S.TAKFALL[kod]
     z0 = _innertakets_underkant(t, t.x_insida)
     w0 = S.T_STOMME - 100.0                    # verktyget börjar 100 mm utanför stommens insida, i planet
     origo = (u0 - 1000.0, w0, z0 - 100.0 * S.TAN)
     langs = 600.0
-    verktyg = lada_(u1 - u0 + 2000.0, langs, 1000.0).placerad(
+    verktyg = lada(u1 - u0 + 2000.0, langs, 1000.0).placerad(
         Placering.axlar(origo, (1.0, 0.0, 0.0), (0.0, -S.SIN, S.COS)))
     genomfor(m, verktyg, (u0 - 1000.0, w0 - 600.0, z0 - 200.0, u1 + 1000.0, w0 + langs, z0 + 1500.0))
 

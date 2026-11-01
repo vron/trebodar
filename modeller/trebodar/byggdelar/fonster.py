@@ -24,8 +24,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 
-from modellering import Del, Form, Montage, Placering, Union, box, polyeder, prisma
+from modellering import Del, Form, Montage, Placering, Union, box, polyeder
 
+from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt
 from trebodar.material import DORRBLAD, FONSTERALU, FONSTERTRA, GLAS, HARDTRA
 
@@ -91,9 +92,7 @@ def _bottenprofil(b: float, stomme: Sidor, lapp_ut: float, botten_ut: float, z_n
         return lapp_ut - (d - LAPP) * fall
     platta = [(-60.0, z(60.0)), (-TRA, botten_ut), (-TRA, botten_ut + 2.0), (-60.0, z(60.0) + 2.0)]
     nasa = [(-TRA, z_nasa), (-DJUP, z_nasa), (-DJUP, botten_ut), (-TRA, botten_ut)]
-    vrid = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
-    return Union((prisma(platta, b - stomme[0] - stomme[1], z0=stomme[0]).placerad(vrid),
-                  prisma(nasa, b).placerad(vrid)))
+    return Union((prisma_x(platta, stomme[0], b - stomme[1]), prisma_x(nasa, 0.0, b)))
 
 
 def _bage(b: float, h: float, ytter: Sidor, glas: Sidor) -> Form:
@@ -234,8 +233,7 @@ def skjutdorr(kod: str, b: float, h: float) -> Montage:
     m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", alu, FONSTERALU), Placering(), f"{kod}-KARMALU")
     d0, d1, z_ut = S_TROSKEL_UT
     troskel = [(-S_FAST[0], 0.0), (-d1, 0.0), (-d1, z_ut), (-d0, S_TROSKEL), (-S_FAST[0], S_TROSKEL)]
-    vrid = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))
-    m.lagg(Del(f"Tröskel hårdträ {fmt(b)}", prisma(troskel, b).placerad(vrid), HARDTRA), Placering(), f"{kod}-TROSKEL")
+    m.lagg(Del(f"Tröskel hårdträ {fmt(b)}", prisma_x(troskel, 0.0, b), HARDTRA), Placering(), f"{kod}-TROSKEL")
     gs, gt, gu = S_GLAS
     g = (b - 2 * gs - 2 * S_MOTE - S_MITT) / 4                 # rutornas synliga bredd
     z0 = S_TROSKEL

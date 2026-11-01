@@ -21,7 +21,9 @@ from typing import Any
 from modellering import Del, Form, Montage, Placering, box, lada, prisma
 
 from trebodar import skelett as S
+from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt
+from trebodar.hus.tak.tak import tak_underkant
 from trebodar.material import C24, DISTANS, GL30C, S355
 
 REGEL_B = 45.0                       # reglarna ovanpå balken
@@ -102,7 +104,6 @@ def montage(kod: str) -> Montage:
 def _regel(b: S.Balklinje, L: float, y0: float, y1: float, z0: float, skruvar: list[tuple[float, float]]) -> Form:
     """Regeln ovanpå balken mellan y0 och y1 (balkens system), från plåtens överkant z0 till takplanen, med urtag
     för de skruvhuvuden den står på."""
-    from trebodar.hus.fasad.fasad import tak_underkant
     ym = b.y0 + L / 2
 
     def z(y: float) -> float:
@@ -112,8 +113,7 @@ def _regel(b: S.Balklinje, L: float, y0: float, y1: float, z0: float, skruvar: l
         return zt - b.uk
     ys = [y0, y1] if b.typ == "dal" else [y0, (y0 + y1) / 2, y1]
     kontur = [(y0, z0), (y1, z0)] + [(y, z(y)) for y in reversed(ys)]
-    vrid = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
-    form: Form = prisma(kontur, L).placerad(vrid)
+    form: Form = prisma_x(kontur, 0.0, L)
     r = URTAG_B / 2
     for x, ys_ in skruvar:
         if y0 - r < ys_ < y1 + r:

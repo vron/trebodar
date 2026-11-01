@@ -201,9 +201,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   sida, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom gipsen), så att balken vilar på 90 mm.
 - **Innerväggar och innerdörrar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med
   OSB och gips (i badrummet plywood, gips, tätskikt och kakel), skikt på de bärande innerväggarna och skjutdörrar
-  utanpå väggarna. 2B är sluten söder om trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den
-  lätta väggen L12). I korridorens hörn i höger huskropp går ID3 90 mm längre söderut och ID5 slutar före korridorväggen,
-  så att bladen går fria. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
+  utanpå väggarna (ID1 fickdörr i väggen; de andra har inte plats för en ficka, modell-todo). 2B är sluten söder om
+  trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den lätta väggen L12). I korridorens hörn i
+  höger huskropp går ID3 90 mm längre söderut och ID5 slutar före korridorväggen, så att bladen går fria. Väggen
+  mellan kontoret och köket går rakt genom huvudstolpen.
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
   helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, med
   aluminiumbeklädnaden i panelens utsida och panelen fram till karmen. Typerna: vridfönster 10×10 och 8×8 och i

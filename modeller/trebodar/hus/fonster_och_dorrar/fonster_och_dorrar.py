@@ -1,5 +1,6 @@
 """Fönster och dörrar: Elitfönsters produkter (byggdelar/fonster.py) i ytterväggarnas öppningar och innerdörrarna
-(skjutdörrar utanpå väggen, planritning 201 rev 02). Öppningarna och produkttyperna står i oppningar.py.
+(skjutdörrar utanpå väggen eller fickdörrar i väggen, planritning 201 rev 02). Öppningarna och produkttyperna står i
+oppningar.py.
 
 Karmen sitter med aluminiumbeklädnaden i panelens utsida (w −65) och 10 mm drevmån runt om i regelverkets öppning
 (modulmåttet), drevad med mineralull. Fasaden går fram till karmen (fasad.py). Invändigt: smygbrädor 15 mm av

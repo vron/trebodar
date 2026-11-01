@@ -5,7 +5,9 @@ from typing import Any, Iterator
 
 from shapely.geometry import Polygon
 
-from modellering import Prisma, prisma
+from modellering import Form, Placering, Prisma, prisma
+
+_YZX = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
 
 
 def polygoner(g: Any, minsta_area: float = 1.0) -> Iterator[Polygon]:
@@ -28,3 +30,8 @@ def hal(q: Polygon) -> list[list[tuple[float, float]]]:
 def prisma_ur(q: Polygon, z0: float, z1: float) -> Prisma:
     """Polygonen (med hål) i xy, extruderad från z0 till z1."""
     return prisma(kontur(q), z1 - z0, hal(q), z0)
+
+
+def prisma_x(kontur_yz: list[tuple[float, float]], x0: float, x1: float) -> Form:
+    """Profilen i (y, z), extruderad längs x från x0 till x1."""
+    return prisma(kontur_yz, x1 - x0, z0=x0).placerad(_YZX)

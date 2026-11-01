@@ -87,8 +87,8 @@ def _luftvag() -> list[tuple[float, float, float]]:
     """Förbränningsluftens kanal: punkterna från anslutningen under insatsen till fasadens utsida."""
     y = Y_FRONT - LUFT_FRAN_FRONT
     y_ut = S.YTTERVAGGAR["2NO"].origo[1] - S.T_FASAD
-    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (LUFT_X_KALLARE, y, LUFT_Z), (LUFT_X_KALLARE, LUFT_Y_VAGG, LUFT_Z),
-            (LUFT_X_UT, LUFT_Y_VAGG, LUFT_Z), (LUFT_X_UT, y_ut, LUFT_Z)]
+    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (LUFT_X_KALLARE, y, LUFT_Z),
+            (LUFT_X_KALLARE, LUFT_Y_VAGG, LUFT_Z), (LUFT_X_UT, LUFT_Y_VAGG, LUFT_Z), (LUFT_X_UT, y_ut, LUFT_Z)]
 
 
 def luftkanalens_hal() -> tuple[Form, tuple[float, float, float, float, float, float]]:
@@ -171,9 +171,10 @@ def montage() -> Montage:
                artikel="Rais AirSystem, flexslang Ø120"), Placering(), "KM-LUFT")
     gs, gt = GALLER
     xg, yg, zg = vag[-1]
+    hal = cylinder(LUFT_D / 2 - 1.0, gt + 2.0).placerad(Placering.axlar((xg, yg + 1.0, zg), (1.0, 0.0, 0.0),
+                                                                         (0.0, -1.0, 0.0)))
     m.lagg(Del(f"Galler för förbränningsluften {gs:g}×{gs:g}",
-               box(xg - gs / 2, xg + gs / 2, yg - gt, yg, zg - gs / 2, zg + gs / 2) - cylinder(LUFT_D / 2 - 1.0, gt + 2.0)
-               .placerad(Placering.axlar((xg, yg + 1.0, zg), (1.0, 0.0, 0.0), (0.0, -1.0, 0.0))), ROSTFRITT),
+               box(xg - gs / 2, xg + gs / 2, yg - gt, yg, zg - gs / 2, zg + gs / 2) - hal, ROSTFRITT),
            Placering(), "KM-GALLER")
     z_topp = _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK
     m.lagg(Del(f"Isolerad skorsten Ø{SKORSTEN_INRE:g}/Ø{SKORSTEN_D:g}",
