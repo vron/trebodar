@@ -68,11 +68,14 @@ egen modell (t.ex. för beställning). Utdata:
   banor, kluven granit (mineralkorn, brottytor), betong, bruk, berg, mark, glas m.fl. Riktningarna anges i delens eget
   system; det som skiljer delar av samma material åt (stenar, plåtbanor) slumpas per objekt. Himmel och sol eller
   mulet, en kamera per vy, Cycles på GPU, färgåtergivning Khronos PBR Neutral.
-- **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, vyer, delarnas kanter och snitt i
-  x, y och z. Materialen listas med sina CAD-färger och kan döljas var för sig (t.ex. isolering och gips för att se
-  stommen); en ruta växlar till de verkliga färgerna. Där ett snitt skär en del räknas tvärsnittet ut ur nätet och ritas i delens färg med svart kontur, som
-  i en sektionsritning. Klick visar delens namn, sökväg och material, dubbelklick sätter rotationscentrum och hjulet
-  zoomar mot pekaren.
+- **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd (med sökning), vyer, delarnas kanter
+  och snitt i x, y och z. Materialen listas med sina CAD-färger och kan döljas var för sig (t.ex. isolering och gips
+  för att se stommen); en ruta växlar till de verkliga färgerna. Där ett snitt skär en del räknas tvärsnittet ut ur
+  nätet och ritas i delens färg med svart kontur, som i en sektionsritning. Klick visar delens namn, sökväg och
+  material, dubbelklick sätter rotationscentrum och hjulet zoomar mot pekaren. Högerklick på en del (delen och
+  grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
+  genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
+  `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk.
 
 `mod onshape` läser API-nycklarna ur `lokalt/onshape.json` i repot (versionshanteras inte; `access_key`,
 `secret_key` och eventuellt `mapp`) eller ur miljövariablerna `ONSHAPE_ACCESS_KEY` och `ONSHAPE_SECRET_KEY`. Ett

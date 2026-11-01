@@ -27,6 +27,20 @@
   #info { position: fixed; right: 10px; bottom: 10px; max-width: 420px; background: var(--panel); padding: 8px 10px;
           border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); font-size: 12px; display: none; word-break: break-word; }
   #laddar { position: fixed; inset: 0; display: grid; place-items: center; font-size: 15px; color: var(--dim); }
+  #meny { position: fixed; z-index: 10; display: none; background: var(--panel); border-radius: 6px; padding: 6px;
+          box-shadow: 0 2px 14px rgba(0,0,0,.28); font-size: 13px; max-width: min(520px, 96vw); }
+  #meny .rubrik { color: var(--dim); font-size: 12px; margin: 0 4px 4px; }
+  #meny .mal { display: flex; align-items: center; gap: 1px; }
+  #meny .mal > span { flex: 1; min-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px 0 4px; }
+  #meny button, #info button { padding: 1px 6px; margin: 1px; font-size: 12px; }
+  #meny hr { border: 0; border-top: 1px solid #8884; margin: 5px 0; }
+  #fokus { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 3; display: none; max-width: 70vw;
+           background: var(--panel); padding: 3px 4px 3px 12px; border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2);
+           font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #sok { width: 100%; box-sizing: border-box; font: inherit; padding: 4px 6px; margin: 2px 0 6px; border: 1px solid #8886;
+         border-radius: 4px; background: transparent; color: var(--ink); }
+  #traffar { padding-left: 0; } #traffar li { cursor: pointer; padding: 2px 0; } .vag { color: var(--dim); font-size: 11px; }
+  .namn.markerad { background: color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -35,7 +49,8 @@
 <aside id="panel">
   <div class="rad" style="justify-content: space-between"><h1>Fritidshus Trebodar</h1><button id="stang">◀</button></div>
   <div style="color: var(--dim); font-size: 12px">Kodgenererad modell (modeller/trebodar). Klicka på en del för
-    information, dubbelklicka för att kretsa kring den; hjulet zoomar mot pekaren.</div>
+    information, dubbelklicka för att kretsa kring den; hjulet zoomar mot pekaren. Högerklicka på en del, i trädet
+    eller på ett material för att visa bara det eller tona ner resten; Esc avslutar.</div>
   <h2>Vyer</h2><div id="vyer"></div>
   <h2>Snitt</h2>
   <div class="rad"><label><input type="checkbox" id="kx"> x</label><input type="range" id="sx"></div>
@@ -46,10 +61,14 @@
   <h2>Material</h2>
   <div class="rad"><label><input type="checkbox" id="verklig"> verkliga färger (som i renderingen)</label></div>
   <ul id="material"></ul>
-  <h2>Modellträdet</h2><ul id="trad"></ul>
+  <h2>Modellträdet</h2>
+  <input id="sok" type="search" placeholder="Sök, t.ex. Vägg 1A" autocomplete="off">
+  <ul id="traffar"></ul><ul id="trad"></ul>
 </aside>
 <button id="knapp">▶ Meny</button>
 <div id="info"></div>
+<div id="meny"></div>
+<div id="fokus"><span></span> <button id="avsluta">Avsluta</button></div>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -202,9 +221,15 @@ function byggSnitt() {
 
 function planeraSnitt() { if (!planerat) { planerat = true; requestAnimationFrame(byggSnitt); } }
 
+// med panelen öppen på en bred skärm ligger kamerans mitt (och kretsens mitt) i den fria delen av fönstret
+let panelBredd = 0;
 function storlek() {
-  const w = el.clientWidth, h = el.clientHeight;
-  renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+  const w = el.clientWidth, h = el.clientHeight, panel = document.getElementById("panel");
+  panelBredd = !panel.classList.contains("dold") && w > 640 ? panel.offsetWidth : 0;
+  renderer.setSize(w, h);
+  camera.aspect = (w + panelBredd) / h;
+  if (panelBredd) camera.setViewOffset(w + panelBredd, h, 0, 0, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
 }
 window.addEventListener("resize", storlek); storlek();
 
@@ -226,33 +251,162 @@ function snitt() {
     aktiva.push(p);
   }
   modell.traverse(o => { if (o.isMesh) o.material.clippingPlanes = aktiva; });
-  kantMaterial.clippingPlanes = aktiva;
+  kantMaterial.clippingPlanes = kantTonad.clippingPlanes = aktiva;
   aktivaPlan = aktiva;
   planeraSnitt();
 }
 
 const delbarn = o => o.children.filter(c => !c.isLineSegments);
+const kallad = o => o.userData.name || o.name;          // modellens namn (inläsaren byter mellanslag mot _)
+let tradRot;
 
-function trad(obj, ul, djup) {
+function trad(obj, ul) {
   for (const barn of delbarn(obj)) {
     if (barn.isMesh && delbarn(barn).length === 0) continue;
     const li = document.createElement("li");
     const harBarn = delbarn(barn).some(c => !c.isMesh || delbarn(c).length);
-    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = true;
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = barn.visible;
     cb.onchange = () => { barn.visible = cb.checked; planeraSnitt(); };
     const pil = document.createElement("span"); pil.className = "pil"; pil.textContent = harBarn ? "▸" : "";
-    const namn = document.createElement("span"); namn.textContent = " " + barn.name;
+    const namn = document.createElement("span"); namn.className = "namn"; namn.textContent = " " + kallad(barn);
+    namn.oncontextmenu = e => { e.preventDefault(); visaMeny(e.clientX, e.clientY, [malObjekt(barn)]); };
+    Object.assign(barn.userData, { ruta: cb, rad: namn });
     li.append(pil, cb, namn);
     if (harBarn) {
       const sub = document.createElement("ul"); li.append(sub); li.classList.add("stangd");
       let byggd = false;
-      pil.onclick = namn.onclick = () => {
-        if (!byggd) { trad(barn, sub, djup + 1); byggd = true; }
-        li.classList.toggle("stangd"); pil.textContent = li.classList.contains("stangd") ? "▸" : "▾";
+      const vaxla = oppen => {
+        if (!byggd) { trad(barn, sub); byggd = true; }
+        li.classList.toggle("stangd", !oppen); pil.textContent = oppen ? "▾" : "▸";
       };
+      barn.userData.oppna = () => vaxla(true);
+      pil.onclick = namn.onclick = () => vaxla(li.classList.contains("stangd"));
     }
     ul.append(li);
   }
+}
+
+function visaITradet(o) {
+  if (o.isMesh && !delbarn(o).length) o = o.parent;            // delarna står inte i trädet, deras grupp gör det
+  const kedja = [];
+  for (let p = o; p && p !== tradRot; p = p.parent) kedja.unshift(p);
+  for (const p of kedja.slice(0, -1)) if (p.userData.oppna) p.userData.oppna();
+  const rad = o.userData.rad;
+  if (!rad) return;
+  document.getElementById("panel").classList.remove("dold"); storlek();
+  rad.scrollIntoView({ block: "center" });
+  rad.classList.add("markerad"); setTimeout(() => rad.classList.remove("markerad"), 1600);
+}
+
+// ---------------------------------------------------------------- synlighet och fokus
+// Trädets kryssrutor styr objektens synlighet, materiallistan döljer material och fokus visar bara en grupp, en del
+// eller ett material, eller tonar ner allt annat (90 % genomskinligt).
+const doldaMaterial = new Set(), materialRutor = new Map();
+let fokus = null;                      // { namn, test(del), hash, lage: "bara" eller "tona" }
+const TONING = 0.1;
+const kantTonad = new THREE.LineBasicMaterial({ color: 0x262626, transparent: true, opacity: 0.12, depthWrite: false });
+const under = (o, rot) => { for (; o; o = o.parent) if (o === rot) return true; return false; };
+
+function uppdatera() {
+  for (const o of delar) {
+    const m = o.material, u = o.userData, i = !fokus || fokus.test(o);
+    const visas = !doldaMaterial.has(m.name) && (i || fokus.lage === "tona"), tonad = visas && !i;
+    m.visible = visas;
+    if (tonad !== !!u.tonad) {
+      u.tonad = tonad;
+      m.transparent = tonad || u.genomskinlig; m.opacity = tonad ? TONING : u.opacitet;
+      m.depthWrite = tonad ? false : u.djup; m.needsUpdate = true;
+    }
+    for (const c of o.children) if (c.isLineSegments) { c.visible = visas; c.material = tonad ? kantTonad : kantMaterial; }
+  }
+  const f = document.getElementById("fokus");
+  f.style.display = fokus ? "block" : "none";
+  if (fokus) f.firstElementChild.textContent = (fokus.lage === "bara" ? "Visar bara " : "Tonar ner allt utom ") + fokus.namn;
+  history.replaceState(null, "", fokus ? `#${fokus.lage}=${encodeURIComponent(fokus.hash)}` : location.pathname + location.search);
+  planeraSnitt();
+}
+
+function malObjekt(o) {
+  return { namn: kallad(o), hash: o.userData.sokvag || o.name, test: d => under(d, o), objekt: o,
+           dolj: () => { o.visible = false; if (o.userData.ruta) o.userData.ruta.checked = false; planeraSnitt(); },
+           visa: () => { for (let p = o; p; p = p.parent) { p.visible = true; if (p.userData.ruta) p.userData.ruta.checked = true; } } };
+}
+
+function malMaterial(namn) {
+  const ruta = materialRutor.get(namn);
+  return { namn, hash: "material:" + namn, test: d => d.material.name === namn,
+           dolj: () => { doldaMaterial.add(namn); ruta.checked = false; uppdatera(); },
+           visa: () => { doldaMaterial.delete(namn); ruta.checked = true; } };
+}
+
+function fokusera(mal, lage) {
+  mal.visa();
+  fokus = { ...mal, lage };
+  uppdatera();
+  if (lage === "bara") zooma(mal);
+}
+
+function avsluta() { fokus = null; uppdatera(); }
+
+function visaAllt() {
+  modell.traverse(o => { if (!o.isLineSegments) o.visible = true; if (o.userData.ruta) o.userData.ruta.checked = true; });
+  doldaMaterial.clear();
+  for (const cb of materialRutor.values()) cb.checked = true;
+  avsluta();
+}
+
+function zooma(mal) {
+  const b = new THREE.Box3();
+  for (const d of delar) if (mal.test(d) && d.material.visible && synlig(d)) b.expandByObject(d);
+  if (b.isEmpty()) return;
+  const c = b.getCenter(new THREE.Vector3()), r = Math.max(b.getSize(new THREE.Vector3()).length() / 2, 0.3);
+  const fri = (el.clientWidth - panelBredd) / el.clientHeight;          // den fria delens proportioner
+  const halv = Math.min(camera.fov / 2, Math.atan(Math.tan(camera.fov * Math.PI / 360) * fri) * 180 / Math.PI);
+  const riktning = camera.position.clone().sub(controls.target).normalize();
+  controls.target.copy(c);
+  camera.position.copy(c).addScaledVector(riktning, 1.05 * r / Math.sin(halv * Math.PI / 180));
+}
+
+// meny med en rad per mål (delen och grupperna den ingår i, en grupp i trädet eller ett material)
+const meny = document.getElementById("meny");
+function visaMeny(x, y, mal, rubrik = null) {
+  meny.innerHTML = "";
+  if (rubrik) { const h = document.createElement("div"); h.className = "rubrik"; h.textContent = rubrik; meny.append(h); }
+  for (const m of mal) {
+    const rad = document.createElement("div"); rad.className = "mal";
+    const n = document.createElement("span"); n.textContent = m.namn; n.title = m.hash; rad.append(n);
+    const val = [["visa bara", "Visa bara detta", () => fokusera(m, "bara")],
+                 ["tona resten", "Tona ner allt annat (90 % genomskinligt)", () => fokusera(m, "tona")],
+                 ["dölj", "Dölj", () => m.dolj()], ["zooma", "Zooma till", () => zooma(m)]];
+    if (m.objekt) val.push(["i trädet", "Visa i modellträdet", () => visaITradet(m.objekt)]);
+    for (const [text, titel, f] of val) {
+      const b = document.createElement("button"); b.textContent = text; b.title = titel;
+      b.onclick = () => { stangMeny(); f(); }; rad.append(b);
+    }
+    meny.append(rad);
+  }
+  if (mal.length) meny.append(document.createElement("hr"));
+  const alla = document.createElement("button"); alla.textContent = "Visa allt"; alla.title = "Visa alla delar och material";
+  alla.onclick = () => { stangMeny(); visaAllt(); };
+  meny.append(alla);
+  meny.style.display = "block";
+  const r = meny.getBoundingClientRect();
+  meny.style.left = Math.max(4, Math.min(x, innerWidth - r.width - 4)) + "px";
+  meny.style.top = (y + r.height > innerHeight - 4 ? Math.max(4, y - r.height) : y) + "px";
+}
+function stangMeny() { meny.style.display = "none"; }
+document.addEventListener("pointerdown", e => { if (!meny.contains(e.target)) stangMeny(); });
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (meny.style.display === "block") stangMeny(); else if (fokus) avsluta();
+});
+document.getElementById("avsluta").onclick = avsluta;
+
+function nivaer(o) {
+  // delen och grupperna den ingår i, upp till Hus och Mark
+  const ut = [];
+  for (let p = o; p && p.parent && p.parent !== modell && p.parent.name !== "z-upp"; p = p.parent) ut.push(malObjekt(p));
+  return ut;
 }
 
 const ray = new THREE.Raycaster(), mus = new THREE.Vector2();
@@ -260,7 +414,8 @@ function traff(e) {
   const r = renderer.domElement.getBoundingClientRect();
   mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(mus, camera);
-  return ray.intersectObject(modell, true).filter(t => t.object.isMesh).filter(t => {
+  return ray.intersectObject(modell, true).filter(t => t.object.isMesh && t.object.material.visible &&
+                                                    !t.object.userData.tonad).filter(t => {
     const p = t.point; let ok = true; let o = t.object;
     while (o) { if (!o.visible) { ok = false; break; } o = o.parent; }
     for (const pl of (t.object.material.clippingPlanes || [])) if (pl.distanceToPoint(p) < 0) ok = false;
@@ -276,14 +431,34 @@ renderer.domElement.addEventListener("click", e => {
   const info = document.getElementById("info");
   if (!traffar.length) { info.style.display = "none"; return; }
   let o = traffar[0].object; while (o && !o.userData.sokvag) o = o.parent;
-  const d = (o || traffar[0].object).userData;
-  info.innerHTML = `<b>${(o || traffar[0].object).name}</b><br>${d.sokvag || ""}<br>${d.del || ""}` +
-                   `${d.material ? " · " + d.material : ""}${d.artikel ? "<br>" + d.artikel : ""}`;
+  o = o || traffar[0].object;
+  const d = o.userData;
+  info.innerHTML = `<b>${kallad(o)}</b><br>${d.sokvag || ""}<br>${d.del || ""}` +
+                   `${d.material ? " · " + d.material : ""}${d.artikel ? "<br>" + d.artikel : ""}<br>`;
+  const b = document.createElement("button"); b.textContent = "visa bara, tona …";
+  b.title = "Visa bara delen eller en grupp den ingår i, eller tona ner resten (som högerklick)";
+  b.onclick = () => { const r = info.getBoundingClientRect(); visaMeny(r.left, r.top, nivaer(o), kallad(o)); };
+  info.append(b);
   info.style.display = "block";
 });
+// högerklick: menyn öppnas när knappen släpps utan att musen flyttats (högerdrag panorerar; på macOS kommer
+// contextmenu redan när knappen trycks ner)
+let hogerNer = null;
+renderer.domElement.addEventListener("contextmenu", e => e.preventDefault());
+renderer.domElement.addEventListener("pointerdown", e => {
+  hogerNer = e.button === 2 || (e.button === 0 && e.ctrlKey) ? [e.clientX, e.clientY] : null;
+});
+renderer.domElement.addEventListener("pointerup", e => {
+  if (!hogerNer || Math.hypot(e.clientX - hogerNer[0], e.clientY - hogerNer[1]) > 5) { hogerNer = null; return; }
+  hogerNer = null;
+  const t = traff(e);
+  if (!t.length) { visaMeny(e.clientX, e.clientY, []); return; }
+  const o = t[0].object;
+  visaMeny(e.clientX, e.clientY, nivaer(o), [o.userData.del, o.userData.material].filter(Boolean).join(" · ") || kallad(o));
+});
 
-document.getElementById("stang").onclick = () => document.getElementById("panel").classList.add("dold");
-document.getElementById("knapp").onclick = () => document.getElementById("panel").classList.remove("dold");
+document.getElementById("stang").onclick = () => { document.getElementById("panel").classList.add("dold"); storlek(); };
+document.getElementById("knapp").onclick = () => { document.getElementById("panel").classList.remove("dold"); storlek(); };
 
 const vyer = await (await fetch("vyer.json")).json();
 new GLTFLoader().load("modell/trebodar.glb", gltf => {
@@ -295,6 +470,7 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
     const m = o.material = o.material.clone();
     m.side = m.transparent ? THREE.DoubleSide : THREE.FrontSide;      // snittytorna täcker de skurna delarna
     m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 1;    // kanterna ovanpå ytorna
+    Object.assign(o.userData, { genomskinlig: m.transparent, opacitet: m.opacity, djup: m.depthWrite });
     if (!kanter.has(o.geometry)) kanter.set(o.geometry, new THREE.EdgesGeometry(o.geometry, KANTVINKEL));
     o.add(new THREE.LineSegments(kanter.get(o.geometry), kantMaterial));
   }
@@ -310,14 +486,13 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
   for (const [namn, ms] of [...perMaterial].sort((a, b) => a[0].localeCompare(b[0], "sv"))) {
     const li = document.createElement("li");
     const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = true;
-    cb.onchange = () => {
-      for (const o of ms) { o.material.visible = cb.checked; for (const c of o.children) c.visible = cb.checked; }
-      planeraSnitt();
-    };
+    cb.onchange = () => { if (cb.checked) doldaMaterial.delete(namn); else doldaMaterial.add(namn); uppdatera(); };
+    materialRutor.set(namn, cb);
     const ruta = document.createElement("span"); ruta.className = "ruta";
     ruta.style.background = "#" + ms[0].userData.cad.getHexString(THREE.SRGBColorSpace);
     const d = ms[0].material.userData;
     li.title = d.beskrivning || "";
+    li.oncontextmenu = e => { e.preventDefault(); visaMeny(e.clientX, e.clientY, [malMaterial(namn)], d.beskrivning || null); };
     li.append(cb, ruta, document.createTextNode(`${namn} (${ms.length})`));
     lista.append(li);
   }
@@ -345,12 +520,44 @@ new GLTFLoader().load("modell/trebodar.glb", gltf => {
     const b = document.createElement("button"); b.textContent = namn; b.onclick = () => gaTill(v); vy.append(b);
   }
   gaTill(Object.values(vyer)[0]);
-  const rot = modell.children[0] && modell.children[0].name === "z-upp" ? modell.children[0] : modell;
-  trad(rot, document.getElementById("trad"), 0);
+  tradRot = modell.children[0] && modell.children[0].name === "z-upp" ? modell.children[0] : modell;
+  trad(tradRot, document.getElementById("trad"));
+  // sökning bland grupperna (först) och delarna
+  const grupper = [], enskilda = [];
+  tradRot.traverse(o => { if (o !== tradRot && !o.isLineSegments && o.name) (o.isMesh ? enskilda : grupper).push(o); });
+  const sok = document.getElementById("sok"), traffar = document.getElementById("traffar");
+  sok.oninput = () => {
+    const q = sok.value.trim().toLowerCase();
+    traffar.innerHTML = "";
+    document.getElementById("trad").style.display = q ? "none" : "";
+    if (!q) return;
+    const ut = [...grupper, ...enskilda].filter(o => kallad(o).toLowerCase().includes(q)).slice(0, 80);
+    for (const o of ut) {
+      const li = document.createElement("li"), vag = document.createElement("div");
+      vag.className = "vag"; vag.textContent = (o.userData.sokvag || "").split("/").slice(1, -1).join(" › ");
+      li.append(document.createTextNode(kallad(o)), vag);
+      li.onclick = () => { sok.value = ""; sok.oninput(); visaITradet(o); zooma(malObjekt(o)); };
+      li.oncontextmenu = e => { e.preventDefault(); visaMeny(e.clientX, e.clientY, [malObjekt(o)]); };
+      traffar.append(li);
+    }
+    if (!ut.length) traffar.innerHTML = '<li class="vag">Inga träffar</li>';
+  };
+  // fokus ur adressen: #bara=<sökväg> eller #tona=<sökväg> (material: #bara=material:<namn>), så att en vy kan delas
+  const urAdressen = () => {
+    const a = location.hash.match(/^#(bara|tona)=(.+)$/);
+    if (!a) return;
+    const v = decodeURIComponent(a[2]);
+    let mal = null;
+    if (v.startsWith("material:")) { if (materialRutor.has(v.slice(9))) mal = malMaterial(v.slice(9)); }
+    else { let o = null; modell.traverse(x => { if (!o && x.userData.sokvag === v) o = x; }); if (o) mal = malObjekt(o); }
+    if (mal) fokusera(mal, a[1]);
+  };
+  window.addEventListener("hashchange", urAdressen);
+  urAdressen();
   document.getElementById("laddar").remove();
 }, undefined, e => { document.getElementById("laddar").textContent = "Kunde inte läsa modellen: " + e.message; });
 
-window.visare = { scene, camera, controls, gaTill, byggSnitt };        // för felsökning i webbläsarens konsol
+window.visare = { scene, camera, controls, gaTill, byggSnitt, fokusera, malObjekt, visaAllt };   // för felsökning
 renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
 </script>
 </body>
