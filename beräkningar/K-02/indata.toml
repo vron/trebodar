@@ -25,6 +25,10 @@ installation = 45       # luftspalt för installationer [mm]
 gips        = 25        # gipsskiva [mm]
 tak_langd   = 1000      # takets längd i modellen från balkens sida, längs takfallet [mm]
 
+[angbroms]   # mellan isoleringen och installationsspalten; folie med försumbart värmemotstånd, ingår inte i modellen
+produkt     = "Hunton Intello Plus"     # fuktadaptiv, Sd 0,3–34 m (ETA-18/1146)
+tjocklek    = 0.4       # [mm]
+
 [material]   # värmekonduktivitet λ [W/(m·K)]
 stal        = 50.0      # konstruktionsstål, SS-EN ISO 10456
 limtra      = 0.13      # barrträ 500 kg/m³ tvärs fibrerna, SS-EN ISO 10456

@@ -158,6 +158,7 @@ def rita_geometri(path):
     s, n = info["s"], info["n"]
     lab = [("hård träfiberskiva " + fmt(g["masonit"], 0) + " mm", 1.5),
            ("träfiberisolering " + fmt(g["isolering"], 0) + " mm", g["masonit"] + g["isolering"] / 2),
+           ("ångbroms " + IN["angbroms"]["produkt"], g["masonit"] + g["isolering"]),
            ("installationsspalt " + fmt(g["installation"], 0) + " mm", g["masonit"] + g["isolering"] + g["installation"] / 2),
            ("gipsskiva " + fmt(g["gips"], 0) + " mm", g["masonit"] + g["isolering"] + g["installation"] + g["gips"] / 2)]
     Eg = info["E"]
@@ -239,6 +240,7 @@ f_tb = ma["takbalk_b"] / ma["takbalk_cc"]; f_rg = ma["regel_b"] / ma["regel_cc"]
 R = {
     "projekt": IN["projekt"],
     "g": {k: fmt(v, 0) for k, v in g.items()},
+    "angbroms": dict(produkt=IN["angbroms"]["produkt"], t=fmt(IN["angbroms"]["tjocklek"], 1)),
     "m": {k: (fmt(v, 3) if v < 1 else fmt(v, 0)) for k, v in ma.items()},
     "rd": dict(T_ute=fmt(rd["T_ute"], 0), T_inne=fmt(rd["T_inne"], 0), h_konv=fmt(rd["h_ute_konv"], 1), eps=fmt(rd["emissivitet"], 1),
                h_r=fmt(h_strl(rd["T_ute"], rd["emissivitet"]), 1), h_ute=fmt(bas["h_ute"], 1), h_inne=fmt(rd["h_inne"], 1),

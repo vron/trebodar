@@ -46,7 +46,7 @@ Nockbalkarna består av limträ med stålplåtar i över- och underkant. Över- 
 
 #figure(image("fig_geometri.svg", width: 100%), caption: [Tvärsnitt genom nocken. Modellen omfattar #r.g.tak_langd mm tak, mätt längs takfallet, på var sida om balken.])
 
-Taket har takvinkeln #r.g.takvinkel°. Isoleringens ovansida ligger i balkens överkant. Under isoleringen finns en installationsspalt med glespanel och därunder gipsskivan, #r.gips_text.
+Taket har takvinkeln #r.g.takvinkel°. Isoleringens ovansida ligger i balkens överkant. Under isoleringen sitter ångbromsen, #r.angbroms.produkt, och därunder en installationsspalt med glespanel och gipsskivan, #r.gips_text. Ångbromsen är en folie med försumbart värmemotstånd och ingår inte i modellen.
 
 #table(
   columns: (1fr, auto, auto, 2fr),
@@ -57,6 +57,7 @@ Taket har takvinkeln #r.g.takvinkel°. Isoleringens ovansida ligger i balkens ö
   [Hård träfiberskiva], [#r.g.masonit], [#r.m.masonit], [SS-EN ISO 10456, träfiberskiva ca 800 kg/m³],
   [Träfiberisolering Hunton Nativo], [#r.g.isolering], [#r.m.isolering], [Tillverkarens deklarerade värde],
   [Isolering med takbalkar 45×170 c/c #r.m.takbalk_cc], [#r.g.isolering], [#r.lam_iso], [Viktat: #r.f_tb % trä, parallella värmevägar],
+  [Ångbroms #r.angbroms.produkt], [#r.angbroms.t], [–], [Fuktadaptiv folie, försumbart värmemotstånd, ingår inte i modellen],
   [Installationsspalt med glespanel 45 c/c #r.m.regel_cc], [#r.g.installation], [#r.lam_inst], [Luftskikt #r.lam_luft45 W/mK, #r.f_rg % trä],
   [Gipsskiva], [#r.g.gips], [#r.m.gips], [SS-EN ISO 10456, 900 kg/m³],
 )

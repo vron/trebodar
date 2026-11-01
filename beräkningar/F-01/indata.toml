@@ -47,6 +47,9 @@ kg = 6.4
 skikt = "Träfiberisolering 170 mm, 50 kg/m³"
 kg = 7.9
 [[tak]]
+skikt = "Ångbroms Hunton Intello Plus"
+kg = 0.0
+[[tak]]
 skikt = "Korslagda reglar 45 mm"
 kg = 3.8
 [[tak]]
@@ -179,6 +182,10 @@ status = "klar"
 [[ovrig]]
 nr = "U-02"
 namn = "Nock- och dalbalkar – lyft i två punkter"
+status = "klar"
+[[ovrig]]
+nr = "U-03"
+namn = "Takets luftspalt – luftflöde, fukt och mögelrisk"
 status = "klar"
 [[ovrig]]
 nr = "AR-01"

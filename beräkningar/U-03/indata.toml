@@ -1,0 +1,326 @@
+# ------------------------------------------------------------------
+# Indata – U-03 Takets luftspalt: luftflöde, fukt och mögelrisk
+# Ändra värden här och kör:  python berakning.py
+# Enheter: mm, W, K, °C, Pa om inget annat anges.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Takets luftspalt – luftflöde, fukt och mögelrisk"
+dokument    = "U-03"
+revision    = "A"
+datum       = "2026-10-31"
+upprattad   = "Viktor Ogeman"
+underlag    = "K-03 rev A (takets geometri), F-01 rev A (takets uppbyggnad), AR-02 (husets riktning), ERA5 2013–2023"
+
+# Takets geometri i K-05:s koordinater: väggliv och gavlar (K-05, K-03), takbalkarnas ändar vid takfötterna (K-03)
+[tak]
+lutning     = 30        # [°]
+azimut_x    = 318.0     # lokala +x mot NV: 318,7° i SWEREF 99 TM (AR-02, θ = 131,29°), 318,0° mot geografiska norr
+utsprang    = 70        # takbalkarna når 70 mm utanför fasadens yttersida vid takfötterna (K-03) [mm]
+cc          = 600       # takbalkar och ströläkt [mm]
+lakt_b      = 45        # ströläktens bredd [mm]
+remsa       = 600       # beräkningsremsornas största bredd längs y [mm]
+# öppningar i gavlarna vid nockarnas (N) och dalarnas (D) ändar, beställarens skiss; ande y0 vettar mot NO, y1 mot SV
+gavlar = [
+  { x = 2155, ande = "y1" },     # vänster nock
+  { x = 4405, ande = "y0" },     # dal vänster–mittre
+  { x = 4405, ande = "y1" },
+  { x = 6905, ande = "y0" },     # mittre nock
+  { x = 6905, ande = "y1" },
+  { x = 9405, ande = "y0" },     # dal mittre–höger
+  { x = 9405, ande = "y1" },
+  { x = 11655, ande = "y0" },    # höger nock
+  { x = 11655, ande = "y1" },
+]
+# takfönster (K-03 geometri.json, modellen): öppningens läge i plan; kortlingar mitt i bredden ovanför och nedanför
+fonster = [
+  { namn = "TF1", x = [646.8, 1601.0], y = [5540, 6740] },
+  { namn = "TF3", x = [646.8, 1601.0], y = [9539, 10739] },
+  { namn = "TF2", x = [10236.8, 11191.0], y = [7505, 8705] },
+]
+
+[[byggnad]]
+namn = "Vänster"
+x    = [-95, 4405]
+y    = [3495, 15995]
+[[byggnad]]
+namn = "Mittre"
+x    = [4405, 9405]
+y    = [-95, 11105]
+[[byggnad]]
+namn = "Höger"
+x    = [9405, 13905]
+y    = [905, 12605]
+
+[uppbyggnad]   # F-01: plåt, underlagstäckning, råspont 20, luftspalt, hård träfiberskiva 3, Nativo 170, ångbroms, installationsskikt 45, gips 2 × 12,5
+spalt       = 30        # luftspaltens fria höjd [mm]
+R_in        = 4.2       # rum → träfiberskivans ovansida [m²K/W]: Rsi, gips, installationsskikt, isolering med takbalkar (K-02)
+R_dack      = 0.165     # plåt, underlagspapp (bitumen, t.ex. T-Roof YEP 2500, ångtät) och råspont 20 mm [m²K/W]
+alfa_sol    = 0.65      # bandtäckning av zink-magnesiumbelagd plåt, silvergrå: solabsorption (blank zink/förzinkat 0,65–0,7)
+eps_plat    = 0.25      # … och emissivitet mot himlen (blank zink/förzinkat 0,15–0,25; ändras lite med åldring)
+eps         = 0.9       # emissivitet, spaltens ytor (råspont, träfiberskiva)
+R_innanfor_angbroms = 0.38   # rum → ångbromsen: Rsi, gips, installationsskikt [m²K/W]
+sd_gips     = 0.2       # gips 2 × 12,5 mm [m]
+sd_iso      = 0.68      # träfiberisolering 170 mm, μ ≈ 4 [m]
+sd_masonit  = 0.3       # oljehärdad board 3 mm: ej deklarerat; hårda skivor 3–3,2 mm har Sd ca 0,3–0,6 m (TG 2245: ≤ 0,36) [m]
+# fuktadaptiv ångbroms Hunton Intello Plus: Sd mot medel-RF över folien, log-linjärt mellan punkterna
+# (ETA-18/1146 tabell A.3.1: 34 m vid 25 %, 1,7 m vid 71,5 %, 0,3 m vid 90 %; pro climas kurva vid 45 % och 80 %)
+angbroms    = { rf = [0.25, 0.45, 0.715, 0.80, 0.90], sd = [34.0, 16.0, 1.7, 0.5, 0.3] }
+
+[inne]
+T           = 20.0      # [°C]
+fukttillskott = 4.0     # vid T_ute ≤ 0 °C, linjärt till 0 vid +20 °C [g/m³] (SS-EN ISO 13788 fuktklass 2)
+RF_max      = 0.70
+# badrummet (WC 12 m² med dusch och badkar, planritning 201 rev 02) under TF1: rum som utsätts för mer fukt
+badrum      = { x = [100, 3400], y = [3550, 8400], fukttillskott = 8.0, RF_max = 0.80 }   # SS-EN ISO 13788 fuktklass 4
+
+[stromning]
+fRe         = 90        # laminär friktion f·Re för en bred kanal (b/h ≈ 18)
+k_frik      = 1.5       # ojämnheter: skarvar, skruvskallar, underlagstäckning som buktar
+zeta_takfot = 2.75      # in- eller utlopp med insektsnät (60 % öppet) och vändning
+zeta_bock   = 0.5       # per nock och dal
+zeta_gavel  = 2.75      # gavelöppning med insektsnät
+gavel_b     = 300       # gavelöppningens bredd, höjd = spalten [mm]
+samling_b   = 190       # kanalen längs nocken/dalen över balken: balkens bredd [mm]
+samling_h   = 55        # … och medelhöjd mellan balkens överkant och råsponten, ca 10 500 mm² (modellen: 10 600–12 400) [mm]
+zeta_samling = 0.5      # per remsa längs samlingskanalen (inflöden från facken)
+omluft_l    = 600       # uppehåll i ströläkten ovanför och nedanför takfönstren: fri längd längs takfallet [mm]
+zeta_omluft = 1.5       # per remsa längs omluftningen (vändningar in och ut ur facken)
+my          = 1.8e-5    # luftens viskositet [Pa s]
+
+[vind]
+# Cp vid takfötterna: ΔCp(φ) = a cos(b φ) + c mellan takfötterna (Månhardt m.fl. 2021 efter Gullbrekken m.fl. 2018);
+# nivån och gavlarnas Cp enligt Swami & Chandra (1988) för låga byggnader, skalade så att ΔCp(0) = a + c
+a           = 0.48
+b           = 1.3
+c           = 0.22
+faktor      = 1.0       # på vindtrycket (läge, avskärmning)
+
+[fukt]
+rho_raspont = 470       # [kg/m³]
+yt          = 3         # råspontens ytskikt mot spalten [mm]
+karna       = 17        # resten av råsponten [mm]
+my_tra      = 20        # mellan ytskikt och kärna, över 10 mm
+m_masonit   = 4.5       # träfiberskivan och de översta 30 mm isolering, torr massa [kg/m²]
+u0          = 0.16      # råspontens fuktkvot när taket stängs
+# sorptionskurva furu/träfiber (medel av ab- och desorption): fuktkvot u [kg/kg] vid RF φ
+phi         = [0.0, 0.2, 0.4, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98, 1.0]
+u           = [0.0, 0.045, 0.075, 0.105, 0.125, 0.155, 0.20, 0.235, 0.27, 0.30]
+
+[mogel]       # VTT-modellen (Hukka & Viitanen 1999), furu splintved
+W           = 0
+SQ          = 0
+krav        = 1.0       # M < 1: ingen påväxt
+
+[klimat]
+fil         = "klimat_era5.csv.gz"
+lat         = 58.796
+lon         = 11.176
+utvardering = "2014-01-01"   # första halvåret är insvängning
+
+[modell]
+celler      = 6         # per takfall
+block       = 500       # timmar per beräkningsblock (minne)
+varv        = 6         # iterationer luftflöde ↔ temperatur (stigkraften dämpas 0,5; 6 varv ger samma som 12)
+
+# Fall: ändringar mot grundfallet. Alla har takfönstren utom "utan_fonster". samling = kanal längs nockar och dalar
+# över balkarna; gavel = öppningarna i [tak].gavlar; omluft = uppehåll i ströläkten ovanför och nedanför takfönstren;
+# badrum = badrummets fukttillskott i [inne].badrum; start = taket stängs (beräkning och utvärdering börjar då)
+[[fall]]
+id = "bas"
+namn = "Handlingarna: facken åtskilda, takfönstren bryter facken"
+[[fall]]
+id = "omluft"
+namn = "Omluftning runt takfönstren (rekommenderat)"
+omluft = true
+[[fall]]
+id = "omluft_gavel"
+namn = "Omluftning och gavelöppningar"
+omluft = true
+gavel = true
+[[fall]]
+id = "omluft_samling"
+namn = "Omluftning och kanal längs nockar och dalar"
+omluft = true
+samling = true
+[[fall]]
+id = "omluft_samling_gavel"
+namn = "Omluftning, kanal längs nockar och dalar och gavelöppningar"
+omluft = true
+samling = true
+gavel = true
+[[fall]]
+id = "utan_fonster"
+namn = "Utan takfönster"
+utan_fonster = true
+[[fall]]
+id = "vind05"
+namn = "Omluftning, vindtryck × 0,5"
+omluft = true
+vind = 0.5
+[[fall]]
+id = "vind025"
+namn = "Omluftning, vindtryck × 0,25"
+omluft = true
+vind = 0.25
+[[fall]]
+id = "vind0"
+namn = "Omluftning, ingen vind (bara solen och stigkraften)"
+omluft = true
+vind = 0.0
+[[fall]]
+id = "gavel_vind05"
+namn = "Omluftning och gavelöppningar, vindtryck × 0,5"
+omluft = true
+gavel = true
+vind = 0.5
+[[fall]]
+id = "s25"
+namn = "Omluftning, spalt 25 mm"
+omluft = true
+spalt = 25
+[[fall]]
+id = "s45"
+namn = "Omluftning, spalt 45 mm"
+omluft = true
+spalt = 45
+[[fall]]
+id = "s36"
+namn = "Omluftning, spalt 36 mm"
+omluft = true
+spalt = 36
+[[fall]]
+id = "s25_vind025"
+namn = "Omluftning, spalt 25 mm, vindtryck × 0,25"
+omluft = true
+spalt = 25
+vind = 0.25
+[[fall]]
+id = "s36_vind025"
+namn = "Omluftning, spalt 36 mm, vindtryck × 0,25"
+omluft = true
+spalt = 36
+vind = 0.25
+[[fall]]
+id = "s45_vind025"
+namn = "Omluftning, spalt 45 mm, vindtryck × 0,25"
+omluft = true
+spalt = 45
+vind = 0.25
+[[fall]]
+id = "s36_vind05"
+namn = "Omluftning, spalt 36 mm, vindtryck × 0,5"
+omluft = true
+spalt = 36
+vind = 0.5
+[[fall]]
+id = "s36_tomt"
+namn = "Omluftning, spalt 36 mm, huset tomt oktober–april"
+omluft = true
+spalt = 36
+T_tomt = 10.0
+fukttillskott_tomt = 2.0
+tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "omluft300"
+namn = "Omluftning med 300 mm uppehåll"
+omluft = true
+omluft_l = 300
+[[fall]]
+id = "masonit006"
+namn = "Omluftning, vindskiva Sd 0,06 m"
+omluft = true
+sd_masonit = 0.06
+[[fall]]
+id = "masonit06"
+namn = "Omluftning, vindskiva Sd 0,6 m"
+omluft = true
+sd_masonit = 0.6
+[[fall]]
+id = "bad"
+namn = "Omluftning, badrummet fuktklass 4 (Intello Plus)"
+omluft = true
+badrum = true
+[[fall]]
+id = "bad_sd10"
+namn = "Omluftning, badrummet fuktklass 4, ångbroms Sd 10 m där"
+omluft = true
+badrum = true
+sd_badrum = 10.0
+[[fall]]
+id = "fukt6"
+namn = "Omluftning, hela huset fuktklass 3 (6 g/m³)"
+omluft = true
+fukttillskott = 6.0
+[[fall]]
+id = "tomt_vinter"
+namn = "Omluftning, huset tomt oktober–april: inne 10 °C, fukttillskott 2 g/m³"
+omluft = true
+T_tomt = 10.0
+fukttillskott_tomt = 2.0
+tomt_manader = [10, 11, 12, 1, 2, 3, 4]
+[[fall]]
+id = "zm_ny"
+namn = "Omluftning, ny blank plåt: solabsorption 0,55, emissivitet 0,12"
+omluft = true
+alfa_sol = 0.55
+eps_plat = 0.12
+[[fall]]
+id = "zm_patina"
+namn = "Omluftning, åldrad plåt: solabsorption 0,8, emissivitet 0,4"
+omluft = true
+alfa_sol = 0.8
+eps_plat = 0.4
+[[fall]]
+id = "malad"
+namn = "Omluftning, målad plåt: solabsorption 0,6, emissivitet 0,9"
+omluft = true
+alfa_sol = 0.6
+eps_plat = 0.9
+[[fall]]
+id = "takfot_strypt"
+namn = "Omluftning, strypta takfötter (engångsförlust × 4)"
+omluft = true
+zeta_takfot = 11.0
+[[fall]]
+id = "takfot_strypt_vat"
+namn = "Omluftning, strypta takfötter, råsponten 20 % när taket stängs 1 oktober"
+omluft = true
+zeta_takfot = 11.0
+u0 = 0.20
+start = "2013-10-01"
+[[fall]]
+id = "vat"
+namn = "Omluftning, råsponten 20 % när taket stängs 1 oktober"
+omluft = true
+u0 = 0.20
+start = "2013-10-01"
+[[fall]]
+id = "bas_vat"
+namn = "Handlingarna, råsponten 20 % när taket stängs 1 oktober"
+u0 = 0.20
+start = "2013-10-01"
+[[fall]]
+id = "oventilerad"
+namn = "Oventilerad: takfötterna stängda"
+oventilerad = true
+[[fall]]
+id = "oventilerad_vat"
+namn = "Oventilerad, råsponten 20 % när taket stängs 1 oktober"
+oventilerad = true
+u0 = 0.20
+start = "2013-10-01"
+# kontroller av beräkningsmodellen (redovisas för sig)
+[[fall]]
+id = "k_celler12"
+namn = "Omluftning, 12 celler per takfall"
+kontroll = true
+omluft = true
+celler = 12
+[[fall]]
+id = "k_varv10"
+namn = "Omluftning, 10 iterationer luftflöde ↔ temperatur"
+kontroll = true
+omluft = true
+varv = 10
