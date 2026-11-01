@@ -6,12 +6,17 @@ gavlar. Stuprör Ø87 vid dalarnas ändar och vid de långa takfötternas ändar
 fasaden. Vid gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag
 0,6 över vindskivan och 50 mm in på plåten. Råsponten, pappen och plåten går ut till vindskivan (tak.py). Rännorna
 ligger vågrätt (fallet mot stuprören är inte modellerat) och rännkrokarna är inte modellerade.
+
+I dalarna (vågräta dallinjer): kilar av plywood på råsponten med fall 1:60 från mitten mot ändarna, som på dallinjen
+stiger från noll vid ändarna till högst i mitten och på sidorna går ned till råsponten 300 mm ut, och en rändal av
+plåt på underlagspapp över kilarna och remsan; takets papp och plåt slutar vid rändalen. Vattnet rinner ut i
+grannkroppens takfotsränna, där dalen slutar mot en gavel, och vidare i stupröret där.
 """
 from __future__ import annotations
 
 import math
 
-from modellering import Del, Montage, Placering, Union
+from modellering import Del, Form, Montage, Placering, Union, polyeder
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
@@ -20,7 +25,7 @@ from trebodar.byggdelar.ror import ror
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fasad.fasad import PANEL, mark_vid
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
-from trebodar.material import TAKPLAT
+from trebodar.material import PLYWOOD, TAKPLAT
 
 from .tak import REGIONER, Region, kant_takfot, regioner
 
@@ -142,8 +147,54 @@ def _stupror(kod: str, y: float) -> Del:
     return Del(f"Stuprör Ø{fmt(STUPROR_D)} L={fmt(b[2] - d[2] + 60.0)}", form, TAKPLAT)
 
 
+Punkt = tuple[float, float, float]
+
+
+def _tunn(tri: tuple[Punkt, Punkt, Punkt], t0: float, t1: float) -> Form:
+    """Skikt över triangeln, t0–t1 längs dess normal uppåt."""
+    a, b, c = tri
+    u = [b[i] - a[i] for i in range(3)]
+    v = [c[i] - a[i] for i in range(3)]
+    n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+    ln = math.sqrt(sum(x * x for x in n)) * (1.0 if n[2] > 0 else -1.0)
+    n = [x / ln for x in n]
+    horn = [tuple(p[i] + n[i] * t for i in range(3)) for t in (t0, t1) for p in tri]
+    return polyeder(horn, [[0, 1, 2], [3, 4, 5], [0, 1, 4, 3], [1, 2, 5, 4], [2, 0, 3, 5]])
+
+
+def _randal(dal: str) -> Montage:
+    """Kilarna, rändalens papp och plåt i dalen längs balken dal."""
+    b = S.BALKAR[dal]
+    sidor = [(kod, r) for kod, rs in REGIONER.items() for r in rs if r.nedre.x == b.x]
+    y0, y1 = min(r.y0 for _, r in sidor), max(r.y1 for _, r in sidor)
+    ym, h = (y0 + y1) / 2, (y1 - y0) / 2 * L.RANDAL_FALL
+    kilar: list[Form] = []
+    ytor: list[tuple[Punkt, Punkt, Punkt]] = []
+    for kod in sorted({k for k, _ in sidor}):
+        t = S.TAKFALL[kod]
+        xv, xw = b.x, b.x + t.riktning * L.RANDAL_B
+
+        def z(x: float) -> float:
+            return _z(t, x, L.RASPONT[1])
+        for ye in (y0, y1):
+            A, B = (xv, ye, z(xv)), (xw, ye, z(xw))
+            C, D, E = (xw, ym, z(xw)), (xv, ym, z(xv) + h), (xv, ym, z(xv))
+            kilar.append(polyeder([A, E, C, D], [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]]))
+            ytor += [(A, B, C), (A, C, D)]
+    m = Montage(f"Rändal {dal}", beskrivning=f"Kilar med fall 1:{1 / L.RANDAL_FALL:.0f} och rändal längs {dal}")
+    m.lagg(Del(f"Kilar plywood, fall 1:{1 / L.RANDAL_FALL:.0f}, högst {h:.0f}", Union(tuple(kilar)), PLYWOOD),
+           Placering(), f"{dal}-KIL")
+    t = L.PLAT[1] - L.PAPP[0]                  # papp och plåt i en del (skikten följer de vikta ytorna)
+    m.lagg(Del("Rändal, plåt 0,6 på underlagspapp", Union(tuple(_tunn(tri, 0.0, t) for tri in ytor)), TAKPLAT),
+           Placering(), f"{dal}-RD")
+    return m
+
+
 def montage() -> Montage:
-    m = Montage("Takkanter", beskrivning="Takfotsbrädor, takfotsplåt, hängrännor, stuprör, vindskivor och beslag")
+    m = Montage("Takkanter", beskrivning="Takfotsbrädor, takfotsplåt, hängrännor, stuprör, vindskivor, beslag och "
+                                         "rändalar")
+    for dal in ("DB2", "DB4"):
+        m.lagg(_randal(dal))
     for kod in REGIONER:
         if _takfoter(kod):
             m.lagg(_takfot(kod))

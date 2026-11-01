@@ -25,6 +25,8 @@ RASPONT_UT = 22.0                    # råspont, papp och plåt utanför takbalk
 GAVEL_UT = 100.0                     # takutstick vid gavlarna (planritning 201), vindskivan ytterst
 VINDSKIVA = (22.0, 145.0)            # vindskivan och takfotsbrädan: tjocklek, bredd
 LUFT_TAKFOT = 25.0                   # luftspalt mellan takfotsbrädan och råsponten (U-03:s luftintag, nät)
+RANDAL_B = 300.0                     # rändalens bredd på var sida om dallinjen (i plan)
+RANDAL_FALL = 1.0 / 60.0             # dalarnas fall från mitten mot ändarna (AMA minst 1:75)
 
 
 @dataclass(frozen=True)

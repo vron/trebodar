@@ -88,7 +88,10 @@ def regioner(kod: str, typ: str) -> list[Region]:
     t, f = S.TAKFALL[kod], FALT[kod]
     tackning = typ in ("RP", "UP", "TP")
     x = t.x_utsida if typ == "HD" else kant_takfot(kod) if tackning else f.takfot
-    rs = [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else r for r in REGIONER[kod]]
+    # i dalarna slutar pappen och plåten vid rändalen (takkanter.py)
+    xd = t.riktning * L.RANDAL_B if typ in ("UP", "TP") else 0.0
+    rs = [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else
+          Region(r.y0, r.y1, _lodr(r.nedre.x + xd), r.nock) for r in REGIONER[kod]]
     if not tackning:
         return rs
     g = L.GAVEL_UT - L.VINDSKIVA[0]
@@ -97,7 +100,7 @@ def regioner(kod: str, typ: str) -> list[Region]:
     for r in rs:
         for ande, (a, b) in ((r.y0, (r.y0 - g, r.y0)), (r.y1, (r.y1, r.y1 + g))):
             if ande in (y0, y1):
-                nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x, ande, t.kropp))
+                nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x - xd, ande, t.kropp))
                 ut.append(Region(a, b, nedre, r.nock))
     return ut
 
