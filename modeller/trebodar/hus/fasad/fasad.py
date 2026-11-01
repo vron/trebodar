@@ -20,14 +20,15 @@ from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.grund import fasadsten
 from trebodar.hus.tak.tak import REGIONER
 from trebodar.material import C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
-# marken vid fasaden (u, z) per vägg: panelens underkant. Ur markmodellen (K-06:s fyllning mot källarväggarna,
-# Onshape-modellens mark och makadamen runt plattan på mark), högsta punkt 0–150 mm utanför väggen och grundens delar
-# i fasadens skikt, 2 mm över den sluttande marken; marknivåerna är inte bestämda (modell-todo). Väggarna med fasadsten (3NO, 3NV, 3SV) och 2NV, som
-# står på källarväggen, slutar i Z_UK.
+# marken vid fasaden (u, z) per vägg: panelens underkant, utom där fasadstenen går upp till bjälklaget (STENVAGGAR).
+# Ur markmodellen (K-06:s fyllning mot källarväggarna, Onshape-modellens mark och makadamen runt plattan på mark),
+# högsta punkt 0–150 mm utanför väggen och grundens delar i fasadens skikt, 2 mm över den sluttande marken;
+# marknivåerna är inte bestämda (modell-todo). 2NV står på källarväggen och slutar i Z_UK.
 MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
     "1NO": ((-65, -250), (4435, -250)),
     "1SO": ((-95, -222), (2555, -222), (3755, -497), (5105, -497), (5130, -250), (12275, -250)),
@@ -37,7 +38,11 @@ MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
     "2SV": ((160, -250), (5160, -250)),
     "2SO": ((0, -250), (3590, -250)),
     "3SO": ((-95, -250), (1405, -250)),
+    "3NO": ((160, -2250), (1985, -2249), (4385, -1458), (4410, -1421), (4660, -1419)),
+    "3NV": ((-95, -1419), (680, -1395), (11280, -450), (11475, -450)),
+    "3SV": ((-65, -450), (4335, -450), (4360, -250), (4435, -250)),
 }
+STENVAGGAR = {kod for b in fasadsten.BEKLADNAD if b.z1 >= Z_UK - 1e-6 for kod in b.vaggar}
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
 LAKT_B = 45.0
 CC = 600.0
@@ -92,11 +97,20 @@ def _lagen(fasta: set[float], cc: list[float], b: float = LAKT_B) -> list[float]
     return sorted(ut)
 
 
+def mark_vid(kod: str, u: float) -> float:
+    """Marken vid fasaden i u (MARKNIVA; Z_UK där marken inte når fasaden)."""
+    m = MARKNIVA.get(kod, ((0.0, Z_UK), (1.0, Z_UK)))
+    for (ua, za), (ub, zb) in zip(m, m[1:]):
+        if ua <= u <= ub:
+            return za if ub == ua else za + (zb - za) * (u - ua) / (ub - ua)
+    return float(m[0][1] if u < m[0][0] else m[-1][1])
+
+
 def underkant(kod: str) -> list[tuple[float, float]]:
-    """Fasadens underkant (u, z) från u0 till u1: marken eller Z_UK."""
+    """Fasadens underkant (u, z) från u0 till u1: marken, eller Z_UK där fasadstenen går upp till bjälklaget."""
     u0, u1 = fasad_u(kod)
     mark = MARKNIVA.get(kod)
-    if mark is None:
+    if mark is None or kod in STENVAGGAR:
         return [(u0, Z_UK), (u1, Z_UK)]
     assert abs(mark[0][0] - u0) < 1e-6 and abs(mark[-1][0] - u1) < 1e-6, (kod, mark, u0, u1)
     return [(float(u), float(z)) for u, z in mark]

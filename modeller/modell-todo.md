@@ -34,9 +34,3 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    går ned till marken enligt `fasad.MARKNIVA`, som då ändras med.
 7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
-
-## Saknas i modellen
-
-8. **Takutsprång.** Planritning 201 visar takutstick 100 runt hela huset. I modellen slutar takets skikt i gavlarnas
-   fasadliv och vid takfoten vid takbalkarnas ände, 70 mm utanför fasaden. Vindskivor, vindskivebeslag,
-   takfotsplåtar och hängrännor saknas; detaljen behöver bestämmas.

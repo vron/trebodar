@@ -67,12 +67,39 @@ SKIKT = (("Hårdboard", "HD", L.HARDBOARD, HDF), ("Råspont", "RP", L.RASPONT, R
          ("Underlagspapp", "UP", L.PAPP, PAPP), ("Takplåt", "TP", L.PLAT, TAKPLAT))
 
 
-def _vid_takfoten(kod: str, typ: str) -> list[Region]:
-    """Regionerna med skiktets kant vid takfoten: hårdboarden till ytterväggens liv (isolerstoppet), råsponten,
-    pappen och plåten RASPONT_UT utanför takbalkarnas ände."""
+def kant_takfot(kod: str) -> float:
+    """Råspontens, pappens och plåtens kant vid takfoten (x): RASPONT_UT utanför takbalkarnas ände."""
+    return FALT[kod].takfot - S.TAKFALL[kod].riktning * L.RASPONT_UT
+
+
+def _dalens_slut(x_dal: float, y: float, kropp: int) -> float:
+    """Grannkroppens takfotskant (x) där dalen slutar i y: utsticket över gaveln slutar där."""
+    kandidater = [(abs(FALT[k].takfot - x_dal), kant_takfot(k)) for k, rs in REGIONER.items()
+                  if S.TAKFALL[k].kropp != kropp for r in rs
+                  if r.nedre.x == FALT[k].takfot and (abs(r.y0 - y) < 1e-6 or abs(r.y1 - y) < 1e-6)]
+    assert kandidater, (x_dal, y)
+    return min(kandidater)[1]
+
+
+def regioner(kod: str, typ: str) -> list[Region]:
+    """Skiktets regioner. Vid takfoten slutar hårdboarden i ytterväggens liv (isolerstoppet) och råsponten, pappen
+    och plåten RASPONT_UT utanför takbalkarnas ände. Vid gavlarna går råsponten, pappen och plåten ut till vindskivan
+    (GAVEL_UT); där en dal slutar mot en gavel slutar utsticket vid grannkroppens takfot."""
     t, f = S.TAKFALL[kod], FALT[kod]
-    x = t.x_utsida if typ == "HD" else f.takfot - t.riktning * L.RASPONT_UT if typ in ("RP", "UP", "TP") else f.takfot
-    return [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else r for r in REGIONER[kod]]
+    tackning = typ in ("RP", "UP", "TP")
+    x = t.x_utsida if typ == "HD" else kant_takfot(kod) if tackning else f.takfot
+    rs = [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else r for r in REGIONER[kod]]
+    if not tackning:
+        return rs
+    g = L.GAVEL_UT - L.VINDSKIVA[0]
+    y0, y1 = min(r.y0 for r in rs), max(r.y1 for r in rs)
+    ut = list(rs)
+    for r in rs:
+        for ande, (a, b) in ((r.y0, (r.y0 - g, r.y0)), (r.y1, (r.y1, r.y1 + g))):
+            if ande in (y0, y1):
+                nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x, ande, t.kropp))
+                ut.append(Region(a, b, nedre, r.nock))
+    return ut
 
 
 def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], material: Material,
@@ -80,7 +107,7 @@ def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], 
     """Skiktet i bitar: y-intervall mellan regionernas kanter, fönstren (vid fönstren en bit nedanför och en
     ovanför öppningen) och falsarna (plåtbanor med halva falsen vid de kanter som är falsar)."""
     p = Plan(kod, f"{namn} {kod}", 1.0, beskrivning=material.beskrivning, material=material)
-    for r in _vid_takfoten(kod, typ):
+    for r in regioner(kod, typ):
         fo = [f for f in fonster if r.y0 < f.y0 < r.y1]
         fs = {y for y in falsar if r.y0 < y < r.y1}
         ys = sorted({r.y0, r.y1, *(f.y0 for f in fo), *(min(f.y1, r.y1) for f in fo), *fs})
@@ -211,6 +238,8 @@ def montage() -> Montage:
     m = Montage("Tak", beskrivning="Yttertak: hårdboard, ströläkt 34×45, råspont, underlagspapp, plåt (F-01)")
     for kod in ("1SO", "1NV", "2SO", "2NV", "3SO", "3NV"):
         m.lagg(takfall(kod))
+    from .takkanter import montage as takkanter
+    m.lagg(takkanter())
     tf = Montage("Takfönster")
     for kod, f in FALT.items():
         for fo in f.fonster:

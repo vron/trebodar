@@ -144,10 +144,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
-  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt. Fasad: UG utegips, SR ströläkt, SP spikläkt, PA
-  panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY innertakets yttre
-  gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, IS isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter
-  TP och numreras längs takfallet.
+  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TB takfotsbräda, TF takfotsplåt, HR
+  hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, stuprören ST1–ST8. Fasad: UG utegips, SR ströläkt, SP
+  spikläkt, PA panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY
+  innertakets yttre gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, IS
+  isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter TP och numreras längs takfallet.
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
   skjutdörrar med BLAD och SKENA.
@@ -178,8 +179,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   mycket. Onshape-modellens takbalkar i höger huskropp och vänstra kroppens dalsida (ÅYI) låg 1 mm för högt.
 - **Takbalkarnas upplag** mot nock- och dalbalkarna: upplagsregel 45×45 och hak (K-03 figur 2); vid dalbalkarna sitter
   regeln så högt att haket får fullt säte.
-- **Takfoten**: isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas överkant och kapat efter
-  takplanet; hårdboarden slutar på det, råsponten, pappen och plåten 20 mm utanför takbalkarnas ände.
+- **Takkanterna** (planritning 201: takutstick 100): vindskiva 22×145 ytterst i gavlarnas utstick med
+  vindskivebeslag, takfotsbräda 22×145 med luftspalt 25 mm till råsponten, takfotsplåt med droppnäsa, hängrännor
+  Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
+- **Takfoten**: isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas överkant och kapat
+  efter takplanet; hårdboarden slutar på det, råsponten, pappen och plåten 20 mm utanför takbalkarnas ände.
 - **Luftspalten** 34 mm: ströläkt 34×45 på hårdboard 3 mm, på varje takbalk och takstol och två mellan i varje fack,
   uppehåll 600 mm ovanför och nedanför takfönstren (U-03).
 - **Enligt handlingarna** (K-03, K-05, K-06, R-04, R-05): strävor på båda sidor om LN1_3, LD4_1 GL30h 140×140,
@@ -219,6 +223,6 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
+Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i hängrännorna, nät i takfotens luftintag, el och
 ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.
