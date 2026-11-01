@@ -19,7 +19,7 @@ RASPONT = (37.0, 57.0)
 PAPP = (57.0, 59.0)
 PLAT = (59.0, 59.6)
 FALS = (59.6, 84.6)                  # stående fals 25 mm på plåten
-STOPP_T = 22.0                       # isolerstoppet vid takfoten: bräda på hammarbandet i varje fack
+STOPP_T = 45.0                       # isolerstoppet vid takfoten: regel 45 på hammarbandet i varje fack (bultad)
 RASPONT_UT = 20.0                    # råspont, papp och plåt utanför takbalkarnas ände vid takfoten
 
 

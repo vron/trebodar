@@ -178,7 +178,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   mycket. Onshape-modellens takbalkar i höger huskropp och vänstra kroppens dalsida (ÅYI) låg 1 mm för högt.
 - **Takbalkarnas upplag** mot nock- och dalbalkarna: upplagsregel 45×45 och hak (K-03 figur 2); vid dalbalkarna sitter
   regeln så högt att haket får fullt säte.
-- **Takfoten**: isolerstopp 22 mm på hammarbandet i varje fack, upp till takbalkarnas överkant och kapat efter
+- **Takfoten**: isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas överkant och kapat efter
   takplanet; hårdboarden slutar på det, råsponten, pappen och plåten 20 mm utanför takbalkarnas ände.
 - **Luftspalten** 34 mm: ströläkt 34×45 på hårdboard 3 mm, på varje takbalk och takstol och två mellan i varje fack,
   uppehåll 600 mm ovanför och nedanför takfönstren (U-03).

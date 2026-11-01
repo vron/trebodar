@@ -2,9 +2,9 @@
 
 Taket: i varje fack mellan takbalkar (och takstolarnas ytterbalkar), från isolerstoppet vid takfoten till
 nockbalkens eller dalbalkens sida, mellan takbalkarnas över- och underkant (vågrätt avskuren i hammarbandets
-överkant) och utanför takfönstrens öppningar och avväxlingar. Isolerstoppet är en bräda 22 mm på hammarbandet i
-ytterväggens liv i varje fack vid takfoten, upp till takbalkarnas överkant och kapad efter takplanet; hårdboarden
-slutar på den. Väggarna: regelfacken, dvs. väggens yta minus alla reglar och
+överkant) och utanför takfönstrens öppningar och avväxlingar. Isolerstoppet är en regel 45 mm, bultad på
+hammarbandet i ytterväggens liv i varje fack vid takfoten, upp till takbalkarnas överkant och kapad efter takplanet;
+hårdboarden slutar på den. Väggarna: regelfacken, dvs. väggens yta minus alla reglar och
 öppningar, genom hela stommen.
 """
 from __future__ import annotations
