@@ -3,10 +3,11 @@
 
 Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
 slutar vid en dalbalk, med uppehåll vid mittstolen och öppningar för takfönstren. Under taket: korslagd läkt 45
-(F-01) och gips 2 × 12,5. Den yttre gipsskivan går fri under nock- och dalbalkarna och möter grannfallets i en
+(F-01), med en läkt längs takfallet vid gavlarna bakom gipsens kant, och gips 2 × 12,5. Den yttre gipsskivan går fri under nock- och dalbalkarna och möter grannfallets i en
 skarp linje i nocken och under dalbalkarna; ångbromsen, läkten och den inre gipsskivan slutar vid balkarna.
 Väggar, stolpar och strävor som står under innertaket går skikten runt. Ytterväggarnas insida går från bjälklaget
-upp till innertaket; gavlarnas insida följer snedtaket upp till takbalkarnas underkant. Skivorna på väggarna: OSB 12
+upp till innertaket, kapad längs det så att gipsen möts i en skarp linje; gavlarnas insida följer snedtaket upp till
+takbalkarnas underkant och innertaket slutar mot den. Skivorna på väggarna: OSB 12
 och gips 13, i badrummet plywood 15, gips 12, tätskikt och kakel. Innerväggarna (de lätta väggarna och skikten på
 alla innerväggar) i vaggar.py.
 """
@@ -17,7 +18,7 @@ from functools import cache
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage
+from modellering import Montage, Placering
 
 from trebodar import skelett as S
 from trebodar.byggdelar import lagen
@@ -147,7 +148,11 @@ def _tak(kod: str) -> Montage:
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
              "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
              "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
-    for y0, y1 in _strackor(kod):
+    strackor = _strackor(kod)
+    gavlar = {strackor[0][0], strackor[-1][1]} if strackor else set()
+    for y0, y1 in strackor:
+        # vid gavlarna en läkt längs takfallet bakom innertakets gipskant (mot sprickor i hörnet mot gaveln)
+        spik = [(ya, ya + LAKT) for ya in (y0,) if ya in gavlar] + [(yb - LAKT, yb) for yb in (y1,) if yb in gavlar]
         delar = [(y0, y1)]
         if dal and y0 < dal.y0 < y1:
             delar = [(y0, dal.y0), (dal.y0, y1)]
@@ -180,6 +185,14 @@ def _tak(kod: str) -> Montage:
                 q = L.profil(t, *LAKT_W, k0, k1)
                 if not q:
                     continue
+                for c, e in spik:
+                    if s0 <= c and e <= s1:
+                        for sa, sb, ka, kb in _utan_hinder(k0, k1, c, e, hinder_s):
+                            qs = L.profil(t, *LAKT_W, ka, kb)
+                            if qs:
+                                lager["lakt"].profil(qs, sa, sb, typ="IL", material=C24_LAKT)
+                ls0 = max([s0] + [e for c, e in spik if c <= s0 + 1e-6])
+                ls1 = min([s1] + [c for c, e in spik if e >= s1 - 1e-6])
                 ys = Polygon(q)
                 x_lo, x_hi = ys.bounds[0], ys.bounds[2]
                 langd = (x_hi - x_lo) / S.COS
@@ -197,7 +210,7 @@ def _tak(kod: str) -> Montage:
                     if lp.area <= 100:
                         continue
                     bx0, bx1 = lp.bounds[0], lp.bounds[2]
-                    bitar = [(s0, s1)]
+                    bitar = [(ls0, ls1)]
                     for hx0, hx1, hy0, hy1 in hinder_s:
                         if hx0 < bx1 and bx0 < hx1:
                             bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e))
@@ -225,13 +238,19 @@ def _hinder() -> tuple[list[tuple[Polygon, float, float]], list[tuple[Polygon, f
     return ut, ut + stommar()
 
 
+def _innertakets_underkant(t: S.Takfall, x: float) -> float:
+    """Innertakets yttre gipsskivas underkant vid x."""
+    return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS
+
+
 def _yta(kod: str, u0: float, u1: float) -> Polygon:
-    """Ytterväggens insida i väggens (u, z): vid takfoten upp till innertakets gips (vid stommens insida), på
-    gavlarna längs snedtaket upp till takbalkarnas underkant (innertaket slutar mot gavelns insida)."""
+    """Ytterväggens insida i väggens (u, z): vid takfoten upp till innertaket vid skiktens yta mot rummet (skikten
+    kapas sedan längs innertaket, _kapa_vid_innertaket), på gavlarna längs snedtaket upp till takbalkarnas underkant
+    (innertaket slutar mot gavelns insida)."""
     v = S.YTTERVAGGAR[kod]
     if kod in S.TAKFALL:
         t = S.TAKFALL[kod]
-        return box(u0, 0.0, u1, t.z_overkant(t.x_insida) + GIPS_YTTRE_W[0] / S.COS)
+        return box(u0, 0.0, u1, _innertakets_underkant(t, t.x_insida + t.riktning * INSIDA_VATRUM_T) + 1.0)
     fall = [t for t in S.TAKFALL.values() if t.kropp == int(kod[0])]
 
     def z(u: float) -> float:
@@ -337,7 +356,24 @@ def _vagg_insida(kod: str) -> Montage:
     for p in plan.values():
         if p.bitar:
             m.lagg(p.montage())
+    if kod in S.TAKFALL:
+        _kapa_vid_innertaket(m, kod, u0, u1)
     return m
+
+
+def _kapa_vid_innertaket(m: Montage, kod: str, u0: float, u1: float) -> None:
+    """Takfotsväggens insida kapas längs innertakets underkant, så att innertakets gips går över väggens skivor och
+    möter dem i en skarp linje (väggens översta läkt och innertakets nedersta läkt bakom skivornas kanter)."""
+    from trebodar.byggdelar.genomforing import genomfor
+    from modellering import lada as lada_
+    t = S.TAKFALL[kod]
+    z0 = _innertakets_underkant(t, t.x_insida)
+    w0 = S.T_STOMME - 100.0                    # verktyget börjar 100 mm utanför stommens insida, i planet
+    origo = (u0 - 1000.0, w0, z0 - 100.0 * S.TAN)
+    langs = 600.0
+    verktyg = lada_(u1 - u0 + 2000.0, langs, 1000.0).placerad(
+        Placering.axlar(origo, (1.0, 0.0, 0.0), (0.0, -S.SIN, S.COS)))
+    genomfor(m, verktyg, (u0 - 1000.0, w0 - 600.0, z0 - 200.0, u1 + 1000.0, w0 + langs, z0 + 1500.0))
 
 
 def montage() -> Montage:

@@ -179,6 +179,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   mycket. Onshape-modellens takbalkar i höger huskropp och vänstra kroppens dalsida (ÅYI) låg 1 mm för högt.
 - **Takbalkarnas upplag** mot nock- och dalbalkarna: upplagsregel 45×45 och hak (K-03 figur 2); vid dalbalkarna sitter
   regeln så högt att haket får fullt säte.
+- **Väggarnas möte med snedtaket**: takfotsväggarnas insida går upp till innertaket och kapas längs det, så att
+  innertakets gips möter väggens i en skarp linje, med läkt bakom båda skivornas kanter; vid gavlarna en läkt
+  längs takfallet bakom innertakets gipskant.
 - **Takkanterna** (planritning 201: takutstick 100): vindskiva 22×145 ytterst i gavlarnas utstick med
   vindskivebeslag, takfotsbräda 22×145 med luftspalt 25 mm till råsponten, takfotsplåt med droppnäsa, hängrännor
   Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
