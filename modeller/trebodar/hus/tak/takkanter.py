@@ -184,8 +184,8 @@ def _randal(dal: str) -> Montage:
     m = Montage(f"Rändal {dal}", beskrivning=f"Kilar med fall 1:{1 / L.RANDAL_FALL:.0f} och rändal längs {dal}")
     m.lagg(Del(f"Kilar plywood, fall 1:{1 / L.RANDAL_FALL:.0f}, högst {h:.0f}", Union(tuple(kilar)), PLYWOOD),
            Placering(), f"{dal}-KIL")
-    t = L.PLAT[1] - L.PAPP[0]                  # papp och plåt i en del (skikten följer de vikta ytorna)
-    m.lagg(Del("Rändal, plåt 0,6 på underlagspapp", Union(tuple(_tunn(tri, 0.0, t) for tri in ytor)), TAKPLAT),
+    tj = L.PLAT[1] - L.PAPP[0]                 # papp och plåt i en del (skikten följer de vikta ytorna)
+    m.lagg(Del("Rändal, plåt 0,6 på underlagspapp", Union(tuple(_tunn(tri, 0.0, tj) for tri in ytor)), TAKPLAT),
            Placering(), f"{dal}-RD")
     return m
 
