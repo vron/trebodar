@@ -50,6 +50,10 @@ OSB = Material("OSB", "OSB/3", 620, "#c8a46c", 0.8, enhet="m2", cad="#c59a5f")
 PLYWOOD = Material("Plywood", "Plywood (våtrum)", 520, "#d2b383", 0.7, enhet="m2", cad="#d8a679")
 TATSKIKT = Material("Tätskikt", "Tätskikt och fix (våtrum)", 1400, "#4f6d8a", 0.6, enhet="m2", cad="#4f7fc0")
 KAKEL = Material("Kakel", "Kakel och klinker", 2000, "#e9ebe8", 0.3, enhet="m2", cad="#8cc7c2")
+KALCIUMSILIKAT = Material("Kalciumsilikat", "Kalciumsilikatskiva (brandskydd kring kaminen)", 450, "#ece6dc", 0.9,
+                          enhet="m2", cad="#e3c7b0")
+KAMIN = Material("Kamin", "Kamininsats, svart stål", 7850, "#232426", 0.6, 0.8, cad="#3a3d42")
+ROSTFRITT = Material("Rostfritt", "Rostfritt stål (skorsten)", 7900, "#c4c8cc", 0.3, 1.0, cad="#b4bcc6")
 ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,
                     textur="folie", enhet="m2", opacitet=0.6, cad="#5fb3d9")
 PAPP = Material("Underlagspapp", "Underlagspapp T-Roof YEP 2500", 1100, "#1d1e20", 0.9, textur="papp", enhet="m2",

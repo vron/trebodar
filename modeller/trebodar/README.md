@@ -51,6 +51,8 @@ när stommen ändras.
 | Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
+| Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
+| Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
@@ -109,6 +111,8 @@ Trebodar
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      ytterväggarnas fönster och dörrar, innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
+    ├── Trappa                  trätrappan till källaren (K-05)
+    ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
                                 innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar
@@ -142,6 +146,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
   skjutdörrar med BLAD och SKENA.
+- **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S12 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
+  KM-OMFATTNING, KM-STOS, KM-ROR1–3, KM-SKORSTEN, KM-HUV, KM-KRAGE.
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
   röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
   (undre och övre lagret).
@@ -185,6 +191,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
   dränerande fyllning i ett schakt i berget 100 mm utanför plattan. Marken mot källarväggarna upp till K-06:s
   fyllnadshöjder.
+- **Kaminen** enligt planritning 201 och Rais ritning 11-0000-6550: insatsen i öppningen i 2C mot allrummet, kroppen i
+  en kåpa av kalciumsilikat (de lätta väggarna L7, L13 och L14) och väggarna runt trapphålet (L6, L7); underkanten
+  450 över golvet, skorstenen 800 mm över nocken (antaget).
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.
@@ -193,6 +202,6 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappan, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
+Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
 ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

@@ -25,11 +25,15 @@ from trebodar import skelett as S
 from trebodar.byggdelar import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
-from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR
-from trebodar.hus.rum import BADRUM
+from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR
+from trebodar.hus.rum import BADRUM, KAMINKAPA
 from trebodar.hus.tak.tak import REGIONER
 
+from trebodar.material import KALCIUMSILIKAT
+
 from .invandigt import FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T
+
+SKIVOR_KAMIN = (("Kalciumsilikat", 25.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa
 
 T = 70.0                        # de lätta väggarnas stomme
 CC = 600.0
@@ -64,10 +68,15 @@ LATTA = (
     Lattvagg("L11", (3345.0, 5195.0), _PY, 8185.0 - 5195.0, "badrummet mot allrummet"),
     Lattvagg("L12", (3345.0, 5925.0), _PX, 4405.0 - 3345.0, "över skjutdörren mellan allrummet och sovrummet",
              syll=False),
+    Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),
+    Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot kaminens kåpa"),
+    Lattvagg("L13", (6320.0, 5480.0), _PX, 7278.0 - 6320.0, "kaminens kåpa, norra sidan"),
+    Lattvagg("L14", (6390.0, 5550.0), _PY, 5900.0 - 5550.0, "kaminens kåpa, västra sidan"),
 )
 VAGGAR = {lv.kod: lv.vagg for lv in LATTA}
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
-ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L12")
+ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L12", "L7", "L6",
+           "L13", "L14")
 
 Hinder = tuple[Polygon, float, float]
 
@@ -128,21 +137,23 @@ def stommar() -> list[Hinder]:
 
 
 def _skivor(v: S.Vaggdef, sida: int) -> list[tuple[float, float, tuple[Any, ...]]]:
-    """Skivorna längs väggens sida: (u0, u1, skivor), våtrumsskikt där badrummet ligger mot sidan."""
+    """Skivorna längs väggens sida: (u0, u1, skivor), våtrumsskikt där badrummet ligger mot sidan och kalciumsilikat
+    mot kaminens kåpa."""
     w = 0.0 if sida < 0 else v.tjocklek
     prov = _band(v, 0.0, v.langd, w + sida * 30.0, w + sida * 40.0)
     Pi = v.placering().invers()
-    bad = []
-    for g in P.polygoner(BADRUM.intersection(prov)):
-        x0, y0, x1, y1 = g.bounds
-        us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]
-        bad.append((max(0.0, min(us)), min(v.langd, max(us))))
+    sarskilda = []
+    for rum, skivor in ((BADRUM, SKIVOR_VATRUM), (KAMINKAPA, SKIVOR_KAMIN)):
+        for g in P.polygoner(rum.intersection(prov)):
+            x0, y0, x1, y1 = g.bounds
+            us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]
+            sarskilda.append((max(0.0, min(us)), min(v.langd, max(us)), skivor))
     ut: list[tuple[float, float, tuple[Any, ...]]] = []
     u = 0.0
-    for a, b in sorted(bad):
+    for a, b, skivor in sorted(sarskilda, key=lambda t: t[0]):
         if a > u + 1.0:
             ut.append((u, a, SKIVOR))
-        ut.append((a, b, SKIVOR_VATRUM))
+        ut.append((a, b, skivor))
         u = b
     if u < v.langd - 1.0:
         ut.append((u, v.langd, SKIVOR))
@@ -153,7 +164,7 @@ def skiktets_tjocklek(kod: str, sida: int, u: float) -> float:
     """Skivornas tjocklek på väggens sida vid u (25, mot badrummet 38)."""
     for a, b, skivor in _skivor(vaggdef(kod), sida):
         if a - 1e-6 <= u <= b + 1e-6:
-            return SKIVOR_VATRUM_T if skivor is SKIVOR_VATRUM else SKIVOR_T
+            return sum(t for _, t, _, _ in skivor)
     return SKIVOR_T
 
 
@@ -185,6 +196,7 @@ def _skikt() -> _Skikt:
         if latt:
             hinder += _ytterskivor()
         dorrar = [box(d.u0, 0.0, d.u1, d.hojd) for d in INNERDORRAR if d.vagg == kod]
+        dorrar += [box(u0, z0, u1, z1) for vagg, u0, u1, z0, z1, _ in INNEROPPNINGAR if vagg == kod]
         plan: dict[str, Plan] = {}
         res.band[kod] = []
         for sida in (-1, 1):

@@ -103,3 +103,6 @@ INNERDORRAR = (
     Innerdorr("ID5", "L1", 558.0, 1460.0, 1, rum="sovrummet i höger huskropp", mot=-1, efter=0.0),
     Innerdorr("ID6", "L12", 0.0, 1060.0, 1, rum="sovrummet i mittre huskroppen, från allrummet", fore=-25.0),
 )
+
+# öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt
+INNEROPPNINGAR = (("2C", 1983.0, 2993.0, 0.0, 2045.0, "kaminen (Rais 600), planritning 201"),)

@@ -11,5 +11,9 @@ BADRUM = Polygon([(65.0, 3655.0), (2560.0, 3655.0), (2560.0, 5230.0), (3310.0, 5
                   (2095.0, 8220.0), (2095.0, 7150.0), (65.0, 7150.0)])
 
 
+# kaminens kåpa på sovrumssidan av 2C (planritning 201): skikten mot den är kalciumsilikat
+KAMINKAPA = Polygon([(6390.0, 5550.0), (7278.0, 5550.0), (7278.0, 5900.0), (6390.0, 5900.0)])
+
+
 def i_badrum(x: float, y: float) -> bool:
     return BADRUM.contains(Point(x, y))
