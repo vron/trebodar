@@ -69,12 +69,6 @@ class Takstol(Plan):
     ovriga: list[tuple[Polygon, float, float]] = field(default_factory=list)
     plattor: list[tuple[float, float, float, float, float, float, bool]] = field(default_factory=list)
 
-    def _uc(self, vagg: str) -> float:
-        """Balkens centrumlinje i väggens u."""
-        v = S.VAGGAR[vagg]
-        b = S.BALKAR[self.balk]
-        return (b.x - v.origo[0]) * v.u[0] if abs(v.u[0]) > 0.5 else 0.0
-
     def _snappa(self, pts: Sequence[Sequence[float]]) -> list[tuple[float, float]]:
         """Hörn inom 0,01 mm från ett takplan läggs exakt i planet (Onshape-modellens tal har fyra decimaler)."""
         v = S.VAGGAR[self.kod if self.kod in S.VAGGAR else "2C"]

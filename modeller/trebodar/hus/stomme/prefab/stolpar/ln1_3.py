@@ -8,7 +8,7 @@ from modellering import Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar.regelvagg import Plan
-from trebodar.material import C24, SPIKPLAT
+from trebodar.material import SPIKPLAT
 
 X0 = 11575.0                 # första lagrets sida
 LAGER = 4

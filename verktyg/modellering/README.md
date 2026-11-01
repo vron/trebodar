@@ -21,7 +21,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/` |
 | `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt |
 | `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
-| `./mod rendera [VY …] [--bredd 400] [--sampel 32]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py` |
+| `./mod rendera [VY …] [--bredd 400] [--sampel 32] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py`; `--blend` sparar scenen |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
 | `./mod typ` | Typkontroll (mypy) av ramverket och modellen |
 
@@ -58,8 +58,11 @@ egen modell (t.ex. för beställning). Utdata:
   under 5 mm³ (mot krökta ytor) redovisas för sig. Modellen anger avsiktliga överlapp i `trebodar/kontrollregler.py`.
 - **Jämförelse** (`jamfor.py`, `referens.py`, `prisma.py`): varje referensdel paras med den genererade del som har
   störst gemensam volym; identisk, städad (minst 98 % gemensamt), ändrad, ersatt eller borttagen.
-- **Rendering** (`blender/rendera.py`): Blender i bakgrunden läser GLB, sätter procedurella material efter
-  materialnamnen, himmel och sol, kamera, och renderar med Cycles på GPU.
+- **Rendering** (`blender/rendera.py`, `blender/material.py`): Blender i bakgrunden läser GLB och bygger ett
+  procedurellt material för varje material i modellen ur dess typ och parametrar (`material.json`, som `mod rendera`
+  skriver): virke med årsringar, limträ med lameller, sågade brädor (täckfärg, järnvitriol, obehandlat) med fogar och
+  färgskiftning per bräda, falsad plåt, stenbeklädnad i skift, betong, berg, mark, glas m.fl., utan bildtexturer.
+  Riktningarna anges i delens eget system. Himmel och sol, en kamera per vy, Cycles på GPU.
 - **Webben** (`webb/index.html`): three.js (fast version från CDN) med modellträd, snitt i x, y och z, vyer och
   information om den del man klickar på.
 

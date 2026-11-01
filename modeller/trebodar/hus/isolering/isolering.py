@@ -10,9 +10,10 @@ from __future__ import annotations
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage
+from modellering import Montage, i_foraldern, omslutande
 
 from trebodar import skelett as S
+from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
@@ -82,25 +83,20 @@ def tak(kod: str) -> Montage:
 
 def vagg(kod: str) -> Montage:
     """Regelfacken i ytterväggen: ytor som delarna och öppningarna (i u–z) helt omsluter."""
-    import numpy as np
-    from modellering.karna import Karna
-    v = VAGGMODULER[kod].montage()
-    k = Karna()
     upptaget = []
-    for i in v.barn:
-        e = k.egenskaper(i.barn.form)                      # type: ignore[union-attr]
-        x0, y0, z0, x1, y1, z1 = e.bbox
-        h = np.array([[x, y, z] for x in (x0, x1) for y in (y0, y1) for z in (z0, z1)]) @ np.array(i.placering.R).T \
-            + np.array(i.placering.t)
-        upptaget.append(box(h[:, 0].min(), h[:, 2].min(), h[:, 0].max(), h[:, 2].max()))
+    for i in VAGGMODULER[kod].montage().barn:
+        b = omslutande(i.barn.form)                        # type: ignore[union-attr]
+        assert b is not None
+        u0, _, z0, u1, _, z1 = i_foraldern(b, i.placering)
+        upptaget.append(box(u0, z0, u1, z1))
     for o in OPPNINGAR.get(kod, []):
         upptaget.append(box(o.u0, o.z0, o.u1, o.z1))
     U = unary_union(upptaget)
-    fack = [Polygon(r) for g in getattr(U, "geoms", [U]) for r in g.interiors]
+    fack = [Polygon(r) for g in P.polygoner(U) for r in g.interiors]
     p = Plan(kod, f"Väggisolering {kod}", S.T_STOMME, beskrivning=MINERALULL.beskrivning, material=MINERALULL)
     for g in fack:
         if g.area > 45 * 45 and min(g.bounds[2] - g.bounds[0], g.bounds[3] - g.bounds[1]) > 20:
-            p.skiva(list(g.exterior.coords)[:-1], [], 0.0, S.T_STOMME, "VI", MINERALULL, f"Mineralull 95 {kod}")
+            p.skiva(P.kontur(g), P.hal(g), 0.0, S.T_STOMME, "VI", MINERALULL, f"Mineralull 95 {kod}")
     return p.montage()
 
 

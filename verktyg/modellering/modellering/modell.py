@@ -9,6 +9,9 @@ from .form import Form
 from .placering import IDENTITET, Placering
 
 
+Parameter = float | str
+
+
 @dataclass(frozen=True)
 class Material:
     namn: str                        # kort namn, t.ex. "C24", "GL30c", "S355", "Gips"
@@ -17,9 +20,20 @@ class Material:
     farg: str                        # "#rrggbb", sRGB (STEP, Onshape, rendering)
     grovhet: float = 0.8             # PBR roughness
     metall: float = 0.0              # PBR metallic
-    textur: str | None = None        # nyckel för rendering i Blender och webben ("tra", "limtra", "stal" ...)
+    textur: str | None = None        # procedurellt material vid rendering (Blender), t.ex. "tra", "bradpanel"
     enhet: str = "st"                # materiallistans enhet: "st" (styck med kapmått), "m2", "m3", "kg"
     opacitet: float = 1.0            # < 1 för glas o.d.
+    rendering: tuple[tuple[str, Parameter], ...] = ()   # parametrar till det procedurella materialet
+
+    def renderdata(self) -> dict[str, Parameter]:
+        """Allt som renderingen behöver om materialet: typ, färg och parametrar."""
+        return {"typ": self.textur or "farg", "farg": self.farg, "grovhet": self.grovhet, "metall": self.metall,
+                "opacitet": self.opacitet, **dict(self.rendering)}
+
+
+def rendering(**p: Parameter) -> tuple[tuple[str, Parameter], ...]:
+    """Parametrar till ett procedurellt material, t.ex. rendering(riktning="y", bredd=145)."""
+    return tuple(sorted(p.items()))
 
 
 @dataclass(frozen=True)

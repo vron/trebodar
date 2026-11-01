@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from shapely.geometry import Polygon
 
-from modellering import Del, Montage, Placering, box, prisma
+from modellering import Del, Form, Montage, Placering, box
 
+from trebodar.byggdelar.polygon import polygoner, prisma_ur
 from trebodar.byggdelar.referensdel import importerad
 from trebodar.hus.grund import kallarvaggar
 from trebodar.hus.grund.grund import MARK_PLATTA
@@ -18,13 +19,12 @@ from trebodar.material import BERG, FYLLNING, MARK
 Z_BP = -2250.0
 
 
-def _husets_fotavtryck():  # type: ignore[no-untyped-def]
+def _husets_fotavtryck() -> Form:
     """Källaren med fasadstenen och plattan på mark, som prisma från under bottenplattan till bjälklaget."""
     # stängning (+600, −530) så att öppningarna i fasaden räknas till huset
     p = kallarvaggar.ytterkontur().buffer(600.0, join_style=2).buffer(-530.0, join_style=2)
     p = p.union(Polygon(MARK_PLATTA).buffer(30.0, join_style=2))
-    p = max(getattr(p, "geoms", [p]), key=lambda g: g.area)
-    return prisma([tuple(q) for q in list(p.exterior.coords)[:-1]], 2900.0, z0=-2900.0)
+    return prisma_ur(Polygon(max(polygoner(p), key=lambda g: g.area).exterior), -2900.0, 0.0)
 
 
 def montage() -> Montage:

@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from .karna import KARNA_VERSION, Karna
+from .karna import Karna
 from .modell import Del, Montage
 from .placering import Placering
 
@@ -280,7 +280,7 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
 
 
 def rapport(r: Resultat, fil: Path | None = None) -> str:
-    rader = [f"# Kontroll av modellen", "",
+    rader = ["# Kontroll av modellen", "",
              f"{r.delar} delar, {r.par} par nära varandra ({r.nya_par} nya), {r.sekunder:.1f} s.", "",
              f"## Krockar ({len(r.krockar)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³" for a, b, v in sorted(r.krockar, key=lambda x: -x[2])]

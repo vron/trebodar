@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from modellering import Importerad, Material
+from modellering import Importerad
 
 ROT = Path(__file__).resolve().parents[3]
 MAPP = Path("modeller") / "referens" / "delar"
@@ -15,6 +15,3 @@ def importerad(fil: str) -> Importerad:
     vag = MAPP / fil
     return Importerad(str(vag), hashlib.sha1((ROT / vag).read_bytes()).hexdigest()[:16])
 
-
-def material_for(m: Material) -> Material:
-    return m

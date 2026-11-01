@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 from .karna import ROT, Karna
-from .modell import Del, Montage
+from .modell import Montage
 
 MODELLMAPP = ROT / "modeller"
 UT = ROT / "modeller" / "trebodar" / "ut"
@@ -90,6 +90,7 @@ def main(argv: list[str] | None = None) -> None:
     pr.add_argument("--sampel", type=int, default=32)
     pr.add_argument("--ut", type=Path, default=UT)
     pr.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
+    pr.add_argument("--blend", action="store_true", help="spara scenen som modeller/trebodar/ut/trebodar.blend")
     wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
     wb.add_argument("--ut", type=Path, default=ROT / "docs")
     sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
@@ -142,15 +143,20 @@ def main(argv: list[str] | None = None) -> None:
         glb.skriv(rot, fil, karna)
         (arg.ut / "bilder").mkdir(parents=True, exist_ok=True)
         (arg.ut / "vyer.json").write_text(json.dumps(vyer, ensure_ascii=False))
+        material = {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}
+        (arg.ut / "material.json").write_text(json.dumps(material, ensure_ascii=False, indent=1))
         skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
-        cmd = [arg.blender, "-b", "--factory-startup", "-P", str(skript), "--", str(fil), str(arg.ut / "vyer.json"),
-               str((arg.ut / "bilder").resolve()), "--bredd", str(arg.bredd), "--sampel", str(arg.sampel)]
+        cmd = [arg.blender, "-b", "--factory-startup", "-P", str(skript), "--", str(fil),
+               str(arg.ut / "material.json"), str(arg.ut / "vyer.json"), str((arg.ut / "bilder").resolve()),
+               "--bredd", str(arg.bredd), "--sampel", str(arg.sampel)]
         for v in arg.vyer:
             cmd += ["--vy", v]
+        if arg.blend:
+            cmd += ["--blend", str((arg.ut / f"{filnamn(rot)}.blend").resolve())]
         t = time.perf_counter()
         ut = subprocess.run(cmd, capture_output=True, text=True)
         for rad in ut.stdout.splitlines():
-            if rad.startswith("RENDERAD"):
+            if rad.startswith(("RENDERAD", "SPARAD")):
                 print("  " + rad)
         if ut.returncode:
             print(ut.stdout[-3000:], ut.stderr[-3000:])

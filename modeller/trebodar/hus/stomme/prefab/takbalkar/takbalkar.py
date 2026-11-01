@@ -80,8 +80,8 @@ def falt(f: Falt) -> Montage:
         m.profil(T.avvaxling(t, fo.x_upp, False), fo.y0, fo.y1, typ="A", namn=f"{fo.kod}-A2")
         # kortlingar i öppningens mitt: nedåt till dalbalken eller takfoten, uppåt till nockbalken
         ym = 0.5 * (fo.y0 + fo.y1) - 22.5
-        x_ned = T.langs_planet(t, fo.x_ned, -45.0)
-        x_upp = T.langs_planet(t, fo.x_upp, 45.0)
+        x_ned = T.langs(t, fo.x_ned, -45.0)
+        x_upp = T.langs(t, fo.x_upp, 45.0)
         if dal and dal.y0 <= ym and ym + 45 <= dal.y1:
             fot = T.Ande("balk", _sida(dal.kod, t), dal.kod)
             pa_balk.setdefault(dal.kod, []).append(ym)

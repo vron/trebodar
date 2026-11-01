@@ -13,9 +13,10 @@ from dataclasses import dataclass
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Del, Montage, Placering, prisma
+from modellering import Del, Material, Montage, Placering
 
 from trebodar import skelett as S
+from trebodar.byggdelar.polygon import polygoner, prisma_ur
 from trebodar.material import BETONG, CELLPLAST
 
 Z0, Z1 = -2250.0, -S.H_BJALKLAG
@@ -100,10 +101,8 @@ def _cellplast_rekt(v: Kallarvagg) -> Polygon:
     return _rekt(v, a, b, KARNA / 2 + CELL)
 
 
-def _yta(namn: str, poly: Polygon, z0: float, z1: float, material) -> Del:  # type: ignore[no-untyped-def]
-    ext = [tuple(p) for p in list(poly.exterior.coords)[:-1]]
-    hal = [[tuple(p) for p in list(r.coords)[:-1]] for r in poly.interiors]
-    return Del(namn, prisma(ext, z1 - z0, hal, z0), material)
+def _yta(namn: str, poly: Polygon, z0: float, z1: float, material: Material) -> Del:
+    return Del(namn, prisma_ur(poly, z0, z1), material)
 
 
 def montage() -> Montage:
@@ -116,15 +115,12 @@ def montage() -> Montage:
         cp = _cellplast_rekt(v).difference(alla_karnor).difference(tagen)
         tagen = tagen.union(cp)
         vaggar[v.namn] = (karnor[v.namn], cp)
-    opp = {o[0]: o for o in OPPNINGAR}
-    vagg_vid_brostning = {o[1]: o for o in OPPNINGAR if o[3] > 0} | {o[2]: o for o in OPPNINGAR if o[3] > 0}
     for v in VAGGAR:
         k, cp = vaggar[v.namn]
         g = Montage(v.namn, v.namn, f"Källarvägg {v.namn} ({v.typ}), K-06")
         g.lagg(_yta(f"Betongkärna {v.namn}", k, Z0, Z1, BETONG), Placering(), f"{v.namn}-K")
-        for i, p in enumerate(getattr(cp, "geoms", [cp]), 1):
-            if p.geom_type == "Polygon" and p.area > 100:
-                g.lagg(_yta(f"Cellplast {v.namn}-{i}", p, Z0, Z1, CELLPLAST), Placering(), f"{v.namn}-C{i}")
+        for i, p in enumerate(polygoner(cp, 100.0), 1):
+            g.lagg(_yta(f"Cellplast {v.namn}-{i}", p, Z0, Z1, CELLPLAST), Placering(), f"{v.namn}-C{i}")
         m.lagg(g)
     # bröstningar under fönstren: kärna mellan väggarnas kärnor, cellplast på sidorna och 100 mm ovanpå
     for namn, va, vb, zb in OPPNINGAR:

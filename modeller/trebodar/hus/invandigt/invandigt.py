@@ -14,6 +14,7 @@ from modellering import Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.isolering.isolering import _fack
@@ -136,16 +137,16 @@ def _vagg_insida(kod: str) -> Montage:
     yta = box(u0, 0.0, u1, topp)
     hal_lista = [box(o.u0, o.z0, o.u1, o.z1) for o in OPPNINGAR.get(kod, [])]
     # delar som står mot väggens insida: deras utbredning i u och z tas bort
-    P = v.placering()
-    band = Polygon([P.punkt((u0, S.T_STOMME, 0))[:2], P.punkt((u1, S.T_STOMME, 0))[:2],
-                    P.punkt((u1, S.T_STOMME + INSIDA_T, 0))[:2], P.punkt((u0, S.T_STOMME + INSIDA_T, 0))[:2]])
-    Pi = P.invers()
+    pl = v.placering()
+    band = Polygon([pl.punkt((u0, S.T_STOMME, 0))[:2], pl.punkt((u1, S.T_STOMME, 0))[:2],
+                    pl.punkt((u1, S.T_STOMME + INSIDA_T, 0))[:2], pl.punkt((u0, S.T_STOMME + INSIDA_T, 0))[:2]])
+    Pi = pl.invers()
     for poly, z0, z1 in HINDER:
         g = poly.intersection(band)
         if g.area > 1.0:
             us = [Pi.punkt((x, y, 0.0))[0] for x, y in g.exterior.coords]
             hal_lista.append(box(min(us), z0, max(us), z1))
-    hal = unary_union(hal_lista) if hal_lista else Polygon()
+    oppet = unary_union(hal_lista) if hal_lista else Polygon()
     w = S.T_STOMME
     for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24),
                               ("Gips", GIPS_T, "GI", GIPS)):
@@ -154,16 +155,11 @@ def _vagg_insida(kod: str) -> Montage:
             rader = [0.0, topp - LAKT]
             rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1)) if all(abs(z - r) >= LAKT for r in rader)]
             for z in sorted(rader):
-                g = box(u0, z, u1, min(z + LAKT, topp)).difference(hal)
-                for q in getattr(g, "geoms", [g]):
-                    if q.geom_type == "Polygon" and q.area > 45 * 100:
-                        p.profil([(float(a), float(b)) for a, b in list(q.exterior.coords)[:-1]], w, w + t, typ=typ,
-                                 material=mat)
+                for q in P.polygoner(box(u0, z, u1, min(z + LAKT, topp)).difference(oppet), 45 * 100):
+                    p.profil(P.kontur(q), w, w + t, typ=typ, material=mat)
         else:
-            g = yta.difference(hal)
-            for q in getattr(g, "geoms", [g]):
-                p.skiva(list(q.exterior.coords)[:-1], [list(r.coords)[:-1] for r in q.interiors], w, w + t, typ, mat,
-                        f"{namn} {kod}")
+            for q in P.polygoner(yta.difference(oppet)):
+                p.skiva(P.kontur(q), P.hal(q), w, w + t, typ, mat, f"{namn} {kod}")
         m.lagg(p.montage())
         w += t
     return m

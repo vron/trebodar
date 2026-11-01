@@ -14,17 +14,20 @@ from shapely.ops import unary_union
 from modellering import Montage
 
 from trebodar import skelett as S
+from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.tak.tak import REGIONER
-from trebodar.material import C24, PANEL, UTEGIPS
+from trebodar.material import C24, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
 LAKT_B = 45.0
 CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
+# panelens utförande per huskropp (byt material här för att prova andra kulörer)
+PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_FALUROD}
 # fasadens utsträckning längs väggen (u), med hörnen enligt ovan
 FASAD_U = {"1SO": (-95.0, 12275.0), "1NO": (-65.0, 4435.0), "1SV": (-65.0, 4435.0), "1NV": (0.0, 4890.0),
            "2NO": (-65.0, 4935.0), "2SO": (0.0, 3590.0), "2NV": (-95.0, 905.0), "2SV": (160.0, 5160.0),
@@ -82,19 +85,15 @@ def utsida(kod: str) -> Montage:
 
     def skikt(namn: str, typ: str, t: float, material, del_namn: str) -> None:  # type: ignore[no-untyped-def]
         p = Plan(kod, f"{namn} {kod}", t, beskrivning=material.beskrivning, material=material)
-        yta = fas.difference(oppen)
-        for g in getattr(yta, "geoms", [yta]):
-            p.skiva(list(g.exterior.coords)[:-1], [list(i.coords)[:-1] for i in g.interiors], w - t, w, typ,
-                    material, f"{del_namn} {kod}")
+        for g in P.polygoner(fas.difference(oppen)):
+            p.skiva(P.kontur(g), P.hal(g), w - t, w, typ, material, f"{del_namn} {kod}")
         m.lagg(p.montage())
 
     def lakt(namn: str, typ: str, t: float, bitar: list[Polygon]) -> None:
         p = Plan(kod, f"{namn} {kod}", t, beskrivning=f"{namn} {fmt(t)}×45 C24", material=C24)
         for b in bitar:
-            g = b.intersection(fas).difference(oppen)
-            for q in getattr(g, "geoms", [g]):
-                if q.geom_type == "Polygon" and q.area > 45 * 100:
-                    p.profil([(round(a, 6), round(c, 6)) for a, c in list(q.exterior.coords)[:-1]], w - t, w, typ=typ)
+            for q in P.polygoner(b.intersection(fas).difference(oppen), 45 * 100):
+                p.profil(P.kontur(q), w - t, w, typ=typ)
         m.lagg(p.montage())
 
     skikt("Utegips", "UG", UTEGIPS_T, UTEGIPS, "Utegips 10 mm")
@@ -114,7 +113,8 @@ def utsida(kod: str) -> Montage:
     rader = _lagen(fasta, [Z_UK + CC * k for k in range(1, int((zt - Z_UK) // CC) + 1)])
     lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader])
     w -= SPIK_T
-    skikt("Panel", "PA", PANEL_T, PANEL, "Panel 22 mm")
+    panel = PANEL[int(kod[0])]
+    skikt("Panel", "PA", PANEL_T, panel, f"Panel 22 mm {panel.namn.removeprefix('Panel ')}")
     return m
 
 

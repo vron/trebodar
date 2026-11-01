@@ -11,7 +11,9 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, fields, is_dataclass
-from typing import Sequence
+from typing import Iterable, Sequence
+
+import numpy as np
 
 from .placering import Placering, Vek
 
@@ -164,3 +166,56 @@ def rektangel(x0: float, y0: float, x1: float, y1: float) -> Kontur:
 
 def cylinder(radie: float, hojd: float, origo: Sequence[float] = (0.0, 0.0, 0.0)) -> Cylinder:
     return Cylinder(float(radie), float(hojd), _v(origo))
+
+
+def minus(form: Form, verktyg: Iterable[Form]) -> Form:
+    """form minus alla verktyg (en boolesk operation)."""
+    v = tuple(verktyg)
+    return Diff(form, v) if v else form
+
+
+Lada6 = tuple[float, float, float, float, float, float]
+
+
+def omslutande(f: Form) -> Lada6 | None:
+    """Receptets omslutande låda (x0, y0, z0, x1, y1, z1) i dess eget system, utan kärnan: exakt för rätblock,
+    prismor och cylindrar, annars en låda som säkert omsluter formen. None för importerade former."""
+    if isinstance(f, Lada):
+        o = f.origo
+        return (o[0], o[1], o[2], o[0] + f.dx, o[1] + f.dy, o[2] + f.dz)
+    if isinstance(f, Prisma):
+        xs = [p[0] for p in f.kontur]
+        ys = [p[1] for p in f.kontur]
+        return (min(xs), min(ys), f.z0, max(xs), max(ys), f.z0 + f.tjocklek)
+    if isinstance(f, Cylinder):
+        o = f.origo
+        return (o[0] - f.radie, o[1] - f.radie, o[2], o[0] + f.radie, o[1] + f.radie, o[2] + f.hojd)
+    if isinstance(f, (Diff, Kapad)):
+        return omslutande(f.bas if isinstance(f, Diff) else f.form)
+    if isinstance(f, (Union, Snitt)):
+        lador = [omslutande(d) for d in f.delar]
+        if any(b is None for b in lador):
+            return None
+        B = np.array(lador, dtype=float)
+        if isinstance(f, Union):
+            return tuple(float(v) for v in (*B[:, :3].min(0), *B[:, 3:].max(0)))  # type: ignore[return-value]
+        return tuple(float(v) for v in (*B[:, :3].max(0), *B[:, 3:].min(0)))  # type: ignore[return-value]
+    if isinstance(f, (Transf, Speglad)):
+        b = omslutande(f.form)
+        if b is None:
+            return None
+        horn = np.array([[x, y, z] for x in (b[0], b[3]) for y in (b[1], b[4]) for z in (b[2], b[5])])
+        if isinstance(f, Transf):
+            v = horn @ np.array(f.placering.R).T + np.array(f.placering.t)
+        else:
+            n = np.array(f.normal) / np.linalg.norm(f.normal)
+            v = horn - 2 * ((horn - np.array(f.punkt)) @ n)[:, None] * n
+        return tuple(float(c) for c in (*v.min(0), *v.max(0)))  # type: ignore[return-value]
+    return None
+
+
+def i_foraldern(b: Lada6, p: Placering) -> Lada6:
+    """Omslutande låda för lådan b placerad med p."""
+    horn = np.array([[x, y, z] for x in (b[0], b[3]) for y in (b[1], b[4]) for z in (b[2], b[5])])
+    v = horn @ np.array(p.R).T + np.array(p.t)
+    return tuple(float(c) for c in (*v.min(0), *v.max(0)))  # type: ignore[return-value]

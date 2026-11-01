@@ -34,6 +34,35 @@ väggen (w = 0 stommens utsida) och z uppåt; deras delar skrivs som regel(u), s
 liggande(u0, u1, z) och profil([...]). Takets delar räknas fram ur takfallen i `skelett.py`: ändras takplanet,
 väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets skikt, isolering och innertak med.
 
+## Så ändrar du
+
+| Ändring | Var |
+|---|---|
+| Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
+| En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
+| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
+| Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren) |
+| Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` |
+| Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
+| Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
+| Ett nytt material eller utseende | `material.py`: densitet, färg och renderingens typ med parametrar |
+
+Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`.
+
+## Material och rendering
+
+Varje material (`material.py`) har densitet och färg (STEP, Onshape, materiallistan) och för renderingen en typ med
+parametrar, t.ex. `textur="bradpanel", rendering=rendering(riktning="y", tvars="x", bredd=145, fog=4,
+behandling="tackfarg")`. Renderingen bygger materialen procedurellt i Blender (inga bildtexturer); typerna och deras
+parametrar står i [`verktyg/modellering/blender/material.py`](../../verktyg/modellering/blender/material.py).
+Riktningarna gäller delens eget system: virke har x längs fibrerna; fasadens skivor x längs väggen och y uppåt (stående
+brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (råspont `riktning="z"`, falsad plåt
+`riktning="x"`).
+
+Fasaden har stående sågade granbrädor 22 mm med Falu rödfärg (`PANEL_FALUROD`) eller järnvitriol
+(`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. `./mod rendera --blend` sparar också scenen
+(`ut/trebodar.blend`) med materialen och en kamera per vy, för egna justeringar i Blender.
+
 ## Modellträdet
 
 ```

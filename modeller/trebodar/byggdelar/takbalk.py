@@ -12,7 +12,6 @@ Regler:
 """
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 from shapely.geometry import Polygon, box
@@ -97,10 +96,6 @@ def avvaxling(t: S.Takfall, x_kant: float, nedanfor: bool) -> list[tuple[float, 
     return [(float(x), float(z)) for x, z in (A, B, C, D)]
 
 
-def langs_planet(t: S.Takfall, x: float, ds: float) -> float:
-    """x för punkten ds längre upp längs takplanet (negativt ds: nedåt) från punkten vid x."""
+def langs(t: S.Takfall, x: float, ds: float) -> float:
+    """x för punkten ds (mm) längre upp längs takplanet från x (negativt ds: nedåt)."""
     return x + t.riktning * ds * S.COS
-
-
-def vinkel() -> float:
-    return math.radians(S.TAKVINKEL)

@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from shapely.geometry import Polygon, box
 
 from .. import skelett as S
-from .takbalk import _halvplan_vinkelratt
+from .takbalk import _halvplan_vinkelratt, langs  # noqa: F401  (langs används av taket och isoleringen)
 
 HARDBOARD = (0.0, 3.0)
 STROLAKT = (3.0, 37.0)               # 34×45 på hårdboarden
@@ -45,7 +45,3 @@ def profil(t: S.Takfall, w0: float, w1: float, a: Kant, b: Kant) -> list[tuple[f
         q = max(q.geoms, key=lambda g: g.area)
     return [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
 
-
-def langs(t: S.Takfall, x: float, ds: float) -> float:
-    """x för punkten ds (mm) längre upp längs takplanet från x (negativt: nedåt)."""
-    return x + t.riktning * ds * S.COS
