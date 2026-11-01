@@ -133,7 +133,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   NO och SV). **Bärande innerväggar**: kropp och bokstav i växande y: 1A–1D och 2A–2C (Onshape: L1 B2, L1L, L1 B,
   L1V, L2 NO, L23, L2M). **Takstolar** heter som väggen de står på (K-03:s Stol L2M är takstol 2C). **Takfall** heter
   som takfotsväggen.
-- **Balkar** NB1, DB2, NB3, DB4, NB5 och plåtarna NB1-1-U osv. (K-01). **Stolpar** LN1_1 … LD4_2 och hörnstolparna
+- **Balkar** NB1, DB2, NB3, DB4, NB5 och plåtarna NB1-1-U osv. (K-01), reglarna ovanpå: nockreglarna NB1-NR osv.
+  och dalreglarna DB2-DR1, DB2-DR2 osv. **Stolpar** LN1_1 … LD4_2 och hörnstolparna
   LA1–LA10 (K-03, K-05); reglar som bildar en stolpe heter som stolpen (LD2_1-1, LA5-2). **Takfönster** TF1–TF3.
   **Källarväggar** V1–V21, bröstningarna F1-B–F3-B, **rör** P1–P19 (P7 två rör) (K-05, K-06, R-05).
 - **Fönster och dörrar** i ytterväggarna: väggen och F eller D med nummer längs väggen (1SO-F1, 2SV-D1);
@@ -168,7 +169,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Fickor**: plåtarna (syll, hammarband) har inga 2 mm fickor för reglarna; reglarna är 2 400 i stället för
   2 404, och stolpar står på bjälklaget (z 0) i stället för 2 mm ner i det.
 - **Nock- och dalbalkarna** enligt K-01: limträ GL30c 190×180, plåtar 190×10 med hålbilden ur K-01, distansreglar.
-  Underkanten som HEA 200:s, så att stolparna är oförändrade; reglarna inuti profilen är borttagna.
+  Underkanten som HEA 200:s, så att stolparna är oförändrade; reglarna inuti profilen är borttagna. Ovanpå limmade
+  reglar 45 som hårdboarden landar på: i nockarna en i mitten, fasad efter de två takplanen, och i dalarna en längs
+  vardera kanten, med urtag för skruvhuvudena.
 - **Takplanen 10 mm högre** (`skelett.TAKLYFT`), så att hårdboard och luftspalt går fritt över dalbalkarna, vars
   överkant ligger i takplanens skärning. Takbalkarnas underkant går 10 mm över takfotsväggens hammarband vid dess
   insida; vid nockbalkarna ligger takbalkarna 2,9 mm över balkens överkant. Takstolarnas sneda delar lyfts lika

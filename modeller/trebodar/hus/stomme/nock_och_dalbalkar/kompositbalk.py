@@ -2,6 +2,10 @@
 skruvhål enligt hålbilden och distansreglar 10 mm där plåt saknas (5 mm glipa mot plåtänden). Upplagsreglarna för
 takbalkarna hör till takbalkarna (prefab).
 
+Ovanpå balken limmas reglar som hårdboarden landar på: på nockbalkarna en regel 45 bred i mitten med överkanten
+fasad efter de två takplanen (30°), på dalbalkarna en regel 45 bred längs vardera kanten med överkanten i takplanet
+på den sidan. Reglarna har urtag 20 × 20 × 6 för skruvhuvudena (Ø16,5, 5 mm över plåten) där de står på dem.
+
 Balkens mått, plåtlägen och hål läses ur K-01 (indata.toml och halbild_*.csv), så att modellen alltid följer
 beräkningen. Balkens system: x längs balken från änden vid lägst y, y = 0 vid sidan mot växande x i huset (balkens
 framsida i K-01), z = 0 vid underkanten.
@@ -14,10 +18,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from modellering import Del, Montage, Placering, lada, prisma
+from modellering import Del, Form, Montage, Placering, box, lada, prisma
 
 from trebodar import skelett as S
-from trebodar.material import DISTANS, GL30C, S355
+from trebodar.byggdelar.virke import fmt
+from trebodar.material import C24, DISTANS, GL30C, S355
+
+REGEL_B = 45.0                       # reglarna ovanpå balken
+URTAG_B, URTAG_H = 20.0, 6.0         # urtagen för skruvhuvudena (fyrkantiga)
 
 ROT = Path(__file__).resolve().parents[5]
 K01 = ROT / "beräkningar" / "K-01"
@@ -79,4 +87,35 @@ def montage(kod: str) -> Montage:
         for lage, z in (("U", 0.0), ("O", t + h)):
             m.lagg(Del(f"Distansregel 190×10 L={c - a:g}", lada(c - a, B, t), DISTANS, dokument="K-01"),
                    Placering.flytt(a, 0.0, z), f"{kod}-D{i}-{lage}")
+    skruvar = [(x, yo) for _, (_, _, hal) in bitar.items() for x, yo, _ in hal]
+    huvud = float(IN["skruv"]["huvud"])
+    assert huvud < URTAG_H and float(IN["skruv"]["huvud_d"]) < URTAG_B
+    lagen_y = [(B / 2 - REGEL_B / 2, B / 2 + REGEL_B / 2)] if b.typ == "nock" else [(0.0, REGEL_B), (B - REGEL_B, B)]
+    for i, (y0, y1) in enumerate(lagen_y, 1):
+        namn = f"{kod}-NR" if b.typ == "nock" else f"{kod}-DR{i}"
+        regel = _regel(b, L, y0, y1, 2 * t + h, skruvar)
+        m.lagg(Del(f"{'Nockregel' if b.typ == 'nock' else 'Dalregel'} {fmt(REGEL_B)} L={fmt(L)}", regel, C24),
+               Placering(), namn)
     return m
+
+
+def _regel(b: S.Balklinje, L: float, y0: float, y1: float, z0: float, skruvar: list[tuple[float, float]]) -> Form:
+    """Regeln ovanpå balken mellan y0 och y1 (balkens system), från plåtens överkant z0 till takplanen, med urtag
+    för de skruvhuvuden den står på."""
+    from trebodar.hus.fasad.fasad import tak_underkant
+    ym = b.y0 + L / 2
+
+    def z(y: float) -> float:
+        """Takplanet (hårdboardens undersida) över balkens punkt y, i balkens system."""
+        zt = tak_underkant(b.x + S.BALK_B / 2 - y, ym)
+        assert zt is not None, (b.kod, y)
+        return zt - b.uk
+    ys = [y0, y1] if b.typ == "dal" else [y0, (y0 + y1) / 2, y1]
+    kontur = [(y0, z0), (y1, z0)] + [(y, z(y)) for y in reversed(ys)]
+    vrid = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
+    form: Form = prisma(kontur, L).placerad(vrid)
+    r = URTAG_B / 2
+    for x, ys_ in skruvar:
+        if y0 - r < ys_ < y1 + r:
+            form = form - box(x - r, x + r, ys_ - r, ys_ + r, z0 - 1.0, z0 + URTAG_H)
+    return form
