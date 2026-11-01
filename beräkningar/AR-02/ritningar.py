@@ -136,7 +136,8 @@ INM = tomllib.loads(open(os.path.join(HERE, "inmatning.toml"), encoding="utf-8")
 BRUNN, GOLV_G = INM["brunn"], INM["gammalt_golv"]
 P_BRUNN = lokal(BRUNN["N"], BRUNN["E"])
 Z_BRUNN = BRUNN["hojd"] * 1000
-Z_DRAN = Z_BRUNN - BRUNN["ror_under"] * 1000                 # utgående rörets överkant
+Z_DRAN_INM = Z_BRUNN - BRUNN["ror_under"] * 1000             # utgående rörets överkant, inmätt
+Z_DRAN = Z_DRAN_INM + H["ror_marginal"] * 1000              # dimensionerande: marginal uppåt för mätosäkerheten
 R_ROR = BRUNN["ror_d"] * 1000 / 2
 Z_GOLV_G = GOLV_G["hojd"] * 1000
 TAN = math.tan(math.radians(H["takvinkel"]))
@@ -349,7 +350,7 @@ def sektion():
         niva(v, 6000, Z_MMN, f"MMN {rh(Z_MMN)} ({rel(Z_MMN)})", "l")
         niva(v, 1300, Z_MAK_P, t(Z_MAK_P, "plattan på mark bakom snittet, L-elementens uk"), "l", under=True)
         niva(v, 4300, Z_MAK, t(Z_MAK, "cellplastens uk under bottenplattan"), "l", under=True)
-        niva(v, 9300, Z_DRAN, t(Z_DRAN, "utgående rör ø110 ur brunnen, ök"), "l", under=True)
+        niva(v, 9300, Z_DRAN, t(Z_DRAN, f"utgående rör ø110 ur brunnen, ök, dimensionerande (inmätt {rh(Z_DRAN_INM)} + {svm(H['ror_marginal'] * 1000)})"), "l", under=True)
     # utgående rör ur brunnen, i brunnens x (brunnen ligger vid y ≈ P_BRUNN[1], framför snittet)
     with v.lager("ror"):
         v.cirkel(P_BRUNN[0], Z_DRAN - R_ROR, R_ROR, fyll="vit", stil="normal", modell=True)
@@ -399,7 +400,7 @@ def blad_plan():
         dict(typ="rubrik", text=f"Plattan på marks kant (P), L-elementens ytterkant, ök {rh(Z_MB)} ({rel(Z_MB)})"), tabell("P"),
         dict(typ="rubrik", text=f"Fixpunkt {FIX['namn']}, {rh(Z_FIX)}"), tabell(FIX["namn"]),
         dict(typ="rubrik", text=f"Dräneringsbrunnen (befintlig, inmätt), ök {rh(Z_BRUNN)}, utgående rör ø110 ök "
-                                f"{rh(Z_DRAN)}"),
+                                f"{rh(Z_DRAN)} (dimensionerande)"),
         dict(typ="tabell", kolumner=["Punkt", "x", "y", "N", "E"], bredd=(0.8, 1, 1, 1.9, 1.6),
              just=["l", "r", "r", "r", "r"], sz=6.8,
              rader=[["Brunn", svm(round(P_BRUNN[0])), svm(round(P_BRUNN[1])), sv(BRUNN["N"], 3), sv(BRUNN["E"], 3)]]),
@@ -455,7 +456,8 @@ def blad_sektion():
         ["Cellplastens underkant under bottenplattan", rh(Z_MAK), rel(Z_MAK)[len(FIX["namn"]) + 1:],
          f"− platta {svm(H['h_platta'] * 1000)} − cellplast {svm(H['t_cellplast'] * 1000)} (R-04)"],
         ["Utgående rör ø110 ur brunnen, överkant: avledning för dränvattnet", rh(Z_DRAN),
-         rel(Z_DRAN)[len(FIX["namn"]) + 1:], f"brunnens ök − {svm(BRUNN['ror_under'] * 1000)}"],
+         rel(Z_DRAN)[len(FIX["namn"]) + 1:], f"dimensionerande: inmätt {rh(Z_DRAN_INM)} (brunnens ök − {svm(BRUNN['ror_under'] * 1000)}) + "
+         f"marginal {svm(H['ror_marginal'] * 1000)}"],
     ]
     rader.insert(1, ["Golvet i det gamla huset", rh(Z_GOLV_G), rel(Z_GOLV_G)[len(FIX["namn"]) + 1:],
                      "inmätt 2026-11-01 (GNSS)"])
@@ -473,7 +475,9 @@ def blad_sektion():
             f"FG {rh(Z_FG)} är mellanplattans överkant.",
             "Bottenplattans cellplast läggs på avjämnad makadam (R-04).",
             f"Dräneringsbrunnen är befintlig och inmätt (läge AR-02.1, y = {svm(round(P_BRUNN[1]))}); dess utgående rör "
-            f"ø110 är ritat i brunnens x. Överkant rör = brunnens överkant − {svm(BRUNN['ror_under'] * 1000)}.",
+            f"ø110 är ritat i brunnens x. Överkant rör = brunnens överkant − {svm(BRUNN['ror_under'] * 1000)} = "
+            f"{rh(Z_DRAN_INM)}; dimensionerande nivå {svm(H['ror_marginal'] * 1000)} mm högre, {rh(Z_DRAN)}, för "
+            "mätosäkerheten.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

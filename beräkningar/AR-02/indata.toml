@@ -55,6 +55,8 @@ mmn         = 7.68      # medelmarknivå (bygglov, sektion E)
 byggnadshojd = 3.468    # MMN till skärningspunkt vägg/takplan, nordvästra fasaden (bygglov); ritar bara taket
 ny_mark_nv  = 7.786     # ny marknivå vid nordvästra fasaden (bygglov, sektion E: 3 362 under skärningspunkten)
 ny_mark_so  = 7.138     # ny marknivå vid sydöstra fasaden (bygglov, sektion E: 4 010 under skärningspunkten)
+ror_marginal = 0.020   # utgående rör ur brunnen (inmatning.toml): räknas 20 mm högre än inmätt, så att GNSS-
+                        # mätningens och måttbandets osäkerhet inte ger för lite fall för dränvattnet
 takvinkel   = 30        # grader (K-01); samma takfot (skärningspunkten) runt hela huset och i dalarna
 y_snitt     = 6000      # sektion A–A, i K-05:s y [mm]
 
