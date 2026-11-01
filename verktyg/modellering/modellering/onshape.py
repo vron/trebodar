@@ -89,10 +89,9 @@ class Klient:
         return str(d["id"]), str(d["defaultWorkspace"]["id"])
 
     def importera(self, did: str, wid: str, fil: Path, vanta: float = 3600.0) -> dict[str, Any]:
-        """Importera STEP-filen i dokumentet (sammanställningar behålls, färger följer med) och vänta på resultatet."""
-        falt = {"translate": "true", "flattenAssemblies": "false", "yAxisIsUp": "false", "importAppearances": "true",
-                "storeInDocument": "false", "allowFaultyParts": "true", "notifyUser": "false",
-                "encodedFilename": urllib.parse.quote(fil.name)}
+        """Importera STEP-filen i dokumentet och vänta på resultatet. Onshapes standard behåller sammanställningarna
+        (en flik per montage, delarna i en Part Studio) och färgerna; fler inställningar kan ge internt fel."""
+        falt = {"flattenAssemblies": "false", "notifyUser": "false"}
         kropp, typ = _formular(falt, "file", fil)
         tid = self.anrop("POST", f"{API}/translations/d/{did}/w/{wid}", kropp=kropp, typ=typ, timeout=900)["id"]
         start = time.time()
