@@ -355,6 +355,9 @@ def sektion():
     with v.lager("ror"):
         v.cirkel(P_BRUNN[0], Z_DRAN - R_ROR, R_ROR, fyll="vit", stil="normal", modell=True)
         v.linje([(P_BRUNN[0], Z_DRAN), (9300, Z_DRAN)], "tunn")
+        xm = P_BRUNN[0] + 700                                  # rörets ök till cellplastens uk; texten bredvid
+        v.matty([Z_DRAN, Z_MAK], xm, [P_BRUNN[0] + R_ROR] * 2, texter=[""])
+        v.text(xm + 1.2 * s, (Z_DRAN + Z_MAK) / 2, svm(Z_MAK - Z_DRAN), a="lm", sz=6.8, bg=True)
     # mått från MMN
     with v.lager("matt"):
         xk = 800
