@@ -163,7 +163,12 @@ def _matchar(d, uttryck):
         s, ul = d.sokvag.lower(), u.lower()
         if any(c in u for c in "*?"):
             ul = ul.replace("[", "[[]")        # [n] i delnamn är bokstavligt, inte teckenklass
-            if fnmatch(s, ul) or fnmatch(d.namn.lower(), ul) or fnmatch(s, "*" + ul + "*"):
+            # utan / mot hela delens namn eller en grupp i sökvägen (V*-K är källarväggarnas kärnor, inte allt med
+            # ett V och sedan -K någonstans i sökvägen), med / mot sökvägen
+            if "/" in ul:
+                if fnmatch(s, ul) or fnmatch(s, "*" + ul + "*"):
+                    return True
+            elif any(fnmatch(k, ul) for k in s.split("/")):
                 return True
         elif ul in s:
             return True

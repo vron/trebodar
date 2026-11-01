@@ -28,7 +28,7 @@ def lagen(m: Montage) -> tuple[Lage, ...]:
 
 @cache
 def prefab() -> tuple[Lage, ...]:
-    """Ytterväggarna, innerväggarna (med syllarna för de lätta väggarna) och stolparna."""
+    """Ytterväggarna, de bärande innerväggarna och stolparna."""
     from trebodar.hus.stomme.prefab.innervaggar import innervaggar
     from trebodar.hus.stomme.prefab.stolpar import stolpar
     from trebodar.hus.stomme.prefab.yttervaggar import yttervaggar

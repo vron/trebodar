@@ -49,6 +49,8 @@ när stommen ändras.
 | En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
 | En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
 | Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` och väggens regelverk; fasad, isolering och insida följer med |
+| En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
+| Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
@@ -98,7 +100,7 @@ Trebodar
     ├── Stomme
     │   ├── Stomme prefab       trästommen ovanför bjälklaget, en beställning
     │   │   ├── Ytterväggar     Vägg 1NO … 3NV (regelverk 45×95)
-    │   │   ├── Innerväggar     Vägg 1A–1D, 2A–2C, syllar för lätta väggar
+    │   │   ├── Innerväggar     Vägg 1A–1D, 2A–2C
     │   │   ├── Takstolar       Takstol 1NO, 1SV, 2NO, 2C, 2SV, 3NO, 3SV
     │   │   ├── Stolpar         LN1_1, LN1_2, LN1_3, LD4_1
     │   │   └── Takbalkar       Takfall 1SO, 1NV, 2SO, 2NV, 3SO, 3NV (takbalkar, avväxlingar, kortlingar, upplagsreglar)
@@ -108,7 +110,8 @@ Trebodar
     ├── Fönster och dörrar      ytterväggarnas fönster och dörrar, innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
     ├── Isolering               takets träfiber och väggarnas mineralull
-    └── Invändigt               innertak och ytterväggarnas insida: ångbroms, installationsskikt, gips
+    └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
+                                innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell (och på samma sätt
@@ -136,6 +139,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY innertakets yttre
   gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, VI vägg. Takplåtens banor heter
   TP och numreras längs takfallet.
+- **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
+  innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
+  skjutdörrar med BLAD och SKENA.
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
   röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
   (undre och övre lagret).
@@ -167,8 +173,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   plattan på mark med cellplast och fyllning, fasadstenen 15 mm ut, dubbel takbalk vid TF1, karmstolparna LD2_1 och
   LD2_2 i väggen 2B vid trapphålets långsidor.
 - **Toppklossar på gavelstolarna**: en kloss på insidan (utsidan är fasad), så att balken vilar på 90 mm.
-- **Innerdörrar**: ID2 börjar efter karmstolpen LD2_2, ID5 slutar före den nya stolpen LN1_1 och ID6 börjar vid
-  stolpen LD4_1.
+- **Innerväggar och innerdörrar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med
+  OSB och gips (i badrummet plywood, gips, tätskikt och kakel), skikt på de bärande innerväggarna och skjutdörrar
+  utanpå väggarna. 2B är sluten söder om trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den
+  lätta väggen L12). I korridorens hörn i höger huskropp går ID3 90 mm längre söderut och ID5 slutar före korridorväggen,
+  så att bladen går fria. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket, utan dörr och med
   fasad, isolering och insida över öppningen.
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
@@ -183,7 +192,6 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Inte modellerat ännu
 
-Lätta innerväggar (bara syllarna finns) och gipsen på de bärande innerväggarna, våtrummets golv (golvet på plan 1
-är betongplattan, AR-02), trappan, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
+Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappan, takutsprång och vindskivor vid gavlarna, takfotsplåtar, hängrännor, el och
 ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

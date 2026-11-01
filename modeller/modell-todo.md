@@ -30,18 +30,6 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
 
 ## Saknas i modellen
 
-7. **Lätta innerväggar enligt planritning 201 rev 02.** Bara syllarna finns (`Syllar lätta väggar`, Onshape-modellens
-   läge, och stolparnas syllar `LN1_2-S01` och `LN1_3-S01`, som ligger under lätta väggar mellan rummen i höger
-   huskropp). Modellera dem som regelväggar 45×70 med gips 2 × 12,5 på båda sidor (120 mm, som i planritningen),
-   upp till innertaket. Gipsen på de bärande innerväggarna (1A–1D, 2A–2C) saknas också och byggs på samma sätt.
-   Att bestämma först:
-    - badrummets, garderobens och hallens väggar hänger ihop med punkt 2;
-    - dörrarna: planritningen har skjutdörrar till sovrummet och de två kontoren i höger huskropp och en dörr 900 till
-      badrummet, på andra ställen än innerdörrarna i modellen (kontoret y ≈ 3 030–3 810 mot ID3 3 671–4 651,
-      kontoret/gästrummet y ≈ 4 760–5 680 mot ID4 5 562–6 542, sovrummet x ≈ 10 070–10 940 mot ID5 10 565–11 545,
-      badrummet y ≈ 6 110–7 035 mot ID1 7 055–8 035);
-    - väggen mellan kontoret/gästrummet och köket gör i planritningen ett hopp (y ≈ 6 540–6 680 vid 3NV,
-      y ≈ 6 680–6 800 mot korridoren), så att huvudstolpen LN1_3 (y 6 542–6 662) hamnar utanför väggen.
-8. **Takutsprång.** Planritning 201 visar takutstick 100 runt hela huset. I modellen slutar takets skikt i gavlarnas
+7. **Takutsprång.** Planritning 201 visar takutstick 100 runt hela huset. I modellen slutar takets skikt i gavlarnas
    fasadliv och vid takfoten vid takbalkarnas ände, 70 mm utanför fasaden. Vindskivor, vindskivebeslag,
    takfotsplåtar och hängrännor saknas; detaljen behöver bestämmas.

@@ -30,7 +30,7 @@ Kör sedan allt via `./ma` (använder `.venv`). Första körningen mot en fil by
 | `./ma krock [urval] [urval2] [--minvol mm³]` | Solider som överlappar (gemensam volym) |
 | `./ma jamfor [annan.step]` | Nya, borttagna och ändrade delar mot annan fil eller föregående cachade version |
 
-**Urval** (överallt där delar väljs, även `--delar`, `--utom`, `--spok`, `--markera`, `--etiketter`, `--fokus`): kommaseparerat, skiftlägesokänsligt. `#12` eller `#12-20` = id, text med `*` eller `?` = glob (hakparenteser är bokstavliga, som i `K Pillar [13]`), annars delsträng i sökvägen (`Källaren` väljer allt under Källaren).
+**Urval** (överallt där delar väljs, även `--delar`, `--utom`, `--spok`, `--markera`, `--etiketter`, `--fokus`): kommaseparerat, skiftlägesokänsligt. `#12` eller `#12-20` = id, text med `*` eller `?` = glob mot hela delens namn eller en grupp i sökvägen (`V*-K` väljer källarväggarnas kärnor), med `/` mot sökvägen (hakparenteser är bokstavliga, som i `K Pillar [13]`), annars delsträng i sökvägen (`Källaren` väljer allt under Källaren).
 
 ### 3D-bilder (`vy`)
 

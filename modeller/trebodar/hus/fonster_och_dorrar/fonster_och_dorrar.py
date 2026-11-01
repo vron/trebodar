@@ -1,5 +1,5 @@
-"""Fönster och dörrar, förenklade: karm runt öppningen och glas eller dörrblad. Ytterväggarnas öppningar står i
-oppningar.py; innerdörrarna har Onshape-modellens mått.
+"""Fönster och dörrar, förenklade: karm runt öppningen och glas eller dörrblad. Ytterväggarnas öppningar och
+innerdörrarna (skjutdörrar utanpå väggen, planritning 201 rev 02) står i oppningar.py.
 
 Karmen går från fasadens utsida (w −65) 149 mm in i väggen, 70 mm bred; glas 24 mm och dörrblad 40 mm i karmens
 mitt.
@@ -10,9 +10,10 @@ from modellering import Del, Montage, Placering, box
 
 from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt
+from trebodar.hus.invandigt.invandigt import SKIVOR_T
 from trebodar.material import DORRBLAD, GLAS, KARM
 
-from .oppningar import OPPNINGAR, Oppning
+from .oppningar import INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
 W0, W1 = -S.T_FASAD, -S.T_FASAD + 149.0        # karmens djup i väggen
 KARM_B = 70.0
@@ -37,31 +38,31 @@ def enhet(o: Oppning) -> Montage:
     return m
 
 
-# innerdörrar: (kod, x0, x1, y0, y1, riktning) med karmens utsträckning; dörrbladet 40 mm i väggens mitt.
-# Som i Onshape-modellen utom: ID2 börjar efter karmstolpen LD2_2 och väggen 2C, ID5 slutar före den nya stolpen
-# LN1_1 och ID6 börjar vid stolpen LD4_1 (140×140).
-INNERDORRAR = (
-    ("ID1", 3263.0, 3357.0, 7055.0, 8035.0, "y"),
-    ("ID2", 9358.0, 9452.0, 5995.0, 6872.0, "y"),
-    ("ID3", 10980.0, 11074.0, 3671.0, 4651.0, "y"),
-    ("ID4", 10980.0, 11074.0, 5562.0, 6542.0, "y"),
-    ("ID5", 10565.0, 11545.0, 2748.0, 2842.0, "x"),
-    ("ID6", 4545.0, 5617.0, 5900.0, 5995.0, "x"),
-)
+SKJUT_T, SKJUT_GLAPP, OVERLAPP = 40.0, 10.0, 30.0       # skjutdörrens blad, avståndet till väggens skikt
 
 
-def innerdorr(kod: str, x0: float, x1: float, y0: float, y1: float, langs: str) -> Montage:
-    m = Montage(kod, kod, "Innerdörr (förenklad)")
-    if langs == "y":
-        sidor = (box(x0, x0 + 20, y0, y1, 0, 2200), box(x1 - 20, x1, y0, y1, 0, 2200))
-        blad = box(0.5 * (x0 + x1) - 20, 0.5 * (x0 + x1) + 20, y0 + 37.5, y1 - 37.5, 35, 2175)
+def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
+    """Skjutdörren utanpå väggen, stängd: bladet täcker öppningen och skenan går en dörrbredd till åt det håll dörren
+    öppnas, men inte in över en annan dörr på samma sida av väggen."""
+    from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
+    v = vaggdef(d.vagg)
+    t = skiktets_tjocklek(d.vagg, d.sida, (d.u0 + d.u1) / 2)
+    yta = -t if d.sida < 0 else v.tjocklek + t                      # skiktets yta, skenan sitter på den
+    wa, wb = sorted((yta + d.sida * SKJUT_GLAPP, yta + d.sida * (SKJUT_GLAPP + SKJUT_T)))
+    sa, sb = sorted((yta, yta + d.sida * (2 * SKJUT_GLAPP + SKJUT_T)))
+    a, b = d.u0 - d.fore, d.u1 + d.efter
+    grannar = [(o.u0 - o.fore, o.u1 + o.efter) for o in INNERDORRAR if o.vagg == d.vagg and o.sida == d.sida and o != d]
+    if d.mot > 0:
+        s0, s1 = a, min([b + d.bredd] + [g0 - 10.0 for g0, _ in grannar if g0 >= b])
     else:
-        sidor = (box(x0, x1, y0, y0 + 20, 0, 2200), box(x0, x1, y1 - 20, y1, 0, 2200))
-        blad = box(x0 + 37.5, x1 - 37.5, 0.5 * (y0 + y1) - 20, 0.5 * (y0 + y1) + 20, 35, 2175)
-    for i, s in enumerate(sidor, 1):
-        m.lagg(Del(f"Dörrfoder {kod}", s, KARM), Placering(), f"{kod}-FODER{i}")
-    m.lagg(Del(f"Dörrblad {kod}", blad, DORRBLAD), Placering(), f"{kod}-BLAD")
-    return m
+        s0, s1 = max([a - d.bredd] + [g1 + 10.0 for _, g1 in grannar if g1 <= a]), b
+    s0, s1 = max(s0, min(a, SKIVOR_T + 10.0)), min(s1, max(b, v.langd - SKIVOR_T - 10.0))     # inte förbi grannväggarna
+    m = Montage(d.kod, d.kod, f"Skjutdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
+    m.lagg(Del(f"Dörrblad {fmt(b - a)}×{fmt(d.hojd + 30)}", box(a, b, wa, wb, 10.0, d.hojd + 40.0), DORRBLAD),
+           Placering(), f"{d.kod}-BLAD")
+    m.lagg(Del(f"Skena {fmt(s1 - s0)}", box(s0, s1, sa, sb, d.hojd + 40.0, d.hojd + 80.0), KARM), Placering(),
+           f"{d.kod}-SKENA")
+    return m, v.placering()
 
 
 def montage() -> Montage:
@@ -71,8 +72,8 @@ def montage() -> Montage:
         for o in lst:
             ytter.lagg(enhet(o), S.YTTERVAGGAR[kod].placering())
     m.lagg(ytter)
-    inner = Montage("Innerdörrar")
+    inner = Montage("Innerdörrar", beskrivning="Skjutdörrar (planritning 201 rev 02)")
     for d in INNERDORRAR:
-        inner.lagg(innerdorr(*d))
+        inner.lagg(*skjutdorr(d))
     m.lagg(inner)
     return m

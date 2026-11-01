@@ -12,11 +12,11 @@ DAL = S.BALKAR["DB2"].uk
 
 def montage() -> Montage:
     v = regelvagg("2C", hojd=DAL)
-    # dörröppningen börjar vid stolpen LD4_1 (140×140, stolpar.py), som står i väggens början
-    v.liggande(128, 1200, 2200)
-    v.liggande(128, 1200, 2245)
+    # efter stolpen LD4_1 (140×140, stolpar.py) i väggens början; dörren sitter före stolpen (L12, rev 02)
     v.hammarband(128, 4953)
-    v.syll(1200, 1983)
+    v.syll(128, 1983)
+    v.regel(128)
+    v.regel(664)
     v.regel(1200)
     v.regel(1938)
     v.liggande(1983, 2993, 2045)

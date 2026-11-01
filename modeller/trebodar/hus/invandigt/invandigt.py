@@ -6,10 +6,13 @@ slutar vid en dalbalk, med uppehåll vid mittstolen och öppningar för takföns
 (F-01) och gips 2 × 12,5. Den yttre gipsskivan går fri under nock- och dalbalkarna och möter grannfallets i en
 skarp linje i nocken och under dalbalkarna; ångbromsen, läkten och den inre gipsskivan slutar vid balkarna.
 Väggar, stolpar och strävor som står under innertaket går skikten runt. Ytterväggarnas insida går från bjälklaget
-upp till innertaket; gavlarnas insida följer snedtaket upp till takbalkarnas underkant. Lätta innerväggar är ännu
-inte modellerade.
+upp till innertaket; gavlarnas insida följer snedtaket upp till takbalkarnas underkant. Skivorna på väggarna: OSB 12
+och gips 13, i badrummet plywood 15, gips 12, tätskikt och kakel. Innerväggarna (de lätta väggarna och skikten på
+alla innerväggar) i vaggar.py.
 """
 from __future__ import annotations
+
+from functools import cache
 
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
@@ -208,27 +211,18 @@ def _tak(kod: str) -> Montage:
     return m
 
 
-def _hinder() -> list[tuple[Polygon, float, float]]:
-    """Delar som står mot ytterväggarnas insida: bärande innerväggar, innerväggarnas och stolparnas delar (t.ex.
-    syllarna) och dalbalkarnas ändar, som (plan, z0, z1)."""
-    ut = []
-    for v in S.INNERVAGGAR.values():
-        ox, oy = v.origo
-        ux, uy = v.u
-        wx, wy = v.w
-        t = v.tjocklek + 20.0                         # väggen och stolpar som sticker ut ur den
-        h = [(ox, oy), (ox + ux * v.langd, oy + uy * v.langd), (ox + ux * v.langd + wx * t, oy + uy * v.langd + wy * t),
-             (ox + wx * t, oy + wy * t)]
-        ut.append((Polygon(h).buffer(15.0, join_style=2), 0.0, 4000.0))
+@cache
+def _hinder() -> tuple[list[tuple[Polygon, float, float]], list[tuple[Polygon, float, float]]]:
+    """Delar som står mot ytterväggarnas insida, som (plan, z0, z1): de bärande innerväggarnas delar och skikt,
+    stolparnas delar och dalbalkarnas ändar; för skivorna också de lätta väggarnas stommar."""
+    from .vaggar import barande_skikt, stommar
+    ut = list(barande_skikt())
     for grupp, _, (x0, y0, z0, x1, y1, z1) in lagen.prefab():
         if not grupp.startswith("Ytterväggar/"):
             ut.append((box(x0, y0, x1, y1), z0, z1))
     for b in S.BALKAR.values():
         ut.append((box(b.x - S.BALK_B / 2, b.y0, b.x + S.BALK_B / 2, b.y1), b.uk, b.ok))
-    return ut
-
-
-HINDER = _hinder()
+    return ut, ut + stommar()
 
 
 def _yta(kod: str, u0: float, u1: float) -> Polygon:
@@ -302,12 +296,17 @@ def _vagg_insida(kod: str) -> Montage:
                     pl.punkt((u1, S.T_STOMME + INSIDA_VATRUM_T, 0))[:2],
                     pl.punkt((u0, S.T_STOMME + INSIDA_VATRUM_T, 0))[:2]])
     Pi = pl.invers()
-    for poly, z0, z1 in HINDER:
-        g = poly.intersection(band)
-        if g.area > 1.0:
-            us = [Pi.punkt((x, y, 0.0))[0] for x, y in g.exterior.coords]
-            hal_lista.append(box(min(us), z0, max(us), z1))
-    oppet = unary_union(hal_lista) if hal_lista else Polygon()
+
+    def oppet_mot(hinder: list[tuple[Polygon, float, float]]) -> Polygon:
+        hal = list(hal_lista)
+        for poly, z0, z1 in hinder:
+            g = poly.intersection(band)
+            if g.area > 1.0:
+                x0, y0, x1, y1 = g.bounds
+                us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]
+                hal.append(box(min(us), z0, max(us), z1))
+        return unary_union(hal) if hal else Polygon()
+    oppet, oppet_skivor = oppet_mot(_hinder()[0]), oppet_mot(_hinder()[1])
     w = S.T_STOMME
     for namn, t, typ, mat in (("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT)):
         p = Plan(kod, f"{namn} {kod}", t, material=mat)
@@ -332,7 +331,7 @@ def _vagg_insida(kod: str) -> Montage:
         ws = w
         for namn, t, typ, mat in skivor:
             p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", t, material=mat))
-            for q in P.polygoner(yta.intersection(omrade).difference(oppet)):
+            for q in P.polygoner(yta.intersection(omrade).difference(oppet_skivor)):
                 p.skiva(P.kontur(q), P.hal(q), ws, ws + t, typ, mat, f"{namn} {kod}")
             ws += t
     for p in plan.values():
@@ -351,4 +350,6 @@ def montage() -> Montage:
     for kod in S.YTTERVAGGAR:
         vagg.lagg(_vagg_insida(kod), S.YTTERVAGGAR[kod].placering())
     m.lagg(vagg)
+    from .vaggar import montage as innervaggar
+    m.lagg(innervaggar())
     return m
