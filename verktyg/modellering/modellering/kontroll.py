@@ -263,7 +263,7 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
         elif r["volym"] > TOL_NUMERISK:
             ut.skarvor.append((a, b, r["volym"]))
             kontakt[i] = kontakt[j] = True
-        elif TOL_KONTAKT < r.get("avstand", 1e9) < marginal:
+        elif TOL_KONTAKT < r.get("avstand", 1e9) < marginal - 1e-6:          # exakt 2 mm är ingen glipa
             ut.glipor.append((a, b, r["avstand"]))
         elif r.get("avstand", 1e9) <= TOL_KONTAKT:
             kontakt[i] = kontakt[j] = True                 # kant- eller punktkontakt

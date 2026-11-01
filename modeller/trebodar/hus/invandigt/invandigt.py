@@ -1,56 +1,154 @@
-"""Invändiga skikt (F-01): ångbroms (Intello Plus, åldringsbeständig plastfolie), installationsskikt 45×45 och gips
+"""Invändiga skikt (F-01): ångbroms (Intello Plus, åldringsbeständig plastfolie), installationsskikt och gips
 2 × 12,5 under takbalkarna och på ytterväggarnas insida.
 
-Innertaket följer takfallen (snedtak) från ytterväggens insida till nock- eller dalbalkens sida, med uppehåll vid
-de bärande innerväggarna och mittstolen och öppningar för takfönstren. Ytterväggarnas insida går från bjälklaget
-upp till innertaket (gavlar: följer snedtaket). Lätta innerväggar är ännu inte modellerade.
+Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
+slutar vid en dalbalk, med uppehåll vid de bärande innerväggarna och mittstolen och öppningar för takfönstren.
+Gipsen från två takfall möts i en skarp linje i nocken och under dalbalkarna: installationsskiktet under taket är
+70 mm (läkt 45×70 på högkant), så att gipsen går fri under balkarna, medan ångbromsen och läkten slutar vid
+balkarna. Stolpar och strävor som står under balkarna går genom gipsen. Ytterväggarnas insida går från bjälklaget
+upp till innertaket; gavlarnas insida följer snedtaket upp till takbalkarnas underkant. Lätta innerväggar är ännu
+inte modellerade.
 """
 from __future__ import annotations
 
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-from modellering import Montage
+from modellering import Montage, i_foraldern, omslutande
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
-from trebodar.hus.isolering.isolering import _fack
+from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
 from trebodar.material import ANGBROMS, C24, GIPS
 
-FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0
+FOLIE, LAKT, GIPS_T = 0.4, 45.0, 25.0          # ytterväggarnas insida: installationsskikt 45×45
+LAKT_TAK, LAKT_B = 70.0, 45.0                   # under taket: läkt 45×70 på högkant
 TAK_W = (-S.TAKBALK_H - FOLIE, -S.TAKBALK_H)                 # under takbalkarnas underkant
-LAKT_W = (TAK_W[0] - LAKT, TAK_W[0])
+LAKT_W = (TAK_W[0] - LAKT_TAK, TAK_W[0])
 GIPS_W = (LAKT_W[0] - GIPS_T, LAKT_W[0])
 INSIDA_T = FOLIE + LAKT + GIPS_T
 CC = 400.0
+FRI = 5.0                  # gipsens avstånd till stolpar, strävor och väggar som går genom innertaket
+
+
+def _fritt_under_balkarna() -> float:
+    """Minsta avstånd mellan innertakets gips och nock- och dalbalkarnas underkant: i nocken är gipsen högst i
+    nocklinjen, vid en dalbalk vid balkens underkant på takfallets sida."""
+    ut = []
+    for kod, f in FALT.items():
+        t = S.TAKFALL[kod]
+        for b in (S.BALKAR[k] for k in (f.nock, f.dal) if k):
+            x = b.x if b.typ == "nock" else b.x + t.riktning * S.BALK_B / 2
+            ut.append(b.uk - (t.z_overkant(x) + GIPS_W[1] / S.COS))
+    return min(ut)
+
+
+assert _fritt_under_balkarna() >= FRI, "innertakets gips går inte fri under nock- och dalbalkarna"
+
+
+def _stommen() -> list[tuple[str, tuple[float, float, float, float, float, float]]]:
+    """Ytterväggarnas, innerväggarnas och stolparnas delar som (grupp, omslutande låda i huset)."""
+    from trebodar.hus.stomme.prefab.innervaggar import innervaggar
+    from trebodar.hus.stomme.prefab.stolpar import stolpar
+    from trebodar.hus.stomme.prefab.yttervaggar import yttervaggar
+    ut = []
+    for mont in (yttervaggar.montage(), innervaggar.montage(), stolpar.montage()):
+        for vag, d, pl in mont.platta():
+            b = omslutande(d.form)
+            if b is not None:
+                ut.append((vag.rsplit("/", 1)[0], i_foraldern(b, pl)))
+    return ut
+
+
+STOMMEN = _stommen()
+
+
+def _hinder_tak(t: S.Takfall, x_lo: float, x_hi: float) -> list[tuple[float, float, float, float, bool]]:
+    """Väggar och stolpar som når upp till innertaket i takfallet (mellan x_lo och x_hi), som (x0, x1, y0, y1,
+    stolpe) per grupp: delar som går över gipsens underkant där innertaket är lägst ovanför dem. Takfotsväggen
+    räknas inte (innertaket går över den)."""
+    lador: dict[str, list[float]] = {}
+    for grupp, (x0, y0, _, x1, y1, z1) in STOMMEN:
+        if grupp.endswith(f"Vägg {t.kod}") or not (x0 < x_hi and x_lo < x1):
+            continue
+        x = max(x0, x_lo) if t.riktning > 0 else min(x1, x_hi)           # där innertaket är lägst över delen
+        if z1 <= t.z_overkant(x) + GIPS_W[0] / S.COS + 1.0:
+            continue
+        g = lador.setdefault(grupp, [x0, x1, y0, y1])
+        g[:] = [min(g[0], x0), max(g[1], x1), min(g[2], y0), max(g[3], y1)]
+    return [(g[0], g[1], g[2], g[3], "/Stolpe " in f"/{k}") for k, g in lador.items()]
+
+
+def _med_fri(hinder: list[tuple[float, float, float, float, bool]]) -> list[tuple[float, float, float, float]]:
+    """Hindren med gipsens avstånd: FRI längs x, för stolpar också längs y."""
+    return [(x0 - FRI, x1 + FRI, y0 - (FRI if st else 0.0), y1 + (FRI if st else 0.0)) for x0, x1, y0, y1, st in hinder]
+
+
+def _utan_hinder(k0: L.Kant, k1: L.Kant, s0: float, s1: float,
+                 hinder: list[tuple[float, float, float, float]]) -> list[tuple[float, float, L.Kant, L.Kant]]:
+    """Skiktets bitar mellan kanterna och y = s0 … s1 utanför hindren (x0, x1, y0, y1): (y0, y1, kant, kant)."""
+    kl, kh = sorted((k0, k1), key=lambda k: k.x)
+    ys = sorted({s0, s1} | {y for x0, x1, y0, y1 in hinder for y in (y0, y1) if s0 < y < s1 and x0 < kh.x and kl.x < x1})
+    ut = []
+    for a, b in zip(ys, ys[1:]):
+        intervall = [(kl.x, kh.x)]
+        for x0, x1, y0, y1 in hinder:
+            if y0 < b and a < y1:
+                intervall = [d for xa, xb in intervall for d in ((xa, min(xb, x0)), (max(xa, x1), xb))
+                             if d[1] - d[0] > 1.0]
+        for xa, xb in intervall:
+            ut.append((a, b, kl if xa == kl.x else L.Kant("lodratt", xa), kh if xb == kh.x else L.Kant("lodratt", xb)))
+    return ut
+
+
+def _strackor(kod: str) -> list[list[float]]:
+    """Innertakets sträckor i y mellan gavlarnas insidor: facken ihopslagna över takbalkar och innerväggar (där
+    väggarna står går skikten runt dem), men inte över mittstolen 2C (takstol med toppklossar)."""
+    t = S.TAKFALL[kod]
+    band = sorted([(y, y + S.TAKBALK_B) for y in FALT[kod].y] +
+                  [(v.origo[1], v.origo[1] + v.tjocklek) for k, v in S.INNERVAGGAR.items()
+                   if int(k[0]) == t.kropp and abs(v.u[0]) > 0.5 and k not in TAKSTOLSVAGGAR])
+    tackt: list[list[float]] = []
+    for a, b in band:
+        if tackt and a <= tackt[-1][1] + 1e-6:
+            tackt[-1][1] = max(tackt[-1][1], b)
+        else:
+            tackt.append([a, b])
+    ut: list[list[float]] = []
+    for y0, y1 in _fack(kod):
+        if ut and (y0 - ut[-1][1] <= S.TAKBALK_B + 1e-6 or
+                   any(a <= ut[-1][1] + 1e-6 and y0 <= b + 1e-6 for a, b in tackt)):
+            ut[-1][1] = y1
+        else:
+            ut.append([y0, y1])
+    # vid gavlarna slutar innertaket vid gavelväggens insida (ångbroms, läkt och gips)
+    if ut:
+        ut[0][0] += INSIDA_T
+        ut[-1][1] -= INSIDA_T
+    return ut
 
 
 def _tak(kod: str) -> Montage:
     t = S.TAKFALL[kod]
     f = FALT[kod]
-    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna")
-    ovre = L.Kant("lodratt", _sida(f.nock, t) - t.riktning * 10.0)      # 10 mm från nockbalken (huvudstolpen)
+    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 70 och gips 2 × 12,5 under takbalkarna")
+    # ångbromsen och läkten slutar 10 mm från nockbalken och vid dalbalkens upplagsregel; gipsen går till nocklinjen
+    # och dallinjen, där den möter gipsen från grannfallet
+    ovre = L.Kant("lodratt", _sida(f.nock, t) - t.riktning * 10.0)
+    ovre_g = L.Kant("lodratt", S.BALKAR[f.nock].x)
     dal = S.BALKAR[f.dal] if f.dal else None
-    # sammanhängande sträckor i y (facken utan takbalkarnas uppdelning)
-    strackor: list[list[float]] = []
-    for y0, y1 in _fack(kod):
-        if strackor and abs(strackor[-1][1] - y0) <= 45.0 + 1e-6:
-            strackor[-1][1] = y1
-        else:
-            strackor.append([y0, y1])
-    # vid gavlarna slutar innertaket vid gavelväggens insida (ångbroms, läkt och gips)
-    if strackor:
-        strackor[0][0] += INSIDA_T
-        strackor[-1][1] -= INSIDA_T
+    hinder = _hinder_tak(t, *sorted((min(t.x_insida, dal.x) if dal and t.riktning > 0 else
+                                     max(t.x_insida, dal.x) if dal else t.x_insida, ovre_g.x)))
+    hinder_s = [h[:4] for h in hinder]                     # ångbroms och läkt: mot hindren
+    hinder_g = _med_fri(hinder)                            # gips: med avstånd
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
-             "lakt": Plan(kod, f"Installationsskikt tak {kod}", 45.0, material=C24),
+             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT_TAK, material=C24),
              "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
-    for y0, y1 in strackor:
-        ym = 0.5 * (y0 + y1)
+    for y0, y1 in _strackor(kod):
         delar = [(y0, y1)]
         if dal and y0 < dal.y0 < y1:
             delar = [(y0, dal.y0), (dal.y0, y1)]
@@ -58,23 +156,27 @@ def _tak(kod: str) -> Montage:
             delar = [d for a, b in delar for d in (((a, dal.y1), (dal.y1, b)) if a < dal.y1 < b else ((a, b),))]
         for a, b in delar:
             ym = 0.5 * (a + b)
-            # vid dalbalken börjar innertaket vid upplagsregelns yttre sida
-            nedre = L.Kant("lodratt", _sida(dal.kod, t) + t.riktning * 45.0 if dal and dal.y0 <= ym <= dal.y1
-                           else t.x_insida)
+            vid_dal = dal is not None and dal.y0 <= ym <= dal.y1
+            nedre = L.Kant("lodratt", _sida(dal.kod, t) + t.riktning * 45.0 if dal and vid_dal else t.x_insida)
+            nedre_g = L.Kant("lodratt", dal.x) if dal and vid_dal else nedre
             # fönsteröppningar: skikten skärs vinkelrätt vid öppningens kanter
-            snitt = [(a, b, nedre, ovre)]
+            snitt = [(a, b, (nedre, ovre), (nedre_g, ovre_g))]
             for fo in f.fonster:
                 if a < fo.y0 and fo.y1 < b:
                     kn = L.Kant("vinkelrat", fo.x_ned)
                     ku = L.Kant("vinkelrat", fo.x_upp)
-                    snitt = [(a, fo.y0, nedre, ovre), (fo.y0, fo.y1, nedre, kn), (fo.y0, fo.y1, ku, ovre),
-                             (fo.y1, b, nedre, ovre)]
-            for s0, s1, k0, k1 in snitt:
-                for namn, w, typ in (("folie", TAK_W, "AB"), ("gips", GIPS_W, "GI")):
-                    q = L.profil(t, *w, k0, k1)
+                    snitt = [(a, fo.y0, (nedre, ovre), (nedre_g, ovre_g)), (fo.y0, fo.y1, (nedre, kn), (nedre_g, kn)),
+                             (fo.y0, fo.y1, (ku, ovre), (ku, ovre_g)), (fo.y1, b, (nedre, ovre), (nedre_g, ovre_g))]
+            for s0, s1, (k0, k1), (g0, g1) in snitt:
+                for sa, sb, ka, kb in _utan_hinder(k0, k1, s0, s1, hinder_s):
+                    q = L.profil(t, *TAK_W, ka, kb)
                     if q:
-                        lager[namn].profil(q, s0, s1, typ=typ, material=ANGBROMS if namn == "folie" else GIPS)
-                # installationsskiktets läkt längs y, c/c 400 längs takfallet
+                        lager["folie"].profil(q, sa, sb, typ="AB", material=ANGBROMS)
+                for sa, sb, ga, gb in _utan_hinder(g0, g1, s0, s1, hinder_g):
+                    q = L.profil(t, *GIPS_W, ga, gb)
+                    if q:
+                        lager["gips"].profil(q, sa, sb, typ="GI", material=GIPS)
+                # installationsskiktets läkt längs y, c/c 400 längs takfallet, avbruten vid hindren
                 q = L.profil(t, *LAKT_W, k0, k1)
                 if not q:
                     continue
@@ -83,17 +185,25 @@ def _tak(kod: str) -> Montage:
                 langd = (x_hi - x_lo) / S.COS
                 n = int(langd // CC)
                 for i in range(n + 1):
-                    s = min(i * CC, langd - LAKT)
+                    s = min(i * CC, langd - LAKT_B)
                     # läktens läge: s mm upp längs planet från den nedre kanten
                     x_start = x_lo if t.riktning > 0 else x_hi
                     xa = x_start + t.riktning * s * S.COS
-                    xb = x_start + t.riktning * (s + LAKT) * S.COS
+                    xb = x_start + t.riktning * (s + LAKT_B) * S.COS
                     pl = L.profil(t, *LAKT_W, L.Kant("vinkelrat", min(xa, xb)), L.Kant("vinkelrat", max(xa, xb)))
-                    if pl:
-                        lp = Polygon(pl).intersection(ys)
-                        if lp.area > 100:
-                            lager["lakt"].profil([(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], s0,
-                                                 s1, typ="IL", material=C24)
+                    if not pl:
+                        continue
+                    lp = Polygon(pl).intersection(ys)
+                    if lp.area <= 100:
+                        continue
+                    bx0, bx1 = lp.bounds[0], lp.bounds[2]
+                    bitar = [(s0, s1)]
+                    for hx0, hx1, hy0, hy1 in hinder_s:
+                        if hx0 < bx1 and bx0 < hx1:
+                            bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e)) if d[1] - d[0] > 1.0]
+                    for c, e in bitar:
+                        lager["lakt"].profil([(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e,
+                                             typ="IL", material=C24)
     for p in lager.values():
         if p.bitar:
             m.lagg(p.montage())
@@ -125,6 +235,22 @@ def _hinder() -> list[tuple[Polygon, float, float]]:
 HINDER = _hinder()
 
 
+def _yta(kod: str, u0: float, u1: float) -> Polygon:
+    """Ytterväggens insida i väggens (u, z): vid takfoten upp till innertakets gips (vid stommens insida), på
+    gavlarna längs snedtaket upp till takbalkarnas underkant (innertaket slutar mot gavelns insida)."""
+    v = S.YTTERVAGGAR[kod]
+    if kod in S.TAKFALL:
+        t = S.TAKFALL[kod]
+        return box(u0, 0.0, u1, t.z_overkant(t.x_insida) + GIPS_W[0] / S.COS)
+    fall = [t for t in S.TAKFALL.values() if t.kropp == int(kod[0])]
+
+    def z(u: float) -> float:
+        return min(t.z_underkant(v.origo[0] + v.u[0] * u) for t in fall)
+    nock = (S.HUSKROPPAR[int(kod[0])].nock - v.origo[0]) * v.u[0]
+    us = sorted({u0, u1} | ({nock} if u0 < nock < u1 else set()))
+    return Polygon([(u0, 0.0), (u1, 0.0)] + [(u, z(u)) for u in reversed(us)])
+
+
 def _vagg_insida(kod: str) -> Montage:
     """Ytterväggens insida: ångbroms, liggande installationsläkt 45×45 c/c 600, gips 2 × 12,5."""
     v = S.YTTERVAGGAR[kod]
@@ -132,10 +258,10 @@ def _vagg_insida(kod: str) -> Montage:
     # från grannväggarnas insidor: u från T_STOMME till langd − T_STOMME där väggen möter en annan vägg i hörnen
     # långsidorna står mellan gavlarna och går ut i hörnen; gavlarnas insida börjar vid långsidornas insida
     u0, u1 = S.T_STOMME + INSIDA_T, v.langd - S.T_STOMME - INSIDA_T
-    if kod in ("1NV", "2SO", "2NV", "3SO", "1SO", "3NV"):
+    if kod in S.TAKFALL:
         u0, u1 = 0.0, v.langd
-    topp = S.H_VAGG - 75.0
-    yta = box(u0, 0.0, u1, topp)
+    yta = _yta(kod, u0, u1)
+    topp = yta.bounds[3]
     hal_lista = [box(o.u0, o.z0, o.u1, o.z1) for o in OPPNINGAR.get(kod, [])]
     # delar som står mot väggens insida: deras utbredning i u och z tas bort
     pl = v.placering()
@@ -153,10 +279,11 @@ def _vagg_insida(kod: str) -> Montage:
                               ("Gips", GIPS_T, "GI", GIPS)):
         p = Plan(kod, f"{namn} {kod}", t, material=mat)
         if namn == "Installationsskikt":
-            rader = [0.0, topp - LAKT]
+            # liggande läkt c/c 600 och överst i väggen (på gavlarna upp till snedtaket)
+            rader = [0.0] + ([topp - LAKT] if kod in S.TAKFALL else [])
             rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1)) if all(abs(z - r) >= LAKT for r in rader)]
             for z in sorted(rader):
-                for q in P.polygoner(box(u0, z, u1, min(z + LAKT, topp)).difference(oppet), 45 * 100):
+                for q in P.polygoner(box(u0, z, u1, z + LAKT).intersection(yta).difference(oppet), 45 * 100):
                     p.profil(P.kontur(q), w, w + t, typ=typ, material=mat)
         else:
             for q in P.polygoner(yta.difference(oppet)):

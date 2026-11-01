@@ -16,6 +16,8 @@ VYER = {
                     "inne": True},
     "inne-vanster": {"kamera": [1000, 15000, 1600], "mal": [2600, 9000, 2200], "brannvidd": 18, "sol": [240, 25],
                      "inne": True},
+    "inne-dal": {"kamera": [7600, 9300, 1500], "mal": [4400, 7600, 2350], "brannvidd": 20, "sol": [200, 30],
+                 "inne": True},
 }
 
 # delar som inte tas med i webbvisaren (stora nät)
