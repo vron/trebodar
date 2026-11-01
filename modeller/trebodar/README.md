@@ -111,7 +111,7 @@ Trebodar
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      ytterväggarnas fönster och dörrar, innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
-    ├── Trappa                  trätrappan till källaren (K-05)
+    ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
@@ -191,6 +191,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
   dränerande fyllning i ett schakt i berget 100 mm utanför plattan. Marken mot källarväggarna upp till K-06:s
   fyllnadshöjder.
+- **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
+  (K-05 räknar med en 3,0 m lång trappa).
 - **Kaminen** enligt planritning 201 och Rais ritning 11-0000-6550: insatsen i öppningen i 2C mot allrummet, kroppen i
   en kåpa av kalciumsilikat (de lätta väggarna L7, L13 och L14) och väggarna runt trapphålet (L6, L7); underkanten
   450 över golvet, skorstenen 800 mm över nocken (antaget).

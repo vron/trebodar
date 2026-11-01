@@ -1,19 +1,21 @@
-"""Trappan till källaren (K-05: 3,0 m lång, 0,83 m bred, i trapphålet): rak trätrappa av furu från källarens golv
-(bottenplattan) upp till plan 1 vid väggen 2B, där skjutdörren ID2 sitter.
+"""Trappan till källaren, i trapphålet: brant rak trätrappa av furu från källarens golv (bottenplattan) upp till
+plan 1 vid väggen 2B, där skjutdörren ID2 sitter. Den ryms i hålet, så att den fria höjden över den är hela
+våningshöjden: vangstyckena står på golvet med framkanten i hålets västra kant och hänger i överkant mot den östra.
 
-Två vangstycken 45×270 vid trapphålets långsidor och 12 steg 38 mm med öppna sättsteg mellan dem: 13 steghöjder à
-2 250 / 13 och stegdjupet 3 000 / 12 = 250, stegen 20 mm framför sättstegets linje. Vangstyckena står på golvet och
-hänger i överkant mot trapphålets kant.
+Två vangstycken 45×270 vid trapphålets långsidor och 10 steg 38 mm med öppna sättsteg mellan dem: 11 steghöjder à
+2 250 / 11 = 204,5 och stegdjupet (2 070 − 50) / 10 = 202 (lutning 45°, 2h + g = 611), stegen 20 mm framför
+sättstegets linje och vangstyckenas framkant 50 mm före det nedersta.
 """
 from __future__ import annotations
 
 from modellering import Del, Montage, Placering, box, prisma
 
 from trebodar import skelett as S
+from trebodar.byggdelar.virke import fmt
 from trebodar.material import FURU
 
-LANGD = 3000.0                    # K-05
-N_STEG = 13                       # steghöjder
+N_STEG = 11                       # steghöjder
+FOT = 50.0                        # vangstyckets framkant före nedersta sättsteget
 VANG_T, VANG_H = 45.0, 270.0      # vangstyckena, höjd vinkelrätt mot lutningen
 STEG_T, NOS = 38.0, 20.0          # stegens tjocklek och nos
 OVER = 70.0                       # vangstyckets överkant ovanför steglinjen (lodrätt)
@@ -23,18 +25,19 @@ X1, Y1 = S.TRAPPHAL[2]
 
 
 def montage() -> Montage:
-    m = Montage("Trappa", beskrivning="Rak trätrappa av furu till källaren, 3,0 × 0,83 m (K-05)")
+    m = Montage("Trappa", beskrivning="Brant rak trätrappa av furu till källaren, i trapphålet "
+                                      f"{fmt(X1 - X0)} × {fmt(Y1 - Y0)}")
     hojd = -S.Z_BOTTENPLATTA                          # golv till golv
-    h, g = hojd / N_STEG, LANGD / (N_STEG - 1)        # steghöjd och stegdjup
-    xb = X1 - LANGD                                   # nedersta sättsteget
+    xb = X0 + FOT                                     # nedersta sättsteget
+    h, g = hojd / N_STEG, (X1 - xb) / (N_STEG - 1)    # steghöjd och stegdjup
     lutning = h / g
     dz = VANG_H * (1 + lutning ** 2) ** 0.5           # vangstyckets höjd i lodled
 
     def steglinje(x: float) -> float:
         return S.Z_BOTTENPLATTA + h + (x - xb) * lutning
 
-    # vangstycket i (x, z): framkant 50 mm före nedersta sättsteget, golvet, trapphålets kant och plan 1:s golv
-    xf = xb - 50.0
+    # vangstycket i (x, z): framkanten i trapphålets västra kant, golvet, hålets östra kant och plan 1:s golv
+    xf = X0
     x_golv = xb + (dz - OVER - h) / lutning           # där underkanten når golvet
     x_topp = xb + (-S.Z_BOTTENPLATTA - h - OVER) / lutning
     profil = [(xf, S.Z_BOTTENPLATTA), (x_golv, S.Z_BOTTENPLATTA), (X1, steglinje(X1) + OVER - dz), (X1, 0.0),

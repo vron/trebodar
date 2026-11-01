@@ -22,21 +22,20 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    makadamens underkant −650), R-05 och R-03, och K-05 och R-06: betongen slutar vid L-elementens rygg, 70 mm
    innanför konturen vid de fria kanterna.
 4. **U-03:** texten hänvisar till modell-todo punkt 7, som är gjord.
+5. **K-05:s trappa:** modellens trappa är brant (45°, 11 steghöjder à 204,5, stegdjup 202) och ryms i trapphålet,
+   2,07 × 0,83 m; `laster.TRAPPA` räknar med 3,0 m (på säkra sidan).
 
 ## Kontrollera och bestäm
 
-5. **Marken mot K-06.** K-06:s fyllnadshöjder ligger över Onshape-modellens mark vid V7 och V18 (sovrumsavsatsen,
+6. **Marken mot K-06.** K-06:s fyllnadshöjder ligger över Onshape-modellens mark vid V7 och V18 (sovrumsavsatsen,
    överkant −742; K-06 −250) och V21 (uppfyllnaden −807 … −670); modellen följer K-06 inom 1,5 m från väggarna. På höger
    huskropp täcker K-06:s fyllning fasadstenen (AR-01, från z −2 150) vid V1 (fyllning till −450), V9 (−2 250 … −1 450)
    och V14 (−1 450 … −450). Bestäm marknivåerna där (och AR-01:s utbredning eller K-06:s fyllnadshöjder).
-7. **Trappans fria höjd.** Med K-05:s trapphål (2,07 m långt) och trappa (3,0 m, 13 steg) är det vid hålets västra
-   kant (x 7 348) omkring 1,3 m från steglinjen upp till bjälklagets underkant; BBR kräver 2,0 m. Förläng trapphålet
-   (K-05, R-06) eller ändra trappan.
-8. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
+7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
 
 ## Saknas i modellen
 
-9. **Takutsprång.** Planritning 201 visar takutstick 100 runt hela huset. I modellen slutar takets skikt i gavlarnas
+8. **Takutsprång.** Planritning 201 visar takutstick 100 runt hela huset. I modellen slutar takets skikt i gavlarnas
    fasadliv och vid takfoten vid takbalkarnas ände, 70 mm utanför fasaden. Vindskivor, vindskivebeslag,
    takfotsplåtar och hängrännor saknas; detaljen behöver bestämmas.
