@@ -13,8 +13,8 @@ NOCK = S.BALKAR["NB5"].uk
 def montage() -> Montage:
     v = regelvagg("1D", hojd=NOCK)
     v.syll(0, 1898, w0=12.5, w1=82.5)
-    v.regel(1898, z0=0, z1=NOCK)
-    v.regel(1943, z0=0, z1=NOCK)
-    v.regel(1988, z0=0, z1=NOCK)
-    v.regel(2033, z0=0, z1=NOCK)
+    v.regel(1898, z0=0, z1=NOCK, namn="LN5_2-1")
+    v.regel(1943, z0=0, z1=NOCK, namn="LN5_2-2")
+    v.regel(1988, z0=0, z1=NOCK, namn="LN5_2-3")
+    v.regel(2033, z0=0, z1=NOCK, namn="LN5_2-4")
     return v.montage()

@@ -43,7 +43,7 @@ def profil(t: S.Takfall, w0: float, w1: float, a: Kant, b: Kant) -> list[tuple[f
         return None
     if q.geom_type != "Polygon":
         q = max(q.geoms, key=lambda g: g.area)
-    return [(round(x, 6), round(z, 6)) for x, z in list(q.exterior.coords)[:-1]]
+    return [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
 
 
 def langs(t: S.Takfall, x: float, ds: float) -> float:

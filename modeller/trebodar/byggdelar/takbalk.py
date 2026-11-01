@@ -78,7 +78,7 @@ def profil(t: S.Takfall, a: Ande, b: Ande) -> list[tuple[float, float]]:
             raise ValueError(e.typ)
     if q.geom_type != "Polygon":
         q = max(q.geoms, key=lambda g: g.area)
-    return [(round(x, 6), round(z, 6)) for x, z in list(q.exterior.coords)[:-1]]
+    return [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
 
 
 def avvaxling(t: S.Takfall, x_kant: float, nedanfor: bool) -> list[tuple[float, float]]:
@@ -94,7 +94,7 @@ def avvaxling(t: S.Takfall, x_kant: float, nedanfor: bool) -> list[tuple[float, 
     nx, nz = -t.riktning * S.SIN, S.COS
     C = (B[0] - nx * S.TAKBALK_H, B[1] - nz * S.TAKBALK_H)
     D = (A[0] - nx * S.TAKBALK_H, A[1] - nz * S.TAKBALK_H)
-    return [(round(x, 6), round(z, 6)) for x, z in (A, B, C, D)]
+    return [(float(x), float(z)) for x, z in (A, B, C, D)]
 
 
 def langs_planet(t: S.Takfall, x: float, ds: float) -> float:

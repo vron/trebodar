@@ -75,7 +75,7 @@ def tak(kod: str) -> Montage:
                 continue
             poly = Polygon(q).intersection(box(-1e5, S.H_VAGG, 1e5, 1e5))
             if poly.area > 100:
-                p.profil([(round(x, 6), round(z, 6)) for x, z in list(poly.exterior.coords)[:-1]], a0, a1, typ="TI",
+                p.profil([(float(x), float(z)) for x, z in list(poly.exterior.coords)[:-1]], a0, a1, typ="TI",
                          material=TRAFIBER)
     return p.montage()
 

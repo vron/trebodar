@@ -75,22 +75,38 @@ class Takstol(Plan):
         b = S.BALKAR[self.balk]
         return (b.x - v.origo[0]) * v.u[0] if abs(v.u[0]) > 0.5 else 0.0
 
+    def _snappa(self, pts: Sequence[Sequence[float]]) -> list[tuple[float, float]]:
+        """Hörn inom 0,01 mm från ett takplan läggs exakt i planet (Onshape-modellens tal har fyra decimaler)."""
+        v = S.VAGGAR[self.kod if self.kod in S.VAGGAR else "2C"]
+        kropp = next(k.nr for k in S.HUSKROPPAR.values() if abs(k.nock - S.BALKAR[self.balk].x) < 1)
+        plan = [t for t in S.TAKFALL.values() if t.kropp == kropp]
+        ut = []
+        for u, z in pts:
+            x = v.origo[0] + v.u[0] * u
+            for t in plan:
+                for dz in (0.0, -95.0 / S.COS):            # takplanet och ytterbalkens (45×95) underkant
+                    zp = t.z_overkant(x) + dz
+                    if abs(z - zp) < 0.01:
+                        z = zp
+            ut.append((float(u), float(z)))
+        return ut
+
     def diagonal(self, pts: Sequence[Sequence[float]], w0: float, w1: float) -> Takstol:
-        q = Polygon(_lyft(pts, S.TAKLYFT))
+        q = Polygon(self._snappa(_lyft(pts, S.TAKLYFT)))
         uk = S.BALKAR[self.balk].uk
         q = q.difference(box(-1e5, uk, 1e5, 1e5))
-        self.diagonaler.append(([(round(x, 6), round(z, 6)) for x, z in list(q.exterior.coords)[:-1]], w0, w1))
+        self.diagonaler.append(([(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]], w0, w1))
         self.profil(self.diagonaler[-1][0], w0, w1, typ="D")
         return self
 
     def sned(self, pts: Sequence[Sequence[float]], w0: float, w1: float, typ: str = "X") -> Takstol:
         """Sned del under taket (ytterbalk ovanpå diagonalen m.m.): lyfts med takplanet och kapas vid balken."""
-        q = Polygon(_lyft(pts, S.TAKLYFT))
+        q = Polygon(self._snappa(_lyft(pts, S.TAKLYFT)))
         uc, uk = self._balk_u(), S.BALKAR[self.balk].uk
         q = q.difference(box(uc - S.BALK_B / 2 - 3, uk, uc + S.BALK_B / 2 + 3, 1e5))
         if q.geom_type != "Polygon":
             q = max(q.geoms, key=lambda g: g.area)
-        p = [(round(x, 6), round(z, 6)) for x, z in list(q.exterior.coords)[:-1]]
+        p = [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
         self.ovriga.append((Polygon(p), w0, w1))
         self.profil(p, w0, w1, typ=typ)
         return self
@@ -136,7 +152,7 @@ class Takstol(Plan):
             if k.geom_type != "Polygon":
                 k = max(k.geoms, key=lambda g: g.area) if hasattr(k, "geoms") and k.geoms else k
             if k.geom_type == "Polygon" and k.area > 1000:
-                self.profil([(round(x, 6), round(z, 6)) for x, z in list(k.exterior.coords)[:-1]], a, b, typ="K")
+                self.profil([(float(x), float(z)) for x, z in list(k.exterior.coords)[:-1]], a, b, typ="K")
         # spikplåtar: 2 mm utanpå; toppens plåtar tas bort där klossarna sitter
         klossytor = {round(a if a >= w1 else b, 6) for a, b in sidor}
         for u0, u1, z0, z1, w, _, minus in self.plattor:

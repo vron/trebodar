@@ -25,7 +25,8 @@ from .placering import Placering
 
 KONTROLL_VERSION = 2
 TOL_KONTAKT = 0.01          # ytor närmare än så räknas som anliggande [mm]
-TOL_KROCK = 1.0             # gemensam volym över detta är en krock [mm³]
+TOL_KROCK = 5.0             # gemensam volym över detta är en krock [mm³]
+TOL_NUMERISK = 0.01         # 0,01–5 mm³: numeriska skärvor (t.ex. mot krökta ytor), redovisas för sig
 GLIPA = 2.0                 # avstånd under detta (men över TOL_KONTAKT) redovisas som glipa [mm]
 
 
@@ -38,6 +39,7 @@ class Resultat:
     glipor: list[tuple[str, str, float]] = field(default_factory=list)        # (a, b, avstånd mm)
     fria: list[str] = field(default_factory=list)                             # delar utan kontakt
     tillatna: list[tuple[str, str, float, str]] = field(default_factory=list)  # (a, b, volym, motivering)
+    skarvor: list[tuple[str, str, float]] = field(default_factory=list)        # numeriska skärvor
     sekunder: float = 0.0
     nya_par: int = 0
 
@@ -254,6 +256,11 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             kontakt[i] = kontakt[j] = True
         elif r.get("area", 0.0) > 0.5:
             ut.kontakter.append((a, b, r["area"]))
+            if r["volym"] > TOL_NUMERISK:
+                ut.skarvor.append((a, b, r["volym"]))
+            kontakt[i] = kontakt[j] = True
+        elif r["volym"] > TOL_NUMERISK:
+            ut.skarvor.append((a, b, r["volym"]))
             kontakt[i] = kontakt[j] = True
         elif TOL_KONTAKT < r.get("avstand", 1e9) < marginal:
             ut.glipor.append((a, b, r["avstand"]))
@@ -278,6 +285,8 @@ def rapport(r: Resultat, fil: Path | None = None) -> str:
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³" for a, b, v in sorted(r.krockar, key=lambda x: -x[2])]
     rader += ["", f"## Tillåtna överlapp ({len(r.tillatna)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³ ({m})" for a, b, v, m in r.tillatna]
+    rader += ["", f"## Numeriska skärvor 0,01–5 mm³ ({len(r.skarvor)})", ""]
+    rader += [f"- `{a}` och `{b}`: {v:.2f} mm³" for a, b, v in r.skarvor]
     rader += ["", f"## Glipor 0,01–2 mm ({len(r.glipor)})", ""]
     rader += [f"- `{a}` och `{b}`: {d:.3f} mm" for a, b, d in sorted(r.glipor, key=lambda x: x[2])]
     rader += ["", f"## Delar utan kontakt med andra ({len(r.fria)})", ""]

@@ -129,6 +129,7 @@ def main(argv: list[str] | None = None) -> None:
         ogiltiga = [d.namn for d in {id(d): d for _, d, _ in rot.platta()}.values()
                     if not karna.egenskaper(d.form).giltig]
         print(f"  {r.par} par ({r.nya_par} nya), {len(r.krockar)} krockar, {len(r.tillatna)} tillåtna överlapp, "
+              f"{len(r.skarvor)} numeriska skärvor < 5 mm³, "
               f"{len(r.glipor)} glipor, "
               f"{len(r.kontakter)} kontakter, {len(r.fria)} delar utan kontakt, {len(ogiltiga)} ogiltiga former "
               f"({r.sekunder:.1f} s) -> {fil}")

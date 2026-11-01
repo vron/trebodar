@@ -5,9 +5,11 @@ Koordinater som i K-05 (mm): x och y från skärningen mellan mellanbjälklagets
 from modellering import Montage
 
 from .hus import hus
+from .mark import mark
 
 
 def montage() -> Montage:
     m = Montage("Trebodar", beskrivning="Fritidshus Trebodar, Resö, Tanum")
+    m.lagg(mark.montage())
     m.lagg(hus.montage())
     return m
