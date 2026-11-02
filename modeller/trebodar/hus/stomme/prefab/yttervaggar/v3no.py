@@ -1,4 +1,5 @@
-"""Yttervägg 3NO: högra huskroppens gavel mot NO.
+"""Yttervägg 3NO: högra huskroppens gavel mot NO. Hammarbandet och regelstyckena intill dalbalk 2:s ände går fram
+till balkens sida (Onshape-modellen hade 8 mm spel, för HEA 200).
 
 Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["3NO"]): u från (9245; 970) i växande x, w genom väggen inåt från stommens utsida, z uppåt från bjälklagets överkant.
 """
@@ -16,10 +17,10 @@ def montage() -> Montage:
     v.regel(0, z1=DAL - 45)
     v.liggande(0, 695, DAL - 45)
     v.regel(95, z1=DAL - 45, namn="LA3")
-    v.liggande(263, 308, DAL, h=41.0769)
-    v.hammarband(263, 4595)
+    v.liggande(255, 300, DAL, h=41.0769)
+    v.hammarband(255, 4595)
     v.regel(285, z1=DAL - 45)
-    v.liggande(308, 353, DAL, h=41.0769)
+    v.liggande(300, 345, DAL, h=41.0769)
     v.regel(695)
     v.regel(950)
     v.liggande(995, 1595, 2100)

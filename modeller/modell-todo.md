@@ -11,8 +11,10 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
 1. **K-01 med modellens stolplägen under nockbalk 1** (stöd B, C och D: LN1_1 y 2 795, LN1_2 4 686 och huvudstolpen
    6 602 i stället för 2 870, 4 770 och 6 670), sedan K-05:s `laster.py` och följande.
 2. **K-03:s `geometri.json` efter modellen** (`kontroll_k03.py` redovisar skillnaderna): takets lyft 10 mm,
-   takstolarnas diagonaler till balkens underkant och 2NO med 7 stavar, stolparna LN1_1 (ny), LD2_1, LD2_2 och LD4_2,
-   reglarna 45–2 445, huvudstolpen med strävor på båda sidor och dalbalkarnas överkant i takplanens skärning (U-03).
+   takstolarnas diagonaler till balkens underkant, delarna fram till balkarnas sidor (balken 190 bred;
+   Onshape-modellens takstolar var gjorda för HEA 200) och 2NO med 7 stavar, stolparna LN1_1 (ny), LD2_1, LD2_2 och
+   LD4_2, reglarna 45–2 445, huvudstolpen med strävor på båda sidor och dalbalkarnas överkant i takplanens skärning
+   (U-03).
    K-05:s `laster.STOLPLAGEN` för LD4_2: 4 438 → 4 392. Toppklossarna: en kloss per takstol, på gavelstolarnas insida
    och på mittstolen 2C:s nordöstra sida (på den sydvästra skulle den gå ut genom gipsen), så att balken vilar på 90 mm.
    Gavelstolarna klarar det med K-03:s kontroll (högst 63 %, 3SV); 2C (36,7 kN) ger 109 % med K-03:s förenklade
@@ -48,3 +50,10 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    (2C, x 4 417–5 617) genom LD4_1 (dalbalk 4 stöd B). De är skjutdörrar utanpå väggen tills det är bestämt. Möjligt:
    ID5 565 mm längre västerut (öppningen x 9 485–10 335, fickan till x 11 315, före LN1_1); ID2 med fickan mot söder
    och LD2_1 flyttad till fickans ände (y ≈ 4 030; K-03, K-05); ID6 bara om LD4_1 flyttas.
+10. **Stolparna LN3_1 och LN5_2 står till hälften utanför balken.** Stolparna (fyra reglar 45×95 i änden av väggarna
+   2A och 1D) står med 83 av 180 mm under nockbalk 3 respektive 5, som i Onshape-modellen: väggarna slutar 12 mm före
+   balkens mittlinje (2A vid x 6 917, balken x 6 810–7 000; 1D vid x 2 143, balken x 2 060–2 250). K-03 räknar med att
+   alla fyra reglarna bär (65 % och 82 %), men balken vilar bara på de två närmast väggen. Förslag: förläng väggarna
+   102 mm (2A till x 6 815, 1D till x 2 245) så att stolparna står mitt under balkarna; K-03:s `geometri.json` och
+   K-05:s `laster.STOLPLAGEN` (LN3_1 x 7 007 → 6 905, LN5_2 x 2 053 → 2 155) följer med. Annars räknar K-03 stolparna
+   med två reglar och excentrisk last.

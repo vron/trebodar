@@ -8,6 +8,9 @@ Profilerna är takstolens delar som i Onshape-modellen. Reglerna här ger de än
 - diagonalernas topp kapas plant i balkens underkant, och toppklossar 45 mm, lika höga som diagonalerna och 600 mm
   långa, skruvas på sidan av toppen: gavelstolarna har en kloss på insidan (utsidan är fasad) och mittstolen 2C en på
   den nordöstra sidan, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom väggens gips);
+- delarnas ändar mot nock- och dalbalkarna går fram till balkens sida, så att balken ligger tätt mellan dem
+  (Onshape-modellens takstolar var gjorda för HEA 200, 200 bred med 3 mm spel, och slutade 8 mm från de 190 breda
+  balkarna); underramens sneda ändar följer de lyfta diagonalerna;
 - spikplåtarna är 2,0 mm (K-03) och sitter utanpå; plåtarna i toppen ersätts av klossarna på den sidan.
 """
 from __future__ import annotations
@@ -87,8 +90,31 @@ class Takstol(Plan):
             ut.append((float(u), float(z)))
         return ut
 
+    def _till_balkarna(self, pts: Sequence[Sequence[float]]) -> list[tuple[float, float]]:
+        """Ändar som slutar strax utanför en nock- eller dalbalks sida förlängs längs delens kant till sidan."""
+        v = S.VAGGAR[self.kod]
+        y = v.origo[1] + v.w[1] * self.tjocklek / 2           # takstolens plan
+        P = [(float(u), float(z)) for u, z in pts]
+        n = len(P)
+        ut = list(P)
+        for b in S.BALKAR.values():
+            if not b.y0 - 1.0 <= y <= b.y1 + 1.0:
+                continue
+            uc = (b.x - v.origo[0]) * v.u[0]
+            for k, (u, z) in enumerate(P):
+                d = abs(u - uc) - S.BALK_B / 2
+                if not (0.5 < d < 12.0 and b.uk - 5.0 <= z <= b.ok + 120.0):     # även ovanför balken (taket)
+                    continue
+                grannar = (P[(k - 1) % n], P[(k + 1) % n])
+                nu, nz = max(grannar, key=lambda q: abs(q[0] - u))
+                if abs(nu - u) < 1e-6:
+                    continue
+                mal = uc + (S.BALK_B / 2 if u > uc else -S.BALK_B / 2)
+                ut[k] = (mal, z + (z - nz) * (mal - u) / (u - nu))
+        return ut
+
     def diagonal(self, pts: Sequence[Sequence[float]], w0: float, w1: float) -> Takstol:
-        q = Polygon(self._snappa(_lyft(pts, S.TAKLYFT)))
+        q = Polygon(self._till_balkarna(self._snappa(_lyft(pts, S.TAKLYFT))))
         uk = S.BALKAR[self.balk].uk
         q = q.difference(box(-1e5, uk, 1e5, 1e5))
         self.diagonaler.append(([(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]], w0, w1))
@@ -97,9 +123,9 @@ class Takstol(Plan):
 
     def sned(self, pts: Sequence[Sequence[float]], w0: float, w1: float, typ: str = "X") -> Takstol:
         """Sned del under taket (ytterbalk ovanpå diagonalen m.m.): lyfts med takplanet och kapas vid balken."""
-        q = Polygon(self._snappa(_lyft(pts, S.TAKLYFT)))
+        q = Polygon(self._till_balkarna(self._snappa(_lyft(pts, S.TAKLYFT))))
         uc, uk = self._balk_u(), S.BALKAR[self.balk].uk
-        q = q.difference(box(uc - S.BALK_B / 2 - 3, uk, uc + S.BALK_B / 2 + 3, 1e5))
+        q = q.difference(box(uc - S.BALK_B / 2, uk, uc + S.BALK_B / 2, 1e5))
         if q.geom_type != "Polygon":
             q = max(q.geoms, key=lambda g: g.area)
         p = [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
@@ -113,8 +139,19 @@ class Takstol(Plan):
         return (S.BALKAR[self.balk].x - v.origo[0]) * v.u[0]
 
     def underram(self, pts: Sequence[Sequence[float]], w0: float, w1: float) -> Takstol:
-        self.ovriga.append((Polygon(pts), w0, w1))
-        self.profil(pts, w0, w1, typ="U")
+        """Underramen; sneda ändar mot diagonalerna flyttas upp TAKLYFT med dem: kantens ändpunkter glider längs de
+        vågräta kanterna."""
+        P = [(float(u), float(z)) for u, z in pts]
+        n = len(P)
+        p = list(P)
+        for k in range(n):
+            (ua, za), (ub, zb) = P[k], P[(k + 1) % n]
+            if abs(ub - ua) > 1.0 and abs(zb - za) > 1.0:          # sned kant
+                du = -S.TAKLYFT * (ub - ua) / (zb - za)
+                for i in (k, (k + 1) % n):
+                    p[i] = (p[i][0] + du, p[i][1])
+        self.ovriga.append((Polygon(p), w0, w1))
+        self.profil(p, w0, w1, typ="U")
         return self
 
     def stander(self, pts: Sequence[Sequence[float]], u0: float, u1: float) -> Takstol:
