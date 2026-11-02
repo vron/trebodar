@@ -15,9 +15,9 @@ from modellering import Del, Montage, Placering, box
 from trebodar import skelett as S
 from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.fasad.fasad import ALUMINIUM
-from trebodar.hus.invandigt.invandigt import INSIDA_VATRUM_T, SKIVOR_T, _insida_t
-from trebodar.material import FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
+from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
+from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
+from trebodar.material import ALUMINIUM, FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
 
 from .oppningar import DORRAR, FICKA_UT, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
@@ -25,6 +25,7 @@ W_UT = -S.T_FASAD                    # karmens utsida i panelens utsida
 SMYG_T, BANK_T = 15.0, 22.0          # smygbrädor och fönsterbänk
 BANK_UT, BANK_ORA = 20.0, 30.0       # fönsterbänkens utstick från väggen och öron förbi öppningen
 KAKEL_T = 12.0                       # badrummets smyg (kakel på skiva, förenklat)
+SKJUT_T, SKJUT_GLAPP = 40.0, 10.0   # skjutdörrens blad och dess avstånd till väggens skikt
 
 
 def enhet(o: Oppning) -> Montage:
@@ -42,7 +43,7 @@ def enhet(o: Oppning) -> Montage:
     m.lagg(Del(f"Drevning {fmt(o.bredd)}×{fmt(o.hojd)}", drev, MINERALULL), Placering(), f"{o.kod}-DREV")
     if o.z1 <= 0.0:                                      # källaren: gipsen i invandigt/kallare.py
         return m
-    t = _insida_t(o.vagg, (o.u0 + o.u1) / 2)
+    t = insida_t(o.vagg, (o.u0 + o.u1) / 2)
     w_yta = S.T_STOMME + t                               # väggens insida
     u0, u1, z0, z1 = o.u0, o.u1, o.z0, o.z1
     if t == INSIDA_VATRUM_T:
@@ -67,13 +68,10 @@ def enhet(o: Oppning) -> Montage:
     return m
 
 
-SKJUT_T, SKJUT_GLAPP, OVERLAPP = 40.0, 10.0, 30.0       # skjutdörrens blad, avståndet till väggens skikt
-
 
 def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py) täcker öppningen och
     går FICKA_UT in i fickan; skenan under överstycket över öppningen och fickan."""
-    from trebodar.hus.invandigt.vaggar import FICKA_SKENA, vaggdef
     v = vaggdef(d.vagg)
     wm = v.tjocklek / 2
     a, b = d.fickan
@@ -90,7 +88,6 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
 def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     """Skjutdörren utanpå väggen, stängd: bladet täcker öppningen och skenan går en dörrbredd till åt det håll dörren
     öppnas, men inte in över en annan dörr på samma sida av väggen."""
-    from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
     if d.ficka:
         return fickdorr(d)
     v = vaggdef(d.vagg)

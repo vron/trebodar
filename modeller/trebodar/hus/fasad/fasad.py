@@ -3,7 +3,7 @@
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
 en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
-Fasaden går ned till marken (MARKNIVA), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
+Fasaden går ned till marken (markniva.py), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
 källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till
 takbalkarnas överkant i panelens utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack;
 ovanför ligger takets luftspalt öppen (luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
@@ -17,46 +17,22 @@ from shapely.ops import unary_union
 from modellering import Material, Montage
 
 from trebodar import skelett as S
-from trebodar.byggdelar import lagen
+from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.grund import fasadsten, kallarvaggar
-from trebodar.hus.tak.tak import tak_underkant
-from trebodar.material import ALU_RAL3009, ALU_RAL7012, C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
+from trebodar.hus.tak.takytor import tak_underkant
+from trebodar.material import C24_LAKT, PANEL, UTEGIPS
 
-Z_UK = -S.H_BJALKLAG
-# marken vid fasaden (u, z) per vägg: panelens underkant, utom där fasadstenen går upp till bjälklaget (STENVAGGAR,
-# där linjen gäller stuprören). Ur den byggda modellen med verktyg/modellanalys/marknivaer.py: det högsta av marken,
-# avsatserna, återfyllningen och grunden i ett band från stommen till 150 mm utanför panelen, 2,1–12,5 mm över det.
-# Körs om när marken ändras (marknivåerna är inte bestämda, modell-todo).
-MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
-    "1NO": ((-65, -1339), (185, -1339), (195, -739), (4425, -739)),
-    "1SO": ((-138, -222), (2542, -222), (2552, -223), (3752, -497), (4562, -497), (4572, -306), (4962, -306),
-            (4972, -152), (6182, -152), (6192, -306), (6582, -306), (6592, -461), (6882, -461), (6892, -616),
-            (7182, -616), (7192, -770), (7482, -770), (7492, -925), (7762, -951), (7772, -737), (12282, -737),
-            (12292, -1337), (12312, -1338)),
-    "1SV": ((-65, -398), (2275, -223), (4435, -222)),
-    "1NV": ((0, -409), (250, -409), (260, -394), (4930, -394)),
-    "2NO": ((-65, -1449), (4885, -1449), (4895, -2247), (4935, -2247)),
-    "2NV": ((-138, -2247), (832, -2247), (842, -226), (852, -147), (902, -147)),
-    "2SV": ((105, -679), (1195, -694), (5015, -409), (5135, -409), (5145, -497), (5165, -497), (5175, -409),
-            (5195, -409), (5205, -497), (5215, -497)),
-    "2SO": ((80, -739), (3410, -841), (3420, -1441), (3630, -1448)),
-    "3NO": ((105, -2247), (1985, -2247), (4385, -1455), (4395, -1419), (4655, -1419)),
-    "3NV": ((-138, -1417), (11472, -1062), (11482, -960), (11512, -960)),
-    "3SV": ((-65, -959), (4385, -662), (4405, -662), (4415, -774), (4435, -773)),
-    "3SO": ((-138, -762), (992, -762), (1002, -679), (1402, -679)),
-}
+from .markniva import MARKNIVA, Z_UK, mark_vid
+
 STENVAGGAR = {kod for b in fasadsten.BEKLADNAD if b.z1 >= Z_UK - 1e-6 for kod in b.vaggar}
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
 LAKT_B = 45.0
 CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
-# panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
-PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
-ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}
 # renderingens skruvrader i panelen följer spikläkten: c/c CC från fasadens underkant, mitt på läkten
 assert all((dict(p.rendering)["skruv_cc"], dict(p.rendering)["skruv_start"]) == (CC, Z_UK + LAKT_B / 2)
            for p in PANEL.values())
@@ -108,15 +84,6 @@ def _lagen(fasta: set[float], cc: list[float], b: float = LAKT_B) -> list[float]
     return sorted(ut)
 
 
-def mark_vid(kod: str, u: float) -> float:
-    """Marken vid fasaden i u (MARKNIVA; Z_UK där marken inte når fasaden)."""
-    m = MARKNIVA.get(kod, ((0.0, Z_UK), (1.0, Z_UK)))
-    for (ua, za), (ub, zb) in zip(m, m[1:]):
-        if ua <= u <= ub:
-            return za if ub == ua else za + (zb - za) * (u - ua) / (ub - ua)
-    return float(m[0][1] if u < m[0][0] else m[-1][1])
-
-
 def till_bjalklaget(kod: str) -> list[tuple[float, float]]:
     """Intervallen (u0, u1) längs väggen där fasaden slutar i bjälklagets underkant: fasadsten upp till bjälklaget
     och källardörrar."""
@@ -126,8 +93,8 @@ def till_bjalklaget(kod: str) -> list[tuple[float, float]]:
     for b in fasadsten.BEKLADNAD:
         if b.z1 >= Z_UK - 1e-6 and kod in b.vaggar:
             i = b.vaggar.index(kod)
-            a = fasadsten._u(kod, b.start) if i == 0 else u0
-            e = fasadsten._u(kod, b.slut) if i == len(b.vaggar) - 1 else u1
+            a = fasadsten.vagg_u(kod, b.start) if i == 0 else u0
+            e = fasadsten.vagg_u(kod, b.slut) if i == len(b.vaggar) - 1 else u1
             ut.append((min(a, e), max(a, e)))
     langs_x = abs(v.u[0]) > 0.5
     for _, rikt, liv, a, e in kallarvaggar.dorrar():

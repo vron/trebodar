@@ -23,7 +23,7 @@ from modellering import Del, Form, Montage, Placering, box, lada, prisma
 from trebodar import skelett as S
 from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.tak.tak import tak_underkant
+from trebodar.hus.tak.takytor import tak_underkant
 from trebodar.material import C24, DISTANS, GL30C, S355
 
 REGEL_B = 45.0                       # reglarna ovanpå balken

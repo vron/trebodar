@@ -14,6 +14,7 @@ from modellering import Del, Material, Montage, Placering
 
 from .. import skelett as S
 from ..material import C24
+from . import virke
 from .virke import virke_i_lada, virke_profil
 
 
@@ -77,8 +78,7 @@ class Plan:
     def skiva(self, pts: Sequence[Sequence[float]], hal: Sequence[Sequence[Sequence[float]]], w0: float, w1: float,
               typ: str, material: Material, namn_del: str, namn: str | None = None) -> Plan:
         """Skiva med kontur och hål i (u, z), från w0 till w1 genom väggen."""
-        from .virke import skiva
-        d = skiva([tuple(p) for p in pts], w1 - w0, material, namn_del, [[tuple(p) for p in h] for h in hal])
+        d = virke.skiva([tuple(p) for p in pts], w1 - w0, material, namn_del, [[tuple(p) for p in h] for h in hal])
         bas = Placering(((1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)), (0.0, w1, 0.0))
         self.bitar.append(_Bit(typ, d, bas, (min(x for x, _ in pts), min(z for _, z in pts)), namn))
         return self

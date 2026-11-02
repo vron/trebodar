@@ -133,7 +133,7 @@ def mellanbjalklag() -> Montage:
         t0 = w["mot_a"]["c"] + K.T_KARNA / 2 + 50.0 if w["mot_a"] else w["a"] + 40.0
         t1 = w["mot_b"]["c"] - K.T_KARNA / 2 - 50.0 if w["mot_b"] else w["b"] - 40.0
         q = w["ytterliv"] - w["ute"] * K.X_LODRAT
-        for t in r5._fordela(t0, t1, s14):
+        for t in r5.fordela(t0, t1, s14):
             ned = (t, q) if w["ax"] == "h" else (q, t)
             inn = (t, q - w["ute"] * p14["in_"]) if w["ax"] == "h" else (q - w["ute"] * p14["in_"], t)
             jarn.append(("A14", [(ned[0], ned[1], zh - p14["ben"]), (ned[0], ned[1], zh), (inn[0], inn[1], zh)],

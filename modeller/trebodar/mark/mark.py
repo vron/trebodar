@@ -22,7 +22,7 @@ from shapely.ops import unary_union
 from modellering import Del, Diff, Form, Montage, Placering, minus, polyeder
 
 from trebodar import skelett as S
-from trebodar.byggdelar import lagen
+from trebodar.hus.stomme import lagen
 from trebodar.byggdelar.polygon import polygoner, prisma_ur, prisma_y
 from trebodar.byggdelar.referensdel import importerad
 from trebodar.byggdelar.virke import fmt

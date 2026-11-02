@@ -23,7 +23,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
 | `./mod rendera [VY …] [--bredd 400] [--sampel 32] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py`; `--blend` sparar scenen |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
-| `./mod typ` | Typkontroll (mypy) av ramverket och modellen |
+| `./mod typ` | Typkontroll (mypy) av ramverket och modellen, och modellens struktur: inga importcykler, privata namn från andra moduler, importer i funktioner eller brott mot modellens lagerordning (`modellering/struktur.py`, `LAGER` i `trebodar/kontrollregler.py`) |
 | `./mod onshape [--del VÄG] [--dokument NAMN] [--mapp NAMN] [--publik]` | Bygger STEP och laddar upp den till ett nytt dokument i en mapp i Onshape (standard `TrebodarAuto`) via Onshapes API, väntar på importen och redovisar flikar och delar |
 
 `--del` väljer ett delträd med sökvägen under roten, t.ex. `--del "Hus/Stomme/Stomme prefab"`, som exporteras som en

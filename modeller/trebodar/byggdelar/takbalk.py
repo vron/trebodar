@@ -36,7 +36,7 @@ def regel_ok(t: S.Takfall, balk: str, sida_x: float, utat: int) -> float:
     return max(b.uk + PLAT + UPPLAG_B, t.z_underkant(sida_x + utat * UPPLAG_B))
 
 
-def _halvplan_vinkelratt(t: S.Takfall, x: float, behall_storre_x: bool) -> Polygon:
+def halvplan_vinkelratt(t: S.Takfall, x: float, behall_storre_x: bool) -> Polygon:
     """Halvplanet på ena sidan om linjen vinkelrätt mot takplanet genom planets punkt vid x."""
     z = t.z_overkant(x)
     # takplanets riktning uppåt längs planet och normalen
@@ -72,7 +72,7 @@ def profil(t: S.Takfall, a: Ande, b: Ande) -> list[tuple[float, float]]:
             x2 = e.x + utat * UPPLAG_B
             q = q.difference(box(min(e.x, x2), -1e5, max(e.x, x2), zr))
         elif e.typ == "vinkelrat":
-            q = q.intersection(_halvplan_vinkelratt(t, e.x, utat > 0))
+            q = q.intersection(halvplan_vinkelratt(t, e.x, utat > 0))
         else:
             raise ValueError(e.typ)
     if q.geom_type != "Polygon":

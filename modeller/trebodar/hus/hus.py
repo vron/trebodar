@@ -1,22 +1,23 @@
 """Huset: system i byggordning. Varje grupp är ett eget montage i husets system (K-05:s koordinater)."""
 from modellering import Montage
 
+from trebodar.byggdelar.genomforing import genomfor
+
 from .armering import armering
 from .fasad import fasad
+from .fonster_och_dorrar import fonster_och_dorrar
 from .grund import grund
 from .installationer import installationer
 from .invandigt import invandigt
-from .mellanbjalklag import mellanbjalklag
-from .fonster_och_dorrar import fonster_och_dorrar
 from .isolering import isolering
 from .kamin import kamin
+from .mellanbjalklag import mellanbjalklag
 from .stomme import stomme
 from .tak import tak
 from .trappa import trappa
 
 
 def montage() -> Montage:
-    from trebodar.byggdelar.genomforing import genomfor
     m = Montage("Hus")
     m.lagg(grund.montage())
     m.lagg(mellanbjalklag.montage())

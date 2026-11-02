@@ -111,9 +111,17 @@ def main(argv: list[str] | None = None) -> None:
 
     if arg.kommando == "typ":
         import subprocess
+        from .struktur import kontrollera
         mapp = Path(__file__).resolve().parents[1]
-        raise SystemExit(subprocess.run([sys.executable, "-m", "mypy", "--config-file", str(mapp / "mypy.ini"),
-                                         "-p", "modellering", "-p", "trebodar"], cwd=mapp).returncode)
+        kod = subprocess.run([sys.executable, "-m", "mypy", "--config-file", str(mapp / "mypy.ini"),
+                              "-p", "modellering", "-p", "trebodar"], cwd=mapp).returncode
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        lager = getattr(importlib.import_module("trebodar.kontrollregler"), "LAGER", None)
+        fel = kontrollera(MODELLMAPP / "trebodar", "trebodar", lager)
+        print("\n".join(fel) if fel else "Strukturen: inga importcykler, privata namn, importer i funktioner eller brott mot "
+              "lagerordningen.")
+        raise SystemExit(kod or (1 if fel else 0))
     t0 = time.perf_counter()
     rot = valj(ladda(), getattr(arg, "vag", None))
     t1 = time.perf_counter()

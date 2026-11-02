@@ -59,7 +59,7 @@ class Bekladnad:
         z = self.z0
         for k, p, zz in self.steg:
             j = self.vaggar.index(k)
-            if j < i or (j == i and _u(k, p) <= u + 1e-6):
+            if j < i or (j == i and vagg_u(k, p) <= u + 1e-6):
                 z = zz
         return z
 
@@ -87,7 +87,7 @@ def _matt() -> _Matt:
                  Klyvning(sk["sten_min"], sk["sten_max"]))
 
 
-def _u(kod: str, p: tuple[float, float]) -> float:
+def vagg_u(kod: str, p: tuple[float, float]) -> float:
     v = S.YTTERVAGGAR[kod]
     return (p[0] - v.origo[0]) * v.u[0] + (p[1] - v.origo[1]) * v.u[1]
 
@@ -101,7 +101,7 @@ def _horn(a: str, b: str, bak: float) -> tuple[float, float]:
     # a:s baksida: pa + s·u_a; skär b:s baksida (p − pb)·w_b = 0
     s = ((pb[0] - pa[0]) * vb.w[0] + (pb[1] - pa[1]) * vb.w[1]) / (va.u[0] * vb.w[0] + va.u[1] * vb.w[1])
     p = (pa[0] + s * va.u[0], pa[1] + s * va.u[1])
-    return _u(a, p), _u(b, p)
+    return vagg_u(a, p), vagg_u(b, p)
 
 
 def _fyll(a: float, b: float, rng: random.Random, under: list[float], M: _Matt) -> list[tuple[float, float]]:
@@ -138,15 +138,15 @@ def bekladnad(b: Bekladnad, M: _Matt) -> list[Montage]:
     horn = [_horn(b.vaggar[i], b.vaggar[i + 1], M.bak) for i in range(n - 1)]
     ut = []
     for i, kod in enumerate(b.vaggar):
-        u0 = horn[i - 1][1] if i > 0 else _u(kod, b.start)
-        u1 = horn[i][0] if i < n - 1 else _u(kod, b.slut)
+        u0 = horn[i - 1][1] if i > 0 else vagg_u(kod, b.start)
+        u1 = horn[i][0] if i < n - 1 else vagg_u(kod, b.slut)
         rng = random.Random(f"fasadsten-{kod}")
         p = Plan(kod, f"Fasadsten {kod}", M.klyv.t_max, material=GRANIT,
                  beskrivning=f"Fasadsten på källarväggen under {kod} (AR-01)")
         stenar = []                                      # (u0, u1, z0, z1) i väggens elevation
         under: list[float] = []
         # väggens bitar mellan stegen, med underkanten
-        us = sorted({u0, u1} | {_u(kod, pp) for k_, pp, _ in b.steg if k_ == kod and u0 < _u(kod, pp) < u1})
+        us = sorted({u0, u1} | {vagg_u(kod, pp) for k_, pp, _ in b.steg if k_ == kod and u0 < vagg_u(kod, pp) < u1})
         bitar = [(ua, ub, b.underkant(kod, (ua + ub) / 2)) for ua, ub in zip(us, us[1:])]
         for k, (za, zb) in enumerate(_skift(M, b.z0, b.z1)):
             # skiftet finns där underkanten ligger under det (stegen är hela skift)

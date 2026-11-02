@@ -37,9 +37,32 @@ väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets ski
 Varje läge skrivs på ett ställe. Det som handlingarna bestämmer (väggarnas, takbalkarnas, takstolarnas och
 stolparnas lägen, öppningarna) står i `skelett.py` eller i montagets egen fil. Det som ska passa mot det (skikt,
 isolering, fasad, läkt, syllar) räknas fram ur `skelett.py` eller ur stommens delar:
-[`byggdelar/lagen.py`](byggdelar/lagen.py) ger delarnas lägen i huset ur montagen, t.ex. takstolarnas ytterbalkar
+[`hus/stomme/lagen.py`](hus/stomme/lagen.py) ger delarnas lägen i huset ur montagen, t.ex. takstolarnas ytterbalkar
 för ströläkten och delarna som de invändiga skikten går runt. Nya detaljer byggs på samma sätt, så att de följer med
 när stommen ändras.
+
+### Beroenden
+
+Beroendena går i en riktning: `skelett.py` och `material.py` beror inte på något i paketet, `byggdelar/` (allmänna
+byggsätt: regelväggar, takstolar, takets skikt, virke, fönsterprodukter) bara på dem och på varandra, och systemen
+under `hus/` och `mark/` på `byggdelar/` och på varandras gemensamma underlag; huset beror inte på marken. `hus/hus.py` sätter ihop systemen och gör det som går
+genom flera av dem (kaminens hål genom tak, isolering och innertak).
+
+Det som flera system behöver står i en egen modul, så att systemen inte beror på varandras inre:
+
+| Underlag | Innehåll | Används av |
+|---|---|---|
+| [`hus/stomme/lagen.py`](hus/stomme/lagen.py) | Stommens delar och lägen ur montagen, takets stomme som tvärsnitt, takets fack mellan takbalkarna | tak, fasad, isolering, invändigt, mark |
+| [`hus/tak/takytor.py`](hus/tak/takytor.py) | Takfallens regioner, takfotens kant, takytan och dalarnas ändar | tak, takkanter, dalar, stommens balkar, fasad, invändigt |
+| [`hus/fonster_och_dorrar/oppningar.py`](hus/fonster_och_dorrar/oppningar.py) | Öppningarna i ytterväggarna och innerdörrarna | fönster och dörrar, fasad, isolering, invändigt, mark |
+| [`hus/rum.py`](hus/rum.py) | Badrummet och kaminkåpan | invändigt, kamin |
+| [`hus/fasad/markniva.py`](hus/fasad/markniva.py) | Marken vid fasaderna (genererad tabell) | fasad, takkanter, dalar |
+| [`hus/invandigt/skikt.py`](hus/invandigt/skikt.py) | De invändiga skiktens uppbyggnad och innertakets underkant | invändigt, fönster och dörrar, kamin |
+| [`hus/grund/kallarvaggar.py`](hus/grund/kallarvaggar.py) | Källarväggarna i plan, deras öppningar och kontur | grund, öppningar, fasad, invändigt, mark |
+
+Reglerna kontrolleras med `./mod typ`: inga importcykler, inga privata namn (`_namn`) från en annan modul, inga
+importer av paketets moduler inne i funktioner och lagerordningen i `kontrollregler.py` (`LAGER`). Behöver ett annat system en hjälpfunktion görs den publik med en
+beskrivning, eller flyttas till underlaget den hör till.
 
 ## Så ändrar du
 
@@ -55,8 +78,11 @@ när stommen ändras.
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
-| Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (`PANEL` och `ALUMINIUM` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
-| Marken vid fasaden (panelens underkant) | `hus/fasad/fasad.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |
+| Takfallens utbredning, takfoten och dalarnas ändar | `hus/tak/takytor.py` (`REGIONER`); taket, takkanterna, dalarna och innertaket följer med |
+| Takkanterna och dalarna | `hus/tak/takkanter.py` (takfotsplåt, rännor, stuprör, vindskivor) och `hus/tak/dalar.py` (kilar, rändal, ändlådor) |
+| De invändiga skikten | `hus/invandigt/skikt.py` (uppbyggnaden), `innertak.py`, `vagginsida.py` (ytterväggarnas insida och hörnen), `vaggar.py` (innerväggarna) och `kallare.py` (källarväggarnas gips) |
+| Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (uppbyggnaden) och `material.py` (`PANEL` och `ALUMINIUM` per huskropp; kulör, brädbredd, kvistar, skruvar) |
+| Marken vid fasaden (panelens underkant) | `hus/fasad/markniva.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
@@ -81,7 +107,7 @@ Riktningarna gäller delens eget system: virke har x längs fibrerna; fasadens s
 brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (råspont `riktning="z"`).
 
 - **Fasaden**: stående sågade granbrädor 22×145, den södra huskroppen (1) med Falu rödfärg (`PANEL_FALUROD`) och de
-  andra två med järnvitriol (`PANEL_JARNVITRIOL`), valda per huskropp i `hus/fasad/fasad.py`. Panelen är en skiva per vägg; renderingen ritar
+  andra två med järnvitriol (`PANEL_JARNVITRIOL`), valda per huskropp i `material.py` (`PANEL`). Panelen är en skiva per vägg; renderingen ritar
   brädorna, var och en sågad ur en stock (årsringar i flammor, kvistar som ådringen böjer runt, sågad yta, strimmor,
   färgskiftning per bräda) och skruvarna i spikläktens rader (kontrolleras mot `fasad.py`).
 - **Taket**: plåten är banor med falsar i modellen; varje bana skiftar något i ton och glans och buktar mellan falsarna.
@@ -113,7 +139,8 @@ Trebodar
     │   │   ├── Stolpar         LN1_1, LN1_2, LN1_3, LD4_1
     │   │   └── Takbalkar       Takfall 1SO, 1NV, 2SO, 2NV, 3SO, 3NV (takbalkar, avväxlingar, kortlingar, upplagsreglar)
     │   └── Nock- och dalbalkar NB1, DB2, NB3, DB4, NB5 (K-01), en egen beställning
-    ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt i banor; TF1–TF3
+    ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt i banor;
+    │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
     ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här

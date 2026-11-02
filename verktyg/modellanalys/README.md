@@ -62,7 +62,7 @@ Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna käll
 ```
 
 `marknivaer.py` går åt andra hållet, för modellen: den skriver tabellen `MARKNIVA` för
-`modeller/trebodar/hus/fasad/fasad.py` (marken vid fasaderna, panelens underkant) ur den byggda modellen. Kör den när
+`modeller/trebodar/hus/fasad/markniva.py` (marken vid fasaderna, panelens underkant) ur den byggda modellen. Kör den när
 marken ändras och klistra in tabellen.
 
 ## Python
@@ -91,6 +91,6 @@ V, F = m.nat(platta)           # triangelnät
 | `kontroll_r061.py` | Kontroll av mellanbjälklagets geometri i K-05/R-06 (`beräkningar/K-05/bild/geometri.json`: kontur, trapphål, rör, källarväggar) och R-06.1:s måttkedjor mot modellen |
 | `kontroll_r045.py` | Kontroll av källarstommen och bottenplattan i R-04 och R-05 (`beräkningar/R-05/kallare.py`: öppningarna i betongkärnan och bröstningarnas höjd, bottenplattans kontur och betong, kantbalk, balkar, plintar och L-element, väggarnas höjd, rören, matkällarens golv, kärnornas anslutningar) mot modellen |
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
-| `marknivaer.py` | Marken vid fasaderna (tabellen `MARKNIVA` i `hus/fasad/fasad.py`) ur den byggda modellen |
+| `marknivaer.py` | Marken vid fasaderna (tabellen `MARKNIVA` i `hus/fasad/markniva.py`) ur den byggda modellen |
 | `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |
 | `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |

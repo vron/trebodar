@@ -11,13 +11,14 @@ from dataclasses import dataclass
 from shapely.geometry import Polygon, box
 
 from .. import skelett as S
-from .takbalk import _halvplan_vinkelratt, langs  # noqa: F401  (langs används av taket och isoleringen)
+from .takbalk import halvplan_vinkelratt, langs  # noqa: F401  (langs används av taket och isoleringen)
 
 HARDBOARD = (0.0, 3.0)
 STROLAKT = (3.0, 37.0)               # 34×45 på hårdboarden
 RASPONT = (37.0, 57.0)
 PAPP = (57.0, 59.0)
 PLAT = (59.0, 59.6)
+PLAT_T = PLAT[1] - PLAT[0]           # plåtens tjocklek (också beslag, rännor och stuprör)
 FALS = (59.6, 84.6)                  # stående fals 25 mm på plåten
 STOPP_T = 45.0                       # isolerstoppet vid takfoten: regel 45 på hammarbandet i varje fack (bultad)
 RASPONT_UT = 22.0                    # råspont, papp och plåt utanför takbalkarnas ände vid takfoten (ca 20 mm)
@@ -46,10 +47,14 @@ def profil(t: S.Takfall, w0: float, w1: float, a: Kant, b: Kant) -> list[tuple[f
         if k.typ == "lodratt":
             q = q.intersection(box(k.x, -1e5, 1e5, 1e5) if storre else box(-1e5, -1e5, k.x, 1e5))
         else:
-            q = q.intersection(_halvplan_vinkelratt(t, k.x, storre))
+            q = q.intersection(halvplan_vinkelratt(t, k.x, storre))
     if q.is_empty or q.area < 1.0:
         return None
     if q.geom_type != "Polygon":
         q = max(q.geoms, key=lambda g: g.area)
     return [(float(x), float(z)) for x, z in list(q.exterior.coords)[:-1]]
 
+
+def z_skikt(t: S.Takfall, x: float, w: float) -> float:
+    """z för punkten w (vinkelrätt) över takbalkarnas överkant vid x."""
+    return t.z_overkant(x) + w / S.COS

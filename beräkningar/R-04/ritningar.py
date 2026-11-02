@@ -258,7 +258,7 @@ def plintjarn(r):
     """Ø8 s150 i plintens underkant, båda riktningarna, 30 mm från plintens kanter."""
     p = PLINTAR[r["namn"]]
     x0, y0, x1, y1 = p.bounds
-    ts = R4._fordela(0.0, x1 - x0 - 60, PLINT_ARM[1])                  # högst s150
+    ts = R4.fordela(0.0, x1 - x0 - 60, PLINT_ARM[1])                  # högst s150
     lx = [[(x0 + 30, y0 + 30 + t), (x1 - 30, y0 + 30 + t)] for t in ts]
     ly = [[(x0 + 30 + t, y0 + 30), (x0 + 30 + t, y1 - 30)] for t in ts]
     return lx + ly, len(ts)
@@ -319,7 +319,7 @@ def startjarn():
             return o["c"] + rikt * (K.T_KARNA / 2 + 50.0)
         lo, hi = grans(w0, w0["mot_a"], w0["a"], 1), grans(w1, w1["mot_b"], w1["b"], -1)
         typ = "ute" if w0["ute"] is not None else "inne"
-        for t in R4._fordela(lo, hi, START["s"]):
+        for t in R4.fordela(lo, hi, START["s"]):
             ut.append(((t, q) if w0["ax"] == "h" else (q, t), typ, w0["namn"]))
     return ut
 
@@ -443,7 +443,7 @@ def sektion_c():
         v.rekt(-b / 2 - 250, -HP - EPS - 120, b / 2 + 250, -HP - EPS, fyll="grus", stil=None)
     with v.lager("bottenplatta_arm"):
         # plintens Ø8 s150 i underkant, båda riktningarna
-        for t in R4._fordela(0.0, b - 60, PLINT_ARM[1]):
+        for t in R4.fordela(0.0, b - 60, PLINT_ARM[1]):
             v.cirkel(-b / 2 + 30 + t, -HB + C_UK + 4, 4, fyll="#2c4a6e", stil=None, modell=True)
         v.linje([(-b / 2 + 30, -HB + C_UK + 12), (b / 2 - 30, -HB + C_UK + 12)], "uk_tunn")
     with v.lager("stal"):

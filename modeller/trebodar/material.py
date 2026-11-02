@@ -114,10 +114,14 @@ KARM = Material("Karm", "Fönster- och dörrkarm", 500, "#26292c", 0.5, cad="#41
 FONSTERTRA = Material("Fönsterträ", "Lamellimmad furu, vitmålad NCS S 0502-Y (fönster, dörrar, smyg)", 500,
                      "#efede6", 0.55, cad="#e6dcc4")
 # fönstrens och dörrarnas aluminiumbeklädnad, pulverlackerad: halvblank med apelsinyta, till skillnad från det målade
-# träet (kulör per huskropp i hus/fasad/fasad.py)
+# träet (kulör per huskropp: ALUMINIUM nedan)
 ALU_RAL3009 = Material("Aluminium RAL 3009", "Aluminiumbeklädnad pulverlackerad RAL 3009 oxidröd (fönster, dörrar)",
                        2700, "#642424", 0.4, textur="pulverlack", cad="#8c3a32")
 ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad RAL 7012 basaltgrå (fönster, dörrar)",
                        2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
 HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")
+
+# panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
+PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
+ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}

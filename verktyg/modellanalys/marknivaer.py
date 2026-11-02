@@ -1,5 +1,5 @@
 """
-Marken vid fasaderna: underlaget till `fasad.MARKNIVA` (panelens underkant) ur den byggda modellen.
+Marken vid fasaderna: underlaget till `markniva.MARKNIVA` (panelens underkant) ur den byggda modellen.
 
 För varje yttervägg mäts den högsta punkten på markens delar (berg, uppfyllnad, återfyllning, avsatser och makadam;
 inte trätrappan, som står mot panelen) och grundens delar (fasadsten, plattan på marks makadam och fyllning) i ett
@@ -8,7 +8,7 @@ kanter, så att de stora markdelarna inte behöver bilda ytor), längs väggen v
 upp till bjälklaget (fasad.STENVAGGAR) räknas stenen inte, där gäller linjen bara stuprören. Varje punkt tar det
 högsta inom ±10 mm (så att linjen inte skär kanter mellan punkterna) och får 2,5 mm upplägg. Linjen förenklas:
 brytpunkterna är mätpunkter och linjen går mellan dem högst 0,4 mm under och högst 10 mm över mätpunkterna, så att
-panelen slutar 2,1–12,5 mm över marken. Skriver tabellen för fasad.py; modellen ändras inte.
+panelen slutar 2,1–12,5 mm över marken. Skriver tabellen för hus/fasad/markniva.py; modellen ändras inte.
 
     .venv/bin/python marknivaer.py
 """

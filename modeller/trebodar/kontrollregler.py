@@ -1,4 +1,14 @@
-"""Regler för kontrollen (`mod kontroll`): materialpar som inte prövas och avsiktliga överlapp, med motivering."""
+"""Regler för kontrollerna: materialpar som inte prövas och avsiktliga överlapp (`mod kontroll`), med motivering, och
+modulernas lagerordning (`mod typ`)."""
+
+# moduler (prefix) och vad de inte får importera ur paketet: beroendena går från skelettet och materialen via
+# byggdelarna till husets system, och huset beror inte på marken
+LAGER = {
+    "trebodar.skelett": ("trebodar",),
+    "trebodar.material": ("trebodar",),
+    "trebodar.byggdelar": ("trebodar.hus", "trebodar.mark"),
+    "trebodar.hus": ("trebodar.mark",),
+}
 
 IGNORERADE = {
     frozenset(("Armering", "Betong")): "armeringen ligger i betongen",

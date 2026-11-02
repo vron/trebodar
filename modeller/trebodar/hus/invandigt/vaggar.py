@@ -24,16 +24,15 @@ from shapely.ops import unary_union
 from modellering import Montage
 
 from trebodar import skelett as S
-from trebodar.byggdelar import lagen
+from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR
 from trebodar.hus.rum import BADRUM, KAMINKAPA
-from trebodar.hus.tak.tak import REGIONER
 
 from trebodar.material import BRADA, KALCIUMSILIKAT
 
-from .invandigt import FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T
+from .skikt import FOLIE, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T, innertak_vid
 
 SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
 FICKA_SKENA = 50.0                           # fickdörrens skena under överstycket (bladets överkant 10 över öppningen)
@@ -84,14 +83,6 @@ ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9
 Hinder = tuple[Polygon, float, float]
 
 
-def innertak(x: float, y: float) -> float:
-    """Innertakets underkant (den yttre gipsskivan) i punkten: takfallet vars område innehåller punkten (i nocken
-    det lägsta)."""
-    z = [S.TAKFALL[k].z_overkant(x) for k, rs in REGIONER.items() for r in rs
-         if r.y0 - 1e-6 <= y <= r.y1 + 1e-6 and min(r.nedre.x, r.nock.x) - 1e-6 <= x <= max(r.nedre.x, r.nock.x) + 1e-6]
-    return min(z) + GIPS_YTTRE_W[0] / S.COS if z else S.H_VAGG
-
-
 def vaggdef(kod: str) -> S.Vaggdef:
     return VAGGAR[kod] if kod in VAGGAR else S.INNERVAGGAR[kod]
 
@@ -108,7 +99,7 @@ def _topp(v: S.Vaggdef, u0: float, u1: float, w0: float, w1: float) -> list[tupl
     us = {u0, u1}
     if abs(v.u[0]) > 0.5:
         us |= {u for b in S.BALKAR.values() if u0 < (u := (b.x - v.origo[0]) * v.u[0]) < u1}
-    return [(u, min(innertak(*pl.punkt((u, w, 0.0))[:2]) for w in (w0, w1))) for u in sorted(us)]
+    return [(u, min(innertak_vid(*pl.punkt((u, w, 0.0))[:2]) for w in (w0, w1))) for u in sorted(us)]
 
 
 def _yta(topp: list[tuple[float, float]]) -> Polygon:

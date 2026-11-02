@@ -29,30 +29,35 @@ class Falt:
     kod: str
     nock: str                # nockbalken
     dal: str | None          # dalbalken mot takfallets nedre kant, där den finns
-    takfot: float            # takbalkarnas ände vid takfoten (x), 70 mm utanför fasaden
     y: tuple[float, ...]     # takbalkarnas lägen (lägsta y)
     fonster: tuple[Takfonster, ...] = ()
+
+    @property
+    def takfot(self) -> float:
+        """Takbalkarnas ände vid takfoten (x): TAKFOT_UTSPRANG utanför fasaden."""
+        t = S.TAKFALL[self.kod]
+        return t.x_utsida - t.riktning * (S.T_FASAD + S.TAKFOT_UTSPRANG)
 
 
 TF1 = Takfonster("TF1", 5540.0, 6740.0, 561.784, 1601.014)
 TF2 = Takfonster("TF2", 7505.0, 8705.0, 10151.784, 11191.014)
 TF3 = Takfonster("TF3", 9539.0, 10739.0, 561.784, 1601.014)
 
-_C600 = lambda a, b: tuple(float(v) for v in range(a, b + 1, 600))          # noqa: E731
+_CC = lambda a, b: tuple(float(v) for v in range(a, b + 1, int(S.TAKBALK_CC)))     # noqa: E731
 FALT = {f.kod: f for f in (
-    Falt("1SO", "NB5", None, -165.0,
+    Falt("1SO", "NB5", None,
          (4205, 4805, 5450, 5495, 6740, 6785, 7049, 7649, 8249, 8849, 9449, 9494, 10739, 10784)
-         + _C600(11640, 15240), (TF1, TF3)),
-    Falt("1NV", "NB5", "DB4", 4475.0, _C600(4205, 10805) + _C600(11640, 15240)),
-    Falt("2SO", "NB3", "DB4", 4335.0, _C600(615, 5415) + _C600(6550, 10150)),
-    Falt("2NV", "NB3", "DB2", 9475.0, _C600(615, 5415) + _C600(6550, 10150)),
-    Falt("3SO", "NB1", "DB2", 9335.0, _C600(1615, 7015) + (7415, 7460, 8705, 8750, 9350, 9950, 10550, 11395, 11850),
+         + _CC(11640, 15240), (TF1, TF3)),
+    Falt("1NV", "NB5", "DB4", _CC(4205, 10805) + _CC(11640, 15240)),
+    Falt("2SO", "NB3", "DB4", _CC(615, 5415) + _CC(6550, 10150)),
+    Falt("2NV", "NB3", "DB2", _CC(615, 5415) + _CC(6550, 10150)),
+    Falt("3SO", "NB1", "DB2", _CC(1615, 7015) + (7415, 7460, 8705, 8750, 9350, 9950, 10550, 11395, 11850),
          (TF2,)),
-    Falt("3NV", "NB1", None, 13975.0, _C600(1615, 11815)),
+    Falt("3NV", "NB1", None, _CC(1615, 11815)),
 )}
 
 
-def _sida(balk: str, t: S.Takfall) -> float:
+def balkens_sida(balk: str, t: S.Takfall) -> float:
     """Balkens sida mot takfallet."""
     b = S.BALKAR[balk]
     # takfallet ligger på den sida där planet sjunker bort från balken
@@ -63,12 +68,12 @@ def _sida(balk: str, t: S.Takfall) -> float:
 def falt(f: Falt) -> Montage:
     t = S.TAKFALL[f.kod]
     m = Plan(f.kod, f"Takfall {f.kod}", 45.0, beskrivning=f"Takbalkar 45×170 C24, {S.HUSKROPPAR[t.kropp].namn}")
-    ovre = T.Ande("balk", _sida(f.nock, t), f.nock)
+    ovre = T.Ande("balk", balkens_sida(f.nock, t), f.nock)
     dal = S.BALKAR[f.dal] if f.dal else None
     pa_balk: dict[str, list[float]] = {f.nock: []}
     for y in f.y:
         if dal and dal.y0 <= y and y + 45 <= dal.y1:
-            nedre = T.Ande("balk", _sida(dal.kod, t), dal.kod)
+            nedre = T.Ande("balk", balkens_sida(dal.kod, t), dal.kod)
             pa_balk.setdefault(dal.kod, []).append(y)
         else:
             nedre = T.Ande("takfot", f.takfot)
@@ -83,7 +88,7 @@ def falt(f: Falt) -> Montage:
         x_ned = T.langs(t, fo.x_ned, -45.0)
         x_upp = T.langs(t, fo.x_upp, 45.0)
         if dal and dal.y0 <= ym and ym + 45 <= dal.y1:
-            fot = T.Ande("balk", _sida(dal.kod, t), dal.kod)
+            fot = T.Ande("balk", balkens_sida(dal.kod, t), dal.kod)
             pa_balk.setdefault(dal.kod, []).append(ym)
         else:
             fot = T.Ande("takfot", f.takfot)
@@ -94,7 +99,7 @@ def falt(f: Falt) -> Montage:
     # större än 700 mm (takstolen 2C står där)
     for kod, ys in pa_balk.items():
         b = S.BALKAR[kod]
-        xs = _sida(kod, t)
+        xs = balkens_sida(kod, t)
         utat = 1 if (xs > b.x) else -1
         zr = T.regel_ok(t, kod, xs, utat)
         x0, x1 = sorted((xs, xs + utat * T.UPPLAG_B))

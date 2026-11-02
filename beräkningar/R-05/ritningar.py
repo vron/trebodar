@@ -447,7 +447,7 @@ def hornjarn():
     return ut
 
 
-def _fordela(t0, t1, s, med0=True, med1=True):
+def fordela(t0, t1, s, med0=True, med1=True):
     """Lägen mellan t0 och t1 med lika avstånd, högst s; med0/med1: ändpunkterna tas med."""
     n = max(int(math.ceil((t1 - t0) / s - 1e-6)), 1)
     st = (t1 - t0) / n
@@ -462,13 +462,13 @@ def lodrata_t(w):
     s_ = K.ARM_V_VAGG[w["namn"]][1] if w["ute"] is not None else K.ARM_INRE[1]
     t0, med0 = (w["mot_a"]["c"] + K.T_KARNA / 2 + 50.0, True) if w["mot_a"] else (w["a"] + 40.0, False)
     t1, med1 = (w["mot_b"]["c"] - K.T_KARNA / 2 - 50.0, True) if w["mot_b"] else (w["b"] - 40.0, False)
-    return _fordela(t0, t1, s_, med0, med1)
+    return fordela(t0, t1, s_, med0, med1)
 
 
 def lodrata_under(o):
     """Lodräta järn (22) under en bröstning, mellan öppningens järn (26) 40 mm utanför betongens öppning; de går upp
     till bröstningens järn (27)."""
-    return _fordela(o["x0"] - 40.0, o["x1"] + 40.0, K.ARM_V_TG[1], False, False) if o["z0"] > 0 else []
+    return fordela(o["x0"] - 40.0, o["x1"] + 40.0, K.ARM_V_TG[1], False, False) if o["z0"] > 0 else []
 
 
 def lodrata(w):

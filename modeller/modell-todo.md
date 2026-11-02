@@ -41,7 +41,7 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    sida (högre jordtryck, `kontroll_laster.py`); fyllnadshöjderna kan sänkas till marken. AR-01: fasadstenen syns ned
    till marken. Framför skjutpartiet 2SV
    ligger berget 600 mm under golvet (K-06 räknade med fyllning till −250): bestäm marken eller ett trädäck där.
-   Panelen följer `fasad.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
+   Panelen följer `markniva.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
 8. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
 9. **Fickdörrarna ID2, ID5 och ID6.** ID1, ID3 och ID4 är fickdörrar som i Onshape-modellen. De tre andras fickor i

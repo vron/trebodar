@@ -31,6 +31,7 @@ from modellering import Del, Form, Montage, Placering, box, cylinder
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.ror import ror, stang
+from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.hus.rum import KAMINKAPA
 from trebodar.material import GLAS, KALCIUMSILIKAT, KAMIN, ROSTFRITT
 
@@ -76,8 +77,7 @@ def _z_tak(x: float) -> float:
 
 def _innertak_vid(x: float, y: float, r: float = 0.0) -> float:
     """Innertakets underkant vid (x, y), den lägsta inom avståndet r (taket lutar)."""
-    from trebodar.hus.invandigt.vaggar import innertak
-    return min(innertak(x + dx, y + dy) for dx in (-r, 0.0, r) for dy in (-r, 0.0, r))
+    return min(innertak_vid(x + dx, y + dy) for dx in (-r, 0.0, r) for dy in (-r, 0.0, r))
 
 
 def genomforing() -> tuple[Form, tuple[float, float, float, float, float, float]]:
