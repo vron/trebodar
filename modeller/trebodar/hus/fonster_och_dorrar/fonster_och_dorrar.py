@@ -14,6 +14,7 @@ from modellering import Del, Montage, Placering, box
 from trebodar import skelett as S
 from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt
+from trebodar.hus.fasad.fasad import ALUMINIUM
 from trebodar.hus.invandigt.invandigt import INSIDA_VATRUM_T, SKIVOR_T, _insida_t
 from trebodar.material import FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
 
@@ -33,7 +34,7 @@ def enhet(o: Oppning) -> Montage:
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (modul)" +
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
     plac = Placering.flytt(o.u0 + F.DREV, w_karm, o.z0 + F.DREV)
-    for i in funktion(o.kod, b, h).barn:
+    for i in funktion(o.kod, b, h, ALUMINIUM[int(o.vagg[0])]).barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)
     drev = box(o.u0, o.u1, 0.0, w_karm, o.z0, o.z1) - box(o.u0 + F.DREV, o.u1 - F.DREV, -1.0, w_karm + 1.0,
                                                           o.z0 + F.DREV, o.z1 - F.DREV)

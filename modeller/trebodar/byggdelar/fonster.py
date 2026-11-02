@@ -28,7 +28,9 @@ from modellering import Del, Form, Montage, Placering, Union, box, polyeder
 
 from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt
-from trebodar.material import DORRBLAD, FONSTERALU, FONSTERTRA, GLAS, HARDTRA
+from modellering import Material
+
+from trebodar.material import DORRBLAD, FONSTERTRA, GLAS, HARDTRA
 
 Sidor = tuple[float, float, float, float]          # vänster, höger, under, över
 Profil = Sequence[tuple[float, Sidor]]             # (d, sidor) runt en sluten polygon
@@ -122,63 +124,64 @@ D_BAGE, D_GLAS = (41.0, 41.0, 31.0, 41.5), (103.5, 103.5, 94.0, 107.0)
 D_BLAD = 68.0               # ytterdörrens blad
 
 
-def vridfonster(kod: str, b: float, h: float) -> Montage:
+def vridfonster(kod: str, b: float, h: float, alu: Material) -> Montage:
     """Elitfönster Original Alu 100 vridfönster (61-37-V221)."""
     m = Montage(kod, kod, f"Vridfönster Elitfönster Original Alu 100, karm {_matt(b, h)}")
     m.lagg(Del(f"Karm vridfönster {_matt(b, h)}", _karm(b, h, V_LAPP, LAPP, V_STOMME, V_BOTTEN), FONSTERTRA,
                artikel=f"Elitfönster Original Alu 100 vridfönster, karm {_matt(b, h)}"), Placering(), f"{kod}-KARM")
-    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", _karm_alu(b, h, V_STOMME, V_BOTTEN), FONSTERALU),
+    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", _karm_alu(b, h, V_STOMME, V_BOTTEN), alu),
            Placering(), f"{kod}-KARMALU")
     m.lagg(Del(f"Bottenprofil aluminium {fmt(b)}", _bottenprofil(b, V_STOMME, V_STOMME[2], V_BOTTEN, 10.0),
-               FONSTERALU), Placering(), f"{kod}-BOTTEN")
+               alu), Placering(), f"{kod}-BOTTEN")
     m.lagg(Del(f"Båge vridfönster {_matt(b, h)}", _bage(b, h, V_BAGE, V_GLAS), FONSTERTRA), Placering(), f"{kod}-BAGE")
-    m.lagg(Del(f"Bågbeklädnad aluminium {_matt(b, h)}", _bage_alu(b, h, V_BAGE, V_GLAS), FONSTERALU), Placering(),
+    m.lagg(Del(f"Bågbeklädnad aluminium {_matt(b, h)}", _bage_alu(b, h, V_BAGE, V_GLAS), alu), Placering(),
            f"{kod}-BAGEALU")
     gb, gh = b - 2 * (V_GLAS[0] - RUTKANT), h - V_GLAS[2] - V_GLAS[3] + 2 * RUTKANT
     m.lagg(Del(f"Isolerruta 4-18-4-18-4 {_matt(gb, gh)}", isolerruta(b, h, V_GLAS), GLAS), Placering(), f"{kod}-GLAS")
     return m
 
 
-def fast_karm(kod: str, b: float, h: float) -> Montage:
+def fast_karm(kod: str, b: float, h: float, alu: Material) -> Montage:
     """Elitfönster Original Alu 100 fast karm (61-37-F221): isolerrutan i karmen, glaslist av aluminium."""
     fals = _plus(F_GLAS, -FALS)
     m = Montage(kod, kod, f"Fast fönster Elitfönster Original Alu 100, karm {_matt(b, h)}")
     m.lagg(Del(f"Karm fast fönster {_matt(b, h)}", _karm(b, h, F_GLAS, RUTA[0][0], fals, fals[2]), FONSTERTRA,
                artikel=f"Elitfönster Original Alu 100 fast karm, karm {_matt(b, h)}"), Placering(), f"{kod}-KARM")
-    alu = ram(b, h, [(TRA, NOLL), (TRA, fals), (RUTA[-1][1], fals), (RUTA[-1][1], F_GLAS),
-                     (DJUP, _plus(F_GLAS, -13.0)), (DJUP, NOLL)])
-    m.lagg(Del(f"Karmbeklädnad med glaslist aluminium {_matt(b, h)}", alu, FONSTERALU), Placering(), f"{kod}-KARMALU")
+    karm_alu = ram(b, h, [(TRA, NOLL), (TRA, fals), (RUTA[-1][1], fals), (RUTA[-1][1], F_GLAS),
+                          (DJUP, _plus(F_GLAS, -13.0)), (DJUP, NOLL)])
+    m.lagg(Del(f"Karmbeklädnad med glaslist aluminium {_matt(b, h)}", karm_alu, alu), Placering(), f"{kod}-KARMALU")
     m.lagg(Del(f"Isolerruta 4-18-4-18-4 {_matt(b - 2 * (F_GLAS[0] - RUTKANT), h - 2 * (F_GLAS[0] - RUTKANT))}",
                isolerruta(b, h, F_GLAS), GLAS), Placering(), f"{kod}-GLAS")
     return m
 
 
-def _dorrkarm(m: Montage, kod: str, b: float, h: float, vad: str, artikel: str) -> None:
+def _dorrkarm(m: Montage, kod: str, b: float, h: float, vad: str, artikel: str, alu: Material) -> None:
     """Dörrens karm med tröskeln (42) som bottenstycke, beklädnaden och tröskelns aluminiumprofil."""
     m.lagg(Del(f"Karm {vad} {_matt(b, h)}", _karm(b, h, D_LAPP, LAPP, D_STOMME, D_BOTTEN), FONSTERTRA,
                artikel=artikel), Placering(), f"{kod}-KARM")
-    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", _karm_alu(b, h, D_STOMME, D_BOTTEN), FONSTERALU),
+    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", _karm_alu(b, h, D_STOMME, D_BOTTEN), alu),
            Placering(), f"{kod}-KARMALU")
     m.lagg(Del(f"Tröskelprofil aluminium {fmt(b)}", _bottenprofil(b, D_STOMME, D_STOMME[2], D_BOTTEN, 8.0),
-               FONSTERALU), Placering(), f"{kod}-BOTTEN")
+               alu), Placering(), f"{kod}-BOTTEN")
 
 
-def fonsterdorr(kod: str, b: float, h: float) -> Montage:
+def fonsterdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     """Elitfönster Original Alu 100 altandörr, helglasad (61-37-D221), som linjerar med vridfönstren."""
     m = Montage(kod, kod, f"Fönsterdörr helglasad Elitfönster Original Alu 100, karm {_matt(b, h)}")
-    _dorrkarm(m, kod, b, h, "fönsterdörr", f"Elitfönster Original Alu 100 altandörr helglasad, karm {_matt(b, h)}")
+    _dorrkarm(m, kod, b, h, "fönsterdörr", f"Elitfönster Original Alu 100 altandörr helglasad, karm {_matt(b, h)}",
+              alu)
     m.lagg(Del(f"Dörrbåge {_matt(b, h)}", _bage(b, h, D_BAGE, D_GLAS), FONSTERTRA), Placering(), f"{kod}-BAGE")
-    m.lagg(Del(f"Bågbeklädnad aluminium {_matt(b, h)}", _bage_alu(b, h, D_BAGE, D_GLAS), FONSTERALU), Placering(),
+    m.lagg(Del(f"Bågbeklädnad aluminium {_matt(b, h)}", _bage_alu(b, h, D_BAGE, D_GLAS), alu), Placering(),
            f"{kod}-BAGEALU")
     gb, gh = b - 2 * (D_GLAS[0] - RUTKANT), h - D_GLAS[2] - D_GLAS[3] + 2 * RUTKANT
     m.lagg(Del(f"Isolerruta 4-18-4-18-4 {_matt(gb, gh)}", isolerruta(b, h, D_GLAS), GLAS), Placering(), f"{kod}-GLAS")
     return m
 
 
-def ytterdorr(kod: str, b: float, h: float) -> Montage:
+def ytterdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     """Ytterdörr (huvudentrén): dörrkarmen som fönsterdörrens och ett tätt dörrblad i bågens kontur."""
     m = Montage(kod, kod, f"Ytterdörr, karm {_matt(b, h)}")
-    _dorrkarm(m, kod, b, h, "ytterdörr", f"Ytterdörr, karm {_matt(b, h)}")
+    _dorrkarm(m, kod, b, h, "ytterdörr", f"Ytterdörr, karm {_matt(b, h)}", alu)
     v, hg, u, o = D_BAGE
     m.lagg(Del(f"Dörrblad {_matt(b - v - hg, h - u - o)}×{fmt(D_BLAD)}",
                box(v, b - hg, -BAGE_IN - D_BLAD, -BAGE_IN, u, h - o), DORRBLAD), Placering(), f"{kod}-BLAD")
@@ -198,7 +201,7 @@ S_RUTA = ((0.0, 4.0), (20.0, 24.0), (40.0, 44.0))   # 4-16-4-16-4 från rutans i
 
 
 def _skjutdel(x0: float, x1: float, z0: float, z1: float, glas: Sidor, djup: tuple[float, float, float],
-              namn: str, kod: str, m: Montage) -> None:
+              namn: str, kod: str, m: Montage, alu: Material) -> None:
     """En del (fast eller skjutbar): bågen i trä med spår för isolerrutan, aluminium utanpå och rutan."""
     b, h = x1 - x0, z1 - z0
     d_in, d_tra, d_alu = djup
@@ -210,7 +213,7 @@ def _skjutdel(x0: float, x1: float, z0: float, z1: float, glas: Sidor, djup: tup
                      (d_tra, NOLL)])
     m.lagg(Del(f"Båge skjutdörr {_matt(b, h)}", bage, FONSTERTRA), plac, f"{kod}-{namn}-BAGE")
     m.lagg(Del(f"Bågbeklädnad aluminium {_matt(b, h)}", ram(b, h, [(d_tra, NOLL), (d_tra, glas), (d_alu, glas),
-                                                                   (d_alu, NOLL)]), FONSTERALU),
+                                                                   (d_alu, NOLL)]), alu),
            plac, f"{kod}-{namn}-BAGEALU")
     ruta = tuple((g0 + a, g0 + c) for a, c in S_RUTA)
     gb, gh = b - glas[0] - glas[1] + 2 * RUTKANT, h - glas[2] - glas[3] + 2 * RUTKANT
@@ -218,7 +221,7 @@ def _skjutdel(x0: float, x1: float, z0: float, z1: float, glas: Sidor, djup: tup
            f"{kod}-{namn}-GLAS")
 
 
-def skjutdorr(kod: str, b: float, h: float) -> Montage:
+def skjutdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     """Elitfönster Skjutdörr Alu ASP4 (86-37-04): fasta delar vid sidorna i det inre spåret och två skjutbara delar i
     mitten i det yttre, som öppnas åt sidorna utanför de fasta. Rutorna är lika breda."""
     m = Montage(kod, kod, f"Skjutdörr Elitfönster Alu ASP4 (lyftglid, 2 skjutbara och 2 fasta delar), "
@@ -228,9 +231,9 @@ def skjutdorr(kod: str, b: float, h: float) -> Montage:
                   box(S_SIDA, b - S_SIDA, -S_TRA, 0.0, zt, h)))
     m.lagg(Del(f"Karm skjutdörr {_matt(b, h)}", karm, FONSTERTRA,
                artikel=f"Elitfönster Skjutdörr Alu ASP4, karm {_matt(b, h)}"), Placering(), f"{kod}-KARM")
-    alu = Union((box(0.0, S_SIDA, -S_DJUP, -S_TRA, S_TROSKEL, h), box(b - S_SIDA, b, -S_DJUP, -S_TRA, S_TROSKEL, h),
-                 box(S_SIDA, b - S_SIDA, -S_DJUP, -S_TRA, zt, h)))
-    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", alu, FONSTERALU), Placering(), f"{kod}-KARMALU")
+    karm_alu = Union((box(0.0, S_SIDA, -S_DJUP, -S_TRA, S_TROSKEL, h), box(b - S_SIDA, b, -S_DJUP, -S_TRA, S_TROSKEL, h),
+                      box(S_SIDA, b - S_SIDA, -S_DJUP, -S_TRA, zt, h)))
+    m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", karm_alu, alu), Placering(), f"{kod}-KARMALU")
     d0, d1, z_ut = S_TROSKEL_UT
     troskel = [(-S_FAST[0], 0.0), (-d1, 0.0), (-d1, z_ut), (-d0, S_TROSKEL), (-S_FAST[0], S_TROSKEL)]
     m.lagg(Del(f"Tröskel hårdträ {fmt(b)}", prisma_x(troskel, 0.0, b), HARDTRA), Placering(), f"{kod}-TROSKEL")
@@ -247,11 +250,11 @@ def skjutdorr(kod: str, b: float, h: float) -> Montage:
         if spegel:
             glas_fast = (glas_fast[1], glas_fast[0], glas_fast[2], glas_fast[3])
             glas_skjut = (glas_skjut[1], glas_skjut[0], glas_skjut[2], glas_skjut[3])
-        _skjutdel(fx0, fx1, z0, zt, glas_fast, S_FAST, f"F{sida}", kod, m)
-        _skjutdel(sx0, sx1, z0, zt, glas_skjut, S_SKJUT, f"S{sida}", kod, m)
+        _skjutdel(fx0, fx1, z0, zt, glas_fast, S_FAST, f"F{sida}", kod, m, alu)
+        _skjutdel(sx0, sx1, z0, zt, glas_skjut, S_SKJUT, f"S{sida}", kod, m, alu)
     return m
 
 
-PRODUKTER: dict[str, tuple[Callable[[str, float, float], Montage], float]] = {
+PRODUKTER: dict[str, tuple[Callable[[str, float, float, Material], Montage], float]] = {
     "vridfönster": (vridfonster, DJUP), "fast fönster": (fast_karm, DJUP), "fönsterdörr": (fonsterdorr, DJUP),
     "ytterdörr": (ytterdorr, DJUP), "skjutdörr": (skjutdorr, S_DJUP)}

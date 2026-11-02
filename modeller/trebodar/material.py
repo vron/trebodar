@@ -113,7 +113,11 @@ GLAS = Material("Glas", "Fönsterglas", 2500, "#cfe3ea", 0.02, textur="glas", op
 KARM = Material("Karm", "Fönster- och dörrkarm", 500, "#26292c", 0.5, cad="#414950")
 FONSTERTRA = Material("Fönsterträ", "Lamellimmad furu, vitmålad NCS S 0502-Y (fönster, dörrar, smyg)", 500,
                      "#efede6", 0.55, cad="#e6dcc4")
-FONSTERALU = Material("Fönsteraluminium", "Aluminiumbeklädnad, pulverlackerad (fönster och dörrar)", 2700,
-                     "#2e3135", 0.45, cad="#4a525a")
+# fönstrens och dörrarnas aluminiumbeklädnad, pulverlackerad: halvblank med apelsinyta, till skillnad från det målade
+# träet (kulör per huskropp i hus/fasad/fasad.py)
+ALU_RAL3009 = Material("Aluminium RAL 3009", "Aluminiumbeklädnad pulverlackerad RAL 3009 oxidröd (fönster, dörrar)",
+                       2700, "#642424", 0.4, textur="pulverlack", cad="#8c3a32")
+ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad RAL 7012 basaltgrå (fönster, dörrar)",
+                       2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
 HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")

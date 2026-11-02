@@ -55,7 +55,7 @@ när stommen ändras.
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
-| Fasadens uppbyggnad eller panelens kulör | `hus/fasad/fasad.py` (`PANEL` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
+| Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (`PANEL` och `ALUMINIUM` per huskropp) och `material.py` (kulör, brädbredd, kvistar, skruvar) |
 | Marken vid fasaden (panelens underkant) | `hus/fasad/fasad.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
@@ -87,6 +87,8 @@ brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (r
 - **Taket**: plåten är banor med falsar i modellen; varje bana skiftar något i ton och glans och buktar mellan falsarna.
 - **Fasadstenen**: stenarna är egna delar med kluven framsida (triangelnät, 30–50 mm tjock); renderingen ger granitens
   mineralkorn, små brottytor och skiftningen mellan stenarna.
+- **Fönstren och dörrarna**: aluminiumbeklädnaden pulverlackerad, RAL 3009 på den röda huskroppen och RAL 7012 på de
+  grå, halvblank med fin apelsinyta (typen `pulverlack`); träet invändigt vitmålat och matt.
 
 Vyerna (`vyer.py`) har sol eller `molnigt` (jämnt ljus som på foton i mulet väder, bra för att bedöma material).
 `./mod rendera --blend` sparar också scenen (`ut/trebodar.blend`) med materialen och en kamera per vy, för egna

@@ -422,6 +422,12 @@ def brusig(g: Graf, p: dict, skala_: float, detalj: float = 6.0, bump: float = 0
     g.yta(g.ramp(fak, [(0.3, (*c2, 1.0)), (0.7, (*c, 1.0))]), _f(p, "grovhet", 0.9), hojd=fin, styrka=bump)
 
 
+def pulverlack(g: Graf, p: dict) -> None:
+    """Pulverlackerad metall: jämn kulör, halvblank, med fin apelsinyta (ingen metallglans)."""
+    hojd = g.brus(g.koord, _f(p, "skala", 800.0), 3.0, 0.5)
+    g.yta((*linjar(p["farg"]), 1.0), _f(p, "grovhet", 0.4), 0.0, hojd=hojd, styrka=0.04)
+
+
 def glas(g: Graf, p: dict) -> None:
     g.yta((*linjar(p["farg"]), 1.0), 0.02)
     for k in ("Transmission Weight", "Transmission"):
@@ -436,7 +442,7 @@ def folie(g: Graf, p: dict) -> None:
 
 
 TYPER = {"farg": farg, "tra": tra, "limtra": limtra, "bradpanel": bradpanel, "plat": plat, "granit": granit,
-         "glas": glas, "folie": folie,
+         "glas": glas, "folie": folie, "pulverlack": pulverlack,
          "betong": lambda g, p: brusig(g, p, 3.0, 6.0, 0.2),
          "bruk": lambda g, p: brusig(g, p, 40.0, 4.0, 0.4),
          "berg": lambda g, p: brusig(g, p, 0.8, 8.0, 0.6),

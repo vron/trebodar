@@ -24,7 +24,7 @@ from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.grund import fasadsten
 from trebodar.hus.tak.tak import tak_underkant
-from trebodar.material import C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
+from trebodar.material import ALU_RAL3009, ALU_RAL7012, C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
 Z_UK = -S.H_BJALKLAG
 # marken vid fasaden (u, z) per vägg: panelens underkant, utom där fasadstenen går upp till bjälklaget (STENVAGGAR,
@@ -54,8 +54,9 @@ UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
 LAKT_B = 45.0
 CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
-# panelens utförande per huskropp (byt material här för att prova andra kulörer)
+# panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
+ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}
 # renderingens skruvrader i panelen följer spikläkten: c/c CC från fasadens underkant, mitt på läkten
 assert all((dict(p.rendering)["skruv_cc"], dict(p.rendering)["skruv_start"]) == (CC, Z_UK + LAKT_B / 2)
            for p in PANEL.values())
