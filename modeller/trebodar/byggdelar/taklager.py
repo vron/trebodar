@@ -25,6 +25,7 @@ GAVEL_UT = 100.0                     # takutstick vid gavlarna (planritning 201)
 VINDSKIVA = (22.0, 145.0)            # vindskivan: tjocklek, bredd
 RANDAL_B = 300.0                     # rändalens bredd på var sida om dallinjen (i plan)
 RANDAL_FALL = 1.0 / 60.0             # dalarnas fall från mitten mot ändarna (AMA minst 1:75)
+DALANDE_B = 105.0                    # dalens ändlåda: från dallinjen in under den kortare kroppens gavelutstick
 
 
 @dataclass(frozen=True)

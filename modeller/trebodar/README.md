@@ -149,8 +149,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
-  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TF takfotsplåt, HR hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, stuprören ST1–ST8, i dalarna DB2-KIL och DB2-RD
-  (kilar och rändal). Fasad: UG utegips, SR ströläkt, SP
+  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TF takfotsplåt, HR hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, rännornas stuprör ST1–ST8, i dalarna DB2-KIL och DB2-RD
+  (kilar och rändal) och vid ändarna DB2-LA1, -RS1 och -ST1 (ändlåda, rörstos och stuprör; 2 vid den södra änden).
+  Fasad: UG utegips, SR ströläkt, SP
   spikläkt, PA panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY
   innertakets yttre gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, IS
   isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter TP och numreras längs takfallet.
@@ -195,7 +196,13 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Takbalkarnas upplag** mot nock- och dalbalkarna: upplagsregel 45×45 och hak (K-03 figur 2); vid dalbalkarna sitter
   regeln så högt att haket får fullt säte.
 - **Dalarna**: kilar av plywood på råsponten med fall 1:60 från mitten mot ändarna (plåtslagaren, AMA minst 1:75)
-  och rändal av plåt på underlagspapp över dem; vattnet rinner ut i grannkroppens takfotsränna och stupröret där.
+  och rändal av plåt på underlagspapp över dem. Dalarna slutar vid den kortare kroppens gavel, där dallinjen ligger i
+  den längre kroppens fasadliv. Där tar en ändlåda av plåt emot vattnet, 105 × 100 i hörnet mellan fasaderna under
+  gavelutsticket med botten 40 mm under dalens botten, och en rörstos Ø75 falsad i botten leder det till ett eget
+  stuprör Ø75 ned i hörnet, 20 mm från fasaderna (plåtslagarens detalj). Rändalen, den kortare kroppens utstick och
+  den längre kroppens tak viks ned i lådan; lådans yttre kant är lägst (30 mm), så att vattnet rinner ut över den till
+  grannkroppens takfot och ränna om stosen sätts igen, aldrig in under plåten. Den längre kroppens takfot och ränna
+  slutar vid gavelutstickets kant och rännans stuprör sitter i dess andra ände. Lövsilen i stosen är inte modellerad.
 - **Väggarnas möte med snedtaket**: takfotsväggarnas insida går upp till innertaket och kapas längs det, så att
   innertakets gips möter väggens i en skarp linje, med läkt bakom båda skivornas kanter; vid gavlarna en läkt
   längs takfallet bakom innertakets gipskant.
@@ -205,7 +212,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   innertaket slutar mot den.
 - **Takkanterna** (planritning 201: takutstick 100 utanför panelen): vindskiva 22×145 ytterst i gavlarnas utstick
   med vindskivebeslag vikt runt den (över överkanten, ned över framsidan och in under den), takfotsplåt med
-  droppnäsa, hängrännor Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
+  droppnäsa, hängrännor Ø125 och stuprör Ø87 vid takfötternas ändar mot gavlarna (dalarna har egna stuprör).
 - **Takfoten**: ingen takfotsbräda; takbalkarnas ändar är synliga och fasaden går upp mellan dem till takbalkarnas
   överkant i panelens utsida (en ströläkt mot varje takbalk och en spikläkt överst i facket), så att luftintaget är
   öppningen ovanför panelen. Isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas

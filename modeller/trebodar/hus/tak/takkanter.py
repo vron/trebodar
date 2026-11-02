@@ -3,27 +3,33 @@
 Vid takfoten finns ingen takfotsbräda: takbalkarnas ändar är synliga och fasadens panel går upp mellan dem
 (fasad.py), så att luftintaget till takets luftspalt (U-03) är öppningen ovanför panelen. Takfotsplåt 0,6 över
 råspontens framkant, 35 mm ned under råsponten och med droppnäsa över hängrännan, och halvrunda hängrännor Ø125
-med gavlar. Stuprör Ø87 vid dalarnas ändar och vid de långa takfötternas ändar, från rännan till 150 mm över marken
-längs fasaden. Vid gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och
+med gavlar. Stuprör Ø87 vid takfötternas ändar mot gavlarna, från rännan till 150 mm över marken längs fasaden. Vid
+gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och
 vindskivebeslag 0,6 vikt runt vindskivan: från 50 mm in på plåten över vindskivans överkant, ned över hela framsidan
 och 15 mm in under den. Råsponten, pappen och plåten går ut till vindskivan (tak.py). Rännorna ligger vågrätt
 (fallet mot stuprören är inte modellerat) och rännkrokarna (på råsponten) är inte modellerade.
 
 I dalarna (vågräta dallinjer): kilar av plywood på råsponten med fall 1:60 från mitten mot ändarna, som på dallinjen
 stiger från noll vid ändarna till högst i mitten och på sidorna går ned till råsponten 300 mm ut, och en rändal av
-plåt på underlagspapp över kilarna och remsan; takets papp och plåt slutar vid rändalen. Vattnet rinner ut i
-grannkroppens takfotsränna, där dalen slutar mot en gavel, och vidare i stupröret där.
+plåt på underlagspapp över kilarna och remsan; takets papp och plåt slutar vid rändalen. Dalarna slutar vid den
+kortare kroppens gavel, där dallinjen ligger i den längre kroppens fasadliv. Där tar en ändlåda av plåt emot vattnet:
+105 × 100 i hörnet mellan fasaderna under gavelutsticket, botten 40 mm under dalens botten och en rörstos Ø75 falsad
+i botten med eget stuprör Ø75 ned i hörnet, 20 mm från båda fasaderna (plåtslagarens detalj). Rändalen, den kortare
+kroppens utstick och den längre kroppens tak viks ned i lådan; lådans yttre kant är 30 mm hög, lägre än de andra,
+så att vattnet rinner över den och ut från huset om stosen sätts igen. Den längre kroppens takfot och ränna slutar
+vid gavelutstickets kant (tak.py, ande) och rännans stuprör sitter i dess andra ände.
 """
 from __future__ import annotations
 
 import math
 
-from modellering import Del, Form, Montage, Placering, Union, polyeder
+from modellering import Del, Form, Montage, Placering, Union, box, polyeder
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.byggdelar.polygon import prisma_y
 from trebodar.byggdelar.regelvagg import Plan
-from trebodar.byggdelar.ror import ror
+from trebodar.byggdelar.ror import ror, stang
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fasad.fasad import PANEL, mark_vid
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
@@ -40,6 +46,10 @@ VIK_IN = 15.0                # vindskivebeslagets vikning in under vindskivan
 STUPROR_FRI = 30.0           # stuprörets avstånd från panelen
 STUPROR_KANT = 150.0         # stuprörets läge från takfotens ände
 STUPROR_MARK = 150.0         # stuprörets ände över marken
+LADA_DJUP = 40.0             # dalens ändlåda: botten under dalens botten
+LADA_BRADD = 30.0            # ändlådans yttre kant (bräddavlopp), lägre än de andra kanterna
+STOS_D, STOS_L = 75.0, 80.0  # rörstosen i ändlådans botten (och dalens stuprör)
+STOS_FRI = 20.0              # rörstosens och dalens stuprörs avstånd från fasaderna i hörnet
 
 
 def _z(t: S.Takfall, x: float, w: float) -> float:
@@ -101,10 +111,7 @@ def _vindskivor(kod: str) -> Montage:
             if abs((r.y0 if inat > 0 else r.y1) - kant) > 1e-6:
                 continue
             yk = kant - inat * bt                      # utstickets yttre kant
-            nedre = r.nedre
-            if abs(nedre.x - kant_takfot(kod)) > 1e-6:
-                # där en dal slutar: vindskivan slutar före grannkroppens takfotsplåt, som rännan går under
-                nedre = L.Kant("lodratt", nedre.x + t.riktning * 25.0)
+            nedre = r.nedre                            # vid en dal: dalens ändlåda
             skiva = L.profil(t, w1 - bh, w1, nedre, r.nock)
             topp = L.profil(t, w1, w1 + PLAT_T, nedre, r.nock)
             fram = L.profil(t, w1 - bh - PLAT_T, w1 + PLAT_T, nedre, r.nock)
@@ -122,14 +129,12 @@ def _vindskivor(kod: str) -> Montage:
 
 
 def _stupror_lagen() -> list[tuple[str, float]]:
-    """Stuprören: vid dalarnas ändar (takfotens ände mot en dal) och vid båda ändarna av takfötter utan dal."""
+    """Rännornas stuprör: vid takfötternas ändar mot gavlarna (vid dalarnas ändar har dalen eget stuprör)."""
     ut = []
     for kod in REGIONER:
-        tf = _takfoter(kod)
-        har_dal = any(not (g0 and g1) for _, g0, g1 in tf)
-        for r, gavel0, gavel1 in tf:
+        for r, gavel0, gavel1 in _takfoter(kod):
             for y, gavel, inat in ((r.y0, gavel0, 1.0), (r.y1, gavel1, -1.0)):
-                if not gavel or not har_dal:
+                if gavel:
                     ut.append((kod, y + inat * STUPROR_KANT))
     return ut
 
@@ -168,7 +173,7 @@ def _tunn(tri: tuple[Punkt, Punkt, Punkt], t0: float, t1: float) -> Form:
 def _randal(dal: str) -> Montage:
     """Kilarna, rändalens papp och plåt i dalen längs balken dal."""
     b = S.BALKAR[dal]
-    sidor = [(kod, r) for kod, rs in REGIONER.items() for r in rs if r.nedre.x == b.x]
+    sidor = [(kod, r) for kod, rs in REGIONER.items() for r in rs if r.nedre.x == b.x and not r.ande]
     y0, y1 = min(r.y0 for _, r in sidor), max(r.y1 for _, r in sidor)
     ym, h = (y0 + y1) / 2, (y1 - y0) / 2 * L.RANDAL_FALL
     kilar: list[Form] = []
@@ -190,7 +195,53 @@ def _randal(dal: str) -> Montage:
     tj = L.PLAT[1] - L.PAPP[0]                 # papp och plåt i en del (skikten följer de vikta ytorna)
     m.lagg(Del("Rändal, plåt 0,6 på underlagspapp", Union(tuple(_tunn(tri, 0.0, tj) for tri in ytor)), TAKPLAT),
            Placering(), f"{dal}-RD")
+    for n, (ye, s) in enumerate(((y0, -1.0), (y1, 1.0)), 1):
+        for typ, d in _dalens_ande(dal, ye, s):
+            m.lagg(d, Placering(), f"{dal}-{typ}{n}")
     return m
+
+
+def _dalens_ande(dal: str, ye: float, s: float) -> list[tuple[str, Del]]:
+    """Dalens ände vid den kortare kroppens gavel (fasadlivet ye, utåt s = ±1): ändlådan (LA) i hörnet under
+    gavelutsticket, rörstosen (RS) i dess botten och stupröret (ST) ned i hörnet."""
+    xd = S.BALKAR[dal].x
+    langre = {kod for kod, rs in REGIONER.items() for r in rs
+              if r.ande and r.nedre.x == xd and abs((r.y1 if s < 0 else r.y0) - ye) < 1e-6}
+    kort = next(kod for kod, rs in REGIONER.items() for r in rs if r.nedre.x == xd and kod not in langre)
+    t = S.TAKFALL[kort]
+    sida = math.copysign(1.0, S.HUSKROPPAR[t.kropp].nock - xd)       # mot den kortare kroppen
+
+    def X(u: float) -> float:
+        return xd + sida * u
+
+    def Y(v: float) -> float:
+        return ye + s * v
+
+    def ruta(u0: float, u1: float, v0: float, v1: float, z0: float, z1: float) -> Form:
+        (xa, xb), (ya, yb) = sorted((X(u0), X(u1))), sorted((Y(v0), Y(v1)))
+        return box(xa, xb, ya, yb, z0, z1)
+    B, G = L.DALANDE_B, L.GAVEL_UT
+    zv = _z(t, xd, L.PLAT[1])                  # plåtens överkant i dallinjen (båda takfallen)
+    zk = _z(t, X(B), L.PLAT[1])                # den kortare kroppens plåt vid lådans sida
+    zb = zv - LADA_DJUP
+    xs, ys = X(STOS_D / 2 + STOS_FRI), Y(STOS_D / 2 + STOS_FRI)
+    botten = ruta(0.0, B, 0.0, G, zb, zb + PLAT_T) - stang((xs, ys, zb - 1.0), (xs, ys, zb + PLAT_T + 1.0), STOS_D)
+    ya, yb = sorted((Y(0.0), Y(PLAT_T)))
+    lada = Union((botten,
+                  ruta(0.0, PLAT_T, 0.0, G, zb, zv),                   # mot den längre kroppens tak
+                  ruta(B - PLAT_T, B, 0.0, G, zb, zk),                 # mot den kortare kroppens utstick
+                  ruta(0.0, B, G - PLAT_T, G, zb, zb + LADA_BRADD),    # yttre kanten, bräddavlopp
+                  prisma_y([(X(0.0), zb), (X(B), zb), (X(B), zk), (X(0.0), zv)], ya, yb)))     # mot rändalen
+    # marken vid stupröret: den högsta vid de två fasaderna i hörnet
+    gavel = next(k for k, v in S.YTTERVAGGAR.items() if k[0] == str(t.kropp) and k not in S.TAKFALL
+                 and abs(v.placering().punkt((0.0, -S.T_FASAD, 0.0))[1] - ye) < 1.0)
+    z_mark = max(mark_vid(k, S.YTTERVAGGAR[k].placering().invers().punkt((xs, ys, 0.0))[0])
+                 for k in (gavel, *langre))
+    za = zb - STOS_L
+    return [("LA", Del(f"Dalens ändlåda {fmt(B)}×{fmt(G)}, plåt 0,6", lada, TAKPLAT)),
+            ("RS", Del(f"Rörstos Ø{fmt(STOS_D)}", ror((xs, ys, zb + PLAT_T), (xs, ys, za), STOS_D, PLAT_T), TAKPLAT)),
+            ("ST", Del(f"Stuprör Ø{fmt(STOS_D)} L={fmt(za - z_mark - STUPROR_MARK)}",
+                       ror((xs, ys, za), (xs, ys, z_mark + STUPROR_MARK), STOS_D, PLAT_T), TAKPLAT))]
 
 
 def montage() -> Montage:

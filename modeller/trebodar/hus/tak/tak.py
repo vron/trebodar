@@ -10,6 +10,7 @@ dallinjerna och i gavlarnas fasadliv. Vid takfoten slutar hårdboarden på isole
 """
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Sequence
@@ -31,6 +32,7 @@ class Region:
     y1: float
     nedre: L.Kant                    # takfot eller dal
     nock: L.Kant
+    ande: bool = False               # vid dalens ände: under grannkroppens gavelutstick, där ändlådan sitter
 
 
 def _f(kropp: int) -> tuple[float, float]:
@@ -45,18 +47,30 @@ def _lodr(x: float) -> L.Kant:
 Y1, Y2, Y3 = _f(1), _f(2), _f(3)
 DB4, DB2 = S.BALKAR["DB4"].x, S.BALKAR["DB2"].x
 NOCK = {k: S.HUSKROPPAR[k].nock for k in (1, 2, 3)}
+G = L.GAVEL_UT
+
+
+def _takfall(kod: str, *delar: tuple[float, float, float, bool]) -> list[Region]:
+    """Takfallets regioner (y0, y1, nedre kant, vid dalens ände) upp till nocken."""
+    return [Region(y0, y1, _lodr(x), _lodr(NOCK[S.TAKFALL[kod].kropp]), ande) for y0, y1, x, ande in delar]
+
+
+# Vid dalarnas ändar går den längre kroppens dalregion gavelutsticket ut förbi den kortare kroppens gavel (ande), så
+# att takfoten och rännan slutar där och dalens ändlåda (takkanter.py) får plats under den kortare kroppens utstick.
 REGIONER = {
-    "1SO": [Region(Y1[0], Y1[1], _lodr(FALT["1SO"].takfot), _lodr(NOCK[1]))],
-    "1NV": [Region(Y1[0], Y2[1], _lodr(DB4), _lodr(NOCK[1])), Region(Y2[1], Y1[1], _lodr(FALT["1NV"].takfot),
-                                                                      _lodr(NOCK[1]))],
-    "2SO": [Region(Y2[0], Y1[0], _lodr(FALT["2SO"].takfot), _lodr(NOCK[2])), Region(Y1[0], Y2[1], _lodr(DB4),
-                                                                                    _lodr(NOCK[2]))],
-    "2NV": [Region(Y2[0], Y3[0], _lodr(FALT["2NV"].takfot), _lodr(NOCK[2])), Region(Y3[0], Y2[1], _lodr(DB2),
-                                                                                    _lodr(NOCK[2]))],
-    "3SO": [Region(Y3[0], Y2[1], _lodr(DB2), _lodr(NOCK[3])), Region(Y2[1], Y3[1], _lodr(FALT["3SO"].takfot),
-                                                                     _lodr(NOCK[3]))],
-    "3NV": [Region(Y3[0], Y3[1], _lodr(FALT["3NV"].takfot), _lodr(NOCK[3]))],
+    "1SO": _takfall("1SO", (Y1[0], Y1[1], FALT["1SO"].takfot, False)),
+    "1NV": _takfall("1NV", (Y1[0], Y2[1], DB4, False), (Y2[1], Y2[1] + G, DB4, True),
+                    (Y2[1] + G, Y1[1], FALT["1NV"].takfot, False)),
+    "2SO": _takfall("2SO", (Y2[0], Y1[0] - G, FALT["2SO"].takfot, False), (Y1[0] - G, Y1[0], DB4, True),
+                    (Y1[0], Y2[1], DB4, False)),
+    "2NV": _takfall("2NV", (Y2[0], Y3[0] - G, FALT["2NV"].takfot, False), (Y3[0] - G, Y3[0], DB2, True),
+                    (Y3[0], Y2[1], DB2, False)),
+    "3SO": _takfall("3SO", (Y3[0], Y2[1], DB2, False), (Y2[1], Y2[1] + G, DB2, True),
+                    (Y2[1] + G, Y3[1], FALT["3SO"].takfot, False)),
+    "3NV": _takfall("3NV", (Y3[0], Y3[1], FALT["3NV"].takfot, False)),
 }
+
+
 def tak_underkant(x: float, y: float) -> float | None:
     """Takets hårdboards undersida (takbalkarnas överkant) i punkten (x, y), om taket täcker den."""
     z = []
@@ -84,25 +98,23 @@ def kant_takfot(kod: str) -> float:
     return FALT[kod].takfot - S.TAKFALL[kod].riktning * L.RASPONT_UT
 
 
-def _dalens_slut(x_dal: float, y: float, kropp: int) -> float:
-    """Grannkroppens takfotskant (x) där dalen slutar i y: utsticket över gaveln slutar där."""
-    kandidater = [(abs(FALT[k].takfot - x_dal), kant_takfot(k)) for k, rs in REGIONER.items()
-                  if S.TAKFALL[k].kropp != kropp for r in rs
-                  if r.nedre.x == FALT[k].takfot and (abs(r.y0 - y) < 1e-6 or abs(r.y1 - y) < 1e-6)]
-    assert kandidater, (x_dal, y)
-    return min(kandidater)[1]
+def _dalens_slut(x_dal: float, kropp: int) -> float:
+    """Där en dal slutar mot kroppens gavel slutar utsticket över gaveln vid dalens ändlåda (takkanter.py)."""
+    return x_dal + math.copysign(L.DALANDE_B, S.HUSKROPPAR[kropp].nock - x_dal)
 
 
 def regioner(kod: str, typ: str) -> list[Region]:
     """Skiktets regioner. Vid takfoten slutar hårdboarden i ytterväggens liv (isolerstoppet) och råsponten, pappen
     och plåten RASPONT_UT utanför takbalkarnas ände. Vid gavlarna går råsponten, pappen och plåten ut till vindskivan
-    (GAVEL_UT); där en dal slutar mot en gavel slutar utsticket vid grannkroppens takfot."""
+    (GAVEL_UT); där en dal slutar mot en gavel slutar utsticket vid dalens ändlåda. Vid dalens ände (ande) slutar
+    hårdboarden i väggens liv som vid takfoten och de andra skikten i dallinjen, mot ändlådan."""
     t, f = S.TAKFALL[kod], FALT[kod]
     tackning = typ in ("RP", "UP", "TP")
     x = t.x_utsida if typ == "HD" else kant_takfot(kod) if tackning else f.takfot
     # i dalarna slutar pappen och plåten vid rändalen (takkanter.py)
     xd = t.riktning * L.RANDAL_B if typ in ("UP", "TP") else 0.0
     rs = [Region(r.y0, r.y1, _lodr(x), r.nock) if r.nedre.x == f.takfot else
+          Region(r.y0, r.y1, _lodr(t.x_utsida if typ == "HD" else r.nedre.x), r.nock, True) if r.ande else
           Region(r.y0, r.y1, _lodr(r.nedre.x + xd), r.nock) for r in REGIONER[kod]]
     if not tackning:
         return rs
@@ -110,9 +122,9 @@ def regioner(kod: str, typ: str) -> list[Region]:
     y0, y1 = min(r.y0 for r in rs), max(r.y1 for r in rs)
     ut = list(rs)
     for r in rs:
-        for ande, (a, b) in ((r.y0, (r.y0 - g, r.y0)), (r.y1, (r.y1, r.y1 + g))):
-            if ande in (y0, y1):
-                nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x - xd, ande, t.kropp))
+        for kant, (a, b) in ((r.y0, (r.y0 - g, r.y0)), (r.y1, (r.y1, r.y1 + g))):
+            if kant in (y0, y1):
+                nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x - xd, t.kropp))
                 ut.append(Region(a, b, nedre, r.nock))
     return ut
 
@@ -189,7 +201,9 @@ def _lakt_lagen(kod: str) -> list[float]:
 def _strolakt(t: S.Takfall, kod: str, fonster: tuple[Takfonster, ...]) -> Montage:
     p = Plan(kod, f"Ströläkt {kod}", 45.0, beskrivning="Ströläkt 34×45 C24 (luftspalten 34 mm)", material=C24_LAKT)
     for y in _lakt_lagen(kod):
-        r = next((r for r in REGIONER[kod] if r.y0 <= y + 22.5 < r.y1), None)
+        # regionen vid läktens mitt; en läkt som når in över dalens ände slutar där, före ändlådan
+        r = next((r for r in REGIONER[kod] if r.ande and r.y0 < y + 45 and y < r.y1), None) or \
+            next((r for r in REGIONER[kod] if r.y0 <= y + 22.5 < r.y1), None)
         if r is None:
             continue
         # sträckor längs takfallet: hela, utom vid fönster (öppningen och uppehållen ovanför och nedanför)
