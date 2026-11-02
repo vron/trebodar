@@ -1,6 +1,5 @@
 __pycache__/
 fig_*.svg
-resultat.json
 *.npz
 rapport/data.json
 rapport/laster.json

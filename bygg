@@ -1,0 +1,4 @@
+#!/bin/sh
+# Bygger allt som genereras ur källorna (verktyg/bygg/bygg.py, se README.md). Kräver uv.
+D="$(cd "$(dirname "$0")" && pwd)"
+exec uv run --no-project --quiet --python 3.12 python "$D/verktyg/bygg/bygg.py" "$@"

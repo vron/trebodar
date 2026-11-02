@@ -1,0 +1,89 @@
+# Bygger webbplatsen ur källorna på main och publicerar den med GitHub Pages: modellen i 3D (webbvisaren) och
+# handlingarna (rapporterna, ritningarna och kameraplanen). Bara de snabba stegen körs här (./bygg --snabb); de tunga
+# beräkningarna räknas lokalt och deras resultat checkas in (se verktyg/bygg/README.md). En tagg rev-* (t.ex. rev-B)
+# på main publicerar dessutom handlingarna som en release.
+name: Bygg
+
+on:
+  push:
+    branches: [main]
+    tags: ["rev-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bygg-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bygg:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Systempaket (typsnittet Carlito, OpenGL för OCP och VTK)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-crosextra-carlito libgl1 libegl1 libglu1-mesa libxrender1
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/requirements.txt"
+
+      - name: Modellens cache
+        uses: actions/cache@v4
+        with:
+          path: verktyg/modellering/.cache
+          key: modell-${{ hashFiles('modeller/trebodar/**', 'verktyg/modellering/**') }}
+          restore-keys: modell-
+
+      - name: Bygg
+        run: ./bygg --snabb
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Handlingarna till releasen
+        if: startsWith(github.ref, 'refs/tags/rev-')
+        uses: actions/upload-artifact@v4
+        with:
+          name: handlingar
+          path: |
+            rapporter/*.pdf
+            ritningar/*.pdf
+
+  publicera:
+    if: github.ref == 'refs/heads/main'
+    needs: bygg
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/rev-')
+    needs: bygg
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: handlingar
+      - name: Release med handlingarna
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
+            --notes "Handlingarna byggda ur $GITHUB_SHA." rapporter/*.pdf ritningar/*.pdf

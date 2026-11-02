@@ -27,7 +27,7 @@ python validering/natkonvergens.py
 python rapport.py              # rapport/K-06_grund.pdf
 ```
 
-`python berakning.py` kör själv `berakning06.py` om `res06_*.pkl` saknas. Figurer, `*.pkl`, `resultat.json`, `kontroll06.json` och PDF skapas i mappen och versionshanteras inte. Ritningarna R-04 (bottenplattan) och R-05 (källarstommen) läser `indata.py` och `resultat.json`. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
+`python berakning.py` kör själv `berakning06.py` om `res06_*.pkl` saknas. Figurer, `*.pkl`, `kontroll06.json` och PDF skapas i mappen och versionshanteras inte. Ritningarna R-04 (bottenplattan) och R-05 (källarstommen) och U-01 läser `indata.py` och `resultat.json`. K-06 är ett tungt steg i bygget: det räknas lokalt (`./bygg K-06`), och `resultat.json`, `räknat.json` (källornas kontrollsumma) och rapporten i `rapporter/` checkas in (se [`verktyg/bygg`](../../verktyg/bygg/)).
 
 ## Viktiga antaganden
 

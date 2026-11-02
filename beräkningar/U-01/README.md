@@ -19,6 +19,6 @@ python berakning.py            # alla fall, kontroller och PDF, några minuter
 python berakning.py figurer    # bara grundfallet och figurerna
 ```
 
-Resultat: `U-01_bottenplatta_fukt.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
+Resultat: `U-01_bottenplatta_fukt.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. U-01 är ett tungt steg i bygget: det räknas lokalt (`./bygg U-01`), och `räknat.json` (källornas kontrollsumma) och rapporten i `rapporter/` checkas in (se [`verktyg/bygg`](../../verktyg/bygg/)).
 
 Typsnittet Carlito läses från systemet eller från `beräkningar/.fonts`.

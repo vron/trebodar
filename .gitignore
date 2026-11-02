@@ -11,3 +11,19 @@ __pycache__/
 # Modellering: cache och genererade filer (byggs med verktyg/modellering/mod)
 verktyg/modellering/.cache/
 modeller/trebodar/ut/
+
+# Genereras av ./bygg (verktyg/bygg) och publiceras av GitHub Actions på https://vron.github.io/trebodar/
+.bygg/
+docs/
+rapporter/*.pdf
+ritningar/*.pdf
+renderingar/kameraplan.pdf
+verktyg/modellanalys/granskning/*.png
+# Versionshanteras: de tunga beräkningarnas rapporter (räknas lokalt, se verktyg/bygg/README.md) och
+# bygglovsritningarna (färdiga pdf:er utan källa)
+!rapporter/K-05rev*.pdf
+!rapporter/K-06rev*.pdf
+!rapporter/U-01rev*.pdf
+!rapporter/U-03rev*.pdf
+!ritningar/200 Situationsplan.pdf
+!ritningar/201 Planritning.pdf
