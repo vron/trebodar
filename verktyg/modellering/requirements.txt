@@ -2,3 +2,4 @@ cadquery-ocp>=8.0
 numpy>=2.0
 shapely>=2.1
 mypy>=1.13
+matplotlib>=3.8

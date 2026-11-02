@@ -11,6 +11,11 @@ import math
 from dataclasses import dataclass
 
 from modellering import Placering
+from modellering.dagsljus import Plats
+
+# Platsen (Resö 2:66): latitud och longitud (U-03), höjden över havet för z = 0, golvet FG +8,5 i RH2000 (F-01), och
+# riktningen för +x mot geografiska norr, 318,0° (AR-02 och U-03: mot nordväst; +y mot sydväst)
+PLATS = Plats(lat=58.796, lon=11.176, hojd=8.5, azimut_x=318.0, tidszon="Europe/Stockholm")
 
 # ------------------------------------------------------------------ nivåer och mått
 H_BJALKLAG = 150.0          # mellanbjälklagets tjocklek (z −150 … 0)

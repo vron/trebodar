@@ -86,10 +86,16 @@ def main(argv: list[str] | None = None) -> None:
     pk.add_argument("--del", dest="vag")
     pk.add_argument("--ut", type=Path, default=UT)
     pr = sub.add_parser("rendera", help="rendera vyer med Blender (Cycles)")
-    pr.add_argument("vyer", nargs="*", help="vyernas namn (standard: alla i trebodar.vyer)")
-    pr.add_argument("--bredd", type=int, default=400)
-    pr.add_argument("--sampel", type=int, default=32)
-    pr.add_argument("--ut", type=Path, default=UT)
+    pr.add_argument("vyer", nargs="*", help="vyernas namn eller början av dem, t.ex. I01 (standard: serien)")
+    pr.add_argument("--serie", choices=("ute", "inne", "alla"), default="ute",
+                    help="ute: VYER, inne: inomhusbilderna I01–I30 (trebodar.vyer)")
+    pr.add_argument("--kvalitet", choices=("skiss", "utkast", "normal", "slutlig"), default="skiss",
+                    help="skiss 640 px, utkast 1280, normal 1920, slutlig 3840 (4K)")
+    pr.add_argument("--ljus", nargs=4, metavar=("MANAD", "DAG", "KLOCKA", "VADER"),
+                    help="dagsljuset för alla vyerna, t.ex. 6 21 18:00 sol (annars vyns)")
+    pr.add_argument("--ev", type=float, help="exponering EV100 (annars automatisk ur en förhandsbild)")
+    pr.add_argument("--bredd", type=int, help="bredd i pixlar (annars kvalitetens)")
+    pr.add_argument("--ut", type=Path, default=UT / "bilder")
     pr.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pr.add_argument("--blend", action="store_true", help="spara scenen som modeller/trebodar/ut/trebodar.blend")
     wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
@@ -102,6 +108,15 @@ def main(argv: list[str] | None = None) -> None:
     po.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
     po.add_argument("--publik", action="store_true", help="publikt dokument (krävs för Onshapes gratiskonton)")
     po.add_argument("--ut", type=Path, default=UT)
+    pl = sub.add_parser("ljus", help="dagsljuset: solens läge, ljusets färg och styrka (dagsljus.py)")
+    pl.add_argument("manad", type=int)
+    pl.add_argument("dag", type=int)
+    pl.add_argument("klocka", nargs="?", help="HH:MM lokal tid (utan: hela dagen)")
+    pl.add_argument("vader", nargs="?", default="sol", help="sol, lätt mulet, mulet (sunny, slightlyovercast, overcast)")
+    pl.add_argument("--steg", type=int, default=30, help="minuter mellan raderna för hela dagen")
+    pl.add_argument("--diagram", type=Path, help="solens bana under året med fasadernas riktningar (png)")
+    pg = sub.add_parser("omgivning", help="omgivningen ur öppna geodata (OpenStreetMap, höjdmodell) för renderingen")
+    pg.add_argument("--hamta", action="store_true", help="ladda ner det som saknas (Overpass API, Terrarium-rutor)")
     pa = sub.add_parser("avtryck", help="spara modellens fingeravtryck eller jämför med det (oförändrad geometri)")
     pa.add_argument("atgard", choices=("spara", "jamfor"))
     pa.add_argument("--del", dest="vag")
@@ -126,6 +141,42 @@ def main(argv: list[str] | None = None) -> None:
         print("\n".join(fel) if fel else "Strukturen: inga importcykler, privata namn, importer i funktioner eller brott mot "
               "lagerordningen.")
         raise SystemExit(kod or (1 if fel else 0))
+    if arg.kommando == "ljus":
+        from . import dagsljus as dl
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        plats = importlib.import_module("trebodar.skelett").PLATS
+        vader = arg.vader
+        if arg.klocka and not arg.klocka[:1].isdigit():
+            vader, arg.klocka = arg.klocka, None
+        if arg.klocka:
+            print(dl.beskrivning(dl.dagsljus(arg.manad, arg.dag, arg.klocka, vader, plats)))
+        else:
+            print(dl.tabell(dl.dygn(arg.manad, arg.dag, vader, plats, arg.steg)))
+        if arg.diagram:
+            ax = plats.azimut_x
+            dl.soldiagram(plats, str(arg.diagram), {"NV-fasaderna": ax, "SV-gavlarna": ax - 90,
+                                                    "SO-fasaderna": ax + 180, "NO-gavlarna": ax + 90})
+            print(f"  {arg.diagram}")
+        return
+    if arg.kommando == "omgivning":
+        import numpy as np
+        from . import geodata
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        vy_mod = importlib.import_module("trebodar.vyer")
+        plats = importlib.import_module("trebodar.skelett").PLATS
+        cfg = vy_mod.GEODATA
+        passning, fel = vy_mod.sweref_passning()
+        mitt = vy_mod.OMGIVNING["mitt"]
+        lat, lon = geodata.wgs84(*passning.till_sweref(np.array([mitt[0]]), np.array([mitt[1]])))
+        print(f"  modellens mitt {lat[0]:.5f} N {lon[0]:.5f} O (passningen mot SWEREF: restfel {fel:.1f} mm)")
+        mapp = ROT / cfg["mapp"]
+        if arg.hamta:
+            geodata.hamta(float(lat[0]), float(lon[0]), cfg["radie"] + 300.0, str(mapp))
+        besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
+        print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
+        return
     t0 = time.perf_counter()
     rot = valj(ladda(), getattr(arg, "vag", None))
     t1 = time.perf_counter()
@@ -177,29 +228,42 @@ def main(argv: list[str] | None = None) -> None:
     elif arg.kommando == "rendera":
         import json
         import subprocess
+        from . import dagsljus
         from .export import glb
-        vyer = importlib.import_module("trebodar.vyer").VYER
-        fil = arg.ut / f"{filnamn(rot)}.glb"
-        glb.skriv(rot, fil, karna)
-        (arg.ut / "bilder").mkdir(parents=True, exist_ok=True)
-        (arg.ut / "vyer.json").write_text(json.dumps(vyer, ensure_ascii=False))
-        material = {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}
-        (arg.ut / "material.json").write_text(json.dumps(material, ensure_ascii=False, indent=1))
+        vy_mod = importlib.import_module("trebodar.vyer")
+        plats = importlib.import_module("trebodar.skelett").PLATS
+        alla = {**vy_mod.VYER, **getattr(vy_mod, "INNE", {})}
+        if arg.vyer:
+            valda = {n: v for n, v in alla.items() if any(n == x or n.startswith(x) for x in arg.vyer)}
+        else:
+            valda = {"ute": vy_mod.VYER, "inne": getattr(vy_mod, "INNE", {}), "alla": alla}[arg.serie]
+        if not valda:
+            raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
+        fil = UT / f"{filnamn(rot)}-rendering.glb"
+        glb.skriv(_utan(rot, getattr(vy_mod, "RENDER_UTOM", [])), fil, karna)
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        vyer = {}
+        for namn, v in valda.items():
+            m, d, k, w = arg.ljus or v["ljus"]
+            vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev}
+        scen = {"glb": str(fil), "ut": str(arg.ut.resolve()), "kvalitet": arg.kvalitet, "bredd": arg.bredd,
+                "hojd_m": plats.hojd, "portaler": vy_mod.portaler() if hasattr(vy_mod, "portaler") else [],
+                "omgivning": getattr(vy_mod, "OMGIVNING", None),
+                "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
+                            and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
+                "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
+                "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if arg.blend else None}
+        scenfil = UT / "scen.json"
+        scenfil.write_text(json.dumps(scen, ensure_ascii=False, indent=1))
         skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
-        cmd = [arg.blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript), "--", str(fil),
-               str(arg.ut / "material.json"), str(arg.ut / "vyer.json"), str((arg.ut / "bilder").resolve()),
-               "--bredd", str(arg.bredd), "--sampel", str(arg.sampel)]
-        for v in arg.vyer:
-            cmd += ["--vy", v]
-        if arg.blend:
-            cmd += ["--blend", str((arg.ut / f"{filnamn(rot)}.blend").resolve())]
+        cmd = [arg.blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript), "--", str(scenfil)]
         t = time.perf_counter()
         ut = subprocess.run(cmd, capture_output=True, text=True)
         for rad in ut.stdout.splitlines():
-            if rad.startswith(("RENDERAD", "SPARAD")):
+            if rad.startswith(("RENDERAD", "SPARAD", "LJUS")):
                 print("  " + rad)
         if ut.returncode:
-            print(ut.stdout[-3000:], ut.stderr[-3000:])
+            print(ut.stdout[-4000:], ut.stderr[-3000:])
         print(f"  ({time.perf_counter() - t:.0f} s)")
     elif arg.kommando == "onshape":
         import datetime

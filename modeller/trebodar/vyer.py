@@ -1,24 +1,140 @@
-"""Vyer för rendering (Blender) och webbvisaren: kamera och mål i husets koordinater (mm), sol (azimut från +y
-medurs, höjd i grader), `molnigt` (jämnt ljus utan sol, som på foton i mulet väder). `dolj`: delar av sökvägar som
-inte visas."""
+"""Vyer för rendering (Blender) och webbvisaren: kamera och mål i husets koordinater (mm), objektiv och dagsljus.
+
+Dagsljuset anges som (månad, dag, klocka, väder) och räknas fram för platsen (skelett.PLATS) med
+modellering/dagsljus.py: solens riktning, färg och styrka och himlen. Väder: "sol", "lätt mulet", "mulet".
+
+Inomhusbilderna (INNE) har standardiserade namn I01–I30, <nummer>-<rum>-<vy>-<objektiv>, och två objektiv: "öga"
+(40 mm, i ögonhöjd 1,60 m: bildvinkeln och perspektivet som när man står i rummet) och "vid" (20 mm på 1,45 m, som
+vanliga vidvinkelbilder av rum). Kameran hålls vågrät, så att lodräta linjer blir lodräta (objektivförskjutning i
+höjdled i stället för att luta kameran). Ritningen över kamerornas lägen: `./mod kameraplan` (renderingar/).
+`dolj`: delar av sökvägar som inte visas.
+"""
+from __future__ import annotations
+
+import math
+import tomllib
+from pathlib import Path
+
+from trebodar import skelett as S
+from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.grund import kallarvaggar as K
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
+
+ROT = Path(__file__).resolve().parents[2]
+OBJEKTIV = {"öga": {"lins": 40.0, "hojd": 1600.0}, "vid": {"lins": 20.0, "hojd": 1450.0}}
+INNE_LJUS = (4, 20, "14:00", "sol")       # standardljuset för inomhusbilderna: april, eftermiddag, sol från SSV
+Z_KALLARE = S.Z_BOTTENPLATTA
 
 VYER = {
-    "ute-sydost": {"kamera": [-9000, -9000, 6500], "mal": [6500, 6500, 1500], "brannvidd": 30, "sol": [210, 30]},
-    "ute-nordvast": {"kamera": [23000, 21000, 7000], "mal": [7000, 6500, 1000], "brannvidd": 30, "sol": [240, 30]},
-    "ute-nordost": {"kamera": [4000, -14000, 3500], "mal": [7000, 5000, 1500], "brannvidd": 32, "sol": [140, 35]},
-    "detalj-fasad": {"kamera": [6500, -4200, 1700], "mal": [8200, 0, 1500], "brannvidd": 40, "molnigt": True},
-    "detalj-sten": {"kamera": [11800, -2600, -600], "mal": [12600, 900, -1100], "brannvidd": 40, "sol": [60, 18]},
-    "detalj-tak": {"kamera": [-6000, 2500, 3200], "mal": [1500, 9500, 3000], "brannvidd": 45, "sol": [210, 30]},
-    "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "brannvidd": 30, "sol": [210, 40],
-               "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt", "Fönster och dörrar", "Mark/",
-                        "Hus/Grund", "Installationer"]},
-    "inne-mittre": {"kamera": [5200, 1200, 1600], "mal": [8000, 7000, 2400], "brannvidd": 18, "sol": [200, 30],
-                    "inne": True},
-    "inne-vanster": {"kamera": [1000, 15000, 1600], "mal": [2600, 9000, 2200], "brannvidd": 18, "sol": [240, 25],
-                     "inne": True},
-    "inne-dal": {"kamera": [7600, 9300, 1500], "mal": [4400, 7600, 2350], "brannvidd": 20, "sol": [200, 30],
-                 "inne": True},
+    "ute-sydost": {"kamera": [-9000, -9000, 6500], "mal": [6500, 6500, 1500], "lins": 30, "ljus": (6, 21, "09:00", "sol"),
+                   "lodrat": False},
+    "ute-nordvast": {"kamera": [23000, 21000, 7000], "mal": [7000, 6500, 1000], "lins": 30,
+                     "ljus": (6, 21, "18:30", "sol"), "lodrat": False},
+    "ute-nordost": {"kamera": [4000, -14000, 3500], "mal": [7000, 5000, 1500], "lins": 32,
+                    "ljus": (6, 21, "06:30", "sol"), "lodrat": False},
+    "detalj-fasad": {"kamera": [6500, -4200, 1700], "mal": [8200, 0, 1500], "lins": 40, "ljus": (9, 15, "12:00", "mulet")},
+    "detalj-sten": {"kamera": [11800, -2600, -600], "mal": [12600, 900, -1100], "lins": 40,
+                    "ljus": (6, 21, "09:00", "sol")},
+    "detalj-tak": {"kamera": [-6000, 2500, 3200], "mal": [1500, 9500, 3000], "lins": 45, "ljus": (6, 21, "10:00", "sol"),
+                   "lodrat": False},
+    "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
+               "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
+                                         "Fönster och dörrar", "Mark/", "Hus/Grund", "Installationer"]},
 }
 
-# delar som inte tas med i webbvisaren (stora nät)
+# Inomhusbilderna: (nummer, rum, vy, objektiv, kamerans läge (x, y) [, golvets z], målet (x, y, z))
+_INNE = [
+    ("I01", "allrum", "mot-kok", "vid", (5100, 10450), (11500, 8300, 1300)),
+    ("I02", "allrum", "mot-kamin", "vid", (6900, 10500), (6900, 5900, 1350)),
+    ("I03", "allrum", "mot-tradgard", "vid", (6000, 6450), (6900, 11040, 1100)),
+    ("I04", "allrum", "matplats", "öga", (9900, 9600), (5000, 8800, 1200)),
+    ("I05", "allrum", "mot-hall", "vid", (8800, 7200), (1500, 10200, 1300)),
+    ("I06", "kok", "oversikt", "vid", (8300, 9900), (13000, 9300, 1200)),
+    ("I07", "kok", "mot-allrum", "vid", (13250, 7100), (7500, 10600, 1300)),
+    ("I08", "kok", "mot-fonster", "öga", (11400, 10100), (13675, 9400, 1300)),
+    ("I09", "kok", "mot-uteplats", "öga", (12600, 7900), (10900, 12445, 1100)),
+    ("I10", "vardagsrum", "fran-hall", "vid", (2600, 11450), (2155, 15800, 1150)),
+    ("I11", "vardagsrum", "mot-hall", "vid", (2000, 15350), (2600, 9800, 1350)),
+    ("I12", "vardagsrum", "mot-altandorr", "öga", (700, 13900), (4245, 13800, 1200)),
+    ("I13", "vardagsrum", "mot-golvfonster", "öga", (3700, 12300), (1500, 15835, 1100)),
+    ("I14", "hall", "fran-entre", "vid", (650, 10250), (6500, 9000, 1350)),
+    ("I15", "hall", "mot-entre", "öga", (3600, 9700), (-30, 10255, 1100)),
+    ("I16", "badrum", "fran-dorr", "vid", (3000, 6700), (700, 4400, 1200)),
+    ("I17", "badrum", "mot-dorr", "vid", (450, 3950), (2900, 7300, 1300)),
+    ("I18", "sovrum", "fran-dorr", "vid", (4150, 5650), (8600, 3000, 1300)),
+    ("I19", "sovrum", "mot-fonster", "öga", (6100, 5300), (6300, 135, 1500)),
+    ("I20", "sovrum", "mot-golvfonster", "öga", (4300, 5100), (3270, 3655, 1100)),
+    ("I21", "kontor", "oversikt", "vid", (8600, 2900), (5000, 450, 1300)),
+    ("I22", "kontor", "mot-altandorr", "öga", (7200, 1300), (4565, 2520, 1150)),
+    ("I23", "sovrum-litet", "fran-dorr", "vid", (10450, 2700), (13200, 1500, 1200)),
+    ("I24", "kontor-litet", "fran-dorr", "vid", (11250, 3300), (13675, 3725, 1300)),
+    ("I25", "gastrum", "fran-dorr", "vid", (11250, 5180), (13675, 5500, 1300)),
+    ("I26", "gang", "mot-kok", "öga", (10300, 3250), (10300, 9500, 1300)),
+    ("I27", "gang", "mot-sovrum", "öga", (10300, 6900), (10300, 2905, 1300)),
+    ("I28", "trappa", "ned", "öga", (9900, 5470), (7400, 5470, -1400)),
+    ("I29", "kallare", "oversikt", "vid", (12800, 11500, Z_KALLARE), (7000, 3500, Z_KALLARE + 1200)),
+    ("I30", "kallare", "mot-trappan", "vid", (5300, 2000, Z_KALLARE), (8600, 5500, Z_KALLARE + 900)),
+]
+
+
+def _inne() -> dict[str, dict[str, object]]:
+    ut: dict[str, dict[str, object]] = {}
+    for nr, rum, vy, obj, kam, mal in _INNE:
+        o = OBJEKTIV[obj]
+        z0 = kam[2] if len(kam) > 2 else 0.0
+        ut[f"{nr}-{rum}-{vy}-{obj}"] = {"kamera": [kam[0], kam[1], z0 + o["hojd"]], "mal": list(mal), "lins": o["lins"],
+                                        "ljus": INNE_LJUS, "inne": True, "rum": rum, "objektiv": obj}
+    return ut
+
+
+INNE = _inne()
+
+# marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)
+OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}
+# omgivningen ur öppna geodata (`./mod omgivning --hamta`): radien och cellen (m), mappen (versionshanteras inte)
+GEODATA = {"mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0}
+
+
+def sweref_passning() -> tuple[object, float]:
+    """Modellens koordinater ↔ SWEREF 99 12 00 ur fasadens hörn F1–F12 (AR-02:s utsättningsdata): mellanbjälklagets
+    kontur 95 mm utanför (regel 30 och beklädnad 65), med början i hörnet x = 13 905, y = 905 och sedan medurs."""
+    from shapely.geometry import Polygon
+    from shapely.geometry.polygon import orient
+
+    from modellering.geodata import passa
+    ar02 = tomllib.loads((ROT / "beräkningar" / "AR-02" / "indata.toml").read_text(encoding="utf-8"))
+    c = list(orient(Polygon(S.KONTUR).buffer(95.0, join_style=2), -1).exterior.coords)[:-1]
+    i = min(range(len(c)), key=lambda k: math.dist(c[k], (2e4, 0.0)))
+    return passa(c[i:] + c[:i], [tuple(p) for p in ar02["koordinater"]["hornen"]])
+
+# delar som inte tas med i webbvisaren (stora nät) och i renderingen (osynliga, i betongen)
 WEBB_UTOM = ["Golvvärme"]
+RENDER_UTOM = ["Golvvärme", "Hus/Armering"]
+
+PORTAL_INNE = 200.0        # portalen i fönstret så långt in från stommens utsida (i rummet, framför insidans skikt)
+
+
+def portaler() -> list[dict[str, object]]:
+    """Ljusportaler i fönster, glasdörrar och takfönster (Cycles samplar himlen genom dem): rektangeln i öppningen,
+    normalen in i huset (mm)."""
+    ut: list[dict[str, object]] = []
+    for kod, lst in OPPNINGAR.items():
+        v = S.VAGGAR[kod]
+        for o in lst:
+            if o.typ == "ytterdörr":
+                continue
+            w = PORTAL_INNE if o.z1 > 0 else K.CELL + K.KARNA + 100.0     # källarens fönster: genom källarväggen
+            um = (o.u0 + o.u1) / 2
+            ut.append({"namn": o.kod, "mitt": [v.origo[0] + v.u[0] * um + v.w[0] * w,
+                                               v.origo[1] + v.u[1] * um + v.w[1] * w, (o.z0 + o.z1) / 2],
+                       "normal": [v.w[0], v.w[1], 0.0], "upp": [0.0, 0.0, 1.0], "bredd": o.u1 - o.u0,
+                       "hojd": o.z1 - o.z0})
+    for f in FALT.values():
+        t = S.TAKFALL[f.kod]
+        for fo in f.fonster:
+            xm = (fo.x_ned + fo.x_upp) / 2
+            s, c = math.sin(math.radians(S.TAKVINKEL)), math.cos(math.radians(S.TAKVINKEL))
+            ut.append({"namn": fo.kod, "mitt": [xm, (fo.y0 + fo.y1) / 2, t.z_underkant(xm) - 150.0],
+                       "normal": [t.riktning * s, 0.0, -c], "upp": [t.riktning * c, 0.0, s], "bredd": fo.y1 - fo.y0,
+                       "hojd": (fo.x_upp - fo.x_ned) / c})
+    return ut
