@@ -81,7 +81,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
 | Väggens regelverk | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py`: rastrets början, fria reglar, skarvar, öppningarnas utförande (`Karm`: dubbla karmreglar, överstycke, kortlingar), hörnstolpar, stolpar och dalbalkarnas upplag; reglerna i `regelstomme.py` |
 | Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, modulmått och produkttyp); regelverket (karmreglar, överstycke, bröstning, kortlingar), fasad, isolering, insida och smyg följer med |
-| En takstol | stolens fil i `hus/stomme/prefab/takstolar/` (underramens höjd, ståndarnas lägen, spikplåtarna vid fötterna) och reglerna i `byggdelar/takstol.py` |
+| En takstol | stolens fil i `hus/stomme/prefab/takstolar/` (sätet, underramens höjd, ståndarnas lägen, spikreglar) och reglerna i `byggdelar/takstol.py` (delarna, säten, klossar och spikplåtar) |
 | Takbalkarnas lägen och takfönstren | `hus/stomme/prefab/takbalkar/takbalkar.py` (`FALT`: följder c/c 600 per takfall; `TF1`–`TF3`); dubbla takbalkar och avväxlingar vid takfönstren följer med |
 | En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |

@@ -2,8 +2,7 @@
 
 Regelverk 70 mm C24 i väggens system (skelett.VAGGAR["1A"]), byggt med reglerna i regelstomme.py: syll, ett lutande
 hammarband under takfallet 1SO, vinkelrätt kapat vid nockbalken, reglar upp till sätena i hammarbandet och
-kortlingar mellan reglarna. Sätena är 22,5 breda; vid väggens början hela regelns bredd och på de två mittre reglarna
-23,4 (som i Onshape-modellen).
+kortlingar mellan reglarna.
 """
 from modellering import Montage
 
@@ -19,7 +18,7 @@ def montage() -> Montage:
     langd = S.VAGGAR["1A"].langd
     v.syll(0.0, langd)
     hb, toppar = lutande_hammarband(hammarbandsplan("1A", "1SO"), (0.0, LODRAT), (langd, VINKELRAT),
-                                    {0.0: R, 622.5: 23.4103, 1222.5: 23.4103, 1950.0: 22.5})
+                                    (0.0, 622.5, 1222.5, 1950.0))
     v.profil(P.hornen(hb), typ="H")
     for u, z in toppar.items():
         v.regel(u, z1=z)

@@ -12,7 +12,8 @@
   ände, regelstycken upp till hammarbandets nivå intill balkens sida och reglar under liggaren;
 - innerväggar under ett takfall: ett lutande hammarband 45 med överkanten i takfallets hammarbandsplan (takbalkarnas
   underkant utan TAKLYFT, som ytterväggarnas hammarband vid takfoten), ändarna lodräta eller vinkelräta mot lutningen,
-  och reglarna upp till vågräta säten i hammarbandet.
+  och reglarna upp till vågräta säten i hammarbandet, halva regelns bredd från dess låga sida (hela bredden vid en
+  lodrät ände).
 
 Väggens egna data (raster eller reglar, skarvar och öppningarnas utförande) står i väggens fil, öppningarnas lägen
 och storlek i oppningar.py: flyttas en öppning följer karmreglar, överstycke, bröstning och kortlingar med.
@@ -34,7 +35,7 @@ CC = 600.0
 GLAPP = 80.0                 # en rasterregel utgår närmare än så intill en annan stående del
 SANKT = 695.0                # den sänkta liggande under en dalbalks ände på gaveln, från väggens ände
 
-KORTLING_Z = 2199.5797       # kortlingarnas underkant i innerväggarna under takfallen (som i Onshape-modellen)
+KORTLING_Z = 2200.0          # kortlingarnas underkant i innerväggarna under takfallen
 
 ENKELT, AVVAXLING, DUBBELT = "enkelt", "avväxling", "dubbelt"
 LODRAT, VINKELRAT = "lodrät", "vinkelrät"
@@ -211,10 +212,10 @@ def hammarbandsplan(kod: str, takfall: str, lyft: float = 0.0) -> Callable[[floa
 
 
 def lutande_hammarband(ok: Callable[[float], float], start: tuple[float, str], slut: tuple[float, str],
-                       saten: dict[float, float]) -> tuple[Polygon, dict[float, float]]:
+                       reglar: Sequence[float]) -> tuple[Polygon, dict[float, float]]:
     """Lutande hammarband 45 (vinkelrätt mot lutningen) med överkanten ok, från start till slut (u och LODRAT eller
     VINKELRAT: änden lodrät, eller vinkelrät mot lutningen genom underkantens hörn), med ett vågrätt säte på varje regel
-    (regelns u: sätets bredd från regelns låga sida, hela regelns bredd vid en lodrät ände). Ger hammarbandets profil och
+    (u), halva regelns bredd från dess låga sida och hela bredden vid en lodrät ände. Ger hammarbandets profil och
     reglarnas överkant (u: z)."""
     k = (ok(1000.0) - ok(0.0)) / 1000.0
     c = 1.0 / math.sqrt(1.0 + k * k)                     # cos för lutningen
@@ -230,8 +231,10 @@ def lutande_hammarband(ok: Callable[[float], float], start: tuple[float, str], s
 
     (a0, a1), (b0, b1) = hornen(*start), hornen(*slut)
     profil = Polygon([a0, b0, b1, a1])
+    lodrata = [u for u, typ in (start, slut) if typ == LODRAT]
     toppar = {}
-    for u, s in saten.items():
+    for u in reglar:
+        s = R if any(abs(u - e) < 1e-6 or abs(u + R - e) < 1e-6 for e in lodrata) else R / 2
         z = uk(u + s) if k > 0 else uk(u + R - s)
         profil = profil.difference(box(u, -1e5, u + R, z))
         toppar[u] = z

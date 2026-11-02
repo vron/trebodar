@@ -4,20 +4,22 @@ En takstol står på väggens överkant (sätet) under en nockbalk och följer t
 (skelett.TAKFALL: takbalkarnas överkant):
 
 - ytterbalkar 45×95 (X) med överkanten i takplanet och diagonaler 45×220 (D) under dem. Vid takfoten går ytterbalken
-  ut till takbalkarnas ände och diagonalen till där dess överkant ligger TAKLYFT över sätet, båda med lodräta ändar;
-  mot en dalbalk slutar båda vid balkens sida. I nocken slutar ytterbalkarna vid nockbalkens sida och diagonalerna går
-  till balkens mitt, kapade plant i balkens underkant, så att balken ligger tätt mellan ytterbalkarna;
+  ut till takbalkarnas ände och diagonalen till en lodrät ände FOT_H hög på sätet; mot en dalbalk slutar båda vid
+  balkens sida. I nocken slutar ytterbalkarna vid nockbalkens sida och diagonalerna går till balkens mitt, kapade
+  plant i balkens underkant, så att balken ligger tätt mellan ytterbalkarna;
 - en underram (U) mellan diagonalernas fötter, med ändarna längs diagonalernas underkant;
-- ståndare 45×95 (R) c/c 600 från nocken, en mitt under balken och två på var sida, hakade runt underramen.
-  Diagonalerna har ett vågrätt säte, halva ståndarens bredd, på varje ståndare: på mittståndaren i diagonalernas
-  skärning, annars i ståndarens mitt;
+- ståndare 45×95 (R) c/c 600 från nocken, en mitt under balken och två på var sida, på underramen och genom väggens
+  tjocklek bredvid den. Diagonalerna har ett vågrätt säte, halva ståndarens bredd, på varje ståndare: på
+  mittståndaren i diagonalernas skärning, annars i ståndarens mitt;
+- spikreglar 45×95 (X) på insidan där stolen har dem, med underkanten i takbalkarnas underkant;
 - toppklossar 45 mm (K), lika höga som diagonalerna och 600 mm långa, på sidan av toppen: gavelstolarna har en kloss
   på insidan (utsidan är fasad) och mittstolen 2C en på den nordöstra sidan, inne i väggens tjocklek (på den
   sydvästra skulle den gå ut genom väggens gips);
-- spikplåtar 2,0 mm (K-03, P) utanpå: vid fötterna 600×100 mitt på underramen och i toppen 400×100 under balken. På
-  klossens sida ersätts toppens plåt av klossen, och plåtar som skulle ligga i en annan del utgår.
+- spikplåtar 2,0 mm (K-03, P) utanpå på båda sidor: vid fötterna 600×100 mitt på knutpunkten, där diagonalens
+  underkant möter underramens mitt, och i toppen 400×100 mitt på stolen, TOPPLAT_SPEL under balken. På klossens sida
+  ersätts toppens plåt av klossen, och plåtar som skulle ligga i en annan del utgår.
 
-Stolens egna data (underramens höjd, ståndarnas lägen, spikplåtarna vid fötterna) står i stolens fil.
+Stolens egna data (sätet, underramens höjd, ståndarnas lägen, spikreglar) står i stolens fil.
 """
 from __future__ import annotations
 
@@ -47,6 +49,8 @@ KLOSS_L = 600.0
 SPIKPLAT_T = 2.0
 FOTPLAT = (600.0, 100.0)
 TOPPLAT = (400.0, 100.0)
+TOPPLAT_SPEL = 8.0           # toppens spikplåt under nockbalken
+FOT_H = 10.0                 # diagonalens och spikregelns lodräta ände vid takfoten
 
 Linje = Callable[[float], float]
 
@@ -90,8 +94,8 @@ class _Sida:
 
     def fot(self, ok: Linje, sate: float) -> float:
         """Ändens läge för en del med överkanten ok: vid dalbalkens sida, eller vid takfoten där överkanten ligger
-        TAKLYFT över sätet."""
-        return self.ande if self.dal else _dar(ok, sate + S.TAKLYFT)
+        FOT_H över sätet."""
+        return self.ande if self.dal else _dar(ok, sate + FOT_H)
 
 
 def _sidor(kod: str, balk: str) -> tuple[_Sida, _Sida]:
@@ -120,10 +124,9 @@ class Takstol(Plan):
     sate: float = S.H_VAGG
     w0: float = 0.0
     underram: float = 120.0
-    topplat_spel: float = 8.0
     diagonaler: list[tuple[list[tuple[float, float]], float, float]] = field(default_factory=list)
     ovriga: list[tuple[Polygon, float, float]] = field(default_factory=list)
-    plattor: list[tuple[float, float, float, float, float, bool]] = field(default_factory=list)
+    knutar: list[float] = field(default_factory=list)       # fötternas knutpunkter (u) för spikplåtarna
 
     @property
     def uc(self) -> float:
@@ -135,15 +138,13 @@ class Takstol(Plan):
         """Ytan (w) och om plåten sitter utanpå åt −w."""
         return (self.w0, True) if sida < 0 else (self.w0 + T, False)
 
-    def spikplat(self, u0: float, u1: float, z0: float, z1: float, w: float, utanpa_minus: bool) -> Takstol:
-        """Spikplåt på ytan w (utanpå åt −w eller +w)."""
-        self.plattor.append((u0, u1, z0, z1, w, utanpa_minus))
-        return self
-
-    def fotplat(self, u0: float, sida: int) -> Takstol:
-        """Spikplåten vid en fot, från u0 längs stolen, mitt på underramen, på sidan −1 (w0) eller +1."""
+    def _platar(self) -> list[tuple[float, float, float, float, float, bool]]:
+        """Spikplåtarna (u0, u1, z0, z1, ytan w, utanpå åt −w) på båda sidor: vid fötterna och i toppen."""
         zm = self.sate + self.underram / 2
-        return self.spikplat(u0, u0 + FOTPLAT[0], zm - FOTPLAT[1] / 2, zm + FOTPLAT[1] / 2, *self._sida(sida))
+        z1 = S.BALKAR[self.balk].uk - TOPPLAT_SPEL
+        fot = [(u - FOTPLAT[0] / 2, u + FOTPLAT[0] / 2, zm - FOTPLAT[1] / 2, zm + FOTPLAT[1] / 2) for u in self.knutar]
+        topp = (self.uc - TOPPLAT[0] / 2, self.uc + TOPPLAT[0] / 2, z1 - TOPPLAT[1], z1)
+        return [(*r, *self._sida(s)) for r in (fot[0], topp, fot[1]) for s in (-1, 1)]
 
     def _del(self, p: Polygon, w0: float, w1: float, typ: str) -> None:
         self.ovriga.append((p, w0, w1))
@@ -169,12 +170,9 @@ class Takstol(Plan):
                 k = max(getattr(k, "geoms", [k]), key=lambda g: g.area)
             if k.geom_type == "Polygon" and k.area > 1000:
                 self.profil(P.hornen(k), a, b, typ="K")
-        # spikplåtar: 2 mm utanpå; i toppen på båda sidor utom där klossarna sitter
+        # spikplåtar: 2 mm utanpå; i toppen inte där klossarna sitter
         klossytor = {round(a if a >= w1 else b, 6) for a, b in sidor}
-        z1 = uk - self.topplat_spel
-        topplatar = [(self.uc - TOPPLAT[0] / 2, self.uc + TOPPLAT[0] / 2, z1 - TOPPLAT[1], z1, *self._sida(s))
-                     for s in (-1, 1)]
-        for u0, u1, z0, z1, w, minus in self.plattor + topplatar:
+        for u0, u1, z0, z1, w, minus in self._platar():
             if round(w, 6) in klossytor and z1 > uk - 150:
                 continue
             ws = (w - SPIKPLAT_T, w) if minus else (w, w + SPIKPLAT_T)
@@ -187,16 +185,14 @@ class Takstol(Plan):
 
 
 def takstol(kod: str, balk: str, utsida: bool = True, klossar: tuple[int, ...] = (), sate: float = S.H_VAGG,
-            w0: float = 0.0, underram: float = 120.0, hak: float = 0.0, standare: Sequence[float] | None = None,
-            standardelar: bool = True, spikregel: float | None = None, topplat_spel: float = 8.0) -> Takstol:
+            w0: float = 0.0, underram: float = 120.0, standare: Sequence[float] | None = None,
+            spikreglar: bool = False) -> Takstol:
     """Takstolen på väggen kod under nockbalken balk, enligt reglerna ovan. sate: väggens överkant; w0: stolens sida;
-    underram: underramens höjd; hak: ståndarnas hak i underramen; standare: ståndarnas lägen (u, standard c/c 600 från
-    nocken), utan delar om standardelar är falskt (bara sätena och haken); spikregel: spikreglar 45×95 på stolens
-    insida, med underkanten så mycket över takbalkarnas underkant; topplat_spel: toppens spikplåt under balken."""
+    underram: underramens höjd; standare: ståndarnas lägen (u, standard c/c 600 från nocken; inga: ()); spikreglar:
+    spikreglar på stolens insida."""
     v = S.VAGGAR[kod]
     t = Takstol(kod, f"Takstol {kod}", v.tjocklek, beskrivning=f"Takstol på väggen {kod} under {balk}",
-                balk=balk, utsida=utsida, klossar=klossar, sate=sate, w0=w0, underram=underram,
-                topplat_spel=topplat_spel)
+                balk=balk, utsida=utsida, klossar=klossar, sate=sate, w0=w0, underram=underram)
     uc, uk = t.uc, S.BALKAR[balk].uk
     sidor = _sidor(kod, balk)
 
@@ -217,20 +213,18 @@ def takstol(kod: str, balk: str, utsida: bool = True, klossar: tuple[int, ...] =
         pts = P.hornen(d)
         t.diagonaler.append((pts, *ww))
         t.profil(pts, *ww, typ="D")
-        if spikregel is not None:
+        if spikreglar:
             def ok_s(u: float, sd: _Sida = sd) -> float:
-                return sd.underkant(u) + spikregel + T / S.COS
+                return sd.underkant(u) + T / S.COS
 
             t._del(_remsa(ok_s, T, sd.fot(ok_s, sate), balksida).intersection(ovan), w0 + T, w0 + T + SPIKREGEL_B, "X")
         t._del(_remsa(sd.tak, YTTERBALK_H, sd.ande, balksida).intersection(ovan), *ww, "X")
-    # underramen mellan diagonalernas fötter, med hak för ståndarna
+    # underramen mellan diagonalernas fötter och ståndarna på den
     zu = sate + underram
     ua, ub = ([_dar(sd.diagonal_uk, z) for z in (sate, zu)] for sd in sidor)
-    u = Polygon([(ua[0], sate), (ub[0], sate), (ub[1], zu), (ua[1], zu)])
-    for a in lagen if hak > 0 else ():
-        u = u.difference(box(a, zu - hak, a + STANDARE_B, zu + 1.0))
-    t._del(u, *ww, "U")
-    for a, z in saten if standardelar else ():
-        t.tvarprofil([(w0, zu - hak), (w0 + T, zu - hak), (w0 + T, sate), (w0 + STANDARE_D, sate),
-                      (w0 + STANDARE_D, z), (w0, z)], a, a + STANDARE_B)
+    t._del(Polygon([(ua[0], sate), (ub[0], sate), (ub[1], zu), (ua[1], zu)]), *ww, "U")
+    t.knutar = [_dar(sd.diagonal_uk, sate + underram / 2) for sd in sidor]
+    for a, z in saten:
+        t.tvarprofil([(w0, zu), (w0 + T, zu), (w0 + T, sate), (w0 + STANDARE_D, sate), (w0 + STANDARE_D, z), (w0, z)],
+                     a, a + STANDARE_B)
     return t
