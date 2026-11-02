@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 from modellering import Form, Placering, Prisma, prisma
 
 _YZX = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
+_XZY = Placering(((1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))  # (x, z, −y) → (x, y, z)
 
 
 def polygoner(g: Any, minsta_area: float = 1.0) -> Iterator[Polygon]:
@@ -35,3 +36,8 @@ def prisma_ur(q: Polygon, z0: float, z1: float) -> Prisma:
 def prisma_x(kontur_yz: list[tuple[float, float]], x0: float, x1: float) -> Form:
     """Profilen i (y, z), extruderad längs x från x0 till x1."""
     return prisma(kontur_yz, x1 - x0, z0=x0).placerad(_YZX)
+
+
+def prisma_y(kontur_xz: list[tuple[float, float]], y0: float, y1: float) -> Form:
+    """Profilen i (x, z), extruderad längs y från y0 till y1."""
+    return prisma(kontur_xz, y1 - y0, z0=-y1).placerad(_XZY)

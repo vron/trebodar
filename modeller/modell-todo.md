@@ -27,11 +27,14 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
 
 ## Kontrollera och bestäm
 
-6. **Marken mot K-06.** K-06:s fyllnadshöjder ligger över Onshape-modellens mark vid V7 och V18 (sovrumsavsatsen,
-   överkant −742; K-06 −250) och V21 (uppfyllnaden −807 … −670); modellen följer K-06 inom 1,5 m från väggarna. På höger
-   huskropp täcker K-06:s fyllning fasadstenen (AR-01, från z −2 150) vid V1 (fyllning till −450), V9 (−2 250 … −1 450)
-   och V14 (−1 450 … −450). Bestäm marknivåerna där (och AR-01:s utbredning eller K-06:s fyllnadshöjder). Panelen
-   går ned till marken enligt `fasad.MARKNIVA`, som då ändras med.
+6. **Marken mot K-06.** Modellen följer Onshape-modellens mark fram till huset (användarens beslut: inga fyllningar
+   eller ramper längs huset, bara entréavsatsen och sovrumsavsatsen). K-06:s fyllnadshöjder ligger högre vid V1
+   (−450; marken −947 … −679), V7 och V18 (−250; sovrumsavsatsen −742 … −841 och marken −1 445), V14 (−1 450 … −450;
+   marken −1 414 … −1 071), V16 (−250 … −682; marken −773) och V21 (−250; marken −1 335 … −695). K-06 ligger på säker
+   sida (högre jordtryck, `kontroll_laster.py`); fyllnadshöjderna kan sänkas till marken. AR-01: fasadstenen syns ned
+   till marken. Framför skjutpartiet 2SV
+   ligger berget 600 mm under golvet (K-06 räknade med fyllning till −250): bestäm marken eller ett trädäck där.
+   Panelen följer `fasad.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
 7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
 8. **Fickdörrar.** Innerdörrarna ska vara inbyggda i väggarna. Bara ID1 (L11) har plats för fickan (dörrbredden + 50

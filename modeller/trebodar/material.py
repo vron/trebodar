@@ -15,6 +15,8 @@ C24 = Material("C24", "Konstruktionsvirke C24", 420, "#d8b47c", 0.7, textur="tra
 # läkt (ströläkt, spikläkt, installationsläkt) som eget material, så att den skiljer sig från stommen
 C24_LAKT = Material("Läkt", "Läkt C24", 420, "#d8b47c", 0.7, textur="tra", rendering=_VIRKE, cad="#eee3a0")
 FURU = Material("Furu", "Furu, hyvlad (trappa)", 500, "#d9a56b", 0.6, textur="tra", rendering=_VIRKE, cad="#c98a52")
+LARK = Material("Lärk", "Sibirisk lärk, obehandlad (trätrappa ute)", 600, "#c9a26a", 0.7, textur="tra",
+                rendering=_VIRKE, cad="#d6ad74")
 GL30H = Material("GL30h", "Limträ GL30h", 430, "#e0bb82", 0.65, textur="limtra",
                  rendering=rendering(farg2="#c09a62", riktning="x", tvars="y", lamell="z", lamelltjocklek=45.0),
                  cad="#d39552")
@@ -78,15 +80,18 @@ CELLPLAST_S300 = Material("Cellplast S300", "Cellplast EPS S300", 30, "#f2bfd2",
 BETONG = Material("Betong", "Betong C30/37", 2400, "#a9a8a3", 0.95, textur="betong", enhet="m3",
                   rendering=rendering(farg2="#8f8e89"), cad="#c8c2b6")
 # Bohus Grå: medelkornig grå granit, kluven yta; stenarna är egna delar (hus/grund/fasadsten.py)
+_GRANIT = rendering(farg="#9d9790", farg2="#bcb8b1", farg3="#45413d", rosa="#a99285", korn=5.5, variation=0.16,
+                    varm=0.3, rost=0.35)
 GRANIT = Material("Granit", "Beklädnadsgranit Bohus Grå", 2650, "#a39d98", 0.78, textur="granit", enhet="st",
-                  rendering=rendering(farg="#9d9790", farg2="#bcb8b1", farg3="#45413d", rosa="#a99285", korn=5.5,
-                                      variation=0.16, varm=0.3, rost=0.35), cad="#a9a196")
+                  rendering=_GRANIT, cad="#a9a196")
 FOGBRUK = Material("Fogbruk", "Fogbruk för natursten (Mapei Ultracolor Plus), cementgrå", 1900, "#8e8b86", 0.95,
                    textur="bruk", enhet="kg", rendering=rendering(farg2="#7c7974"), cad="#e6dfd2")
 ARMERINGSBRUK = Material("Armeringsbruk", "Armeringsbruk 6 mm med nät och fästmassa 9 mm (Mapei)", 1600, "#b3afa6",
                          0.95, textur="bruk", enhet="m2", rendering=rendering(farg2="#a19d94"), cad="#d8cdb7")
 BERG = Material("Berg", "Berg", 2700, "#77716a", 1.0, textur="berg", enhet="m3", rendering=rendering(farg2="#58534e"),
                 cad="#9c978d")
+NATURSTEN = Material("Natursten", "Granit Bohus Grå, blocksteg och hällar (entréavsats och sovrumsavsats)", 2650,
+                     "#a39d98", 0.8, textur="granit", enhet="m3", rendering=_GRANIT, cad="#b3aea8")
 FYLLNING = Material("Fyllning", "Dränerande fyllning", 1900, "#8c867c", 1.0, textur="grus", enhet="m3",
                     rendering=rendering(farg2="#6c665c"), cad="#d9cba6")
 MAKADAM = Material("Makadam", "Makadam 16–32", 1600, "#7d7a74", 1.0, textur="grus", enhet="m3",
