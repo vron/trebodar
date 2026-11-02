@@ -142,6 +142,17 @@ DRIVDON = Material("Drivdon", "Drivdon för LED (plast)", 1200, "#ececea", 0.6, 
 APPARAT = Material("Apparat", "Strömbrytare, dimrar och uttag, vit plast", 1200, "#f4f4f1", 0.35, cad="#fbfbf7")
 ELDOSA = Material("Eldosa", "Dosor (plast)", 1000, "#7f8a95", 0.6, cad="#ff7a1a")
 ELROR = Material("Elrör", "Flexrör (PVC)", 1400, "#8f9499", 0.6, cad="#ff9d2e")
+# pendlarna: mässing (blank och obehandlad med patina), opalglas och frostat glas (lyser som linsen när armaturen är
+# tänd) och textilsladd
+MASSING = Material("Mässing", "Mässing, blank (pendlarnas fästen)", 8500, "#d8b56e", 0.22, metall=1.0, cad="#c9a35b")
+RAMASSING = Material("Råmässing", "Mässing, obehandlad med patina", 8500, "#c4a46a", 0.38, metall=1.0, textur="patina",
+                     rendering=rendering(farg2="#8c7652", andel=0.22, skala=28.0, grovhet2=0.6), cad="#b39a5e")
+OPALGLAS = Material("Opalglas", "Opalglas, munblåst (pendlarnas glober)", 2500, "#f6f4ef", 0.08, textur="lins",
+                    cad="#fff6d5")
+FROSTAT_GLAS = Material("Frostat glas", "Frostat glas (pendelns diffusor)", 2500, "#f2f0eb", 0.45, textur="lins",
+                        cad="#fff6d5")
+SLADD_VIT = Material("Textilsladd vit", "Textilsladd, vit", 1200, "#e9e8e3", 0.9, cad="#e9e8e3")
+SLADD_SVART = Material("Textilsladd svart", "Textilsladd, svart", 1200, "#1b1b1c", 0.9, cad="#2a2a2c")
 
 # ------------------------------------------------------------------ ventilation (hus/installationer/ventilation)
 # ytterväggsgallren i fönstrens aluminium (ALUMINIUM per huskropp) och takhuven i takets plåt (TAKPLAT). Kanalerna,

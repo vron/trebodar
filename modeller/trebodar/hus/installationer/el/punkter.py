@@ -17,7 +17,9 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from ..montering import I_TAKET, Montering, Vek, enhet, flytt
+from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+
+from ..montering import I_TAKET, PLAN, Montering, Vek, enhet, flytt, vagg
 from .typer import Apparattyp, Armaturtyp, Dosatyp, Rortyp
 
 
@@ -42,6 +44,7 @@ class Lampa:
     lage: Montering
     tand: str                   # tändgruppen
     riktning: Vek = (0.0, 0.0, -1.0)            # ljusets riktning (vridbara armaturer), standard lodrätt ned
+    underkant: float | None = None              # pendlar: armaturens underkant över plan 1:s golv [mm]
 
 
 @dataclass(frozen=True)
@@ -95,9 +98,23 @@ def tuben(p: Lampa) -> tuple[Vek, Vek, Vek]:
     return led, flytt(axel, d, -h.led), flytt(axel, d, h.langd - h.led)
 
 
+def pendeln(p: Lampa) -> tuple[Vek, Vek]:
+    """Pendelns sladd: från takkoppens front (takkoppens höjd ut från takytan längs normalen) lodrätt ned till
+    armaturens överkant, så att armaturens underkant hamnar på underkant över golvet."""
+    pe = p.typ.pendel
+    if pe is None or p.underkant is None:
+        raise ValueError(f"{p.id}: inte en pendel med underkant")
+    m = p.lage
+    kopp = flytt(m.punkt, m.normal, pe.takkopp[1])
+    return kopp, (kopp[0], kopp[1], PLAN[1] + p.underkant + pe.hojd)
+
+
 def linsen(p: Lampa) -> Vek:
     """Mitten på armaturens lysande yta, där ljuset kommer ut: infällda på armaturens axel, LINS_INDRAG in från
-    takytan; tubspotar huvud.indrag in från tubens front."""
+    takytan; tubspotar huvud.indrag in från tubens front; pendlar ljuskällans mitt."""
+    if p.typ.pendel is not None:
+        topp = pendeln(p)[1]
+        return (topp[0], topp[1], topp[2] - p.typ.pendel.kalla)
     if p.typ.huvud is not None:
         return flytt(tuben(p)[2], enhet(p.riktning), -p.typ.huvud.indrag)
     return flytt(p.lage.punkt, p.lage.normal, -LINS_INDRAG)
@@ -106,6 +123,25 @@ def linsen(p: Lampa) -> Vek:
 def mot(m: Montering, mal: tuple[float, float, float]) -> Vek:
     """Ljusets riktning från monteringen mot en punkt (riktade spotar)."""
     return enhet((mal[0] - m.punkt[0], mal[1] - m.punkt[1], mal[2] - m.punkt[2]))
+
+
+def lutad(mot_xy: tuple[float, float], vinkel: float) -> Vek:
+    """Ljusets riktning lodrätt ned, lutad vinkel grader mot riktningen mot_xy i planet (mot en vägg)."""
+    lg = math.hypot(*mot_xy)
+    s, c = math.sin(math.radians(vinkel)), math.cos(math.radians(vinkel))
+    return (mot_xy[0] / lg * s, mot_xy[1] / lg * s, -c)
+
+
+OVAN_OPPNINGEN = 200.0         # uttag ovanför fönster: mitten så högt över öppningens överkant
+
+
+def ovan_fonstret(kod: str, u: float) -> Montering:
+    """På ytterväggens insida ovanför fönstret eller dörren närmast u (längs väggen): vid u om u ligger inom
+    öppningen, annars 100 mm in från dess närmaste ände, OVAN_OPPNINGEN över öppningens överkant."""
+    o = min(OPPNINGAR[kod], key=lambda o: 0.0 if o.u0 <= u <= o.u1 else min(abs(u - o.u0), abs(u - o.u1)))
+    if not o.u0 <= u <= o.u1:
+        u = o.u0 + 100.0 if abs(u - o.u0) < abs(u - o.u1) else o.u1 - 100.0
+    return vagg(kod, u, o.z1 + OVAN_OPPNINGEN)
 
 
 DRIVDON_AVSTAND = 30.0         # drivdonet på gipsen bredvid armaturens hus, längs y (mellan läkten)
@@ -123,10 +159,3 @@ def anslutning(p: Punkt) -> Vek:
         return flytt(m.punkt, m.normal, -I_TAKET)
     dosa = p.typ.dosa if isinstance(p, Apparat) else p.typ
     return flytt(m.punkt, m.normal, -dosa.djup / 2)
-
-
-# ------------------------------------------------------------------ hjälp för rummens listor
-
-def lampor(prefix: str, typ: Armaturtyp, lagen: list[Montering], tand: str, start: int = 1) -> list[Lampa]:
-    """Lampor med löpnummer: prefix + två siffror, t.ex. "AL-L01"."""
-    return [Lampa(f"{prefix}{start + i:02d}", typ, m, tand) for i, m in enumerate(lagen)]

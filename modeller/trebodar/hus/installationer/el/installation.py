@@ -16,11 +16,13 @@ from trebodar.hus.invandigt.skikt import LAKT
 from . import lakt
 from .bjalklag import mellanbjalklag
 from ..montering import PLAN, TAKSKIVOR, Vek
-from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen
-from .rum import allrum, kok
+from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
+from .rum import (allrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
 
-MODULER: tuple[ModuleType, ...] = (allrum, kok, mellanbjalklag)
+MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, sovrum, kontor, sovrum_litet, kontor_litet,
+                                   gastrum, mellanbjalklag)
+SLADD_MINST = 50.0                             # pendelns sladd under takkoppen, minst [mm]
 
 
 @dataclass(frozen=True)
@@ -39,13 +41,20 @@ class Installation:
         return [anslutning(self.punkter[r.fran]), *r.via, anslutning(self.punkter[r.till])]
 
     def kontroll(self) -> tuple[list[str], list[str]]:
-        """(fel, anmärkningar): referenser, styrning, armaturernas vinkel och djup, rörens böjar och anslutningar."""
+        """(fel, anmärkningar): referenser, styrning, armaturernas vinkel och djup (pendlarna: sladden räcker ned från
+        takkoppen), rörens böjar och anslutningar."""
         fel: list[str] = []
         anm: list[str] = []
         for p in self.punkter.values():
             if isinstance(p, Lampa):
                 if p.tand not in self.tandgrupper:
                     fel.append(f"{p.id}: tändgruppen {p.tand} finns inte")
+                if p.typ.pendel is not None:
+                    if p.underkant is None:
+                        fel.append(f"{p.id}: pendeln har ingen underkant")
+                    elif (sladd := pendeln(p)[0][2] - pendeln(p)[1][2]) < SLADD_MINST:
+                        fel.append(f"{p.id}: pendeln når inte ned, sladden blir {sladd:.0f} mm")
+                    continue
                 vinkel = _vinkel(p.lage.normal, p.riktning)
                 if vinkel > p.typ.vridbar + 0.5:
                     fel.append(f"{p.id}: ljuset ska vridas {vinkel:.0f}°, armaturen tillåter {p.typ.vridbar:.0f}°")
@@ -106,6 +115,8 @@ class Installation:
                              "normal": list(m.normal), "yta": m.yta, "ref": m.ref}
             if isinstance(p, Lampa):
                 punkter[p.id] |= {"tand": p.tand, "riktning": list(p.riktning), "lins": list(linsen(p))}
+                if p.typ.pendel is not None:
+                    punkter[p.id] |= {"underkant": p.underkant, "topp": list(pendeln(p)[1])}
             if isinstance(p, Apparat):
                 punkter[p.id] |= {"styr": list(p.styr)}
             rum = self.rum.get(p.id.split("-")[0])
@@ -124,11 +135,15 @@ class Installation:
 
 
 def _armatur(t: Armaturtyp) -> dict[str, object]:
+    pe = t.pendel
     return {"tillverkare": t.tillverkare, "artikel": t.artikel, "url": t.url, "ljusflode": t.ljusflode,
             "effekt": t.effekt, "fargtemperatur": t.fargtemperatur, "ra": t.ra, "ip": t.ip, "dimring": t.dimring,
             "vridbar": t.vridbar, "stralvinkel": t.stralvinkel,
             "lysande_d": t.lysande_d, "hal_d": t.hal_d, "fotometri": t.fotometri, "fotometri_url": t.fotometri_url,
-            "form": "infalld" if t.huvud is None else "tub"}
+            "form": "pendel" if pe else "infalld" if t.huvud is None else "tub",
+            **({"pendel": {"form": pe.form, "diameter": pe.diameter, "hojd": pe.hojd, "kalla_d": pe.kalla_d,
+                           "ljuskalla": pe.ljuskalla, "lysande_yta": pe.lysande_yta,
+                           "lysande_andel": pe.lysande_andel, "transmission": pe.transmission}} if pe else {})}
 
 
 def _vinkel(a: Vek, b: Vek) -> float:

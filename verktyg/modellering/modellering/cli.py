@@ -119,7 +119,9 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
 def _armaturer() -> list[dict[str, object]]:
     """Elinstallationens armaturer för renderingen (modellens el, om den finns): linsens läge, ljusets riktning,
     tändgruppen, färgen och ljusfördelningen (IES ur tillverkarens fotometrifil i lokalt/el/, annars en stråle med
-    databladets strålvinkel)."""
+    databladets strålvinkel). Pendlarna: ljuskällan i armaturen ("kalla", lika åt alla håll, eller en stråle för en
+    armatur med strålvinkel), med flödet genom glas som omsluter den (transmissionen), och glasets luminans
+    ("luminans", flödet genom glaset fördelat på dess yta, cd/m²)."""
     from . import dagsljus, fotometri
     try:
         inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
@@ -132,6 +134,21 @@ def _armaturer() -> list[dict[str, object]]:
         if p["slag"] != "lampa":
             continue
         t = u["typer"][p["typ"]]
+        pe = t.get("pendel")
+        if pe:
+            flode = t["ljusflode"] * pe["transmission"]
+            if p["typ"] not in fordelningar:
+                fordelningar[p["typ"]] = (fotometri.spot(t["stralvinkel"], flode, t["namn"]) if t["stralvinkel"]
+                                          else fotometri.jamn(flode, t["namn"], pe["kalla_d"]))
+            f = fordelningar[p["typ"]]
+            ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "kalla": p["lins"],
+                       "kalla_d": pe["kalla_d"], "riktning": p["riktning"], "punkt": p["punkt"],
+                       "normal": p["normal"], "hal_d": 0.0, "infalld": False, "ies": f.ies(),
+                       "farg": dagsljus.svartkropp(float(t["fargtemperatur"])), "lysande_d": t["lysande_d"],
+                       "max_cd": float(f.cd.max()),
+                       "luminans": t["ljusflode"] * pe["lysande_andel"] * pe["transmission"]
+                       / (math.pi * pe["lysande_yta"] * 1e-6)})
+            continue
         if p["typ"] not in fordelningar:
             ldt = ROT / "lokalt" / "el" / t["fotometri"]
             fordelningar[p["typ"]] = (fotometri.las_ldt(ldt).skalad(t["ljusflode"]) if ldt.exists() else

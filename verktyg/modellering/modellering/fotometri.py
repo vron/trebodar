@@ -77,6 +77,13 @@ def las_ldt(fil: Path) -> Fordelning:
                       float(r[15].replace(",", ".")))
 
 
+def jamn(flode: float, namn: str = "jämn", d: float = 60.0) -> Fordelning:
+    """Ljuskälla som lyser lika åt alla håll (lampan i en pendel: skärmarna och glaset formar ljuset), ljusstyrkan
+    Φ/4π i alla riktningar; d den lysande ytans diameter [mm]."""
+    gamma = np.arange(0.0, 181.0, 5.0)
+    return Fordelning(namn, np.array([0.0]), gamma, np.full((1, len(gamma)), flode / (4 * math.pi)), flode, d)
+
+
 def spot(stralvinkel: float, flode: float, namn: str = "spot") -> Fordelning:
     """Ersättning när fotometrifilen saknas: en rotationssymmetrisk stråle (gaussisk) med strålvinkeln (full bredd
     vid halva ljusstyrkan) och flödet, inget ljus över 90°."""

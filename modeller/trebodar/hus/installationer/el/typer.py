@@ -1,4 +1,5 @@
-"""Elinstallationens produkttyper: armaturer (ljusdata och mått), apparater (brytare, dimrar, uttag), dosor och rör.
+"""Elinstallationens produkttyper: armaturer (ljusdata och mått; infällda, på stam eller pendlar), apparater (brytare,
+dimrar, uttag), dosor och rör.
 En typ beskriver en produkt en gång (katalog.py); punkterna i rummen refererar till den.
 """
 from __future__ import annotations
@@ -42,9 +43,31 @@ class Tubhuvud:
 
 
 @dataclass(frozen=True)
+class Pendel:
+    """Pendelarmatur: armaturen hänger i en sladd från en takkopp på innertaket. Formen ger geometrin ur måtten
+    (el.py); ljuskällan (en lampa i armaturens sockel) sitter mitt i armaturen kalla under dess överkant. I
+    renderingen formas ljuset av armaturens delar: skärmarna skuggar och reflekterar, glaset skuggar inte men lyser
+    med sin luminans (flödet genom glaset fördelat på dess yta)."""
+    form: str                   # "ph5", "vl45", "glob" eller "stav" (el.py)
+    diameter: float             # armaturens största diameter [mm]
+    hojd: float                 # från överkanten (där sladden går in) till underkanten [mm]
+    kalla: float                # ljuskällans mitt under armaturens överkant [mm]
+    kalla_d: float              # ljuskällans diameter [mm]
+    ljuskalla: str              # lampan i sockeln, t.ex. "E27 LED 1 055 lm 2 700 K (ej vald)"
+    lysande_yta: float          # glasets yta, där ljuset syns [mm²]
+    lysande_andel: float        # andel av ljuskällans flöde som går ut genom glaset
+    transmission: float = 1.0   # glasets transmission, för glas som omsluter ljuskällan (globerna)
+    sladd: str = "vit"          # textilsladdens färg: "vit" eller "svart"
+    takkopp: tuple[float, float] = (90.0, 25.0)       # takkoppens diameter och höjd [mm]
+    takkopp_massing: bool = False                       # takkoppen i mässing (annars vit)
+
+
+@dataclass(frozen=True)
 class Armaturtyp:
     """Armatur med tillverkarens data (datablad och fotometrifil) och mått för modellen och renderingen: infälld
-    (ljuset ut genom takets hål) eller med ett huvud under taket (huvud, t.ex. en tub på en stam)."""
+    (ljuset ut genom takets hål), med ett huvud under taket (huvud, t.ex. en tub på en stam) eller en pendel (pendel).
+    För pendlar är ljusflödet ljuskällans, ringen takkoppen och hålet, djupet och strålvinkeln 0 (ingen fotometrifil:
+    ljuskällan lyser lika åt alla håll)."""
     kod: str
     namn: str                   # tillverkarens namn på varianten
     tillverkare: str
@@ -68,6 +91,7 @@ class Armaturtyp:
     fotometri_url: str          # var den hämtas (`./mod el hamta`)
     symbol: str = "spot"
     huvud: Tubhuvud | None = None               # huvudet under taket; None: infälld
+    pendel: Pendel | None = None                # pendelarmatur
 
 
 @dataclass(frozen=True)

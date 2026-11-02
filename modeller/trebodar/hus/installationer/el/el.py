@@ -3,20 +3,23 @@ per modul (rum och bjälklag). Delarna kontrolleras inte mot annat (kontrollregl
 går genom skikten utan håltagning.
 
 Armaturen i sitt system: origo på takytan, z ut ur taket (in i rummet), x längs y i huset (i takfallets plan).
+Pendlarna: takkoppen på takytan, sladden lodrätt ned och armaturen i ett lodrätt system med origo i dess överkant
+(z uppåt, armaturen under origo), byggd av rotationskroppar ur formens mått (pendel_*).
 Apparaterna: origo på väggens yta, z ut ur väggen, y uppåt.
 """
 from __future__ import annotations
 
 import math
 
-from modellering import Del, Montage, Placering, box, cylinder
+from modellering import Del, Form, Montage, Placering, box, cylinder, varv
 
-from trebodar.material import APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR
+from trebodar.material import (APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR, FROSTAT_GLAS,
+                               MASSING, OPALGLAS, RAMASSING, SLADD_SVART, SLADD_VIT)
 
 from .installation import installation
 from ..montering import TAKSKIVOR, Montering, Vek
-from .punkter import LINS_INDRAG, PLATTA_T, Apparat, Dosa, Lampa, drivdonet, linsen, tuben
-from .typer import Apparattyp, Armaturtyp, Dosatyp
+from .punkter import LINS_INDRAG, PLATTA_T, Apparat, Dosa, Lampa, drivdonet, linsen, pendeln, tuben
+from .typer import Apparattyp, Armaturtyp, Dosatyp, Pendel
 
 RING_T = PLATTA_T                # frontringens tjocklek
 SPOT_D, SPOT_H = 64.0, 30.0     # den vridbara spotens kropp
@@ -98,10 +101,150 @@ def _tubspot(p: Lampa) -> Montage:
     return m
 
 
+# ------------------------------------------------------------------ pendlar
+
+Profil = list[tuple[float, float]]
+
+
+def _forskjuten(kurva: Profil, t: float) -> Profil:
+    """Kurvan (r, z) flyttad t längs sin högra normal (för en kurva utåt och nedåt: in under den)."""
+    ut = []
+    for i, (r, z) in enumerate(kurva):
+        a, b = kurva[max(i - 1, 0)], kurva[min(i + 1, len(kurva) - 1)]
+        dr, dz = b[0] - a[0], b[1] - a[1]
+        lg = math.hypot(dr, dz)
+        ut.append((r + t * dz / lg, z - t * dr / lg))
+    return ut
+
+
+def _plat(kurva: Profil, t: float) -> Form:
+    """Spunnen plåt t tjock: rotationskroppen mellan kurvan (den synliga ytan) och samma kurva t in."""
+    inre = _forskjuten(kurva, t)
+    return varv(("kurva", kurva), ("linje", [kurva[-1], inre[-1]]), ("kurva", inre[::-1]),
+                ("linje", [inre[0], kurva[0]]))
+
+
+def _skiva(r0: float, r1: float, z0: float, z1: float) -> Form:
+    """Ring (r0 > 0) eller skiva (r0 = 0) mellan z0 och z1."""
+    return varv(("linje", [(r0, z0), (r1, z0), (r1, z1), (r0, z1), (r0, z0)]))
+
+
+# PH 5, mätt ur produktbilden (Lampmasters 6090322, Ø500): (r, z) i mm från kåpans överkant, z skalat till
+# katalogens höjd. Toppskärmen är en flack kon med en trumpet under, som slutar i en krona Ø175 strax ovanför
+# huvudskärmens hål (Ø190): springan släpper upp ljus mot trumpeten och toppskärmen.
+_PH5_TOPP = [(33.0, -60.0), (70.0, -63.5), (100.0, -67.5), (130.0, -72.5), (150.5, -77.0)]
+_PH5_TRUMPET = [(149.0, -78.5), (135.0, -85.8), (118.0, -89.2), (102.0, -91.2), (93.5, -93.8), (89.0, -97.5),
+                (87.5, -102.0), (88.5, -112.0), (90.0, -120.0), (90.8, -127.0)]
+_PH5_SKARM = [(95.0, -128.5), (127.6, -133.9), (152.3, -141.1), (176.4, -150.7), (201.6, -162.8), (224.3, -174.9),
+              (241.4, -184.5), (248.6, -189.3), (250.0, -192.0)]
+_PH5_KUPA = [(42.0, -193.5), (62.0, -195.0), (76.0, -198.5), (86.0, -204.0), (94.0, -212.0), (99.0, -222.0),
+             (102.0, -232.0), (103.8, -241.0), (104.3, -247.0)]
+_PH5_HOJD = 274.0                  # bildens höjd till glasets botten
+
+
+def _ph5(t: Armaturtyp, pe: Pendel) -> list[tuple[str, Del]]:
+    k = pe.hojd / _PH5_HOJD
+    s = pe.diameter / 500.0
+
+    def sk(c: Profil) -> Profil:
+        return [(r * s, z * k) for r, z in c]
+    namn = f"{t.tillverkare} {t.namn}"
+    stag = cylinder(1.5, 46.0 * k)
+    return [("KAPA", Del(f"{namn} kåpa", cylinder(33.5 * s, 59.0 * k, (0.0, 0.0, -59.0 * k)), ARMATUR)),
+            ("ROR", Del(f"{namn} rör till sockeln", cylinder(6.0, 131.0 * k, (0.0, 0.0, -190.0 * k)), ARMATUR)),
+            ("TOPPSKARM", Del(f"{namn} toppskärm Ø{301 * s:.0f}", _plat(sk(_PH5_TOPP), 1.2), ARMATUR)),
+            ("TRUMPET", Del(f"{namn} trumpet", _plat(sk(_PH5_TRUMPET), 1.0), ARMATUR)),
+            ("SKARM", Del(f"{namn} skärm Ø{500 * s:.0f}", _plat(sk(_PH5_SKARM), 1.2), ARMATUR)),
+            ("MELLANSKIVA", Del(f"{namn} mellanskiva", _skiva(62.0 * s, 96.0 * s, -187.5 * k, -186.0 * k), ARMATUR)),
+            ("KUPA", Del(f"{namn} kupa Ø{208 * s:.0f}", _plat(sk(_PH5_KUPA), 1.0), ARMATUR)),
+            ("HALLARE", Del(f"{namn} glasets hållare", _skiva(56.0 * s, 61.0 * s, -251.0 * k, -249.0 * k), ARMATUR)),
+            ("LINS", Del(f"{namn} frostat glas Ø{117 * s:.0f}",
+                         varv(("linje", [(0.0, -251.0 * k), (58.7 * s, -251.0 * k), (54.5 * s, -274.0 * k),
+                                         (0.0, -274.0 * k), (0.0, -251.0 * k)])), FROSTAT_GLAS)),
+            *[(f"STAG{i + 1}", Del(f"{namn} stag", stag, ARMATUR)) for i in range(3)]]
+
+
+def _ph5_stag(i: int, k: float) -> Placering:
+    """Stagen mellan toppskärmen och huvudskärmen, tre på radien 120."""
+    v = 2 * math.pi * i / 3 + math.pi / 6
+    return Placering.flytt(120.0 * math.cos(v), 120.0 * math.sin(v), -134.0 * k)
+
+
+def _vl45(t: Armaturtyp, pe: Pendel) -> list[tuple[str, Del]]:
+    """VL45: fästet (rör Ø8, ring Ø13 och krage av mässing) och globen, lika hög som bred med foten: en superellips
+    (n = 2,6) och en fot i botten."""
+    d, f = pe.diameter, pe.hojd - pe.diameter
+    r_krage, r_fot, h_fot = 0.14 * d, 0.235 * d, 0.035 * d
+    a, b = d / 2, d / 2 - h_fot / 2           # globens halva bredd och höjd (foten under)
+    zc = -f - b
+    n = 2.6
+
+    def punkt(v: float) -> tuple[float, float]:
+        c, s_ = math.cos(v), math.sin(v)
+        return a * abs(c) ** (2 / n), zc + b * math.copysign(abs(s_) ** (2 / n), s_)
+    v0 = math.acos((r_krage * 0.9 / a) ** (n / 2))
+    v1 = -math.acos((r_fot / a) ** (n / 2))
+    kurva = [punkt(v0 + (v1 - v0) * i / 40) for i in range(41)]
+    z_fot = kurva[-1][1]
+    glas = varv(("linje", [(0.0, kurva[0][1]), kurva[0]]), ("kurva", kurva),
+                ("linje", [kurva[-1], (r_fot, z_fot - h_fot), (0.0, z_fot - h_fot), (0.0, kurva[0][1])]))
+    namn = f"{t.tillverkare} {t.namn}"
+    return [("ROR", Del(f"{namn} rör Ø8", cylinder(4.0, f - 12.0, (0.0, 0.0, -(f - 12.0))), MASSING)),
+            ("RING", Del(f"{namn} ring Ø13", cylinder(6.5, 5.0, (0.0, 0.0, -(f - 7.0))), MASSING)),
+            ("KRAGE", Del(f"{namn} krage Ø{2 * r_krage:.0f}", cylinder(r_krage, 7.0, (0.0, 0.0, -f)), MASSING)),
+            ("LINS", Del(f"{namn} opalglas Ø{d:.0f}", glas, OPALGLAS))]
+
+
+def _glob(t: Armaturtyp, pe: Pendel) -> list[tuple[str, Del]]:
+    """Glob: fästet (en kåpa) och ett klot av opalglas under det."""
+    f = pe.hojd - pe.diameter
+    r = pe.diameter / 2
+    kurva = [(r * math.sin(math.pi * i / 32), -f - r + r * math.cos(math.pi * i / 32)) for i in range(33)]
+    namn = f"{t.tillverkare} {t.namn}"
+    return [("KAPA", Del(f"{namn} kåpa", cylinder(38.0, f + 5.0, (0.0, 0.0, -f - 5.0)), ARMATUR)),
+            ("LINS", Del(f"{namn} opalglas Ø{pe.diameter:.0f}",
+                         varv(("kurva", kurva), ("linje", [kurva[-1], kurva[0]])), OPALGLAS))]
+
+
+def _stav(t: Armaturtyp, pe: Pendel) -> list[tuple[str, Del]]:
+    """Stav: en stav Ø6 och ett rör Ø30 av råmässing; ljuskällan i rörets botten bakom en lins, 15 mm in."""
+    h, r = pe.hojd, pe.diameter / 2
+    namn = f"{t.tillverkare} {t.namn}"
+    ror = varv(("linje", [(0.0, -111.0), (r, -111.0), (r, -h), (r - 2.5, -h), (r - 2.5, -h + 15.0), (0.0, -h + 15.0),
+                          (0.0, -111.0)]))
+    return [("STAV", Del(f"{namn} stav Ø6", cylinder(3.0, 111.0, (0.0, 0.0, -111.0)), RAMASSING)),
+            ("ROR", Del(f"{namn} rör Ø{2 * r:.0f}", ror, RAMASSING)),
+            ("LINS", Del(f"{namn} lins Ø24", cylinder(12.0, 1.0, (0.0, 0.0, -h + 14.0)), ARMATURLINS))]
+
+
+_FORMER = {"ph5": _ph5, "vl45": _vl45, "glob": _glob, "stav": _stav}
+
+
+def _pendel(p: Lampa) -> Montage:
+    """Pendeln: takkoppen på takytan, sladden lodrätt ned från takkoppens mitt och armaturen under den."""
+    t, pe = p.typ, p.typ.pendel
+    assert pe is not None
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")
+    d, h = pe.takkopp
+    m.lagg(Del(f"Takkopp Ø{d:g}", cylinder(d / 2, h), MASSING if pe.takkopp_massing else ARMATUR), _system(p.lage),
+           f"{p.id}-TAKKOPP")
+    kopp, topp = pendeln(p)
+    sladd = kopp[2] - topp[2]
+    m.lagg(Del(f"Textilsladd Ø6 L={sladd:.0f}", cylinder(3.0, sladd),
+               SLADD_SVART if pe.sladd == "svart" else SLADD_VIT), Placering.flytt(*topp), f"{p.id}-SLADD")
+    sys = Placering.flytt(*topp)
+    for namn, del_ in _FORMER[pe.form](t, pe):
+        pl = _ph5_stag(int(namn[-1]) - 1, pe.hojd / _PH5_HOJD) if namn.startswith("STAG") else Placering()
+        m.lagg(del_, sys @ pl, f"{p.id}-{namn}")
+    return m
+
+
 def armatur(p: Lampa) -> Montage:
     """Armaturen: frontringen på takytan, huset i håltagningen och spoten vriden så att ljuset går i lampans
     riktning; drivdonet på gipsen bredvid huset."""
     t = p.typ
+    if t.pendel is not None:
+        return _pendel(p)
     if t.huvud is not None:
         return _tubspot(p)
     d = _delar_armatur(t)

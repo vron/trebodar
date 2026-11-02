@@ -30,16 +30,17 @@ from OCP.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.BRepGProp import BRepGProp
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
-from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
+from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism, BRepPrimAPI_MakeRevol
 from OCP.BRepTools import BRepTools
-from OCP.gp import gp_Ax2, gp_Circ, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
+from OCP.GeomAPI import GeomAPI_Interpolate
+from OCP.gp import gp_Ax1, gp_Ax2, gp_Circ, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
 from OCP.GProp import GProp_GProps
 from OCP.ShapeFix import ShapeFix_Solid
 from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, TopAbs_SOLID
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS, TopoDS_Shape
-from OCP.collections import List_TopoDS_Shape
+from OCP.collections import HArray1_gp_Pnt, List_TopoDS_Shape
 
 from . import form as F
 from .placering import Placering
@@ -150,6 +151,8 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
         return BRepPrimAPI_MakeCylinder(gp_Ax2(gp_Pnt(*f.origo), gp_Dir(0, 0, 1)), f.radie, f.hojd).Shape()
     if isinstance(f, F.Polyeder):
         return _polyeder(f)
+    if isinstance(f, F.Varv):
+        return _varv(f)
     if isinstance(f, F.Transf):
         return BRepBuilderAPI_Transform(bygg(f.form), trsf(f.placering), True).Shape()
     if isinstance(f, F.Diff):
@@ -179,6 +182,29 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
             BRepTools.Read_s(s, str(fil), BRep_Builder())
         return s
     raise TypeError(f"okänt recept: {type(f).__name__}")
+
+
+def _varv(f: F.Varv) -> TopoDS_Shape:
+    """Profilen i xz-planet (x = r) som en yta, raka kanter och splinekurvor, vriden ett varv kring z."""
+    mw = BRepBuilderAPI_MakeWire()
+    for typ, pts in f.profil:
+        p3 = [gp_Pnt(r, 0.0, z) for r, z in pts]
+        if typ == "linje":
+            for a, b in zip(p3, p3[1:]):
+                mw.Add(BRepBuilderAPI_MakeEdge(a, b).Edge())
+            continue
+        arr = HArray1_gp_Pnt(1, len(p3))
+        for i, p in enumerate(p3, 1):
+            arr.SetValue(i, p)
+        ip = GeomAPI_Interpolate(arr, False, 1e-6)
+        ip.Perform()
+        if not ip.IsDone():
+            raise RuntimeError("profilens kurva kunde inte interpoleras")
+        mw.Add(BRepBuilderAPI_MakeEdge(ip.Curve()).Edge())
+    if not mw.IsDone():
+        raise RuntimeError("profilen blev ingen sluten kontur")
+    yta = BRepBuilderAPI_MakeFace(mw.Wire(), True).Face()
+    return BRepPrimAPI_MakeRevol(yta, gp_Ax1(gp_Pnt(0.0, 0.0, 0.0), gp_Dir(0.0, 0.0, 1.0)), 2 * math.pi).Shape()
 
 
 def _polyeder(f: F.Polyeder) -> TopoDS_Shape:

@@ -332,12 +332,13 @@ def lampor(grupper: dict[str, dict]) -> dict[str, list[bpy.types.Object]]:
 class Armatur:
     """En armatur i scenen: punktljuset med armaturens ljusfördelning (IES) och färg, inne i armaturen bakom linsen
     (frontringen och huset skärmar av snett ljus, som i armaturen; linsen och spoten kastar inga skuggor), och linsens
-    objekt, som lyser för kameran när armaturen är tänd (materialtypen lins)."""
+    objekt, som lyser för kameran när armaturen är tänd (materialtypen lins). Pendlarna: ljuset i ljuskällans mitt
+    ("kalla", med lampans radie), skärmarna skuggar och reflekterar, och glasets luminans kommer med ("luminans")."""
 
     def __init__(self, a: dict, ies: bpy.types.Text, linser: list[bpy.types.Object]):
         self.tand = a["tand"]
         lj = bpy.data.lights.new(a["id"], "POINT")
-        lj.shadow_soft_size = min(a["lysande_d"] / 2, KALLA_R) / 1000
+        lj.shadow_soft_size = (a["kalla_d"] / 2 if "kalla" in a else min(a["lysande_d"] / 2, KALLA_R)) / 1000
         lj.color = tuple(a["farg"])
         lj.use_nodes = True
         nt = lj.node_tree
@@ -348,11 +349,12 @@ class Armatur:
         self.ljus = bpy.data.objects.new(a["id"], lj)
         bpy.context.scene.collection.objects.link(self.ljus)
         r = Vector(a["riktning"]).normalized()
-        self.ljus.location = (Vector(a["lins"]) - KALLA_BAKOM * r) / 1000
+        self.ljus.location = (Vector(a["kalla"]) if "kalla" in a else Vector(a["lins"]) - KALLA_BAKOM * r) / 1000
         self.ljus.rotation_euler = (-r).to_track_quat("Z", "Y").to_euler()      # ljusets −Z längs riktningen
         self.ljus.hide_render = True
-        # linsens luminans rakt fram (största ljusstyrkan genom linsens yta), i Blenders enheter
-        self.luminans = a["max_cd"] / (math.pi * (a["lysande_d"] / 2000) ** 2) / LUMEN_PER_WATT
+        # linsens luminans rakt fram (största ljusstyrkan genom linsens yta), pendlarnas glas ur flödet genom det, i
+        # Blenders enheter
+        self.luminans = a.get("luminans", a["max_cd"] / (math.pi * (a["lysande_d"] / 2000) ** 2)) / LUMEN_PER_WATT
         self.linser = linser
         self.farg = tuple(a["farg"])
         for o in linser:

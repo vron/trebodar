@@ -51,7 +51,8 @@ egen modell (t.ex. för beställning). Utdata:
 ## Hur det fungerar
 
 - **Recept** (`form.py`): oföränderliga, hashbara värden: rätblock, prismor med hål, cylindrar, polyedrar (fria former
-  av plana ytor, t.ex. kluven sten), booleska operationer, plan som kapar, speglingar. Likadana delar får samma recept
+  av plana ytor, t.ex. kluven sten), rotationskroppar (`varv`: en profil i (r, z) av raka streck och mjuka kurvor,
+  vriden ett varv, t.ex. lampskärmar och glober), booleska operationer, plan som kapar, speglingar. Likadana delar får samma recept
   och blir samma nät i GLB, samma rad i materiallistan och (med `--delade`) samma produkt i STEP.
 - **Modellträd** (`modell.py`): `Del` (recept och material) och `Montage` (placerade instanser av delar och
   montage, i montagets eget koordinatsystem). Ett `Material` har två utseenden: CAD-färgen (`cad`) för STEP, GLB

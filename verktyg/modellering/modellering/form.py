@@ -90,6 +90,14 @@ class Polyeder(Form):
 
 
 @dataclass(frozen=True)
+class Varv(Form):
+    """Rotationskropp: en sluten profil i (r, z), r ≥ 0, vriden ett varv kring z-axeln. Profilen är delar som möts i
+    ändpunkterna, den sista i den förstas början: ("linje", punkter) raka streck mellan punkterna och ("kurva",
+    punkter) en mjuk kurva (spline) genom punkterna, för lampskärmar, glober och svarvade delar."""
+    profil: tuple[tuple[str, tuple[P2, ...]], ...]
+
+
+@dataclass(frozen=True)
 class Diff(Form):
     bas: Form
     verktyg: tuple[Form, ...]
@@ -180,6 +188,14 @@ def polyeder(horn: Sequence[Sequence[float]], ytor: Sequence[Sequence[int]]) -> 
     return Polyeder(tuple(_v(p) for p in horn), tuple(tuple(int(i) for i in y) for y in ytor))
 
 
+def varv(*delar: tuple[str, Sequence[Sequence[float]]]) -> Varv:
+    """Rotationskropp ur profilens delar ("linje" eller "kurva", punkter (r, z)), se Varv."""
+    for typ, pts in delar:
+        if typ not in ("linje", "kurva") or len(pts) < 2:
+            raise ValueError(f"profilens del: {typ} med {len(pts)} punkter")
+    return Varv(tuple((typ, tuple((float(r), float(z)) for r, z in pts)) for typ, pts in delar))
+
+
 def minus(form: Form, verktyg: Iterable[Form]) -> Form:
     """form minus alla verktyg (en boolesk operation)."""
     v = tuple(verktyg)
@@ -205,6 +221,12 @@ def omslutande(f: Form) -> Lada6 | None:
     if isinstance(f, Polyeder):
         H = np.array(f.horn, dtype=float)
         return tuple(float(v) for v in (*H.min(0), *H.max(0)))  # type: ignore[return-value]
+    if isinstance(f, Varv):
+        # kurvorna kan bukta något utanför sina punkter: marginal
+        rz = np.array([p for _, pts in f.profil for p in pts], dtype=float)
+        r = float(rz[:, 0].max()) * 1.05 + 1.0
+        dz = float(rz[:, 1].max() - rz[:, 1].min()) * 0.05 + 1.0
+        return (-r, -r, float(rz[:, 1].min()) - dz, r, r, float(rz[:, 1].max()) + dz)
     if isinstance(f, (Diff, Kapad)):
         return omslutande(f.bas if isinstance(f, Diff) else f.form)
     if isinstance(f, (Union, Snitt)):

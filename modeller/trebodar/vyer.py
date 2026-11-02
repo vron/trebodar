@@ -43,6 +43,15 @@ VYER = {
                     "lodrat": False, "inne": True, "tand": {"AL-T1": 1.0, "AL-T2": 1.0}},
     "detalj-tubspot": {"kamera": [12350, 8750, 2350], "mal": [12725, 9600, 2850], "lins": 50,
                        "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": {"KO-T1": 1.0}},
+    # pendlarna (hus/installationer/el): PH 5 över bordet, Stav över köksön, VL45 i vardagsrummet och globen i sovrummet
+    "detalj-ph5": {"kamera": [5300, 6900, 1500], "mal": [6905, 8975, 1500], "lins": 35, "ljus": (12, 21, "18:00", "sol"),
+                   "lodrat": False, "inne": True, "tand": {"AL-T3": 1.0, "AL-T1": 0.3, "AL-T2": 0.3}},
+    "detalj-stav": {"kamera": [9500, 7800, 1500], "mal": [11385, 9140, 950], "lins": 20, "ljus": (12, 21, "18:00", "sol"),
+                    "lodrat": False, "inne": True, "tand": {"KO-T3": 1.0, "KO-T1": 0.3}},
+    "detalj-vl45": {"kamera": [3300, 11600, 1450], "mal": [1850, 13470, 2000], "lins": 30,
+                    "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": {"VR-T3": 1.0}},
+    "detalj-glob": {"kamera": [5300, 4900, 1550], "mal": [7055, 3425, 2200], "lins": 35, "ljus": (12, 21, "18:00", "sol"),
+                    "lodrat": False, "inne": True, "tand": {"SV-T1": 1.0}},
     # ventilationen (hus/installationer/ventilation): källarrummets kanal och fläkt under källarens tak, kanalen upp
     # i väggen 1C (skikten dolda), takhuven och köksfläktens galler
     "detalj-kallarkanal": {"kamera": [1500, 9000, Z_KALLARE + 1400], "mal": [3700, 8220, -330], "lins": 24,

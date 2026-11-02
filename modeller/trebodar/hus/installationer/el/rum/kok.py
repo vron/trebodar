@@ -1,40 +1,83 @@
-"""Köket: tubspotar i snedtaket riktade mot bänken längs den nordvästra långsidan (prov).
+"""Köket: tubspotar som lyser upp mot snedtaket, spotar mot bänken, tre Stav över köksön och uttag ovanför fönstren
+(belysningsplanen i ärende #8).
 
-Tre Tube Mini R i takfallet 3NV, mitt emellan läkten, riktade mot bänkens mitt (450 mm från väggen, 900 mm över
-golvet) mellan och bredvid fönstren, och en dimmer på den lätta väggen L4 (köksidan) rakt under raden: röret går
-upp i väggen och in i installationsskiktet mellan samma läkt som spotarna och längs raden.
+Två rader med tre Tube Mini R nära takfoten på var sida om nocken, mitt emellan installationsskiktets läkt, vinklade
+tvärs över rummet mot mitten av det motsatta takfallet. En rad med sex Junistar Exclusive i takfallet 3NV, riktade mot
+bänkens mitt (450 mm från väggen, 900 mm över golvet), alltså lutade mot väggen. Tre Stav i råmässing hänger över
+köksön i nockens riktning, 700 mm över öns bänkskiva (antagen 900 mm; ön finns inte i modellen).
+
+Dimmern (två kanaler) och brytaren (Stav går inte att dimra) sitter på den lätta väggen L4 (köksidan) vid gången:
+rören går upp i väggen och i installationsskiktet till varje rad.
 """
 from __future__ import annotations
 
 from trebodar import skelett as S
-from trebodar.hus.invandigt.vaggar import vaggdef
 
-from ..katalog import DIMMER_1, FXP16, TUBE_MINI_R
+from ..katalog import BRYTARE_1, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, STAV, TUBE_MINI_R, UTTAG_1
 from ..lakt import mellan_lakten
 from ...montering import tak, vagg, vid_tak
-from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot
+from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot, ovan_fonstret
 
 RUM = Rum("KO", "Kök", plan=1)
 NAMN = RUM.namn
 
-RAD_X = 12900.0                              # önskat läge i takfallet 3NV, flyttas till mitt mellan läkten
-Y = (7700.0, 9600.0, 11500.0)                # bredvid och mellan fönstren 3NV-F4 och 3NV-F5
+NOCK = S.BALKAR["NB1"].x                     # högra huskroppens nock
+Y_TUB = (8120.0, 9590.0, 11295.0)
+RADER = {"3SO": 10070.0, "3NV": 13385.0}    # tubspotarna: önskat läge, flyttas till mitt mellan läkten
+MAL = {"3SO": (NOCK + S.TAKFALL["3NV"].x_insida) / 2, "3NV": (NOCK + S.TAKFALL["3SO"].x_insida) / 2}
+SPOT_X = 12970.0                             # spotarna mot bänken
+Y_SPOT = (7745.0, 8495.0, 9245.0, 9995.0, 10745.0, 11495.0)
 BANK_X = S.YTTERVAGGAR["3NV"].origo[0] - S.T_STOMME - 70.0 - 450.0     # bänkens mitt: 450 mm från väggens yta
 BANK_Z = 900.0
+STAV_X, Y_STAV, O_Z = 11385.0, (8675.0, 9140.0, 9605.0), 900.0         # Stav över ön, öns bänkskiva
+U_B = 250.0                                  # dimmern längs L4, vid gången
 
-_X = {y: mellan_lakten("3NV", RAD_X, y) for y in Y}
-_U = _X[Y[0]] - vaggdef("L4").origo[0]      # dimmern på L4 rakt under raden
+TANDGRUPPER = [
+    Tandgrupp("KO-T1", "Kök, tubspotar mot taket"),
+    Tandgrupp("KO-T2", "Kök, spotar mot bänken"),
+    Tandgrupp("KO-T3", "Kök, Stav över ön", dimbar=False),
+]
 
-TANDGRUPPER = [Tandgrupp("KO-T1", "Kök, spotar mot bänken")]
+
+def _tubar(kod: str, start: int) -> list[Lampa]:
+    """En rad tubspotar i takfallet kod, riktade mot det motsatta takfallet."""
+    ut = []
+    for i, y in enumerate(Y_TUB):
+        m = tak(mellan_lakten(kod, RADER[kod], y), y)
+        ut.append(Lampa(f"KO-L{start + i:02d}", TUBE_MINI_R, m, "KO-T1", riktning=mot(m, tak(MAL[kod], y).punkt)))
+    return ut
+
+
+def _spotar(start: int) -> list[Lampa]:
+    ut = []
+    for i, y in enumerate(Y_SPOT):
+        m = tak(mellan_lakten("3NV", SPOT_X, y), y)
+        ut.append(Lampa(f"KO-L{start + i:02d}", JUNISTAR_EXCLUSIVE, m, "KO-T2", riktning=mot(m, (BANK_X, y, BANK_Z))))
+    return ut
+
 
 PUNKTER = [
-    *[Lampa(f"KO-L{i + 1:02d}", TUBE_MINI_R, tak(_X[y], y), "KO-T1", riktning=mot(tak(_X[y], y), (BANK_X, y, BANK_Z)))
-      for i, y in enumerate(Y)],
-    Apparat("KO-B1", DIMMER_1, vagg("L4", _U, 1150.0, sida=1), styr=("KO-T1",)),
+    *_tubar("3SO", 1),
+    *_tubar("3NV", 4),
+    *_spotar(7),
+    *[Lampa(f"KO-L{13 + i:02d}", STAV, tak(STAV_X, y), "KO-T3", underkant=O_Z + 700.0) for i, y in enumerate(Y_STAV)],
+    Apparat("KO-B1", DIMMER_2, vagg("L4", U_B, 1050.0, sida=1), styr=("KO-T1", "KO-T2")),
+    Apparat("KO-B2", BRYTARE_1, vagg("L4", U_B + 80.0, 1050.0, sida=1), styr=("KO-T3",)),
+    Apparat("KO-U1", UTTAG_1, ovan_fonstret("3NV", 7215.0)),
+    Apparat("KO-U2", UTTAG_1, ovan_fonstret("3NV", 9025.0)),
+    Apparat("KO-U3", UTTAG_1, ovan_fonstret("3SV", 1745.0)),
 ]
 
 ROR = [
-    Ror("KO-R01", FXP16, "KO-B1", "KO-L01", via=vid_tak("L4", _U)),
+    Ror("KO-R01", FXP16, "KO-B1", "KO-L01", via=vid_tak("L4", U_B)),
     Ror("KO-R02", FXP16, "KO-L01", "KO-L02"),
     Ror("KO-R03", FXP16, "KO-L02", "KO-L03"),
+    Ror("KO-R04", FXP16, "KO-B1", "KO-L04", via=vid_tak("L4", U_B)),
+    Ror("KO-R05", FXP16, "KO-L04", "KO-L05"),
+    Ror("KO-R06", FXP16, "KO-L05", "KO-L06"),
+    Ror("KO-R07", FXP16, "KO-B1", "KO-L07", via=vid_tak("L4", U_B)),
+    *[Ror(f"KO-R{8 + i:02d}", FXP16, f"KO-L{7 + i:02d}", f"KO-L{8 + i:02d}") for i in range(5)],
+    Ror("KO-R13", FXP16, "KO-B2", "KO-L13", via=vid_tak("L4", U_B + 80.0)),
+    Ror("KO-R14", FXP16, "KO-L13", "KO-L14"),
+    Ror("KO-R15", FXP16, "KO-L14", "KO-L15"),
 ]

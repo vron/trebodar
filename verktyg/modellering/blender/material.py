@@ -18,6 +18,7 @@ fibrer eller brädor löper ("x", "y" eller "z"), `tvars` axeln längs vilken br
 | plat | farg, metall, grovhet, variation, grovhet_variation, buckla, avstand, riktning, tvars: plåt i banor |
 | granit | farg, farg2, farg3, rosa, andelar, korn, variation, varm, varmfarg, rost, rostfarg: kluven granit |
 | pulverlack | farg, grovhet, skala: pulverlackerad metall med fin apelsinyta |
+| patina | farg, farg2, andel, skala, grovhet, grovhet2: obehandlad metall (råmässing) med fläckar av oxid |
 | bruk, berg, mark, grus, cellplast, isolering, papp | farg, farg2: brusiga ytor |
 | glas | transmission, reflex_ior: fönsterglas (reflexen på den första ytan) |
 | lins | farg, grovhet: armaturens lins, lyser för kameran när armaturen är tänd (objektens egenskaper) |
@@ -121,6 +122,20 @@ def brusig(g: Graf, p: dict, skala_: float, detalj: float = 6.0, bump: float = 0
     g.yta(g.ramp(fak, [(0.3, (*c2, 1.0)), (0.7, (*c, 1.0))]), _f(p, "grovhet", 0.9), hojd=fin, styrka=bump)
 
 
+def patina(g: Graf, p: dict) -> None:
+    """Obehandlad metall med patina (råmässing): metallens färg och glans med fläckar av mörkare och mattare oxid
+    (andelen `andel` av ytan, storleken efter `skala`) och finare variation, förskjutna per objekt så att likadana
+    delar skiljer sig åt."""
+    k = g.vmatte("ADD", g.koord, g.vektor(g.objslump(), g.matte("MULTIPLY", g.objslump(), 3.7), 0.0))
+    s = _f(p, "skala", 40.0)
+    flackar = g.linj((g.brus(k, s, 4.0, 0.6), 0.7), (g.brus(k, s * 7.0, 3.0, 0.5), 0.3))
+    t = 0.5 + (0.5 - _f(p, "andel", 0.3)) * 0.3
+    fak = g.jamn(flackar, t - 0.05, t + 0.05)
+    farg = g.blanda(fak, (*linjar(p["farg"]), 1.0), (*linjar(p["farg2"]), 1.0))
+    grovhet = g.linj((fak, _f(p, "grovhet2", 0.7) - _f(p, "grovhet", 0.4)), bas=_f(p, "grovhet", 0.4))
+    g.yta(farg, grovhet, g.linj((fak, -0.35), bas=1.0), hojd=g.brus(k, s * 25.0, 2.0, 0.5), styrka=0.02)
+
+
 def pulverlack(g: Graf, p: dict) -> None:
     """Pulverlackerad metall: jämn kulör, halvblank, med fin apelsinyta (ingen metallglans)."""
     hojd = g.brus(g.koord, _f(p, "skala", 800.0), 3.0, 0.5)
@@ -173,7 +188,7 @@ def folie(g: Graf, p: dict) -> None:
 
 TYPER = {"farg": farg, "tra": tra.tra, "limtra": tra.limtra, "virke": tra.virke, "bradpanel": tra.bradpanel,
          "gips": ytor.gips, "betong": ytor.betong, "kakel": ytor.kakel, "plat": plat, "granit": granit,
-         "glas": glas, "folie": folie, "pulverlack": pulverlack, "lins": lins,
+         "glas": glas, "folie": folie, "pulverlack": pulverlack, "lins": lins, "patina": patina,
          "bruk": lambda g, p: brusig(g, p, 40.0, 4.0, 0.4),
          "berg": lambda g, p: brusig(g, p, 0.8, 8.0, 0.6),
          "mark": lambda g, p: brusig(g, p, 2.5, 6.0, 0.4),
