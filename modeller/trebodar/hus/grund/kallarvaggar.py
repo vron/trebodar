@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
 from modellering import Del, Material, Montage, Placering
@@ -145,6 +145,23 @@ def montage() -> Montage:
                     CELLPLAST), Placering(), f"{namn}-B-CO")
         m.lagg(g)
     return m
+
+
+def dorrar() -> list[tuple[str, str, float, float, float]]:
+    """Dörrarna i ytterväggarna: (namn, riktning "h"/"v", ytterlivets läge, öppningens början och slut längs linjen
+    mellan smygarnas cellplast)."""
+    ut = []
+    for namn, va, vb, zb in OPPNINGAR:
+        A = next(v for v in VAGGAR if v.namn == va)
+        B = next(v for v in VAGGAR if v.namn == vb)
+        if zb > 0 or A.typ != "yttre":
+            continue
+        halv = KARNA / 2 + CELL
+        m = (A.b + B.a) / 2
+        prov = (m, A.c + halv + 10.0) if A.riktning == "h" else (A.c + halv + 10.0, m)
+        s = -1.0 if ytterkontur().contains(Point(prov)) else 1.0      # utsidans riktning
+        ut.append((namn, A.riktning, A.c + s * halv, _karna(A)[1] + CELL, _karna(B)[0] - CELL))
+    return ut
 
 
 def ytterkontur() -> Polygon:

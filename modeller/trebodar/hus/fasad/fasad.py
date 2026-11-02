@@ -3,8 +3,8 @@
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
 en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
-Fasaden går ned till marken (MARKNIVA) och på väggarna med fasadsten till stenens överkant i bjälklagets
-underkant (z −150). Vid takfötterna går den upp mellan takbalkarna (tänder) till takbalkarnas överkant i panelens
+Fasaden går ned till marken (MARKNIVA), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
+källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till takbalkarnas överkant i panelens
 utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack; ovanför ligger takets luftspalt öppen
 (luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
 utegips, läkt mot läkt) och panelen täcker hela hörnet (fasad_u).
@@ -22,7 +22,7 @@ from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
-from trebodar.hus.grund import fasadsten
+from trebodar.hus.grund import fasadsten, kallarvaggar
 from trebodar.hus.tak.tak import tak_underkant
 from trebodar.material import ALU_RAL3009, ALU_RAL7012, C24_LAKT, PANEL_FALUROD, PANEL_JARNVITRIOL, UTEGIPS
 
@@ -117,15 +117,48 @@ def mark_vid(kod: str, u: float) -> float:
     return float(m[0][1] if u < m[0][0] else m[-1][1])
 
 
-def underkant(kod: str) -> list[tuple[float, float]]:
-    """Fasadens underkant (u, z) över hela fasaden: marken (förlängd vågrätt till fasadens ändar), eller Z_UK där
-    fasadstenen går upp till bjälklaget."""
+def till_bjalklaget(kod: str) -> list[tuple[float, float]]:
+    """Intervallen (u0, u1) längs väggen där fasaden slutar i bjälklagets underkant: fasadsten upp till bjälklaget
+    och källardörrar."""
+    v = S.YTTERVAGGAR[kod]
     u0, u1 = fasadens_u(kod)
-    mark = MARKNIVA.get(kod)
-    if mark is None or kod in STENVAGGAR:
-        return [(u0, Z_UK), (u1, Z_UK)]
-    inne = [(float(u), float(z)) for u, z in mark if u0 < u < u1]
-    return [(u0, mark_vid(kod, u0))] + inne + [(u1, mark_vid(kod, u1))]
+    ut = []
+    for b in fasadsten.BEKLADNAD:
+        if b.z1 >= Z_UK - 1e-6 and kod in b.vaggar:
+            i = b.vaggar.index(kod)
+            a = fasadsten._u(kod, b.start) if i == 0 else u0
+            e = fasadsten._u(kod, b.slut) if i == len(b.vaggar) - 1 else u1
+            ut.append((min(a, e), max(a, e)))
+    langs_x = abs(v.u[0]) > 0.5
+    for _, rikt, liv, a, e in kallarvaggar.dorrar():
+        if (rikt == "h") == langs_x and abs(liv - (v.origo[1] if langs_x else v.origo[0])) < 1.0:
+            o, r = (v.origo[0], v.u[0]) if langs_x else (v.origo[1], v.u[1])
+            ut.append(tuple(sorted(((a - o) * r, (e - o) * r))))      # type: ignore[arg-type]
+    return ut
+
+
+def underkant(kod: str) -> list[tuple[float, float]]:
+    """Fasadens underkant (u, z) över hela fasaden: marken (förlängd vågrätt till fasadens ändar), och Z_UK där
+    fasaden slutar i bjälklagets underkant (till_bjalklaget), med lodräta steg vid intervallens kanter."""
+    u0, u1 = fasadens_u(kod)
+    iv: list[list[float]] = []
+    for a, b in sorted(till_bjalklaget(kod)):              # intervallen ihopslagna
+        if iv and a <= iv[-1][1] + 1.0:
+            iv[-1][1] = max(iv[-1][1], b)
+        else:
+            iv.append([a, b])
+
+    def z(u: float) -> float:
+        inne = any(a - 1e-6 <= u <= b + 1e-6 for a, b in iv)
+        return Z_UK if inne or kod not in MARKNIVA else mark_vid(kod, u)
+    kanter = {e for a, b in iv for e in (a, b) if u0 < e < u1}
+    ut: list[tuple[float, float]] = []
+    for u in sorted({u0, u1} | {float(u) for u, _ in MARKNIVA.get(kod, ()) if u0 < u < u1} | kanter):
+        if u in kanter:                                     # steget: först sidan före kanten, sedan efter
+            ut += [(u, z(u - 0.5)), (u, z(u + 0.5))]
+        else:
+            ut.append((u, z(u)))
+    return [p for k, p in enumerate(ut) if k == 0 or p != ut[k - 1]]
 
 
 def tander(kod: str) -> list[tuple[float, float, float]]:

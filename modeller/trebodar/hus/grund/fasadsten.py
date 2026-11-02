@@ -5,7 +5,9 @@ Stenen har sågad baksida 15 mm utanför cellplasten (armeringsbruk och fästmas
 tjock. Skiften är 400 mm höga med fog 10 (det översta kapat till beklädnadens överkant), stenarna 600–1 200 långa i
 steg om 100, med lodfogarna minst 150 från fogarna i skiftet under. Hörnstenarna har skänklarna 400 och 200 i
 varannat skift. Fogbruket fyller fogarna 25 mm från stenens baksida. Stenens mått läses ur AR-01:s indata;
-beklädnadens utbredning är densamma som i Onshape-modellen. Mönstret slumpas med ett frö per vägg, så att
+beklädnadens utbredning är densamma som i Onshape-modellen ("Beklädnad stor" och "liten"): på högra huskroppen från
+källardörren D1:s östra smyg runt NV-hörnet till SV-gavelns slut, med underkanten i steg efter marken (skiften
+nedifrån; ett steg tar bort de nedre skiften). Mönstret slumpas med ett frö per vägg, så att
 modellen blir densamma vid varje bygge.
 
 Väggarnas system: u längs väggen, w inåt med cellplastens yta i w = 0, z uppåt (skelett.Vaggdef).
@@ -44,15 +46,27 @@ def indata() -> dict[str, Any]:
 @dataclass(frozen=True)
 class Bekladnad:
     """Sammanhängande beklädnad runt utvändiga hörn: väggarna i ordning (u växande, hörnen mellan dem) och de fria
-    ändarna i husets (x, y)."""
+    ändarna i husets (x, y). Underkanten är z0, höjd i stegen (vägg, punkt, z): därifrån längs beklädnaden."""
     vaggar: tuple[str, ...]
     start: tuple[float, float]
     slut: tuple[float, float]
     z0: float
     z1: float
+    steg: tuple[tuple[str, tuple[float, float], float], ...] = ()
+
+    def underkant(self, kod: str, u: float) -> float:
+        i = self.vaggar.index(kod)
+        z = self.z0
+        for k, p, zz in self.steg:
+            j = self.vaggar.index(k)
+            if j < i or (j == i and _u(k, p) <= u + 1e-6):
+                z = zz
+        return z
 
 
-BEKLADNAD = (Bekladnad(("3NO", "3NV", "3SV"), (9470.0, 970.0), (9470.0, 12540.0), -2150.0, -S.H_BJALKLAG),
+BEKLADNAD = (Bekladnad(("3NO", "3NV", "3SV"), (11140.0, 970.0), (9470.0, 12540.0), -2150.0, -S.H_BJALKLAG,
+                       (("3NO", (12340.0, 970.0), -1750.0), ("3NV", (13840.0, 4970.0), -1350.0),
+                        ("3SV", (11470.0, 12540.0), -950.0))),
              Bekladnad(("1SO",), (-30.0, 8060.0), (-30.0, 3560.0), -1540.0, -740.0))
 
 
@@ -131,12 +145,21 @@ def bekladnad(b: Bekladnad, M: _Matt) -> list[Montage]:
                  beskrivning=f"Fasadsten på källarväggen under {kod} (AR-01)")
         stenar = []                                      # (u0, u1, z0, z1) i väggens elevation
         under: list[float] = []
+        # väggens bitar mellan stegen, med underkanten
+        us = sorted({u0, u1} | {_u(kod, pp) for k_, pp, _ in b.steg if k_ == kod and u0 < _u(kod, pp) < u1})
+        bitar = [(ua, ub, b.underkant(kod, (ua + ub) / 2)) for ua, ub in zip(us, us[1:])]
         for k, (za, zb) in enumerate(_skift(M, b.z0, b.z1)):
+            # skiftet finns där underkanten ligger under det (stegen är hela skift)
+            finns = [(ua, ub) for ua, ub, zu in bitar if zu <= za + M.H / 2]
+            if not finns:
+                continue
+            fa, fe = finns[0][0], finns[-1][1]
             # hörnstenarnas skänklar: den långa skänkeln på väggen före hörnet i jämna skift
             ben_hit = M.ben[1] if k % 2 == 0 else M.ben[0]            # hörnet i slutet (stenen hör hit)
             ben_dit = M.ben[0] if k % 2 == 0 else M.ben[1]            # hörnet i början (stenen hör till väggen före)
-            a = u0 + (ben_dit + M.fog if i > 0 else 0.0)
-            e = u1 - (ben_hit + M.fog if i < n - 1 else 0.0)
+            hornet0, hornet1 = i > 0 and fa == u0, i < n - 1 and fe == u1
+            a = fa + (ben_dit + M.fog if hornet0 else 0.0)
+            e = fe - (ben_hit + M.fog if hornet1 else 0.0)
             rad = _fyll(a, e, rng, under, M)
             for nr, (sa, sb) in enumerate(rad, 1):
                 L = sb - sa
@@ -144,24 +167,30 @@ def bekladnad(b: Bekladnad, M: _Matt) -> list[Montage]:
                         GRANIT, "Beklädnadsgranit Bohus Grå, kluven framsida, sågad baksida")
                 p.del_i("ST", d, Placering.flytt(sa, -M.bak, za), (sa, za), f"{kod}-ST{k + 1}-{nr:02d}")
                 stenar.append((sa, sb, za, zb))
-            if i < n - 1:
+            if hornet1:
                 ben_b = M.ben[0] if k % 2 == 0 else M.ben[1]
                 d = Del(f"Hörnsten {fmt(ben_hit)}/{fmt(ben_b)}×{fmt(zb - za)}",
                         hornsten(ben_hit, ben_b, zb - za, f"{kod}-H{k}", M.klyv), GRANIT,
                         "Hörnsten Bohus Grå, kluven framsida, sågad baksida")
                 p.del_i("HS", d, Placering.flytt(u1, -M.bak, za), (u1, za), f"{kod}-HS{k + 1}")
                 stenar.append((u1 - ben_hit, u1 + FOGDJUP, za, zb))
-            if i > 0:
+            if hornet0:
                 stenar.append((u0, u0 + ben_dit, za, zb))
-            under = [s + M.fog / 2 for _, s in rad[:-1]] + ([a - M.fog / 2] if i > 0 else []) + \
-                    ([e + M.fog / 2] if i < n - 1 else [])
-        # fogbruket i fogarna (hörnets fogar hör till väggen före hörnet) och armeringsbruk med fästmassa bakom
-        yttre = box(u0, b.z0, u1 + (FOGDJUP if i < n - 1 else 0.0), b.z1)
+            under = [s + M.fog / 2 for _, s in rad[:-1]] + ([a - M.fog / 2] if hornet0 else []) + \
+                    ([e + M.fog / 2] if hornet1 else [])
+        # fogbruket i fogarna (hörnets fogar hör till väggen före hörnet) och armeringsbruk med fästmassa bakom, från
+        # det nedersta skiftet i varje bit
+        def botten(zu: float) -> float:
+            return next(za for za, _ in _skift(M, b.z0, b.z1) if zu <= za + M.H / 2)
+        yttre = unary_union([box(ua, botten(zu), ub + (FOGDJUP if i < n - 1 and ub == u1 else 0.0), b.z1)
+                             for ua, ub, zu in bitar])
         fog = yttre.difference(unary_union([box(s[0], s[2], s[1], s[3]) for s in stenar]))
         for g in P.polygoner(fog):
             p.skiva(P.kontur(g), P.hal(g), -M.bak - FOGDJUP, -M.bak, "FB", FOGBRUK, f"Fogbruk {kod}")
-        bruk = box(u0 + (M.bak if i > 0 else 0.0), b.z0, u1, b.z1)
-        p.skiva(P.kontur(bruk), [], -M.bak, 0.0, "FM", ARMERINGSBRUK, f"Armeringsbruk och fästmassa {kod}")
+        bruk = unary_union([box(ua + (M.bak if i > 0 and ua == u0 else 0.0), botten(zu), ub, b.z1)
+                            for ua, ub, zu in bitar])
+        for g in P.polygoner(bruk):
+            p.skiva(P.kontur(g), P.hal(g), -M.bak, 0.0, "FM", ARMERINGSBRUK, f"Armeringsbruk och fästmassa {kod}")
         ut.append(p.montage())
     return ut
 
