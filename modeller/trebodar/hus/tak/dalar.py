@@ -8,7 +8,8 @@ kortare kroppens gavel, där dallinjen ligger i den längre kroppens fasadliv. D
 i botten med eget stuprör Ø75 ned i hörnet, 20 mm från båda fasaderna (plåtslagarens detalj). Rändalen, den kortare
 kroppens utstick och den längre kroppens tak viks ned i lådan; lådans yttre kant är 30 mm hög, lägre än de andra,
 så att vattnet rinner över den och ut från huset om stosen sätts igen. Den längre kroppens takfot och ränna slutar
-vid gavelutstickets kant (takytor.py, ande) och rännans stuprör sitter i dess andra ände.
+vid gavelutstickets kant (takytor.py, ande), över lådan: rännan rinner dit, så att hörnets stuprör är det enda för
+takfoten och dalen (ett stuprör per hörn).
 """
 from __future__ import annotations
 

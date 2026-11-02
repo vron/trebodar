@@ -3,7 +3,9 @@
 Vid takfoten finns ingen takfotsbräda: takbalkarnas ändar är synliga och fasadens panel går upp mellan dem
 (fasad.py), så att luftintaget till takets luftspalt (U-03) är öppningen ovanför panelen. Takfotsplåt 0,6 över
 råspontens framkant, 35 mm ned under råsponten och med droppnäsa över hängrännan, och halvrunda hängrännor Ø125
-med gavlar. Stuprör Ø87 vid takfötternas ändar mot gavlarna, från rännan till 150 mm över marken längs fasaden. Vid
+med gavlar. Stuprör Ø87 vid ändarna av de takfötter som går från gavel till gavel, från rännan till 150 mm över
+marken längs fasaden; en takfot som slutar vid en dal har inget eget stuprör, utan rännan rinner till dalens ändlåda
+och stupröret i hörnet (ett stuprör per hörn, dalar.py). Vid
 gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag 0,6 vikt runt
 vindskivan: från 50 mm in på plåten över vindskivans överkant, ned över hela framsidan och 15 mm in under den.
 Råsponten, pappen och plåten går ut till vindskivan (takytor.py). Rännorna ligger vågrätt (fallet mot stuprören är
@@ -110,13 +112,13 @@ def _vindskivor(kod: str) -> Montage:
 
 
 def _stupror_lagen() -> list[tuple[str, float]]:
-    """Rännornas stuprör: vid takfötternas ändar mot gavlarna (vid dalarnas ändar har dalen eget stuprör)."""
+    """Rännornas stuprör: vid båda ändarna av takfötter som går från gavel till gavel. En takfot som slutar vid en dal
+    rinner till dalens ändlåda, med stupröret i hörnet (dalar.py)."""
     ut = []
     for kod in REGIONER:
         for r, gavel0, gavel1 in _takfoter(kod):
-            for y, gavel, inat in ((r.y0, gavel0, 1.0), (r.y1, gavel1, -1.0)):
-                if gavel:
-                    ut.append((kod, y + inat * STUPROR_KANT))
+            if gavel0 and gavel1:
+                ut += [(kod, r.y0 + STUPROR_KANT), (kod, r.y1 - STUPROR_KANT)]
     return ut
 
 
