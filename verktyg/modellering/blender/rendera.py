@@ -13,7 +13,6 @@ vy}, "blend": fil eller null}; vy: "kamera" och "mal" [x, y, z] i mm, "lins" (mm
 automatisk, som ögats anpassning), "dolj" (delar av sökvägar).
 """
 import json
-import math
 import os
 import sys
 import time
@@ -61,11 +60,16 @@ def stall_in(namn: str, vy: dict) -> None:
         a.tand_till(float(vy.get("tand", {}).get(a.tand, 0.0)))
     himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0))
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
-    sc.camera = S.kamera(namn, vy)
+    if "matyta" not in vy:
+        sc.camera = S.kamera(namn, vy)
 
 
 for namn, vy in SCEN["vyer"].items():
     stall_in(namn, vy)
+    if "matyta" in vy:                                    # belysningsstyrkan på en mätyta (ljusplan)
+        S.matyta(sc, vy["matyta"], os.path.join(SCEN["ut"], namn))
+        print("MATYTA", os.path.join(SCEN["ut"], namn))
+        continue
     ev = vy.get("ev")
     auto_vit = vy.get("inne") and "vitbalans" not in vy
     if ev is None or auto_vit:
@@ -73,11 +77,8 @@ for namn, vy in SCEN["vyer"].items():
         if ev is None:
             ev = S.auto_ev(px)
         if auto_vit:
-            # med lamporna tända i mörker anpassar sig ögat inte helt: varmt ljus ser varmt ut
-            lj = vy["ljus"]
-            dags = lj["himmel_lux"] + lj["sol_lux"] * max(0.0, math.sin(math.radians(lj["sol_hojd"])))
-            tanda = any(float(v) > 0 for v in vy.get("tand", {}).values())
-            S.auto_vitbalans(sc, px, grad=0.7 if tanda and dags < 2000.0 else 0.85)
+            cct, la, d = S.auto_vitbalans(sc, px)
+            print(f"VITBALANS {namn}: ljuset {cct:.0f} K, adaptationsluminansen {la:.0f} cd/m², anpassning {d:.2f}")
     S.exponering(sc, ev)
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "

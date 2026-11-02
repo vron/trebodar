@@ -72,6 +72,44 @@ def trad(m: Montage, djup: int, nivå: int = 0, namn: str | None = None) -> None
         print(f"{'  ' * (nivå + 1)}  {k:3d} × {n}")
 
 
+def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, bredd: int | None, ut: Path,
+             blender: str, blend: bool) -> None:
+    """Modellens GLB och scenens beskrivning (vyerna med dagsljus och tända grupper, ljusportalerna, lamporna,
+    omgivningen, armaturerna och materialen) och Blender (blender/rendera.py) i bakgrunden."""
+    import json
+    import subprocess
+    from . import dagsljus
+    from .export import glb
+    vy_mod = importlib.import_module("trebodar.vyer")
+    plats = importlib.import_module("trebodar.skelett").PLATS
+    fil = UT / f"{filnamn(rot)}-rendering.glb"
+    glb.skriv(_utan(rot, getattr(vy_mod, "RENDER_UTOM", [])), fil, karna)
+    ut.mkdir(parents=True, exist_ok=True)
+    scen = {"glb": str(fil), "ut": str(ut.resolve()), "kvalitet": kvalitet, "bredd": bredd,
+            "hojd_m": plats.hojd, "portaler": vy_mod.portaler() if hasattr(vy_mod, "portaler") else [],
+            "lampor": {k: {**g, "farg": dagsljus.svartkropp(float(g["kelvin"]))}
+                       for k, g in getattr(vy_mod, "LAMPOR", {}).items()},
+            "omgivning": getattr(vy_mod, "OMGIVNING", None),
+            "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
+                        and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
+            "armaturer": _armaturer(),
+            "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
+            "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if blend else None}
+    scenfil = UT / "scen.json"
+    scenfil.write_text(json.dumps(scen, ensure_ascii=False, indent=1))
+    skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
+    cmd = [blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript), "--", str(scenfil)]
+    t = time.perf_counter()
+    svar = subprocess.run(cmd, capture_output=True, text=True)
+    for rad in svar.stdout.splitlines():
+        if rad.startswith(("RENDERAD", "SPARAD", "LJUS", "VITBALANS", "MATYTA")):
+            print("  " + rad)
+    if svar.returncode:
+        print(svar.stdout[-4000:], svar.stderr[-3000:])
+        raise SystemExit("Blender misslyckades")
+    print(f"  ({time.perf_counter() - t:.0f} s)")
+
+
 def _armaturer() -> list[dict[str, object]]:
     """Elinstallationens armaturer för renderingen (modellens el, om den finns): linsens läge, ljusets riktning,
     tändgruppen, färgen och ljusfördelningen (IES ur tillverkarens fotometrifil i lokalt/el/, annars en stråle med
@@ -148,6 +186,17 @@ def main(argv: list[str] | None = None) -> None:
     pl.add_argument("vader", nargs="?", default="sol", help="sol, lätt mulet, mulet (sunny, slightlyovercast, overcast)")
     pl.add_argument("--steg", type=int, default=30, help="minuter mellan raderna för hela dagen")
     pl.add_argument("--diagram", type=Path, help="solens bana under året med fasadernas riktningar (png)")
+    pp = sub.add_parser("ljusplan", help="belysningsstyrkan [lux] på mätytorna (el/matytor.py), som planritningar")
+    pp.add_argument("ytor", nargs="*", help="mätytorna i MATYTOR (standard: plan1-golv)")
+    pp.add_argument("--tand", nargs="*", default=None, metavar="GRUPP[=NIVÅ]",
+                    help="tändgrupperna som är tända (standard: alla), t.ex. AL-T1 KO-T1=0.5")
+    pp.add_argument("--ljus", nargs=4, default=["12", "21", "22:00", "mulet"], metavar=("MANAD", "DAG", "KLOCKA", "VADER"),
+                    help="dagsljuset (standard: mörkt, 21 dec kl. 22), t.ex. 3 20 12:00 mulet")
+    pp.add_argument("--kvalitet", choices=("skiss", "utkast", "normal", "slutlig"), default="utkast",
+                    help="antal sampel (utkast räcker oftast)")
+    pp.add_argument("--direkt", action="store_true", help="bara det direkta ljuset, utan reflexer i rummet")
+    pp.add_argument("--ut", type=Path, default=UT / "ljusplan")
+    pp.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pe = sub.add_parser("el", help="elinstallationen: kontroll, listor, ritningar och tillverkarnas fotometrifiler")
     pe.add_argument("atgard", choices=("kontroll", "lista", "ritning", "hamta"),
                     help="kontroll: referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar; "
@@ -369,10 +418,7 @@ def main(argv: list[str] | None = None) -> None:
             lista.index(rot, karna, arg.ut / f"{namn}-index.json")
             print(f"  index {arg.ut / (namn + '-index.json')}")
     elif arg.kommando == "rendera":
-        import json
-        import subprocess
         from . import dagsljus
-        from .export import glb
         vy_mod = importlib.import_module("trebodar.vyer")
         plats = importlib.import_module("trebodar.skelett").PLATS
         alla = {**vy_mod.VYER, **getattr(vy_mod, "INNE", {})}
@@ -382,37 +428,62 @@ def main(argv: list[str] | None = None) -> None:
             valda = {"ute": vy_mod.VYER, "inne": getattr(vy_mod, "INNE", {}), "alla": alla}[arg.serie]
         if not valda:
             raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
-        fil = UT / f"{filnamn(rot)}-rendering.glb"
-        glb.skriv(_utan(rot, getattr(vy_mod, "RENDER_UTOM", [])), fil, karna)
-        arg.ut.mkdir(parents=True, exist_ok=True)
         vyer = {}
         tand = {g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
         for namn, v in valda.items():
             m, d, k, w = arg.ljus or v["ljus"]
             vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev,
                           "tand": {**dict(v.get("tand", {})), **tand}}
-        scen = {"glb": str(fil), "ut": str(arg.ut.resolve()), "kvalitet": arg.kvalitet, "bredd": arg.bredd,
-                "hojd_m": plats.hojd, "portaler": vy_mod.portaler() if hasattr(vy_mod, "portaler") else [],
-                "lampor": {k: {**g, "farg": dagsljus.svartkropp(float(g["kelvin"]))}
-                           for k, g in getattr(vy_mod, "LAMPOR", {}).items()},
-                "omgivning": getattr(vy_mod, "OMGIVNING", None),
-                "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
-                            and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
-                "armaturer": _armaturer(),
-                "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
-                "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if arg.blend else None}
-        scenfil = UT / "scen.json"
-        scenfil.write_text(json.dumps(scen, ensure_ascii=False, indent=1))
-        skript = Path(__file__).resolve().parents[1] / "blender" / "rendera.py"
-        cmd = [arg.blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript), "--", str(scenfil)]
-        t = time.perf_counter()
-        ut = subprocess.run(cmd, capture_output=True, text=True)
-        for rad in ut.stdout.splitlines():
-            if rad.startswith(("RENDERAD", "SPARAD", "LJUS")):
-                print("  " + rad)
-        if ut.returncode:
-            print(ut.stdout[-4000:], ut.stderr[-3000:])
-        print(f"  ({time.perf_counter() - t:.0f} s)")
+        _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend)
+    elif arg.kommando == "ljusplan":
+        import json
+        import numpy as np
+        from . import dagsljus, ljusplan
+        from .planritning import snitt
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        vy_mod = importlib.import_module("trebodar.vyer")
+        skel = importlib.import_module("trebodar.skelett")
+        ytor = importlib.import_module("trebodar.hus.installationer.el.matytor").MATYTOR
+        inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
+        utdrag = inst.utdrag()
+        okanda = [y for y in arg.ytor if y not in ytor]
+        if okanda:
+            raise SystemExit(f"okända mätytor: {', '.join(okanda)} (finns: {', '.join(ytor)})")
+        tand = ({g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
+                if arg.tand is not None else {g: 1.0 for g in utdrag["tandgrupper"]})
+        m, d, k, w = arg.ljus
+        ljus = dagsljus.dagsljus(int(m), int(d), k, w, skel.PLATS)
+        golv = {1: 0.0, 0: skel.Z_BOTTENPLATTA}
+        vyer = {}
+        for namn in arg.ytor or ["plan1-golv"]:
+            y = ytor[namn]
+            vyer[f"ljusplan-{namn}"] = {"matyta": {"namn": y.namn, "omrade": list(y.omrade), "cell": y.cell,
+                                                    "z": golv[y.plan] + max(y.hojd, 2.0), "direkt": arg.direkt},
+                                       "ljus": ljus.som_dict(), "tand": tand, "inne": True}
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        _blender(rot, karna, vyer, arg.kvalitet, None, arg.ut, arg.blender, False)
+        step_fil = UT / "trebodar.step"
+        if not step_fil.exists():
+            raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+        ma = ROT / "verktyg" / "modellanalys" / "ma"
+        dagtext = (f"{ljus.tid[:16].replace('T', ' kl. ')}, {ljus.vader}: dagsljus {ljus.global_lux / 1000:.1f} klx ute"
+                   if ljus.global_lux > 1.0 else "inget dagsljus")
+        tandtext = ", ".join(f"{g}" + (f" ({n:.0%})" if n < 1 else "") for g, n in tand.items() if n > 0) or "inga"
+        for namn in arg.ytor or ["plan1-golv"]:
+            y = ytor[namn]
+            bas = arg.ut / f"ljusplan-{namn}"
+            lux = np.load(str(bas) + ".npy")
+            delar = snitt(ma, step_fil, golv[y.plan] + 1200.0, UT / f"ljusplan-{y.plan}.json")
+            rum = {k: v for k, v in vy_mod.RUMSNAMN.items() if (len(v[1]) > 2 and v[1][2] == "k") == (y.plan == 0)}
+            stat = ljusplan.rita(lux, y, delar, utdrag, rum, f"Belysningsstyrka – {y.namn}",
+                                 f"Tänt: {tandtext}. {dagtext.capitalize()}."
+                                 + (" Bara direkt ljus." if arg.direkt else ""), bas.with_suffix(".png"))
+            (bas.parent / (bas.name + "-statistik.json")).write_text(json.dumps(stat, ensure_ascii=False, indent=1))
+            print(f"  {bas.with_suffix('.png')}")
+            for s_ in stat:
+                print(f"    {s_['namn']}: medel {s_['medel']:.0f} lux, minst {s_['minst']:.0f}, störst {s_['storst']:.0f}, "
+                      f"jämnhet {s_['jamnhet']:.2f}")
     elif arg.kommando == "onshape":
         import datetime
         import subprocess

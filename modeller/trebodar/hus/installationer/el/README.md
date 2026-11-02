@@ -24,6 +24,7 @@ cd verktyg/modellering
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
 | `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak |
 | `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag och dess ingjutningsdosor |
+| [`matytor.py`](matytor.py) | Mätytorna för ljusplanerna (`./mod ljusplan`): vågräta ytor med höjd, område, rutnät och delområden |
 | [`installation.py`](installation.py) | Allt ur modulerna (`MODULER`), kontrollen och utdraget för ritningarna och renderingen |
 | [`el.py`](el.py) | Geometrin, ett montage per modul under `Hus/Installationer/El` |
 
@@ -102,3 +103,18 @@ genom skikten utan att andra delar får hål. I renderingen tar de infällda arm
   ovanför och ingjutningsdosorna, med rörlistan.
 
 `./mod el lista` skriver punktlistan, tändgrupperna och rörlistan med kontrollen (markdown och JSON).
+
+## Ljusplaner
+
+`./mod ljusplan` räknar belysningsstyrkan [lux] på vågräta mätytor ([`matytor.py`](matytor.py): golvet och
+bordshöjden på plan 1, köksbänken, källarens golv; ytor och delområden läggs till där) i renderingen, med
+armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar planer med belysningsstyrkan i färg,
+isolinjer och medel-, minsta och största värde och jämnhet per rum och delområde:
+
+```
+./mod ljusplan plan1-golv kok-bank                  # alla tändgrupper tända, mörkt ute
+./mod ljusplan plan1-bord --tand AL-T1 KO-T1=0.5    # bara några, en dimrad till hälften
+./mod ljusplan plan1-bord --ljus 3 20 12:00 mulet --tand     # bara dagsljuset (inga lampor)
+```
+
+Flytta eller byt armaturer i rummens moduler och kör igen för att jämföra.

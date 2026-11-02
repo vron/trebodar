@@ -26,6 +26,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod ljus MÅNAD DAG [HH:MM] [VÄDER] [--steg MIN] [--diagram PNG]` | Dagsljuset på platsen (`modellering/dagsljus.py`): solens riktning och höjd, solens och himlens färg (CIE-färg och färgtemperatur) och belysning för en tidpunkt eller hela dagen; väder `sol`, `lätt mulet`, `mulet` (eller `sunny`, `slightlyovercast`, `overcast`); `--diagram` ritar solens bana under året med fasadernas riktningar |
 | `./mod omgivning [--hamta]` | Omgivningen för renderingen ur öppna geodata (`modellering/geodata.py`): höjdmodell och marktäcke (berg, skog, vatten, åker, våtmark, vägar, trädgård, hav, byggnader) inom 2,3 km, i modellens koordinater via fasadens hörn i SWEREF 99 12 00 (AR-02); `--hamta` laddar ner det som saknas (OpenStreetMap via Overpass, Terrarium-höjdrutor). Allt i `lokalt/omgivning/` (versionshanteras inte) |
 | `./mod materialprov MATERIAL [--param K=V …] [--nara] [--bredd PX] [--sampel N]` | Ett material ur modellen på tolv skåpluckor, en bänkskiva och brädor (Blender), för att bedöma det och att bitarna inte blir lika; `--nara` en lucka på nära håll, `--param` ändrar parametrar (t.ex. `yta=lack`) |
+| `./mod ljusplan [YTA …] [--tand GRUPP[=NIVÅ] …] [--ljus M D HH:MM VÄDER] [--direkt] [--kvalitet …]` | Belysningsstyrkan [lux] på vågräta mätytor (`MATYTOR` i `modeller/trebodar/hus/installationer/el/matytor.py`: golv, bordshöjd, köksbänk …) med tändgrupperna (standard alla) och dagsljuset (standard mörkt): planritningar med belysningsstyrkan i färg, isolinjer, armaturerna och medel-, minsta och största värde och jämnhet per rum (utan 0,5 m kantzon) och delområde, och rutnätet (`.npy`) och statistiken (`.json`) till `ut/ljusplan/`; `--direkt` bara det direkta ljuset |
 | `./mod el kontroll\|lista\|ritning\|hamta [--ut MAPP]` | Elinstallationen (`modeller/trebodar/hus/installationer/el`, se dess README): kontroll (referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar), punkt-, tändgrupps- och rörlistor, elplanen och rören i mellanbjälklaget (A3 ur STEP-filens snitt) till `ut/el/`, och tillverkarnas fotometrifiler som saknas (till `lokalt/el/`) |
 | `./mod kameraplan [--ut PNG]` | Ritningen över inomhusbildernas kameror (A3, 1:75) på plan 1 och i källaren ur STEP-filens snitt (kräver `./mod bygg` och `verktyg/modellanalys`); standard `renderingar/kameraplan.png` |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
@@ -91,9 +92,16 @@ egen modell (t.ex. för beställning). Utdata:
   IES-filens candela som 0,0706 · P / 4π, så effekten 4π / (683 · 0,0706) W ger ljusstyrkan i samma enheter som
   solen), färgtemperatur och lysande yta; de infällda tar hål i gipsen i renderingen, och linsen lyser för
   kameran. Exponeringen (EV100)
-  räknas fram ur en snabb förhandsbild; inne också vitbalansen, som ögats anpassning till rummets ljus (medelfärgen
-  utan fönstren blir nästan neutral), ute efter dagsljusets färgtemperatur (solens och himlens, med en del kvar av
-  kvällssolens värme). Cycles på GPU med brusreducering (OIDN),
+  räknas fram ur en snabb förhandsbild; inne också vitbalansen, som ögats anpassning till ljuset i rummet:
+  förhandsbildens diffusa ljuspass ger färgen på ljuset som når ytorna (sol, himmel, lampor och färgen från det
+  ljuset studsat på, men inte ytornas egen färg), och graden av anpassning följer CIECAM02 ur
+  adaptationsluminansen, minskad för varmt ljus (dagsljus inne nästan helt neutralt, 2 700 K-lampor i mörker till
+  ungefär 60 %, så att lampljuset förblir varmt). Ute vitbalans efter dagsljusets färgtemperatur (solens och
+  himlens, med en del kvar av kvällssolens värme).
+- **Ljusplanerna** (`modellering/ljusplan.py`, `blender/scen.matyta`): en vit, perfekt diffus mätyta som bara
+  kameran ser (den skuggar och reflekterar inget) renderas ovanifrån med en ortografisk kamera, och belysningsstyrkan
+  är E = π · 683 · L lux i samma kalibrering som ljuset (kontrollerat: det direkta ljuset under allrummets spotar
+  stämmer inom 1 % med en handräkning ur fotometrifilen). Cycles på GPU med brusreducering (OIDN),
   färgåtergivning Khronos PBR Neutral.
 - **Omgivningen** (`modellering/geodata.py`, `blender/omgivning.py`): marken från modellens terräng ut till
   höjdmodellen (2,3 km), havet, grannhusen (valmade tak i slumpade färger) och träd (tall, gran, björk, en) efter

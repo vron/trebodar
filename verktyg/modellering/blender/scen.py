@@ -8,6 +8,7 @@ dagsljusets diffusa belysning (mäts med en liten panoramarendering av himlen). 
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import tempfile
@@ -15,6 +16,7 @@ import tempfile
 import bmesh
 import bpy
 import numpy as np
+import OpenImageIO as oiio
 from mathutils import Matrix, Vector
 
 LUMEN_PER_WATT = 683.0
@@ -431,6 +433,73 @@ def armaturer(lista: list[dict]) -> list[Armatur]:
     return ut
 
 
+def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
+    """Belysningsstyrkan på en vågrät mätyta (m: omrade (x0, x1, y0, y1) och z i mm, cell i mm, direkt): ett vitt,
+    perfekt diffust plan (Lambert) som bara kameran ser (det kastar inga skuggor och reflekterar inget ljus till
+    scenen), ovanifrån med en ortografisk kamera, en pixel per ruta. Planets luminans är E / π, och ljuset är
+    kalibrerat i lux / 683, så E = π · 683 · L lux. Allt annat är osynligt för kameran men lyser, skuggar och
+    reflekterar som vanligt. Rutnätet (lux, rad 0 vid y0) sparas som <ut>.npy och beskrivningen som <ut>.json."""
+    x0, x1, y0, y1 = (v / 1000 for v in m["omrade"])
+    z = m["z"] / 1000
+    nx, ny = max(2, round((x1 - x0) * 1000 / m["cell"])), max(2, round((y1 - y0) * 1000 / m["cell"]))
+    me = bpy.data.meshes.new("Mätyta")
+    bm = bmesh.new()
+    for p in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+        bm.verts.new((p[0], p[1], z))
+    bm.faces.new(bm.verts)
+    bm.to_mesh(me)
+    bm.free()
+    mat = bpy.data.materials.new("Mätyta")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    diffus = nt.nodes.new("ShaderNodeBsdfDiffuse")
+    diffus.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    diffus.inputs["Roughness"].default_value = 0.0
+    nt.links.new(diffus.outputs[0], nt.nodes.new("ShaderNodeOutputMaterial").inputs["Surface"])
+    me.materials.append(mat)
+    plan = bpy.data.objects.new("Mätyta", me)
+    sc.collection.objects.link(plan)
+    for attr in ("visible_diffuse", "visible_glossy", "visible_transmission", "visible_volume_scatter",
+                 "visible_shadow"):
+        setattr(plan, attr, False)
+    synliga = [o for o in bpy.data.objects if o is not plan and o.visible_camera]
+    for o in synliga:
+        o.visible_camera = False
+    kam = bpy.data.objects.new("Mätkamera", bpy.data.cameras.new("Mätkamera"))
+    sc.collection.objects.link(kam)
+    kam.location = ((x0 + x1) / 2, (y0 + y1) / 2, z + 20.0)
+    kam.rotation_euler = (0.0, 0.0, 0.0)
+    kam.data.type = "ORTHO"
+    kam.data.ortho_scale = max(x1 - x0, y1 - y0)
+    kam.data.clip_end = 100.0
+    r = sc.render
+    spara = (sc.camera, r.resolution_x, r.resolution_y, r.filepath, r.image_settings.file_format,
+             r.image_settings.color_depth, sc.cycles.max_bounces)
+    sc.camera = kam
+    r.resolution_x, r.resolution_y = nx, ny
+    r.image_settings.file_format = "OPEN_EXR"
+    r.image_settings.color_depth = "32"
+    if m.get("direkt"):
+        sc.cycles.max_bounces = 0
+    r.filepath = ut + ".exr"
+    bpy.ops.render.render(write_still=True)
+    im = bpy.data.images.load(r.filepath)
+    px = np.array(im.pixels[:], dtype=np.float64).reshape(ny, nx, 4)[:, :, :3]
+    bpy.data.images.remove(im)
+    lux = (px @ REC709) * math.pi * LUMEN_PER_WATT
+    np.save(ut + ".npy", lux.astype(np.float32))
+    with open(ut + ".json", "w", encoding="utf-8") as f:
+        json.dump({**m, "nx": nx, "ny": ny}, f, ensure_ascii=False)
+    (sc.camera, r.resolution_x, r.resolution_y, r.filepath, r.image_settings.file_format,
+     r.image_settings.color_depth, sc.cycles.max_bounces) = spara
+    for o in synliga:
+        o.visible_camera = True
+    bpy.data.objects.remove(plan)
+    bpy.data.objects.remove(kam)
+
+
 def kamera(namn: str, vy: dict) -> bpy.types.Object:
     """Kameran: lodräta linjer lodräta (kameran vågrät, bilden flyttas upp eller ned med objektivförskjutning, som en
     arkitekturkamera), linsen i mm (36 mm sensor), eller som förut riktad mot målet (lodrat=False)."""
@@ -465,28 +534,47 @@ def exponering(sc: bpy.types.Scene, ev: float) -> None:
     sc.view_settings.exposure = 9.94 - ev
 
 
-def forhandsbild(sc: bpy.types.Scene, bredd: int = 320) -> np.ndarray:
-    """En snabb förhandsbild (linjär RGB, pixlarna som rader) för exponeringen och vitbalansen."""
+def _exr_delar(fil: str) -> dict[str, np.ndarray]:
+    """En flerlagers-EXR (Blender skriver varje pass som en egen del): passens RGB, pixlarna som rader."""
+    inp = oiio.ImageInput.open(fil)
+    ut: dict[str, np.ndarray] = {}
+    i = 0
+    while inp.seek_subimage(i, 0):
+        spec = inp.spec()
+        if spec.nchannels >= 3:
+            namn = spec.channelnames[0].split(".")[-2]                 # "ViewLayer.Diffuse Direct.R"
+            ut[namn] = np.asarray(inp.read_image(i, 0, 0, 3, "float"), dtype=np.float64).reshape(-1, 3)
+        i += 1
+    inp.close()
+    return ut
+
+
+def forhandsbild(sc: bpy.types.Scene, bredd: int = 320) -> dict[str, np.ndarray]:
+    """En snabb förhandsbild för exponeringen och vitbalansen (linjär RGB, pixlarna som rader): bilden ("bild") och
+    ljuset som når ytorna ("ljus": det direkta och indirekta diffusa ljuset, utan ytornas egen färg)."""
     r = sc.render
+    vl = bpy.context.view_layer
     spara = (r.resolution_x, r.resolution_y, sc.cycles.samples, sc.cycles.use_adaptive_sampling, r.filepath,
-             r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure)
+             r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure,
+             vl.use_pass_diffuse_direct, vl.use_pass_diffuse_indirect)
     skala = bredd / r.resolution_x
     r.resolution_x, r.resolution_y = bredd, max(2, round(r.resolution_y * skala))
     sc.cycles.samples = 24
     sc.cycles.use_adaptive_sampling = False
-    r.image_settings.file_format = "OPEN_EXR"
+    vl.use_pass_diffuse_direct = vl.use_pass_diffuse_indirect = True
+    r.image_settings.media_type = "MULTI_LAYER_IMAGE"
+    r.image_settings.file_format = "OPEN_EXR_MULTILAYER"
     r.image_settings.color_depth = "32"
     sc.view_settings.exposure = 0.0
     fil = os.path.join(tempfile.gettempdir(), "trebodar_forhand.exr")
     r.filepath = fil
     bpy.ops.render.render(write_still=True)
-    im = bpy.data.images.load(fil)
-    w, h = im.size
-    px = np.array(im.pixels[:], dtype=np.float64).reshape(h * w, 4)[:, :3]
-    bpy.data.images.remove(im)
+    delar = _exr_delar(fil)
+    r.image_settings.media_type = "IMAGE"
     (r.resolution_x, r.resolution_y, sc.cycles.samples, sc.cycles.use_adaptive_sampling, r.filepath,
-     r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure) = spara
-    return px
+     r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure,
+     vl.use_pass_diffuse_direct, vl.use_pass_diffuse_indirect) = spara
+    return {"bild": delar["Combined"], "ljus": delar["Diffuse Direct"] + delar["Diffuse Indirect"]}
 
 
 def _urval(px: np.ndarray, hogdagrar: float) -> tuple[np.ndarray, np.ndarray]:
@@ -495,24 +583,55 @@ def _urval(px: np.ndarray, hogdagrar: float) -> tuple[np.ndarray, np.ndarray]:
     return px[valda], lum[valda]
 
 
-def auto_ev(px: np.ndarray, nyckel: float = 0.18, hogdagrar: float = 0.97) -> float:
+def auto_ev(px: dict[str, np.ndarray], nyckel: float = 0.18, hogdagrar: float = 0.97) -> float:
     """EV100 ur förhandsbilden: geometriska medelvärdet av luminansen (utan de ljusaste procenten, t.ex. fönstren)
     blir nyckel efter exponeringen."""
-    _, lum = _urval(px, hogdagrar)
+    _, lum = _urval(px["bild"], hogdagrar)
     medel = float(np.exp(np.mean(np.log(lum))))                     # Blenders enheter (· 683 = cd/m²)
     return 9.94 - math.log2(nyckel / medel)
 
 
-def auto_vitbalans(sc: bpy.types.Scene, px: np.ndarray, grad: float = 0.85, hogdagrar: float = 0.97) -> None:
-    """Vitbalans ur förhandsbilden som ögats anpassning i ett rum: medelfärgen (utan fönstren) blir neutral till
-    graden grad (1 = helt neutral), med samma luminans. Rummets ytor färgar ljuset när det studsar (varmvita väggar,
-    golvet, gräset utanför), och ögat ser ändå väggarna som vita. Görs med vykurvornas vitnivå (en faktor per kanal
-    i scenens linjära färger, före vytransformen) i stället för färgtemperaturen."""
-    valda, _ = _urval(px, hogdagrar)
-    c = valda.mean(axis=0)
-    vit = (c / float(c @ REC709)) ** grad
+RGB_XYZ = np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]])
+
+
+def fargtemperatur(rgb: np.ndarray) -> float:
+    """Ljusets ungefärliga färgtemperatur (McCamy) ur linjär Rec. 709."""
+    X, Y, Z = RGB_XYZ @ rgb
+    x, y = X / (X + Y + Z), Y / (X + Y + Z)
+    n = (x - 0.3320) / (0.1858 - y)
+    return float(449 * n ** 3 + 3525 * n ** 2 + 6823.3 * n + 5520.33)
+
+
+def anpassning(la: float, cct: float) -> float:
+    """Graden av kromatisk adaptation (0 ingen, 1 hel): CIECAM02 för normal omgivning (F = 1) ur
+    adaptationsluminansen la [cd/m²], minskad för varmt ljus, där ögat anpassar sig ofullständigt (faktorn 1 vid
+    5 000 K och däröver, 0,75 vid 2 700 K, linjärt i mired)."""
+    d = 1.0 - math.exp((-la - 42.0) / 92.0) / 3.6
+    mired = 1e6 / max(cct, 1000.0)
+    return d * min(1.0, max(0.6, 1.0 - (mired - 200.0) * 0.25 / 170.0))
+
+
+def auto_vitbalans(sc: bpy.types.Scene, px: dict[str, np.ndarray], hogdagrar: float = 0.97
+                   ) -> tuple[float, float, float]:
+    """Vitbalansen som ögats anpassning till ljuset i rummet: ljuset som når ytorna (förhandsbildens diffusa ljus,
+    utan ytornas egen färg men med färgen från det som ljuset studsat på) är det som ögat anpassar sig till, till
+    graden ur anpassning(): ljust och neutralt ljus nästan helt, svagt och varmt ljus till en del, så att lampljus
+    förblir varmt. Anpassningen (von Kries) görs med vykurvornas vitnivå, en faktor per kanal i scenens linjära
+    färger före vytransformen, med samma luminans. Returnerar (ljusets färgtemperatur, adaptationsluminansen
+    [cd/m²], graden)."""
+    _, lum = _urval(px["bild"], hogdagrar)
+    la = float(lum.mean()) * LUMEN_PER_WATT
+    ljus = px["ljus"]
+    giltiga = ljus @ REC709 > 1e-9
+    c = ljus[giltiga].mean(axis=0) if giltiga.any() else _urval(px["bild"], hogdagrar)[0].mean(axis=0)
+    w = c / float(c @ REC709)
+    cct = fargtemperatur(w)
+    d = anpassning(la, cct)
+    forst = d / w + (1.0 - d)                                         # förstärkning per kanal
+    forst /= float((w * forst) @ REC709)
     vs = sc.view_settings
     vs.use_white_balance = False
     vs.use_curve_mapping = True
-    vs.curve_mapping.white_level = tuple(float(v) for v in vit)
+    vs.curve_mapping.white_level = tuple(float(1.0 / v) for v in forst)
     vs.curve_mapping.update()
+    return cct, la, d
