@@ -269,10 +269,12 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.
 - **Nytt**: tak- och fasadskikt, takplåten i banor med falsar, isolering, invändiga skikt, källarväggarna V1–V21
-  enligt K-05, rören P1–P19.
+  enligt K-05, rören P1–P19 och armeringen ur R-04, R-05 och R-06.
 
 ## Inte modellerat ännu
 
-Våtrummets golv (golvet på plan 1 är betongplattan, AR-02), badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i hängrännorna, nät i takfotens luftintag, el och
-ventilation (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
+Källardörren D1 (öppningen och smygens gips finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02),
+badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
+hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, el och ventilation (se
+`modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

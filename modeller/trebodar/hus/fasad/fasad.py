@@ -4,9 +4,9 @@ Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläk
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
 en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
 Fasaden går ned till marken (MARKNIVA), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
-källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till takbalkarnas överkant i panelens
-utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack; ovanför ligger takets luftspalt öppen
-(luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
+källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till
+takbalkarnas överkant i panelens utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack;
+ovanför ligger takets luftspalt öppen (luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
 utegips, läkt mot läkt) och panelen täcker hela hörnet (fasad_u).
 """
 from __future__ import annotations

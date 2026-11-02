@@ -163,7 +163,8 @@ def kallarvaggar() -> Montage:
         pos = r5.POS["v3"] if w["namn"] == "V3" else r5.POS["hor"]
         for sida, t0, t1 in r5.raka(w):
             q = r5.jarnlinje(w, sida)
-            jarn += [(f"A{pos}", [(*plan(w, t0, q), Z_BP + zz), (*plan(w, t1, q), Z_BP + zz)], d_h) for zz in lager(w["namn"])]
+            jarn += [(f"A{pos}", [(*plan(w, t0, q), Z_BP + zz), (*plan(w, t1, q), Z_BP + zz)], d_h)
+                     for zz in lager(w["namn"])]
     for pos, pl, n in r5.hornjarn():
         zs = K.Z_HOR_V3 if n == len(K.Z_HOR_V3) else K.Z_HOR
         jarn += [(f"A{pos}", [(x, y, Z_BP + zz) for x, y in pl], d_h) for zz in zs[:n]]

@@ -231,7 +231,8 @@ def skjutdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
                   box(S_SIDA, b - S_SIDA, -S_TRA, 0.0, zt, h)))
     m.lagg(Del(f"Karm skjutdörr {_matt(b, h)}", karm, FONSTERTRA,
                artikel=f"Elitfönster Skjutdörr Alu ASP4, karm {_matt(b, h)}"), Placering(), f"{kod}-KARM")
-    karm_alu = Union((box(0.0, S_SIDA, -S_DJUP, -S_TRA, S_TROSKEL, h), box(b - S_SIDA, b, -S_DJUP, -S_TRA, S_TROSKEL, h),
+    karm_alu = Union((box(0.0, S_SIDA, -S_DJUP, -S_TRA, S_TROSKEL, h),
+                      box(b - S_SIDA, b, -S_DJUP, -S_TRA, S_TROSKEL, h),
                       box(S_SIDA, b - S_SIDA, -S_DJUP, -S_TRA, zt, h)))
     m.lagg(Del(f"Karmbeklädnad aluminium {_matt(b, h)}", karm_alu, alu), Placering(), f"{kod}-KARMALU")
     d0, d1, z_ut = S_TROSKEL_UT
