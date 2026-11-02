@@ -220,6 +220,22 @@ def natsymbol(v):
     v.text(X, Y - 1.5 * s, "hela plattan, även i balkar och plintar", a="lt", sz=6.4, col="gra", i=True)
 
 
+def natjarn(rikt):
+    """Nätets järn (Ø6 s150) i x- eller y-led: sträckor i plattan minus täckskiktet 30 (stålförteckningen och den
+    kodgenererade modellens armering)."""
+    yta = BETONG.buffer(-30.0, join_style=2)
+    minx, miny, maxx, maxy = BETONG.bounds
+    sc = NAT[1]
+    rng = ([miny + 30 + sc / 2 + k * sc for k in range(int((maxy - miny) / sc) + 1)] if rikt == "x" else
+           [minx + 30 + sc / 2 + k * sc for k in range(int((maxx - minx) / sc) + 1)])
+    ut = []
+    for t in rng:
+        ln = LineString([(minx - 1, t), (maxx + 1, t)]) if rikt == "x" else LineString([(t, miny - 1), (t, maxy + 1)])
+        gg = ln.intersection(yta)
+        ut += [seg for seg in getattr(gg, "geoms", [gg]) if seg.length > 100]
+    return ut
+
+
 def balkjarn():
     """Balkarnas längsjärn i plan (under- och överkantens järn sammanfaller): 60 mm innanför balkens kanter.
     Kantbalken längs hela konturen; innerbalkarnas järn går in i kantbalken eller den korsande balken."""
@@ -498,22 +514,9 @@ def stalforteckning(mangd=False):
         kg = m * VIKT[d]
         tot[d] = tot.get(d, 0.0) + kg
         rader.append([str(pos), f"Ø{d}", form, s_, str(n), L, sv(m, 0), sv(kg, 0), anm])
-    yta = BETONG.buffer(-30.0, join_style=2)
-    minx, miny, maxx, maxy = BETONG.bounds
-
     def nat(rikt):
-        n, tl = 0, 0.0
-        sc = NAT[1]
-        rng = ([miny + 30 + sc / 2 + k * sc for k in range(int((maxy - miny) / sc) + 1)] if rikt == "x" else
-               [minx + 30 + sc / 2 + k * sc for k in range(int((maxx - minx) / sc) + 1)])
-        for t in rng:
-            ln = LineString([(minx - 1, t), (maxx + 1, t)]) if rikt == "x" else LineString([(t, miny - 1), (t, maxy + 1)])
-            gg = ln.intersection(yta)
-            for seg in getattr(gg, "geoms", [gg]):
-                if seg.length > 100:
-                    n += 1
-                    tl += seg.length + math.floor(seg.length / 12000) * SKARV[NAT[0]]   # en skarv per 12 m stång
-        return n, tl / 1000
+        segs = natjarn(rikt)                                     # en skarv per 12 m stång
+        return len(segs), sum(g.length + math.floor(g.length / 12000) * SKARV[NAT[0]] for g in segs) / 1000
     for pos, rikt, lag in ((POS["uk_x"], "x", "UK"), (POS["uk_y"], "y", "UK"), (POS["ok_x"], "x", "ÖK"),
                            (POS["ok_y"], "y", "ÖK")):
         n, tl = nat(rikt)

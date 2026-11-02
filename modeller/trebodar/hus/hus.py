@@ -1,6 +1,7 @@
 """Huset: system i byggordning. Varje grupp är ett eget montage i husets system (K-05:s koordinater)."""
 from modellering import Montage
 
+from .armering import armering
 from .fasad import fasad
 from .grund import grund
 from .installationer import installationer
@@ -19,6 +20,7 @@ def montage() -> Montage:
     m = Montage("Hus")
     m.lagg(grund.montage())
     m.lagg(mellanbjalklag.montage())
+    m.lagg(armering.montage())
     m.lagg(stomme.montage())
     m.lagg(tak.montage())
     m.lagg(fasad.montage())

@@ -41,6 +41,7 @@ class Resultat:
     fria: list[str] = field(default_factory=list)                             # delar utan kontakt
     tillatna: list[tuple[str, str, float, str]] = field(default_factory=list)  # (a, b, volym, motivering)
     skarvor: list[tuple[str, str, float]] = field(default_factory=list)        # numeriska skärvor
+    ignorerade: dict[str, int] = field(default_factory=dict)                  # motivering: antal par som inte prövats
     sekunder: float = 0.0
     nya_par: int = 0
 
@@ -188,8 +189,10 @@ def _jobb(paket: list[tuple[str, str, str, tuple[tuple[float, ...], ...]]]) -> l
 # ------------------------------------------------------------------ kontrollen
 
 def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | None = None,
-        tillatna: dict[frozenset[str], str] | None = None) -> Resultat:
-    """`tillatna`: materialpar (frozenset av två materialnamn) vars överlapp är avsiktliga, med motivering."""
+        tillatna: dict[frozenset[str], str] | None = None,
+        ignorerade: dict[frozenset[str], str] | None = None) -> Resultat:
+    """`tillatna`: materialpar (frozenset av två materialnamn) vars överlapp är avsiktliga, med motivering.
+    `ignorerade`: materialpar som inte prövas alls (t.ex. armering i betong); delarna räknas som anliggande."""
     t0 = time.perf_counter()
     poster: list[tuple[str, Del, Placering]] = list(rot.platta())
     karna.forbered(d.form for _, d, _ in poster)
@@ -204,6 +207,16 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             if np.all(B[i, 1:3] <= B[j, 4:6] + marginal) and np.all(B[j, 1:3] <= B[i, 4:6] + marginal):
                 kandidater.append((min(i, j), max(i, j)))
         aktiva.append(i)
+    # par som inte prövas: delarna ligger an mot varandra
+    ignorerade_ = ignorerade or {}
+    hoppade: list[tuple[int, int, str]] = []
+    if ignorerade_:
+        mat = [d.material.namn for _, d, _ in poster]
+        prova = []
+        for i, j in kandidater:
+            m = ignorerade_.get(frozenset((mat[i], mat[j])))
+            (hoppade.append((i, j, m)) if m else prova.append((i, j)))
+        kandidater = prova
     db = karna.db
     db.execute("create table if not exists par (nyckel text primary key, resultat text)")
     uppgifter: dict[str, tuple[str, str, str, tuple[tuple[float, ...], ...]]] = {}
@@ -244,12 +257,15 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             kanda[pk] = json.loads(js)
     ut = Resultat(delar=len(poster), par=len(kandidater), nya_par=len(saknas))
     kontakt = np.zeros(len(poster), dtype=bool)
+    for i, j, m in hoppade:
+        kontakt[i] = kontakt[j] = True
+        ut.ignorerade[m] = ut.ignorerade.get(m, 0) + 1
     kanter: list[tuple[str, str]] = []
     for (i, j), pk in zip(kandidater, parnycklar):
         r = kanda[pk]
         a, b = poster[i][0], poster[j][0]
+        par = frozenset((poster[i][1].material.namn, poster[j][1].material.namn))
         if r["volym"] > TOL_KROCK:
-            par = frozenset((poster[i][1].material.namn, poster[j][1].material.namn))
             if tillatna and par in tillatna:
                 ut.tillatna.append((a, b, r["volym"], tillatna[par]))
             else:
@@ -264,7 +280,8 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             ut.skarvor.append((a, b, r["volym"]))
             kontakt[i] = kontakt[j] = True
         elif TOL_KONTAKT < r.get("avstand", 1e9) < marginal - 1e-6:          # exakt 2 mm är ingen glipa
-            ut.glipor.append((a, b, r["avstand"]))
+            if not (tillatna and par in tillatna):                            # där överlapp är tillåtna, inte glipor
+                ut.glipor.append((a, b, r["avstand"]))
         elif r.get("avstand", 1e9) <= TOL_KONTAKT:
             kontakt[i] = kontakt[j] = True                 # kant- eller punktkontakt
             kanter.append((a, b))
@@ -284,6 +301,9 @@ def rapport(r: Resultat, fil: Path | None = None) -> str:
              f"{r.delar} delar, {r.par} par nära varandra ({r.nya_par} nya), {r.sekunder:.1f} s.", "",
              f"## Krockar ({len(r.krockar)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³" for a, b, v in sorted(r.krockar, key=lambda x: -x[2])]
+    if r.ignorerade:
+        rader += ["", f"## Par som inte prövats ({sum(r.ignorerade.values())})", ""]
+        rader += [f"- {m}: {n} par" for m, n in r.ignorerade.items()]
     rader += ["", f"## Tillåtna överlapp ({len(r.tillatna)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³ ({m})" for a, b, v, m in r.tillatna]
     rader += ["", f"## Numeriska skärvor 0,01–5 mm³ ({len(r.skarvor)})", ""]

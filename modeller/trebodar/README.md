@@ -61,6 +61,7 @@ när stommen ändras.
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
 | Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg |
+| Armeringen | ritningarna R-04, R-05 och R-06 (`beräkningar/R-0x/ritningar.py`, funktionerna som ritar järnen och räknar stålförteckningarna); `hus/armering/armering.py` läser dem och lägger järnen i höjdled |
 | Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och trätrappan till 2SO-D1 |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
@@ -101,6 +102,7 @@ Trebodar
     ├── Grund                   bottenplatta (kantbalk, balkar, plintar, L-element), källarväggar V1–V21, rör P1–P19,
     │                           plattan på mark (L-element 500, AR-02), fasadsten per vägg
     ├── Mellanbjälklag          betongplatta 150 med trapphål, kantisolering
+    ├── Armering                bottenplattan (R-04), källarväggarna (R-05), mellanbjälklaget (R-06)
     ├── Stomme
     │   ├── Stomme prefab       trästommen ovanför bjälklaget, en beställning
     │   │   ├── Ytterväggar     Vägg 1NO … 3NV (regelverk 45×95)
@@ -163,6 +165,13 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   trätrappan TT-P1–TT-P4 (plansteg), TT-V1, TT-V2 (vangstycken).
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
   nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
+- **Armering**: `BPA` bottenplattan, `KVA` källarväggarna, `MBA` mellanbjälklaget, sedan ritningens positionsnummer
+  och järnets nummer: `MBA-A1-046` är järn 46 i position 1 (R-06), `MBA-Ö3-002` ett tilläggsjärn i zon Ö3. Bockade
+  järn är raka bitar (bockradierna förenklade bort). Kontrollen prövar inte armering mot betong eller mot annan
+  armering, men mot allt annat; mot golvvärmen och avloppet är överlapp tillåtna (järnen läggs om runt rören).
+  Avvikelser från ritningarna, som inte är uppdaterade (modell-todo): mellanbjälklagets järn klipps vid plattan på
+  marks fria kanter vid L-elementens rygg (AR-02), startjärnen under F3:s bröstning (800) kortas till under
+  bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
 
 ## Avsiktliga skillnader mot Onshape-modellen
 

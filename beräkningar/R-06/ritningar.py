@@ -118,6 +118,20 @@ def zonjarn(zn):
     return yta, ut
 
 
+def natjarn(sc, rikt):
+    """Nätets järn i x- eller y-led med avståndet sc: sträckor i plattan minus täckskiktet (stålförteckningen och
+    den kodgenererade modellens armering)."""
+    yta = PLATTA.buffer(-C_KANT, join_style=2)
+    minx, miny, maxx, maxy = KONTUR.bounds
+    rng = np.arange(miny + C_KANT + sc / 2, maxy, sc) if rikt == "x" else np.arange(minx + C_KANT + sc / 2, maxx, sc)
+    ut = []
+    for t in rng:
+        ln = LineString([(minx - 1, t), (maxx + 1, t)]) if rikt == "x" else LineString([(t, miny - 1), (t, maxy + 1)])
+        g = ln.intersection(yta)
+        ut += [seg for seg in getattr(g, "geoms", [g]) if seg.length > 100]
+    return ut
+
+
 def diagonaljarn():
     """2 Ø10 L = 1200 i överkant, 150 och 250 mm in från plattans inåtgående hörn och trapphålets hörn."""
     hal = np.array(G["hal"], float)
@@ -627,20 +641,9 @@ def stalforteckning(mangd=False):
         kg = total_m * VIKT[d]
         tot[d] = tot.get(d, 0) + kg
         rader.append([str(pos), f"Ø{d}", form, s, str(n), L, sv(total_m, 0), sv(kg, 0), anm])
-    yta = PLATTA.buffer(-C_KANT, join_style=2)
-    minx, miny, maxx, maxy = KONTUR.bounds
-
     def nat(d, sc, rikt):
-        n, tl = 0, 0.0
-        rng = np.arange(miny + C_KANT + sc / 2, maxy, sc) if rikt == "x" else np.arange(minx + C_KANT + sc / 2, maxx, sc)
-        for t in rng:
-            ln = LineString([(minx - 1, t), (maxx + 1, t)]) if rikt == "x" else LineString([(t, miny - 1), (t, maxy + 1)])
-            g = ln.intersection(yta)
-            for seg in getattr(g, "geoms", [g]):
-                if seg.length > 100:
-                    n += 1
-                    tl += seg.length + math.floor(seg.length / 12000) * SKARV[d]
-        return n, tl / 1000
+        segs = natjarn(sc, rikt)
+        return len(segs), sum(g.length + math.floor(g.length / 12000) * SKARV[d] for g in segs) / 1000
     for pos, d, sc, rikt in ((1, DU, SU, "x"), (2, DU, SU, "y"), (11, DO, SO, "x"), (12, DO, SO, "y")):
         n, tl = nat(d, sc, rikt)
         lagg(pos, d, "rak", f"s{sc}", n, "var.", tl, ("UK " if pos < 10 else "ÖK ") + f"{rikt}-led")

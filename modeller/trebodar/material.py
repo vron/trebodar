@@ -104,6 +104,8 @@ MARK = Material("Mark", "Uppfyllnad", 1800, "#62744a", 1.0, textur="mark", enhet
 # ------------------------------------------------------------------ stål
 S355 = Material("S355", "Stål S355J2+N, zinkrik grundfärg", 7850, "#6f747b", 0.5, 1.0, enhet="kg", cad="#6f8196")
 S235 = Material("S235", "Stål S235", 7850, "#7a7f86", 0.5, 1.0, enhet="kg", cad="#9aa0a8")
+ARMERING = Material("Armering", "Armeringsstål B500B (R-04, R-05, R-06)", 7850, "#5e4a3e", 0.7, 0.6, enhet="kg",
+                    cad="#b8462e")
 SPIKPLAT = Material("Spikplåt", "Spikplåt S250GD+Z 2,0 mm", 7850, "#b8bcc2", 0.4, 1.0, enhet="st", cad="#b8c2cf")
 
 # ------------------------------------------------------------------ fönster, dörrar och installationer

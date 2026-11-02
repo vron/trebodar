@@ -221,9 +221,10 @@ def main(argv: list[str] | None = None) -> None:
         try:
             regler = importlib.import_module("trebodar.kontrollregler")
             tillatna = getattr(regler, "TILLATNA_OVERLAPP", None)
+            ignorerade = getattr(regler, "IGNORERADE", None)
         except ModuleNotFoundError:
-            tillatna = None
-        r = kontroll.kor(rot, karna, tillatna=tillatna)
+            tillatna = ignorerade = None
+        r = kontroll.kor(rot, karna, tillatna=tillatna, ignorerade=ignorerade)
         fil = arg.ut / f"{filnamn(rot)}-kontroll.md"
         kontroll.rapport(r, fil)
         ogiltiga = [d.namn for d in {id(d): d for _, d, _ in rot.platta()}.values()

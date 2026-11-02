@@ -57,8 +57,10 @@ egen modell (t.ex. för beställning). Utdata:
 - **Kontroll** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
   processer: gemensam volym (krock över 5 mm³), anliggande plana ytor (kontaktarea), minsta avstånd (glipor 0,01–2
   mm, utom mellan delar som båda ligger an mot en tredje). Resultaten per par cachas med nyckel från recepten och
-  deras relativa placering. Avsiktliga överlapp mellan material (t.ex. spikplåt under utegips) och numeriska skärvor
-  under 5 mm³ (mot krökta ytor) redovisas för sig. Modellen anger avsiktliga överlapp i `trebodar/kontrollregler.py`.
+  deras relativa placering. Materialpar som inte ska prövas alls (modellens `IGNORERADE`, t.ex. armering i betong)
+  sållas bort före den exakta kontrollen och räknas som anliggande. Avsiktliga överlapp mellan material (t.ex. spikplåt
+  under utegips) och numeriska skärvor under 5 mm³ (mot krökta ytor) redovisas för sig. Modellen anger båda i
+  `trebodar/kontrollregler.py`.
 - **Jämförelse** (`jamfor.py`, `referens.py`, `prisma.py`): varje referensdel paras med den genererade del som har
   störst gemensam volym; identisk, städad (minst 98 % gemensamt), ändrad, ersatt eller borttagen.
 - **Rendering** (`blender/rendera.py`, `blender/material.py`): Blender i bakgrunden läser GLB och bygger ett
