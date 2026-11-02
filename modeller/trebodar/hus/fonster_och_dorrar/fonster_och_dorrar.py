@@ -69,8 +69,8 @@ SKJUT_T, SKJUT_GLAPP, OVERLAPP = 40.0, 10.0, 30.0       # skjutdörrens blad, av
 
 
 def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
-    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (läkten i fickan på var sida, invandigt/vaggar.py)
-    täcker öppningen och går FICKA_UT in i fickan; skenan under överstycket över öppningen och fickan."""
+    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py) täcker öppningen och
+    går FICKA_UT in i fickan; skenan under överstycket över öppningen och fickan."""
     from trebodar.hus.invandigt.vaggar import FICKA_SKENA, vaggdef
     v = vaggdef(d.vagg)
     wm = v.tjocklek / 2

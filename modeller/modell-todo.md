@@ -37,7 +37,9 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    Panelen följer `fasad.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
 7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
-8. **Fickdörrar.** Innerdörrarna ska vara inbyggda i väggarna. Bara ID1 (L11) har plats för fickan (dörrbredden + 50
-   mm vägg utan anslutande vägg eller annan dörr); ID2 (2B) har L6 och 2C på var sida om öppningen, ID3 och ID4 (L2)
-   har L3 mellan sig och för kort vägg mot L1 och L4, ID5 (L1) har 80 mm till L2 och ID6 är hela väggen L12. Bestäm
-   väggarnas och dörrarnas lägen (planritning 201) eller vilka som blir skjutdörrar utanpå eller slagdörrar.
+8. **Fickdörrarna ID2, ID5 och ID6.** ID1, ID3 och ID4 är fickdörrar som i Onshape-modellen. De tre andras fickor i
+   Onshape-modellen går genom stolpar som K-03 och K-05 lagt till efteråt: ID5:s (L1, x 10 900–11 880) genom LN1_1
+   (nockbalk 1 stöd B, x 11 565–11 745), ID2:s (2B, y 5 892–6 872) genom LD2_2 (mittakstolen 2C:s stöd) och ID6:s
+   (2C, x 4 417–5 617) genom LD4_1 (dalbalk 4 stöd B). De är skjutdörrar utanpå väggen tills det är bestämt. Möjligt:
+   ID5 565 mm längre västerut (öppningen x 9 485–10 335, fickan till x 11 315, före LN1_1); ID2 med fickan mot söder
+   och LD2_1 flyttad till fickans ände (y ≈ 4 030; K-03, K-05); ID6 bara om LD4_1 flyttas.

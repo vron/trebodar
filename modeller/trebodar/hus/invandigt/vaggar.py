@@ -5,6 +5,8 @@ De lätta väggarna (LATTA) enligt planritning 201 rev 02 med modellens bärande
 under innertaket (snett där taket lutar längs väggen). Där en stolpes syll ligger under väggen har väggen ingen egen.
 Skikten (invandigt.SKIVOR, mot badrummet SKIVOR_VATRUM) på båda sidor av varje innervägg, från bjälklaget upp till
 innertaket, med hål för dörrarna (oppningar.INNERDORRAR) och runt delar som sticker ut ur väggen (stolpar, klossar).
+Fickdörrarnas fickor: hela stommens tjocklek är fickan (inga reglar), och OSB:n byts mot brädor 12 mm på båda sidor
+(gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13), upp till överstyckets överkant.
 
 Möten: stommarna möts, och en lätt väggs stomme går fram till ytterväggens installationsskikt. Skikten möts: de
 genomgående väggarnas skikt läggs först (ORDNING) och skikten på väggarna som möter dem slutar mot dem. Ytterväggarnas
@@ -29,12 +31,11 @@ from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGA
 from trebodar.hus.rum import BADRUM, KAMINKAPA
 from trebodar.hus.tak.tak import REGIONER
 
-from trebodar.material import C24_LAKT, KALCIUMSILIKAT
+from trebodar.material import BRADA, KALCIUMSILIKAT
 
 from .invandigt import FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T
 
 SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
-FICKA_LAKT, FICKA_CC = 10.0, 300.0           # fickdörrens ficka: läkt 10×45 mot var sida, c/c
 FICKA_SKENA = 50.0                           # fickdörrens skena under överstycket (bladets överkant 10 över öppningen)
 
 T = 70.0                        # de lätta väggarnas stomme
@@ -199,6 +200,9 @@ def _skikt() -> _Skikt:
             hinder += _ytterskivor()
         dorrar = [box(d.u0, 0.0, d.u1, d.hojd) for d in INNERDORRAR if d.vagg == kod]
         dorrar += [box(u0, z0, u1, z1) for vagg, u0, u1, z0, z1, _ in INNEROPPNINGAR if vagg == kod]
+        # fickdörrarnas fickor: brädor i stället för OSB, upp till överstyckets överkant
+        fickor = unary_union([box(d.fickan[0], 0.0, d.fickan[1], d.hojd + FICKA_SKENA + H_VIRKE)
+                              for d in INNERDORRAR if d.vagg == kod and d.ficka] or [Polygon()])
         plan: dict[str, Plan] = {}
         res.band[kod] = []
         for sida in (-1, 1):
@@ -211,10 +215,15 @@ def _skikt() -> _Skikt:
                     unary_union(dorrar + _i_vaggen(v, band, hinder)))
                 ws = w_yta
                 for namn, t, typ, mat in skivor:
-                    p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", t, material=mat))
                     w0, w1 = sorted((ws, ws + sida * t))
-                    for q in P.polygoner(omrade, 100.0):
-                        p.skiva(P.kontur(q), P.hal(q), w0, w1, typ, mat, f"{namn} {kod}")
+                    delar = [(namn, typ, mat, omrade)]
+                    if namn == "OSB" and not fickor.is_empty:
+                        delar = [(namn, typ, mat, omrade.difference(fickor)),
+                                 ("Bräda", "BR", BRADA, omrade.intersection(fickor))]
+                    for namn_, typ_, mat_, yta in delar:
+                        p = plan.setdefault(namn_, Plan(kod, f"{namn_} {kod}", t, material=mat_))
+                        for q in P.polygoner(yta, 100.0):
+                            p.skiva(P.kontur(q), P.hal(q), w0, w1, typ_, mat_, f"{namn_} {kod}")
                     ws += sida * t
                 res.band[kod].append((band, 0.0, 10000.0))
         lagda += res.band[kod]
@@ -259,7 +268,11 @@ def _stomme(lv: Lattvagg) -> Montage:
     lagg("H", Polygon([(u, z - H_VIRKE) for u, z in topp] + [(u, z) for u, z in topp[::-1]]))
     # reglar: vid ändarna, c/c 600 och vid dörrarnas sidor (i dörröppningarna och fickorna bara kortreglar över
     # överstycket)
-    lagen_u = sorted({0.0, L - H_VIRKE} | {a - H_VIRKE for a, _ in spann} | {b for _, b in spann})
+    # ändarna först; en regel vid en dörr eller ficka som skulle överlappa en annan utgår
+    lagen_u: list[float] = []
+    for u in [0.0, L - H_VIRKE] + sorted({a - H_VIRKE for a, _ in spann} | {b for _, b in spann}):
+        if all(abs(u - v) >= H_VIRKE for v in lagen_u):
+            lagen_u.append(u)
     for k in range(1, int(L // CC) + 1):
         if all(abs(k * CC - u) >= H_VIRKE for u in lagen_u):
             lagen_u.append(k * CC)
@@ -272,16 +285,6 @@ def _stomme(lv: Lattvagg) -> Montage:
                            (u, ztopp(u) - H_VIRKE)]))
     for (a, b), zo in zip(spann, over):
         lagg("L", box(a, zo, b, zo + H_VIRKE))
-    # fickdörrarnas fickor: läkt 10×45 c/c 300 mot båda sidorna, från golvet till överstycket
-    for d, zo in zip(dorrar, over):
-        if not d.ficka:
-            continue
-        a, b = d.fickan
-        mun = d.u1 if d.mot > 0 else d.u0 - H_VIRKE          # läkten vid fickans öppning, sedan c/c mot fickans slut
-        us = [mun + d.mot * k * FICKA_CC for k in range(int((b - a) // FICKA_CC) + 1)]
-        for u in (u for u in us if a - 1e-6 <= u <= b - H_VIRKE + 1e-6):
-            for w0, w1 in ((0.0, FICKA_LAKT), (T - FICKA_LAKT, T)):
-                p.lada("F", u, u + H_VIRKE, w0, w1, 0.0, zo, "z", material=C24_LAKT)
     return p.montage()
 
 

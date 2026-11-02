@@ -151,7 +151,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter TP och numreras längs takfallet.
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
-  skjutdörrar med BLAD och SKENA (ID1 fickdörr, fickans läkt F i väggen).
+  skjutdörrar med BLAD och SKENA (ID1, ID3 och ID4 fickdörrar; BR brädorna på fickans sidor).
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT, KM-GALLER.
 - **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
@@ -202,12 +202,14 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   LD2_2 i väggen 2B vid trapphålets långsidor.
 - **Toppklossar**: en kloss per takstol, på gavelstolarnas insida (utsidan är fasad) och på mittstolen 2C:s nordöstra
   sida, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom gipsen), så att balken vilar på 90 mm.
-- **Innerväggar och innerdörrar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med
-  OSB och gips (i badrummet plywood, gips, tätskikt och kakel), skikt på de bärande innerväggarna och skjutdörrar
-  utanpå väggarna (ID1 fickdörr i väggen; de andra har inte plats för en ficka, modell-todo). 2B är sluten söder om
-  trappan (skjutdörren ID2 vid trappan) och 2C vid väggens början (ID6 i den lätta väggen L12). I korridorens hörn i
-  höger huskropp går ID3 90 mm längre söderut och ID5 slutar före korridorväggen, så att bladen går fria. Väggen
-  mellan kontoret och köket går rakt genom huvudstolpen.
+- **Innerväggar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med OSB och gips
+  (i badrummet plywood, gips, tätskikt och kakel) och skikt på de bärande innerväggarna. 2B är sluten söder om
+  trappan och 2C vid väggens början. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
+- **Innerdörrarna** som i Onshape-modellen: fickdörrar ID1 (badrummet), ID3 och ID4 (korridoren i höger huskropp),
+  blad 75 mm bredare än öppningen i en ficka 55 mm längre än bladet. Fickan är hela stommens tjocklek, med brädor
+  12 mm i stället för OSB (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13). ID3 stängs mot L1:s gips och fickan
+  slutar vid L3, ID4:s ficka vid L4. ID2, ID5 och ID6 är skjutdörrar utanpå väggen: deras fickor i Onshape-modellen
+  går genom stolparna LD2_2, LN1_1 och LD4_1 (modell-todo).
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
   helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, med
   aluminiumbeklädnaden i panelens utsida och panelen fram till karmen. Typerna: vridfönster 10×10 och 8×8 och i

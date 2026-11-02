@@ -106,7 +106,8 @@ class Innerdorr:
     """En innerdörr i en bärande innervägg (skelett.INNERVAGGAR) eller en lätt vägg (invandigt.vaggar.LATTA):
     öppningen u0–u1 längs väggen och skjutdörren utanpå väggen på sidan w < 0 (sida −1) eller w > tjockleken (+1),
     som öppnas åt växande (mot +1) eller minskande u. Bladet går fore och efter förbi öppningen. En fickdörr (ficka)
-    går in i en ficka i väggen åt det håll den öppnas (FICKA_UT längre än öppningen)."""
+    går in i en ficka i väggen åt det håll den öppnas: bladet är FICKA_UT bredare än öppningen (så långt in i fickan
+    står det i stängt läge) och fickan FICKA_SPEL längre än bladet."""
     kod: str
     vagg: str
     u0: float
@@ -126,21 +127,24 @@ class Innerdorr:
     @property
     def fickan(self) -> tuple[float, float]:
         """Fickans utsträckning längs väggen (u), från öppningens kant."""
-        lp = self.bredd + FICKA_UT
+        lp = self.bredd + FICKA_UT + FICKA_SPEL
         return (self.u1, self.u1 + lp) if self.mot > 0 else (self.u0 - lp, self.u0)
 
 
-FICKA_UT = 50.0              # fickdörrens blad går så långt in i fickan i stängt läge
+# fickdörrarna som i Onshape-modellen: blad 925 i ficka 980, bladet 75 in i fickan i stängt läge
+FICKA_UT = 75.0              # bladet är så mycket bredare än öppningen
+FICKA_SPEL = 55.0            # fickan är så mycket längre än bladet
 
 
-# skjutdörrarna enligt planritning 201 rev 02, med modellens väggar
+# innerdörrarna som i Onshape-modellen (fickdörrarnas fickor där). ID2, ID5 och ID6 är skjutdörrar utanpå väggen:
+# deras fickor i Onshape-modellen går genom stolparna LD2_2, LN1_1 och LD4_1, som inte fanns där (modell-todo)
 INNERDORRAR = (
-    Innerdorr("ID1", "L11", 920.0, 1820.0, -1, rum="badrummet (dörr 900)", ficka=True),
+    Innerdorr("ID1", "L11", 1010.0, 1860.0, -1, rum="badrummet", ficka=True),
     Innerdorr("ID2", "2B", 3992.0, 4826.0, -1, 2200.0, "trappan till källaren, mellan karmstolparna LD2_1 och LD2_2"),
-    # korridorens hörn vid L1 och L2: ID5 öppnas mot väster och slutar före korridorväggen, ID3 börjar efter ID5:s blad
-    Innerdorr("ID3", "L2", 120.0, 1066.0, 1, rum="kontoret i höger huskropp"),
-    Innerdorr("ID4", "L2", 1927.0, 2852.0, 1, rum="kontoret/gästrummet"),
-    Innerdorr("ID5", "L1", 558.0, 1460.0, 1, rum="sovrummet i höger huskropp", mot=-1, efter=0.0),
+    # ID3 stängs mot L1:s gips, fickan slutar vid L3; ID4 börjar efter L3, fickan slutar vid L4
+    Innerdorr("ID3", "L2", 25.0, 841.0, 1, rum="kontoret i höger huskropp", ficka=True),
+    Innerdorr("ID4", "L2", 1891.0, 2732.0, 1, rum="kontoret/gästrummet", ficka=True),
+    Innerdorr("ID5", "L1", 610.0, 1460.0, 1, rum="sovrummet i höger huskropp", mot=-1, efter=0.0),
     Innerdorr("ID6", "L12", 0.0, 1060.0, 1, rum="sovrummet i mittre huskroppen, från allrummet", fore=-25.0),
 )
 

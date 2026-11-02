@@ -15,6 +15,8 @@ C24 = Material("C24", "Konstruktionsvirke C24", 420, "#d8b47c", 0.7, textur="tra
 # läkt (ströläkt, spikläkt, installationsläkt) som eget material, så att den skiljer sig från stommen
 C24_LAKT = Material("Läkt", "Läkt C24", 420, "#d8b47c", 0.7, textur="tra", rendering=_VIRKE, cad="#eee3a0")
 FURU = Material("Furu", "Furu, hyvlad (trappa)", 500, "#d9a56b", 0.6, textur="tra", rendering=_VIRKE, cad="#c98a52")
+BRADA = Material("Bräda", "Hyvlade granbrädor 12 mm (fickdörrarnas fickor, i stället för OSB)", 450, "#dcc08c", 0.7,
+                 textur="tra", rendering=_VIRKE, cad="#e3cb92")
 LARK = Material("Lärk", "Sibirisk lärk, obehandlad (trätrappa ute)", 600, "#c9a26a", 0.7, textur="tra",
                 rendering=_VIRKE, cad="#d6ad74")
 GL30H = Material("GL30h", "Limträ GL30h", 430, "#e0bb82", 0.65, textur="limtra",
