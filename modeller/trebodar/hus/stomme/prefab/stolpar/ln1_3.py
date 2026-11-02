@@ -44,7 +44,7 @@ def montage() -> Montage:
     syll = (YM - B / 2, YM + 10.0)                                  # syllen 70 under stolpens ena sida
     stolpe = [(syll[1], 0.0), (YM + B / 2, 0.0), (YM + B / 2, ZT), (YM - B / 2, ZT), (YM - B / 2, 45.0),
               (syll[1], 45.0)]
-    d = 169.706                                                     # strävans höjd i lodled, B·√2
+    d = B * math.sqrt(2)                                            # strävans höjd i lodled
     strava = [(YM + B / 2, ZS), (YM + TOPPREGEL, ZT), (YM + TOPPREGEL - d, ZT), (YM + B / 2, ZS + d)]
     for i in range(LAGER):
         x0, x1 = X0 + i * T, X0 + (i + 1) * T

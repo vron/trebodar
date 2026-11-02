@@ -198,7 +198,7 @@ def balkupplag(v: Plan, kod: str, balk: str, reglar: dict[float, str | None]) ->
     v.regel(inre)
     for k in range(2):
         a = sida + k * R if i_borjan else sida - (k + 1) * R
-        v.liggande(a, a + R, dal, h=41.0769)
+        v.liggande(a, a + R, dal, h=v.hojd - R - dal)
     for u, namn in reglar.items():
         v.regel(u, z1=dal - R, namn=namn)
     return [(inre, inre + R)] + [(u, u + R) for u in reglar]
