@@ -102,6 +102,10 @@ def main(argv: list[str] | None = None) -> None:
     po.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
     po.add_argument("--publik", action="store_true", help="publikt dokument (krävs för Onshapes gratiskonton)")
     po.add_argument("--ut", type=Path, default=UT)
+    pa = sub.add_parser("avtryck", help="spara modellens fingeravtryck eller jämför med det (oförändrad geometri)")
+    pa.add_argument("atgard", choices=("spara", "jamfor"))
+    pa.add_argument("--del", dest="vag")
+    pa.add_argument("--fil", type=Path, default=None, help="standard: modeller/trebodar/ut/<modell>-avtryck.json")
     pj = sub.add_parser("jamfor", help="jämför med referensmodellen (Onshape)")
     pj.add_argument("--del", dest="vag")
     pj.add_argument("--urval", default=None, help="del av referensens sökväg, t.ex. 'Stomme prefab'")
@@ -132,6 +136,24 @@ def main(argv: list[str] | None = None) -> None:
     karna.forbered(d.form for _, d, _ in rot.platta())
     print(f"{rot.namn}: {rot.antal_delar()} delar, modell {t1 - t0:.2f} s, former {karna.statistik['byggda']} nya "
           f"och {karna.statistik['cachade']} cachade ({karna.statistik['sekunder']:.2f} s)")
+    if arg.kommando == "avtryck":
+        from . import avtryck
+        fil = arg.fil or UT / f"{filnamn(rot)}-avtryck.json"
+        if arg.atgard == "spara":
+            print(f"  {avtryck.spara(rot, karna, fil)} delar -> {fil}")
+            return
+        jf = avtryck.jamfor(rot, karna, fil)
+        print(f"  {jf.antal[0]} -> {jf.antal[1]} delar: {len(jf.borta)} borta, {len(jf.nya)} nya, {len(jf.andrade)} ändrade, "
+              f"{len(jf.flyttade)} flyttade i trädet")
+        for rubrik, lista_ in (("borta", jf.borta), ("nya", jf.nya), ("ändrade", jf.andrade)):
+            for sokvag in lista_[:20]:
+                print(f"    {rubrik}: {sokvag}")
+            if len(lista_) > 20:
+                print(f"    … och {len(lista_) - 20} till")
+        for fran, till in jf.flyttade[:20]:
+            print(f"    flyttad: {fran} -> {till}")
+        print("  Geometrin är oförändrad." if jf.lika else "  Geometrin har ändrats.")
+        raise SystemExit(0 if jf.lika else 1)
     if arg.kommando == "bygg":
         from .export import glb, lista, step
         namn = filnamn(rot)

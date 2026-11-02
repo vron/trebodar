@@ -92,7 +92,8 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 
-Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`.
+Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`. Vid en omstrukturering som inte ska ändra
+geometrin: `./mod avtryck spara` före och `./mod avtryck jamfor` efter.
 
 ## Material och rendering
 

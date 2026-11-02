@@ -20,6 +20,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod trad [--djup N] [--del VÄG]` | Modellträdet med antal delar |
 | `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/` |
 | `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt |
+| `./mod avtryck spara\|jamfor [--del VÄG]` | Modellens fingeravtryck (varje dels låda, volym och tyngdpunkt): spara före en omstrukturering och jämför efter, så syns att geometrin är oförändrad (flyttade delar paras på namn; `ut/<modell>-avtryck.json`) |
 | `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
 | `./mod rendera [VY …] [--bredd 400] [--sampel 32] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py`; `--blend` sparar scenen |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
