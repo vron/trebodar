@@ -1,25 +1,42 @@
 """Bärande innervägg 1C: vänstra huskroppen, y 8 220, med stolpen LN5_1.
 
-Regelverk 70 mm C24 i väggens system (skelett.VAGGAR["1C"]): u från (2060; 8185) i växande x, w genom väggen från stommens ena sida, z uppåt från bjälklagets överkant.
+Regelverk 70 mm C24 i väggens system (skelett.VAGGAR["1C"]), byggt med reglerna i regelstomme.py: syll, stolpen
+LN5_1 mitt under nockbalk 5 (fyra reglar till balkens underkant, K-03), ett lutande hammarband under takfallet 1NV
+(0,5 mm över hammarbandsplanet, som i Onshape-modellen) från stolpen till väggens slut, reglar upp till sätena i
+hammarbandet och en kortling. Hammarbandets ände är vinkelrät mot lutningen och går 11,25 in i stolpens sista regel,
+som har ett urtag för den; den första regeln har ett likadant urtag på andra sidan (stolpen var symmetrisk i
+Onshape-modellen).
 """
+from shapely.affinity import scale
+from shapely.geometry import box
+
 from modellering import Montage
 
 from trebodar import skelett as S
+from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import regelvagg
+from trebodar.hus.stomme.prefab.regelstomme import (KORTLING_Z, LODRAT, VINKELRAT, R, hammarbandsplan,
+                                                    lutande_hammarband)
 
 NOCK = S.BALKAR["NB5"].uk
+INNE = 11.25                 # hammarbandets ände in i stolpen
 
 
 def montage() -> Montage:
     v = regelvagg("1C", hojd=NOCK)
-    v.syll(0, 1285)
-    v.profil([(5, 3593.2646), (16.25, 3599.7598), (5, 3619.2454), (5, NOCK), (50, NOCK), (50, 45), (5, 45)], namn="LN5_1-1")
-    v.regel(50, z1=NOCK, namn="LN5_1-2")
-    v.regel(95, z1=NOCK, namn="LN5_1-3")
-    v.profil([(140, NOCK), (185, NOCK), (185, 3619.2454), (173.75, 3599.7598), (185, 3593.2646), (185, 45), (140, 45)], namn="LN5_1-4")
-    v.profil([(1285, 2984.1601), (1285, 3010.1408), (196.25, 3638.7309), (173.75, 3599.7598), (450, 3440.2668), (472.5, 3440.2668), (472.5, 3427.2764), (1050, 3093.8566), (1072.5, 3093.8566), (1072.5, 3080.8662), (1240, 2984.1601)], typ="L")
-    v.liggande(185, 427.5, 2199.5797)
-    v.regel(427.5, z1=3440.2668)
-    v.regel(1027.5, z1=3093.8566)
-    v.regel(1240, z1=2984.1601)
+    w = S.VAGGAR["1C"]
+    v.syll(0.0, w.langd)
+    u0 = S.BALKAR["NB5"].x - w.origo[0] - 2 * R                    # stolpen LN5_1 mitt under nockbalken
+    u1 = u0 + 4 * R
+    hb, toppar = lutande_hammarband(hammarbandsplan("1C", "1NV", 0.9104 * S.TAN), (u1 - INNE, VINKELRAT),
+                                    (w.langd, LODRAT), {427.5: 22.5, 1027.5: 22.5, 1240.0: R})
+    spegel = scale(hb, -1.0, 1.0, origin=((u0 + u1) / 2, 0.0))
+    v.profil(P.hornen(box(u0, R, u0 + R, NOCK).difference(spegel)), namn="LN5_1-1")
+    v.regel(u0 + R, z1=NOCK, namn="LN5_1-2")
+    v.regel(u0 + 2 * R, z1=NOCK, namn="LN5_1-3")
+    v.profil(P.hornen(box(u1 - R, R, u1, NOCK).difference(hb)), namn="LN5_1-4")
+    v.profil(P.hornen(hb), typ="L")
+    v.liggande(u1, min(toppar), KORTLING_Z)
+    for u, z in toppar.items():
+        v.regel(u, z1=z)
     return v.montage()

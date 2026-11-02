@@ -1,8 +1,8 @@
 """Takbalkarna 45×170 C24 c/c 600 (K-03), ett montage per takfall med takfönstrens avväxlingar och kortlingar.
 
-Takbalkarnas lägen (y) är Onshape-modellens, med en extra takbalk vid TF1:s övre sida (dubbel som vid de andra
-fönstren). Profilerna följer reglerna i byggdelar/takbalk.py. Varje takbalk går från nockbalken till dalbalken där
-en sådan finns i takbalkens läge, annars till takfoten.
+Takbalkarnas lägen (y): följder c/c 600 per takfall (som i Onshape-modellen) och dubbla takbalkar på båda sidor om
+varje takfönsters öppning, med avväxlingarna mellan dem. Profilerna följer reglerna i byggdelar/takbalk.py. Varje
+takbalk går från nockbalken till dalbalken där en sådan finns i takbalkens läge, annars till takfoten.
 """
 from __future__ import annotations
 
@@ -42,17 +42,26 @@ TF1 = Takfonster("TF1", 5540.0, 6740.0, 561.784, 1601.014)
 TF2 = Takfonster("TF2", 7505.0, 8705.0, 10151.784, 11191.014)
 TF3 = Takfonster("TF3", 9539.0, 10739.0, 561.784, 1601.014)
 
-_CC = lambda a, b: tuple(float(v) for v in range(a, b + 1, int(S.TAKBALK_CC)))     # noqa: E731
+
+
+def _cc(a: float, b: float) -> tuple[float, ...]:
+    """Takbalkar c/c 600 från a till b."""
+    return tuple(a + i * S.TAKBALK_CC for i in range(int((b - a) // S.TAKBALK_CC) + 1))
+
+
+def _dubbla(fo: Takfonster) -> tuple[float, ...]:
+    """Dubbla takbalkar på båda sidor om takfönstrets öppning."""
+    return (fo.y0 - 2 * S.TAKBALK_B, fo.y0 - S.TAKBALK_B, fo.y1, fo.y1 + S.TAKBALK_B)
+
+
 FALT = {f.kod: f for f in (
-    Falt("1SO", "NB5", None,
-         (4205, 4805, 5450, 5495, 6740, 6785, 7049, 7649, 8249, 8849, 9449, 9494, 10739, 10784)
-         + _CC(11640, 15240), (TF1, TF3)),
-    Falt("1NV", "NB5", "DB4", _CC(4205, 10805) + _CC(11640, 15240)),
-    Falt("2SO", "NB3", "DB4", _CC(615, 5415) + _CC(6550, 10150)),
-    Falt("2NV", "NB3", "DB2", _CC(615, 5415) + _CC(6550, 10150)),
-    Falt("3SO", "NB1", "DB2", _CC(1615, 7015) + (7415, 7460, 8705, 8750, 9350, 9950, 10550, 11395, 11850),
-         (TF2,)),
-    Falt("3NV", "NB1", None, _CC(1615, 11815)),
+    Falt("1SO", "NB5", None, _cc(4205, 4805) + _dubbla(TF1) + _cc(7049, 8849) + _dubbla(TF3) + _cc(11640, 15240),
+         (TF1, TF3)),
+    Falt("1NV", "NB5", "DB4", _cc(4205, 10805) + _cc(11640, 15240)),
+    Falt("2SO", "NB3", "DB4", _cc(615, 5415) + _cc(6550, 10150)),
+    Falt("2NV", "NB3", "DB2", _cc(615, 5415) + _cc(6550, 10150)),
+    Falt("3SO", "NB1", "DB2", _cc(1615, 7015) + _dubbla(TF2) + _cc(9350, 10550) + (11395.0, 11850.0), (TF2,)),
+    Falt("3NV", "NB1", None, _cc(1615, 11815)),
 )}
 
 

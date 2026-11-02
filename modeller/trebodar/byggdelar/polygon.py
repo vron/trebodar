@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from shapely.geometry import Polygon
+from shapely.geometry.polygon import orient
 
 from modellering import Form, Placering, Prisma, prisma
 
@@ -22,6 +23,19 @@ def polygoner(g: Any, minsta_area: float = 1.0) -> Iterator[Polygon]:
 
 def kontur(q: Polygon) -> list[tuple[float, float]]:
     return [(float(x), float(y)) for x, y in list(q.exterior.coords)[:-1]]
+
+
+def hornen(q: Polygon) -> list[tuple[float, float]]:
+    """Polygonens hörn moturs från det lägsta (x, y), utan hörn mitt på en rak kant: samma lista för samma form,
+    var den än ligger (likadana delar blir samma del)."""
+    p = list(orient(q).exterior.coords)[:-1]
+    ut = []
+    for i, (x, y) in enumerate(p):
+        (xa, ya), (xb, yb) = p[i - 1], p[(i + 1) % len(p)]
+        if abs((x - xa) * (yb - y) - (y - ya) * (xb - x)) > 1e-6 * max(1.0, abs(xb - xa) + abs(yb - ya)):
+            ut.append((float(x), float(y)))
+    i0 = min(range(len(ut)), key=lambda i: (round(ut[i][0], 6), round(ut[i][1], 6)))
+    return ut[i0:] + ut[:i0]
 
 
 def hal(q: Polygon) -> list[list[tuple[float, float]]]:

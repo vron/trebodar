@@ -9,15 +9,21 @@
   överkant (enkelt, med avväxling under hammarbandet eller dubbelt), bröstningsregel under fönster och kortlingar
   ovanför överstycket och under bröstningen, med lägen från öppningens början;
 - stolpar av flera reglar sida vid sida (K-03) och dalbalkarnas upplag på gavlarna: en sänkt liggande under balkens
-  ände, regelstycken upp till hammarbandets nivå intill balkens sida och reglar under liggaren.
+  ände, regelstycken upp till hammarbandets nivå intill balkens sida och reglar under liggaren;
+- innerväggar under ett takfall: ett lutande hammarband 45 med överkanten i takfallets hammarbandsplan (takbalkarnas
+  underkant utan TAKLYFT, som ytterväggarnas hammarband vid takfoten), ändarna lodräta eller vinkelräta mot lutningen,
+  och reglarna upp till vågräta säten i hammarbandet.
 
 Väggens egna data (raster eller reglar, skarvar och öppningarnas utförande) står i väggens fil, öppningarnas lägen
 och storlek i oppningar.py: flyttas en öppning följer karmreglar, överstycke, bröstning och kortlingar med.
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
+import math
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+
+from shapely.geometry import Polygon, box
 
 from trebodar import skelett as S
 from trebodar.byggdelar.regelvagg import Plan
@@ -28,7 +34,10 @@ CC = 600.0
 GLAPP = 80.0                 # en rasterregel utgår närmare än så intill en annan stående del
 SANKT = 695.0                # den sänkta liggande under en dalbalks ände på gaveln, från väggens ände
 
+KORTLING_Z = 2199.5797       # kortlingarnas underkant i innerväggarna under takfallen (som i Onshape-modellen)
+
 ENKELT, AVVAXLING, DUBBELT = "enkelt", "avväxling", "dubbelt"
+LODRAT, VINKELRAT = "lodrät", "vinkelrät"
 
 
 @dataclass(frozen=True)
@@ -98,14 +107,14 @@ def oppning(v: Plan, o: Oppning, k: Karm = Karm()) -> list[tuple[float, float]]:
     return staende
 
 
-def raster(origo: float, langd: float, staende: Sequence[tuple[float, float]], oppningar: Sequence[Oppning],
+def raster(origo: float, langd: float, staende: Sequence[tuple[float, float]], oppningar: Sequence[tuple[float, float]],
            utan: Sequence[float] = ()) -> list[float]:
-    """Rasterreglarnas u: c/c CC genom origo över hela väggen, inte inne i en öppning, inte närmare än GLAPP intill
-    en annan stående del (utom en som står på samma ställe) och inte de uppräknade."""
+    """Rasterreglarnas u: c/c CC genom origo över hela väggen, inte inne i en öppning (u0, u1), inte närmare än GLAPP
+    intill en annan stående del (utom en som står på samma ställe) och inte de uppräknade."""
     ut = []
     u = origo - CC * int(origo // CC)
     while u + R <= langd + 1e-6:
-        inne = any(o.u0 - R < u < o.u1 for o in oppningar)
+        inne = any(u0 - R < u < u1 for u0, u1 in oppningar)
         nara = any(u < b + GLAPP and a < u + R + GLAPP and abs(u - a) > 1e-6 for a, b in staende)
         if not inne and not nara and all(abs(u - x) > 1e-6 for x in utan):
             ut.append(u)
@@ -135,11 +144,12 @@ def vagg(v: Plan, kod: str, karmar: dict[str, Karm] | None = None, skarvar: Sequ
         st += oppning(v, o, (karmar or {}).get(o.kod.split("-")[-1], Karm()))
     fria = list(reglar)
     if raster_origo is not None:
-        fria += raster(raster_origo, langd, st, opp, utan)
+        fria += raster(raster_origo, langd, st + [(u, u + R) for u in reglar], [(o.u0, o.u1) for o in opp], utan)
     upptagna = {round(a, 6) for a, _ in st}
     for u in fria:
         if round(u, 6) not in upptagna:
             v.regel(u)
+            upptagna.add(round(u, 6))
 
 
 def skarv(origo: float, nr: int) -> float:
@@ -148,14 +158,14 @@ def skarv(origo: float, nr: int) -> float:
 
 
 def stolpe(v: Plan, namn: str, u: float, antal: int, z0: float = R, z1: float | None = None,
-           toppar: Sequence[float | None] = ()) -> list[tuple[float, float]]:
+           toppar: Sequence[float | None] = (), w0: float = 0.0, w1: float | None = None) -> list[tuple[float, float]]:
     """Stolpe av `antal` reglar sida vid sida från u, namngivna <namn>-1 … (K-03); toppar: reglarnas överkant var för
     sig (None: väggens hammarband). Ger reglarnas u-intervall."""
     ut = []
     for i in range(antal):
         a = u + i * R
         topp = toppar[i] if i < len(toppar) else z1
-        v.regel(a, z0=z0, z1=topp, namn=f"{namn}-{i + 1}")
+        v.regel(a, z0=z0, z1=topp, w0=w0, w1=w1, namn=f"{namn}-{i + 1}")
         ut.append((a, a + R))
     return ut
 
@@ -192,3 +202,40 @@ def balkupplag(v: Plan, kod: str, balk: str, reglar: dict[float, str | None]) ->
     for u, namn in reglar.items():
         v.regel(u, z1=dal - R, namn=namn)
     return [(inre, inre + R)] + [(u, u + R) for u in reglar]
+
+
+def hammarbandsplan(kod: str, takfall: str, lyft: float = 0.0) -> Callable[[float], float]:
+    """Takfallets hammarbandsplan i väggens u (väggen går längs x): takbalkarnas underkant utan TAKLYFT, lyft högre."""
+    t, w = S.TAKFALL[takfall], S.VAGGAR[kod]
+
+    def z(u: float) -> float:
+        return t.z_underkant(w.origo[0] + w.u[0] * u) - S.TAKLYFT + lyft
+    return z
+
+
+def lutande_hammarband(ok: Callable[[float], float], start: tuple[float, str], slut: tuple[float, str],
+                       saten: dict[float, float]) -> tuple[Polygon, dict[float, float]]:
+    """Lutande hammarband 45 (vinkelrätt mot lutningen) med överkanten ok, från start till slut (u och LODRAT eller
+    VINKELRAT: änden lodrät, eller vinkelrät mot lutningen genom underkantens hörn), med ett vågrätt säte på varje regel
+    (regelns u: sätets bredd från regelns låga sida, hela regelns bredd vid en lodrät ände). Ger hammarbandets profil och
+    reglarnas överkant (u: z)."""
+    k = (ok(1000.0) - ok(0.0)) / 1000.0
+    c = 1.0 / math.sqrt(1.0 + k * k)                     # cos för lutningen
+
+    def uk(u: float) -> float:
+        return ok(u) - R / c
+
+    def hornen(u: float, typ: str) -> tuple[tuple[float, float], tuple[float, float]]:
+        """Ändens hörn i underkant och överkant."""
+        if typ == LODRAT:
+            return (u, uk(u)), (u, ok(u))
+        return (u, uk(u)), (u - R * k * c, uk(u) + R * c)
+
+    (a0, a1), (b0, b1) = hornen(*start), hornen(*slut)
+    profil = Polygon([a0, b0, b1, a1])
+    toppar = {}
+    for u, s in saten.items():
+        z = uk(u + s) if k > 0 else uk(u + R - s)
+        profil = profil.difference(box(u, -1e5, u + R, z))
+        toppar[u] = z
+    return profil, toppar

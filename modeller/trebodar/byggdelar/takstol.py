@@ -25,13 +25,13 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
 from shapely.geometry import Polygon, box
-from shapely.geometry.polygon import orient
 from shapely.ops import unary_union
 
 from modellering import Montage
 
 from .. import skelett as S
 from ..material import SPIKPLAT
+from . import polygon as P
 from .regelvagg import Plan
 
 T = 45.0                     # delarnas tjocklek (w)
@@ -55,18 +55,6 @@ def _dar(f: Linje, z: float) -> float:
     """Var den räta linjen f har höjden z."""
     a, b = f(0.0), f(1000.0)
     return 1000.0 * (z - a) / (b - a)
-
-
-def _hornen(p: Polygon) -> list[tuple[float, float]]:
-    """Polygonens hörn moturs från det lägsta (u, z), utan hörn mitt på en rak kant."""
-    q = list(orient(p).exterior.coords)[:-1]
-    ut = []
-    for i, (u, z) in enumerate(q):
-        (ua, za), (ub, zb) = q[i - 1], q[(i + 1) % len(q)]
-        if abs((u - ua) * (zb - z) - (z - za) * (ub - u)) > 1e-6 * max(1.0, abs(ub - ua) + abs(zb - za)):
-            ut.append((float(u), float(z)))
-    i0 = min(range(len(ut)), key=lambda i: (round(ut[i][0], 6), round(ut[i][1], 6)))
-    return ut[i0:] + ut[:i0]
 
 
 def _remsa(ok: Linje, h: float, u0: float, u1: float) -> Polygon:
@@ -159,7 +147,7 @@ class Takstol(Plan):
 
     def _del(self, p: Polygon, w0: float, w1: float, typ: str) -> None:
         self.ovriga.append((p, w0, w1))
-        self.profil(_hornen(p), w0, w1, typ=typ)
+        self.profil(P.hornen(p), w0, w1, typ=typ)
 
     def montage(self) -> Montage:
         uk = S.BALKAR[self.balk].uk
@@ -180,7 +168,7 @@ class Takstol(Plan):
             if k.geom_type != "Polygon":
                 k = max(getattr(k, "geoms", [k]), key=lambda g: g.area)
             if k.geom_type == "Polygon" and k.area > 1000:
-                self.profil(_hornen(k), a, b, typ="K")
+                self.profil(P.hornen(k), a, b, typ="K")
         # spikplåtar: 2 mm utanpå; i toppen på båda sidor utom där klossarna sitter
         klossytor = {round(a if a >= w1 else b, 6) for a, b in sidor}
         z1 = uk - self.topplat_spel
@@ -226,7 +214,7 @@ def takstol(kod: str, balk: str, utsida: bool = True, klossar: tuple[int, ...] =
         d = _remsa(sd.diagonal_ok, DIAGONAL_H, sd.fot(sd.diagonal_ok, sate), uc).intersection(box(-1e5, sate, 1e5, uk))
         for a, z in saten:
             d = d.difference(box(a, sate - 1.0, a + STANDARE_B, z))
-        pts = _hornen(d)
+        pts = P.hornen(d)
         t.diagonaler.append((pts, *ww))
         t.profil(pts, *ww, typ="D")
         if spikregel is not None:

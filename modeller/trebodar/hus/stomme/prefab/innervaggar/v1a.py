@@ -1,21 +1,29 @@
-"""Bärande innervägg 1A: vänstra huskroppen, y 7 150, från långsidan till nocken.
+"""Bärande innervägg 1A: vänstra huskroppen, y 7 150, från långsidan 1SO till nockbalk 5.
 
-Regelverk 70 mm C24 i väggens system (skelett.VAGGAR["1A"]): u från (65; 7115) i växande x, w genom väggen från stommens ena sida, z uppåt från bjälklagets överkant.
+Regelverk 70 mm C24 i väggens system (skelett.VAGGAR["1A"]), byggt med reglerna i regelstomme.py: syll, ett lutande
+hammarband under takfallet 1SO, vinkelrätt kapat vid nockbalken, reglar upp till sätena i hammarbandet och
+kortlingar mellan reglarna. Sätena är 22,5 breda; vid väggens början hela regelns bredd och på de två mittre reglarna
+23,4 (som i Onshape-modellen).
 """
 from modellering import Montage
 
+from trebodar import skelett as S
+from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import regelvagg
+from trebodar.hus.stomme.prefab.regelstomme import (KORTLING_Z, LODRAT, VINKELRAT, R, hammarbandsplan,
+                                                    lutande_hammarband)
 
 
 def montage() -> Montage:
-    v = regelvagg("1A", hojd=3628.8234)
-    v.syll(0, 1995)
-    v.regel(0, z1=2464.0192)
-    v.profil([(45, 2464.0192), (622.5, 2797.439), (622.5, 2810.955), (645.9103, 2810.955), (1222.5, 3143.8492), (1222.5, 3157.3652), (1245.9103, 3157.3652), (1950, 3563.8715), (1950, 3576.8619), (1972.5, 3576.8619), (1995, 3589.8523), (1972.5, 3628.8234), (0, 2490), (0, 2464.0192)], typ="H")
-    v.liggande(45, 622.5, 2199.5797)
-    v.regel(622.5, z1=2810.955)
-    v.liggande(667.5, 1222.5, 2199.5797)
-    v.regel(1222.5, z1=3157.3652)
-    v.liggande(1267.5, 1950, 2199.5797)
-    v.regel(1950, z1=3576.8619)
+    v = regelvagg("1A")
+    langd = S.VAGGAR["1A"].langd
+    v.syll(0.0, langd)
+    hb, toppar = lutande_hammarband(hammarbandsplan("1A", "1SO"), (0.0, LODRAT), (langd, VINKELRAT),
+                                    {0.0: R, 622.5: 23.4103, 1222.5: 23.4103, 1950.0: 22.5})
+    v.profil(P.hornen(hb), typ="H")
+    for u, z in toppar.items():
+        v.regel(u, z1=z)
+    reglar = sorted(toppar)
+    for a, b in zip(reglar, reglar[1:]):
+        v.liggande(a + R, b, KORTLING_Z)
     return v.montage()

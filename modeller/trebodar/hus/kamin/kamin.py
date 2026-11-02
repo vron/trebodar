@@ -31,6 +31,7 @@ from modellering import Del, Form, Montage, Placering, box, cylinder
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.ror import ror, stang
+from trebodar.hus.fonster_och_dorrar.oppningar import INNEROPPNINGAR
 from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.hus.rum import KAMINKAPA
 from trebodar.material import GLAS, KALCIUMSILIKAT, KAMIN, ROSTFRITT
@@ -49,7 +50,8 @@ KONV_UNDER, KONV_OVER = (500.0, 60.0), (500.0, 110.0)    # konvektionsöppningar
 Z_KONV_UNDER = 250.0                        # den nedre öppningens underkant
 H_KASSE = 1600.0                            # plåten över den övre öppningen
 STOD_B = 100.0                              # stöden under insatsen
-OPPNING = (6400.0, 7410.0, 0.0, 2045.0)     # öppningen i 2C (oppningar.INNEROPPNINGAR): x0, x1, z0, z1
+_, _U0, _U1, _Z0, _Z1, _ = next(o for o in INNEROPPNINGAR if o[0] == "2C")
+OPPNING = (S.INNERVAGGAR["2C"].origo[0] + _U0, S.INNERVAGGAR["2C"].origo[0] + _U1, _Z0, _Z1)   # i 2C: x0, x1, z0, z1
 # läget: insatsen 50 mm från kåpans östra kalciumsilikat (väster om den är kanalen), fronten i skiktets yta mot
 # allrummet
 KAPA = KAMINKAPA.bounds                     # x0, y0, x1, y1 innanför de lätta väggarna
