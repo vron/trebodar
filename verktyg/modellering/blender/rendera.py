@@ -4,13 +4,16 @@ himlen och solen efter dagsljuset, ljusportalerna i fönstren och en kamera per 
     Blender -b --factory-startup -P rendera.py -- scen.json
 
 scen.json (från `mod rendera`): {"glb": fil, "ut": mapp, "kvalitet": "skiss" … "slutlig", "bredd": px eller null,
-"hojd_m": platsens höjd, "portaler": [...], "lampor": {grupp: lampor}, "material": {namn: parametrar}, "vyer": {namn:
+"hojd_m": platsens höjd, "portaler": [...], "lampor": {grupp: lampor}, "armaturer": [...] (elinstallationens, med
+ljusfördelningen som IES), "material": {namn: parametrar}, "vyer": {namn:
 vy}, "blend": fil eller null}; vy: "kamera" och "mal" [x, y, z] i mm, "lins" (mm), "lodrat" (vågrät kamera), "inne",
-"lampor" (grupperna som är tända), "ljus" (dagsljus.Ljus),
+"lampor" (grupperna som är tända), "tand" (elinstallationens tändgrupper som är tända: {grupp: nivå 0–1}),
+"ljus" (dagsljus.Ljus),
 "ev" (EV100 eller null: automatisk), "vitbalans" (K; standard ute efter dagsljusets färgtemperatur och inne
 automatisk, som ögats anpassning), "dolj" (delar av sökvägar).
 """
 import json
+import math
 import os
 import sys
 import time
@@ -42,18 +45,20 @@ if SCEN.get("omgivning"):
                    SCEN.get("geodata"))
 portaler = [o for o in bpy.data.objects if o.name.startswith("Portal ")]
 lampor = S.lampor(SCEN.get("lampor", {}))
+armaturer = S.armaturer(SCEN.get("armaturer", []))
 
 
 def stall_in(namn: str, vy: dict) -> None:
     for o in bpy.data.objects:
-        if o.type == "MESH":
-            sok = o.get("sokvag", "") or o.name
-            o.hide_render = any(d in sok for d in vy.get("dolj", []))
+        if o.type == "MESH" and "sokvag" in o:                # modellens delar (inte hjälpobjekt som hålen)
+            o.hide_render = any(d in o["sokvag"] for d in vy.get("dolj", []))
     for o in portaler:
         o.hide_render = not vy.get("inne", False)
     for grupp, obs in lampor.items():
         for o in obs:
             o.hide_render = grupp not in vy.get("lampor", [])
+    for a in armaturer:
+        a.tand_till(float(vy.get("tand", {}).get(a.tand, 0.0)))
     himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0))
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     sc.camera = S.kamera(namn, vy)
@@ -68,7 +73,11 @@ for namn, vy in SCEN["vyer"].items():
         if ev is None:
             ev = S.auto_ev(px)
         if auto_vit:
-            S.auto_vitbalans(sc, px)
+            # med lamporna tända i mörker anpassar sig ögat inte helt: varmt ljus ser varmt ut
+            lj = vy["ljus"]
+            dags = lj["himmel_lux"] + lj["sol_lux"] * max(0.0, math.sin(math.radians(lj["sol_hojd"])))
+            tanda = any(float(v) > 0 for v in vy.get("tand", {}).values())
+            S.auto_vitbalans(sc, px, grad=0.7 if tanda and dags < 2000.0 else 0.85)
     S.exponering(sc, ev)
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "

@@ -131,6 +131,17 @@ ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad
 HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")
 
+# ------------------------------------------------------------------ el (hus/installationer/el)
+# armaturens lins lyser i renderingen när armaturen är tänd (typen lins); CAD-färgerna lyser fram i webbvisaren
+ARMATUR = Material("Armatur", "Armatur, aluminium pulverlackerad matt vit RAL 9003", 2700, "#f2f2ef", 0.5,
+                   textur="pulverlack", cad="#f4f1de")
+ARMATURLINS = Material("Armaturlins", "Armaturens reflektor och lins", 2500, "#f7f5f0", 0.15, textur="lins",
+                       cad="#ffd84a")
+DRIVDON = Material("Drivdon", "Drivdon för LED (plast)", 1200, "#ececea", 0.6, cad="#8d96a3")
+APPARAT = Material("Apparat", "Strömbrytare, dimrar och uttag, vit plast", 1200, "#f4f4f1", 0.35, cad="#fbfbf7")
+ELDOSA = Material("Eldosa", "Dosor (plast)", 1000, "#7f8a95", 0.6, cad="#ff7a1a")
+ELROR = Material("Elrör", "Flexrör (PVC)", 1400, "#8f9499", 0.6, cad="#ff9d2e")
+
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}

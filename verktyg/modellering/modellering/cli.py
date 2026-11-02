@@ -72,6 +72,36 @@ def trad(m: Montage, djup: int, nivå: int = 0, namn: str | None = None) -> None
         print(f"{'  ' * (nivå + 1)}  {k:3d} × {n}")
 
 
+def _armaturer() -> list[dict[str, object]]:
+    """Elinstallationens armaturer för renderingen (modellens el, om den finns): linsens läge, ljusets riktning,
+    tändgruppen, färgen och ljusfördelningen (IES ur tillverkarens fotometrifil i lokalt/el/, annars en stråle med
+    databladets strålvinkel)."""
+    from . import dagsljus, fotometri
+    try:
+        inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
+    except ModuleNotFoundError:
+        return []
+    u = inst.utdrag()
+    ut: list[dict[str, object]] = []
+    fordelningar: dict[str, fotometri.Fordelning] = {}
+    for pid, p in u["punkter"].items():
+        if p["slag"] != "lampa":
+            continue
+        t = u["typer"][p["typ"]]
+        if p["typ"] not in fordelningar:
+            ldt = ROT / "lokalt" / "el" / t["fotometri"]
+            fordelningar[p["typ"]] = (fotometri.las_ldt(ldt).skalad(t["ljusflode"]) if ldt.exists() else
+                                      fotometri.spot(t["stralvinkel"], t["ljusflode"], t["namn"]))
+            if not ldt.exists():
+                print(f"  {p['typ']}: fotometrifilen saknas ({ldt}), stråle {t['stralvinkel']:g}° (./mod el hamta)")
+        f = fordelningar[p["typ"]]
+        ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "riktning": p["riktning"],
+                   "punkt": p["punkt"], "normal": p["normal"], "hal_d": t["hal_d"],
+                   "ies": f.ies(), "farg": dagsljus.svartkropp(float(t["fargtemperatur"])),
+                   "lysande_d": t["lysande_d"], "max_cd": float(f.cd.max())})
+    return ut
+
+
 def main(argv: list[str] | None = None) -> None:
     a = argparse.ArgumentParser(prog="mod", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = a.add_subparsers(dest="kommando", required=True)
@@ -99,6 +129,8 @@ def main(argv: list[str] | None = None) -> None:
     pr.add_argument("--ut", type=Path, default=UT / "bilder")
     pr.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pr.add_argument("--blend", action="store_true", help="spara scenen som modeller/trebodar/ut/trebodar.blend")
+    pr.add_argument("--tand", nargs="*", default=[], metavar="GRUPP[=NIVÅ]",
+                    help="tänd elinstallationens tändgrupper, t.ex. AL-T1 AL-T2=0.5 (dimrad till hälften)")
     wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
     wb.add_argument("--ut", type=Path, default=ROT / "docs")
     sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
@@ -116,6 +148,12 @@ def main(argv: list[str] | None = None) -> None:
     pl.add_argument("vader", nargs="?", default="sol", help="sol, lätt mulet, mulet (sunny, slightlyovercast, overcast)")
     pl.add_argument("--steg", type=int, default=30, help="minuter mellan raderna för hela dagen")
     pl.add_argument("--diagram", type=Path, help="solens bana under året med fasadernas riktningar (png)")
+    pe = sub.add_parser("el", help="elinstallationen: kontroll, listor, ritningar och tillverkarnas fotometrifiler")
+    pe.add_argument("atgard", choices=("kontroll", "lista", "ritning", "hamta"),
+                    help="kontroll: referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar; "
+                         "lista: punkter, tändgrupper och rör (markdown); ritning: elplan och bjälklagets rör; "
+                         "hamta: ladda ner fotometrifilerna som saknas i lokalt/el/")
+    pe.add_argument("--ut", type=Path, default=UT / "el")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.png")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
@@ -169,6 +207,55 @@ def main(argv: list[str] | None = None) -> None:
             dl.soldiagram(plats, str(arg.diagram), {"NV-fasaderna": ax, "SV-gavlarna": ax - 90,
                                                     "SO-fasaderna": ax + 180, "NO-gavlarna": ax + 90})
             print(f"  {arg.diagram}")
+        return
+    if arg.kommando == "el":
+        import json
+        import urllib.request
+        from . import elritning
+        from .planritning import snitt
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
+        utdrag = inst.utdrag()
+        fel, anm = inst.kontroll()
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        if arg.atgard == "kontroll":
+            print(f"  {len(inst.punkter)} punkter, {len(inst.tandgrupper)} tändgrupper, {len(inst.ror)} rör: "
+                  f"{len(fel)} fel, {len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for a in anm:
+                print(f"    {a}")
+            if fel:
+                raise SystemExit(1)
+        elif arg.atgard == "lista":
+            fil = arg.ut / "elinstallation.md"
+            fil.write_text(elritning.lista(utdrag, (fel, anm)), encoding="utf-8")
+            (arg.ut / "elinstallation.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
+        elif arg.atgard == "ritning":
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            ma = ROT / "verktyg" / "modellanalys" / "ma"
+            plan1 = snitt(ma, step_fil, 1200.0, UT / "el-plan1.json")
+            mb = snitt(ma, step_fil, -75.0, UT / "el-mellanbjalklag.json")
+            omrade = (-500.0, 14300.0, -300.0, 16300.0)
+            elritning.elplan(utdrag, plan1, omrade, "Trebodar – elplan plan 1", "Plan 1", arg.ut / "elplan-plan1.png")
+            elritning.bjalklag(utdrag, mb, plan1, omrade, (-150.0, 0.0), "Trebodar – rör i mellanbjälklaget",
+                               "Mellanbjälklaget (rör ingjutna mitt i betongen)", arg.ut / "ror-mellanbjalklag.png")
+            print(f"  {arg.ut / 'elplan-plan1.png'}\n  {arg.ut / 'ror-mellanbjalklag.png'}")
+        else:
+            for t in {v["typ"]: utdrag["typer"][v["typ"]] for v in utdrag["punkter"].values()
+                      if v["slag"] == "lampa"}.values():
+                fil = ROT / "lokalt" / "el" / str(t["fotometri"])
+                if fil.exists():
+                    print(f"  finns: {fil}")
+                    continue
+                fil.parent.mkdir(parents=True, exist_ok=True)
+                with urllib.request.urlopen(str(t["fotometri_url"]), timeout=60) as svar:
+                    fil.write_bytes(svar.read())
+                print(f"  hämtad: {fil} ({fil.stat().st_size} byte)")
         return
     if arg.kommando == "kameraplan":
         from modellering import kameraplan
@@ -299,9 +386,11 @@ def main(argv: list[str] | None = None) -> None:
         glb.skriv(_utan(rot, getattr(vy_mod, "RENDER_UTOM", [])), fil, karna)
         arg.ut.mkdir(parents=True, exist_ok=True)
         vyer = {}
+        tand = {g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
         for namn, v in valda.items():
             m, d, k, w = arg.ljus or v["ljus"]
-            vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev}
+            vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev,
+                          "tand": {**dict(v.get("tand", {})), **tand}}
         scen = {"glb": str(fil), "ut": str(arg.ut.resolve()), "kvalitet": arg.kvalitet, "bredd": arg.bredd,
                 "hojd_m": plats.hojd, "portaler": vy_mod.portaler() if hasattr(vy_mod, "portaler") else [],
                 "lampor": {k: {**g, "farg": dagsljus.svartkropp(float(g["kelvin"]))}
@@ -309,6 +398,7 @@ def main(argv: list[str] | None = None) -> None:
                 "omgivning": getattr(vy_mod, "OMGIVNING", None),
                 "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
                             and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
+                "armaturer": _armaturer(),
                 "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
                 "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if arg.blend else None}
         scenfil = UT / "scen.json"
@@ -376,9 +466,10 @@ def main(argv: list[str] | None = None) -> None:
             regler = importlib.import_module("trebodar.kontrollregler")
             tillatna = getattr(regler, "TILLATNA_OVERLAPP", None)
             ignorerade = getattr(regler, "IGNORERADE", None)
+            utom = getattr(regler, "UTOM_KONTROLL", None)
         except ModuleNotFoundError:
-            tillatna = ignorerade = None
-        r = kontroll.kor(rot, karna, tillatna=tillatna, ignorerade=ignorerade)
+            tillatna = ignorerade = utom = None
+        r = kontroll.kor(rot, karna, tillatna=tillatna, ignorerade=ignorerade, utom=utom)
         fil = arg.ut / f"{filnamn(rot)}-kontroll.md"
         kontroll.rapport(r, fil)
         ogiltiga = [d.namn for d in {id(d): d for _, d, _ in rot.platta()}.values()

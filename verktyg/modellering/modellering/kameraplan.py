@@ -4,24 +4,15 @@ förteckning över bilderna. A3, skala 1:75.
 """
 from __future__ import annotations
 
-import json
 import math
-import subprocess
 from pathlib import Path
 
-import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrow, Polygon, Wedge
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyArrow, Polygon, Wedge  # noqa: E402
+from .planritning import BLAD, plan, snitt
 
 SKALA = 75.0
-BLAD = (420.0, 297.0)                    # A3 liggande, mm
-# delarna i snittet: utelämnade (sökvägens början) och fyllningen (första träffen i sökvägen)
-UTOM = ("Mark/", "Hus/Armering", "Hus/Grund/Plattan", "Hus/Grund/Fasadsten", "Hus/Installationer", "Hus/Tak")
-FYLLNING = (("-GLAS", "#bfe0f2"), ("-BLAD", "#c9ab84"), ("Fönster och dörrar", "#8f7f6c"), ("Hus/Stomme", "#5a5a5a"),
-            ("Hus/Grund", "#5a5a5a"), ("Hus/Kamin", "#3c3c3c"), ("Hus/Fasad", "#8c8c8c"), ("Hus/Isolering", "#e3dccb"),
-            ("Hus/Invändigt", "#a9a9a9"), ("Hus/Trappa", "#c9a46e"))
 OBJEKTIVFARG = {"öga": "#1f66b0", "vid": "#cf4a24"}
 # vynamnens ord (ASCII i filnamnen) i förteckningen
 ORD = {"kok": "köket", "fran": "från", "oversikt": "översikt", "fonster": "fönstret", "golvfonster": "golvfönstret",
@@ -29,36 +20,7 @@ ORD = {"kok": "köket", "fran": "från", "oversikt": "översikt", "fonster": "f�
        "kamin": "kaminen", "allrum": "allrummet", "uteplats": "uteplatsen", "sovrum": "sovrummet",
        "trappan": "trappan", "ned": "ned"}
 
-
-def snitt(ma: Path, step: Path, z: float, json_ut: Path) -> list[dict]:
-    """Delarnas snittytor i planet z (mm) ur STEP-filen (och snittets bild bredvid JSON-filen)."""
-    subprocess.run([str(ma), "snitt", f"z={z:g}", "--fil", str(step), "--json", str(json_ut), "--inga-etiketter",
-                    "--ut", str(json_ut.with_suffix(".png"))], check=True, capture_output=True)
-    return json.loads(json_ut.read_text(encoding="utf-8"))["delar"]
-
-
-def _fyllning(sokvag: str) -> str:
-    return next((f for k, f in FYLLNING if k in sokvag), "#b5b5b5")
-
-
-def _plan(fig: plt.Figure, lage_mm: tuple[float, float], omrade: tuple[float, float, float, float],
-          delar: list[dict], rubrik: str) -> plt.Axes:
-    """Ett plan i skalan: axlarna med nedre vänstra hörnet i lage_mm på bladet, omrade (x0, x1, y0, y1) i mm."""
-    x0, x1, y0, y1 = omrade
-    w, h = (x1 - x0) / SKALA, (y1 - y0) / SKALA
-    ax = fig.add_axes((lage_mm[0] / BLAD[0], lage_mm[1] / BLAD[1], w / BLAD[0], h / BLAD[1]))
-    ax.set_xlim(x0, x1)
-    ax.set_ylim(y0, y1)
-    ax.set_aspect("equal")
-    ax.axis("off")
-    for d in delar:
-        if d["sokvag"].startswith(UTOM):
-            continue
-        f = _fyllning(d["sokvag"])
-        for yta in d["ytor"]:
-            ax.add_patch(Polygon(yta[0], closed=True, fc=f, ec="#303030", lw=0.15))
-    ax.text(x0, y1, rubrik, fontsize=11, weight="bold", va="top")
-    return ax
+__all__ = ["rita", "snitt"]
 
 
 def _etikett(x: float, y: float, rikt: float, upptagna: list[tuple[float, float]],
@@ -77,8 +39,9 @@ def _etikett(x: float, y: float, rikt: float, upptagna: list[tuple[float, float]
 def rita(plan1: list[dict], kallare: list[dict], vyer: dict[str, dict], rum: dict[str, tuple],
          trapphal: list[tuple[float, float]], norr: tuple[float, float], titel: str, ut: Path) -> None:
     fig = plt.figure(figsize=(BLAD[0] / 25.4, BLAD[1] / 25.4))
-    a1 = _plan(fig, (8.0, 14.0), (-500.0, 14300.0, -300.0, 16300.0), plan1, "Plan 1 (snitt 1,2 m över golvet)")
-    ak = _plan(fig, (218.0, 104.0), (0.0, 14000.0, 0.0, 12800.0), kallare, "Källaren (snitt 1,2 m över golvet)")
+    a1 = plan(fig, (8.0, 14.0), (-500.0, 14300.0, -300.0, 16300.0), plan1, "Plan 1 (snitt 1,2 m över golvet)", SKALA)
+    ak = plan(fig, (218.0, 104.0), (0.0, 14000.0, 0.0, 12800.0), kallare, "Källaren (snitt 1,2 m över golvet)",
+              SKALA)
     xs, ys = zip(*trapphal)
     a1.add_patch(Polygon(trapphal, closed=True, fc="none", ec="#555555", lw=0.6, ls=(0, (4, 3))))
     a1.add_patch(FancyArrow(max(xs) - 250, (min(ys) + max(ys)) / 2 - 230, -(max(xs) - min(xs) - 700), 0.0, width=12,

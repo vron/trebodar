@@ -10,6 +10,12 @@ LAGER = {
     "trebodar.hus": ("trebodar.mark",),
 }
 
+# delar som inte kontrolleras alls (sökvägens början): elens rör, dosor, apparater och armaturer går genom skikten
+# utan håltagning i modellen
+UTOM_KONTROLL = {
+    "Hus/Installationer/El": "elinstallationen: rör, dosor, apparater och armaturer får gå genom andra delar",
+}
+
 IGNORERADE = {
     frozenset(("Armering", "Betong")): "armeringen ligger i betongen",
     frozenset(("Armering",)): "järnen ligger mot varandra i korsningar och skarvar",

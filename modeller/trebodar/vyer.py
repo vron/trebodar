@@ -39,6 +39,8 @@ VYER = {
                     "ljus": (6, 21, "09:00", "sol")},
     "detalj-tak": {"kamera": [-6000, 2500, 3200], "mal": [1500, 9500, 3000], "lins": 45, "ljus": (6, 21, "10:00", "sol"),
                    "lodrat": False},
+    "detalj-spot": {"kamera": [6600, 7900, 1500], "mal": [5873, 8650, 3174], "lins": 50, "ljus": (12, 21, "18:00", "sol"),
+                    "lodrat": False, "inne": True, "tand": {"AL-T1": 1.0, "AL-T2": 1.0}},
     "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
                "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
                                          "Fönster och dörrar", "Mark/", "Hus/Grund", "Installationer"]},

@@ -57,9 +57,15 @@ def innertak_underkant(t: S.Takfall, x: float) -> float:
     return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS
 
 
+def innertakets_fall(x: float, y: float) -> S.Takfall | None:
+    """Takfallet vars innertak ligger över punkten (i nocken det lägsta), eller None utanför innertaken."""
+    fall = [S.TAKFALL[k] for k, rs in REGIONER.items() for r in rs
+            if r.y0 - 1e-6 <= y <= r.y1 + 1e-6 and min(r.nedre.x, r.nock.x) - 1e-6 <= x <= max(r.nedre.x, r.nock.x) + 1e-6]
+    return min(fall, key=lambda t: t.z_overkant(x)) if fall else None
+
+
 def innertak_vid(x: float, y: float) -> float:
     """Innertakets underkant (den yttre gipsskivan) i punkten: takfallet vars område innehåller punkten (i nocken
     det lägsta)."""
-    z = [S.TAKFALL[k].z_overkant(x) for k, rs in REGIONER.items() for r in rs
-         if r.y0 - 1e-6 <= y <= r.y1 + 1e-6 and min(r.nedre.x, r.nock.x) - 1e-6 <= x <= max(r.nedre.x, r.nock.x) + 1e-6]
-    return min(z) + GIPS_YTTRE_W[0] / S.COS if z else S.H_VAGG
+    t = innertakets_fall(x, y)
+    return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS if t else S.H_VAGG

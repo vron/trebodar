@@ -20,6 +20,7 @@ fibrer eller brädor löper ("x", "y" eller "z"), `tvars` axeln längs vilken br
 | pulverlack | farg, grovhet, skala: pulverlackerad metall med fin apelsinyta |
 | bruk, berg, mark, grus, cellplast, isolering, papp | farg, farg2: brusiga ytor |
 | glas | transmission, reflex_ior: fönsterglas (reflexen på den första ytan) |
+| lins | farg, grovhet: armaturens lins, lyser för kameran när armaturen är tänd (objektens egenskaper) |
 | folie | farg, opacitet: genomskinlig |
 
 bradpanel: brädor med bredden `bredd` och fogen `fog` tvärs `tvars`, var och en sågad ur en stock: årsringarna är
@@ -152,6 +153,19 @@ def glas(g: Graf, p: dict) -> None:
     g.nt.links.new(val.outputs[0], g.ut.inputs["Surface"])
 
 
+def lins(g: Graf, p: dict) -> None:
+    """Armaturens reflektor och lins: vit och blank; lyser för kameran och i speglingar när armaturen är tänd, med
+    objektens egenskaper "lysande" (luminansen i Blenders enheter, 0 släckt) och "lysande_farg" (sätts per vy, se
+    scen.Armatur). Ljuset i rummet kommer från armaturens punktljus, inte från linsen."""
+    g.yta((*linjar(p["farg"]), 1.0), _f(p, "grovhet", 0.15))
+    styrka = g.nod("ShaderNodeAttribute", {"attribute_type": "OBJECT", "attribute_name": "lysande"})
+    farg = g.nod("ShaderNodeAttribute", {"attribute_type": "OBJECT", "attribute_name": "lysande_farg"})
+    lp = g.nod("ShaderNodeLightPath")
+    synlig = g.matte("ADD", lp.outputs["Is Camera Ray"], lp.outputs["Is Glossy Ray"], klamp=True)
+    g.satt(g.bsdf.inputs["Emission Color"], g.utgang(farg, "Color"))
+    g.satt(g.bsdf.inputs["Emission Strength"], g.matte("MULTIPLY", g.utgang(styrka, "Fac"), synlig))
+
+
 def folie(g: Graf, p: dict) -> None:
     g.yta((*linjar(p["farg"]), 1.0), 0.4)
     g.bsdf.inputs["Alpha"].default_value = _f(p, "opacitet", 0.5)
@@ -159,7 +173,7 @@ def folie(g: Graf, p: dict) -> None:
 
 TYPER = {"farg": farg, "tra": tra.tra, "limtra": tra.limtra, "virke": tra.virke, "bradpanel": tra.bradpanel,
          "gips": ytor.gips, "betong": ytor.betong, "kakel": ytor.kakel, "plat": plat, "granit": granit,
-         "glas": glas, "folie": folie, "pulverlack": pulverlack,
+         "glas": glas, "folie": folie, "pulverlack": pulverlack, "lins": lins,
          "bruk": lambda g, p: brusig(g, p, 40.0, 4.0, 0.4),
          "berg": lambda g, p: brusig(g, p, 0.8, 8.0, 0.6),
          "mark": lambda g, p: brusig(g, p, 2.5, 6.0, 0.4),

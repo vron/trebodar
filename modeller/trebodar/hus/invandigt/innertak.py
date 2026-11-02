@@ -9,6 +9,8 @@ runt, och vid gavlarna slutar innertaket mot gavelns insida (vagginsida.py).
 """
 from __future__ import annotations
 
+from functools import cache
+
 from shapely.geometry import Polygon
 
 from modellering import Montage
@@ -118,10 +120,21 @@ def _strackor(kod: str) -> list[list[float]]:
     return ut
 
 
-def takfall(kod: str) -> Montage:
+Profil = tuple[tuple[tuple[float, float], ...], float, float, str]
+MATERIAL = {"folie": ANGBROMS, "gips": GIPS, "lakt": C24_LAKT}
+
+
+@cache
+def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
+    """Innertakets skikt under takfallet som profiler, utan delar: (profilens punkter (x, z), y0, y1, typ) per bit,
+    för ångbromsen ("folie"), gipsen ("gips") och installationsskiktets läkt ("lakt"), i byggordning. Delarna byggs
+    av takfall; elinstallationen läser läkten härifrån (armaturerna mellan läkten)."""
     t = S.TAKFALL[kod]
     f = FALT[kod]
-    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna")
+    ut: dict[str, list[Profil]] = {"folie": [], "gips": [], "lakt": []}
+
+    def lagg(skikt: str, q: list[tuple[float, float]], a: float, b: float, typ: str) -> None:
+        ut[skikt].append((tuple((float(x), float(z)) for x, z in q), float(a), float(b), typ))
     # ångbromsen, läkten och den inre gipsskivan slutar 10 mm från nockbalken och vid dalbalkens upplagsregel; den yttre
     # gipsskivan går till nocklinjen och dallinjen, där den möter grannfallets
     ovre = L.Kant("lodratt", balkens_sida(f.nock, t) - t.riktning * 10.0)
@@ -132,9 +145,6 @@ def takfall(kod: str) -> Montage:
     hinder += [(*b, "vägg") for b in badrumsremsor(t)]
     hinder_s = [h[:4] for h in hinder]                     # ångbroms och läkt: mot hindren
     hinder_g = _med_fri(hinder)                            # gips: med avstånd
-    lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
-             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
-             "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
     strackor = _strackor(kod)
     gavlar = {strackor[0][0], strackor[-1][1]} if strackor else set()
     for y0, y1 in strackor:
@@ -162,12 +172,12 @@ def takfall(kod: str) -> Montage:
                 for sa, sb, ka, kb in _utan_hinder(k0, k1, s0, s1, hinder_s):
                     q = L.profil(t, *TAK_W, ka, kb)
                     if q:
-                        lager["folie"].profil(q, sa, sb, typ="AB", material=ANGBROMS)
+                        lagg("folie", q, sa, sb, "AB")
                 for (ga0, ga1), w, typ in (((k0, k1), GIPS_INRE_W, "GI"), ((g0, g1), GIPS_YTTRE_W, "GY")):
                     for sa, sb, ga, gb in _utan_hinder(ga0, ga1, s0, s1, hinder_g):
                         q = L.profil(t, *w, ga, gb)
                         if q:
-                            lager["gips"].profil(q, sa, sb, typ=typ, material=GIPS)
+                            lagg("gips", q, sa, sb, typ)
                 # installationsskiktets läkt längs y, c/c 400 längs takfallet, avbruten vid hindren
                 q = L.profil(t, *LAKT_W, k0, k1)
                 if not q:
@@ -177,7 +187,7 @@ def takfall(kod: str) -> Montage:
                         for sa, sb, ka, kb in _utan_hinder(k0, k1, c, e, hinder_s):
                             qs = L.profil(t, *LAKT_W, ka, kb)
                             if qs:
-                                lager["lakt"].profil(qs, sa, sb, typ="IL", material=C24_LAKT)
+                                lagg("lakt", qs, sa, sb, "IL")
                 ls0 = max([s0] + [e for c, e in spik if c <= s0 + 1e-6])
                 ls1 = min([s1] + [c for c, e in spik if e >= s1 - 1e-6])
                 ys = Polygon(q)
@@ -203,8 +213,18 @@ def takfall(kod: str) -> Montage:
                             bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e))
                                      if d[1] - d[0] > 1.0]
                     for c, e in bitar:
-                        lager["lakt"].profil([(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e,
-                                             typ="IL", material=C24_LAKT)
+                        lagg("lakt", [(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e, "IL")
+    return {k: tuple(v) for k, v in ut.items()}
+
+
+def takfall(kod: str) -> Montage:
+    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna")
+    lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
+             "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
+             "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
+    for skikt, bitar in skikten(kod).items():
+        for q, a, b, typ in bitar:
+            lager[skikt].profil(q, a, b, typ=typ, material=MATERIAL[skikt])
     for p in lager.values():
         if p.bitar:
             m.lagg(p.montage())

@@ -22,10 +22,11 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt |
 | `./mod avtryck spara\|jamfor [--del VÄG]` | Modellens fingeravtryck (varje dels låda, volym och tyngdpunkt): spara före en omstrukturering och jämför efter, så syns att geometrin är oförändrad (flyttade delar paras på namn, delar med samma geometri och nytt delnamn redovisas för sig; `ut/<modell>-avtryck.json`) |
 | `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
-| `./mod rendera [VY …] [--serie ute\|inne\|alla] [--kvalitet skiss\|utkast\|normal\|slutlig] [--ljus M D HH:MM VÄDER] [--ev EV] [--bredd PX] [--ut MAPP] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py` (VY: namn eller början av namn, t.ex. `I05`; serien `ute` är `VYER`, `inne` inomhusbilderna I01–I30). Kvaliteterna: skiss 640 px, utkast 1 280, normal 1 920 och slutlig 3 840 (4K). Dagsljuset är vyns om inte `--ljus` anges; exponeringen räknas fram ur en förhandsbild om inte `--ev` anges. `--blend` sparar scenen |
+| `./mod rendera [VY …] [--serie ute\|inne\|alla] [--kvalitet skiss\|utkast\|normal\|slutlig] [--ljus M D HH:MM VÄDER] [--tand GRUPP[=NIVÅ] …] [--ev EV] [--bredd PX] [--ut MAPP] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py` (VY: namn eller början av namn, t.ex. `I05`; serien `ute` är `VYER`, `inne` inomhusbilderna I01–I30). `--tand` tänder elinstallationens tändgrupper (nivå 0–1 dimrar). Kvaliteterna: skiss 640 px, utkast 1 280, normal 1 920 och slutlig 3 840 (4K). Dagsljuset är vyns om inte `--ljus` anges; exponeringen räknas fram ur en förhandsbild om inte `--ev` anges. `--blend` sparar scenen |
 | `./mod ljus MÅNAD DAG [HH:MM] [VÄDER] [--steg MIN] [--diagram PNG]` | Dagsljuset på platsen (`modellering/dagsljus.py`): solens riktning och höjd, solens och himlens färg (CIE-färg och färgtemperatur) och belysning för en tidpunkt eller hela dagen; väder `sol`, `lätt mulet`, `mulet` (eller `sunny`, `slightlyovercast`, `overcast`); `--diagram` ritar solens bana under året med fasadernas riktningar |
 | `./mod omgivning [--hamta]` | Omgivningen för renderingen ur öppna geodata (`modellering/geodata.py`): höjdmodell och marktäcke (berg, skog, vatten, åker, våtmark, vägar, trädgård, hav, byggnader) inom 2,3 km, i modellens koordinater via fasadens hörn i SWEREF 99 12 00 (AR-02); `--hamta` laddar ner det som saknas (OpenStreetMap via Overpass, Terrarium-höjdrutor). Allt i `lokalt/omgivning/` (versionshanteras inte) |
 | `./mod materialprov MATERIAL [--param K=V …] [--nara] [--bredd PX] [--sampel N]` | Ett material ur modellen på tolv skåpluckor, en bänkskiva och brädor (Blender), för att bedöma det och att bitarna inte blir lika; `--nara` en lucka på nära håll, `--param` ändrar parametrar (t.ex. `yta=lack`) |
+| `./mod el kontroll\|lista\|ritning\|hamta [--ut MAPP]` | Elinstallationen (`modeller/trebodar/hus/installationer/el`, se dess README): kontroll (referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar), punkt-, tändgrupps- och rörlistor, elplanen och rören i mellanbjälklaget (A3 ur STEP-filens snitt) till `ut/el/`, och tillverkarnas fotometrifiler som saknas (till `lokalt/el/`) |
 | `./mod kameraplan [--ut PNG]` | Ritningen över inomhusbildernas kameror (A3, 1:75) på plan 1 och i källaren ur STEP-filens snitt (kräver `./mod bygg` och `verktyg/modellanalys`); standard `renderingar/kameraplan.png` |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
 | `./mod typ` | Typkontroll (mypy) av ramverket och modellen, och modellens struktur: inga importcykler, privata namn från andra moduler, importer i funktioner eller brott mot modellens lagerordning (`modellering/struktur.py`, `LAGER` i `trebodar/kontrollregler.py`) |
@@ -85,7 +86,11 @@ egen modell (t.ex. för beställning). Utdata:
   Blender blir solen en sollampa med belysningen (lux / 683) och solskivans storlek efter vädret, och himlen skalas så
   att dess belysning på en horisontell yta och dess färg blir dagsljusets (mäts med en liten panoramarendering);
   mulet är en CIE-himmel. Ljusportaler i fönster, glasdörrar och takfönster i inomhusbilderna, och taklampor (LED-
-  paneler, `LAMPOR` i `vyer.py`) som tänds i de vyer som anger dem, t.ex. källaren. Exponeringen (EV100)
+  paneler, `LAMPOR` i `vyer.py`) som tänds i de vyer som anger dem, t.ex. källaren. Elinstallationens armaturer
+  blir ljus med tillverkarens uppmätta ljusfördelning (EULUMDAT → IES, `modellering/fotometri.py`; Cycles läser
+  IES-filens candela som 0,0706 · P / 4π, så effekten 4π / (683 · 0,0706) W ger ljusstyrkan i samma enheter som
+  solen), färgtemperatur och lysande yta; de infällda tar hål i gipsen i renderingen, och linsen lyser för
+  kameran. Exponeringen (EV100)
   räknas fram ur en snabb förhandsbild; inne också vitbalansen, som ögats anpassning till rummets ljus (medelfärgen
   utan fönstren blir nästan neutral), ute efter dagsljusets färgtemperatur (solens och himlens, med en del kvar av
   kvällssolens värme). Cycles på GPU med brusreducering (OIDN),

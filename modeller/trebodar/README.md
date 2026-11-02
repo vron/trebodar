@@ -165,7 +165,8 @@ Trebodar
     │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
-    ├── Installationer          VVS (ur Onshape-modellen); el och ventilation läggs till här
+    ├── Installationer          VVS (ur Onshape-modellen) och el (hus/installationer/el, se dess README); ventilation
+    │                           läggs till här
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull

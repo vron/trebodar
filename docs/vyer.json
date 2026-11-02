@@ -136,6 +136,31 @@
   ],
   "lodrat": false
  },
+ "detalj-spot": {
+  "kamera": [
+   6600,
+   7900,
+   1500
+  ],
+  "mal": [
+   5873,
+   8650,
+   3174
+  ],
+  "lins": 50,
+  "ljus": [
+   12,
+   21,
+   "18:00",
+   "sol"
+  ],
+  "lodrat": false,
+  "inne": true,
+  "tand": {
+   "AL-T1": 1.0,
+   "AL-T2": 1.0
+  }
+ },
  "stomme": {
   "kamera": [
    -8000,

@@ -42,6 +42,7 @@ class Resultat:
     tillatna: list[tuple[str, str, float, str]] = field(default_factory=list)  # (a, b, volym, motivering)
     skarvor: list[tuple[str, str, float]] = field(default_factory=list)        # numeriska skärvor
     ignorerade: dict[str, int] = field(default_factory=dict)                  # motivering: antal par som inte prövats
+    utanfor: dict[str, int] = field(default_factory=dict)                     # motivering: antal delar utan kontroll
     sekunder: float = 0.0
     nya_par: int = 0
 
@@ -190,11 +191,17 @@ def _jobb(paket: list[tuple[str, str, str, tuple[tuple[float, ...], ...]]]) -> l
 
 def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | None = None,
         tillatna: dict[frozenset[str], str] | None = None,
-        ignorerade: dict[frozenset[str], str] | None = None) -> Resultat:
+        ignorerade: dict[frozenset[str], str] | None = None, utom: dict[str, str] | None = None) -> Resultat:
     """`tillatna`: materialpar (frozenset av två materialnamn) vars överlapp är avsiktliga, med motivering.
-    `ignorerade`: materialpar som inte prövas alls (t.ex. armering i betong); delarna räknas som anliggande."""
+    `ignorerade`: materialpar som inte prövas alls (t.ex. armering i betong); delarna räknas som anliggande.
+    `utom`: delträd (sökvägens början) som inte kontrolleras alls, med motivering."""
     t0 = time.perf_counter()
-    poster: list[tuple[str, Del, Placering]] = list(rot.platta())
+    alla = list(rot.platta())
+
+    def under(vag: str, k: str) -> bool:                       # sökvägen under roten börjar med k
+        return vag.split("/", 1)[-1].startswith(k)
+    poster: list[tuple[str, Del, Placering]] = [p for p in alla if not any(under(p[0], k) for k in utom or {})]
+    utanfor = {m: sum(1 for p in alla if under(p[0], k)) for k, m in (utom or {}).items()}
     karna.forbered(d.form for _, d, _ in poster)
     nycklar = [karna.nyckel(d.form) for _, d, _ in poster]
     B = np.array([_varldslada(karna.egenskaper(d.form).bbox, p) for _, d, p in poster])
@@ -255,7 +262,7 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             db.executemany("insert or replace into par values (?, ?)", res)
         for pk, js in res:
             kanda[pk] = json.loads(js)
-    ut = Resultat(delar=len(poster), par=len(kandidater), nya_par=len(saknas))
+    ut = Resultat(delar=len(poster), par=len(kandidater), nya_par=len(saknas), utanfor=utanfor)
     kontakt = np.zeros(len(poster), dtype=bool)
     for i, j, m in hoppade:
         kontakt[i] = kontakt[j] = True
@@ -301,6 +308,9 @@ def rapport(r: Resultat, fil: Path | None = None) -> str:
              f"{r.delar} delar, {r.par} par nära varandra ({r.nya_par} nya), {r.sekunder:.1f} s.", "",
              f"## Krockar ({len(r.krockar)})", ""]
     rader += [f"- `{a}` och `{b}`: {v:.0f} mm³" for a, b, v in sorted(r.krockar, key=lambda x: -x[2])]
+    if r.utanfor:
+        rader += ["", f"## Delar som inte kontrolleras ({sum(r.utanfor.values())})", ""]
+        rader += [f"- {m}: {n} delar" for m, n in r.utanfor.items()]
     if r.ignorerade:
         rader += ["", f"## Par som inte prövats ({sum(r.ignorerade.values())})", ""]
         rader += [f"- {m}: {n} par" for m, n in r.ignorerade.items()]

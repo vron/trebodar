@@ -12,11 +12,17 @@ import math
 import os
 import tempfile
 
+import bmesh
 import bpy
 import numpy as np
 from mathutils import Matrix, Vector
 
 LUMEN_PER_WATT = 683.0
+# Cycles läser IES-filernas ljusstyrka [cd] som en faktor 0,0706 per cd på punktljusets P / 4π (kalibrerat: en
+# likformig fil på 100 cd gav 7,06 · P / 4π rakt ned, och faktorn är linjär); med effekten 4π / (683 · 0,0706) W blir
+# ljusstyrkan cd / 683, samma enheter som solen och himlen (lux / 683)
+IES_EFFEKT = 4 * math.pi / (LUMEN_PER_WATT * 0.070576)
+KALLA_BAKOM, KALLA_R = 20.0, 15.0     # armaturernas ljuskälla: så långt bakom linsen och dess radie [mm]
 REC709 = np.array([0.2126, 0.7152, 0.0722])
 SOLSKIVA = 0.53
 
@@ -318,6 +324,107 @@ def lampor(grupper: dict[str, dict]) -> dict[str, list[bpy.types.Object]]:
             ob.location = (x / 1000, y / 1000, g["z"] / 1000)          # arealjuset lyser längs −Z, nedåt
             ob.hide_render = True
             ut[grupp].append(ob)
+    return ut
+
+
+class Armatur:
+    """En armatur i scenen: punktljuset med armaturens ljusfördelning (IES) och färg, inne i armaturen bakom linsen
+    (frontringen och huset skärmar av snett ljus, som i armaturen; linsen och spoten kastar inga skuggor), och linsens
+    objekt, som lyser för kameran när armaturen är tänd (materialtypen lins)."""
+
+    def __init__(self, a: dict, ies: bpy.types.Text, linser: list[bpy.types.Object]):
+        self.tand = a["tand"]
+        lj = bpy.data.lights.new(a["id"], "POINT")
+        lj.shadow_soft_size = min(a["lysande_d"] / 2, KALLA_R) / 1000
+        lj.color = tuple(a["farg"])
+        lj.use_nodes = True
+        nt = lj.node_tree
+        n = nt.nodes.new("ShaderNodeTexIES")
+        n.mode = "INTERNAL"
+        n.ies = ies
+        nt.links.new(n.outputs["Fac"], nt.nodes["Emission"].inputs["Strength"])
+        self.ljus = bpy.data.objects.new(a["id"], lj)
+        bpy.context.scene.collection.objects.link(self.ljus)
+        r = Vector(a["riktning"]).normalized()
+        self.ljus.location = (Vector(a["lins"]) - KALLA_BAKOM * r) / 1000
+        self.ljus.rotation_euler = (-r).to_track_quat("Z", "Y").to_euler()      # ljusets −Z längs riktningen
+        self.ljus.hide_render = True
+        # linsens luminans rakt fram (största ljusstyrkan genom linsens yta), i Blenders enheter
+        self.luminans = a["max_cd"] / (math.pi * (a["lysande_d"] / 2000) ** 2) / LUMEN_PER_WATT
+        self.linser = linser
+        self.farg = tuple(a["farg"])
+        for o in linser:
+            o.visible_shadow = False
+        self.tand_till(0.0)
+
+    def tand_till(self, niva: float) -> None:
+        """Tänd (niva 0–1, dimrad) eller släck."""
+        self.ljus.hide_render = niva <= 0
+        self.ljus.data.energy = IES_EFFEKT * niva
+        for o in self.linser:
+            o["lysande"] = self.luminans * niva
+            o["lysande_farg"] = self.farg
+
+
+def _hal(lista: list[dict]) -> None:
+    """Hålen för infällda armaturer i skivorna som de sitter i, bara i renderingen (modellen har inga hål för
+    elinstallationen): en cylinder per armatur, hålets diameter och 60 mm lång längs armaturens axel, ur de
+    objekt som en stråle in i taket från armaturens mitt träffar inom 40 mm (gipsskivorna)."""
+    sc = bpy.context.scene
+    dg = bpy.context.evaluated_depsgraph_get()
+    hal: dict[str, list[tuple[Vector, Vector, float]]] = {}
+    sedda: set[tuple[str, str]] = set()
+    for a in lista:
+        p, n = Vector(a["punkt"]) / 1000, Vector(a["normal"]).normalized()
+        o, langs = p + n * 0.005, 0.0
+        while langs < 0.045:
+            ok, loc, _, _, ob, _ = sc.ray_cast(dg, o, -n, distance=0.045 - langs)
+            if not ok:
+                break
+            if ("/Installationer/El/" not in str(ob.get("sokvag", "")) and not ob.name.startswith("Hål ") and
+                    (ob.name, a["id"]) not in sedda):
+                sedda.add((ob.name, a["id"]))
+                hal.setdefault(ob.name, []).append((p, n, a["hal_d"] / 2000))
+            langs += (loc - o).length + 1e-4
+            o = loc - n * 1e-4
+    for namn, cyl in hal.items():
+        me = bpy.data.meshes.new(f"Hål {namn}")
+        bm = bmesh.new()
+        for p, n, r in cyl:
+            M = Matrix.Translation(p - n * 0.03) @ n.to_track_quat("Z", "Y").to_matrix().to_4x4()
+            bmesh.ops.create_cone(bm, cap_ends=True, segments=32, radius1=r, radius2=r, depth=0.06,
+                                  matrix=M @ Matrix.Translation((0.0, 0.0, 0.0)))
+        bm.to_mesh(me)
+        bm.free()
+        verktyg = bpy.data.objects.new(f"Hål {namn}", me)
+        sc.collection.objects.link(verktyg)
+        verktyg.hide_render = True
+        verktyg.display_type = "WIRE"
+        skiva = bpy.data.objects[namn]
+        skiva.modifiers.new("Sammanfoga", "WELD")      # GLB-nätet har delade hörn vid kanterna: täta det först
+        mod = skiva.modifiers.new("Hål för armaturer", "BOOLEAN")
+        mod.operation = "DIFFERENCE"
+        mod.object = verktyg
+        mod.solver = "EXACT"
+
+
+def armaturer(lista: list[dict]) -> list[Armatur]:
+    """Armaturerna ur scenens beskrivning; en IES-text per armaturtyp, linserna efter delarnas namn (<id>-LINS),
+    hålen i taket (bara i renderingen)."""
+    _hal(lista)
+    texter: dict[str, bpy.types.Text] = {}
+    ut = []
+    for a in lista:
+        if a["typ"] not in texter:
+            texter[a["typ"]] = bpy.data.texts.new(f"{a['typ']}.ies")
+            texter[a["typ"]].from_string(a["ies"])
+        namn = f"{a['id']}-LINS"
+        linser = [o for o in bpy.data.objects if o.type == "MESH" and
+                  (o.name.split(".")[0] == namn or str(o.get("sokvag", "")).endswith("/" + namn))]
+        skugglosa = [o for o in bpy.data.objects if o.type == "MESH" and o.name.split(".")[0] == f"{a['id']}-SPOT"]
+        for o in skugglosa:
+            o.visible_shadow = False
+        ut.append(Armatur(a, texter[a["typ"]], linser))
     return ut
 
 
