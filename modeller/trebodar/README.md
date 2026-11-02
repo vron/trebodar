@@ -199,6 +199,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Väggarnas möte med snedtaket**: takfotsväggarnas insida går upp till innertaket och kapas längs det, så att
   innertakets gips möter väggens i en skarp linje, med läkt bakom båda skivornas kanter; vid gavlarna en läkt
   längs takfallet bakom innertakets gipskant.
+- **Ytterhörnen inne vid dalarna** (1NO–2SO, 2SV–1NV, 2NV–3NO och 2SV–3SO), där en gavel går förbi en långsidas
+  ände: insidans skikt går runt hörnet var för sig, gavelns fram till långsidans och långsidans förbi gaveln, så att
+  ångbromsen är hel och bara gipsen syns. Gavelns insida går upp till takbalkarna under grannkroppens takfall, och
+  innertaket slutar mot den.
 - **Takkanterna** (planritning 201: takutstick 100 utanför panelen): vindskiva 22×145 ytterst i gavlarnas utstick
   med vindskivebeslag vikt runt den (över överkanten, ned över framsidan och in under den), takfotsplåt med
   droppnäsa, hängrännor Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
