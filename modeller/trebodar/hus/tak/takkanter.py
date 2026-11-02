@@ -1,11 +1,13 @@
 """Takkanterna (planritning 201: takutstick 100 runt hela huset).
 
-Vid takfoten: takfotsbräda 22×145 på takbalkarnas ändar med luftspalt 25 mm upp till råsponten (U-03:s luftintag,
-med nät), takfotsplåt 0,6 över råspontens framkant med droppnäsa över hängrännan, och halvrunda hängrännor Ø125 med
-gavlar. Stuprör Ø87 vid dalarnas ändar och vid de långa takfötternas ändar, från rännan till 150 mm över marken längs
-fasaden. Vid gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag
-0,6 över vindskivan och 50 mm in på plåten. Råsponten, pappen och plåten går ut till vindskivan (tak.py). Rännorna
-ligger vågrätt (fallet mot stuprören är inte modellerat) och rännkrokarna är inte modellerade.
+Vid takfoten finns ingen takfotsbräda: takbalkarnas ändar är synliga och fasadens panel går upp mellan dem
+(fasad.py), så att luftintaget till takets luftspalt (U-03) är öppningen ovanför panelen. Takfotsplåt 0,6 över
+råspontens framkant, 35 mm ned under råsponten och med droppnäsa över hängrännan, och halvrunda hängrännor Ø125
+med gavlar. Stuprör Ø87 vid dalarnas ändar och vid de långa takfötternas ändar, från rännan till 150 mm över marken
+längs fasaden. Vid gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och
+vindskivebeslag 0,6 vikt runt vindskivan: från 50 mm in på plåten över vindskivans överkant, ned över hela framsidan
+och 15 mm in under den. Råsponten, pappen och plåten går ut till vindskivan (tak.py). Rännorna ligger vågrätt
+(fallet mot stuprören är inte modellerat) och rännkrokarna (på råsponten) är inte modellerade.
 
 I dalarna (vågräta dallinjer): kilar av plywood på råsponten med fall 1:60 från mitten mot ändarna, som på dallinjen
 stiger från noll vid ändarna till högst i mitten och på sidorna går ned till råsponten 300 mm ut, och en rändal av
@@ -33,6 +35,8 @@ PLAT_T = 0.6
 RANNA_D, STUPROR_D = 125.0, 87.0
 RANNA_SPEL = 3.0             # rännans bakkant framför takfotsplåten
 NASA = (20.0, 10.0)          # droppnäsan: ut, ned
+PLAT_NED = 35.0              # takfotsplåtens raka del under råspontens underkant, ovanför droppnäsan
+VIK_IN = 15.0                # vindskivebeslagets vikning in under vindskivan
 STUPROR_FRI = 30.0           # stuprörets avstånd från panelen
 STUPROR_KANT = 150.0         # stuprörets läge från takfotens ände
 STUPROR_MARK = 150.0         # stuprörets ände över marken
@@ -50,38 +54,37 @@ def _takfoter(kod: str) -> list[tuple[Region, bool, bool]]:
     return [(r, r.y0 == y0, r.y1 == y1) for r in rs if r.nedre.x == FALT[kod].takfot]
 
 
+def _ranna(kod: str) -> tuple[float, float, float]:
+    """Takfotsplåtens nedre kant ovanför droppnäsan (z) och hängrännans mitt (x) och överkant (z)."""
+    t = S.TAKFALL[kod]
+    xe = kant_takfot(kod)
+    zb = _z(t, xe, L.RASPONT[0]) - PLAT_NED
+    return zb, xe - t.riktning * (PLAT_T + RANNA_SPEL + RANNA_D / 2), zb - NASA[1] - 5.0
+
+
 def _takfot(kod: str) -> Montage:
-    """Takfotsbräda, takfotsplåt och hängränna längs takfallets takfötter."""
+    """Takfotsplåt och hängränna längs takfallets takfötter."""
     t = S.TAKFALL[kod]
     r_ = t.riktning
-    xe = kant_takfot(kod)                              # råspontens kant och takfotsbrädans utsida
-    xi = FALT[kod].takfot
-    topp = _z(t, xe, L.RASPONT[0]) - L.LUFT_TAKFOT     # takfotsbrädans överkant
-    bt, bh = L.VINDSKIVA
-    brada = [(xi, topp - bh), (xe, topp - bh), (xe, topp), (xi, topp)]
-    zp, zb = _z(t, xe, L.PLAT[1]), topp - 10.0         # takfotsplåten från plåtens överkant till 10 mm förbi brädan
+    xe = kant_takfot(kod)                              # råspontens kant
+    zp = _z(t, xe, L.PLAT[1])                          # takfotsplåten från plåtens överkant
+    zb, xr, zr = _ranna(kod)
     ut, ned = NASA
     plat = [(xe, zp), (xe, zb), (xe - r_ * ut, zb - ned), (xe - r_ * ut, zb - ned + 0.8),
             (xe - r_ * PLAT_T, zb + 0.5), (xe - r_ * PLAT_T, zp)]
     R = RANNA_D / 2
-    xr, zr = xe - r_ * (PLAT_T + RANNA_SPEL + R), zb - ned - 5.0       # rännans mitt och överkant
     n = 24
     yttre = [(xr + R * math.cos(math.pi + math.pi * i / n), zr + R * math.sin(math.pi + math.pi * i / n))
              for i in range(n + 1)]
     inre = [(xr + (R - PLAT_T) * math.cos(math.pi + math.pi * i / n),
              zr + (R - PLAT_T) * math.sin(math.pi + math.pi * i / n)) for i in range(n, -1, -1)]
-    kropp = S.HUSKROPPAR[t.kropp]
-    panel = PANEL[t.kropp]
-    p = Plan(kod, f"Takfot {kod}", 1.0, beskrivning=f"Takfot, {kropp.namn}", material=panel)
-    g_brada = L.GAVEL_UT - bt                          # takfotsbrädan till vindskivan
+    p = Plan(kod, f"Takfot {kod}", 1.0, beskrivning=f"Takfot, {S.HUSKROPPAR[t.kropp].namn}", material=TAKPLAT)
     for r, gavel0, gavel1 in _takfoter(kod):
         a, b = r.y0 - (L.GAVEL_UT if gavel0 else -1.0), r.y1 + (L.GAVEL_UT if gavel1 else -1.0)
-        p.profil(brada, r.y0 - (g_brada if gavel0 else 0.0), r.y1 + (g_brada if gavel1 else 0.0), typ="TB",
-                 material=panel, bas_namn=f"Takfotsbräda {fmt(bt)}×{fmt(bh)}")
-        p.profil(plat, a, b, typ="TF", material=TAKPLAT, bas_namn="Takfotsplåt 0,6")
-        p.profil(yttre + inre, a, b, typ="HR", material=TAKPLAT, bas_namn=f"Hängränna Ø{fmt(RANNA_D)}")
+        p.profil(plat, a, b, typ="TF", bas_namn="Takfotsplåt 0,6")
+        p.profil(yttre + inre, a, b, typ="HR", bas_namn=f"Hängränna Ø{fmt(RANNA_D)}")
         for y in (a - 1.0, b):                         # rännans gavlar
-            p.profil(yttre, y, y + 1.0, typ="RG", material=TAKPLAT, bas_namn=f"Rännans gavel Ø{fmt(RANNA_D)}")
+            p.profil(yttre, y, y + 1.0, typ="RG", bas_namn=f"Rännans gavel Ø{fmt(RANNA_D)}")
     return p.montage()
 
 
@@ -104,14 +107,17 @@ def _vindskivor(kod: str) -> Montage:
                 nedre = L.Kant("lodratt", nedre.x + t.riktning * 25.0)
             skiva = L.profil(t, w1 - bh, w1, nedre, r.nock)
             topp = L.profil(t, w1, w1 + PLAT_T, nedre, r.nock)
-            lapp = L.profil(t, w1 + PLAT_T - 45.0, w1 + PLAT_T, nedre, r.nock)
-            if not (skiva and topp and lapp):
+            fram = L.profil(t, w1 - bh - PLAT_T, w1 + PLAT_T, nedre, r.nock)
+            under = L.profil(t, w1 - bh - PLAT_T, w1 - bh, nedre, r.nock)
+            if not (skiva and topp and fram and under):
                 continue
-            for prof, (a, b), typ, namn, mat in (
-                    (skiva, sorted((yk, kant)), "VS", f"Vindskiva {fmt(bt)}×{fmt(bh)}", PANEL[t.kropp]),
-                    (topp, sorted((yk, kant + inat * 50.0)), "VB", "Vindskivebeslag 0,6", TAKPLAT),
-                    (lapp, sorted((yk, yk - inat * PLAT_T)), "VB", "Vindskivebeslag 0,6, kant", TAKPLAT)):
-                p.profil(prof, a, b, typ=typ, material=mat, bas_namn=namn)
+            y0, y1 = sorted((yk, kant))
+            p.profil(skiva, y0, y1, typ="VS", bas_namn=f"Vindskiva {fmt(bt)}×{fmt(bh)}")
+            # beslaget i en del: överkanten (huvudprofilen, y a–b), framsidan och vikningen under vindskivan
+            a, b = sorted((yk - inat * PLAT_T, kant + inat * 50.0))
+            vik = [(fram, sorted((yk - inat * PLAT_T, yk))), (under, sorted((yk - inat * PLAT_T, yk + inat * VIK_IN)))]
+            p.profil(topp, a, b, typ="VB", material=TAKPLAT, bas_namn="Vindskivebeslag 0,6",
+                     tillagg=[(q, b - y1, y1 - y0) for q, (y0, y1) in vik])
     return p.montage()
 
 
@@ -131,10 +137,7 @@ def _stupror_lagen() -> list[tuple[str, float]]:
 def _stupror(kod: str, y: float) -> Del:
     t = S.TAKFALL[kod]
     r_ = t.riktning
-    xe = kant_takfot(kod)
-    topp = _z(t, xe, L.RASPONT[0]) - L.LUFT_TAKFOT
-    zr = topp - 10.0 - NASA[1] - 5.0
-    xr = xe - r_ * (PLAT_T + RANNA_SPEL + RANNA_D / 2)
+    _, xr, zr = _ranna(kod)
     v = S.YTTERVAGGAR[kod]
     x_fasad = t.x_utsida - r_ * S.T_FASAD
     xs = x_fasad - r_ * (STUPROR_FRI + STUPROR_D / 2)
@@ -191,8 +194,7 @@ def _randal(dal: str) -> Montage:
 
 
 def montage() -> Montage:
-    m = Montage("Takkanter", beskrivning="Takfotsbrädor, takfotsplåt, hängrännor, stuprör, vindskivor, beslag och "
-                                         "rändalar")
+    m = Montage("Takkanter", beskrivning="Takfotsplåt, hängrännor, stuprör, vindskivor, vindskivebeslag och rändalar")
     for dal in ("DB2", "DB4"):
         m.lagg(_randal(dal))
     for kod in REGIONER:

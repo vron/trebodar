@@ -4,9 +4,10 @@ Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläk
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
 en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
 Fasaden går ned till marken (MARKNIVA) och på väggarna med fasadsten till stenens överkant i bjälklagets
-underkant (z −150); upptill slutar den vid takfötterna under takbalkarnas sätesplan (z 2 490) och i gavlarna mot
-takets hårdboard. I hörnen möts skikten var för sig (utegips mot utegips, läkt mot läkt) och panelen täcker hela
-hörnet (fasad_u).
+underkant (z −150). Vid takfötterna går den upp mellan takbalkarna (tänder) till takbalkarnas överkant i panelens
+utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack; ovanför ligger takets luftspalt öppen
+(luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
+utegips, läkt mot läkt) och panelen täcker hela hörnet (fasad_u).
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from shapely.ops import unary_union
 from modellering import Material, Montage
 
 from trebodar import skelett as S
+from trebodar.byggdelar import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
@@ -120,13 +122,28 @@ def underkant(kod: str) -> list[tuple[float, float]]:
     return [(u0, mark_vid(kod, u0))] + inne + [(u1, mark_vid(kod, u1))]
 
 
+def tander(kod: str) -> list[tuple[float, float, float]]:
+    """Facken mellan takbalkarna (och takstolarnas delar) som går ut genom långsidans fasad ovanför hammarbandet:
+    (u0, u1, z1), där fasaden går upp till takbalkarnas överkant z1 i panelens utsida."""
+    t, v = S.TAKFALL[kod], S.YTTERVAGGAR[kod]
+    x_ut = t.x_utsida - t.riktning * S.T_FASAD
+    zon = box(min(t.x_utsida, x_ut), S.H_VAGG, max(t.x_utsida, x_ut), t.z_overkant(t.x_utsida))
+    fria = [fasadens_u(kod)]
+    for _, q, y0, y1 in lagen.takets_stomme():
+        if q.intersection(zon).area > 1.0:
+            a, b = sorted((y - v.origo[1]) * v.u[1] for y in (y0, y1))
+            fria = [d for c, e in fria for d in ((c, min(e, a)), (max(c, b), e)) if d[1] - d[0] > 1.0]
+    return [(a, b, t.z_overkant(x_ut)) for a, b in fria]
+
+
 def kontur(kod: str) -> Polygon:
     """Fasadens kontur i väggens (u, z), alla skikt (varje skiktgrupp skärs till sin utsträckning, fasad_u)."""
     v = S.YTTERVAGGAR[kod]
     u0, u1 = fasadens_u(kod)
     under = underkant(kod)
     if kod not in GAVLAR:
-        return Polygon(under + [(u1, S.H_VAGG), (u0, S.H_VAGG)])
+        vagg = Polygon(under + [(u1, S.H_VAGG), (u0, S.H_VAGG)])
+        return unary_union([vagg] + [box(a, S.H_VAGG, b, z1) for a, b, z1 in tander(kod)])
     # gavel: överkanten följer takplanen; brytpunkter vid nockar och dalar
     y = v.origo[1] - v.w[1] * S.T_FASAD / 2           # mitt i fasadskiktet
     x_av = lambda u: v.origo[0] + v.u[0] * u           # noqa: E731
@@ -171,21 +188,25 @@ def utsida(kod: str) -> Montage:
     w -= UTEGIPS_T
     u0, u1 = fasad_u(kod, LAKT_DJUP)
     fasl = fas(LAKT_DJUP)
-    zt = fasl.bounds[3]
+    zt = fasl.bounds[3] if kod in GAVLAR else S.H_VAGG
+    tand = [] if kod in GAVLAR else [(max(a, u0), min(b, u1), z1) for a, b, z1 in tander(kod)
+                                     if min(b, u1) - max(a, u0) >= 3 * LAKT_B]
     fasta = {u0, u1 - LAKT_B}
     for ku0, _, ku1, _ in karmar:
         fasta |= {ku0 - LAKT_B, ku1}
     fasta = {u for u in fasta if u0 - 1e-6 <= u <= u1 - LAKT_B + 1e-6}
-    lagen = _lagen(fasta, [u0 + CC * k for k in range(1, int((u1 - u0) // CC) + 1) if u0 + CC * k < u1 - LAKT_B])
+    staende = _lagen(fasta, [u0 + CC * k for k in range(1, int((u1 - u0) // CC) + 1) if u0 + CC * k < u1 - LAKT_B])
     zu = fasl.bounds[1]
-    lakt("Ströläkt", "SR", STRO_T, [box(u, zu, u + LAKT_B, zt) for u in lagen])
+    lakt("Ströläkt", "SR", STRO_T, [box(u, zu, u + LAKT_B, zt) for u in staende]
+         + [box(u, S.H_VAGG, u + LAKT_B, z1) for a, b, z1 in tand for u in (a, b - LAKT_B)])
     w -= STRO_T
     fasta = {Z_UK, zu}                                   # och vid fasadens underkant
     for _, kz0, _, kz1 in karmar:
         fasta |= {z for z in (kz0 - LAKT_B, kz1) if z >= zu - 1e-6}
     # raderna c/c CC från bjälklagets underkant, uppåt och nedåt till marken
     rader = _lagen(fasta, [Z_UK + CC * k for k in range(-int((Z_UK - zu) // CC), int((zt - Z_UK) // CC) + 1) if k])
-    lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader])
+    lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader]
+         + [box(a, z1 - LAKT_B, b, z1) for a, b, z1 in tand])
     w -= SPIK_T
     panel = PANEL[int(kod[0])]
     skikt("Panel", "PA", PANEL_T, panel, f"Panel 22 mm {panel.namn.removeprefix('Panel ')}", PANEL_DJUP)

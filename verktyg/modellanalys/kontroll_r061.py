@@ -42,7 +42,8 @@ yta = sd["MB-B"].yta
 # AR-02) bildar väggarnas ytterliv, 30 mm utanför plattans kant
 liv = unary_union([s.yta.buffer(0) for s in snitt(m, m.valj("MB-B,MB-C,PM-L"), plan)])
 ytter = np.array(Polygon(liv.exterior).buffer(-30.0, join_style=2).exterior.coords)[:-1]
-hal = np.array(yta.interiors[0].coords)[:-1]
+# trapphålet: plattans största hål (genomföringar för installationer räknas inte)
+hal = np.array(max(yta.interiors, key=lambda r: Polygon(r).area).coords)[:-1]
 xs = sorted({round(v, 3) for v in ytter[:, 0]})
 ys = sorted({round(v, 3) for v in ytter[:, 1]})
 hx = sorted({round(v, 3) for v in hal[:, 0]})

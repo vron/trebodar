@@ -144,8 +144,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
-  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TB takfotsbräda, TF takfotsplåt, HR
-  hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, stuprören ST1–ST8, i dalarna DB2-KIL och DB2-RD
+  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TF takfotsplåt, HR hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, stuprören ST1–ST8, i dalarna DB2-KIL och DB2-RD
   (kilar och rändal). Fasad: UG utegips, SR ströläkt, SP
   spikläkt, PA panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY
   innertakets yttre gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, IS
@@ -185,11 +184,14 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Väggarnas möte med snedtaket**: takfotsväggarnas insida går upp till innertaket och kapas längs det, så att
   innertakets gips möter väggens i en skarp linje, med läkt bakom båda skivornas kanter; vid gavlarna en läkt
   längs takfallet bakom innertakets gipskant.
-- **Takkanterna** (planritning 201: takutstick 100): vindskiva 22×145 ytterst i gavlarnas utstick med
-  vindskivebeslag, takfotsbräda 22×145 med luftspalt 25 mm till råsponten, takfotsplåt med droppnäsa, hängrännor
-  Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
-- **Takfoten**: isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas överkant och kapat
-  efter takplanet; hårdboarden slutar på det, råsponten, pappen och plåten 20 mm utanför takbalkarnas ände.
+- **Takkanterna** (planritning 201: takutstick 100 utanför panelen): vindskiva 22×145 ytterst i gavlarnas utstick
+  med vindskivebeslag vikt runt den (över överkanten, ned över framsidan och in under den), takfotsplåt med
+  droppnäsa, hängrännor Ø125 och stuprör Ø87 vid dalarnas ändar och de långa takfötternas ändar.
+- **Takfoten**: ingen takfotsbräda; takbalkarnas ändar är synliga och fasaden går upp mellan dem till takbalkarnas
+  överkant i panelens utsida (en ströläkt mot varje takbalk och en spikläkt överst i facket), så att luftintaget är
+  öppningen ovanför panelen. Isolerstopp, regel 45 bultad på hammarbandet i varje fack, upp till takbalkarnas
+  överkant och kapat efter takplanet; hårdboarden slutar på det, råsponten, pappen och plåten 20 mm utanför
+  takbalkarnas ände.
 - **Luftspalten** 34 mm: ströläkt 34×45 på hårdboard 3 mm, på varje takbalk och takstol och två mellan i varje fack,
   uppehåll 600 mm ovanför och nedanför takfönstren (U-03).
 - **Enligt handlingarna** (K-03, K-05, K-06, R-04, R-05): strävor på båda sidor om LN1_3, LD4_1 GL30h 140×140,

@@ -20,11 +20,9 @@ PAPP = (57.0, 59.0)
 PLAT = (59.0, 59.6)
 FALS = (59.6, 84.6)                  # stående fals 25 mm på plåten
 STOPP_T = 45.0                       # isolerstoppet vid takfoten: regel 45 på hammarbandet i varje fack (bultad)
-RASPONT_UT = 22.0                    # råspont, papp och plåt utanför takbalkarnas ände vid takfoten (ca 20 mm),
-                                     # i takfotsbrädans liv
+RASPONT_UT = 22.0                    # råspont, papp och plåt utanför takbalkarnas ände vid takfoten (ca 20 mm)
 GAVEL_UT = 100.0                     # takutstick vid gavlarna (planritning 201), vindskivan ytterst
-VINDSKIVA = (22.0, 145.0)            # vindskivan och takfotsbrädan: tjocklek, bredd
-LUFT_TAKFOT = 25.0                   # luftspalt mellan takfotsbrädan och råsponten (U-03:s luftintag, nät)
+VINDSKIVA = (22.0, 145.0)            # vindskivan: tjocklek, bredd
 RANDAL_B = 300.0                     # rändalens bredd på var sida om dallinjen (i plan)
 RANDAL_FALL = 1.0 / 60.0             # dalarnas fall från mitten mot ändarna (AMA minst 1:75)
 
