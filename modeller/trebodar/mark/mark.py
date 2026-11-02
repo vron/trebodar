@@ -165,7 +165,7 @@ def montage() -> Montage:
         ring = prisma_ur(g, -H_L_MARK, 10.0)
         m.lagg(Del("Makadam runt plattan på mark", (ring & berg0) | (ring & upp0), MAKADAM), Placering(), f"MA-{i}")
     # återfyllningen mot källarväggarna, utanför väggarna och fasadstenen, där marken inte når fram
-    sten = unary_union([rektangel(x0, y0, x1, y1) for _, _, (x0, y0, _, x1, y1, _) in lagen.lagen(fasadsten.montage())])
+    sten = unary_union([rektangel(x0, y0, x1, y1) for x0, y0, _, x1, y1, _ in lagen.ladar(fasadsten.montage())])
     hinder = [prisma_ur(kallarvaggar.ytterkontur(), MARK_UK - 10.0, 10.0), berg0, upp0, avsats0, schakt]
     # fasadstenens kluvna yta följs inte: fyllningen slutar 5 mm utanför stenarnas omslutande lådor
     hinder += [prisma_ur(g, MARK_UK - 10.0, 10.0) for g in polygoner(sten.buffer(5.0, join_style=2))]

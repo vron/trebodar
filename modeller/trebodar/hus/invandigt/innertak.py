@@ -47,20 +47,22 @@ def _hinder_tak(t: S.Takfall, x_lo: float, x_hi: float) -> list[tuple[float, flo
     per grupp: delar som går över gipsens underkant där innertaket är lägst ovanför dem. Slaget är "vägg", "stolpe"
     eller "skikt" (en ytterväggs insida). Takfotsväggen räknas inte (innertaket går över den)."""
     lador: dict[str, list[float]] = {}
-    for grupp, _, (x0, y0, _, x1, y1, z1) in lagen.prefab():
-        if grupp.endswith(f"Vägg {t.kod}") or not (x0 < x_hi and x_lo < x1):
+    for d in lagen.prefab():
+        x0, y0, _, x1, y1, z1 = d.lada
+        if d.element == t.kod or not (x0 < x_hi and x_lo < x1):
             continue
         x = max(x0, x_lo) if t.riktning > 0 else min(x1, x_hi)           # där innertaket är lägst över delen
         if z1 <= t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS + 1.0:
             continue
-        g = lador.setdefault(grupp, [x0, x1, y0, y1])
+        g = lador.setdefault(d.element, [x0, x1, y0, y1])
         g[:] = [min(g[0], x0), max(g[1], x1), min(g[2], y0), max(g[3], y1)]
-    ut = [(g[0], g[1], g[2], g[3], "stolpe" if "/Stolpe " in f"/{k}" else "vägg") for k, g in lador.items()]
+    stolpar = {d.element for d in lagen.stolpar()}
+    ut = [(g[0], g[1], g[2], g[3], "stolpe" if k in stolpar else "vägg") for k, g in lador.items()]
     # en ytterväggs insida går upp genom innertaket med väggen (en gavel som går förbi en dal under grannkroppens
     # takfall); innertaket möter skikten utan avstånd
     for k in lador:
-        if k.startswith("Ytterväggar/Vägg "):
-            x0, y0, x1, y1 = insidans_plan(k.split("Vägg ")[-1]).bounds
+        if k in S.YTTERVAGGAR:
+            x0, y0, x1, y1 = insidans_plan(k).bounds
             ut.append((x0, x1, y0, y1, "skikt"))
     return ut
 

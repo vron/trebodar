@@ -34,9 +34,9 @@ def _hinder() -> tuple[list[tuple[Polygon, float, float]], list[tuple[Polygon, f
     """Delar som står mot ytterväggarnas insida, som (plan, z0, z1): de bärande innerväggarnas delar och skikt,
     stolparnas delar och dalbalkarnas ändar; för skivorna också de lätta väggarnas stommar."""
     ut = list(vaggar.barande_skikt())
-    for grupp, _, (x0, y0, z0, x1, y1, z1) in lagen.prefab():
-        if not grupp.startswith("Ytterväggar/"):
-            ut.append((box(x0, y0, x1, y1), z0, z1))
+    for d in lagen.innervaggar() + lagen.stolpar():
+        x0, y0, z0, x1, y1, z1 = d.lada
+        ut.append((box(x0, y0, x1, y1), z0, z1))
     for b in S.BALKAR.values():
         ut.append((box(b.x - S.BALK_B / 2, b.y0, b.x + S.BALK_B / 2, b.y1), b.uk, b.ok))
     return ut, ut + vaggar.stommar()

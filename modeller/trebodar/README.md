@@ -37,8 +37,9 @@ väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets ski
 Varje läge skrivs på ett ställe. Det som handlingarna bestämmer (väggarnas, takbalkarnas, takstolarnas och
 stolparnas lägen, öppningarna) står i `skelett.py` eller i montagets egen fil. Det som ska passa mot det (skikt,
 isolering, fasad, läkt, syllar) räknas fram ur `skelett.py` eller ur stommens delar:
-[`hus/stomme/lagen.py`](hus/stomme/lagen.py) ger delarnas lägen i huset ur montagen, t.ex. takstolarnas ytterbalkar
-för ströläkten och delarna som de invändiga skikten går runt. Nya detaljer byggs på samma sätt, så att de följer med
+[`hus/stomme/lagen.py`](hus/stomme/lagen.py) ger delarnas lägen i huset ur montagen, per element (`vagg(kod)`,
+`stolpe(kod)`, `takstol(kod)`, med delens typ), t.ex. takstolarnas ytterbalkar för ströläkten och delarna som de
+invändiga skikten går runt. Ingen modul tolkar gruppernas eller delarnas namn själv. Nya detaljer byggs på samma sätt, så att de följer med
 när stommen ändras.
 
 ### Beroenden

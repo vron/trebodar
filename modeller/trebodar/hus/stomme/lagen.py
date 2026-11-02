@@ -7,7 +7,9 @@ förflyttning i huset), för takets stomme exakta tvärsnitt i (x, z). Montagen 
 """
 from __future__ import annotations
 
+import re
 from functools import cache
+from typing import NamedTuple
 
 from shapely.geometry import Polygon, box
 
@@ -15,25 +17,50 @@ from modellering import Lada as Ratblock
 from modellering import Montage, Prisma, i_foraldern, omslutande
 
 from trebodar import skelett as S
-from trebodar.hus.stomme.prefab.innervaggar import innervaggar
-from trebodar.hus.stomme.prefab.stolpar import stolpar
+from trebodar.hus.stomme.prefab.innervaggar import innervaggar as _innerv
+from trebodar.hus.stomme.prefab.stolpar import stolpar as _stolpar
 from trebodar.hus.stomme.prefab.takbalkar import takbalkar
 from trebodar.hus.stomme.prefab.takstolar import takstolar as T
-from trebodar.hus.stomme.prefab.yttervaggar import yttervaggar
+from trebodar.hus.stomme.prefab.yttervaggar import yttervaggar as _ytterv
 
 Lada = tuple[float, float, float, float, float, float]
-Lage = tuple[str, str, Lada]             # (grupp, delens namn, låda), t.ex. ("Innerväggar/Vägg 1B", "1B-R01", …)
 Tvarsnitt = tuple[str, Polygon, float, float]       # (delens namn, tvärsnittet i (x, z), y0, y1)
 
 
-def lagen(m: Montage) -> tuple[Lage, ...]:
-    """Montagets delar med grupp, namn och omslutande låda i montagets system."""
+class Lage(NamedTuple):
+    """En stomdels läge: elementet den hör till (väggens, stolpens eller takstolens kod), delens namn och dess
+    omslutande låda (x0, y0, z0, x1, y1, z1) i huset."""
+    element: str
+    namn: str
+    lada: Lada
+
+    @property
+    def typ(self) -> str:
+        """Delens typ ur namnet <element>-<typ><nr>: R regel, S syll, H hammarband, L liggande, D diagonal, U
+        underram, X ytterbalk, K kloss, P spikplåt …"""
+        m = re.fullmatch(rf"{re.escape(self.element)}-([A-Za-z]+)\d+", self.namn)
+        return m.group(1) if m else ""
+
+
+def ladar(m: Montage) -> tuple[Lada, ...]:
+    """Montagets delars omslutande lådor i montagets system."""
     ut = []
-    for vag, d, p in m.platta():
+    for _, d, p in m.platta():
         b = omslutande(d.form)
         if b is not None:
-            grupp, namn = vag.rsplit("/", 1)
-            ut.append((grupp, namn, i_foraldern(b, p)))
+            ut.append(i_foraldern(b, p))
+    return tuple(ut)
+
+
+def _per_element(m: Montage) -> tuple[Lage, ...]:
+    """Delarna i montagets element (barnmontagen, med sin kod), i montagets system."""
+    ut = []
+    for i in m:
+        assert isinstance(i.barn, Montage) and i.barn.kod, (m.namn, i.namn)
+        for vag, d, p in i.barn.platta(i.placering):
+            b = omslutande(d.form)
+            if b is not None:
+                ut.append(Lage(i.barn.kod, vag.rsplit("/", 1)[-1], i_foraldern(b, p)))
     return tuple(ut)
 
 
@@ -59,15 +86,45 @@ def takets_stomme() -> tuple[Tvarsnitt, ...]:
 
 
 @cache
-def prefab() -> tuple[Lage, ...]:
-    """Ytterväggarna, de bärande innerväggarna och stolparna."""
-    return tuple(x for m in (yttervaggar.montage(), innervaggar.montage(), stolpar.montage()) for x in lagen(m))
+def yttervaggar() -> tuple[Lage, ...]:
+    """Ytterväggarnas delar."""
+    return _per_element(_ytterv.montage())
+
+
+@cache
+def innervaggar() -> tuple[Lage, ...]:
+    """De bärande innerväggarnas delar."""
+    return _per_element(_innerv.montage())
+
+
+@cache
+def stolpar() -> tuple[Lage, ...]:
+    """De fristående stolparnas delar."""
+    return _per_element(_stolpar.montage())
 
 
 @cache
 def takstolar() -> tuple[Lage, ...]:
-    """Takstolarnas delar, grupperna "Takstolar/Takstol <kod>"."""
-    return lagen(T.montage())
+    """Takstolarnas delar."""
+    return _per_element(T.montage())
+
+
+def prefab() -> tuple[Lage, ...]:
+    """Ytterväggarna, de bärande innerväggarna och stolparna."""
+    return yttervaggar() + innervaggar() + stolpar()
+
+
+def vagg(kod: str) -> tuple[Lage, ...]:
+    """Väggens delar (ytter- eller innervägg)."""
+    return tuple(d for d in yttervaggar() + innervaggar() if d.element == kod)
+
+
+def stolpe(kod: str) -> tuple[Lage, ...]:
+    return tuple(d for d in stolpar() if d.element == kod)
+
+
+def takstol(kod: str) -> tuple[Lage, ...]:
+    return tuple(d for d in takstolar() if d.element == kod)
 
 
 # takets fack mellan takbalkarna, gavlarna och takstolarna (isoleringen och innertaket)
@@ -80,7 +137,7 @@ def _med_takstol(kod: str) -> tuple[float, float]:
     toppklossar utanför väggens tjocklek)."""
     v = S.VAGGAR[kod]
     ys = [v.origo[1], v.origo[1] + v.w[1] * v.tjocklek]
-    ys += [y for g, _, (_, y0, _, _, y1, _) in takstolar() if g.endswith(f"/Takstol {kod}") for y in (y0, y1)]
+    ys += [y for d in takstol(kod) for y in (d.lada[1], d.lada[4])]
     return min(ys), max(ys)
 
 

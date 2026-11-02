@@ -122,7 +122,8 @@ def _i_vaggen(v: S.Vaggdef, band: Polygon, hinder: list[Hinder]) -> list[Polygon
 @cache
 def _delar() -> tuple[Hinder, ...]:
     """Stommens delar: ytterväggar, bärande innerväggar, stolpar och takstolar."""
-    return tuple((box(x0, y0, x1, y1), z0, z1) for _, _, (x0, y0, z0, x1, y1, z1) in lagen.prefab() + lagen.takstolar())
+    return tuple((box(d.lada[0], d.lada[1], d.lada[3], d.lada[4]), d.lada[2], d.lada[5])
+                 for d in lagen.prefab() + lagen.takstolar())
 
 
 def stommar() -> list[Hinder]:

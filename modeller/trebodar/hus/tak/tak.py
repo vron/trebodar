@@ -12,7 +12,6 @@ dalar.py.
 """
 from __future__ import annotations
 
-import re
 from typing import Sequence
 
 from modellering import Del, Material, Montage, Placering, lada
@@ -89,9 +88,10 @@ def _takstolar(kropp: int) -> set[float]:
     med överkanten i takplanet."""
     nock = S.HUSKROPPAR[kropp].nock
     sidor: dict[tuple[str, bool], list[tuple[float, float]]] = {}
-    for grupp, namn, (x0, y0, _, x1, _, z1) in lagen.takstolar():
-        if grupp.rsplit(" ", 1)[-1].startswith(str(kropp)) and re.fullmatch(r"\w+-X\d+", namn):
-            sidor.setdefault((grupp, x0 + x1 > 2 * nock), []).append((z1, y0))
+    for d in lagen.takstolar():
+        x0, y0, _, x1, _, z1 = d.lada
+        if int(d.element[0]) == kropp and d.typ == "X":
+            sidor.setdefault((d.element, x0 + x1 > 2 * nock), []).append((z1, y0))
     return {y0 for ds in sidor.values() for z1, y0 in ds if z1 > max(z for z, _ in ds) - 1.0}
 
 
