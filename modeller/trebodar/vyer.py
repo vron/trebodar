@@ -53,6 +53,10 @@ VYER = {
                       "ljus": (6, 21, "10:00", "sol"), "lodrat": False},
     "detalj-koksgaller": {"kamera": [17800, 8300, 1700], "mal": [13905, 9609, 2150], "lins": 50,
                           "ljus": (9, 15, "12:00", "mulet")},
+    # tappvattnet (hus/installationer/vatten): fördelarskåpet på V19 med rören upp till källarens tak, värmepumpen och
+    # matarledningarna i teknikrummet
+    "detalj-teknikrum": {"kamera": [2250, 8050, Z_KALLARE + 1350], "mal": [4300, 8450, -750], "lins": 20,
+                         "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "lampor": ["kallare"]},
     "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
                "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
                                          "Fönster och dörrar", "Mark/", "Hus/Grund", "Installationer"]},

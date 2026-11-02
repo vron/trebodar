@@ -157,6 +157,21 @@ VENTILATIONSDON = Material("Ventilationsdon", "Frånluftsdon och väggfläktens 
                            0.4, cad="#5aa9e6")
 FLAKT = Material("Fläkt", "Kanalfläkt, lackerad stålplåt", 400, "#dcdedf", 0.45, cad="#3d8fd6")
 
+# ------------------------------------------------------------------ tappvatten och teknikrum (hus/installationer)
+# rören är massiva cylindrar med skyddsrörets ytterdiameter: densiteten är PEX-rörets och skyddsrörets massa fördelad
+# på hela tvärsnittet (rör-i-rör 16/25 ungefär 0,17 kg/m); dosorna, fördelarna och apparaterna likaså
+TAPPVATTEN_KV = Material("Tappvatten KV", "Tappvattenrör kallvatten, PEX (rör-i-rör i blått skyddsrör)", 350,
+                         "#2f6db3", 0.5, cad="#2f6db3")
+TAPPVATTEN_VV = Material("Tappvatten VV", "Tappvattenrör varmvatten, PEX (rör-i-rör i rött skyddsrör)", 350,
+                         "#c4372f", 0.5, cad="#d23b2f")
+VATTENDOSA = Material("Vattendosa", "Väggdosor, golvgenomföringar och väggfästen för rör-i-rör, plast", 200, "#e6e6e2",
+                      0.5, cad="#8a95a0")
+FORDELARSTAM = Material("Fördelare", "Fördelare för tappvatten, förnicklad mässing", 5000, "#c9c2a8", 0.3, 1.0,
+                        cad="#c9a646")
+PLATSKAP = Material("Plåtskåp", "Fördelarskåp, vitlackerad stålplåt 1,5 mm", 7850, "#efefec", 0.4, cad="#c3ccd5")
+VVS_APPARAT = Material("VVS-apparat", "Värmepump, vattenmätare och golvvärmefördelare (förenklade som lådor)", 250,
+                       "#eeeeea", 0.45, cad="#dde3e8")
+
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}

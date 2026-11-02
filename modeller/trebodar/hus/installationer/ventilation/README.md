@@ -25,8 +25,9 @@ cd verktyg/modellering
 | [`system.py`](system.py) | Allt ur grenarna (`MODULER`), genomföringarna, kontrollen och utdraget för ritningarna |
 | [`ventilation.py`](ventilation.py) | Geometrin, ett montage per gren under `Hus/Installationer/Ventilation` |
 
-Lägena på husets ytor är gemensamma med elinstallationen: [`../montering.py`](../montering.py) (`vagg`, `utsida`,
-`pa_tak`, `under_kallartak`, `angbromsen`). En ny gren läggs till i `MODULER` i `system.py`.
+Lägena på husets ytor är gemensamma med elen och vattnet: [`../montering.py`](../montering.py) (`vagg`, `utsida`,
+`pa_tak`, `under_kallartak`, `angbromsen`), liksom genomföringarna ([`../genomforingar.py`](../genomforingar.py)). En
+ny gren läggs till i `MODULER` i `system.py`.
 
 ## Begreppen
 
@@ -69,8 +70,9 @@ den ligger ovanför rummet, och ytterväggarnas installationsskikt (45 mm) rymme
 - kalla delar: kanaler genom ytterväggen och takets isolering ska vara isolerade (kondens);
 - helheten: ersättningsluft (köksfläkten och kaminen, ingen tilluft i modellen), avluft nära öppningsbara fönster och
   takhuvar nära nock och dal;
-- krockar mot husets delar ur modellens geometri: stommens delar (virke, läkt, limträ, stål) var för sig och
-  genomföringarna i skikten (betong, armering, isolering, skivor, fasad, tak) per element.
+- krockar ur modellens geometri mot husets delar: stommens delar (virke, läkt, limträ, stål) var för sig och
+  genomföringarna i skikten (betong, armering, isolering, skivor, fasad, tak) per element; och mot elen, tappvattnet
+  och teknikrummets utrustning (fel).
 
 ## Ritningarna
 

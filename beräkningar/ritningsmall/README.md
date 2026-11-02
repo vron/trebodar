@@ -1,10 +1,10 @@
 # Ritningsmall A3
 
-Gemensam mall för alla ritningar (R-01 … R-06, AR-01, AR-02 och elritningarna, ljusplanerna och kameraplanen ur modellen, `verktyg/modellering`), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
+Gemensam mall för alla ritningar (R-01 … R-06, AR-01, AR-02 och el-, ventilations- och tappvattenritningarna, ljusplanerna och kameraplanen ur modellen, `verktyg/modellering`), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
 
 | Fil | Innehåll |
 |---|---|
-| `ritning.typ` | Bladet: ram (20 mm inbindning, 10 mm övriga), högerkolumn med anvisningar, teckenförklaring och tabeller, revisioner och ritningshuvud. Linjetyper (`STIL`, också elritningarnas rör och tändgrupper och ljusplanernas isolinjer) och fyllningar (`FYLL`). Ritar vyernas lager i ordning |
+| `ritning.typ` | Bladet: ram (20 mm inbindning, 10 mm övriga), högerkolumn med anvisningar, teckenförklaring och tabeller, revisioner och ritningshuvud. Linjetyper (`STIL`, också elritningarnas rör och tändgrupper, ljusplanernas isolinjer och tappvattnets kallvatten och varmvatten) och fyllningar (`FYLL`, också ventilationens luft och tappvattnet). Ritar vyernas lager i ordning |
 | `ritning.py` | `Vy` (skala, modellfönster, lager) med linjer, ytor (med hål), text, bilder, måttlinjer och måttkedjor (snedstreck), hänvisningar, positionsbubblor, fördelningslinjer, brottlinjer, snittmarkeringar och skalstock. `figur()` (en ritad symbol i teckenförklaringen), `huvud()` och `Blad` (skriver JSON, kompilerar bladet och slår ihop en ritningsseries blad till en pdf med `Blad.serie`) |
 | `projekt.json` | Projektets fasta uppgifter i ritningshuvudet: projekt, fastighet, upprättad, signatur |
 

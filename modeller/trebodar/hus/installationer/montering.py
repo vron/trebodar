@@ -1,7 +1,7 @@
-"""Lägen på husets ytor för installationerna (el och ventilation): monteringen på innertaket, väggarnas färdiga ytor,
-källarens tak, ytterväggarnas utsida (fasaden) och takets yta, och punkter i väggarna, installationsskiktet, under
-källarens tak och i bjälklaget. Lägena räknas fram ur husets geometri (innertakets fall, väggarnas lägen och skikt,
-takets skikt), så att installationerna följer med när huset ändras.
+"""Lägen på husets ytor för installationerna (el, ventilation, vatten): monteringen på innertaket, väggarnas färdiga
+ytor, golven, källarens tak och väggar, ytterväggarnas utsida (fasaden) och takets yta, och punkter i väggarna,
+installationsskiktet, under källarens tak och i bjälklaget. Lägena räknas fram ur husets geometri (innertakets fall,
+väggarnas lägen och skikt, takets skikt), så att installationerna följer med när huset ändras.
 
 Koordinater i mm (K-05): x, y i planet, z från mellanbjälklagets överkant (plan 1:s golv).
 """
@@ -12,6 +12,8 @@ from dataclasses import dataclass
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.hus.grund import kallarvaggar as K
+from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.skikt import FOLIE, LAKT, SKIVA, innertak_vid, innertakets_fall, insida_t
 from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
 
@@ -64,6 +66,22 @@ def tak(x: float, y: float) -> Montering:
 def kallartak(x: float, y: float) -> Montering:
     """I källarens tak: mellanbjälklagets undersida (betong)."""
     return Montering((float(x), float(y), KALLARTAK), (0.0, 0.0, -1.0), "tak", "MB")
+
+
+def golv(x: float, y: float, plan: int = 1) -> Montering:
+    """På golvet: plan 1:s betonggolv (mellanbjälklagets överkant) eller källarens (bottenplattans överkant)."""
+    return Montering((float(x), float(y), PLAN[plan]), (0.0, 0.0, 1.0), "golv", "MB" if plan == 1 else "BP")
+
+
+def kallarvagg(namn: str, s: float, z: float, sida: int) -> Montering:
+    """På en källarväggs yta (gipsen) vid s längs väggen (x för väggar längs x, y för väggar längs y) och z över
+    källarens golv; sida +1 eller −1: väggens sida mot växande y (längs x) eller växande x (längs y)."""
+    v = next(w for w in K.VAGGAR if w.namn == namn)
+    t = K.KARNA / 2 + K.CELL + GIPS_T
+    c = v.c + sida * t
+    p = (s, c) if v.riktning == "h" else (c, s)
+    n = (0.0, float(sida)) if v.riktning == "h" else (float(sida), 0.0)
+    return Montering((float(p[0]), float(p[1]), PLAN[0] + z), (n[0], n[1], 0.0), "vagg", namn)
 
 
 def _ytan(kod: str, u: float, sida: int) -> tuple[float, float, float]:
@@ -120,11 +138,27 @@ def angbromsen(x: float, y: float) -> float:
     return t.z_overkant(x) - S.TAKBALK_HV
 
 
+def langs_vaggen(kod: str, p: Vek) -> float:
+    """Punktens läge u längs väggen (från väggens origo), som vagg och i_vagg tar."""
+    v = S.YTTERVAGGAR[kod] if kod in S.YTTERVAGGAR else vaggdef(kod)
+    return (p[0] - v.origo[0]) * v.u[0] + (p[1] - v.origo[1]) * v.u[1]
+
+
 def i_vagg(kod: str, u: float, z: float, plan: int = 1) -> Vek:
     """I väggen vid u och z över golvet: i regelfacket (innerväggar) eller i ytterväggens installationsskikt."""
     v = S.YTTERVAGGAR[kod] if kod in S.YTTERVAGGAR else vaggdef(kod)
     w = S.T_STOMME + FOLIE + LAKT / 2 if kod in S.YTTERVAGGAR else v.tjocklek / 2
     return vek((v.origo[0] + v.u[0] * u + v.w[0] * w, v.origo[1] + v.u[1] * u + v.w[1] * w, PLAN[plan] + z))
+
+
+def i_vaggen(m: Montering, p: Vek) -> Vek:
+    """Punkten inne i väggen bakom punkten p på väggens yta (montering m), i p:s höjd, där rör går lodrätt: i plan 1:s
+    väggar som i_vagg, i källarväggarna mitt i cellplasten bakom gipsen."""
+    v = next((w for w in K.VAGGAR if w.namn == m.ref), None)
+    if v is None:
+        return i_vagg(m.ref, langs_vaggen(m.ref, p), p[2] - PLAN[1])
+    c = v.c + math.copysign(K.KARNA / 2 + K.CELL / 2, m.normal[1] if v.riktning == "h" else m.normal[0])
+    return (p[0], c, p[2]) if v.riktning == "h" else (c, p[1], p[2])
 
 
 def vid_tak(kod: str, u: float, sida: int = 1) -> tuple[Vek, Vek]:

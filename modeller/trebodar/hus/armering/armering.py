@@ -99,8 +99,7 @@ def _klippt(pos: str, pl: list[Punkt], d: float, yta: Polygon) -> list[Jarn]:
 # ------------------------------------------------------------------ mellanbjälklaget (R-06)
 
 def mellanbjalklag() -> Montage:
-    r6, r5 = ritning("R-06"), ritning("R-05")
-    K = r5.K
+    r6 = ritning("R-06")
 
     def z(y: float) -> float:
         return Z_MB + y
@@ -118,9 +117,27 @@ def mellanbjalklag() -> Montage:
         _, jj = r6.zonjarn(zn)
         for rikt, y in (("x", r6.YO1), ("y", r6.YO2)):
             jarn += [(zn["namn"], _linje(seg, z(y)), zn["tillagg"][0]) for seg in jj[rikt]]
+    jarn += _mellanlagret()
+    yta = _betongen()
+    jarn = [j for pos, pl, d in jarn for j in ((_klippt(pos, pl, d, yta)) if pos != "A14" else [(pos, pl, d)])]
+    return _montage("Mellanbjälklag", "MBA", f"Mellanbjälklagets armering (R-06): nät Ø{r6.DU} s{r6.SU} i underkant "
+                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn och vinkeljärn", jarn)
+
+
+def _betongen() -> Polygon:
+    """Mellanbjälklagets betong (vid plattan på marks fria kanter till L-elementens rygg) minus täckskiktet."""
+    return Polygon(S.KONTUR, [S.TRAPPHAL]).difference(markplatta()[2]).buffer(-ritning("R-06").C_KANT, join_style=2)
+
+
+def _mellanlagret() -> list[Jarn]:
+    """Järnen mellan mellanbjälklagets nät: diagonaljärnen vid trapphålet (pos 13) och vinkeljärnen från
+    ytterväggarnas kärna (pos 14), båda under överkantsnätet."""
+    r6, r5 = ritning("R-06"), ritning("R-05")
+    K = r5.K
+    jarn: list[Jarn] = []
     # diagonaljärn i överkant (pos 13), under överkantsnätet
     diag, _ = r6.diagonaljarn()
-    zd = z(r6.YO2 - r6.DO / 2 - 5.0)
+    zd = Z_MB + r6.YO2 - r6.DO / 2 - 5.0
     jarn += [("A13", [(p0[0], p0[1], zd), (p1[0], p1[1], zd)], 10) for p0, p1 in diag]
     # vinkeljärn från ytterväggarnas kärna (pos 14): ben ned i väggen vid de lodräta järnen och in i bjälklaget under
     # överkantsnätet, med väggens lodräta järns avstånd
@@ -138,11 +155,27 @@ def mellanbjalklag() -> Montage:
             inn = (t, q - w["ute"] * p14["in_"]) if w["ax"] == "h" else (q - w["ute"] * p14["in_"], t)
             jarn.append(("A14", [(ned[0], ned[1], zh - p14["ben"]), (ned[0], ned[1], zh), (inn[0], inn[1], zh)],
                          p14["d"]))
-    # bjälklagets betong (vid plattan på marks fria kanter till L-elementens rygg) minus täckskiktet
-    yta = Polygon(S.KONTUR, [S.TRAPPHAL]).difference(markplatta()[2]).buffer(-r6.C_KANT, join_style=2)
-    jarn = [j for pos, pl, d in jarn for j in ((_klippt(pos, pl, d, yta)) if pos != "A14" else [(pos, pl, d)])]
-    return _montage("Mellanbjälklag", "MBA", f"Mellanbjälklagets armering (R-06): nät Ø{r6.DU} s{r6.SU} i underkant "
-                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn och vinkeljärn", jarn)
+    return jarn
+
+
+def mellanbjalklagets_hinder() -> list[tuple[list[Punkt], float]]:
+    """Järnen i utrymmet mellan mellanbjälklagets nät, där installationernas rör gjuts in: diagonaljärnen och
+    vinkeljärnens vågräta ben under överkantsnätet, som (polylinje, Ø)."""
+    yta = _betongen()
+    ut: list[tuple[list[Punkt], float]] = []
+    for pos, pl, d in _mellanlagret():
+        if pos == "A14":
+            ut.append((pl[1:], d))
+        else:
+            ut += [(q, dd) for _, q, dd in _klippt(pos, pl, d, yta)]
+    return ut
+
+
+def mellanbjalklagets_mellanrum() -> tuple[float, float]:
+    """Utrymmet mellan mellanbjälklagets armeringsnät (z), där installationernas rör gjuts in: underkantsnätets
+    överkant och överkantsnätets underkant (R-06)."""
+    r6 = ritning("R-06")
+    return Z_MB + r6.C_UK + 2 * r6.DU, Z_MB + r6.H - r6.C_OK - 2 * r6.DO
 
 
 # ------------------------------------------------------------------ källarväggarna (R-05)

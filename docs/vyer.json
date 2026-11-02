@@ -272,6 +272,30 @@
    "mulet"
   ]
  },
+ "detalj-teknikrum": {
+  "kamera": [
+   2250,
+   8050,
+   -900.0
+  ],
+  "mal": [
+   4300,
+   8450,
+   -750
+  ],
+  "lins": 20,
+  "ljus": [
+   12,
+   21,
+   "18:00",
+   "sol"
+  ],
+  "lodrat": false,
+  "inne": true,
+  "lampor": [
+   "kallare"
+  ]
+ },
  "stomme": {
   "kamera": [
    -8000,
