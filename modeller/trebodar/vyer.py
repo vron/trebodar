@@ -102,7 +102,7 @@ _INNE = [
     ("I27", "gang", "mot-sovrum", "öga", (10300, 6900), (10300, 2905, 1300)),
     ("I28", "trappa", "ned", "öga", (9360, 5470), (7700, 5470, -1500)),
     ("I29", "kallare", "oversikt", "vid", (12800, 11500, Z_KALLARE), (7000, 3500, Z_KALLARE + 1200)),
-    ("I30", "kallare", "mot-trappan", "vid", (5300, 2000, Z_KALLARE), (8600, 5500, Z_KALLARE + 900)),
+    ("I30", "kallare", "mot-trappan", "vid", (5000, 6300, Z_KALLARE), (8600, 5470, Z_KALLARE + 900)),
 ]
 
 # inomhusbilder med egna inställningar: trappan ned med lutande kamera (lodräta linjer konvergerar), källarens
@@ -137,9 +137,9 @@ RUMSNAMN = {
 # sina små fönster. Lägena (x, y), höjden z under bjälklaget, sidan [mm], ljusflödet per panel [lm] och
 # färgtemperaturen [K]
 LAMPOR = {
-    "kallare": {"lagen": [(1500, 5200), (3300, 5200), (1500, 7700), (3300, 7700), (5800, 1800), (8200, 1800),
-                          (5800, 4200), (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300), (11600, 2600),
-                          (11600, 5600), (11600, 8600), (11600, 11000)],
+    "kallare": {"lagen": [(1500, 5200), (3300, 5200), (1500, 6750), (3300, 6750), (1500, 8400), (5800, 1800),
+                          (8200, 1800), (5800, 4200), (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300),
+                          (11600, 2600), (11600, 5600), (11600, 8600), (11600, 11000)],
                 "z": -S.H_BJALKLAG - 20.0, "sida": 600.0, "lumen": 2500.0, "kelvin": 3000.0},
 }
 

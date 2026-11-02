@@ -1,6 +1,7 @@
 """Teknikrummet i källarens vänstra del, i hörnet vid ytterväggen V3 och innerväggen V19 (under badrummet och hallen):
 utrustningen för vatten och värme, som installationerna (vatten/, golvvarme/) ansluter till, och dess geometri.
-Rummets väggar är inte bestämda; ytan är den del av källaren som pekats ut för teknikrummet.
+Rummets väggar är källarens innerväggar KL8–KL10 (invandigt/kallarens_innervaggar.py) med en knyck runt värmepumpen;
+YTA är den del av källaren som pekats ut för utrustningen.
 
 - Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19, söder om
   ventilationens kanal FF3 under taket; anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till

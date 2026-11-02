@@ -70,7 +70,7 @@ def _dorrar(inne: Polygon) -> list[Polygon]:
     return ut
 
 
-def _skivor(vaggar: Polygon, rum: Polygon, agare: list[tuple[str, Polygon, str | None]]
+def skivor(vaggar: Polygon, rum: Polygon, agare: list[tuple[str, Polygon, str | None]]
             ) -> list[tuple[str, tuple[float, ...]]]:
     """Skivorna i plan i ett höjdavsnitt längs väggytorna mot rummen: (ägare, (x0, y0, x1, y1)). Ägarna: (namn,
     yta i plan, väggens riktning "h"/"v", None för fönstren)."""
@@ -130,7 +130,7 @@ def montage() -> Montage:
         agare: list[tuple[str, Polygon, str | None]] = [
             (f.o.kod, f.smyg if f in oppna else f.brostning, None) for f in fonster]
         agare += [(v.namn, K.cellplast_rekt(v), v.riktning) for v in K.VAGGAR]
-        for namn, b in _skivor(vaggar, rum, agare):
+        for namn, b in skivor(vaggar, rum, agare):
             hojd = langs[(namn, b)]
             if hojd and abs(hojd[-1][1] - z0) < 1e-6:
                 hojd[-1] = (hojd[-1][0], z1)                          # samma skiva som i avsnittet under

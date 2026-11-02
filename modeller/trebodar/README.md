@@ -86,13 +86,14 @@ beskrivning, eller flyttas till underlaget den hör till.
 | En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
+| En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Takfallens utbredning, takfoten och dalarnas ändar | `hus/tak/takytor.py` (`REGIONER`); taket, takkanterna, dalarna och innertaket följer med |
 | Takkanterna och dalarna | `hus/tak/takkanter.py` (takfotsplåt, rännor, stuprör, vindskivor) och `hus/tak/dalar.py` (kilar, rändal, ändlådor) |
-| De invändiga skikten | `hus/invandigt/skikt.py` (uppbyggnaden), `innertak.py`, `vagginsida.py` (ytterväggarnas insida och hörnen), `vaggar.py` (innerväggarna) och `kallare.py` (källarväggarnas gips) |
+| De invändiga skikten | `hus/invandigt/skikt.py` (uppbyggnaden), `innertak.py`, `vagginsida.py` (ytterväggarnas insida och hörnen), `vaggar.py` (innerväggarna), `kallare.py` (källarväggarnas gips) och `kallarens_innervaggar.py` (källarens lätta väggar) |
 | Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (uppbyggnaden) och `material.py` (`PANEL` och `ALUMINIUM` per huskropp; kulör, brädbredd, kvistar, skruvar) |
 | Marken vid fasaden (panelens underkant) | `hus/fasad/markniva.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |
 | Fasadstenen | `hus/grund/fasadsten.py` (utbredning, mönstrets frö per vägg), AR-01:s `indata.toml` (stenens mått) och `byggdelar/sten.py` (den kluvna framsidan) |
@@ -173,7 +174,7 @@ Trebodar
     ├── Isolering               takets träfiber och väggarnas mineralull
     └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
                                 innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar,
-                                källarväggarnas gips
+                                källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
@@ -300,6 +301,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
   och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta
   i det yttre cellplastlagret).
+- **Källarens innerväggar KL1–KL10**: lätta väggar 45×95 C24 c/c 600 med gips 13 på båda sidor från bottenplattan
+  till bjälklaget, i rörens linjer så att rören står i stommen (KL8 45×120 för avloppsstammen Ø110 bredvid P4), med
+  dörrhålen KD1–KD5 för M9×20 och M8×20 (rumshöjden 2 100 rymmer inte M×21). Teknikrummet avgränsas av KL8–KL10 med
+  en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje norr därom.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
   fönsterdörrens karm och ett tätt dörrblad (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
