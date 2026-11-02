@@ -46,21 +46,24 @@ liksom nivåerna i betongen (`I_BETONGEN` i [`../montering.py`](../montering.py)
 ## Dragningen
 
 - Zonens yta är zonen på golvet (mellanbjälklaget utan plan 1:s väggar, trapphålet och kaminen; bottenplattan utan
-  källarväggarna och trappan), 150 mm (`MARGINAL`) från väggar och från zonens kanter, utan tilloppen och det som ska
+  källarväggarna, källarens innerväggar KL1–KL10 och trappan), 150 mm (`MARGINAL`) från väggar och från zonens
+  kanter, utan tilloppen och det som ska
   hållas fritt: järnen som går genom rörens nivå (`JARN`), tappvattnets rör upp ur bjälklaget och elens rör i det
   (`FRITT`), och på källarens golv värmepumpen och servisen.
 - Järnen i rörens nivå: källarväggarnas lodräta järn når upp i mellanbjälklaget (R-05) och delar plan 1:s golv i delar
   (allrummet norr om V4–V6, hallen och vardagsrummet norr om V3, resten); balkarnas överkantsjärn under V4–V6, V15 och
   V19 ligger i bottenplattans rörnivå (R-04), så källarrummet norr om V4–V6 värms inte. Slingorna stannar i sin del;
   stråken går över väggarnas järn i dörröppningarna eller mitt i en glipa mellan två järn (`glipa`).
+- I källaren har varje rum sin slinga (det stora rummet tre), och stråken går genom innerväggarnas dörröppningar;
+  trapphallen, där fördelarna sitter, värms av tilloppen.
 - Rören går upp (FD1) eller ned (FD0) i betongen mellan armeringsnätets järn: utgångarna c/c 50 mitt för nätets
   maskor (s150), stammarna där deras rader ligger mellan nätets järn.
 - Tilloppen går söderut från fördelaren och viker av i ordning: de som viker av först västerut eller österut närmast
   väggen, och i ett stråk det rör som viker av först ytterst mot sin sida. Zonernas ordning i `ZONER` är filernas
   ordning längs fördelaren. Röret lämnar sin fil vinkelrätt mot slingans början, så slingans rader går vinkelrätt mot
   stråkets sista sträcka; kontrollen visar rör som går i varandra.
-- Matarledningarna går under källarens tak från värmepumpens anslutningar till FD1:s västra ände; FD0 matas från FD1:s
-  östra ände.
+- Matarledningarna går under källarens tak från värmepumpens anslutningar genom KL10, hallen och KL3 (söder om
+  dörren KD2) till FD1:s västra ände; FD0 matas från FD1:s östra ände.
 
 En zon flyttas eller delas i `plan1.py` eller `kallare.py` (rektangeln skärs med golvet, så små ändringar av väggarna
 följer med). En ny zon läggs i `ZONER` i fördelarens ordning, med ett stråk som når den.

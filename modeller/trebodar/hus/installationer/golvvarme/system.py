@@ -17,6 +17,8 @@ from shapely.ops import unary_union
 from trebodar import skelett as S
 from trebodar.hus.armering.armering import jarnen_i_nivan
 from trebodar.hus.grund import kallarvaggar as K
+from trebodar.hus.invandigt.kallare import GIPS_T
+from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as INNERVAGGAR
 from trebodar.hus.rum import KAMINKAPA
 
 from ..genomforingar import Genomforing, Stycke, genomforingar, kallarvaggarna, vaggarna
@@ -30,6 +32,7 @@ from .katalog import FORDELARE, GOLVVARMEROR, MATARROR
 from .punkter import FIL, FRITT, JARN, MARGINAL, Fordelare, Zon, langd, slinga
 
 PLAN: dict[int, ModuleType] = {1: plan1, 0: kallare}
+Y_MATARE = {"fram": 6000.0, "retur": 6050.0}       # matarledningarna österut genom hallen och KL3 söder om KD2
 SPEL = 5.0                              # rörens fria avstånd till järnen och till varandra
 
 
@@ -89,11 +92,12 @@ class Golvvarme:
 @cache
 def golvet(plan: int) -> Polygon:
     """Golvet där slingorna kan ligga: plan 1:s mellanbjälklag utan väggarna, trapphålet och kaminen, eller
-    bottenplattan utan källarväggarna och trappan."""
+    bottenplattan utan källarväggarna, källarens innerväggar och trappan."""
     if plan == 1:
         vaggar = unary_union([hel for hel, _, _, _ in vaggarna().values()])
         return Polygon(S.KONTUR).difference(Polygon(S.TRAPPHAL)).difference(KAMINKAPA).difference(vaggar)
-    vaggar = unary_union([hel for hel, _ in kallarvaggarna().values()])
+    vaggar = unary_union([hel for hel, _ in kallarvaggarna().values()] +
+                         [v.stomme().buffer(GIPS_T, join_style="mitre") for v in INNERVAGGAR.values()])
     return K.ytterkontur().difference(vaggar).difference(Polygon(S.TRAPPHAL))
 
 
@@ -184,11 +188,13 @@ def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, For
 
 
 def _matare(fd: dict[int, dict[str, Fordelare]]) -> dict[str, list[Vek]]:
-    """Matarledningarna under källarens tak: värmepumpens fram och retur till plan 1:s fördelare (västra änden), och
-    därifrån vidare till källarens (östra ändarna); fram och retur i olika höjder, så att de kan korsa varandra."""
+    """Matarledningarna under källarens tak: värmepumpens fram och retur söderut genom KL10, österut genom hallen och
+    KL3 (söder om dörren KD2) och norrut i trapphallen till plan 1:s fördelare (västra änden), och därifrån vidare till
+    källarens (östra ändarna); fram och retur i olika höjder, så att de kan gå bredvid och över varandra."""
     vp = VARMEPUMP.anslutningar
     ut = {}
-    for m, z, y, anslutning in (("fram", -350.0, 7100.0, "VS-fram"), ("retur", -300.0, 7150.0, "VS-retur")):
+    for m, z, y, anslutning in (("fram", -350.0, Y_MATARE["fram"], "VS-fram"),
+                                ("retur", -300.0, Y_MATARE["retur"], "VS-retur")):
         a, e1 = vp[anslutning], fd[1][m].utgang(0)
         ut[f"VS1-{m}"] = [a, (a[0], a[1], z), (a[0], y, z), (e1[0], y, z), (e1[0], e1[1], z), e1]
         b1, b0 = fd[1][m].utgang(fd[1][m].utgangar + 1), fd[0][m].utgang(fd[0][m].utgangar + 1)
