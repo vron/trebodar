@@ -1,31 +1,36 @@
-"""Yttervägg 2SV: mittre huskroppens gavel mot SV.
+"""Yttervägg 2SV: mittre huskroppens gavel mot SV, upp till dalbalkarnas underkant, med skjutdörren D1 mellan
+stolparna LD2_4 och LD4_2 (K-03) under dalbalk 2:s och dalbalk 4:s ände.
 
-Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["2SV"]): u från (9565; 11040) i minskande x, w genom väggen inåt från stommens utsida, z uppåt från bjälklagets överkant.
+Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["2SV"]), byggt med reglerna i regelstomme.py: syll (bruten vid
+dörren), ändreglar och stolparna intill dörröppningen. Hammarbandet går över dörren; över varje stolpe ligger en
+stålplåt S235 i ett urtag i hammarbandets underkant, och stolpens reglar under plåten går upp till den.
 """
 from modellering import Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar.regelvagg import regelvagg
+from trebodar.hus.stomme.prefab.regelstomme import R, plattor, stolpe, vaggens_oppningar
 from trebodar.material import S235
 
 DAL = S.BALKAR["DB2"].uk
+PLAT_L, PLAT_B, PLAT_T = 500.0, 90.0, 16.0        # stålplåten över stolpen (längs väggen, genom väggen, tjocklek)
+URTAG = 18.0                                      # urtaget i hammarbandet för plåten
 
 
 def montage() -> Montage:
     v = regelvagg("2SV", hojd=DAL)
-    v.syll(0, 260)
-    v.regel(0)
-    v.profil([(0, DAL), (0, DAL - 45), (125, DAL - 45), (125, DAL - 27), (625, DAL - 27), (625, DAL - 45), (4695, DAL - 45), (4695, DAL - 27), (5195, DAL - 27), (5195, DAL - 45), (5320, DAL - 45), (5320, DAL)], typ="H")
-    v.regel(125, z1=DAL - 43, namn="LD2_4-1")
-    v.liggande(125, 625, DAL - 43, h=16, w0=0, w1=90, typ="P", material=S235)
-    v.regel(170, z1=DAL - 43, namn="LD2_4-2")
-    v.regel(215, z1=DAL - 43, namn="LD2_4-3")
-    v.liggande(4695, 5195, DAL - 43, h=16, w0=0, w1=90, typ="P", material=S235)
-    v.syll(5060, 5320)
-    # stolpen LD4_2 under dalbalk 4:s ände: 4 reglar sida vid sida (K-03)
-    v.regel(5060, z1=DAL - 43, namn="LD4_2-1")
-    v.regel(5105, z1=DAL - 43, namn="LD4_2-2")
-    v.regel(5150, z1=DAL - 43, namn="LD4_2-3")
-    v.regel(5195, namn="LD4_2-4")
-    v.regel(5240)
+    langd = S.VAGGAR["2SV"].langd
+    (d1,) = vaggens_oppningar("2SV")
+    plattor(v, langd, oppningar=[d1], hammarband=None)
+    uk_plat = DAL - R + URTAG - PLAT_T
+    ld24 = stolpe(v, "LD2_4", d1.u0 - 3 * R, 3, z1=uk_plat)
+    ld42 = stolpe(v, "LD4_2", d1.u1, 4, toppar=(uk_plat, uk_plat, uk_plat, None))
+    v.regel(0.0)
+    v.regel(ld42[-1][1])                          # ändregeln står intill stolpen
+    platar = [(ld24[0][0], ld24[0][0] + PLAT_L), (ld42[2][1] - PLAT_L, ld42[2][1])]
+    hb = [(0.0, DAL), (0.0, DAL - R)]
+    for a, b in platar:
+        v.liggande(a, b, uk_plat, h=PLAT_T, w0=0.0, w1=PLAT_B, typ="P", material=S235)
+        hb += [(a, DAL - R), (a, DAL - R + URTAG), (b, DAL - R + URTAG), (b, DAL - R)]
+    v.profil(hb + [(langd, DAL - R), (langd, DAL)], typ="H")
     return v.montage()

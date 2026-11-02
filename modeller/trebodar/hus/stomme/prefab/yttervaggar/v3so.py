@@ -1,21 +1,16 @@
 """Yttervägg 3SO: högra huskroppens långsida mot SO. Hammarbandets överkant som de andra ytterväggarnas (z 2 490),
 så att takbalkarna vilar på det (Onshape-modellen hade 2 488).
 
-Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["3SO"]): u från (9470; 12445) i minskande y, w genom väggen inåt från stommens utsida, z uppåt från bjälklagets överkant.
+Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["3SO"]), byggt med reglerna i regelstomme.py: plattor,
+hörnstolpar, öppningarna (karmreglar, överstycken, bröstningar, kortlingar) och fria reglar.
 """
 from modellering import Montage
 
 from trebodar.byggdelar.regelvagg import regelvagg
+from trebodar.hus.stomme.prefab.regelstomme import vagg
 
 
 def montage() -> Montage:
     v = regelvagg("3SO")
-    v.syll(0, 172.5)
-    v.regel(0)
-    v.hammarband(0, 1405)
-    v.regel(127.5)
-    v.liggande(172.5, 1072.5, 2100)
-    v.syll(1072.5, 1405)
-    v.regel(1072.5)
-    v.regel(1360)
+    vagg(v, "3SO")
     return v.montage()

@@ -1,39 +1,20 @@
-"""Yttervägg 1NO: vänstra huskroppens gavel mot NO. Hammarbandet och regelstyckena intill dalbalk 4:s ände går fram
-till balkens sida (Onshape-modellen hade 8 mm spel, för HEA 200).
+"""Yttervägg 1NO: vänstra huskroppens gavel mot NO, med dalbalk 4:s ände i slutet. Hammarbandet och regelstyckena
+intill balkens ände går fram till balkens sida.
 
-Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["1NO"]): u från (-30; 3560) i växande x, w genom väggen inåt från stommens utsida, z uppåt från bjälklagets överkant.
+Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["1NO"]), byggt med reglerna i regelstomme.py: plattor,
+hörnstolpen LA5, öppningarna (karmreglar, överstycken, bröstningar, kortlingar), en fri regel och upplaget för
+dalbalk 4 med stolpen LA6 (K-03).
 """
 from modellering import Montage
 
-from trebodar import skelett as S
 from trebodar.byggdelar.regelvagg import regelvagg
-
-DAL = S.BALKAR["DB2"].uk
+from trebodar.hus.stomme.prefab.regelstomme import Karm, balkens_sida, balkupplag, hornstolpe, vagg
 
 
 def montage() -> Montage:
     v = regelvagg("1NO")
-    v.syll(0, 3000)
-    v.regel(0, namn="LA5-1")
-    v.hammarband(0, 4340)
-    v.regel(45, b=95, w0=50, w1=95, namn="LA5-2")
-    v.regel(705)
-    v.liggande(750, 1750, 1055)
-    v.liggande(750, 1750, 2100)
-    v.regel(1155, z1=1055)
-    v.regel(1155, z0=2145)
-    v.regel(1750)
-    v.regel(2355)
-    v.regel(2955)
-    v.liggande(3000, 3600, 2100)
-    v.regel(3277.5, z0=2145)
-    v.syll(3600, 4595)
-    v.regel(3600)
-    v.regel(3855)
-    v.liggande(3900, 4595, DAL - 45)
-    v.liggande(4250, 4295, DAL, h=41.0769)
-    v.regel(4265, z1=DAL - 45)
-    v.liggande(4295, 4340, DAL, h=41.0769)
-    v.regel(4455, z1=DAL - 45, namn="LA6-2")
-    v.regel(4550, z1=DAL - 45, namn="LA6-1")
+    staende = hornstolpe(v, 0.0, 1, ("LA5-1", "LA5-2"))
+    staende += balkupplag(v, "1NO", "DB4", {4265.0: None, 4455.0: "LA6-2", 4550.0: "LA6-1"})
+    vagg(v, "1NO", hammarband=(0.0, balkens_sida("1NO", "DB4")), ander=(False, False), staende=staende,
+         reglar=(2355.0,), karmar={"F1": Karm(kortlingar=(405.0,)), "F2": Karm(kortlingar=(277.5,))})
     return v.montage()
