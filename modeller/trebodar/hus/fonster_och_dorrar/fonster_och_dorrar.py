@@ -5,7 +5,8 @@ oppningar.py.
 Karmen sitter med aluminiumbeklädnaden i panelens utsida (w −65) och 10 mm drevmån runt om i regelverkets öppning
 (modulmåttet), drevad med mineralull. Fasaden går fram till karmen (fasad.py). Invändigt: smygbrädor 15 mm av
 vitmålad furu från karmen till väggens yta och fönsterbänk 22 mm med 20 mm utstick och öron 30 mm (dörrarna har
-ingen); i badrummet kakel runt om. Källarens fönster sitter i cellplastens smyg, utan smygbrädor.
+ingen); i badrummet kakel runt om. Källarens fönster sitter i cellplastens smyg; smygens och bröstningens gips hör
+till källarväggarnas insida (invandigt/kallare.py).
 """
 from __future__ import annotations
 
@@ -39,7 +40,7 @@ def enhet(o: Oppning) -> Montage:
     drev = box(o.u0, o.u1, 0.0, w_karm, o.z0, o.z1) - box(o.u0 + F.DREV, o.u1 - F.DREV, -1.0, w_karm + 1.0,
                                                           o.z0 + F.DREV, o.z1 - F.DREV)
     m.lagg(Del(f"Drevning {fmt(o.bredd)}×{fmt(o.hojd)}", drev, MINERALULL), Placering(), f"{o.kod}-DREV")
-    if o.z1 <= 0.0:                                      # källaren: cellplastens smyg
+    if o.z1 <= 0.0:                                      # källaren: gipsen i invandigt/kallare.py
         return m
     t = _insida_t(o.vagg, (o.u0 + o.u1) / 2)
     w_yta = S.T_STOMME + t                               # väggens insida

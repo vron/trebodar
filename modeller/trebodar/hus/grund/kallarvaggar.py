@@ -4,7 +4,8 @@ anslutningar (R-05.4 detalj D): i ett hörn går den liggande väggens kärna ig
 Öppningarna (R-05): fönster F1–F3 med betongbröstning och dörrar D1–D3; öppningarnas smyg och bröstning har 100 mm
 cellplast.
 
-Höjd: från bottenplattans överkant (z −2 250) till mellanbjälklagets underkant (z −150).
+Höjd: från bottenplattans överkant (z −2 250) till mellanbjälklagets underkant (z −150). Gipsen på insidan hör
+till Invändigt (invandigt/kallare.py).
 """
 from __future__ import annotations
 
@@ -94,7 +95,8 @@ def _brostningsande(v: Kallarvagg, t: float) -> bool:
     return any(zb > 0 and ((va == v.namn and t == v.b) or (vb == v.namn and t == v.a)) for _, va, vb, zb in OPPNINGAR)
 
 
-def _cellplast_rekt(v: Kallarvagg) -> Polygon:
+def cellplast_rekt(v: Kallarvagg) -> Polygon:
+    """Väggens hela tjocklek i plan (kärnan med cellplasten, runt de fria ändarna utom vid bröstningarna)."""
     ka, kb = _karna(v)
     a = v.a - (KARNA / 2 + CELL) if _ande(v, v.a) != "fri" else ka - (0.0 if _brostningsande(v, v.a) else CELL)
     b = v.b + (KARNA / 2 + CELL) if _ande(v, v.b) != "fri" else kb + (0.0 if _brostningsande(v, v.b) else CELL)
@@ -112,7 +114,7 @@ def montage() -> Montage:
     tagen = Polygon()
     vaggar = {}
     for v in VAGGAR:
-        cp = _cellplast_rekt(v).difference(alla_karnor).difference(tagen)
+        cp = cellplast_rekt(v).difference(alla_karnor).difference(tagen)
         tagen = tagen.union(cp)
         vaggar[v.namn] = (karnor[v.namn], cp)
     for v in VAGGAR:
@@ -147,6 +149,23 @@ def montage() -> Montage:
     return m
 
 
+def i_plan(z: float) -> Polygon:
+    """Väggarna (kärnor och cellplast) i plan vid höjden z: under fönstren bröstningen med cellplasten ovanpå,
+    ovanför den smygarnas cellplast."""
+    delar = [cellplast_rekt(v) for v in VAGGAR] + [_rekt(v, *_karna(v), KARNA / 2) for v in VAGGAR]
+    for _, va, vb, zb in OPPNINGAR:
+        if zb <= 0:
+            continue
+        A = next(v for v in VAGGAR if v.namn == va)
+        B = next(v for v in VAGGAR if v.namn == vb)
+        x0, x1 = _karna(A)[1], _karna(B)[0]
+        if z < Z0 + zb + CELL:
+            delar.append(_rekt(A, x0, x1, KARNA / 2 + CELL))
+        else:
+            delar += [_rekt(A, x0, x0 + CELL, KARNA / 2 + CELL), _rekt(A, x1 - CELL, x1, KARNA / 2 + CELL)]
+    return unary_union(delar)
+
+
 def dorrar() -> list[tuple[str, str, float, float, float]]:
     """Dörrarna i ytterväggarna: (namn, riktning "h"/"v", ytterlivets läge, öppningens början och slut längs linjen
     mellan smygarnas cellplast)."""
@@ -167,6 +186,6 @@ def dorrar() -> list[tuple[str, str, float, float, float]]:
 def ytterkontur() -> Polygon:
     """Källarens kontur (cellplastens utsida runt hela källaren), för bottenplattan och plattan på mark. Väggarna
     bildar en ring som dörrarna bryter; öppningarna sluts (upp till 2 m) innan konturen tas."""
-    alla = unary_union([_cellplast_rekt(v) for v in VAGGAR] + [_rekt(v, *_karna(v), KARNA / 2) for v in VAGGAR])
+    alla = unary_union([cellplast_rekt(v) for v in VAGGAR] + [_rekt(v, *_karna(v), KARNA / 2) for v in VAGGAR])
     sluten = alla.buffer(1000.0, join_style=2).buffer(-1000.0, join_style=2)
     return Polygon(max(getattr(sluten, "geoms", [sluten]), key=lambda g: g.area).exterior)

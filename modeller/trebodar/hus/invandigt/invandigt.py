@@ -10,7 +10,7 @@ Väggar, stolpar och strävor som står under innertaket går skikten runt. Ytte
 upp till innertaket, kapad längs det så att gipsen möts i en skarp linje; gavlarnas insida följer snedtaket upp till
 takbalkarnas underkant och innertaket slutar mot den. Skivorna på väggarna: OSB 12
 och gips 13, i badrummet plywood 15, gips 12, tätskikt och kakel. Innerväggarna (de lätta väggarna och skikten på
-alla innerväggar) i vaggar.py.
+alla innerväggar) i vaggar.py, källarväggarnas gips i kallare.py.
 """
 from __future__ import annotations
 
@@ -32,6 +32,8 @@ from trebodar.hus.isolering.isolering import TAKSTOLSVAGGAR, _fack
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, _sida
 from trebodar.hus.rum import BADRUM
 from trebodar.material import ANGBROMS, C24_LAKT, GIPS, KAKEL, OSB, PLYWOOD, TATSKIKT
+
+from . import kallare
 
 FOLIE, LAKT = 0.4, 45.0                        # ångbroms och installationsskikt 45×45
 # skivorna på väggarna, från reglarna eller installationsläkten och utåt: OSB och gips, i badrummet plywood, gips,
@@ -390,4 +392,5 @@ def montage() -> Montage:
     m.lagg(vagg)
     from .vaggar import montage as innervaggar
     m.lagg(innervaggar())
+    m.lagg(kallare.montage())
     return m

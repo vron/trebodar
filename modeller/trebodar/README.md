@@ -121,7 +121,8 @@ Trebodar
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
-                                innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar
+                                innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar,
+                                källarväggarnas gips
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell (och på samma sätt
@@ -154,7 +155,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   innertakets yttre gipsskiva (möts i skarpa linjer i nockarna och under dalbalkarna). Isolering: TI tak, IS
   isolerstoppet vid takfoten, VI vägg. Takplåtens banor heter TP och numreras längs takfallet.
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
-  innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Innerdörrarna ID1–ID6 är
+  innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Källarväggarnas gips
+  heter efter väggen eller fönstret (V3-GI01, F1-GI01; bröstningarnas F1-GIB). Innerdörrarna ID1–ID6 är
   skjutdörrar med BLAD och SKENA (ID1, ID3 och ID4 fickdörrar; BR brädorna på fickans sidor).
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
@@ -227,7 +229,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   aluminiumbeklädnaden i panelens utsida och panelen fram till karmen. Typerna: vridfönster 10×10 och 8×8 och i
   källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
   9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt
-  smygbrädor och fönsterbänk av vitmålad furu, i badrummet kakel.
+  smygbrädor och fönsterbänk av vitmålad furu, i badrummet kakel, i källaren gips.
+- **Källarväggarnas insida**: gips 13 direkt på cellplasten (brandskydd), från bottenplattan till bjälklaget, på
+  ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
+  och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta
+  i det yttre cellplastlagret).
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
   fönsterdörrens karm och ett tätt dörrblad (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
