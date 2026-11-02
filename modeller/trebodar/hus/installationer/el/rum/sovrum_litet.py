@@ -3,7 +3,8 @@ ett uttag ovanför fönstret i 3NO (belysningsplanen i ärende #8).
 
 Två rader med två Junistar Exclusive längs x (en på var sida om nocken), mitt emellan installationsskiktets läkt:
 raden närmast gaveln 3NO lutad 20° mot gaveln och raden närmast L1 mot L1 (armaturen tål 40° från sin axel, som
-snedtaket lutar 30° tvärs). En tändgrupp per rad och en dimmer med två kanaler på L1 (rumssidan) intill dörren ID5.
+snedtaket lutar 30° tvärs). En tändgrupp per rad och en dimmer med två kanaler på L1 (rumssidan) öster om stolpen
+LN1_1: fickdörren ID5:s ficka tar väggen öster om dörren och garderoberna väggen väster om den.
 """
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ NAMN = RUM.namn
 RADER = ((1500.0, -1.0, "SL-T1"), (2355.0, 1.0, "SL-T2"))   # y, riktningen mot väggen och tändgruppen
 X = (("3SO", 11305.0), ("3NV", 12505.0))      # önskat x, flyttas till mitt mellan läkten
 LUTNING = 20.0
-U_B = 1610.0                                  # dimmern längs L1, intill dörren ID5 (u 610–1 460)
+U_B = 2410.0                                  # dimmern längs L1, öster om stolpen LN1_1 (x 11 565–11 745)
 
 TANDGRUPPER = [
     Tandgrupp("SL-T1", "Sovrum litet, spotar mot gaveln"),
