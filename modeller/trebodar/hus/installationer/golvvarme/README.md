@@ -85,7 +85,9 @@ följer med). En ny zon läggs i `ZONER` i fördelarens ordning, med ett stråk 
 
 `./mod golvvarme ritning` ritar serien VG-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3):
 
-- **VG-01.1 plan 1** (1:100): kretsarna i mellanbjälklaget med zonerna, tilloppen och järnen i rörens nivå, plan 1:s
-  väggar och källarväggarna; tabell över kretsarna;
-- **VG-01.2 källaren och fördelarna** (1:100 och 1:20): kretsarna i bottenplattan och fördelarna på V5 i en vy mot
-  norr med rören upp och ned i betongen och matarledningarna; tabeller över kretsarna och fördelarna.
+- **VG-01.1 plan 1 och källaren** (1:100): kretsarna i mellanbjälklaget och bottenplattan med zonerna, tilloppen och
+  järnen i rörens nivå; tabeller över kretsarna;
+- **VG-01.2 fördelarna** (1:20): planen och vyn mot V5 med stammarna, rören upp och ned i betongen och
+  matarledningarna; tabeller över fördelarna, matarledningarna och genomföringarna;
+- **VG-01.3 köldbärarledningarna** (1:100): planen och sektionen längs skyddsrören till energibrunnen
+  (`../kollektor/`).

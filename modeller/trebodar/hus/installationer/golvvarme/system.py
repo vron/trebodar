@@ -25,6 +25,8 @@ from ..genomforingar import Genomforing, Stycke, genomforingar, kallarvaggarna, 
 from ..montering import KALLARTAK, PLAN as GOLV, Vek
 from ..strak import filer, vag
 from ..el.installation import installation
+from ..kollektor.ledningar import D as KB_D
+from ..kollektor.ledningar import ledningar as kollektorns
 from ..teknikrum import UTRUSTNING, VARMEPUMP
 from ..vatten.system import vatten
 from . import kallare, plan1
@@ -110,7 +112,8 @@ def jarnen(plan: int) -> tuple[tuple[Point | LineString, float], ...]:
 @cache
 def _hinder(plan: int) -> Polygon:
     """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget och elens
-    rör i det (plan 1), utrustningen på källarens golv och rören upp genom bottenplattan (källaren)."""
+    rör i det (plan 1), utrustningen på källarens golv och rören upp genom bottenplattan (servisen och köldbärarens
+    skyddsrör, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
@@ -120,6 +123,7 @@ def _hinder(plan: int) -> Polygon:
         delar += [LineString([a[:2], b[:2]]).buffer(FRITT) for r in el.ror.values()
                   for a, b in zip(el.vag(r), el.vag(r)[1:]) if KALLARTAK < min(a[2], b[2]) and max(a[2], b[2]) < 0.0]
     else:
+        delar += [Point(k.vag[0][0], k.vag[0][1]).buffer(FRITT + KB_D / 2) for k in kollektorns().values()]
         for u in UTRUSTNING.values():
             if u.lage.yta != "golv":
                 continue

@@ -267,16 +267,83 @@ def _fordelarna(utdrag: dict, kallare: list[dict], vyn: list[dict], nummer: str,
     return blad(nummer, ["Golvvärme", "Fördelarna"], f"1:{s:g}", "Modellen", kol, [p, hp, e, ev], block)
 
 
+def _kollektorn(kb: dict, kallare: list[dict], sek: list[dict], norr: tuple[float, float], nummer: str) -> Blad:
+    """Köldbärarledningarna: planen över källarens vänstra del och trädgården och sektionen längs rören (söderut till
+    vänster), 1:100."""
+    s, sk = SKALA, SKALA
+    omr = (-500.0, 5500.0, -2600.0, 9600.0)
+    pp = (24.0, 30.0)
+    v = Vy(pp[0], pp[1], (omr[1] - omr[0]) / s, (omr[3] - omr[2]) / s, s, omr[0], omr[3], klipp=True)
+    hv = vy(s, omr, *pp)
+    plan(v, kallare)
+    with v.lager("ror"):
+        for k in kb["ledningar"].values():
+            q = k["vag"]
+            v.linje([(a[0], a[1]) for a in q], "gv")
+            v.cirkel(q[0][0], q[0][1], kb["d"] / 2, "gv", "tunn", modell=True)
+        b = kb["brunn"]
+        v.cirkel(b[0], b[1], 300.0, "vit", "normal", modell=True)
+        v.ptext(b[0], b[1], 0.0, -300.0 / s - 1.0, "energibrunnen (ungefärligt läge)", a="ct", sz=5.6, bg=True)
+    norrpil(v, 4800.0, 8800.0, norr)
+    with hv.lager("rubrik"):
+        hv.rubrik(*papper(hv, pp[0], pp[1] - 6.0), "Köldbärarledningarna, plan", round(s))
+        hv.skalstock(*papper(hv, pp[0], pp[1] + (omr[3] - omr[2]) / s + 5.0), langd_m=2, steg_m=1)
+    # sektionen x = rörens mitt, sedd från öster (söder till vänster): X = y
+    oms = (-2600.0, 9600.0, -3100.0, 400.0)
+    ps = (108.0, 30.0)
+    e = Vy(ps[0], ps[1], (oms[1] - oms[0]) / sk, (oms[3] - oms[2]) / sk, sk, oms[0], oms[3], klipp=True)
+    he = vy(sk, oms, *ps)
+    sektion(e, [{**d, "ytor": [[[[p[0], p[1]] for p in ring] for ring in yta] for yta in d["ytor"]]} for d in sek])
+    with e.lager("ror"):
+        k = next(iter(kb["ledningar"].values()))
+        q = k["vag"]
+        e.linje([(a[1], a[2]) for a in q], "gv")
+        for a in q[1:-1]:
+            e.cirkel(a[1], a[2], 0.4, "svart", None)
+    with he.lager("rubrik"):
+        he.rubrik(*papper(he, ps[0], ps[1] - 6.0), f"Sektion längs rören (x = {svm(round(q[0][0]))}), sedd från väster",
+                  round(sk))
+        he.skalstock(*papper(he, ps[0], ps[1] + (oms[3] - oms[2]) / sk + 5.0), langd_m=2, steg_m=1)
+    rader = [[kid, k["anslutning"], sv(k["langd"] / 1000, 1), str(len(k["bojar"])), f"{max(k['bojar']):.0f}°"]
+             for kid, k in kb["ledningar"].items()]
+    block = [dict(x=108.0, y=30.0 + (oms[3] - oms[2]) / sk + 16.0, w=150.0, innehall=[
+        dict(typ="rubrik", text="Skyddsrör"),
+        dict(typ="tabell", kolumner=["Rör", "Anslutning", "m", "Böjar", "Största"], bredd=(0.4, 0.9, 0.35, 0.4, 0.45),
+             just=["l", "l", "r", "r", "r"], sz=5.8, rader=rader),
+        dict(typ="text", sz=5.8, rader=[
+            f"Skyddsrör Ø{kb['d']:g} för kollektorslangarna, med böjar om högst {kb['vinkel']:g}° så att slangarna kan "
+            f"dras in efteråt. Rören går lodrätt upp genom bottenplattan (ursparing mellan armeringsnätets järn) och "
+            f"vågrätt under plattans cellplast och makadam (z {svm(kb['z_vag'])}), under kantbalken och ut till "
+            f"brunnen, frostfritt."]),
+    ])]
+    kol: list[dict] = [dict(typ="rubrik", text="Anvisningar"), dict(typ="lista", sz=7.0, rader=[
+        "Köldbärarledningarna ur modellen (modeller/trebodar/hus/installationer/kollektor), ritade med ./mod golvvarme "
+        "ritning.",
+        "Kollektorslangarna från energibrunnen går i skyddsrören till teknikrummet och vidare till värmepumpens "
+        "anslutningar för köldbärare (TK-VP, KB-in och KB-ut). Brunnens läge är ungefärligt; borrningen och "
+        "kollektorn bestäms av borrföretaget.",
+        "Rören läggs före gjutningen av bottenplattan, med dragtråd. Genomföringen i plattan tätas.",
+    ]), dict(typ="rubrik", text="Teckenförklaring"), _teckenforklaring([
+        ("gv", "skyddsrör för kollektorslang"),
+        (lambda w: w.cirkel(0.0, 0.0, 0.4, "svart", None), "böj om 15°")])]
+    return blad(nummer, ["Golvvärme", "Köldbärarledningarna"], f"1:{s:g}", "Modellen", kol,
+                [v, hv, e, he], block)
+
+
 def ritningar(utdrag: dict, plan1: list[dict], kallare: list[dict], mb: list[dict], vyn: list[dict],
-              norr: tuple[float, float], arbete: Path, ut: Path) -> Path:
-    """Golvvärmeritningarna (serien SERIE): plan 1 och källaren (snitten: plan 1, källaren och mellanbjälklaget) och
-    fördelarna (snitten: källaren och y = Y_VY), som pdf i mappen ut (bladen för sig i arbetsmappen)."""
+              norr: tuple[float, float], arbete: Path, ut: Path, kb: dict | None = None,
+              sek: list[dict] | None = None) -> Path:
+    """Golvvärmeritningarna (serien SERIE): plan 1 och källaren (snitten: plan 1, källaren och mellanbjälklaget),
+    fördelarna (snitten: källaren och y = Y_VY) och köldbärarledningarna (kb, snittet längs rören), som pdf i mappen ut
+    (bladen för sig i arbetsmappen)."""
     pre = SERIE.split()[0]
-    nr = [f"{pre}.{i}" for i in range(1, 3)]
+    nr = [f"{pre}.{i}" for i in range(1, 4)]
     bladen = [
         (nr[0], _planerna(utdrag, mb, plan1, kallare, norr, nr[0], f"Fördelarna: {nr[1]}.")),
         (nr[1], _fordelarna(utdrag, kallare, vyn, nr[1], f"Plan 1 och källaren: {nr[0]}.")),
     ]
+    if kb is not None and sek is not None:
+        bladen.append((nr[2], _kollektorn(kb, kallare, sek, norr, nr[2])))
     pdf = ut / f"{SERIE}.pdf"
     kompilera(bladen, arbete, pdf)
     return pdf

@@ -244,6 +244,9 @@ def main(argv: list[str] | None = None) -> None:
                          "nivå, genomföringarna och krockarna mot husets delar och de andra installationerna; lista: "
                          "kretsar och genomföringar (markdown); ritning: plan 1 och källaren med fördelarna (VG-01)")
     pg.add_argument("--ut", type=Path, default=UT / "golvvarme")
+    pb = sub.add_parser("kollektor", help="köldbärarledningarna: kontroll (med krockar mot huset)")
+    pb.add_argument("atgard", choices=("kontroll",),
+                    help="kontroll: böjarna, genomföringarna och krockarna mot husets delar och de andra installationerna")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
@@ -700,9 +703,33 @@ def main(argv: list[str] | None = None) -> None:
             kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "vatten-kallare.json")
             mb = snitt(ma, step_fil, -75.0, UT / "vatten-mellanbjalklag.json")
             vyn = snitt(ma, step_fil, f"y={golvvarmeritning.Y_VY:g}", UT / "golvvarme-vy.json")
+            kbl = importlib.import_module("trebodar.hus.installationer.kollektor.ledningar")
+            kb = kbl.utdrag()
+            x_kb = next(iter(kbl.ledningar().values())).vag[0][0]
+            sek = snitt(ma, step_fil, f"x={x_kb:g}", UT / "golvvarme-kollektor.json")
             pdf = golvvarmeritning.ritningar(utdrag, plan1, kallare, mb, vyn, _norr(), UT / "golvvarme" / "blad",
-                                             arg.ut)
+                                             arg.ut, kb, sek)
             print(f"  {pdf}")
+    elif arg.kommando == "kollektor":
+        from . import installationer
+        regler = importlib.import_module("trebodar.kontrollregler")
+        kb = importlib.import_module("trebodar.hus.installationer.kollektor.ledningar")
+        fel, anm = kb.kontroll()
+        kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Köldbärare")
+        fel += [f"krock med {k}" for k in kr.installationer + kr.armering]
+        print(f"  {len(kb.ledningar())} rör, {len(kb.genomforingarna()[0])} genomföringar: {len(fel)} fel, "
+              f"{len(anm)} anmärkningar")
+        for f in fel:
+            print(f"    FEL {f}")
+        for x in anm:
+            print(f"    {x}")
+        print("  krockar mot husets delar (stommen var för sig):")
+        for k in kr.stomme + kr.skikt:
+            print(f"    {k}")
+        for g in kb.genomforingarna()[0]:
+            print(f"    {g.del_}: {g.atgard} ({g.element}, {g.punkt[0]:.0f}, {g.punkt[1]:.0f})")
+        if fel:
+            raise SystemExit(1)
     elif arg.kommando == "kontroll":
         from . import kontroll
         try:

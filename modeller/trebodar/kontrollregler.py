@@ -21,12 +21,14 @@ UTOM_KONTROLL = {
                                  "(egen kontroll, ./mod vatten kontroll)",
     "Hus/Installationer/Golvvärme": "golvvärmen: rör och fördelare får gå genom andra delar "
                                     "(egen kontroll, ./mod golvvarme kontroll)",
+    "Hus/Installationer/Köldbärare": "köldbärarledningarna: skyddsrören får gå genom bottenplattan "
+                                     "(egen kontroll, ./mod kollektor kontroll)",
 }
 
-# installationerna som prövas mot varandra: ventilationen, vattnet och golvvärmen har egna krockkontroller mot husets
-# delar (verktyg/modellering, installationer.py), där elens delar också prövas
+# installationerna som prövas mot varandra: ventilationen, vattnet, golvvärmen och köldbäraren har egna
+# krockkontroller mot husets delar (verktyg/modellering, installationer.py), där elens delar också prövas
 INSTALLATIONER = ("Hus/Installationer/El", "Hus/Installationer/Ventilation", "Hus/Installationer/Vatten",
-                  "Hus/Installationer/Golvvärme")
+                  "Hus/Installationer/Golvvärme", "Hus/Installationer/Köldbärare")
 
 IGNORERADE = {
     frozenset(("Armering", "Betong")): "armeringen ligger i betongen",

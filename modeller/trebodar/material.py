@@ -188,6 +188,11 @@ VVS_APPARAT = Material("VVS-apparat", "Värmepump och vattenmätare (förenklade
 GOLVVARME = Material("Golvvärmerör", "Golvvärmerör PE-RT med syrespärr och matarledningar PEX, vattenfyllda", 970,
                      "#e0803a", 0.5, cad="#e8742a")
 
+# ------------------------------------------------------------------ köldbärare (hus/installationer/kollektor)
+# skyddsröret är massivt: densiteten är rörets och kollektorslangens massa fördelad på hela tvärsnittet (PE 110 × 4,2
+# med två slangar PE 40 med köldbärare ungefär 3 kg/m)
+SKYDDSROR = Material("Skyddsrör", "Skyddsrör PE Ø110 med kollektorslangar", 320, "#2e3238", 0.6, cad="#3a7d44")
+
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}
