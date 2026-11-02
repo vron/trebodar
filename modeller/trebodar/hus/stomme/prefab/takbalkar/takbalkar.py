@@ -34,9 +34,8 @@ class Falt:
 
     @property
     def takfot(self) -> float:
-        """Takbalkarnas ände vid takfoten (x): TAKFOT_UTSPRANG utanför fasaden."""
-        t = S.TAKFALL[self.kod]
-        return t.x_utsida - t.riktning * (S.T_FASAD + S.TAKFOT_UTSPRANG)
+        """Takbalkarnas ände vid takfoten (x)."""
+        return S.TAKFALL[self.kod].x_takfot
 
 
 TF1 = Takfonster("TF1", 5540.0, 6740.0, 561.784, 1601.014)

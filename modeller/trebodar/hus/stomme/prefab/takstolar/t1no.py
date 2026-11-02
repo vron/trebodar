@@ -1,7 +1,6 @@
-"""Takstol 1NO: gavelstol på väggen 1NO under nockbalk 5 (K-03: Stol 1NO).
+"""Takstol 1NO: gavelstol på väggen 1NO under nockbalk 5, mot dalbalk 4 i slutet (K-03: Stol 1NO).
 
-Delarnas profiler som i Onshape-modellen, i väggens system (skelett.VAGGAR["1NO"]). Reglerna i
-byggdelar/takstol.py lyfter takets delar med takplanen, kapar toppen i balkens underkant och lägger till toppklossar.
+Byggd med reglerna i byggdelar/takstol.py. Spikplåtarna vid fötterna som i Onshape-modellen.
 """
 from modellering import Montage
 
@@ -9,21 +8,6 @@ from trebodar.byggdelar.takstol import takstol
 
 
 def montage() -> Montage:
-    t = takstol("1NO", "1NO", "NB5", utsida=True)
-    t.sned([(2082, 3723.7975), (2082, 3833.4941), (-135, 2553.5085), (-135, 2490), (-55, 2490)], 0, 45)
-    t.diagonal([(385, 2490), (962.5, 2823.4198), (962.5, 2836.4102), (985, 2836.4102), (1562.5, 3169.8299), (1562.5, 3182.8203), (1585, 3182.8203), (2162.5, 3516.2401), (2162.5, 3529.2305), (2185, 3529.2305), (2185, 3645.2261), (2082, 3645.2261), (2082, 3723.7975), (-55, 2490)], 0, 45)
-    t.spikplat(265, 865, 2500, 2600, 45, False)
-    t.spikplat(265, 865, 2500, 2600, 0, True)
-    t.underram([(385, 2490), (3985, 2490), (3777.1539, 2610), (592.8461, 2610)], 0, 45)
-    t.stander([(0, 2610), (45, 2610), (45, 2490), (95, 2490), (95, 2836.4102), (0, 2836.4102)], 962.5, 1007.5)
-    t.stander([(0, 2610), (45, 2610), (45, 2490), (95, 2490), (95, 3182.8203), (0, 3182.8203)], 1562.5, 1607.5)
-    t.spikplat(1985, 2385, 3537.2283, 3637.2283, 0, True)
-    t.spikplat(1985, 2385, 3537.2283, 3637.2283, 45, False)
-    t.stander([(0, 2610), (45, 2610), (45, 2490), (95, 2490), (95, 3529.2305), (0, 3529.2305)], 2162.5, 2207.5)
-    t.diagonal([(3407.5, 2823.4198), (3985, 2490), (4332, 2490), (4332, 2543.6936), (2288, 3723.7975), (2288, 3645.2261), (2185, 3645.2261), (2185, 3529.2305), (2207.5, 3529.2305), (2207.5, 3516.2401), (2785, 3182.8203), (2807.5, 3182.8203), (2807.5, 3169.8299), (3385, 2836.4102), (3407.5, 2836.4102)], 0, 45)
-    t.sned([(4332, 2653.3901), (2288, 3833.4941), (2288, 3723.7975), (4332, 2543.6936)], 0, 45)
-    t.stander([(0, 2610), (45, 2610), (45, 2490), (95, 2490), (95, 3182.8203), (0, 3182.8203)], 2762.5, 2807.5)
-    t.stander([(0, 2610), (45, 2610), (45, 2490), (95, 2490), (95, 2836.4102), (0, 2836.4102)], 3362.5, 3407.5)
-    t.spikplat(3558.5, 4158.5, 2500, 2600, 45, False)
-    t.spikplat(3558.5, 4158.5, 2500, 2600, 0, True)
+    t = takstol("1NO", "NB5")
+    t.fotplat(265.0, 1).fotplat(265.0, -1).fotplat(3558.5, 1).fotplat(3558.5, -1)
     return t.montage()

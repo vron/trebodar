@@ -1,24 +1,18 @@
-"""Takstol 2C: mittstol på innerväggen 2C under nockbalk 3 (K-03: Stol L2M).
+"""Takstol 2C: mittstol på innerväggen 2C under nockbalk 3, mellan dalbalk 4 och dalbalk 2 (K-03: Stol L2M).
 
-Delarnas profiler som i Onshape-modellen, i väggens system (skelett.VAGGAR["2C"]). Reglerna i
-byggdelar/takstol.py lyfter takets delar med takplanen, kapar toppen i balkens underkant och lägger till toppklossar.
+Byggd med reglerna i byggdelar/takstol.py, på väggens överkant i dalbalkarnas underkant, i väggens sida w 50–95,
+med underramen 45×145 och toppklossen på den nordöstra sidan. Stolen saknar ståndare: diagonalerna har säten och
+underramen 2 mm hak där de stod i Onshape-modellen (mittståndaren 3 mm från nockens mitt). Spikplåtarna vid
+fötterna som i Onshape-modellen.
 """
 from modellering import Montage
 
+from trebodar import skelett as S
 from trebodar.byggdelar.takstol import takstol
 
 
 def montage() -> Montage:
-    t = takstol("2C", "2C", "NB3", utsida=False, klossar=(-1,))     # klossen bara på den nordöstra sidan
-    t.diagonal([(2385, 3868.1351), (91, 2543.6936), (91, 2403.9231), (288.9103, 2403.9231), (1262.5, 2966.0253), (1262.5, 2979.0157), (1285, 2979.0157), (1862.5, 3312.4355), (1862.5, 3325.4258), (1885, 3325.4258), (2462.5, 3658.8456), (2462.5, 3673.5681), (2488, 3673.5681), (2488, 3789.5637), (2385, 3789.5637)], 50, 95)
-    t.sned([(91, 2543.6936), (2385, 3868.1351), (2385, 3977.8316), (91, 2653.3901)], 50, 95)
-    t.spikplat(214.484, 814.484, 2426.4231, 2526.4231, 95, False)
-    t.spikplat(214.484, 814.484, 2426.4231, 2526.4231, 50, True)
-    t.underram([(3707.5, 2546.9231), (3662.5, 2546.9231), (3662.5, 2548.9231), (3038, 2548.9231), (3038, 2546.9231), (2993, 2546.9231), (2993, 2548.9231), (2507.5, 2548.9231), (2507.5, 2546.9231), (2462.5, 2546.9231), (2462.5, 2548.9231), (1907.5, 2548.9231), (1907.5, 2546.9231), (1862.5, 2546.9231), (1862.5, 2548.9231), (1307.5, 2548.9231), (1307.5, 2546.9231), (1262.5, 2546.9231), (1262.5, 2548.9231), (540.0577, 2548.9231), (288.9103, 2403.9231), (4687.0896, 2403.9231), (4435.9423, 2548.9231), (3707.5, 2548.9231)], 50, 95)
-    t.spikplat(2288, 2688, 3681.5659, 3781.5659, 95, False)
-    t.spikplat(2288, 2688, 3681.5659, 3781.5659, 50, True)
-    t.diagonal([(2488, 3789.5637), (2488, 3673.5681), (2507.5, 3673.5681), (2507.5, 3662.3097), (3015.5, 3369.0158), (3038, 3369.0158), (3038, 3356.0254), (3685, 2982.4798), (3707.5, 2982.4798), (3707.5, 2969.4894), (4687.0896, 2403.9231), (4885, 2403.9231), (4885, 2543.6936), (2591, 3868.1351), (2591, 3789.5637)], 50, 95)
-    t.sned([(2591, 3868.1351), (4885, 2543.6936), (4885, 2653.3901), (2591, 3977.8316)], 50, 95)
-    t.spikplat(4161.516, 4761.516, 2426.4231, 2526.4231, 50, True)
-    t.spikplat(4161.516, 4761.516, 2426.4231, 2526.4231, 95, False)
+    t = takstol("2C", "NB3", utsida=False, klossar=(-1,), sate=S.BALKAR["DB2"].uk, w0=50.0, underram=145.0,
+                hak=2.0, standare=(1262.5, 1862.5, 2462.5, 2993.0, 3662.5), standardelar=False)
+    t.fotplat(214.484, 1).fotplat(214.484, -1).fotplat(4161.516, -1).fotplat(4161.516, 1)
     return t.montage()

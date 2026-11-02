@@ -144,7 +144,7 @@ def main(argv: list[str] | None = None) -> None:
             return
         jf = avtryck.jamfor(rot, karna, fil)
         print(f"  {jf.antal[0]} -> {jf.antal[1]} delar: {len(jf.borta)} borta, {len(jf.nya)} nya, {len(jf.andrade)} ändrade, "
-              f"{len(jf.flyttade)} flyttade i trädet")
+              f"{len(jf.flyttade)} flyttade i trädet, {len(jf.omdopta)} med nytt delnamn")
         for rubrik, lista_ in (("borta", jf.borta), ("nya", jf.nya), ("ändrade", jf.andrade)):
             for sokvag in lista_[:20]:
                 print(f"    {rubrik}: {sokvag}")
@@ -152,6 +152,8 @@ def main(argv: list[str] | None = None) -> None:
                 print(f"    … och {len(lista_) - 20} till")
         for fran, till in jf.flyttade[:20]:
             print(f"    flyttad: {fran} -> {till}")
+        for sokvag, fore, efter in jf.omdopta[:20]:
+            print(f"    nytt delnamn: {sokvag}: {fore} -> {efter}")
         print("  Geometrin är oförändrad." if jf.lika else "  Geometrin har ändrats.")
         raise SystemExit(0 if jf.lika else 1)
     if arg.kommando == "bygg":

@@ -133,6 +133,11 @@ class Takfall:
         """Takfotsväggens utsida (stommens yttre yta)."""
         return self.x_insida - self.riktning * T_STOMME
 
+    @property
+    def x_takfot(self) -> float:
+        """Takbalkarnas ände vid takfoten: TAKFOT_UTSPRANG utanför fasaden."""
+        return self.x_utsida - self.riktning * (T_FASAD + TAKFOT_UTSPRANG)
+
     def z_underkant(self, x: float) -> float:
         return H_VAGG + TAKLYFT + self.riktning * (x - self.x_insida) * TAN
 

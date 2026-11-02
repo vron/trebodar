@@ -2,7 +2,8 @@
 
 Spara ett före en omstrukturering och jämför efter (`./mod avtryck spara`, `./mod avtryck jamfor`): geometrin är
 oförändrad om inga delar har försvunnit, tillkommit eller ändrats. Delar som bara har flyttats i modellträdet (samma
-namn och geometri under en annan grupp) paras på namnet och redovisas för sig.
+namn och geometri under en annan grupp) paras på namnet och redovisas för sig, liksom delar med samma geometri som
+har fått ett annat delnamn (t.ex. "kapad 1" i stället för "kapad 4" när två likadana delar blir samma del).
 """
 from __future__ import annotations
 
@@ -45,7 +46,11 @@ def spara(rot: Montage, karna: Karna, fil: Path) -> int:
 
 
 def _lika(a: Avtryck, b: Avtryck) -> bool:
-    if a["del"] != b["del"] or a["material"] != b["material"]:
+    return a["del"] == b["del"] and _samma_geometri(a, b)
+
+
+def _samma_geometri(a: Avtryck, b: Avtryck) -> bool:
+    if a["material"] != b["material"]:
         return False
     la, lb = np.array(a["lada"]), np.array(b["lada"])
     ta, tb = np.array(a["tyngdpunkt"]), np.array(b["tyngdpunkt"])
@@ -60,6 +65,7 @@ class Jamforelse:
     borta: list[str] = field(default_factory=list)
     nya: list[str] = field(default_factory=list)
     flyttade: list[tuple[str, str]] = field(default_factory=list)
+    omdopta: list[tuple[str, str, str]] = field(default_factory=list)     # sökväg, delnamn före och efter
     andrade: list[str] = field(default_factory=list)
 
     @property
@@ -72,7 +78,13 @@ def jamfor(rot: Montage, karna: Karna, fil: Path) -> Jamforelse:
     fore: dict[str, Avtryck] = json.loads(fil.read_text(encoding="utf-8"))
     nu = berakna(rot, karna)
     r = Jamforelse((len(fore), len(nu)))
-    r.andrade = sorted(k for k in fore.keys() & nu.keys() if not _lika(fore[k], nu[k]))
+    for k in sorted(fore.keys() & nu.keys()):
+        if _lika(fore[k], nu[k]):
+            continue
+        if _samma_geometri(fore[k], nu[k]):
+            r.omdopta.append((k, str(fore[k]["del"]), str(nu[k]["del"])))
+        else:
+            r.andrade.append(k)
     borta, nya = sorted(fore.keys() - nu.keys()), sorted(nu.keys() - fore.keys())
     # flyttade: samma delnamn (sista ledet) och samma geometri
     kvar = {v.rsplit("/", 1)[-1]: v for v in nya}
