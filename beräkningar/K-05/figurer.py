@@ -233,8 +233,8 @@ def rita_laster(path, G, L):
     ax.text(ll[0]["pl"][0][0] + 160, 3000, "qD2", fontsize=6.2, color=LAST, rotation=90, va="center", zorder=10,
             path_effects=HALO)
     t = [l for l in L["linjer"] if l["namn"] == "qT"]
-    ax.text((t[0]["pl"][0][0] + t[1]["pl"][0][0]) / 2 - 400, t[0]["pl"][0][1] - 120, "qT (båda kortsidorna)", fontsize=5.8,
-            color=LAST, ha="center", va="top", zorder=10, path_effects=HALO)
+    ax.text(t[0]["pl"][0][0] - 120, t[0]["pl"][0][1] - 120, "qT", fontsize=5.8, color=LAST, ha="right", va="top",
+            zorder=10, path_effects=HALO)
     # punktlaster
     flytt = {"LD2_1": (150, -330, "left"), "LD2_2": (150, 60, "left"), "LD4_1": (-150, 150, "right"),
              "LD2_3": (150, 150, "left"), "LD4_2": (150, -330, "left"), "LD2_4": (-150, -330, "right"),

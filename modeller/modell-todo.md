@@ -26,8 +26,9 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    kanter, där betongen slutar vid L-elementens rygg (punkt 3); modellen klipper dem där. R-04:s startjärn under F3:s
    bröstning (800) går 1 200 upp, genom bröstningen: korta dem till under bröstningens järn (modellen gör det), och
    startjärnens fördelning lägger ett järn vid F3:s kant (2 mm in i kärnan; modellen flyttar det 40 mm in).
-6. **K-05:s trappa:** modellens trappa är brant (45°, 11 steghöjder à 204,5, stegdjup 202) och ryms i trapphålet,
-   2,07 × 0,83 m; `laster.TRAPPA` räknar med 3,0 m (på säkra sidan).
+6. **K-06 med K-05:s rörlaster efter trappan:** K-05 räknar nu med modellens trappa (hänger på trapphålets östra
+   kortsida), och rörlasterna nära trapphålet blev något lägre (P6 17,7 i stället för 20,4 kN, P12 20,6 i stället för
+   22,1 kN); K-06 och plintarna ligger på säker sida tills K-06 körs om.
 
 ## Kontrollera och bestäm
 

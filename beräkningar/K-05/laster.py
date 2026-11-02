@@ -58,8 +58,9 @@ STOLPLAGEN = {
     "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
     "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
 }
-# Trappan (trä) hänger på trapphålets kortsida. Vilken kortsida som bär är inte bestämt: lasten läggs på båda.
-TRAPPA = dict(langd=3.0, bredd=0.83, g=1.0, q=2.0)       # horisontell längd [m], bredd [m], kN/m² i plan
+# Trappan (trä, brant, i trapphålet): står på källarens golv vid hålets västra kortsida och hänger i överkant på den
+# östra, vid väggen 2B; halva trappan på den östra kortsidan.
+TRAPPA = dict(langd=2.07, bredd=0.83, g=1.0, q=2.0)      # horisontell längd [m], bredd [m], kN/m² i plan
 
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
 # x från balkens vänstra ände; balkens läge i plan enligt geometri.json (balkar)
@@ -286,7 +287,7 @@ def ytterväggar():
 
 # ------------------------------------------------------------------ övriga linjelaster
 def linjelaster():
-    """qD2 från dalbalk 2 via bärande vägg på plan 1 (K-01), och trappan på trapphålets kortsidor."""
+    """qD2 från dalbalk 2 via bärande vägg på plan 1 (K-01), och trappan på trapphålets östra kortsida."""
     ll = G["linjelaster"]
     L = []
     lyft = K01["D2"]["vagg_lyft"] / (K01["D2"]["vagg"][1] / 1000)      # kN/m
@@ -300,9 +301,9 @@ def linjelaster():
     tr = TRAPPA
     gk = 0.5 * tr["langd"] * tr["g"] * tr["bredd"] / (abs(y1 - y0) / 1000)
     qk = 0.5 * tr["langd"] * tr["q"] * tr["bredd"] / (abs(y1 - y0) / 1000)
-    for x in (x0, x1):
-        L.append(dict(namn="qT", pl=[(x, y0), (x, y1)], gk=gk, sk=0.0, qk=qk, wd=0.0, skropp={},
-                      text="trappan, halva trappan hänger på hålets kortsida"))
+    x = max(x0, x1)
+    L.append(dict(namn="qT", pl=[(x, y0), (x, y1)], gk=gk, sk=0.0, qk=qk, wd=0.0, skropp={},
+                  text="trappan, halva trappan hänger på hålets östra kortsida"))
     return L
 
 

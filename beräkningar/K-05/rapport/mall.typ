@@ -101,7 +101,7 @@ Stolparna under nock- och dalbalkarna och takstolarna redovisas i K-03 och balka
 
 - *Dalbalk 2* vilar på en bärande vägg (qD2) med dörröppning mot trappan. Karmstolparna LD2_1 och LD2_2 står intill trapphålets långsidor (upplagsyta 95 × 90 mm), och LD2_3 är väggens ände.
 - *Ytterväggarna* (qY1–qY12): egentyngd #D.enh.g_vagg kN/m² väggyta, höjd #D.enh.h_vagg m till takfot och gavelspetsen upp till taket. Takfotsväggarna bär taket till halva takbalkens horisontella längd plus takutsprånget #D.enh.utspr m: #D.enh.t_sida m i vänstra och högra huskroppen, #D.enh.t_mitt m i mittre.
-- *Trappan* (trä) hänger med halva sin vikt på trapphålets kortsida (qT): #D.enh.tr_l m horisontell längd, #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan.
+- *Trappan* (trä, brant, i trapphålet) står på källarens golv vid hålets västra kortsida och hänger med halva sin vikt på den östra kortsidan, vid väggen 2B (qT): #D.enh.tr_l m horisontell längd, #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan.
 
 Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kant, över källarväggens yttre cellplast och 52,5 mm utanför betongkärnan. Plattan gjuts samtidigt med kärnan och kragar ut 70 mm över cellplasten. Lasten går därför med en tryckstrimla direkt in i kärnan, eftersom avståndet till kärnan är mindre än halva plattans tjocklek. I modellen läggs lasterna över en källarvägg på upplagslinjen i kärnans mitt, där de inte böjer plattan men ingår i väggens reaktion (avsnitt 6.1). Lastöverföringen och konsolmomentet kontrolleras i K-06, också för den största lasten över en vägg, LD4_2 (44 kN dimensionerande) i hörnet V2/V20. Över källarens öppningar (fria kanter) och på marken verkar lasterna på plattan.
 
@@ -136,7 +136,7 @@ Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kan
   table.header([Last], [Vägg], [Läge (mm)], [$g_k$], [$s_k$], [$Sigma G_k$], [$Sigma S_k$], [Står på]),
   ..D.vaggar.map(r => ([#r.namn], [#r.text], [#r.str], [#r.gk], [#r.sk], [#r.G], [#r.S], [#r.plats])).flatten(),
   [qD2], [dalbalk 2 via bärande vägg], [x = #D.qD2.x, y #D.qD2.str], [#D.qD2.gk], [#D.qD2.sk], [], [], [plattan],
-  [qT], [trappan, hålets kortsidor], [x = #D.qT.x], [#D.qT.gk], [$q_k$ #D.qT.qk], [], [], [plattan],
+  [qT], [trappan, hålets östra kortsida], [x = #D.qT.x], [#D.qT.gk], [$q_k$ #D.qT.qk], [], [], [plattan],
 )
 Vindlyft på dalbalk 2:s vägg: #D.qD2.wd kN/m längs qD2 (K-01: #D.enh.k01_lyft kN för hela väggen). Totalt från plan 1: $G_k$ = #D.tot.ovanG kN och $S_k$ = #D.tot.ovanS kN. Snölasten är större än snö på hela taket, #D.snotak kN, eftersom K-01 räknar med att snön samlas i dalarna och med 2,5 m lastbredd för nockbalkarna (på säker sida).
 
