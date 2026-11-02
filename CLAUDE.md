@@ -20,6 +20,7 @@ Husets modell är koden i `modeller/trebodar/` (se dess README): geometriskript 
 - `modeller/` – `trebodar/` den kodgenererade modellen, `referens/` Onshape-modellen (fryst), balkar och balkplåtar som STEP (med DXF). `modeller/modell-todo.md` listar det som ska ändras i modellen för att stämma med handlingarna. Lägg till punkter när handlingarna kräver något som modellen saknar, och ta bort dem när modellen är uppdaterad.
 - `verktyg/modellering/` – ramverket som bygger modellen: kärna (OCCT, cache, parallellt), export (STEP, GLB, materiallista), kontroll av krockar och kontakter, jämförelse med referensen, rendering (Blender) och webbvisaren.
 - `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`). Kontrollerna läser den kodgenererade modellen (bygg den först med `./mod bygg`).
+- `renderingar/` – inomhusbilderna I01–I30 i 4K (`rendera.sh`; bilderna versionshanteras inte) och kameraplanen.
 - `docs/` – webbvisaren (three.js) med modellen, publicerad med GitHub Pages på https://vron.github.io/trebodar/ (det som är incheckat på `main`); byggs med `./mod webb` och checkas in när modellen ändras.
 
 ## Arbetssätt

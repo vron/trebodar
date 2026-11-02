@@ -8,19 +8,26 @@ fibrer eller brädor löper ("x", "y" eller "z"), `tvars` axeln längs vilken br
 | Typ | Parametrar |
 |---|---|
 | farg | farg, grovhet, metall, opacitet: enfärgad yta |
-| tra | farg, farg2 (mörka ådror), riktning, arsring: konstruktionsvirke med årsringar |
+| virke | art (gran, furu, lark, ask), yta (obehandlad, olja, lack, vitpigmenterad), riktning, tvars, lamell, lamelltjocklek och artens värden (tra.ARTER): trä ur en stock per bit och lamell |
+| tra | farg, farg2 (mörka ådror), riktning, arsring: enkelt virke med årsringar |
 | limtra | som tra och lamell (axel), lamelltjocklek: limträ med lameller och limfogar |
 | bradpanel | se nedan: sågade brädor |
+| gips | farg, grovhet: målad gipsskiva (ytor.py) |
+| betong | farg, farg2, golv_grovhet: slipat golv på ytor uppåt, annars gjuten yta (ytor.py) |
+| kakel | farg, storlek, fog, fogfarg, grovhet: plattor med fogar i väggens eller golvets plan (ytor.py) |
 | plat | farg, metall, grovhet, variation, grovhet_variation, buckla, avstand, riktning, tvars: plåt i banor |
 | granit | farg, farg2, farg3, rosa, andelar, korn, variation, varm, varmfarg, rost, rostfarg: kluven granit |
-| betong, bruk, berg, mark, grus, cellplast, isolering, papp | farg, farg2: brusiga ytor |
-| glas, folie | farg, opacitet: genomskinliga |
+| pulverlack | farg, grovhet, skala: pulverlackerad metall med fin apelsinyta |
+| bruk, berg, mark, grus, cellplast, isolering, papp | farg, farg2: brusiga ytor |
+| glas | transmission, reflex_ior: fönsterglas (reflexen på den första ytan) |
+| folie | farg, opacitet: genomskinlig |
 
 bradpanel: brädor med bredden `bredd` och fogen `fog` tvärs `tvars`, var och en sågad ur en stock: årsringarna är
 skärningen mellan brädans yta och stockens ringar (`arsring` mellan ringarna), med märgen slumpad per bräda och
 stocken något lutande, så att ringarna bildar flammor och spetsbågar. Kvistar (`kvistar` per meter bräda,
 diameter `kvist`) med ringar och mörk kant, och ådringen böjer runt dem. Sågad yta: fibrer, ludd och sågmärken.
-Strimmor (`strimmor`) längs brädorna och färgskiftning per bräda (`variation`). Skruvar i rader (`skruv_cc`,
+Strimmor (`strimmor`) längs brädorna, sågytans fibrer och ludd (`fibrer`, obehandlat trä) och färgskiftning per bräda
+(`variation`); en del brädor är skarvade (andelen `skarvar`). Skruvar i rader (`skruv_cc`,
 `skruv_start` längs brädorna, `skruv_per_brada`, `skruv_kant` från brädans kant, diameter `skruv`).
 `behandling` ger utgångsvärden: tackfarg (färgen farg och farg2 täcker, ådring och kvistar anas genom färgen
 med `genomslag`), jarnvitriol (grånat trä: farg vårved, farg2 sommarved, farg3 brunare brädor med andelen `brun`,
@@ -33,6 +40,7 @@ import math
 import bpy
 
 import tra
+import ytor
 from graf import Graf, linjar, rgba
 from graf import tal as _f
 
@@ -121,17 +129,22 @@ def pulverlack(g: Graf, p: dict) -> None:
 def glas(g: Graf, p: dict) -> None:
     """Fönsterglas (varje ruta en tunn låda, isolerrutan tre rutor): för kameran och i speglingar genomskinligt med
     reflex efter Fresnel; skugg- och diffusa strålar går rakt igenom (inga kaustiker), så att solen och himlen lyser in
-    utan brus. Transmissionen per yta (två per ruta) ger ljustransmissionen `transmission` för hela rutan."""
-    # farg är CAD-färgen (webbvisaren); glasets egen ton är svagt grön (floatglas), per yta roten ur rutans
+    utan brus. Transmissionen per yta (två per ruta) ger ljustransmissionen `transmission` för hela rutan.
+
+    Reflexen sitter bara på den första glasyta som strålen träffar och står för hela isolerrutans reflektans
+    (reflex_ior 1,9: ca 10 % rakt framifrån, mer i flack vinkel); ytorna bakom släpper igenom. Annars studsar
+    speglingarna mellan rutorna tills studsarna tar slut, och glasen blir svarta i flack vinkel."""
+    # farg är CAD-färgen (webbvisaren); glasets egen ton är mycket svagt grön (floatglas), per yta roten ur rutans
     t = _f(p, "transmission", 0.89)
-    farg = tuple(min(1.0, (t * k) ** 0.5) for k in (0.985, 1.0, 0.99)) + (1.0,)
+    farg = tuple(min(1.0, (t * k) ** 0.5) for k in (0.993, 1.0, 0.996)) + (1.0,)
     genom = g.nod("ShaderNodeBsdfTransparent", Color=farg)
     reflex = g.nod("ShaderNodeBsdfGlossy", Color=(1.0, 1.0, 1.0, 1.0), Roughness=0.0)
-    fresnel = g.nod("ShaderNodeFresnel", IOR=1.52)
-    glasyta = g.nod("ShaderNodeMixShader", Fac=fresnel.outputs["Fac"])
+    fresnel = g.nod("ShaderNodeFresnel", IOR=_f(p, "reflex_ior", 1.9))
+    lp = g.nod("ShaderNodeLightPath")
+    forsta = g.matte("LESS_THAN", lp.outputs["Transparent Depth"], 0.5)
+    glasyta = g.nod("ShaderNodeMixShader", Fac=g.matte("MULTIPLY", fresnel.outputs["Fac"], forsta))
     g.nt.links.new(genom.outputs[0], glasyta.inputs[1])
     g.nt.links.new(reflex.outputs[0], glasyta.inputs[2])
-    lp = g.nod("ShaderNodeLightPath")
     kamera = g.matte("ADD", lp.outputs["Is Camera Ray"], lp.outputs["Is Glossy Ray"], klamp=True)
     val = g.nod("ShaderNodeMixShader", Fac=kamera)
     g.nt.links.new(genom.outputs[0], val.inputs[1])
@@ -144,9 +157,9 @@ def folie(g: Graf, p: dict) -> None:
     g.bsdf.inputs["Alpha"].default_value = _f(p, "opacitet", 0.5)
 
 
-TYPER = {"farg": farg, "tra": tra.tra, "limtra": tra.limtra, "virke": tra.virke, "bradpanel": tra.bradpanel, "plat": plat, "granit": granit,
+TYPER = {"farg": farg, "tra": tra.tra, "limtra": tra.limtra, "virke": tra.virke, "bradpanel": tra.bradpanel,
+         "gips": ytor.gips, "betong": ytor.betong, "kakel": ytor.kakel, "plat": plat, "granit": granit,
          "glas": glas, "folie": folie, "pulverlack": pulverlack,
-         "betong": lambda g, p: brusig(g, p, 3.0, 6.0, 0.2),
          "bruk": lambda g, p: brusig(g, p, 40.0, 4.0, 0.4),
          "berg": lambda g, p: brusig(g, p, 0.8, 8.0, 0.6),
          "mark": lambda g, p: brusig(g, p, 2.5, 6.0, 0.4),

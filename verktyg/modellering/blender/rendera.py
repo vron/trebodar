@@ -6,11 +6,13 @@ himlen och solen efter dagsljuset, ljusportalerna i fönstren och en kamera per 
 scen.json (från `mod rendera`): {"glb": fil, "ut": mapp, "kvalitet": "skiss" … "slutlig", "bredd": px eller null,
 "hojd_m": platsens höjd, "portaler": [...], "material": {namn: parametrar}, "vyer": {namn: vy}, "blend": fil eller
 null}; vy: "kamera" och "mal" [x, y, z] i mm, "lins" (mm), "lodrat" (vågrät kamera), "inne", "ljus" (dagsljus.Ljus),
-"ev" (EV100 eller null: automatisk), "vitbalans" (K, standard 5 500), "dolj" (delar av sökvägar).
+"ev" (EV100 eller null: automatisk), "vitbalans" (K; standard ute efter dagsljusets färgtemperatur och inne
+automatisk, som ögats anpassning), "dolj" (delar av sökvägar).
 """
 import json
 import os
 import sys
+import time
 
 import bpy
 
@@ -48,15 +50,20 @@ def stall_in(namn: str, vy: dict) -> None:
     for o in portaler:
         o.hide_render = not vy.get("inne", False)
     himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0))
-    S.vitbalans(sc, vy.get("vitbalans", 5500.0))
+    S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     sc.camera = S.kamera(namn, vy)
 
 
 for namn, vy in SCEN["vyer"].items():
     stall_in(namn, vy)
     ev = vy.get("ev")
-    if ev is None:
-        ev = S.auto_ev(sc) + (0.0 if vy.get("inne") else 0.0)
+    auto_vit = vy.get("inne") and "vitbalans" not in vy
+    if ev is None or auto_vit:
+        px = S.forhandsbild(sc)
+        if ev is None:
+            ev = S.auto_ev(px)
+        if auto_vit:
+            S.auto_vitbalans(sc, px)
     S.exponering(sc, ev)
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "
@@ -64,8 +71,9 @@ for namn, vy in SCEN["vyer"].items():
     sc.render.image_settings.file_format = "PNG"
     sc.render.image_settings.color_depth = "8"
     sc.render.filepath = os.path.join(SCEN["ut"], f"{namn}.png")
+    t0 = time.time()
     bpy.ops.render.render(write_still=True)
-    print("RENDERAD", sc.render.filepath)
+    print("RENDERAD", sc.render.filepath, f"({time.time() - t0:.0f} s)")
 
 if SCEN.get("blend"):
     namn, vy = next(iter(SCEN["vyer"].items()))

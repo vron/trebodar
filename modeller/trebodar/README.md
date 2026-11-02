@@ -8,7 +8,7 @@ som fryst referens i [`modeller/referens`](../referens/). Bygg, exportera och ko
 cd verktyg/modellering
 ./mod bygg          # STEP, GLB, materiallista och index i modeller/trebodar/ut/
 ./mod kontroll      # krockar, kontakter, glipor och delar utan kontakt
-./mod rendera       # bilder med Blender (Cycles), vyerna i vyer.py
+./mod rendera       # bilder med Blender (Cycles), vyerna i vyer.py (inomhusbilderna: renderingar/rendera.sh)
 ./mod webb          # webbvisaren i docs/ (GitHub Pages)
 ```
 
@@ -25,7 +25,7 @@ bara geometri (rätblock, prismor med hål, plan som kapar, placeringar) och mat
 | [`skelett.py`](skelett.py) | Gemensam geometri: huskroppar, väggarnas lägen och system, takfallen, nock- och dalbalkarna, nivåer |
 | [`material.py`](material.py) | Material: densitet, färg, rendering och materiallistans enhet |
 | [`byggdelar/`](byggdelar/) | Regelväggar och plana stommar, takstolar, takbalkar, takets skikt, virke och skivor, referensdelar |
-| [`vyer.py`](vyer.py) | Kameror för rendering och webbvisaren |
+| [`vyer.py`](vyer.py) | Kameror och dagsljus för rendering och webbvisaren, inomhusbilderna I01–I30, ljusportalerna och omgivningen |
 | [`kontrollregler.py`](kontrollregler.py) | Avsiktliga överlapp som kontrollen godtar, med motivering |
 | [`referens.py`](referens.py) | Referensmodellen och transformen till K-05 (för `mod jamfor`) |
 
@@ -129,9 +129,18 @@ brädor: `riktning="y"`); takets skikt x längs takfallet och z längs nocken (r
 - **Fönstren och dörrarna**: aluminiumbeklädnaden pulverlackerad, RAL 3009 på den röda huskroppen och RAL 7012 på de
   grå, halvblank med fin apelsinyta (typen `pulverlack`); träet invändigt vitmålat och matt.
 
-Vyerna (`vyer.py`) har sol eller `molnigt` (jämnt ljus som på foton i mulet väder, bra för att bedöma material).
-`./mod rendera --blend` sparar också scenen (`ut/trebodar.blend`) med materialen och en kamera per vy, för egna
-justeringar i Blender; ändringar som ska vara kvar görs i `material.py`.
+- **Träet**: virke, limträ och snickerier (`textur="virke"`) har träslag och ytbehandling (`art`: gran, furu, lärk,
+  ask; `yta`: obehandlad, olja, lack, vitpigmenterad), och färgerna kommer ur träslaget. Asken (`ASK`, oljad) är
+  avsedd för köket och snickerierna; `./mod materialprov Ask` visar den på luckor och skivor.
+- **Insidan**: gipsen målad med rollens struktur, betonggolvet slipat (ballast, molnig ton, halvmatt), kaklet i
+  plattor med fogar i väggens plan.
+
+Vyerna (`vyer.py`) anger kamera, mål, objektiv och dagsljus som (månad, dag, klocka, väder), t.ex.
+`(9, 15, "12:00", "mulet")` (mulet: jämnt ljus som på foton i mulet väder, bra för att bedöma material). Ljuset räknas
+fram för platsen (`skelett.PLATS`) med `verktyg/modellering/modellering/dagsljus.py` (`./mod ljus`). Inomhusbilderna
+I01–I30 (`INNE`, rummens namn i `RUMSNAMN`) renderas i 4K med [`renderingar/rendera.sh`](../../renderingar/), med
+kameraplanen där. `./mod rendera --blend` sparar också scenen (`ut/trebodar.blend`) med materialen och en kamera per
+vy, för egna justeringar i Blender; ändringar som ska vara kvar görs i `material.py` och `vyer.py`.
 
 ## Modellträdet
 

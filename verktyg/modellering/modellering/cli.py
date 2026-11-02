@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import math
 import sys
 import time
 from pathlib import Path
@@ -115,6 +116,16 @@ def main(argv: list[str] | None = None) -> None:
     pl.add_argument("vader", nargs="?", default="sol", help="sol, lätt mulet, mulet (sunny, slightlyovercast, overcast)")
     pl.add_argument("--steg", type=int, default=30, help="minuter mellan raderna för hela dagen")
     pl.add_argument("--diagram", type=Path, help="solens bana under året med fasadernas riktningar (png)")
+    pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
+    pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.png")
+    pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
+    pm.add_argument("material", help="materialets namn i modellen, t.ex. Ask")
+    pm.add_argument("--param", nargs="*", default=[], help="ändrade parametrar, t.ex. yta=lack lamell=y")
+    pm.add_argument("--bredd", type=int, default=1600)
+    pm.add_argument("--sampel", type=int, default=128)
+    pm.add_argument("--nara", action="store_true", help="en lucka på nära håll")
+    pm.add_argument("--ut", type=Path, default=UT / "bilder")
+    pm.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pg = sub.add_parser("omgivning", help="omgivningen ur öppna geodata (OpenStreetMap, höjdmodell) för renderingen")
     pg.add_argument("--hamta", action="store_true", help="ladda ner det som saknas (Overpass API, Terrarium-rutor)")
     pa = sub.add_parser("avtryck", help="spara modellens fingeravtryck eller jämför med det (oförändrad geometri)")
@@ -158,6 +169,51 @@ def main(argv: list[str] | None = None) -> None:
             dl.soldiagram(plats, str(arg.diagram), {"NV-fasaderna": ax, "SV-gavlarna": ax - 90,
                                                     "SO-fasaderna": ax + 180, "NO-gavlarna": ax + 90})
             print(f"  {arg.diagram}")
+        return
+    if arg.kommando == "kameraplan":
+        from modellering import kameraplan
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        vy_mod = importlib.import_module("trebodar.vyer")
+        skel = importlib.import_module("trebodar.skelett")
+        step_fil = UT / "trebodar.step"
+        if not step_fil.exists():
+            raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+        ma = ROT / "verktyg" / "modellanalys" / "ma"
+        plan1 = kameraplan.snitt(ma, step_fil, 1200.0, UT / "kameraplan-plan1.json")
+        kallare = kameraplan.snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "kameraplan-kallare.json")
+        az = math.radians(skel.PLATS.azimut_x)
+        norr = (math.cos(az), math.cos(az - math.pi / 2))     # norr i modellens x och y (x mot azimut_x, y 90° moturs)
+        kameraplan.rita(plan1, kallare, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), norr,
+                        "Trebodar – inomhusbilder I01–I30", arg.ut)
+        print(f"  {arg.ut}")
+        return
+    if arg.kommando == "materialprov":
+        import json
+        import subprocess
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        mat_mod = importlib.import_module("trebodar.material")
+        mat = next((v for v in vars(mat_mod).values() if getattr(v, "namn", None) == arg.material), None)
+        if mat is None:
+            raise SystemExit(f"materialet {arg.material} finns inte i trebodar.material")
+        p = mat.renderdata()
+        for kv in arg.param:
+            k, _, v = kv.partition("=")
+            try:
+                p[k] = float(v)
+            except ValueError:
+                p[k] = v
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        ut = arg.ut / f"materialprov-{arg.material}{'-nara' if arg.nara else ''}.png"
+        prov = UT / "materialprov.json"
+        prov.write_text(json.dumps({"namn": mat.namn, "parametrar": p, "ut": str(ut.resolve()), "bredd": arg.bredd,
+                                    "sampel": arg.sampel, "nara": arg.nara}, ensure_ascii=False))
+        skript = Path(__file__).resolve().parents[1] / "blender" / "materialprov.py"
+        blender = subprocess.run([arg.blender, "-b", "--factory-startup", "--python-exit-code", "1", "-P", str(skript),
+                                  "--", str(prov)], capture_output=True, text=True)
+        print("\n".join(x for x in blender.stdout.splitlines() if x.startswith("RENDERAD"))
+              or blender.stdout[-3000:] + blender.stderr[-2000:])
         return
     if arg.kommando == "omgivning":
         import numpy as np

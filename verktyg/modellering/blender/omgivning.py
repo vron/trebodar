@@ -234,7 +234,7 @@ def markmaterial(rut: Rutnat | None) -> bpy.types.Material:
     korn = g.brus(k, 40.0, 2.0, 0.6)
     # hällmarken: berg där det är brant eller där bruset säger så, annars gräs med ljung och en
     hall = g.jamn(lin((lutning, 2.2), (stor, 0.9), (mellan, 0.35), bas=-0.75), 0.35, 0.6)
-    gras = g.blanda(g.jamn(mellan, 0.35, 0.65), rgba("#6f7a3e"), rgba("#8f8b4a"))
+    gras = g.blanda(g.jamn(mellan, 0.35, 0.65), rgba("#57622f"), rgba("#77733c"))
     gras = g.blanda(m("MULTIPLY", g.jamn(stor, 0.55, 0.7), 0.6), gras, rgba("#5b4f3d"))       # ljung
     gras = g.blanda(m("MULTIPLY", g.jamn(fin, 0.62, 0.72), 0.7), gras, rgba("#2f3b26"))       # enar
     berg = g.blanda(g.jamn(fin, 0.3, 0.7), rgba("#8b827a"), rgba("#a9a097"))
@@ -263,7 +263,7 @@ def markmaterial(rut: Rutnat | None) -> bpy.types.Material:
         def mask(namn: str, skarpa: float = 0.25) -> object:
             """Masken med brusig kant."""
             return g.jamn(lin((kanal[namn], 1.0), (m("SUBTRACT", mellan, 0.5), skarpa)), 0.35, 0.65)
-        col = g.blanda(mask("tradgard"), col, g.blanda(g.jamn(fin, 0.4, 0.6), rgba("#5f7d38"), rgba("#73903f")))
+        col = g.blanda(mask("tradgard"), col, g.blanda(g.jamn(fin, 0.4, 0.6), rgba("#455734"), rgba("#52663f")))
         col = g.blanda(mask("aker"), col, g.blanda(g.jamn(mellan, 0.3, 0.7), rgba("#8e9a4b"), rgba("#b3a865")))
         col = g.blanda(mask("snar"), col, g.blanda(g.jamn(fin, 0.4, 0.6), rgba("#3e4a2c"), rgba("#59563a")))
         col = g.blanda(mask("vatmark"), col, rgba("#55603f"))
@@ -403,7 +403,8 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
             mask[kn] = px[fy, fx, j]
     d = np.hypot(co[:, 0] - mitt[0], co[:, 1] - mitt[1])
     tathet = np.clip(mask["skog"] + 0.06 * (1 - mask["skog"]) * (1 - mask["tradgard"]) * (1 - mask["aker"]), 0, 1)
-    tathet *= (1 - mask["hav"]) * (1 - mask["vatten"]) * (1 - mask["vag"]) * (1 - mask["byggnad"]) * (1 - mask["berg"] * 0.7)
+    tathet *= ((1 - mask["hav"]) * (1 - mask["vatten"]) * (1 - mask["vag"]) * (1 - mask["byggnad"])
+               * (1 - mask["berg"] * 0.7))
     tathet *= np.clip((d - fri) / 25.0, 0, 1) * (d < 1800.0)
     tathet *= co[:, 2] > rut.besk["z_hav"] + 0.5
     attr = me.attributes.new("tathet", "FLOAT", "POINT")

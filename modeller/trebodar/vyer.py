@@ -33,6 +33,8 @@ VYER = {
     "ute-nordost": {"kamera": [4000, -14000, 3500], "mal": [7000, 5000, 1500], "lins": 32,
                     "ljus": (6, 21, "06:30", "sol"), "lodrat": False},
     "detalj-fasad": {"kamera": [6500, -4200, 1700], "mal": [8200, 0, 1500], "lins": 40, "ljus": (9, 15, "12:00", "mulet")},
+    "detalj-falu": {"kamera": [-3600, 5600, 1500], "mal": [-95, 6600, 1300], "lins": 40,
+                    "ljus": (9, 15, "12:00", "mulet")},
     "detalj-sten": {"kamera": [11800, -2600, -600], "mal": [12600, 900, -1100], "lins": 40,
                     "ljus": (6, 21, "09:00", "sol")},
     "detalj-tak": {"kamera": [-6000, 2500, 3200], "mal": [1500, 9500, 3000], "lins": 45, "ljus": (6, 21, "10:00", "sol"),
@@ -55,26 +57,29 @@ _INNE = [
     ("I09", "kok", "mot-uteplats", "öga", (12600, 7900), (10900, 12445, 1100)),
     ("I10", "vardagsrum", "fran-hall", "vid", (2600, 11450), (2155, 15800, 1150)),
     ("I11", "vardagsrum", "mot-hall", "vid", (2000, 15350), (2600, 9800, 1350)),
-    ("I12", "vardagsrum", "mot-altandorr", "öga", (700, 13900), (4245, 13800, 1200)),
-    ("I13", "vardagsrum", "mot-golvfonster", "öga", (3700, 12300), (1500, 15835, 1100)),
+    ("I12", "vardagsrum", "mot-altandorr", "öga", (700, 13700), (4245, 14575, 1150)),
+    ("I13", "vardagsrum", "mot-golvfonster", "öga", (3700, 12300), (1900, 15835, 1100)),
     ("I14", "hall", "fran-entre", "vid", (650, 10250), (6500, 9000, 1350)),
     ("I15", "hall", "mot-entre", "öga", (3600, 9700), (-30, 10255, 1100)),
     ("I16", "badrum", "fran-dorr", "vid", (3000, 6700), (700, 4400, 1200)),
     ("I17", "badrum", "mot-dorr", "vid", (450, 3950), (2900, 7300, 1300)),
     ("I18", "sovrum", "fran-dorr", "vid", (4150, 5650), (8600, 3000, 1300)),
     ("I19", "sovrum", "mot-fonster", "öga", (6100, 5300), (6300, 135, 1500)),
-    ("I20", "sovrum", "mot-golvfonster", "öga", (4300, 5100), (3270, 3655, 1100)),
-    ("I21", "kontor", "oversikt", "vid", (8600, 2900), (5000, 450, 1300)),
+    ("I20", "sovrum", "mot-golvfonster", "vid", (4250, 5600), (3300, 3655, 1050)),
+    ("I21", "kontor", "oversikt", "vid", (9050, 1100), (4700, 1900, 1300)),
     ("I22", "kontor", "mot-altandorr", "öga", (7200, 1300), (4565, 2520, 1150)),
     ("I23", "sovrum-litet", "fran-dorr", "vid", (10450, 2700), (13200, 1500, 1200)),
     ("I24", "kontor-litet", "fran-dorr", "vid", (11250, 3300), (13675, 3725, 1300)),
     ("I25", "gastrum", "fran-dorr", "vid", (11250, 5180), (13675, 5500, 1300)),
     ("I26", "gang", "mot-kok", "öga", (10300, 3250), (10300, 9500, 1300)),
     ("I27", "gang", "mot-sovrum", "öga", (10300, 6900), (10300, 2905, 1300)),
-    ("I28", "trappa", "ned", "öga", (9900, 5470), (7400, 5470, -1400)),
+    ("I28", "trappa", "ned", "öga", (9475, 5470), (7700, 5470, -1500)),
     ("I29", "kallare", "oversikt", "vid", (12800, 11500, Z_KALLARE), (7000, 3500, Z_KALLARE + 1200)),
     ("I30", "kallare", "mot-trappan", "vid", (5300, 2000, Z_KALLARE), (8600, 5500, Z_KALLARE + 900)),
 ]
+
+# inomhusbilder med egna inställningar: trappan ned med lutande kamera (lodräta linjer konvergerar)
+_INNE_EXTRA: dict[str, dict[str, object]] = {"I28": {"lodrat": False}}
 
 
 def _inne() -> dict[str, dict[str, object]]:
@@ -83,11 +88,21 @@ def _inne() -> dict[str, dict[str, object]]:
         o = OBJEKTIV[obj]
         z0 = kam[2] if len(kam) > 2 else 0.0
         ut[f"{nr}-{rum}-{vy}-{obj}"] = {"kamera": [kam[0], kam[1], z0 + o["hojd"]], "mal": list(mal), "lins": o["lins"],
-                                        "ljus": INNE_LJUS, "inne": True, "rum": rum, "objektiv": obj}
+                                        "ljus": INNE_LJUS, "inne": True, "rum": rum, "objektiv": obj,
+                                        **_INNE_EXTRA.get(nr, {})}
     return ut
 
 
 INNE = _inne()
+
+# rummens namn i kameraplanen (`./mod kameraplan`): namnet och läget (x, y), plan 1 eller källaren (k)
+RUMSNAMN = {
+    "allrum": ("Allrum", (6900, 8700)), "kok": ("Kök", (12000, 10400)), "vardagsrum": ("Vardagsrum", (2200, 13400)),
+    "hall": ("Hall", (1100, 9300)), "badrum": ("Badrum", (1250, 5500)), "sovrum": ("Sovrum", (5900, 4300)),
+    "kontor": ("Kontor", (6300, 1100)), "sovrum-litet": ("Sovrum, litet", (12300, 1850)),
+    "kontor-litet": ("Kontor, litet", (12400, 3750)), "gastrum": ("Gästrum", (12400, 5650)),
+    "gang": ("Gång", (10250, 4600)), "trappa": ("Trappa", (8350, 5470)), "kallare": ("Källare", (7000, 7800, "k")),
+}
 
 # marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)
 OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}

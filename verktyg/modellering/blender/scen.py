@@ -25,7 +25,7 @@ KVALITET = {
     "skiss": {"bredd": 640, "sampel": 48, "troskel": 0.05, "studsar": 6},
     "utkast": {"bredd": 1280, "sampel": 160, "troskel": 0.03, "studsar": 8},
     "normal": {"bredd": 1920, "sampel": 384, "troskel": 0.015, "studsar": 10},
-    "slutlig": {"bredd": 3840, "sampel": 1024, "troskel": 0.01, "studsar": 12},
+    "slutlig": {"bredd": 3840, "sampel": 512, "troskel": 0.015, "studsar": 12},
 }
 
 
@@ -39,7 +39,7 @@ def cycles(sc: bpy.types.Scene, kvalitet: dict[str, float], hojd_bredd: float = 
         prefs.compute_device_type = "METAL"
         prefs.get_devices()
         for d in prefs.devices:
-            d.use = True
+            d.use = d.type != "CPU"          # bara grafikprocessorn: med processorn bredvid går det långsammare
         c.device = "GPU"
     except Exception:
         pass
@@ -81,12 +81,28 @@ def cycles(sc: bpy.types.Scene, kvalitet: dict[str, float], hojd_bredd: float = 
 
 
 def vitbalans(sc: bpy.types.Scene, kelvin: float | None) -> None:
-    """Kamerans vitbalans (som kamerans dagsljusinställning); None stänger av den."""
+    """Kamerans vitbalans i färgtemperatur; None stänger av den. Nyansen 10 är dagsljusets kurva (Blenders
+    neutrala inställning, 6 500 K och 10, är D65); 0 vore Plancks kurva, och bilden blir då grönstickig."""
     vs = sc.view_settings
+    vs.use_curve_mapping = False
     vs.use_white_balance = kelvin is not None
     if kelvin is not None:
         vs.white_balance_temperature = kelvin
-        vs.white_balance_tint = 0.0
+        vs.white_balance_tint = 10.0
+
+
+def dagsljusets_vitbalans(ljus: dict, grad: float = 0.7, mot: float = 5500.0) -> float:
+    """Vitbalansen ute [K]: dagsljusets färgtemperatur (solens och himlens, vägda efter belysningen på marken, i
+    mired) till graden grad och resten mot `mot` (kamerans dagsljusinställning), så att kvällssolen förblir varm och
+    mulet väder neutralt."""
+    es = ljus["sol_lux"] * max(0.0, math.sin(math.radians(ljus["sol_hojd"]))) if ljus.get("sol_cct") else 0.0
+    eh = ljus["himmel_lux"] if ljus.get("himmel_cct") else 0.0
+    if es + eh <= 0:
+        return mot
+    sol = es * 1e6 / ljus["sol_cct"] if es else 0.0
+    himmel = eh * 1e6 / ljus["himmel_cct"] if eh else 0.0
+    mired = grad * (sol + himmel) / (es + eh) + (1 - grad) * 1e6 / mot
+    return min(8000.0, max(4000.0, 1e6 / mired))
 
 
 # ------------------------------------------------------------------ himmel och sol
@@ -318,9 +334,8 @@ def exponering(sc: bpy.types.Scene, ev: float) -> None:
     sc.view_settings.exposure = 9.94 - ev
 
 
-def auto_ev(sc: bpy.types.Scene, nyckel: float = 0.18, hogdagrar: float = 0.97, bredd: int = 320) -> float:
-    """EV100 ur en snabb förhandsbild: geometriska medelvärdet av luminansen (utan de ljusaste procenten, t.ex.
-    fönstren) blir nyckel efter exponeringen."""
+def forhandsbild(sc: bpy.types.Scene, bredd: int = 320) -> np.ndarray:
+    """En snabb förhandsbild (linjär RGB, pixlarna som rader) för exponeringen och vitbalansen."""
     r = sc.render
     spara = (r.resolution_x, r.resolution_y, sc.cycles.samples, sc.cycles.use_adaptive_sampling, r.filepath,
              r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure)
@@ -336,11 +351,37 @@ def auto_ev(sc: bpy.types.Scene, nyckel: float = 0.18, hogdagrar: float = 0.97, 
     bpy.ops.render.render(write_still=True)
     im = bpy.data.images.load(fil)
     w, h = im.size
-    px = np.array(im.pixels[:], dtype=np.float64).reshape(h, w, 4)[:, :, :3]
+    px = np.array(im.pixels[:], dtype=np.float64).reshape(h * w, 4)[:, :3]
     bpy.data.images.remove(im)
     (r.resolution_x, r.resolution_y, sc.cycles.samples, sc.cycles.use_adaptive_sampling, r.filepath,
      r.image_settings.file_format, r.image_settings.color_depth, sc.view_settings.exposure) = spara
-    lum = np.maximum(px @ REC709, 1e-6).ravel()
-    lum = lum[lum <= np.quantile(lum, hogdagrar)]
+    return px
+
+
+def _urval(px: np.ndarray, hogdagrar: float) -> tuple[np.ndarray, np.ndarray]:
+    lum = np.maximum(px @ REC709, 1e-6)
+    valda = lum <= np.quantile(lum, hogdagrar)
+    return px[valda], lum[valda]
+
+
+def auto_ev(px: np.ndarray, nyckel: float = 0.18, hogdagrar: float = 0.97) -> float:
+    """EV100 ur förhandsbilden: geometriska medelvärdet av luminansen (utan de ljusaste procenten, t.ex. fönstren)
+    blir nyckel efter exponeringen."""
+    _, lum = _urval(px, hogdagrar)
     medel = float(np.exp(np.mean(np.log(lum))))                     # Blenders enheter (· 683 = cd/m²)
     return 9.94 - math.log2(nyckel / medel)
+
+
+def auto_vitbalans(sc: bpy.types.Scene, px: np.ndarray, grad: float = 0.85, hogdagrar: float = 0.97) -> None:
+    """Vitbalans ur förhandsbilden som ögats anpassning i ett rum: medelfärgen (utan fönstren) blir neutral till
+    graden grad (1 = helt neutral), med samma luminans. Rummets ytor färgar ljuset när det studsar (varmvita väggar,
+    golvet, gräset utanför), och ögat ser ändå väggarna som vita. Görs med vykurvornas vitnivå (en faktor per kanal
+    i scenens linjära färger, före vytransformen) i stället för färgtemperaturen."""
+    valda, _ = _urval(px, hogdagrar)
+    c = valda.mean(axis=0)
+    vit = (c / float(c @ REC709)) ** grad
+    vs = sc.view_settings
+    vs.use_white_balance = False
+    vs.use_curve_mapping = True
+    vs.curve_mapping.white_level = tuple(float(v) for v in vit)
+    vs.curve_mapping.update()

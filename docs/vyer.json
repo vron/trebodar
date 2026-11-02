@@ -10,11 +10,14 @@
    6500,
    1500
   ],
-  "brannvidd": 30,
-  "sol": [
-   210,
-   30
-  ]
+  "lins": 30,
+  "ljus": [
+   6,
+   21,
+   "09:00",
+   "sol"
+  ],
+  "lodrat": false
  },
  "ute-nordvast": {
   "kamera": [
@@ -27,11 +30,14 @@
    6500,
    1000
   ],
-  "brannvidd": 30,
-  "sol": [
-   240,
-   30
-  ]
+  "lins": 30,
+  "ljus": [
+   6,
+   21,
+   "18:30",
+   "sol"
+  ],
+  "lodrat": false
  },
  "ute-nordost": {
   "kamera": [
@@ -44,11 +50,14 @@
    5000,
    1500
   ],
-  "brannvidd": 32,
-  "sol": [
-   140,
-   35
-  ]
+  "lins": 32,
+  "ljus": [
+   6,
+   21,
+   "06:30",
+   "sol"
+  ],
+  "lodrat": false
  },
  "detalj-fasad": {
   "kamera": [
@@ -61,8 +70,32 @@
    0,
    1500
   ],
-  "brannvidd": 40,
-  "molnigt": true
+  "lins": 40,
+  "ljus": [
+   9,
+   15,
+   "12:00",
+   "mulet"
+  ]
+ },
+ "detalj-falu": {
+  "kamera": [
+   -3600,
+   5600,
+   1500
+  ],
+  "mal": [
+   -95,
+   6600,
+   1300
+  ],
+  "lins": 40,
+  "ljus": [
+   9,
+   15,
+   "12:00",
+   "mulet"
+  ]
  },
  "detalj-sten": {
   "kamera": [
@@ -75,10 +108,12 @@
    900,
    -1100
   ],
-  "brannvidd": 40,
-  "sol": [
-   60,
-   18
+  "lins": 40,
+  "ljus": [
+   6,
+   21,
+   "09:00",
+   "sol"
   ]
  },
  "detalj-tak": {
@@ -92,11 +127,14 @@
    9500,
    3000
   ],
-  "brannvidd": 45,
-  "sol": [
-   210,
-   30
-  ]
+  "lins": 45,
+  "ljus": [
+   6,
+   21,
+   "10:00",
+   "sol"
+  ],
+  "lodrat": false
  },
  "stomme": {
   "kamera": [
@@ -109,11 +147,14 @@
    6500,
    1800
   ],
-  "brannvidd": 30,
-  "sol": [
-   210,
-   40
+  "lins": 30,
+  "ljus": [
+   6,
+   21,
+   "10:00",
+   "sol"
   ],
+  "lodrat": false,
   "dolj": [
    "Hus/Tak/",
    "Hus/Fasad",
@@ -124,59 +165,5 @@
    "Hus/Grund",
    "Installationer"
   ]
- },
- "inne-mittre": {
-  "kamera": [
-   5200,
-   1200,
-   1600
-  ],
-  "mal": [
-   8000,
-   7000,
-   2400
-  ],
-  "brannvidd": 18,
-  "sol": [
-   200,
-   30
-  ],
-  "inne": true
- },
- "inne-vanster": {
-  "kamera": [
-   1000,
-   15000,
-   1600
-  ],
-  "mal": [
-   2600,
-   9000,
-   2200
-  ],
-  "brannvidd": 18,
-  "sol": [
-   240,
-   25
-  ],
-  "inne": true
- },
- "inne-dal": {
-  "kamera": [
-   7600,
-   9300,
-   1500
-  ],
-  "mal": [
-   4400,
-   7600,
-   2350
-  ],
-  "brannvidd": 20,
-  "sol": [
-   200,
-   30
-  ],
-  "inne": true
  }
 }

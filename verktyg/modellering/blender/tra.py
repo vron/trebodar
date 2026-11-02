@@ -39,8 +39,8 @@ def limtra(g: Graf, p: dict) -> None:
 
 BEHANDLING: dict[str, dict[str, object]] = {
     "tackfarg": {"tackning": 1.0, "genomslag": 0.10, "strimmor": 0.35, "grovhet": 0.93, "relief": 1.3},
-    "jarnvitriol": {"tackning": 0.0, "kvistfarg": "#2a2520", "farg3": "#7b6c5b", "brun": 0.45, "strimmor": 0.8,
-                    "grovhet": 0.9, "relief": 1.0},
+    "jarnvitriol": {"tackning": 0.0, "kvistfarg": "#1f1b18", "farg3": "#76685a", "brun": 0.5, "strimmor": 1.1,
+                    "fibrer": 1.8, "grovhet": 0.9, "relief": 1.2},
     "obehandlad": {"tackning": 0.0, "kvistfarg": "#6e4a2a", "farg3": "#c9a978", "brun": 0.3, "strimmor": 0.3,
                    "grovhet": 0.8, "relief": 0.7},
 }
@@ -56,6 +56,14 @@ def bradpanel(g: Graf, p: dict) -> None:
     q = m("DIVIDE", T, b)
     nr = m("FLOOR", q)
     tm = m("MULTIPLY", m("SUBTRACT", q, nr), b)                  # tvärs brädan från dess kant [m]
+    # skarvar: en del brädor är skarvade på en slumpad höjd (två kortare brädor); ovanför skarven är det en annan
+    # bräda, sågad ur en annan stock
+    j1, j2, _, _ = g.slump4(m("ADD", m("MULTIPLY", nr, 2.71), 5.3))
+    ls = g.linj((j2, _f(d, "skarv_spann", 2.6)), bas=_f(d, "skarv_min", 0.5))
+    har_skarv = m("LESS_THAN", j1, _f(d, "skarvar", 0.35))
+    ovan = m("MULTIPLY", har_skarv, m("GREATER_THAN", L, ls))
+    skarv = m("MULTIPLY", har_skarv, g.jamn(m("ABSOLUTE", m("SUBTRACT", L, ls)), 0.0016, 0.0006))
+    nr = m("ADD", nr, m("MULTIPLY", ovan, 0.5))
     r0, r1, r2, r3 = g.slump4(nr)
     r4 = g.slump4(m("ADD", m("MULTIPLY", nr, 1.618), 11.3))[0]
 
@@ -68,8 +76,8 @@ def bradpanel(g: Graf, p: dict) -> None:
     finns = m("LESS_THAN", k1, _f(d, "kvistandel", 0.8))
     tk = m("MULTIPLY", m("ADD", 0.2, m("MULTIPLY", k2, 0.6)), b)
     # storleken: mest små och medelstora, några stora; utdragna olika mycket längs brädan
-    rk = m("MULTIPLY", g.linj((kv(k3), 1.2), bas=0.55), _f(d, "kvist", 18.0) / 2000)
-    langd = g.linj((m("FRACT", m("MULTIPLY", k2, 7.3)), 0.8), bas=1.0)
+    rk = m("MULTIPLY", g.linj((m("POWER", k3, 2.5), 1.6), bas=0.35), _f(d, "kvist", 18.0) / 2000)
+    langd = g.linj((m("FRACT", m("MULTIPLY", k2, 7.3)), 1.1), bas=1.15)
     rho = m("SQRT", m("ADD", kv(m("DIVIDE", dL, m("MULTIPLY", rk, langd))),
                       kv(m("DIVIDE", m("SUBTRACT", tm, tk), rk))))
     kvist = m("MULTIPLY", finns, g.jamn(rho, 1.0, 0.85))
@@ -125,25 +133,32 @@ def bradpanel(g: Graf, p: dict) -> None:
         a = g.linj((m("SUBTRACT", r0, 0.5), 4 * var), (m("SUBTRACT", strim, 0.5), strimmor),
                    (m("SUBTRACT", fib, 0.5), 0.35), bas=0.72, klamp=True)
         col = g.ljus(g.blanda(a, c2, c1), g.linj((sen, -_f(d, "genomslag", 0.1)), bas=1.0))
+        # färgen samlas i sågytans fåror: mörkare där luddet och fibrerna ligger lågt
+        col = g.ljus(col, g.linj((m("SUBTRACT", ludd, 0.5), 0.3), (m("SUBTRACT", fib, 0.5), 0.22), bas=1.0))
         kf = rgba(str(d.get("kvistfarg") or d.get("farg2", d["farg"])), 0.7)
         col = g.blanda(g.linj((kvist, 0.5), (kvistkant, 0.3)), col, kf)
     else:
         # trä: vårved (farg) och sommarved (farg2), vissa brädor brunare (farg3), mörka kvistar
         col = g.blanda(m("MULTIPLY", sen, 0.85), c1, c2)
         col = g.blanda(m("MULTIPLY", r4, _f(d, "brun", 0.3)), col, rgba(str(d.get("farg3", d["farg"]))))
+        fibrer = _f(d, "fibrer", 1.0)
         k = g.linj((m("SUBTRACT", r0, 0.5), 2 * var), (m("SUBTRACT", strim, 0.5), 0.6 * strimmor),
-                   (m("SUBTRACT", flack, 0.5), 0.25 * strimmor), (m("SUBTRACT", fib, 0.5), 0.35),
-                   (m("SUBTRACT", ludd, 0.5), 0.15), bas=1.0)
+                   (m("SUBTRACT", flack, 0.5), 0.25 * strimmor), (m("SUBTRACT", fib, 0.5), 0.35 * fibrer),
+                   (m("SUBTRACT", ludd, 0.5), 0.15 * fibrer), bas=1.0)
         col = g.ljus(col, k)
-        kf = str(d.get("kvistfarg", "#3a2a1c"))
+        # kvistarna: döda kvistar mörka, friska ljusare och bruna med synliga ringar (slumpat per kvist)
+        kf = g.blanda(m("POWER", k1, 0.6), rgba(str(d.get("kvistfarg", "#3a2a1c"))),
+                      rgba(str(d.get("farg3", d["farg"])), 0.62))
         col = g.blanda(m("MULTIPLY", kvistzon, 0.35), col, rgba(str(d.get("farg3", d["farg"])), 0.7))
-        col = g.blanda(m("MULTIPLY", kvist, g.linj((kvistring, -0.45), bas=1.0)), col, rgba(kf))
-        col = g.blanda(m("MULTIPLY", kvistkant, 0.7), col, rgba(kf, 0.6))
-    col = g.ljus(col, m("MULTIPLY", g.linj((i_fog, -0.82), bas=1.0), g.linj((kant, -0.3), bas=1.0)))
+        col = g.blanda(m("MULTIPLY", kvist, g.linj((kvistring, -0.5), bas=0.95)), col, kf)
+        col = g.blanda(m("MULTIPLY", kvistkant, 0.75), col, rgba(str(d.get("kvistfarg", "#3a2a1c")), 0.7))
+        # vädrets mörka strimmor längs fibrerna (sommarveden och smuts i fårorna)
+        col = g.ljus(col, g.linj((g.jamn(m("SUBTRACT", fib, sen), 0.15, -0.25), -0.35 * strimmor), bas=1.0))
+    col = g.ljus(col, m("MULTIPLY", g.linj((i_fog, -0.82), (skarv, -0.7), bas=1.0), g.linj((kant, -0.3), bas=1.0)))
     col = g.blanda(skruv, col, rgba(str(d.get("skruvfarg", "#b6b9bc"))))
     grov = g.linj((ludd, 0.12), (skruv, -0.55), bas=_f(d, "grovhet", 0.9) - 0.06)
     rel = _f(d, "relief", 1.0)
-    hojd = g.linj((i_fog, -0.002), (kant, -0.0005), (m("SUBTRACT", fib, 0.5), 0.00035 * rel),
+    hojd = g.linj((i_fog, -0.002), (skarv, -0.0012), (kant, -0.0005), (m("SUBTRACT", fib, 0.5), 0.00035 * rel),
                   (m("SUBTRACT", ludd, 0.5), 0.00012 * rel), (sen, 0.00012 * rel), (sag, 0.00005 * rel),
                   (kvist, 0.0002), (skruv, 0.0006))
     g.yta(col, grov, skruv, hojd, styrka=1.0, avstand=1.0)
@@ -156,28 +171,32 @@ def bradpanel(g: Graf, p: dict) -> None:
 # Träslagen: vårved (farg) och sommarved eller porband (farg2), årsringens bredd [mm], märgens avstånd från bitens
 # origo [m] (min, max), stockens lutning mot biten [°], kvistar per meter och deras diameter [mm], kärnved (andelen
 # bitar som har den, radien [m], färgen), ringtyp ("barr": sommarveden mörknar mot ringens slut; "ringporig": ett
-# band av stora porer i början av varje ring, som ask och ek) och kontrasten mellan vår- och sommarved.
+# band av stora porer i början av varje ring, som ask och ek, porband mm brett, och sommarveden något mörkare mot
+# ringens slut) och kontrasten mellan vår- och sommarved. Ringarnas tydlighet och porbandets bredd skiftar år från år.
 ARTER: dict[str, dict[str, object]] = {
     "gran": {"farg": "#ecdcb6", "farg2": "#d0ad78", "arsring": 3.5, "marg": (0.0, 0.16), "lutning": 1.5,
              "kvistar": 2.2, "kvist": 22.0, "kvistfarg": "#8b5c30", "karnandel": 0.0, "ringtyp": "barr",
              "kontrast": 0.55, "variation": 0.07},
-    "furu": {"farg": "#ebcf9c", "farg2": "#c89055", "arsring": 3.0, "marg": (0.02, 0.2), "lutning": 1.5,
-             "kvistar": 1.6, "kvist": 26.0, "kvistfarg": "#7b4a22", "karnandel": 0.6, "karnradie": (0.04, 0.12),
-             "karnfarg": "#cf9a62", "ringtyp": "barr", "kontrast": 0.65, "variation": 0.08},
+    "furu": {"farg": "#f0dcb8", "farg2": "#c08a55", "arsring": 3.0, "marg": (0.02, 0.2), "lutning": 1.5,
+             "kvistar": 1.6, "kvist": 30.0, "kvistfarg": "#9a6436", "karnandel": 0.6, "karnradie": (0.04, 0.12),
+             "karnfarg": "#d6a26c", "ringtyp": "barr", "kontrast": 0.8, "variation": 0.08},
     "lark": {"farg": "#ddb47c", "farg2": "#a66d3c", "arsring": 2.5, "marg": (0.03, 0.2), "lutning": 1.5,
              "kvistar": 1.2, "kvist": 20.0, "kvistfarg": "#6d4220", "karnandel": 0.8, "karnradie": (0.05, 0.15),
              "karnfarg": "#c08650", "ringtyp": "barr", "kontrast": 0.7, "variation": 0.09},
-    "ask": {"farg": "#e4d6b6", "farg2": "#b8a07a", "arsring": 3.4, "marg": (0.12, 0.45), "lutning": 2.5,
+    "ask": {"farg": "#ecd8b2", "farg2": "#9a7a54", "arsring": 3.4, "marg": (0.12, 0.45), "lutning": 2.5,
             "kvistar": 0.0, "kvist": 8.0, "kvistfarg": "#6e5638", "karnandel": 0.3, "karnradie": (0.05, 0.16),
-            "karnfarg": "#a58d66", "ringtyp": "ringporig", "kontrast": 0.5, "variation": 0.06},
+            "karnfarg": "#a58d66", "ringtyp": "ringporig", "porband": 0.7, "sommarved": 0.22, "kontrast": 0.8,
+            "variation": 0.09},
 }
 
-# ytbehandlingar: grovhet, mörkning (exponent på färgen: oljan fördjupar och mättar), vitpigment, lack
-YTOR: dict[str, dict[str, float]] = {
-    "obehandlad": {"grovhet": 0.74, "gamma": 1.0, "vit": 0.0, "lack": 0.0, "relief": 1.0},
-    "olja": {"grovhet": 0.46, "gamma": 1.18, "vit": 0.0, "lack": 0.0, "relief": 0.6},
-    "lack": {"grovhet": 0.42, "gamma": 1.12, "vit": 0.0, "lack": 0.7, "relief": 0.35},
-    "vitpigmenterad": {"grovhet": 0.5, "gamma": 1.0, "vit": 0.22, "lack": 0.0, "relief": 0.6},
+# ytbehandlingar: grovhet, mörkning (exponent på färgen: oljan fördjupar och mättar), gulning (oljans och lackens
+# bärnstenston, faktor per färgkanal), vitpigment, lack
+YTOR: dict[str, dict[str, object]] = {
+    "obehandlad": {"grovhet": 0.74, "gamma": 1.0, "ton": (1.0, 1.0, 1.0), "vit": 0.0, "lack": 0.0, "relief": 1.0},
+    "olja": {"grovhet": 0.46, "gamma": 1.18, "ton": (1.0, 0.95, 0.84), "vit": 0.0, "lack": 0.0, "relief": 0.6},
+    "lack": {"grovhet": 0.42, "gamma": 1.12, "ton": (1.0, 0.97, 0.9), "vit": 0.0, "lack": 0.7, "relief": 0.35},
+    "vitpigmenterad": {"grovhet": 0.5, "gamma": 1.0, "ton": (1.0, 1.0, 1.0), "vit": 0.22, "lack": 0.0,
+                       "relief": 0.6},
 }
 
 
@@ -190,8 +209,9 @@ def virke(g: Graf, p: dict) -> None:
     mörk kant, och fibrerna som böjer runt dem; kärnved; fibrer och färgskiftning per bit; ytbehandling.
 
     Parametrar: art (gran, furu, lark, ask) och dess värden (ARTER), riktning (fibrerna) och tvars, lamell (axel) och
-    lamelltjocklek [mm] för limträ och lamellskivor, yta (YTOR), variation."""
-    d = {**ARTER[str(p.get("art", "gran"))], **p}
+    lamelltjocklek [mm] för limträ och lamellskivor, yta (YTOR), variation. Färgerna kommer ur arten: materialets
+    färg (farg, för webbvisaren) används inte."""
+    d = {**ARTER[str(p.get("art", "gran"))], **{k: v for k, v in p.items() if k != "farg"}}
     yta = YTOR[str(d.get("yta", "obehandlad"))]
     m, kv, lin = g.matte, g.kv, g.linj
     rikt, tv = str(d.get("riktning", "x")), str(d.get("tvars", "y"))
@@ -255,20 +275,25 @@ def virke(g: Graf, p: dict) -> None:
     # årsringarna: olika breda år från år och bit från bit
     w = m("MULTIPLY", _f(d, "arsring", 3.0) / 1000, lin((s7, 0.6), bas=0.7))
     ar = lin((m("DIVIDE", r, w), 1.0), (m("SUBTRACT", g.brus1(m("ADD", m("MULTIPLY", r, 22.0), m("MULTIPLY", s8, 50.0)),
-                                                          1.0, 3.0), 0.5), 1.4))
+                                                          1.0, 3.0), 0.5), 1.4),
+             (m("SUBTRACT", g.brus1(m("ADD", m("MULTIPLY", r, 150.0), m("MULTIPLY", s8, 70.0)), 1.0, 2.0), 0.5), 0.4))
     f = m("FRACT", ar)
+    aret = lin((g.slump(m("ADD", m("FLOOR", ar), m("MULTIPLY", s8, 1000.0))), 0.7), bas=0.55)    # årets tydlighet
     porer: Sockel = 0.0
     if d.get("ringtyp") == "ringporig":
-        band = m("MULTIPLY", g.jamn(f, 0.0, 0.02), g.jamn(f, 0.24, 0.1))
-        sen = m("MULTIPLY", g.jamn(f, 0.55, 1.0), 0.35)
+        # porbandet (porband mm) i början av ringen; sommarveden tät och ljus, något mörkare mot ringens slut
+        fp = min(0.45, _f(d, "porband", 0.6) / _f(d, "arsring", 3.0))
+        fpa = m("MULTIPLY", aret, fp)
+        band = m("MULTIPLY", g.jamn(f, 0.0, 0.03), g.jamn(f, m("MULTIPLY", fpa, 1.4), m("MULTIPLY", fpa, 0.7)))
+        sen = m("MULTIPLY", g.jamn(f, 0.6, 1.0), _f(d, "sommarved", 0.3))
         pv = g.vektor(m("MULTIPLY", L, 140.0), m("MULTIPLY", T, 3800.0), m("MULTIPLY", D, 3800.0))
         stora = g.jamn(g.brus(pv, 1.0, 1.0), 0.58, 0.68)
         sma = g.jamn(g.brus(g.vektor(m("MULTIPLY", L, 260.0), m("MULTIPLY", T, 7000.0), m("MULTIPLY", D, 7000.0)),
                             1.0, 1.0), 0.72, 0.8)
-        porer = lin((m("MULTIPLY", band, stora), 1.0), (m("MULTIPLY", sma, 0.25), 1.0), klamp=True)
-        ton = lin((band, 0.55), (sen, 1.0), klamp=True)
+        porer = lin((m("MULTIPLY", m("MULTIPLY", band, stora), aret), 1.0), (m("MULTIPLY", sma, 0.25), 1.0), klamp=True)
+        ton = m("MULTIPLY", lin((band, 0.55), (sen, 1.0), klamp=True), aret)
     else:
-        ton = m("POWER", g.jamn(f, 0.48, 0.94), 1.6)
+        ton = m("MULTIPLY", m("POWER", g.jamn(f, 0.48, 0.94), 1.6), aret)
     fib = g.brus(g.vektor(m("MULTIPLY", L, 7.0), m("MULTIPLY", T, 800.0), m("MULTIPLY", D, 800.0)), 1.0, 4.0, 0.6)
     flack = g.brus(g.vektor(m("MULTIPLY", L, 0.7), m("MULTIPLY", T, 4.0), m("MULTIPLY", D, 4.0)), 1.0, 2.0)
 
@@ -282,22 +307,24 @@ def virke(g: Graf, p: dict) -> None:
         col = g.blanda(m("MULTIPLY", karn, 0.75), col, rgba(str(d.get("karnfarg", d["farg2"]))))
     var = _f(d, "variation", 0.07)
     col = g.ljus(col, lin((m("SUBTRACT", s11, 0.5), 2 * var), (m("SUBTRACT", flack, 0.5), 0.1),
-                         (m("SUBTRACT", fib, 0.5), 0.16), (porer, -0.38), bas=1.0))
-    col = g.blanda(m("MULTIPLY", m("SUBTRACT", s12, 0.5), 0.3), col, rgba("#c8b48a")) if var > 0 else col
+                         (m("SUBTRACT", fib, 0.5), 0.16), (porer, -0.55), bas=1.0))
+    col = g.blanda(m("MULTIPLY", s12, 0.25), col, rgba("#d8b27c")) if var > 0 else col      # varmare bitar
     if _f(d, "kvistar", 0.0) > 0:
         kf = rgba(str(d["kvistfarg"]))
-        col = g.blanda(m("MULTIPLY", kvist, lin((kvistring, -0.4), bas=1.0)), col, kf)
-        col = g.blanda(m("MULTIPLY", kant, 0.75), col, rgba(str(d["kvistfarg"]), 0.55))
+        col = g.blanda(m("MULTIPLY", kvist, lin((kvistring, -0.35), bas=0.85)), col, kf)
+        col = g.blanda(m("MULTIPLY", kant, 0.9), col, rgba(str(d["kvistfarg"]), 0.5))
     # ytbehandlingen: oljan fördjupar färgen, vitpigment ljusar
     if yta["gamma"] != 1.0:
         col = g.nod("ShaderNodeGamma", Color=col, Gamma=yta["gamma"]).outputs[0]
-    if yta["vit"] > 0:
+    if yta["ton"] != (1.0, 1.0, 1.0):
+        col = g.vmatte("MULTIPLY", col, yta["ton"])
+    if _f(yta, "vit", 0.0) > 0:
         col = g.blanda(yta["vit"], col, rgba("#f4efe6"))
-    rel = yta["relief"] * _f(d, "relief", 1.0)
+    rel = _f(yta, "relief", 1.0) * _f(d, "relief", 1.0)
     hojd = lin((m("SUBTRACT", fib, 0.5), 0.00025 * rel), (porer, -0.00035 * rel), (ton, 0.00008 * rel),
                (kvist, 0.00005))
-    grov = lin((porer, 0.12), (m("SUBTRACT", fib, 0.5), 0.08), bas=yta["grovhet"])
+    grov = lin((porer, 0.12), (m("SUBTRACT", fib, 0.5), 0.08), bas=_f(yta, "grovhet", 0.7))
     g.yta(col, grov, 0.0, hojd, styrka=1.0, avstand=1.0)
-    if yta["lack"] > 0:
-        g.bsdf.inputs["Coat Weight"].default_value = yta["lack"]
+    if _f(yta, "lack", 0.0) > 0:
+        g.bsdf.inputs["Coat Weight"].default_value = _f(yta, "lack", 0.0)
         g.bsdf.inputs["Coat Roughness"].default_value = 0.08
