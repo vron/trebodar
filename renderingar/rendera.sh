@@ -5,5 +5,5 @@
 set -euo pipefail
 har="$(cd "$(dirname "$0")" && pwd)"
 cd "$har/../verktyg/modellering"
-./mod kameraplan --ut "$har/kameraplan.png" || echo "kameraplanen ritades inte (kräver STEP-filen: ./mod bygg)"
+./mod kameraplan --ut "$har/kameraplan.pdf" || echo "kameraplanen ritades inte (kräver STEP-filen: ./mod bygg)"
 ./mod rendera --serie inne --kvalitet slutlig --ut "$har/inne" "$@"

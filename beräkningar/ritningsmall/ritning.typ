@@ -20,6 +20,8 @@
 #let UK = rgb("#2c4a6e")
 #let OK = rgb("#b5463a")
 #let ZON = rgb("#c0504d")
+// elritningarnas tändgrupper: styrningens linjer (styr0, styr1, …) och märkning (tand0, tand1, …), i ordning
+#let TAND = ("#2c4a6e", "#b5463a", "#4f7d3a", "#7a4f8f", "#a8701a", "#2f7f7f", "#8a3a5c", "#5a6b2a").map(rgb)
 #let FYLL = (
   betong: rgb("#ecebe7"), mark: rgb("#f4ecdc"), karna: rgb("#b9b3a9"), isol: rgb("#f7f3df"), stal: rgb("#5a5f66"),
   eps: rgb("#f3f6fa"), eps2: rgb("#dde6f0"), vit: white, svart: INK, zon: rgb("#f6e3df"), hal: white,
@@ -51,10 +53,17 @@
   distans: (thickness: 0.6mm, paint: rgb("#c4ad80"), cap: "butt"),
   lim: (thickness: 0.35mm, paint: rgb("#8a6a3a"), cap: "butt"),
   folie: (thickness: 0.4mm, paint: rgb("#6f9a3c"), cap: "butt"),
-)
+  // elritningarna: rör i vägg och innertak, rör ingjutna i bjälklag
+  ror: (thickness: 0.3mm, paint: GRA, cap: "round"),
+  ror_ingjutet: (thickness: 0.6mm, paint: OK, cap: "round"),
+  // ljusplanerna (på belysningsstyrkans färger): isolinjer, statistikens yta, delområden
+  iso: (thickness: 0.2mm, paint: white, cap: "round"),
+  matyta: (thickness: 0.2mm, paint: white, dash: (0.5mm, 0.7mm), cap: "butt"),
+  delomrade: (thickness: 0.35mm, paint: white, dash: (1.5mm, 0.8mm), cap: "butt"),
+) + TAND.enumerate().map(((i, c)) => ("styr" + str(i), (thickness: 0.25mm, paint: c, dash: (1.2mm, 0.7mm), cap: "butt"))).to-dict()
 #let st(n) = if n == none or n == "" { none } else { stroke(STIL.at(n)) }
 #let fy(n) = if n == none or n == "" { none } else if n.starts-with("#") { rgb(n) } else { FYLL.at(n) }
-#let FARG = (ink: INK, gra: GRA, uk: UK, ok: OK, zon: ZON, vit: white)
+#let FARG = (ink: INK, gra: GRA, uk: UK, ok: OK, zon: ZON, vit: white) + TAND.enumerate().map(((i, c)) => ("tand" + str(i), c)).to-dict()
 
 #set document(title: B.huvud.nummer + " " + B.huvud.titel.join(", "), author: B.huvud.upprattad)
 #set page(width: BLAD.b * 1mm, height: BLAD.h * 1mm, margin: 0mm)
@@ -71,9 +80,10 @@
     let pts = e.p
     place(curve(stroke: st(e.s), curve.move(P(pts.at(0))), ..pts.slice(1).map(q => curve.line(P(q)))))
   } else if t == "pg" {
-    let pts = e.p
-    place(curve(stroke: st(e.at("s", default: none)), fill: fy(e.at("f", default: none)),
-      curve.move(P(pts.at(0))), ..pts.slice(1).map(q => curve.line(P(q))), curve.close()))
+    // polygon, med hål (h: ringarna) om de finns
+    let ringar = (e.p,) + e.at("h", default: ())
+    place(curve(stroke: st(e.at("s", default: none)), fill: fy(e.at("f", default: none)), fill-rule: "even-odd",
+      ..ringar.map(r => (curve.move(P(r.at(0))), ..r.slice(1).map(q => curve.line(P(q))), curve.close())).flatten()))
   } else if t == "c" {
     let r = e.r
     place(dx: (e.c.at(0) - r) * 1mm, dy: (e.c.at(1) - r) * 1mm,
@@ -128,6 +138,9 @@
     place(dy: 1.3mm, line(length: 9mm, stroke: st("fordelning")))
     place(dx: -0.5mm, dy: 0.8mm, circle(radius: 0.5mm, fill: INK))
     place(dx: 8.5mm, dy: 0.8mm, circle(radius: 0.5mm, fill: INK))
+  } else if s.form == "figur" {
+    // ritad symbol: vyernas element i pappersmm från rutans övre vänstra hörn (ritning.py: figur)
+    for e in s.element { rita(e) }
   }
 })
 

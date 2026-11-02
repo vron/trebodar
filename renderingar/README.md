@@ -9,9 +9,10 @@ Inomhusbilderna I01–I30 ur den kodgenererade modellen (Blender, Cycles) och ri
 ./rendera.sh --ljus 12 21 13:00 mulet # ett annat dagsljus: månad, dag, klocka, väder (sol, lätt mulet, mulet)
 ```
 
-Bilderna hamnar i `inne/` och versionshanteras inte. [`kameraplan.png`](kameraplan.png) visar kamerornas lägen,
-riktningar och bildvinklar på plan 1 och i källaren med en förteckning över bilderna; skriptet ritar den också
-(`./mod kameraplan` i `verktyg/modellering`, ur STEP-filen, så bygg den först med `./mod bygg`).
+Bilderna hamnar i `inne/` och versionshanteras inte. Kameraplanen [`kameraplan.pdf`](kameraplan.pdf) (I-01, i
+ritningsmallen) visar kamerornas lägen, riktningar och bildvinklar på plan 1 och i källaren med en förteckning över
+bilderna; skriptet ritar den också (`./mod kameraplan` i `verktyg/modellering`, ur STEP-filen, så bygg den först med
+`./mod bygg`).
 
 ## Bilderna
 

@@ -17,7 +17,7 @@ from . import lakt
 from .bjalklag import mellanbjalklag
 from .punkter import PLAN, TAKSKIVOR, Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, Vek, anslutning, drivdonet, linsen
 from .rum import allrum, kok
-from .typer import Armaturtyp
+from .typer import Apparattyp, Armaturtyp
 
 MODULER: tuple[ModuleType, ...] = (allrum, kok, mellanbjalklag)
 
@@ -97,6 +97,7 @@ class Installation:
             t = p.typ
             typer[t.kod] = {"namn": t.namn, "symbol": t.symbol,
                             **({"slag": "armatur", **_armatur(t)} if isinstance(t, Armaturtyp) else
+                               {"slag": t.slag, "kanaler": t.kanaler} if isinstance(t, Apparattyp) else
                                {"slag": t.slag})}
             m = p.lage
             punkter[p.id] = {"slag": "lampa" if isinstance(p, Lampa) else "apparat" if isinstance(p, Apparat)
@@ -123,7 +124,8 @@ class Installation:
 
 def _armatur(t: Armaturtyp) -> dict[str, object]:
     return {"tillverkare": t.tillverkare, "artikel": t.artikel, "url": t.url, "ljusflode": t.ljusflode,
-            "effekt": t.effekt, "fargtemperatur": t.fargtemperatur, "stralvinkel": t.stralvinkel,
+            "effekt": t.effekt, "fargtemperatur": t.fargtemperatur, "ra": t.ra, "ip": t.ip, "dimring": t.dimring,
+            "vridbar": t.vridbar, "stralvinkel": t.stralvinkel,
             "lysande_d": t.lysande_d, "hal_d": t.hal_d, "fotometri": t.fotometri, "fotometri_url": t.fotometri_url,
             "form": "infalld" if t.huvud is None else "tub"}
 

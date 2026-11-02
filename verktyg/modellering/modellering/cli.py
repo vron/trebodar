@@ -30,6 +30,12 @@ def ladda(modul: str = "trebodar.trebodar") -> Montage:
     return rot
 
 
+def _norr() -> tuple[float, float]:
+    """Norr i modellens x och y (x mot platsens azimut_x, y 90° moturs)."""
+    az = math.radians(importlib.import_module("trebodar.skelett").PLATS.azimut_x)
+    return math.cos(az), math.cos(az - math.pi / 2)
+
+
 def valj(rot: Montage, vag: str | None) -> Montage:
     if not vag:
         return rot
@@ -204,7 +210,7 @@ def main(argv: list[str] | None = None) -> None:
                          "hamta: ladda ner fotometrifilerna som saknas i lokalt/el/")
     pe.add_argument("--ut", type=Path, default=UT / "el")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
-    pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.png")
+    pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
     pm.add_argument("material", help="materialets namn i modellen, t.ex. Ask")
     pm.add_argument("--param", nargs="*", default=[], help="ändrade parametrar, t.ex. yta=lack lamell=y")
@@ -289,11 +295,7 @@ def main(argv: list[str] | None = None) -> None:
             ma = ROT / "verktyg" / "modellanalys" / "ma"
             plan1 = snitt(ma, step_fil, 1200.0, UT / "el-plan1.json")
             mb = snitt(ma, step_fil, -75.0, UT / "el-mellanbjalklag.json")
-            omrade = (-500.0, 14300.0, -300.0, 16300.0)
-            elritning.elplan(utdrag, plan1, omrade, "Trebodar – elplan plan 1", "Plan 1", arg.ut / "elplan-plan1.png")
-            elritning.bjalklag(utdrag, mb, plan1, omrade, (-150.0, 0.0), "Trebodar – rör i mellanbjälklaget",
-                               "Mellanbjälklaget (rör ingjutna mitt i betongen)", arg.ut / "ror-mellanbjalklag.png")
-            print(f"  {arg.ut / 'elplan-plan1.png'}\n  {arg.ut / 'ror-mellanbjalklag.png'}")
+            print(f"  {elritning.ritningar(utdrag, plan1, mb, _norr(), UT / 'el' / 'blad', arg.ut)}")
         else:
             for t in {v["typ"]: utdrag["typer"][v["typ"]] for v in utdrag["punkter"].values()
                       if v["slag"] == "lampa"}.values():
@@ -318,10 +320,8 @@ def main(argv: list[str] | None = None) -> None:
         ma = ROT / "verktyg" / "modellanalys" / "ma"
         plan1 = kameraplan.snitt(ma, step_fil, 1200.0, UT / "kameraplan-plan1.json")
         kallare = kameraplan.snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "kameraplan-kallare.json")
-        az = math.radians(skel.PLATS.azimut_x)
-        norr = (math.cos(az), math.cos(az - math.pi / 2))     # norr i modellens x och y (x mot azimut_x, y 90° moturs)
-        kameraplan.rita(plan1, kallare, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), norr,
-                        "Trebodar – inomhusbilder I01–I30", arg.ut)
+        kameraplan.rita(plan1, kallare, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), _norr(), arg.ut,
+                        UT / "kameraplan")
         print(f"  {arg.ut}")
         return
     if arg.kommando == "materialprov":
@@ -439,7 +439,7 @@ def main(argv: list[str] | None = None) -> None:
         import json
         import numpy as np
         from . import dagsljus, ljusplan
-        from .planritning import snitt
+        from .planritning import snitt, sv
         if str(MODELLMAPP) not in sys.path:
             sys.path.insert(0, str(MODELLMAPP))
         vy_mod = importlib.import_module("trebodar.vyer")
@@ -467,20 +467,24 @@ def main(argv: list[str] | None = None) -> None:
         if not step_fil.exists():
             raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
         ma = ROT / "verktyg" / "modellanalys" / "ma"
-        dagtext = (f"{ljus.tid[:16].replace('T', ' kl. ')}, {ljus.vader}: dagsljus {ljus.global_lux / 1000:.1f} klx ute"
-                   if ljus.global_lux > 1.0 else "inget dagsljus")
-        tandtext = ", ".join(f"{g}" + (f" ({n:.0%})" if n < 1 else "") for g, n in tand.items() if n > 0) or "inga"
+        tid = ljus.tid[:16].replace("T", " kl. ")
+        scenario = [("Tända tändgrupper: " + "; ".join(
+                        f"{g} {utdrag['tandgrupper'][g]['namn']}" + (f" ({sv(100 * n)} %)" if n < 1 else "")
+                        for g, n in tand.items() if n > 0) + "." if any(n > 0 for n in tand.values())
+                     else "Inga armaturer tända."),
+                    (f"Dagsljuset {tid}, {ljus.vader}: {sv(ljus.global_lux / 1000, 1)} klx ute (vågrätt)."
+                     if ljus.global_lux > 1.0 else f"Inget dagsljus ({tid}).")
+                    + (" Bara det direkta ljuset, utan reflexer." if arg.direkt else "")]
         for namn in arg.ytor or ["plan1-golv"]:
             y = ytor[namn]
             bas = arg.ut / f"ljusplan-{namn}"
             lux = np.load(str(bas) + ".npy")
             delar = snitt(ma, step_fil, golv[y.plan] + 1200.0, UT / f"ljusplan-{y.plan}.json")
             rum = {k: v for k, v in vy_mod.RUMSNAMN.items() if (len(v[1]) > 2 and v[1][2] == "k") == (y.plan == 0)}
-            stat = ljusplan.rita(lux, y, delar, utdrag, rum, f"Belysningsstyrka – {y.namn}",
-                                 f"Tänt: {tandtext}. {dagtext.capitalize()}."
-                                 + (" Bara direkt ljus." if arg.direkt else ""), bas.with_suffix(".png"))
+            stat = ljusplan.rita(lux, y, delar, utdrag, rum, scenario, _norr(), f"E-02.{list(ytor).index(namn) + 1}",
+                                 UT / "ljusplan" / "blad", bas.with_suffix(".pdf"))
             (bas.parent / (bas.name + "-statistik.json")).write_text(json.dumps(stat, ensure_ascii=False, indent=1))
-            print(f"  {bas.with_suffix('.png')}")
+            print(f"  {bas.with_suffix('.pdf')}")
             for s_ in stat:
                 print(f"    {s_['namn']}: medel {s_['medel']:.0f} lux, minst {s_['minst']:.0f}, störst {s_['storst']:.0f}, "
                       f"jämnhet {s_['jamnhet']:.2f}")

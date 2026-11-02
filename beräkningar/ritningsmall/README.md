@@ -1,11 +1,11 @@
 # Ritningsmall A3
 
-Gemensam mall för alla ritningar (R-01 … R-04, AR-01), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
+Gemensam mall för alla ritningar (R-01 … R-06, AR-01, AR-02 och elritningarna, ljusplanerna och kameraplanen ur modellen, `verktyg/modellering`), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
 
 | Fil | Innehåll |
 |---|---|
-| `ritning.typ` | Bladet: ram (20 mm inbindning, 10 mm övriga), högerkolumn med anvisningar, teckenförklaring och tabeller, revisioner och ritningshuvud. Linjetyper (`STIL`) och fyllningar (`FYLL`). Ritar vyernas lager i ordning |
-| `ritning.py` | `Vy` (skala, modellfönster, lager) med linjer, ytor, text, måttlinjer och måttkedjor (snedstreck), hänvisningar, positionsbubblor, fördelningslinjer, brottlinjer, snittmarkeringar och skalstock. `huvud()` och `Blad` (skriver JSON, kompilerar bladet och slår ihop en ritningsseries blad till en pdf med `Blad.serie`) |
+| `ritning.typ` | Bladet: ram (20 mm inbindning, 10 mm övriga), högerkolumn med anvisningar, teckenförklaring och tabeller, revisioner och ritningshuvud. Linjetyper (`STIL`, också elritningarnas rör och tändgrupper och ljusplanernas isolinjer) och fyllningar (`FYLL`). Ritar vyernas lager i ordning |
+| `ritning.py` | `Vy` (skala, modellfönster, lager) med linjer, ytor (med hål), text, bilder, måttlinjer och måttkedjor (snedstreck), hänvisningar, positionsbubblor, fördelningslinjer, brottlinjer, snittmarkeringar och skalstock. `figur()` (en ritad symbol i teckenförklaringen), `huvud()` och `Blad` (skriver JSON, kompilerar bladet och slår ihop en ritningsseries blad till en pdf med `Blad.serie`) |
 | `projekt.json` | Projektets fasta uppgifter i ritningshuvudet: projekt, fastighet, upprättad, signatur |
 
 Allt ritas i verkliga koordinater (mm, y uppåt). `Vy` räknar om till papperets mm, så att 1 mm på papperet är `skala` mm i verkligheten vid utskrift på A3 i 100 %. Bara linjetjocklekar, textstorlekar och avstånd för mått och etiketter anges i pappersmått. Elementen läggs i namngivna lager (`with v.lager("armering_uk"): ...`), som ritas i den ordning de skapas och kan döljas vid kompileringen.

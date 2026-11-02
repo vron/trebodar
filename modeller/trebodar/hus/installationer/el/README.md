@@ -9,7 +9,7 @@ ljusfördelning), kontrollerna och elritningarna.
 cd verktyg/modellering
 ./mod el kontroll     # referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar, anslutningar
 ./mod el lista        # punkter, tändgrupper och rör (ut/el/elinstallation.md och .json)
-./mod el ritning      # elplanen och rören i mellanbjälklaget (ut/el/, kräver STEP-filen: ./mod bygg)
+./mod el ritning      # elritningarna E-01 (ut/el/E-01 Elinstallation.pdf, kräver STEP-filen: ./mod bygg)
 ./mod el hamta        # tillverkarnas fotometrifiler som saknas (till lokalt/el/, versionshanteras inte)
 ./mod rendera I02 --ljus 12 21 18:00 sol --tand AL-T1 AL-T2=0.5     # kväll, tändgrupperna tända (dimrad)
 ```
@@ -95,12 +95,14 @@ genom skikten utan att andra delar får hål. I renderingen tar de infällda arm
 
 ## Ritningarna
 
-`./mod el ritning` ritar på planritningar ur modellens snitt (STEP-filen):
+`./mod el ritning` ritar serien E-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3, 1:75) på
+planer ur modellens snitt (STEP-filen):
 
-- **elplanen** för plan 1: armaturer, apparater och dosor med symboler, tändgruppernas styrning (streckade bågar
-  från brytaren till lamporna, färg per tändgrupp), rören i väggar och innertak, armaturtyperna och tändgrupperna;
-- **rören i mellanbjälklaget**: de ingjutna rören med utsättningsmått i brytpunkterna, där rören går upp i väggarna
-  ovanför och ingjutningsdosorna, med rörlistan.
+- **E-01.1 elplanen** för plan 1: armaturer, apparater och dosor med symboler, tändgruppernas styrning (streckade
+  bågar från brytaren till lamporna, färg per tändgrupp), rören i väggar och innertak, och tabeller över
+  armaturerna, tändgrupperna, apparaterna och rören;
+- **E-01.2 rören i mellanbjälklaget**: de ingjutna rören med numrerade punkter och deras koordinater (K-05), var
+  rören går upp i väggarna ovanför och ingjutningsdosorna, med plan 1:s väggar streckade.
 
 `./mod el lista` skriver punktlistan, tändgrupperna och rörlistan med kontrollen (markdown och JSON).
 
@@ -108,8 +110,9 @@ genom skikten utan att andra delar får hål. I renderingen tar de infällda arm
 
 `./mod ljusplan` räknar belysningsstyrkan [lux] på vågräta mätytor ([`matytor.py`](matytor.py): golvet och
 bordshöjden på plan 1, köksbänken, källarens golv; ytor och delområden läggs till där) i renderingen, med
-armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar planer med belysningsstyrkan i färg,
-isolinjer och medel-, minsta och största värde och jämnhet per rum och delområde:
+armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (E-02.n i ritningsmallen, en pdf
+per mätyta) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
+delområde:
 
 ```
 ./mod ljusplan plan1-golv kok-bank                  # alla tändgrupper tända, mörkt ute

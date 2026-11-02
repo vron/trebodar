@@ -74,8 +74,12 @@ class Vy:
     def linje(self, pts, stil="normal"):
         self._add(dict(t="l", p=[self.P(*p) for p in pts], s=stil))
 
-    def polygon(self, pts, fyll=None, stil=None):
-        self._add(dict(t="pg", p=[self.P(*p) for p in pts], f=fyll, s=stil))
+    def polygon(self, pts, fyll=None, stil=None, hal=()):
+        """Polygon, med hål (hal: ringarna) om de finns."""
+        e = dict(t="pg", p=[self.P(*p) for p in pts], f=fyll, s=stil)
+        if hal:
+            e["h"] = [[self.P(*p) for p in r] for r in hal]
+        self._add(e)
 
     def rekt(self, x0, y0, x1, y1, fyll=None, stil="tunn"):
         self.polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], fyll, stil)
@@ -243,6 +247,14 @@ class Vy:
     def json(self):
         return dict(x=self.x, y=self.y, w=self.w, h=self.h, klipp=self.klipp,
                     lager=[dict(namn=k, element=e) for k, e in self.lagren.items()])
+
+
+def figur(rita):
+    """Teckenförklaringens rad med en ritad symbol (kolumnblocket "symboler", form "figur"): rita(v) ritar i en Vy
+    med pappersmm kring (0, 0) i rutans mitt (rutan 9 × 2,6 mm), med samma funktioner som i vyerna."""
+    v = Vy(0, 0, 9.0, 2.6, skala=1.0, X0=-4.5, Y1=1.3)
+    rita(v)
+    return dict(form="figur", element=[e for el in v.lagren.values() for e in el])
 
 
 def huvud(nummer, titel, skala, underlag, datum, rev, status="KONSTRUKTION", granskad="–"):
