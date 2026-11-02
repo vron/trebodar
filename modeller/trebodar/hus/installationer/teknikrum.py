@@ -1,11 +1,10 @@
 """Teknikrummet i källarens vänstra del, i hörnet vid ytterväggen V3 och innerväggen V19 (under badrummet och hallen):
-utrustningen för vatten och värme, som installationerna (vatten/, senare värme) ansluter till, och dess geometri.
+utrustningen för vatten och värme, som installationerna (vatten/, golvvarme/) ansluter till, och dess geometri.
 Rummets väggar är inte bestämda; ytan är den del av källaren som pekats ut för teknikrummet.
 
 - Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19, söder om
-  ventilationens kanal FF3 under taket; anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur,
-  kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
-- Golvvärmens fördelare för källarens slingor på V3, där slingornas rör kommer upp ur bottenplattan.
+  ventilationens kanal FF3 under taket; anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till
+  golvvärmen (golvvarme/, fördelarna på V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
 - Tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
   går ut genom skåpets öppna ovansida. Kort varmvattenledning från beredaren.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
@@ -48,16 +47,12 @@ VARMEPUMP = Utrustning(
     "TK-VP", "Bergvärmepump med inbyggd varmvattenberedare (ej vald)",
     golv((_VP_X0 + _VP_X1) / 2, (_VP_Y0 + _VP_Y1) / 2, plan=0), (_VP_X1 - _VP_X0, _VP_Y1 - _VP_Y0, _VP_H),
     {"KB-in": (_VP_X0 + 150.0, _VP_Y0 + 100.0, _TOPP), "KB-ut": (_VP_X0 + 150.0, _VP_Y0 + 200.0, _TOPP),
-     "VS-fram": (_VP_X0 + 150.0, _VP_Y1 - 200.0, _TOPP), "VS-retur": (_VP_X0 + 150.0, _VP_Y1 - 100.0, _TOPP),
+     "VS-fram": (_VP_X0 + 100.0, _VP_Y0 + 450.0, _TOPP), "VS-retur": (_VP_X0 + 160.0, _VP_Y0 + 450.0, _TOPP),
      "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)})
-
-# golvvärmens fördelare för källaren: på V3 där slingornas rör kommer upp ur bottenplattan
-GOLVVARMEFORDELARE = Utrustning("TK-GVF", "Golvvärmefördelare, källaren (ej vald)", kallarvagg("V3", 3505.0, 700.0, -1),
-                                (400.0, 100.0, 400.0), {})
 
 # tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, fritt från ventilationens kanal FF3 (y 8 220)
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
-                          kallarvagg("V19", 8590.0, 1250.0, -1), (600.0, 110.0, 600.0), {})
+                          kallarvagg("V19", 8610.0, 1250.0, -1), (760.0, 110.0, 600.0), {})
 
 # inkommande vatten: servisen upp ur bottenplattan, vattenmätaren och huvudavstängningen på V3 vid V19
 X_VM = 3950.0
@@ -68,7 +63,7 @@ VATTENMATARE = Utrustning("TK-VM", "Vattenmätare med huvudavstängning och back
                           {"in": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] - 125.0),
                            "ut": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] + 125.0)})
 
-UTRUSTNING = {u.id: u for u in (VARMEPUMP, GOLVVARMEFORDELARE, FORDELARSKAP, SERVIS, VATTENMATARE)}
+UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE)}
 
 
 def _placering(u: Utrustning) -> Placering:
@@ -93,8 +88,7 @@ def _skap(u: Utrustning) -> Montage:
 
 
 def montage() -> Montage:
-    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet, vattenmätaren och golvvärmens fördelare på
-    väggarna."""
+    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet och vattenmätaren på väggarna."""
     m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare och vattenmätare")
     for u in UTRUSTNING.values():
         b, d, h = u.matt

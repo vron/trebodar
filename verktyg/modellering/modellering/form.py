@@ -82,6 +82,15 @@ class Cylinder(Form):
 
 
 @dataclass(frozen=True)
+class Svep(Form):
+    """Rör: en cirkel med radien svept längs polylinjen genom punkterna, med hörnen avrundade med bojradien (mindre där
+    sträckorna är för korta för den)."""
+    punkter: tuple[Vek, ...]
+    radie: float
+    bojradie: float
+
+
+@dataclass(frozen=True)
 class Polyeder(Form):
     """Sluten kropp av plana månghörningar: hörnen och ytorna som index i hörnen (i ordning runt ytan, valfri
     riktning). Grannytor delar hörn exakt. För fria former som stenens kluvna framsida."""
@@ -182,6 +191,11 @@ def rektangel(x0: float, y0: float, x1: float, y1: float) -> Kontur:
 
 def cylinder(radie: float, hojd: float, origo: Sequence[float] = (0.0, 0.0, 0.0)) -> Cylinder:
     return Cylinder(float(radie), float(hojd), _v(origo))
+
+
+def svep(punkter: Sequence[Sequence[float]], radie: float, bojradie: float) -> Svep:
+    """Rör längs polylinjen (punkter i föräldern), med avrundade hörn."""
+    return Svep(tuple(_v(q) for q in punkter), float(radie), float(bojradie))
 
 
 def polyeder(horn: Sequence[Sequence[float]], ytor: Sequence[Sequence[int]]) -> Polyeder:

@@ -54,7 +54,7 @@ def _vagratt(a: list[float], b: list[float]) -> bool:
 
 
 def _i_ordning(ror: dict) -> list[tuple[str, dict]]:
-    """Rören med varmvattnet först, så att kallvattnet ritas ovanpå där det går under varmvattnet."""
+    """Rören, varmvattnet först."""
     return sorted(ror.items(), key=lambda kv: kv[1]["media"] != "VV")
 
 
@@ -72,7 +72,7 @@ def _teckenforklaring(rader: list[Rad]) -> dict:
 
 TECKEN: list[Rad] = [
     ("vv", "varmvatten (VV), rör-i-rör ingjutet i mellanbjälklaget"),
-    ("kv", "kallvatten (KV); under varmvattnet där de går i samma läge"),
+    ("kv", "kallvatten (KV), rör-i-rör ingjutet i mellanbjälklaget"),
     (lambda w: stigare(w, 0.0, 0.0, "VV"), "upp ur bjälklaget (i väggen eller golvdosan), varmvatten"),
     (lambda w: stigare(w, 0.0, 0.0, "KV"), "upp ur bjälklaget, kallvatten"),
     (lambda w: stigare(w, 0.0, 0.0, "VV", ned=True), "ned ur bjälklaget (i källarväggen eller till fördelarskåpet)"),
@@ -89,11 +89,9 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
             "Tappvattnet ur modellen (modeller/trebodar/hus/installationer/vatten): rör-i-rör från fördelarskåpet i "
             "teknikrummet till varje tappställe (stjärnsystem, läckor syns i skåpet). Ritningen ritas med ./mod "
             "vatten ritning.",
-            f"Rören gjuts in i mellanbjälklaget mellan armeringsnäten (R-06), i stråk: varmvattnet överst "
-            f"(z {svm(niv['varmvattnet i bjälklaget'])}) och kallvattnet under det (z "
-            f"{svm(niv['kallvattnet i bjälklaget'])}) i samma läge. Vid ytterväggarnas vinkeljärn under "
-            f"överkantsnätet går varmvattnet i kallvattnets nivå. Rören läggs före gjutningen och kommer ut ur "
-            f"bjälklaget mellan armeringsjärnen.",
+            f"Rören gjuts in i mellanbjälklaget (R-06) i stråk, c/c 40 i en nivå närmast underkantsnätet "
+            f"(z {svm(niv['rören i bjälklaget'])}); golvvärmen går ovanför. Rören läggs före gjutningen och kommer ut "
+            f"ur bjälklaget mellan armeringsjärnen.",
             "På plan 1 går rören upp i väggarnas regelfack till väggdosorna (syllen urtas) eller genom golvet till "
             "golvdosorna; i källaren ned i källarväggens cellplast bakom gipsen (fräst spår) till väggdosorna. "
             "Väggdosorna i badrummet tätas mot tätskiktet (Säker Vatten).",
@@ -127,7 +125,7 @@ def _tappstallen(v: Vy, tapp: dict, plan1: list[dict], kallare: list[dict]) -> N
 
 def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dict], norr: tuple[float, float],
               nummer: str, ovriga: str) -> Blad:
-    """Rören ingjutna i mellanbjälklaget (varmvattnet över kallvattnet), var de kommer ut ur det (upp till plan 1, ned
+    """Rören ingjutna i mellanbjälklaget (en fil per rör), var de kommer ut ur det (upp till plan 1, ned
     till källaren och fördelarskåpet) och tappställena, med plan 1:s väggar streckade och källarväggarna tunna."""
     s_, (x0, x1, y0, y1) = SKALA_BJALKLAG, BJALKLAG
     v = Vy(24.0, 30.0, (x1 - x0) / s_, (y1 - y0) / s_, s_, x0, y1, klipp=True)
@@ -273,8 +271,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
     _utrustning(p, utdrag, etiketter=False)
     with p.lager("fordelare"):
         for f in utdrag["fordelare"].values():
-            a = np.array(f["punkt"][:2]) - np.array(f["riktning"][:2]) * f["delning"]
-            b = a + np.array(f["riktning"][:2]) * f["delning"] * (f["utgangar"] + 1)
+            a, b = f["start"], f["slut"]
             p.polygon([(a[0] - 16, a[1]), (b[0] - 16, b[1]), (b[0] + 16, b[1]), (a[0] + 16, a[1])], "#c9c2a8",
                       "tunn")
     _ror_i_plan(p, ror, -2500.0)
@@ -286,7 +283,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
                     hela.ptext(x0, a[1], -1.0, 0.0, k, a="rm", sz=4.8)
         u = utdrag["utrustning"]
         for k, X, Y, ank in (("TK-VP", x0 + 60.0, 7700.0, "lm"), ("TK-FS", x0 + 60.0, 8250.0, "lm"),
-                             ("TK-VM", x0 + 60.0, 9000.0, "lm"), ("TK-GVF", x0 + 60.0, 9080.0, "lm")):
+                             ("TK-VM", x0 + 60.0, 9000.0, "lm")):
             if k in u:
                 q = u[k]["punkt"]
                 hela.hanvisning((q[0], q[1]), (X, Y), f"{k} {u[k]['namn'].split(' (')[0].split(',')[0].lower()}",
@@ -327,9 +324,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
                 e.ptext(-q[1], q[2], 0.0, 0.0, "FF3", a="cm", sz=5.0, col="gra")
     with e.lager("fordelare"):
         for k, f in utdrag["fordelare"].items():
-            ya = f["punkt"][1] - f["delning"]
-            yb = ya + f["delning"] * (f["utgangar"] + 1)
-            z = f["punkt"][2]
+            ya, yb, z = f["start"][1], f["slut"][1], f["start"][2]
             e.rekt(-yb, z - 16.0, -ya, z + 16.0, "#c9c2a8", "tunn")
             e.ptext(-yb, z, -0.8, 0.0, f"{k} z {svm(z)}", a="rm", sz=5.0, bg=True)
     with e.lager("ror"):
@@ -364,7 +359,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
     kol = _anvisningar(
         utdrag,
         "Fördelarskåpet på V19 med varmvattnets fördelare bakom och kallvattnets framför: rören går upp ur skåpets "
-        "öppna ovansida in i mellanbjälklaget och västerut i det, varmvattnet över kallvattnet. Matarledningarna "
+        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 40). Matarledningarna "
         "under ventilationens kanal FF3, över värmepumpen; kallvattnet in i fördelarens norra ände och vidare genom "
         "den till beredaren.",
         "Skåpet får läckageindikering till golvbrunnen i teknikrummet (Säker Vatten); avloppet ritas senare. "

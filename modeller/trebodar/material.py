@@ -177,11 +177,16 @@ TAPPVATTEN_VV = Material("Tappvatten VV", "Tappvattenrör varmvatten, PEX (rör-
                          "#c4372f", 0.5, cad="#d23b2f")
 VATTENDOSA = Material("Vattendosa", "Väggdosor, golvgenomföringar och väggfästen för rör-i-rör, plast", 200, "#e6e6e2",
                       0.5, cad="#8a95a0")
-FORDELARSTAM = Material("Fördelare", "Fördelare för tappvatten, förnicklad mässing", 5000, "#c9c2a8", 0.3, 1.0,
-                        cad="#c9a646")
+FORDELARSTAM = Material("Fördelare", "Fördelare för tappvatten och golvvärme, förnicklad mässing", 5000, "#c9c2a8",
+                        0.3, 1.0, cad="#c9a646")
 PLATSKAP = Material("Plåtskåp", "Fördelarskåp, vitlackerad stålplåt 1,5 mm", 7850, "#efefec", 0.4, cad="#c3ccd5")
-VVS_APPARAT = Material("VVS-apparat", "Värmepump, vattenmätare och golvvärmefördelare (förenklade som lådor)", 250,
-                       "#eeeeea", 0.45, cad="#dde3e8")
+VVS_APPARAT = Material("VVS-apparat", "Värmepump och vattenmätare (förenklade som lådor)", 250, "#eeeeea", 0.45,
+                       cad="#dde3e8")
+
+# ------------------------------------------------------------------ golvvärme (hus/installationer/golvvarme)
+# rören är massiva: densiteten är rörets och vattnets massa fördelad på hela tvärsnittet (PE-RT 16 × 2,0 med vatten)
+GOLVVARME = Material("Golvvärmerör", "Golvvärmerör PE-RT med syrespärr och matarledningar PEX, vattenfyllda", 970,
+                     "#e0803a", 0.5, cad="#e8742a")
 
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}

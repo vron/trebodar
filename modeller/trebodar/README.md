@@ -165,8 +165,9 @@ Trebodar
     │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
-    ├── Installationer          VVS (ur Onshape-modellen), el, ventilation, tappvatten och teknikrummets
-    │                           utrustning (hus/installationer/el, ventilation och vatten, se deras README)
+    ├── Installationer          avlopp (ur Onshape-modellen), el, ventilation, tappvatten, golvvärme och
+    │                           teknikrummets utrustning (hus/installationer/el, ventilation, vatten och golvvarme,
+    │                           se deras README)
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
@@ -224,7 +225,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Armering**: `BPA` bottenplattan, `KVA` källarväggarna, `MBA` mellanbjälklaget, sedan ritningens positionsnummer
   och järnets nummer: `MBA-A1-046` är järn 46 i position 1 (R-06), `MBA-Ö3-002` ett tilläggsjärn i zon Ö3. Bockade
   järn är raka bitar (bockradierna förenklade bort). Kontrollen prövar inte armering mot betong eller mot annan
-  armering, men mot allt annat; mot golvvärmen och avloppet är överlapp tillåtna (järnen läggs om runt rören).
+  armering, men mot allt annat; mot avloppet är överlapp tillåtna (järnen läggs om runt rören). Installationerna med
+  egen kontroll (tappvattnet, golvvärmen) prövas där mot järnen: ingjutna rör ska gå fria från dem.
   Avvikelser från ritningarna, som inte är uppdaterade (modell-todo): mellanbjälklagets järn klipps vid plattan på
   marks fria kanter vid L-elementens rygg (AR-02), startjärnen under F3:s bröstning (800) kortas till under
   bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
@@ -329,5 +331,5 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 Källardörren D1 (öppningen och smygens gips finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02),
 badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
 hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, elinstallationen utanför allrummet och
-köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken, avloppet och golvvärmen läses ur Onshape-modellen
+köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken och avloppet läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

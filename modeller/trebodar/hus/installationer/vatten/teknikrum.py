@@ -1,14 +1,14 @@
-"""Tappvattnet i teknikrummet: fördelarna i fördelarskåpet (..teknikrum.FORDELARSKAP på V19), fördelarnas utgångar
-till tappställena, stråken i mellanbjälklaget och matarledningarna.
+"""Tappvattnet i teknikrummet: fördelarna i fördelarskåpet (..teknikrum.FORDELARSKAP på V19), rörens ordning från
+fördelarna, stråken i mellanbjälklaget och matarledningarna.
 
-- Fördelarna: varmvattnets stam bakom och kallvattnets framför i skåpet, utgångarna uppåt c/c 40 från söder. Rören
-  går upp ur skåpets öppna ovansida, in i mellanbjälklaget underifrån och västerut i det, varmvattnet överst (den
-  bakre radens rör går över den främre radens), så att de inte korsar varandra. Samma utgång på båda fördelarna går
-  till samma tappställe.
-- Utgångarnas ordning (UTGANGAR) bestämmer filerna i stråken: rören viker av åt det håll där deras fil ligger ytterst.
-  Från söder: stråket O (som viker av söderut först), S och V.
-- Stråken, ingjutna i mellanbjälklaget: O söderut väster om skåpet och österut till källarrummet och köket; S västerut
-  och söderut till badrummet och V7; V västerut och söderut längs V21.
+- Fördelarna: varmvattnets stam bakom och kallvattnets framför i skåpet, utgångarna uppåt. Varje rör har en egen fil,
+  c/c 40 längs V19 från söder, och kallvattnets och varmvattnets utgångar sitter i sina rörs filer: rören går upp ur
+  skåpets öppna ovansida rakt in i mellanbjälklaget och vidare i en nivå utan att korsa varandra (den bakre radens rör
+  går mellan den främre radens).
+- Tappställenas ordning (ORDNING, från söder) bestämmer filerna i stråken: rören viker av åt det håll där deras fil
+  ligger ytterst. Ett tappställes två rör ligger bredvid varandra, det som viker av först ytterst (system.py).
+- Stråken, ingjutna i mellanbjälklaget: O österut över V19 till källarrummet och köket; S västerut och söderut till
+  badrummet och längs V7; V västerut och söderut längs V21.
 - Matarledningarna (PEX 22) i teknikrummet: servisen till vattenmätaren, vattenmätaren till kallvattnets fördelare
   (inlopp i norra änden), kallvattnet vidare genom fördelaren till värmepumpens varmvattenberedare (genomgång i södra
   änden) och varmvattnet därifrån till varmvattnets fördelare (inlopp i södra änden, 1 m). De går under
@@ -16,69 +16,72 @@ till tappställena, stråken i mellanbjälklaget och matarledningarna.
 """
 from __future__ import annotations
 
-from ..montering import Vek
+from ..montering import Vek, i_vaggen, kallarvagg
 from ..teknikrum import FORDELARSKAP, SERVIS, VARMEPUMP, VATTENMATARE, Z_GOLV
-from .katalog import FORDELARE_KV, FORDELARE_VV, PEX_22
-from .punkter import Fordelare, Ror, Strak
+from .katalog import PEX_22
+from ..strak import Strak
+from .punkter import Fordelare, Ror
+from .typer import Fordelartyp
 
 _SK = FORDELARSKAP.lage.punkt                                   # på V19:s gips, normalen västerut
-X_VV, X_KV = _SK[0] - 35.0, _SK[0] - 75.0                       # stammarna: varmvattnet bakom, kallvattnet framför
-Y_UT = _SK[1] - FORDELARSKAP.matt[0] / 2 + 60.0                 # utgång 1 (söder)
-Z_SKAP = _SK[2] + FORDELARSKAP.matt[2] / 2                      # skåpets ovansida
+X = {"VV": _SK[0] - 35.0, "KV": _SK[0] - 75.0}                  # stammarna: varmvattnet bakom, kallvattnet framför
+Z = {"VV": Z_GOLV + 1450.0, "KV": Z_GOLV + 1150.0}
+Y_FIL0 = _SK[1] - FORDELARSKAP.matt[0] / 2 + 80.0               # den första filen (söder)
 
-FD_VV = Fordelare("FD-VV", FORDELARE_VV, "VV", (X_VV, Y_UT, Z_GOLV + 1450.0), (0.0, 1.0, 0.0))
-FD_KV = Fordelare("FD-KV", FORDELARE_KV, "KV", (X_KV, Y_UT, Z_GOLV + 1150.0), (0.0, 1.0, 0.0))
-FORDELARE = [FD_VV, FD_KV]
-
-# tappställe: (utgång på båda fördelarna, stråk), från söder
-UTGANGAR: dict[str, tuple[int, str]] = {
-    "KA-TH2": (1, "O"),             # källarrummet: viker av norrut till V15
-    "KO-DB1": (2, "O"),
-    "BA-DU1": (3, "S"),             # viker av söderut till väggen 1C före stråkets hörn
-    "BA-WC1": (4, "S"),             # österut till L9
-    "KA-TH3": (5, "S"),             # stråkets slut, längs V7
-    "BA-TS1": (6, "S"),             # västerut
-    "BA-BK1": (7, "S"),             # västerut, först
-    "KA-TH1": (8, "V"),
-    "KA-TM1": (9, "V"),             # västerut till V21, först
+# tappställe: (stråk, stråkets ben där rören viker av; None: närmast), från söder
+ORDNING: dict[str, tuple[str, int | None]] = {
+    "KO-DB1": ("O", None),
+    "KA-TH2": ("O", None),          # källarrummet: viker av norrut till V15 före köket
+    "BA-DU1": ("S", 0),             # viker av söderut till väggen 1C före stråkets hörn
+    "BA-WC1": ("S", 1),             # österut till L9
+    "KA-TH3": ("S", 2),             # stråkets slut, längs V7
+    "BA-TS1": ("S", 1),             # västerut
+    "BA-BK1": ("S", 1),             # västerut, först
+    "KA-TH1": ("V", 1),
+    "KA-TM1": ("V", 1),             # västerut till V21, först
 }
 
-
-def _y(strak: str) -> float:
-    """y för stråkets första sträcka: mitt för dess utgångar."""
-    ys = [FD_KV.utgang(n)[1] for n, s in UTGANGAR.values() if s == strak]
-    return (min(ys) + max(ys)) / 2
+X_O = 13400.0                                   # O österut till köket
+X_S, X_V = 1500.0, 450.0                        # S söderut under badrummet, V längs V21
+Y_V7 = i_vaggen(kallarvagg("V7", 0.0, 0.0, 1), (0.0, 0.0, 0.0))[1]       # S längs V7:s cellplast
 
 
-# stråken och deras slut utanför vinkeljärnen vid ytterväggarna (punkter.HINDER), där varmvattnet inte ryms över
-# kallvattnet: rören går därifrån var för sig till tappställena
-X_O, Y_O, X_O_SLUT = 4190.0, 8290.0, 13050.0   # O söderut väster om skåpet, österut mellan V19:s och V15:s järn
-X_S, Y_S = 1500.0, 4320.0                       # S söderut under badrummet, till V7
-X_V = 750.0                                     # V söderut längs V21
-STRAK = {s.id: s for s in (
-    Strak("O", ((_SK[0], _y("O")), (X_O, _y("O")), (X_O, Y_O), (X_O_SLUT, Y_O))),
-    Strak("S", ((_SK[0], _y("S")), (X_S, _y("S")), (X_S, Y_S))),
-    Strak("V", ((_SK[0], _y("V")), (X_V, _y("V")), (X_V, 7500.0))),
-)}
+def strak(mitt: dict[str, float]) -> dict[str, Strak]:
+    """Stråken, med deras första sträcka genom mitten av sina filer (mitt: y per stråk)."""
+    return {s.id: s for s in (
+        Strak("O", ((X["KV"] - 100.0, mitt["O"]), (X_O, mitt["O"]))),
+        Strak("S", ((X["VV"] + 100.0, mitt["S"]), (X_S, mitt["S"]), (X_S, Y_V7), (3800.0, Y_V7))),
+        Strak("V", ((X["VV"] + 100.0, mitt["V"]), (X_V, mitt["V"]), (X_V, 7500.0))),
+    )}
+
+
+def fordelare(media: str, typ: Fordelartyp, filer: tuple[int, ...]) -> Fordelare:
+    """Fördelaren för media med utgångarna i filerna (längs V19 norrut från Y_FIL0)."""
+    return Fordelare(f"FD-{media}", typ, media, (X[media], Y_FIL0, Z[media]), (0.0, 1.0, 0.0), filer)
+
 
 _VP, _VM, _SV = VARMEPUMP.anslutningar, VATTENMATARE.anslutningar, SERVIS.anslutningar
 Z_MATAR = _VP["VV-ut"][2] + 40.0                # matarledningarna över värmepumpen, under kanalen FF3
+Z_OVER_SKAP = _SK[2] + FORDELARSKAP.matt[2] / 2 + 50.0
 
 
 def _p(x: float, y: float, z: float) -> Vek:
     return (x, y, z)
 
 
-_KV0, _KV11, _VV0 = FD_KV.utgang(0), FD_KV.utgang(FORDELARE_KV.utgangar + 1), FD_VV.utgang(0)
-ROR = [
-    Ror("VA-KV1", PEX_22, "KV", "TK-SV:ut", "TK-VM:in",
-        via=(_p(_SV["ut"][0], _SV["ut"][1], _VM["in"][2] - 75.0), _p(_VM["in"][0], _VM["in"][1], _VM["in"][2] - 75.0))),
-    Ror("VA-KV2", PEX_22, "KV", "TK-VM:ut", f"FD-KV:{FORDELARE_KV.utgangar + 1}",
-        via=(_p(_VM["ut"][0], _VM["ut"][1], Z_SKAP + 50.0), _p(X_KV, _VM["ut"][1], Z_SKAP + 50.0),
-             _p(X_KV, _KV11[1], Z_SKAP + 50.0))),
-    Ror("VA-KV3", PEX_22, "KV", "FD-KV:0", "TK-VP:KV-in",
-        via=(_p(X_KV, _KV0[1], Z_MATAR), _p(X_KV, _VP["KV-in"][1], Z_MATAR))),
-    Ror("VA-VV1", PEX_22, "VV", "TK-VP:VV-ut", "FD-VV:0",
-        via=(_p(_VP["VV-ut"][0], _VP["VV-ut"][1], Z_MATAR), _p(X_VV, _VP["VV-ut"][1], Z_MATAR),
-             _p(X_VV, _VV0[1], Z_MATAR))),
-]
+def matarledningar(fd_kv: Fordelare, fd_vv: Fordelare) -> list[Ror]:
+    """Matarledningarna till fördelarnas ändar."""
+    kv0, kv_n, vv0 = fd_kv.utgang(0), fd_kv.utgang(fd_kv.utgangar + 1), fd_vv.utgang(0)
+    return [
+        Ror("VA-KV1", PEX_22, "KV", "TK-SV:ut", "TK-VM:in",
+            via=(_p(_SV["ut"][0], _SV["ut"][1], _VM["in"][2] - 75.0),
+                 _p(_VM["in"][0], _VM["in"][1], _VM["in"][2] - 75.0))),
+        Ror("VA-KV2", PEX_22, "KV", "TK-VM:ut", f"FD-KV:{fd_kv.utgangar + 1}",
+            via=(_p(_VM["ut"][0], _VM["ut"][1], Z_OVER_SKAP), _p(X["KV"], _VM["ut"][1], Z_OVER_SKAP),
+                 _p(X["KV"], kv_n[1], Z_OVER_SKAP))),
+        Ror("VA-KV3", PEX_22, "KV", "FD-KV:0", "TK-VP:KV-in",
+            via=(_p(X["KV"], kv0[1], Z_MATAR), _p(X["KV"], _VP["KV-in"][1], Z_MATAR))),
+        Ror("VA-VV1", PEX_22, "VV", "TK-VP:VV-ut", "FD-VV:0",
+            via=(_p(_VP["VV-ut"][0], _VP["VV-ut"][1], Z_MATAR), _p(X["VV"], _VP["VV-ut"][1], Z_MATAR),
+                 _p(X["VV"], vv0[1], Z_MATAR))),
+    ]

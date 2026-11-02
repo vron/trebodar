@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.hus.armering.armering import bottenplattans_mellanrum, mellanbjalklagets_mellanrum
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.skikt import FOLIE, LAKT, SKIVA, innertak_vid, innertakets_fall, insida_t
@@ -24,6 +25,13 @@ I_TAKET = TAKSKIVOR + LAKT / 2                 # installationsskiktets mitt ovan
 PLAN = {1: 0.0, 0: S.Z_BOTTENPLATTA}           # golvets z: plan 1 och källaren
 KALLARTAK = -S.H_BJALKLAG                      # källarens tak: mellanbjälklagets underkant
 BJALKLAG = {"MB": -S.H_BJALKLAG / 2}           # bjälklagens mitt, där rören gjuts in
+
+# installationernas skikt i betongen, mellan armeringsnäten (R-06, R-04): i mellanbjälklaget tappvattnets rör-i-rör
+# (Ø28) närmast underkantsnätet och golvvärmens rör (Ø16) ovanför dem, under järnen under överkantsnätet; i
+# bottenplattan golvvärmens rör mitt emellan näten
+_MB, _BP = mellanbjalklagets_mellanrum(), bottenplattans_mellanrum()
+I_BETONGEN = {"vatten": _MB[0] + 2.0 + 14.0, "golvvarme": _MB[0] + 2.0 + 28.0 + 4.0 + 8.0,
+              "golvvarme_bottenplattan": (_BP[0] + _BP[1]) / 2}
 
 
 @dataclass(frozen=True)

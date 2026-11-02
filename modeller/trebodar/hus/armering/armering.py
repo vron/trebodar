@@ -21,7 +21,7 @@ from types import ModuleType
 from typing import Any, Sequence
 
 import numpy as np
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Point, Polygon
 
 from modellering import Del, Montage, Placering, Union, cylinder
 
@@ -100,6 +100,14 @@ def _klippt(pos: str, pl: list[Punkt], d: float, yta: Polygon) -> list[Jarn]:
 
 def mellanbjalklag() -> Montage:
     r6 = ritning("R-06")
+    return _montage("Mellanbjälklag", "MBA", f"Mellanbjälklagets armering (R-06): nät Ø{r6.DU} s{r6.SU} i underkant "
+                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn och vinkeljärn",
+                    list(_mellanbjalklagets_jarn()))
+
+
+@cache
+def _mellanbjalklagets_jarn() -> tuple[Jarn, ...]:
+    r6 = ritning("R-06")
 
     def z(y: float) -> float:
         return Z_MB + y
@@ -119,9 +127,7 @@ def mellanbjalklag() -> Montage:
             jarn += [(zn["namn"], _linje(seg, z(y)), zn["tillagg"][0]) for seg in jj[rikt]]
     jarn += _mellanlagret()
     yta = _betongen()
-    jarn = [j for pos, pl, d in jarn for j in ((_klippt(pos, pl, d, yta)) if pos != "A14" else [(pos, pl, d)])]
-    return _montage("Mellanbjälklag", "MBA", f"Mellanbjälklagets armering (R-06): nät Ø{r6.DU} s{r6.SU} i underkant "
-                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn och vinkeljärn", jarn)
+    return tuple(j for pos, pl, d in jarn for j in ((_klippt(pos, pl, d, yta)) if pos != "A14" else [(pos, pl, d)]))
 
 
 def _betongen() -> Polygon:
@@ -158,17 +164,11 @@ def _mellanlagret() -> list[Jarn]:
     return jarn
 
 
-def mellanbjalklagets_hinder() -> list[tuple[list[Punkt], float]]:
-    """Järnen i utrymmet mellan mellanbjälklagets nät, där installationernas rör gjuts in: diagonaljärnen och
-    vinkeljärnens vågräta ben under överkantsnätet, som (polylinje, Ø)."""
-    yta = _betongen()
-    ut: list[tuple[list[Punkt], float]] = []
-    for pos, pl, d in _mellanlagret():
-        if pos == "A14":
-            ut.append((pl[1:], d))
-        else:
-            ut += [(q, dd) for _, q, dd in _klippt(pos, pl, d, yta)]
-    return ut
+def bottenplattans_mellanrum() -> tuple[float, float]:
+    """Utrymmet mellan bottenplattans armeringsnät (z), där golvvärmens rör gjuts in: underkantsnätets överkant och
+    överkantsnätets underkant (R-04)."""
+    r4 = ritning("R-04")
+    return Z_BP - r4.HP + r4.C_UK + 2 * r4.NAT[0], Z_BP - r4.C_OK - 2 * r4.NAT[0]
 
 
 def mellanbjalklagets_mellanrum() -> tuple[float, float]:
@@ -178,9 +178,36 @@ def mellanbjalklagets_mellanrum() -> tuple[float, float]:
     return Z_MB + r6.C_UK + 2 * r6.DU, Z_MB + r6.H - r6.C_OK - 2 * r6.DO
 
 
+@cache
+def jarnen_i_nivan(z0: float, z1: float) -> tuple[tuple[Point | LineString, float], ...]:
+    """Järnen som går genom höjdintervallet z0–z1 (t.ex. ett ingjutet rör), i plan: lodräta järn som punkter, vågräta
+    och lutande som linjer (delen inom intervallet), med Ø."""
+    ut: dict[tuple[Any, ...], tuple[Point | LineString, float]] = {}
+    for _, pl, d in (*_mellanbjalklagets_jarn(), *_kallarvaggarnas_jarn(), *_bottenplattans_jarn()):
+        for a, b in zip(pl, pl[1:]):
+            lo, hi = min(a[2], b[2]) - d / 2, max(a[2], b[2]) + d / 2
+            if hi <= z0 or lo >= z1:
+                continue
+            ta, tb = 0.0, 1.0
+            if abs(b[2] - a[2]) > 1e-6:                      # delen inom intervallet (järnets mitt ± Ø/2)
+                ta, tb = sorted(((z0 - d / 2 - a[2]) / (b[2] - a[2]), (z1 + d / 2 - a[2]) / (b[2] - a[2])))
+                ta, tb = max(ta, 0.0), min(tb, 1.0)
+            p, q = ((round(a[0] + (b[0] - a[0]) * t, 1), round(a[1] + (b[1] - a[1]) * t, 1)) for t in (ta, tb))
+            g: Point | LineString = Point(p) if math.dist(p, q) < 1.0 else LineString([p, q])
+            ut[(*sorted((p, q)), d)] = (g, d)
+    return tuple(ut.values())
+
+
 # ------------------------------------------------------------------ källarväggarna (R-05)
 
 def kallarvaggar() -> Montage:
+    d_h = ritning("R-05").K.ARM_H[0]
+    return _montage("Källarväggar", "KVA", f"Källarväggarnas armering (R-05): vågräta järn Ø{d_h}, vinkeljärn i hörn "
+                    "och anslutningar, lodräta järn Ø10 och öppningarnas järn Ø12", list(_kallarvaggarnas_jarn()))
+
+
+@cache
+def _kallarvaggarnas_jarn() -> tuple[Jarn, ...]:
     r5 = ritning("R-05")
     K = r5.K
 
@@ -238,13 +265,20 @@ def kallarvaggar() -> Montage:
                 q = r5.jarnlinje(w, sida) - sida * 11.0
                 jarn.append((f"A{r5.POS['opp_under']}", [(*plan(w, a, q), Z_BP + zz), (*plan(w, b, q), Z_BP + zz)],
                              d_o))
-    return _montage("Källarväggar", "KVA", f"Källarväggarnas armering (R-05): vågräta järn Ø{d_h}, vinkeljärn i hörn "
-                    "och anslutningar, lodräta järn Ø10 och öppningarnas järn Ø12", jarn)
+    return tuple(jarn)
 
 
 # ------------------------------------------------------------------ bottenplattan (R-04)
 
 def bottenplatta() -> Montage:
+    r4 = ritning("R-04")
+    return _montage("Bottenplatta", "BPA", f"Bottenplattans armering (R-04): nät Ø{r4.NAT[0]} s{r4.NAT[1]} i båda "
+                    "lagren, balkarnas järn och byglar, plintarnas järn, diagonaljärn och startjärn",
+                    list(_bottenplattans_jarn()))
+
+
+@cache
+def _bottenplattans_jarn() -> tuple[Jarn, ...]:
     r4 = ritning("R-04")
     K, R4 = r4.K, r4.R4
     d_n = r4.NAT[0]
@@ -304,8 +338,7 @@ def bottenplatta() -> Montage:
                 upp = min(upp, o["z0"] - 40.0 - K.OPP["d"] / 2 - r4.START["d"] / 2 - 10.0)
         pos = r4.POS["start_ute"] if typ == "ute" else r4.POS["start_inne"]
         jarn.append((f"A{pos}", [(fx, fy, zf), (x, y, zf), (x, y, Z_BP + upp)], r4.START["d"]))
-    return _montage("Bottenplatta", "BPA", f"Bottenplattans armering (R-04): nät Ø{d_n} s{r4.NAT[1]} i båda lagren, "
-                    "balkarnas järn och byglar, plintarnas järn, diagonaljärn och startjärn", jarn)
+    return tuple(jarn)
 
 
 def montage() -> Montage:

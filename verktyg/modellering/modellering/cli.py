@@ -238,6 +238,12 @@ def main(argv: list[str] | None = None) -> None:
                          "lista: tappställen, rör och genomföringar (markdown); ritning: rören i mellanbjälklaget och "
                          "teknikrummet (VS-01)")
     pw.add_argument("--ut", type=Path, default=UT / "vatten")
+    pg = sub.add_parser("golvvarme", help="golvvärmen: kontroll (med krockar mot huset), lista och ritningar")
+    pg.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
+                    help="kontroll: slingornas längd, fördelarna, rören som går i varandra eller mot järnen i sin "
+                         "nivå, genomföringarna och krockarna mot husets delar och de andra installationerna; lista: "
+                         "kretsar och genomföringar (markdown); ritning: plan 1 och källaren med fördelarna (VG-01)")
+    pg.add_argument("--ut", type=Path, default=UT / "golvvarme")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
@@ -576,7 +582,7 @@ def main(argv: list[str] | None = None) -> None:
         if arg.atgard in ("kontroll", "lista"):
             kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Ventilation")
             fel += [f"krock med {k}" for k in kr.installationer]
-            krockar = kr.stomme + kr.skikt
+            krockar = kr.stomme + kr.armering + kr.skikt
         if arg.atgard == "kontroll":
             n_el, n_gf = len(utdrag["element"]), len(utdrag["genomforingar"])  # type: ignore[arg-type]
             print(f"  {len(vent.grenar)} grenar, {n_el} element, {n_gf} genomföringar: {len(fel)} fel, "
@@ -618,7 +624,7 @@ def main(argv: list[str] | None = None) -> None:
         arg.ut.mkdir(parents=True, exist_ok=True)
         if arg.atgard in ("kontroll", "lista"):
             kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Vatten")
-            fel += [f"krock med {k}" for k in kr.installationer]
+            fel += [f"krock med {k}" for k in kr.installationer + kr.armering]
             krockar = kr.stomme + kr.skikt
         if arg.atgard == "kontroll":
             n_gf = len(utdrag["genomforingar"])  # type: ignore[arg-type]
@@ -651,6 +657,51 @@ def main(argv: list[str] | None = None) -> None:
             vent = importlib.import_module("trebodar.hus.installationer.ventilation.system").ventilation().utdrag()
             pdf = vattenritning.ritningar(utdrag, plan1, kallare, mb, vyn, vent, _norr(), UT / "vatten" / "blad",
                                           arg.ut)
+            print(f"  {pdf}")
+    elif arg.kommando == "golvvarme":
+        import json
+        from . import golvvarmeritning, installationer
+        from .planritning import snitt
+        regler = importlib.import_module("trebodar.kontrollregler")
+        gs = importlib.import_module("trebodar.hus.installationer.golvvarme.system")
+        gv = gs.golvvarme()
+        utdrag = gv.utdrag()
+        fel, anm = gs.kontroll(gv)
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        if arg.atgard in ("kontroll", "lista"):
+            kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Golvvärme")
+            fel += [f"krock med {k}" for k in kr.installationer + kr.armering]
+            krockar = kr.stomme + kr.skikt
+        if arg.atgard == "kontroll":
+            n_gf = len(utdrag["genomforingar"])  # type: ignore[arg-type]
+            print(f"  {len(gv.kretsar)} kretsar, {len(gv.fordelare)} fördelare, {n_gf} genomföringar: {len(fel)} fel, "
+                  f"{len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for x in anm:
+                print(f"    {x}")
+            print("  krockar mot husets delar (stommen var för sig):")
+            for k in krockar:
+                print(f"    {k}")
+            if fel:
+                raise SystemExit(1)
+        elif arg.atgard == "lista":
+            fil = arg.ut / "golvvarme.md"
+            fil.write_text(golvvarmeritning.lista(utdrag, (fel, anm), krockar), encoding="utf-8")
+            (arg.ut / "golvvarme.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
+        else:
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            ma = ROT / "verktyg" / "modellanalys" / "ma"
+            skel = importlib.import_module("trebodar.skelett")
+            plan1 = snitt(ma, step_fil, 1200.0, UT / "vatten-plan1.json")
+            kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "vatten-kallare.json")
+            mb = snitt(ma, step_fil, -75.0, UT / "vatten-mellanbjalklag.json")
+            vyn = snitt(ma, step_fil, f"y={golvvarmeritning.Y_VY:g}", UT / "golvvarme-vy.json")
+            pdf = golvvarmeritning.ritningar(utdrag, plan1, kallare, mb, vyn, _norr(), UT / "golvvarme" / "blad",
+                                             arg.ut)
             print(f"  {pdf}")
     elif arg.kommando == "kontroll":
         from . import kontroll

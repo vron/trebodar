@@ -1,6 +1,6 @@
 # Ritningsmall A3
 
-Gemensam mall för alla ritningar (R-01 … R-06, AR-01, AR-02 och el-, ventilations- och tappvattenritningarna, ljusplanerna och kameraplanen ur modellen, `verktyg/modellering`), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
+Gemensam mall för alla ritningar (R-01 … R-06, AR-01, AR-02 och el-, ventilations-, tappvatten- och golvvärmeritningarna, ljusplanerna och kameraplanen ur modellen, `verktyg/modellering`), A3 liggande, i samma stil som beräkningsrapporterna (Carlito, tunna linjer, ljusa fyllningar). Ram, ritningshuvud, linjetyper och färger ändras på ett ställe och gäller alla ritningar.
 
 | Fil | Innehåll |
 |---|---|

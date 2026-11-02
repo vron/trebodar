@@ -30,8 +30,10 @@ from OCP.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace
 from OCP.BRepCheck import BRepCheck_Analyzer
 from OCP.BRepGProp import BRepGProp
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
+from OCP.BRepOffsetAPI import BRepOffsetAPI_MakePipe
 from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism, BRepPrimAPI_MakeRevol
 from OCP.BRepTools import BRepTools
+from OCP.GC import GC_MakeArcOfCircle
 from OCP.GeomAPI import GeomAPI_Interpolate
 from OCP.gp import gp_Ax1, gp_Ax2, gp_Circ, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
 from OCP.GProp import GProp_GProps
@@ -153,6 +155,8 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
         return _polyeder(f)
     if isinstance(f, F.Varv):
         return _varv(f)
+    if isinstance(f, F.Svep):
+        return _svep(f)
     if isinstance(f, F.Transf):
         return BRepBuilderAPI_Transform(bygg(f.form), trsf(f.placering), True).Shape()
     if isinstance(f, F.Diff):
@@ -205,6 +209,36 @@ def _varv(f: F.Varv) -> TopoDS_Shape:
         raise RuntimeError("profilen blev ingen sluten kontur")
     yta = BRepBuilderAPI_MakeFace(mw.Wire(), True).Face()
     return BRepPrimAPI_MakeRevol(yta, gp_Ax1(gp_Pnt(0.0, 0.0, 0.0), gp_Dir(0.0, 0.0, 1.0)), 2 * math.pi).Shape()
+
+
+def _svep(f: F.Svep) -> TopoDS_Shape:
+    """Cirkeln svept längs polylinjen: raka kanter och, i hörnen, bågar i hörnets plan (tangentlängden högst halva den
+    kortare sträckan)."""
+    P = [np.array(q, dtype=float) for q in f.punkter]
+    P = [q for i, q in enumerate(P) if i == 0 or np.linalg.norm(q - P[i - 1]) > 1e-6]
+    mw = BRepBuilderAPI_MakeWire()
+    start = P[0]
+    for i in range(1, len(P) - 1):
+        a, b, c = P[i - 1], P[i], P[i + 1]
+        lu, lw = np.linalg.norm(b - a), np.linalg.norm(c - b)
+        u, w = (b - a) / lu, (c - b) / lw
+        vinkel = math.acos(max(-1.0, min(1.0, float(u @ w))))
+        if vinkel < 1e-4:
+            continue
+        r = min(f.bojradie, 0.5 * min(lu, lw) / math.tan(vinkel / 2))
+        t = r * math.tan(vinkel / 2)
+        p1, p2 = b - u * t, b + w * t
+        if np.linalg.norm(p1 - start) > 1e-6:
+            mw.Add(BRepBuilderAPI_MakeEdge(gp_Pnt(*start), gp_Pnt(*p1)).Edge())
+        d = (w - u) / np.linalg.norm(w - u)
+        mitt = b + d * (r / math.cos(vinkel / 2)) - d * r
+        mw.Add(BRepBuilderAPI_MakeEdge(GC_MakeArcOfCircle(gp_Pnt(*p1), gp_Pnt(*mitt), gp_Pnt(*p2)).Value()).Edge())
+        start = p2
+    mw.Add(BRepBuilderAPI_MakeEdge(gp_Pnt(*start), gp_Pnt(*P[-1])).Edge())
+    riktning = (P[1] - P[0]) / np.linalg.norm(P[1] - P[0])
+    profil = BRepBuilderAPI_MakeFace(BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(
+        gp_Circ(gp_Ax2(gp_Pnt(*P[0]), gp_Dir(*riktning)), f.radie)).Edge()).Wire()).Face()
+    return BRepOffsetAPI_MakePipe(mw.Wire(), profil).Shape()
 
 
 def _polyeder(f: F.Polyeder) -> TopoDS_Shape:
