@@ -8,11 +8,14 @@ det håll där deras fil ligger ytterst. Koordinater i mm (K-05).
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from functools import cache
 
 from shapely.geometry import LineString, Point
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import substring
+from shapely.strtree import STRtree
 
 from trebodar.hus.armering.armering import jarnen_i_nivan
 
@@ -71,7 +74,7 @@ def filer(rader: list[tuple[str, str, int | None, dict[str, tuple[float, float]]
 
     rader: (id, stråk, ben där rören viker av (None: närmast), målet per rör, t.ex. {"KV": (x, y), "VV": (x, y)}) i
     ordning längs riktning. Ett ids rör ligger bredvid varandra, det som viker av först ytterst mot målets sida av
-    stråket. stråk(mitt) ger stråken med deras första sträcka genom mitten av sina filer (mitt: läget längs riktning);
+    idets filer. stråk(mitt) ger stråken med deras första sträcka genom mitten av sina filer (mitt: läget längs riktning);
     sidan beror på var stråket går och mitten på filerna, så de räknas om tills de stämmer."""
     mitt = {s: borjan[0] * riktning[0] + borjan[1] * riktning[1] for _, s, _, _ in rader}
     ut: dict[tuple[str, str], int] = {}
@@ -83,8 +86,10 @@ def filer(rader: list[tuple[str, str, int | None, dict[str, tuple[float, float]]
             linje = LineString(s.punkter)
             forst = min(mal, key=lambda m: langs(linje, mal[m], ben))
             p = mal[forst]
-            t = langs(linje, p, ben)
-            fot, q = linje.interpolate(t), linje.interpolate(t + 1.0)
+            n0 = len(ut)                                    # sidan räknas från idets första fil, inte stråkets mitt
+            egen = s.fil((borjan[0] + riktning[0] * n0 * fil, borjan[1] + riktning[1] * n0 * fil))
+            t = langs(egen, p, ben)
+            fot, q = egen.interpolate(t), egen.interpolate(t + 1.0)
             vanster = (q.x - fot.x) * (p[1] - fot.y) - (q.y - fot.y) * (p[0] - fot.x) > 0.0
             vanster_uppat = s.sida((borjan[0] + riktning[0], borjan[1] + riktning[1])) > s.sida(borjan)
             for m in sorted(mal, key=lambda m: (m == forst) == (vanster == vanster_uppat)):
@@ -108,3 +113,43 @@ def glipa(vagg: str, z: float, nara: float) -> float:
     t = sorted({g.coords[0][i] for g, _ in jarnen_i_nivan(z - 1.0, z + 1.0)
                 if g.geom_type == "Point" and karna.contains(g)})
     return min(((a + b) / 2 for a, b in zip(t, t[1:])), key=lambda m: abs(m - nara))
+
+
+@cache
+def _jarnen(z0: float, z1: float) -> tuple[STRtree, tuple[tuple[Point | LineString, float], ...]]:
+    j = jarnen_i_nivan(z0, z1)
+    return STRtree([g for g, _ in j]), j
+
+
+def mellan_jarnen(punkter: Sequence[tuple[float, float]], z0: float, z1: float, r: float,
+                  langs: tuple[float, float] | None = None, tvars: float = 0.0, undvik: BaseGeometry | None = None,
+                  spel: float = 5.0, langst: float = 150.0, steg: float = 5.0) -> tuple[float, float]:
+    """Den kortaste förskjutningen (dx, dy) av lodräta rör (radien r, punkterna i plan, från z0 till z1) som gör att
+    alla går fria (spel) från järnen som går genom höjderna, t.ex. armeringsnäten där rören går upp ur betongen: längs
+    riktningen langs (t.ex. längs en vägg, och högst tvars tvärs den) eller åt alla håll, med punkternas mitt utanför
+    undvik (t.ex. väggarna runt en golvdosa); (0, 0) om de redan går fria."""
+    trad, jarn = _jarnen(min(z0, z1), max(z0, z1))
+    mx, my = sum(x for x, _ in punkter) / len(punkter), sum(y for _, y in punkter) / len(punkter)
+
+    def fri(dx: float, dy: float) -> bool:
+        if undvik is not None and undvik.contains(Point(mx + dx, my + dy)):
+            return False
+        for x, y in punkter:
+            q = Point(x + dx, y + dy)
+            for i in trad.query(q.buffer(r + spel + 10.0)):
+                g, d = jarn[int(i)]
+                if q.distance(g) < r + d / 2 + spel:
+                    return False
+        return True
+
+    n = int(langst / steg)
+    if langs is None:
+        steg_ = [(i * steg, j * steg) for i in range(-n, n + 1) for j in range(-n, n + 1)]
+    else:
+        m = int(tvars / steg)
+        steg_ = [(langs[0] * i * steg - langs[1] * j * steg, langs[1] * i * steg + langs[0] * j * steg)
+                 for i in range(-n, n + 1) for j in range(-m, m + 1)]
+    for dx, dy in sorted(steg_, key=lambda d: math.hypot(*d)):
+        if fri(dx, dy):
+            return dx, dy
+    raise ValueError(f"inget läge mellan järnen inom {langst:g} mm från {punkter[0]}")

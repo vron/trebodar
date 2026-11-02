@@ -89,9 +89,10 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
             "Tappvattnet ur modellen (modeller/trebodar/hus/installationer/vatten): rör-i-rör från fördelarskåpet i "
             "teknikrummet till varje tappställe (stjärnsystem, läckor syns i skåpet). Ritningen ritas med ./mod "
             "vatten ritning.",
-            f"Rören gjuts in i mellanbjälklaget (R-06) i stråk, c/c 40 i en nivå närmast underkantsnätet "
-            f"(z {svm(niv['rören i bjälklaget'])}); golvvärmen går ovanför. Rören läggs före gjutningen och kommer ut "
-            f"ur bjälklaget mellan armeringsjärnen.",
+            f"Rören gjuts in i mellanbjälklaget (R-06) i stråk, c/c 50 som nätens maskor, i en nivå närmast "
+            f"underkantsnätet (z {svm(niv['rören i bjälklaget'])}); golvvärmen går ovanför. Rören läggs före "
+            f"gjutningen och kommer ut ur bjälklaget mellan armeringsjärnen (golvdosorna och rören i väggarna "
+            f"förskjutna dit) och går över källarväggarnas lodräta järn mellan dem.",
             "På plan 1 går rören upp i väggarnas regelfack till väggdosorna (syllen urtas) eller genom golvet till "
             "golvdosorna; i källaren ned i källarväggens cellplast bakom gipsen (fräst spår) till väggdosorna. "
             "Väggdosorna i badrummet tätas mot tätskiktet (Säker Vatten).",
@@ -359,9 +360,9 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
     kol = _anvisningar(
         utdrag,
         "Fördelarskåpet på V19 med varmvattnets fördelare bakom och kallvattnets framför: rören går upp ur skåpets "
-        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 40). Matarledningarna "
-        "under ventilationens kanal FF3, över värmepumpen; kallvattnet in i fördelarens norra ände och vidare genom "
-        "den till beredaren.",
+        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 50) mellan underkantsnätets järn och söder "
+        "om ventilationens kanal FF3. Matarledningarna över värmepumpen; kallvattnet in i fördelarens norra ände och "
+        "vidare genom den till beredaren.",
         "Skåpet får läckageindikering till golvbrunnen i teknikrummet (Säker Vatten); avloppet ritas senare. "
         "Servisens väg till huset är inte bestämd.",
         ovriga) + [dict(typ="rubrik", text="Teckenförklaring"), _teckenforklaring(TECKEN[:2] + [

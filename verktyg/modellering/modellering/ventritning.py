@@ -307,8 +307,12 @@ def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, nummer: str, 
             if e["slag"] == "flakt":
                 p = e["punkt"]
                 L, D = typ["langd"], typ["d"]
-                v.rekt(p[0] - L / 2, p[2] - D / 2, p[0] + L / 2, p[2] + D / 2, fyll="vit", stil="normal")
-                flakt(v, p[0], p[2], (e["riktning"][0], e["riktning"][2]))
+                if abs(e["riktning"][0]) < 0.5:                         # luften tvärs sektionen: fläkten framifrån
+                    v.cirkel(p[0], p[2], D / 2, "vit", "normal", modell=True)
+                    v.cirkel(p[0], p[2], 0.5, "svart", None)
+                else:
+                    v.rekt(p[0] - L / 2, p[2] - D / 2, p[0] + L / 2, p[2] + D / 2, fyll="vit", stil="normal")
+                    flakt(v, p[0], p[2], (e["riktning"][0], e["riktning"][2]))
                 v.ptext(p[0], p[2], 0.0, -D / 2 / v.s - 1.0, f"{k} kanalfläkt", a="ct", sz=5.4, bg=True)
             elif e["slag"] == "avluft" and typ["slag"] == "takhuv":
                 p = e["punkt"]

@@ -15,7 +15,7 @@ from modellering import Del, Montage, Placering, box, cylinder
 from trebodar.material import FORDELARSTAM, TAPPVATTEN_KV, TAPPVATTEN_VV, VATTENDOSA
 
 from ..montering import Vek, enhet
-from .punkter import Fordelare, Tappstalle
+from .punkter import Fordelare, Tappstalle, forskjutning
 from .system import vatten
 
 MATERIAL = {"KV": TAPPVATTEN_KV, "VV": TAPPVATTEN_VV}
@@ -42,12 +42,14 @@ def ror(namn: str, beskrivning: str, vag: list[Vek], d: float, media: str) -> Mo
 
 
 def _dosa(t: Tappstalle) -> tuple[Del, Placering]:
-    """Väggdosan i väggen (fronten i ytan), golvdosan på golvet eller väggfästet utanpå väggen."""
+    """Väggdosan i väggen (fronten i ytan), golvdosan på golvet (förskjuten mellan järnen) eller väggfästet utanpå
+    väggen."""
     d, m = t.dosa, t.lage
     n = m.normal
     if d.slag == "golv":
+        dx, dy = forskjutning(t)
         return (Del(d.namn, box(-d.b / 2, d.b / 2, -d.h / 2, d.h / 2, 0.0, d.djup), VATTENDOSA),
-                Placering.axlar(m.punkt, t.kallt or (1.0, 0.0, 0.0), n))
+                Placering.axlar((m.punkt[0] + dx, m.punkt[1] + dy, m.punkt[2]), t.kallt or (1.0, 0.0, 0.0), n))
     z0, z1 = (-d.djup, 0.0) if d.slag == "vägg" else (0.0, d.djup)
     return (Del(d.namn, box(-d.b / 2, d.b / 2, -d.h / 2, d.h / 2, z0, z1), VATTENDOSA),
             Placering.axlar(m.punkt, (-n[1], n[0], 0.0), n))

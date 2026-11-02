@@ -3,11 +3,12 @@ utrustningen för vatten och värme, som installationerna (vatten/, golvvarme/) 
 Rummets väggar är källarens innerväggar KL8–KL10 (invandigt/kallarens_innervaggar.py) med en knyck runt värmepumpen;
 YTA är den del av källaren som pekats ut för utrustningen.
 
-- Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19, söder om
-  ventilationens kanal FF3 under taket; anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till
-  golvvärmen (golvvarme/, fördelarna på V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
+- Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19;
+  anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till golvvärmen (golvvarme/, fördelarna på
+  V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
 - Tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
-  går ut genom skåpets öppna ovansida. Kort varmvattenledning från beredaren.
+  går ut genom skåpets öppna ovansida, söder om ventilationens kanal FF3 under taket längs V3. Kort
+  varmvattenledning från beredaren.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
   väg till huset är inte bestämd.
 
@@ -51,9 +52,9 @@ VARMEPUMP = Utrustning(
      "VS-fram": (_VP_X0 + 100.0, _VP_Y0 + 450.0, _TOPP), "VS-retur": (_VP_X0 + 160.0, _VP_Y0 + 450.0, _TOPP),
      "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)})
 
-# tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, fritt från ventilationens kanal FF3 (y 8 220)
+# tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, söder om ventilationens kanal FF3 längs V3
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
-                          kallarvagg("V19", 8610.0, 1250.0, -1), (760.0, 110.0, 600.0), {})
+                          kallarvagg("V19", 8510.0, 1250.0, -1), (1000.0, 120.0, 600.0), {})
 
 # inkommande vatten: servisen upp ur bottenplattan, vattenmätaren och huvudavstängningen på V3 vid V19
 X_VM = 3950.0
