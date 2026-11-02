@@ -73,8 +73,8 @@ LATTA = (
              syll=False),
     Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),
     Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot kaminens kåpa"),
-    Lattvagg("L13", (6288.0, 5452.0), _PX, 7278.0 - 6288.0, "kaminens kåpa, norra sidan"),
-    Lattvagg("L14", (6358.0, 5522.0), _PY, 5900.0 - 5522.0, "kaminens kåpa, västra sidan"),
+    Lattvagg("L13", (6068.0, 5452.0), _PX, 7278.0 - 6068.0, "kaminens kåpa, norra sidan"),
+    Lattvagg("L14", (6138.0, 5522.0), _PY, 5900.0 - 5522.0, "kaminens kåpa, västra sidan"),
 )
 VAGGAR = {lv.kod: lv.vagg for lv in LATTA}
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem

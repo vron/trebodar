@@ -11,9 +11,12 @@ fronten i 2C:s öppning, 50 mm kalciumsilikat med hål 730 × 615 för insatsen 
 550 cm² över insatsen (minst 250 och 500). Kassen är täckt med en obrännbar plåt 50 mm direkt över den övre
 konvektionsöppningen, 1 600 över golvet, och skorstenens isolerade del börjar inne i kassen och går genom plåten.
 
-Förbränningsluften (AirSystem, anvisningen: Ø100 upp till 5 m, Ø120 för 5–10 m): kanal Ø120 från anslutningen under
-insatsen ned genom bjälklaget, längs källarens tak och ut genom källarväggen V12 mellan fönstren F2 och F3, med galler
-på fasaden (hålen i bjälklaget, väggen och fasaden skärs i hus.py).
+Förbränningsluften (AirSystem, anvisningen: flexslang Ø100 upp till 5 m, Ø120 för 5–10 m; luftbehov minst 18 m³/h):
+upp genom taket, inte genom källaren. Flexslang Ø100 från anslutningen under insatsen ned under den, genom det västra
+stödet till kåpans västra del bredvid insatsen (kåpan är bredare där, rum.KAMINKAPA) och lodrätt upp genom plåten;
+över plåten isolerad kanal (kall uteluft i varm kåpa ger annars kondens) bredvid skorstenen i samma fack, genom
+innertaket och taket, med huv över taket. Kanalen är ca 4,7 m (hålen i innertaket, isoleringen och taket skärs i
+hus.py).
 
 Rökröret Ø150 går lodrätt 100 mm och sedan 45° till skorstenen, som står i facket mellan takbalken vid y 5 415 och
 takstolen 2C. Skorstenen: isolerad, Ø150/Ø250 rostfri, från kassen till 800 mm över nocken, med regnhuv. Hålet genom
@@ -27,7 +30,7 @@ from modellering import Del, Form, Montage, Placering, box, cylinder
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
-from trebodar.byggdelar.ror import ror
+from trebodar.byggdelar.ror import ror, stang
 from trebodar.hus.rum import KAMINKAPA
 from trebodar.material import GLAS, KALCIUMSILIKAT, KAMIN, ROSTFRITT
 
@@ -46,9 +49,10 @@ Z_KONV_UNDER = 250.0                        # den nedre öppningens underkant
 H_KASSE = 1600.0                            # plåten över den övre öppningen
 STOD_B = 100.0                              # stöden under insatsen
 OPPNING = (6400.0, 7410.0, 0.0, 2045.0)     # öppningen i 2C (oppningar.INNEROPPNINGAR): x0, x1, z0, z1
-# läget: insatsen mitt i kåpan, fronten i skiktets yta mot allrummet
+# läget: insatsen 50 mm från kåpans östra kalciumsilikat (väster om den är kanalen), fronten i skiktets yta mot
+# allrummet
 KAPA = KAMINKAPA.bounds                     # x0, y0, x1, y1 innanför de lätta väggarna
-X_MITT = (KAPA[0] + KAPA[2]) / 2
+X_MITT = KAPA[2] - KS_T - 50.0 - KROPP[0] / 2
 Y_FRONT = S.INNERVAGGAR["2C"].origo[1] + S.INNERVAGGAR["2C"].tjocklek + 25.0
 # rökröret och skorstenen
 ROR_D, ROR_T = 150.0, 1.5
@@ -57,12 +61,12 @@ FRI = 50.0                                  # avstånd till brännbart vid genom
 X_SK, Y_SK = 6590.0, 5710.0                 # skorstenens mitt: förbi nockbalken och dess upplagsregel, i facket
 OVER_NOCK = 800.0
 # förbränningsluften
-LUFT_D, LUFT_FRAN_FRONT = 120.0, 122.0      # kanalen och anslutningen under insatsen (bakom fronten)
-LUFT_Z = -400.0                             # kanalen i källaren, 250 under bjälklaget (väggen hel närmast under det)
-LUFT_X_KALLARE = 6740.0                     # kanalen mot norr i källaren, väster om pelaren P12
-LUFT_X_UT, LUFT_Y_VAGG = 7700.0, 1000.0     # genom V12; kanalen vänder mot väggen vid y 1 000
+LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
+LUFT_ISOL = 30.0                            # kanalens isolering över plåten
+LUFT_Z = 200.0                              # slangen under insatsen
+X_LUFT = KAPA[0] + KS_T + LUFT_D / 2 + LUFT_ISOL + 7.0     # kanalen i kåpans västra del, i skorstenens fack (y)
 LUFT_FRI = 5.0                              # hålen runt kanalen
-GALLER = (200.0, 3.0)                       # gallret på fasaden: sida, tjocklek
+HUV_OVER = 300.0                            # kanalens ände över taket, under huven
 
 
 def _z_tak(x: float) -> float:
@@ -70,36 +74,35 @@ def _z_tak(x: float) -> float:
     return S.TAKFALL["2SO"].z_overkant(x) + L.PLAT[1] / S.COS
 
 
-def _innertak(r: float = 0.0) -> float:
-    """Innertakets underkant vid skorstenen, den lägsta inom avståndet r (taket lutar)."""
+def _innertak_vid(x: float, y: float, r: float = 0.0) -> float:
+    """Innertakets underkant vid (x, y), den lägsta inom avståndet r (taket lutar)."""
     from trebodar.hus.invandigt.vaggar import innertak
-    return min(innertak(X_SK + dx, Y_SK + dy) for dx in (-r, 0.0, r) for dy in (-r, 0.0, r))
+    return min(innertak(x + dx, y + dy) for dx in (-r, 0.0, r) for dy in (-r, 0.0, r))
 
 
 def genomforing() -> tuple[Form, tuple[float, float, float, float, float, float]]:
     """Hålet för skorstenen genom innertaket, isoleringen och taket, med lådan (för genomforing.genomfor)."""
     r = SKORSTEN_D / 2 + FRI
-    z0, z1 = _innertak(r) - 2.0, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK + 20.0
+    z0, z1 = _innertak_vid(X_SK, Y_SK, r) - 2.0, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK + 20.0
     return cylinder(r, z1 - z0, (X_SK, Y_SK, z0)), (X_SK - r, Y_SK - r, z0, X_SK + r, Y_SK + r, z1)
 
 
 def _luftvag() -> list[tuple[float, float, float]]:
-    """Förbränningsluftens kanal: punkterna från anslutningen under insatsen till fasadens utsida."""
+    """Förbränningsluftens flexslang: från anslutningen under insatsen till plåtens överkant."""
     y = Y_FRONT - LUFT_FRAN_FRONT
-    y_ut = S.YTTERVAGGAR["2NO"].origo[1] - S.T_FASAD
-    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (LUFT_X_KALLARE, y, LUFT_Z),
-            (LUFT_X_KALLARE, LUFT_Y_VAGG, LUFT_Z), (LUFT_X_UT, LUFT_Y_VAGG, LUFT_Z), (LUFT_X_UT, y_ut, LUFT_Z)]
+    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (X_LUFT, Y_SK, LUFT_Z), (X_LUFT, Y_SK, H_KASSE)]
+
+
+def _z_luft_ut() -> float:
+    """Kanalens ände över taket."""
+    return _z_tak(X_LUFT + LUFT_D / 2 + LUFT_ISOL) + HUV_OVER
 
 
 def luftkanalens_hal() -> tuple[Form, tuple[float, float, float, float, float, float]]:
-    """Hålet för förbränningsluftens kanal genom bjälklaget, källarväggen och fasaden (för genomforing.genomfor)."""
-    r = LUFT_D / 2 + LUFT_FRI
-    p = _luftvag()
-    hal: Form = cylinder(r, p[0][2] - p[1][2] + 2 * r, (p[0][0], p[0][1], p[1][2] - r))
-    hal = hal | cylinder(r, p[-2][1] - p[-1][1] + 2 * r, (0.0, 0.0, 0.0)).placerad(
-        Placering.axlar((p[-2][0], p[-2][1] + r, p[-2][2]), (1.0, 0.0, 0.0), (0.0, -1.0, 0.0)))
-    xs, ys, zs = zip(*p)
-    return hal, (min(xs) - r, min(ys) - r, min(zs) - r, max(xs) + r, max(ys) + r, max(zs) + r)
+    """Hålet för förbränningsluftens kanal genom innertaket, isoleringen och taket (för genomforing.genomfor)."""
+    r = LUFT_D / 2 + LUFT_ISOL + LUFT_FRI
+    z0, z1 = _innertak_vid(X_LUFT, Y_SK, r) - 2.0, _z_luft_ut() + 20.0
+    return cylinder(r, z1 - z0, (X_LUFT, Y_SK, z0)), (X_LUFT - r, Y_SK - r, z0, X_LUFT + r, Y_SK + r, z1)
 
 
 def _kasse(m: Montage) -> None:
@@ -118,18 +121,25 @@ def _kasse(m: Montage) -> None:
         front = front - box(x0, x1, yb - 1.0, Y_FRONT + 1.0, z0, z1)
     m.lagg(Del(f"Front kalciumsilikat {KS_T:g} med konvektionsöppningar", front, KALCIUMSILIKAT,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-FRONT")
-    # plåten: över kåpans insida och öppningen i väggen, med hål för skorstenen
+    # plåten: över kåpans insida (innanför kalciumsilikaten, mot 2C bara där väggen har öppningen) och öppningen i
+    # väggen, med hål för skorstenen och kanalen
     ix0, iy0, ix1 = KAPA[0] + KS_T, KAPA[1] + KS_T, KAPA[2] - KS_T
     y_vagg = S.INNERVAGGAR["2C"].origo[1]       # 2C:s sida mot sovrummet
-    plat = box(ix0, ix1, iy0, yb, H_KASSE - KS_T, H_KASSE) | box(ox0, ox1, y_vagg, yb, H_KASSE - KS_T, H_KASSE)
-    plat = plat - cylinder(SKORSTEN_D / 2, KS_T + 2.0, (X_SK, Y_SK, H_KASSE - KS_T - 1.0))
+    za, zb = H_KASSE - KS_T, H_KASSE
+    plat = box(ix0, ix1, iy0, y_vagg - KS_T, za, zb) | box(max(ix0, ox0), ix1, y_vagg - KS_T, y_vagg, za, zb) \
+        | box(ox0, ox1, y_vagg, yb, za, zb)
+    plat = plat - cylinder(SKORSTEN_D / 2, KS_T + 2.0, (X_SK, Y_SK, H_KASSE - KS_T - 1.0)) \
+        - cylinder(LUFT_D / 2 + LUFT_FRI, KS_T + 2.0, (X_LUFT, Y_SK, H_KASSE - KS_T - 1.0))
     m.lagg(Del(f"Plåt över konvektionsöppningen, kalciumsilikat {KS_T:g}", plat, KALCIUMSILIKAT,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-PLAT")
     b, d, _ = KROPP
+    p0, p1 = _luftvag()[1:3]                    # slangen under insatsen går genom det västra stödet
+    slang = stang(p0, p1, LUFT_D + 2 * LUFT_FRI)
     for i, x0 in enumerate((X_MITT - b / 2, X_MITT + b / 2 - STOD_B), 1):
-        m.lagg(Del(f"Stöd under insatsen, kalciumsilikat {STOD_B:g}", box(x0, x0 + STOD_B, Y_FRONT - d, yb, 0.0,
-                                                                            Z_INSATS), KALCIUMSILIKAT),
-               Placering(), f"KM-STOD{i}")
+        stod: Form = box(x0, x0 + STOD_B, Y_FRONT - d, yb, 0.0, Z_INSATS)
+        if i == 1:
+            stod = stod - slang
+        m.lagg(Del(f"Stöd under insatsen, kalciumsilikat {STOD_B:g}", stod, KALCIUMSILIKAT), Placering(), f"KM-STOD{i}")
 
 
 def montage() -> Montage:
@@ -163,19 +173,29 @@ def montage() -> Montage:
         m.lagg(Del(f"Rökrör Ø{ROR_D:g} L={math.dist(p, q):.0f}", ror(p, q, ROR_D, ROR_T), KAMIN), Placering(),
                f"KM-ROR{i}")
     vag = _luftvag()
-    kanal: Form = ror(vag[0], vag[1], LUFT_D, 1.0)
+    slang: Form = ror(vag[0], vag[1], LUFT_D, 1.0)
     for a_, b_ in zip(vag[1:], vag[2:]):
-        kanal = kanal | ror(a_, b_, LUFT_D, 1.0)
+        slang = slang | ror(a_, b_, LUFT_D, 1.0)
     langd = sum(math.dist(a_, b_) for a_, b_ in zip(vag, vag[1:]))
-    m.lagg(Del(f"Förbränningsluft, kanal Ø{LUFT_D:g} L={langd:.0f}", kanal, ROSTFRITT,
-               artikel="Rais AirSystem, flexslang Ø120"), Placering(), "KM-LUFT")
-    gs, gt = GALLER
-    xg, yg, zg = vag[-1]
-    hal = cylinder(LUFT_D / 2 - 1.0, gt + 2.0).placerad(Placering.axlar((xg, yg + 1.0, zg), (1.0, 0.0, 0.0),
-                                                                         (0.0, -1.0, 0.0)))
-    m.lagg(Del(f"Galler för förbränningsluften {gs:g}×{gs:g}",
-               box(xg - gs / 2, xg + gs / 2, yg - gt, yg, zg - gs / 2, zg + gs / 2) - hal, ROSTFRITT),
-           Placering(), "KM-GALLER")
+    m.lagg(Del(f"Förbränningsluft, flexslang Ø{LUFT_D:g} L={langd:.0f}", slang, ROSTFRITT,
+               artikel="Rais AirSystem, flexslang Ø100"), Placering(), "KM-LUFT")
+    za, zb = H_KASSE, _z_luft_ut()
+    m.lagg(Del(f"Förbränningsluft, isolerad kanal Ø{LUFT_D:g}/Ø{LUFT_D + 2 * LUFT_ISOL:g} L={zb - za:.0f}",
+               ror((X_LUFT, Y_SK, za), (X_LUFT, Y_SK, zb), LUFT_D + 2 * LUFT_ISOL, LUFT_ISOL + 0.5), ROSTFRITT),
+           Placering(), "KM-LUFT2")
+    # huven 60 mm över kanalens ände (luften in under den), på tre stag från kanalens kant
+    rk = LUFT_D / 2 + LUFT_ISOL / 2
+    stag = [stang((X_LUFT + rk * math.cos(v), Y_SK + rk * math.sin(v), zb),
+                  (X_LUFT + rk * math.cos(v), Y_SK + rk * math.sin(v), zb + 60.0), 8.0)
+            for v in (0.0, 2 * math.pi / 3, 4 * math.pi / 3)]
+    huv: Form = cylinder(LUFT_D / 2 + LUFT_ISOL + 40.0, 40.0, (X_LUFT, Y_SK, zb + 60.0))
+    for st in stag:
+        huv = huv | st
+    m.lagg(Del("Huv för förbränningsluften, på stag", huv, ROSTFRITT), Placering(), "KM-LUFTHUV")
+    rl = LUFT_D / 2 + LUFT_ISOL + LUFT_FRI
+    m.lagg(Del("Takgenomföring för förbränningsluften, krage",
+               ror((X_LUFT, Y_SK, _z_tak(X_LUFT - rl) - 80.0), (X_LUFT, Y_SK, _z_tak(X_LUFT + rl) + 100.0), 2 * rl,
+                   LUFT_FRI), ROSTFRITT), Placering(), "KM-LUFTKRAGE")
     z_topp = _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK
     m.lagg(Del(f"Isolerad skorsten Ø{SKORSTEN_INRE:g}/Ø{SKORSTEN_D:g}",
                ror((X_SK, Y_SK, c[2]), (X_SK, Y_SK, z_topp), SKORSTEN_D, (SKORSTEN_D - SKORSTEN_INRE) / 2), ROSTFRITT),

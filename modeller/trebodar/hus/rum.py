@@ -12,8 +12,9 @@ BADRUM = Polygon([(65.0, 3655.0), (2560.0, 3655.0), (2560.0, 5230.0), (3310.0, 5
 
 
 # kaminens kåpa på sovrumssidan av 2C (planritning 201): skikten mot den är kalciumsilikat 50 mm, så att kåpan med
-# fronten i öppningen är Rais innbyggingskasse (min. 920 × 498 × 1600 mot brännbar vägg)
-KAMINKAPA = Polygon([(6358.0, 5522.0), (7278.0, 5522.0), (7278.0, 5900.0), (6358.0, 5900.0)])
+# fronten i öppningen är Rais innbyggingskasse (min. 920 × 498 × 1600 mot brännbar vägg); 220 mm bredare mot väster
+# än planritningen, för förbränningsluftens kanal bredvid insatsen och skorstenen (kamin.py)
+KAMINKAPA = Polygon([(6138.0, 5522.0), (7278.0, 5522.0), (7278.0, 5900.0), (6138.0, 5900.0)])
 
 
 def i_badrum(x: float, y: float) -> bool:
