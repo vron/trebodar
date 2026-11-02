@@ -191,10 +191,13 @@ def _jobb(paket: list[tuple[str, str, str, tuple[tuple[float, ...], ...]]]) -> l
 
 def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | None = None,
         tillatna: dict[frozenset[str], str] | None = None,
-        ignorerade: dict[frozenset[str], str] | None = None, utom: dict[str, str] | None = None) -> Resultat:
+        ignorerade: dict[frozenset[str], str] | None = None, utom: dict[str, str] | None = None,
+        bara: str | None = None) -> Resultat:
     """`tillatna`: materialpar (frozenset av två materialnamn) vars överlapp är avsiktliga, med motivering.
     `ignorerade`: materialpar som inte prövas alls (t.ex. armering i betong); delarna räknas som anliggande.
-    `utom`: delträd (sökvägens början) som inte kontrolleras alls, med motivering."""
+    `utom`: delträd (sökvägens början) som inte kontrolleras alls, med motivering.
+    `bara`: bara paren där minst en del ligger i delträdet (t.ex. en installation mot resten av huset); delarna
+    utan kontakt redovisas då bara i delträdet."""
     t0 = time.perf_counter()
     alla = list(rot.platta())
 
@@ -214,6 +217,9 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
             if np.all(B[i, 1:3] <= B[j, 4:6] + marginal) and np.all(B[j, 1:3] <= B[i, 4:6] + marginal):
                 kandidater.append((min(i, j), max(i, j)))
         aktiva.append(i)
+    if bara:
+        i_traet = [under(p[0], bara) for p in poster]
+        kandidater = [(i, j) for i, j in kandidater if i_traet[i] or i_traet[j]]
     # par som inte prövas: delarna ligger an mot varandra
     ignorerade_ = ignorerade or {}
     hoppade: list[tuple[int, int, str]] = []
@@ -298,7 +304,8 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
         grannar.setdefault(a, set()).add(b)
         grannar.setdefault(b, set()).add(a)
     ut.glipor = [(a, b, d) for a, b, d in ut.glipor if not (grannar.get(a, set()) & grannar.get(b, set()))]
-    ut.fria = [poster[i][0] for i in range(len(poster)) if not kontakt[i]]
+    ut.fria = [poster[i][0] for i in range(len(poster))
+               if not kontakt[i] and (not bara or under(poster[i][0], bara))]
     ut.sekunder = time.perf_counter() - t0
     return ut
 

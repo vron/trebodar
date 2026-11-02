@@ -15,7 +15,8 @@ from trebodar.hus.invandigt.skikt import LAKT
 
 from . import lakt
 from .bjalklag import mellanbjalklag
-from .punkter import PLAN, TAKSKIVOR, Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, Vek, anslutning, drivdonet, linsen
+from ..montering import PLAN, TAKSKIVOR, Vek
+from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen
 from .rum import allrum, kok
 from .typer import Apparattyp, Armaturtyp
 

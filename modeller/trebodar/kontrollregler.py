@@ -10,10 +10,13 @@ LAGER = {
     "trebodar.hus": ("trebodar.mark",),
 }
 
-# delar som inte kontrolleras alls (sökvägens början): elens rör, dosor, apparater och armaturer går genom skikten
-# utan håltagning i modellen
+# delar som inte kontrolleras alls (sökvägens början): elens rör, dosor, apparater och armaturer och ventilationens
+# kanaler, don och fläktar går genom skikten utan håltagning i modellen (ventilationen har en egen kontroll:
+# ./mod ventilation kontroll)
 UTOM_KONTROLL = {
     "Hus/Installationer/El": "elinstallationen: rör, dosor, apparater och armaturer får gå genom andra delar",
+    "Hus/Installationer/Ventilation": "ventilationen: kanaler, don och fläktar får gå genom andra delar "
+                                      "(egen kontroll, ./mod ventilation kontroll)",
 }
 
 IGNORERADE = {

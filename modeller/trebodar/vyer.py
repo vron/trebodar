@@ -43,6 +43,16 @@ VYER = {
                     "lodrat": False, "inne": True, "tand": {"AL-T1": 1.0, "AL-T2": 1.0}},
     "detalj-tubspot": {"kamera": [12350, 8750, 2350], "mal": [12725, 9600, 2850], "lins": 50,
                        "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": {"KO-T1": 1.0}},
+    # ventilationen (hus/installationer/ventilation): källarrummets kanal och fläkt under källarens tak, kanalen upp
+    # i väggen 1C (skikten dolda), takhuven och köksfläktens galler
+    "detalj-kallarkanal": {"kamera": [1500, 9000, Z_KALLARE + 1400], "mal": [3700, 8220, -330], "lins": 24,
+                           "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "lampor": ["kallare"]},
+    "detalj-1c": {"kamera": [2600, 9700, 1300], "mal": [2810, 8220, 1700], "lins": 24, "ljus": (9, 15, "12:00", "mulet"),
+                  "lodrat": False, "inne": True, "dolj": ["Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C"]},
+    "detalj-takhuv": {"kamera": [7800, 9800, 6600], "mal": [2810, 8220, 3700], "lins": 50,
+                      "ljus": (6, 21, "10:00", "sol"), "lodrat": False},
+    "detalj-koksgaller": {"kamera": [17800, 8300, 1700], "mal": [13905, 9609, 2150], "lins": 50,
+                          "ljus": (9, 15, "12:00", "mulet")},
     "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
                "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
                                          "Fönster och dörrar", "Mark/", "Hus/Grund", "Installationer"]},

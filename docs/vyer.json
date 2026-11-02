@@ -185,6 +185,93 @@
    "KO-T1": 1.0
   }
  },
+ "detalj-kallarkanal": {
+  "kamera": [
+   1500,
+   9000,
+   -850.0
+  ],
+  "mal": [
+   3700,
+   8220,
+   -330
+  ],
+  "lins": 24,
+  "ljus": [
+   12,
+   21,
+   "18:00",
+   "sol"
+  ],
+  "lodrat": false,
+  "inne": true,
+  "lampor": [
+   "kallare"
+  ]
+ },
+ "detalj-1c": {
+  "kamera": [
+   2600,
+   9700,
+   1300
+  ],
+  "mal": [
+   2810,
+   8220,
+   1700
+  ],
+  "lins": 24,
+  "ljus": [
+   9,
+   15,
+   "12:00",
+   "mulet"
+  ],
+  "lodrat": false,
+  "inne": true,
+  "dolj": [
+   "Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C"
+  ]
+ },
+ "detalj-takhuv": {
+  "kamera": [
+   7800,
+   9800,
+   6600
+  ],
+  "mal": [
+   2810,
+   8220,
+   3700
+  ],
+  "lins": 50,
+  "ljus": [
+   6,
+   21,
+   "10:00",
+   "sol"
+  ],
+  "lodrat": false
+ },
+ "detalj-koksgaller": {
+  "kamera": [
+   17800,
+   8300,
+   1700
+  ],
+  "mal": [
+   13905,
+   9609,
+   2150
+  ],
+  "lins": 50,
+  "ljus": [
+   9,
+   15,
+   "12:00",
+   "mulet"
+  ]
+ },
  "stomme": {
   "kamera": [
    -8000,

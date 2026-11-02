@@ -13,7 +13,8 @@ from trebodar import skelett as S
 
 from ..katalog import DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE
 from ..lakt import mellan_lakten
-from ..punkter import Apparat, Ror, Rum, Tandgrupp, i_vagg, lampor, tak, vagg, vid_tak
+from ...montering import i_vagg, tak, vagg, vid_tak
+from ..punkter import Apparat, Ror, Rum, Tandgrupp, lampor
 
 RUM = Rum("AL", "Allrum", plan=1)
 NAMN = RUM.namn

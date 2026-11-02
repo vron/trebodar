@@ -9,7 +9,8 @@ from __future__ import annotations
 from trebodar import skelett as S
 
 from ..katalog import FXP20, INGJUTNINGSDOSA
-from ..punkter import Dosa, Ror, i_bjalklag, i_vagg, kallartak
+from ...montering import i_bjalklag, i_vagg, kallartak
+from ..punkter import Dosa, Ror
 from ..rum.allrum import DIMMER_U
 
 NAMN = "Mellanbjälklag"

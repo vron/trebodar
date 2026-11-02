@@ -14,8 +14,8 @@ from modellering import Del, Montage, Placering, box, cylinder
 from trebodar.material import APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR
 
 from .installation import installation
-from .punkter import (LINS_INDRAG, PLATTA_T, TAKSKIVOR, Apparat, Dosa, Lampa, Montering, Vek, drivdonet, linsen,
-                      tuben)
+from ..montering import TAKSKIVOR, Montering, Vek
+from .punkter import LINS_INDRAG, PLATTA_T, Apparat, Dosa, Lampa, drivdonet, linsen, tuben
 from .typer import Apparattyp, Armaturtyp, Dosatyp
 
 RING_T = PLATTA_T                # frontringens tjocklek

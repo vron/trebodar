@@ -29,6 +29,8 @@
   grus: tiling(size: (1.6mm, 1.6mm))[#place(dx: 0.5mm, dy: 0.5mm, circle(radius: 0.18mm, fill: rgb("#8f8a80")))],
   papp: rgb("#7d7466"), limtra: rgb("#ecdcb8"), distans: rgb("#f7f0e1"),
   stodyta: tiling(size: (1.3mm, 1.3mm))[#place(line(start: (0%, 100%), end: (100%, 0%), stroke: 0.18mm + INK))],
+  // ventilationsritningarna: kanaler med frånluft och tilluft
+  franluft: rgb("#f5c15e"), tilluft: rgb("#9fc5e8"),
 )
 #let STIL = (
   kontur: (thickness: 0.5mm, paint: INK, cap: "butt", join: "miter"),

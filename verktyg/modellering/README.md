@@ -28,6 +28,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod materialprov MATERIAL [--param K=V …] [--nara] [--bredd PX] [--sampel N]` | Ett material ur modellen på tolv skåpluckor, en bänkskiva och brädor (Blender), för att bedöma det och att bitarna inte blir lika; `--nara` en lucka på nära håll, `--param` ändrar parametrar (t.ex. `yta=lack`) |
 | `./mod ljusplan [YTA …] [--tand GRUPP[=NIVÅ] …] [--ljus M D HH:MM VÄDER] [--direkt] [--kvalitet …]` | Belysningsstyrkan [lux] på vågräta mätytor (`MATYTOR` i `modeller/trebodar/hus/installationer/el/matytor.py`: golv, bordshöjd, köksbänk …) med tändgrupperna (standard alla) och dagsljuset (standard mörkt): ljusplaner (E-02.n, en pdf per mätyta) med belysningsstyrkan i färg, isolinjer, armaturerna och medel-, minsta och största värde och jämnhet per rum (utan 0,5 m kantzon) och delområde, och rutnätet (`.npy`) och statistiken (`.json`) till `ut/ljusplan/`; `--direkt` bara det direkta ljuset |
 | `./mod el kontroll\|lista\|ritning\|hamta [--ut MAPP]` | Elinstallationen (`modeller/trebodar/hus/installationer/el`, se dess README): kontroll (referenser, styrning, armaturernas vinkel, djup och läkt, rörens böjar), punkt-, tändgrupps- och rörlistor, elritningarna (E-01: elplanen för plan 1 och rören i mellanbjälklaget, ur STEP-filens snitt) till `ut/el/E-01 Elinstallation.pdf`, och tillverkarnas fotometrifiler som saknas (till `lokalt/el/`) |
+| `./mod ventilation kontroll\|lista\|ritning [--ut MAPP]` | Ventilationen (`modeller/trebodar/hus/installationer/ventilation`, se dess README): kontroll (kedjorna, flödena, genomföringarna och krockarna mot husets delar, med modellens krockkontroll för ventilationens par), listor och ritningarna (V-01: plan 1, källaren och sektionen genom källarrummets kanal, ur STEP-filens snitt) till `ut/ventilation/` |
 | `./mod kameraplan [--ut PDF]` | Ritningen över inomhusbildernas kameror (I-01: plan 1 i 1:75 och källaren i 1:150) ur STEP-filens snitt (kräver `./mod bygg` och `verktyg/modellanalys`); standard `renderingar/kameraplan.pdf` |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/` för GitHub Pages |
 | `./mod typ` | Typkontroll (mypy) av ramverket och modellen, och modellens struktur: inga importcykler, privata namn från andra moduler, importer i funktioner eller brott mot modellens lagerordning (`modellering/struktur.py`, `LAGER` i `trebodar/kontrollregler.py`) |
@@ -108,7 +109,8 @@ egen modell (t.ex. för beställning). Utdata:
   linjer och typsnitt som de andra ritningarna) på planer ur STEP-filens snitt: väggarna som en sammanhängande yta,
   fönster, dörrar, trappor och kaminen. Bladen (JSON och pdf) skrivs till `modeller/trebodar/ut/` (Typst läser bara
   filer under repots rot) och pdf:en dit `--ut` pekar. De är preliminära och utan revision; numren tills vidare
-  I-01 (kameraplanen), E-01.n (elritningarna) och E-02.n (ljusplanerna, numret efter mätytan i `MATYTOR`).
+  I-01 (kameraplanen), E-01.n (elritningarna), E-02.n (ljusplanerna, numret efter mätytan i `MATYTOR`) och
+  V-01.n (ventilationen).
 - **Omgivningen** (`modellering/geodata.py`, `blender/omgivning.py`): marken från modellens terräng ut till
   höjdmodellen (2,3 km), havet, grannhusen (valmade tak i slumpade färger) och träd (tall, gran, björk, en) efter
   marktäcket, så att fönstren och utsikterna visar skärgården runt tomten.

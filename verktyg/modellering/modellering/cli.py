@@ -209,6 +209,11 @@ def main(argv: list[str] | None = None) -> None:
                          "lista: punkter, tändgrupper och rör (markdown); ritning: elplan och bjälklagets rör; "
                          "hamta: ladda ner fotometrifilerna som saknas i lokalt/el/")
     pe.add_argument("--ut", type=Path, default=UT / "el")
+    pv = sub.add_parser("ventilation", help="ventilationen: kontroll (med krockar mot huset), lista och ritningar")
+    pv.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
+                    help="kontroll: kedjorna, flödena, genomföringarna och krockarna mot husets delar; lista: grenar, "
+                         "element, kanaler och genomföringar (markdown); ritning: planerna och sektionen (V-01)")
+    pv.add_argument("--ut", type=Path, default=UT / "ventilation")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
@@ -535,6 +540,67 @@ def main(argv: list[str] | None = None) -> None:
         txt = jamfor.rapport(jj, arg.ut / f"{namn}-jamforelse.md", arg.ut / f"{namn}-namntabell.csv")
         print("  " + txt.split("\n")[2])
         print(f"  -> {arg.ut / (namn + '-jamforelse.md')}, {arg.ut / (namn + '-namntabell.csv')}")
+    elif arg.kommando == "ventilation":
+        import json
+        from . import kontroll, ventritning
+        from .planritning import snitt
+        regler = importlib.import_module("trebodar.kontrollregler")
+        vent = importlib.import_module("trebodar.hus.installationer.ventilation.system").ventilation()
+        utdrag = vent.utdrag()
+        fel, anm = vent.kontroll()
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        if arg.atgard in ("kontroll", "lista"):
+            # krockar mot husets delar: stommen (virke, limträ, stål) var för sig, genomföringarna i skikten summerade
+            vtrad = "Hus/Installationer/Ventilation"
+            r = kontroll.kor(rot, karna, ignorerade=getattr(regler, "IGNORERADE", None),
+                             utom={k: m for k, m in getattr(regler, "UTOM_KONTROLL", {}).items() if k != vtrad},
+                             bara=vtrad)
+            vdelar = {v_: d for v_, d, _ in rot.platta()}
+            stomme: list[str] = []
+            skikt: dict[str, dict[str, int]] = {}
+            for ka, kb, vol in r.krockar + [(x, y_, v_) for x, y_, v_, _ in r.tillatna]:
+                if vtrad in ka and vtrad in kb:                     # ventilationens egna delar (böjar, filter)
+                    continue
+                vdel, vannan = (ka, kb) if vtrad in ka else (kb, ka)
+                mat = vdelar[vannan].material.namn
+                if mat in ("C24", "Läkt", "Limträ", "Stål", "Spikplåt"):
+                    stomme.append(f"{vdel.split('/')[-1]} mot {mat} {vannan.split('/', 2)[-1]} ({vol / 1000:.0f} cm³)")
+                else:
+                    namn_ = vdel.split("/")[-1]
+                    el_ = namn_.rsplit("-", 1)[0] if namn_.count("-") > 1 else namn_
+                    skikt.setdefault(el_, {})[mat] = skikt.setdefault(el_, {}).get(mat, 0) + 1
+            krockar = stomme + [f"{e}: genom " + ", ".join(f"{m} {n}" for m, n in sorted(ms.items()))
+                                for e, ms in sorted(skikt.items())]
+        if arg.atgard == "kontroll":
+            n_el, n_gf = len(utdrag["element"]), len(utdrag["genomforingar"])  # type: ignore[arg-type]
+            print(f"  {len(vent.grenar)} grenar, {n_el} element, {n_gf} genomföringar: {len(fel)} fel, "
+                  f"{len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for x in anm:
+                print(f"    {x}")
+            print("  krockar mot husets delar (stommen var för sig):")
+            for k in krockar:
+                print(f"    {k}")
+            if fel:
+                raise SystemExit(1)
+        elif arg.atgard == "lista":
+            fil = arg.ut / "ventilation.md"
+            fil.write_text(ventritning.lista(utdrag, (fel, anm), krockar), encoding="utf-8")
+            (arg.ut / "ventilation.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
+        else:
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            ma = ROT / "verktyg" / "modellanalys" / "ma"
+            skel = importlib.import_module("trebodar.skelett")
+            y = skel.INNERVAGGAR["1C"].origo[1] + skel.INNERVAGGAR["1C"].tjocklek / 2
+            plan1 = snitt(ma, step_fil, 1200.0, UT / "ventilation-plan1.json")
+            kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "ventilation-kallare.json")
+            sektion = snitt(ma, step_fil, f"y={y:g}", UT / "ventilation-sektion.json")
+            pdf = ventritning.ritningar(utdrag, plan1, kallare, sektion, y, _norr(), UT / "ventilation" / "blad", arg.ut)
+            print(f"  {pdf}")
     elif arg.kommando == "kontroll":
         from . import kontroll
         try:

@@ -11,7 +11,8 @@ from trebodar.hus.invandigt.vaggar import vaggdef
 
 from ..katalog import DIMMER_1, FXP16, TUBE_MINI_R
 from ..lakt import mellan_lakten
-from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot, tak, vagg, vid_tak
+from ...montering import tak, vagg, vid_tak
+from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot
 
 RUM = Rum("KO", "Kök", plan=1)
 NAMN = RUM.namn

@@ -143,6 +143,20 @@ APPARAT = Material("Apparat", "Strömbrytare, dimrar och uttag, vit plast", 1200
 ELDOSA = Material("Eldosa", "Dosor (plast)", 1000, "#7f8a95", 0.6, cad="#ff7a1a")
 ELROR = Material("Elrör", "Flexrör (PVC)", 1400, "#8f9499", 0.6, cad="#ff9d2e")
 
+# ------------------------------------------------------------------ ventilation (hus/installationer/ventilation)
+# ytterväggsgallren i fönstrens aluminium (ALUMINIUM per huskropp) och takhuven i takets plåt (TAKPLAT). Kanalerna,
+# fläkten och köksfläkten är massiva i modellen: densiteten är plåtens massa fördelad på hela tvärsnittet (kanal
+# Ø125 av 0,6 mm plåt ungefär 150 kg/m³), så att materiallistans massor stämmer ungefär
+SPIROKANAL = Material("Spirokanal", "Spirokanal, förzinkad stålplåt", 150, "#b9bdc0", 0.4, 1.0, cad="#7fb2e5")
+KANALISOLERING = Material("Kanalisolering", "Mineralull med aluminiumfolie runt kanalen", 100, "#c8ccd0", 0.45, 0.7,
+                          cad="#a8c8e0")
+PLATTKANAL = Material("Plattkanal", "Plattkanal, vit plast", 120, "#eeeeea", 0.45, cad="#9fd0f0")
+KOKSFLAKT = Material("Köksfläkt", "Köksfläkt, borstat rostfritt stål", 100, "#c9ccce", 0.32, 1.0, cad="#b8c4cc")
+FETTFILTER = Material("Fettfilter", "Köksfläktens fettfilter, aluminium", 500, "#8f9397", 0.5, 1.0, cad="#8f9397")
+VENTILATIONSDON = Material("Ventilationsdon", "Frånluftsdon och väggfläktens front, vitlackerat", 1200, "#f1f1ee",
+                           0.4, cad="#5aa9e6")
+FLAKT = Material("Fläkt", "Kanalfläkt, lackerad stålplåt", 400, "#dcdedf", 0.45, cad="#3d8fd6")
+
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}

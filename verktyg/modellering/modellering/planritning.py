@@ -23,7 +23,7 @@ if str(ROT / "beräkningar" / "ritningsmall") not in sys.path:
 from ritning import Blad, Vy, figur, huvud, sv, svm  # noqa: E402   (ritningsmallen)
 
 __all__ = ["Blad", "Vy", "figur", "sv", "svm", "MINSTA_HAL", "UTOM", "VAGGAR", "blad", "kompilera", "norrpil",
-           "origo", "papper", "plan", "polygoner", "rita_ytor", "snitt", "vy"]
+           "origo", "papper", "plan", "polygoner", "rita_ytor", "sektion", "snitt", "vy"]
 
 # delarna som inte ritas i planerna (sökvägens början)
 UTOM = ("Mark/", "Hus/Armering", "Hus/Grund/Plattan", "Hus/Grund/Fasadsten", "Hus/Installationer", "Hus/Tak")
@@ -44,9 +44,11 @@ PLAN = (
 DATUM = datetime.date.today().isoformat()
 
 
-def snitt(ma: Path, step: Path, z: float, json_ut: Path) -> list[dict]:
-    """Delarnas snittytor i planet z (mm) ur STEP-filen (och snittets bild bredvid JSON-filen)."""
-    subprocess.run([str(ma), "snitt", f"z={z:g}", "--fil", str(step), "--json", str(json_ut), "--inga-etiketter",
+def snitt(ma: Path, step: Path, z: float | str, json_ut: Path) -> list[dict]:
+    """Delarnas snittytor i planet z (mm, vågrätt) eller planet som text ("y=8220": lodrätt, med snittets x och z)
+    ur STEP-filen (och snittets bild bredvid JSON-filen)."""
+    plan_ = z if isinstance(z, str) else f"z={z:g}"
+    subprocess.run([str(ma), "snitt", plan_, "--fil", str(step), "--json", str(json_ut), "--inga-etiketter",
                     "--ut", str(json_ut.with_suffix(".png"))], check=True, capture_output=True)
     return json.loads(json_ut.read_text(encoding="utf-8"))["delar"]
 
@@ -89,6 +91,37 @@ def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> None:
     stilar = [(f if i else vagg, s) for i, (_, f, s) in enumerate(PLAN)] + [(GLAS, "fin"), (None, "fin")]
     with v.lager("snitt"):
         for ytor, (fyll, stil) in zip(grupper, stilar):
+            if ytor:
+                u = unary_union(ytor)
+                rita_ytor(v, u if ram is None else u.intersection(ram), fyll, stil, MINSTA_HAL)
+
+
+# sektionernas ytor i ritordning (sökvägens början, fyllning, linje); delarna i en grupp slås ihop till en yta
+SEKTION = (
+    (("Mark/",), "mark", None),
+    (("Hus/Grund", "Hus/Mellanbjälklag"), "betong", "tunn"),
+    (("Hus/Isolering",), "isol", "fin"),
+    (("Hus/Stomme", "Hus/Invändigt/Innerväggar/Lätta väggar"), "limtra", "tunn"),
+    (("Hus/Invändigt", "Hus/Fönster och dörrar", "Hus/Trappa"), "vit", "fin"),
+    (("Hus/Fasad",), VAGG, "fin"),
+    (("Hus/Tak",), "#bdbdbd", "fin"),
+    (("Hus/Kamin",), "stal", "tunn"),
+)
+
+
+def sektion(v: Vy, delar: list[dict], ram: Any = None) -> None:
+    """En lodrät sektion (snittets x eller y och z) i vyn: marken, betongen, isoleringen, stommen, skivorna, fasaden,
+    taket och kaminen, delarna i varje grupp som en yta (installationerna och armeringen utelämnade). ram: bara inom
+    den ytan."""
+    grupper: list[list[Any]] = [[] for _ in SEKTION]
+    for d in delar:
+        if d["sokvag"].startswith(("Hus/Armering", "Hus/Installationer")):
+            continue
+        i = next((j for j, (pre, _, _) in enumerate(SEKTION) if d["sokvag"].startswith(pre)), None)
+        if i is not None:
+            grupper[i] += polygoner([d], utom=())
+    with v.lager("snitt"):
+        for ytor, (_, fyll, stil) in zip(grupper, SEKTION):
             if ytor:
                 u = unary_union(ytor)
                 rita_ytor(v, u if ram is None else u.intersection(ram), fyll, stil, MINSTA_HAL)
