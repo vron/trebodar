@@ -11,14 +11,17 @@ import math
 
 from modellering import Del, Montage, Placering, box, cylinder
 
-from trebodar.material import APPARAT, ARMATUR, ARMATURLINS, DRIVDON, ELDOSA, ELROR
+from trebodar.material import APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR
 
 from .installation import installation
-from .punkter import LINS_INDRAG, TAKSKIVOR, Apparat, Dosa, Lampa, Montering, Vek, drivdonet
+from .punkter import (LINS_INDRAG, PLATTA_T, TAKSKIVOR, Apparat, Dosa, Lampa, Montering, Vek, drivdonet, linsen,
+                      tuben)
 from .typer import Apparattyp, Armaturtyp, Dosatyp
 
-RING_T = 2.0                    # frontringens tjocklek
+RING_T = PLATTA_T                # frontringens tjocklek
 SPOT_D, SPOT_H = 64.0, 30.0     # den vridbara spotens kropp
+TUB_GODS = 2.0                  # tubens gods
+BAFFEL = 10.0                   # bländskyddets djup in från tubens front
 
 
 def _system(m: Montering) -> Placering:
@@ -49,10 +52,58 @@ def _delar_armatur(t: Armaturtyp) -> dict[str, Del]:
     return ut
 
 
+def _delar_tub(t: Armaturtyp) -> dict[str, Del]:
+    h = t.huvud
+    assert h is not None
+    r = h.diameter / 2
+    ri = r - TUB_GODS
+    rl = min(t.lysande_d / 2, ri - 3.0)
+    namn = f"{t.tillverkare} {t.artikel}"
+    # tuben längs z från den bakre änden (0) till fronten (langd), ihålig framifrån till bakom reflektorn
+    tub = cylinder(r, h.langd) - cylinder(ri, h.indrag + 40.0, (0.0, 0.0, h.langd - h.indrag - 40.0 + 1.0))
+    baffel = (cylinder(ri, BAFFEL, (0.0, 0.0, h.langd - BAFFEL)) -
+              cylinder(rl, BAFFEL + 2.0, (0.0, 0.0, h.langd - BAFFEL - 1.0)))
+    return {"PLATTA": Del(f"{namn} frontplatta Ø{t.ring_d:g}", cylinder(t.ring_d / 2, PLATTA_T), ARMATUR),
+            "KROPP": Del(f"{namn} dosa Ø{t.hal_d:g}", cylinder(t.hal_d / 2, t.djup, (0.0, 0.0, -t.djup)), ARMATUR),
+            "STAM": Del(f"{namn} stam Ø{h.stam_d:g}", cylinder(h.stam_d / 2, h.stam), ARMATUR),
+            "LED": Del(f"{namn} led", cylinder(h.stam_d / 2 + 3.0, h.stam_d + 6.0, (0.0, 0.0, -h.stam_d / 2 - 3.0)),
+                       ARMATUR),
+            "TUB": Del(f"{namn} tub Ø{h.diameter:g}×{h.langd:g}", tub, ARMATUR),
+            "BAFFEL": Del(f"{namn} bländskydd", baffel, ARMATUR_SVART),
+            "LINS": Del(f"{namn} reflektor Ø{2 * rl:g}", cylinder(rl, 1.0), ARMATURLINS)}
+
+
+def _tubspot(p: Lampa) -> Montage:
+    """Tubspoten: frontplattan på takytan och dosan i håltagningen, stammen längs takets normal, leden och tuben
+    riktad i ljusets riktning (punkter.tuben), bländskyddet och reflektorn i tubens front."""
+    t = p.typ
+    d = _delar_tub(t)
+    sys = _system(p.lage)
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")
+    m.lagg(d["PLATTA"], sys, f"{p.id}-PLATTA")
+    m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
+    m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, PLATTA_T), f"{p.id}-STAM")
+    led, bak, _ = tuben(p)
+    r = p.riktning
+    tubsys = Placering.axlar(bak, _vinkelratt(r), r)
+    # leden: en tvärgående axel genom stammens ände, vinkelrätt mot stammen och tuben
+    n = p.lage.normal
+    tvars = (n[1] * r[2] - n[2] * r[1], n[2] * r[0] - n[0] * r[2], n[0] * r[1] - n[1] * r[0])
+    m.lagg(d["LED"], Placering.axlar(led, _vinkelratt(tvars) if math.hypot(*tvars) > 1e-6 else (1.0, 0.0, 0.0),
+                                    tvars if math.hypot(*tvars) > 1e-6 else (0.0, 1.0, 0.0)), f"{p.id}-LED")
+    m.lagg(d["TUB"], tubsys, f"{p.id}-TUB")
+    m.lagg(d["BAFFEL"], tubsys, f"{p.id}-BAFFEL")
+    lins = linsen(p)
+    m.lagg(d["LINS"], Placering.axlar(lins, _vinkelratt(r), (-r[0], -r[1], -r[2])), f"{p.id}-LINS")
+    return m
+
+
 def armatur(p: Lampa) -> Montage:
     """Armaturen: frontringen på takytan, huset i håltagningen och spoten vriden så att ljuset går i lampans
     riktning; drivdonet på gipsen bredvid huset."""
     t = p.typ
+    if t.huvud is not None:
+        return _tubspot(p)
     d = _delar_armatur(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")

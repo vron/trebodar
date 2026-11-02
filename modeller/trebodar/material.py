@@ -135,6 +135,7 @@ INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24"
 # armaturens lins lyser i renderingen när armaturen är tänd (typen lins); CAD-färgerna lyser fram i webbvisaren
 ARMATUR = Material("Armatur", "Armatur, aluminium pulverlackerad matt vit RAL 9003", 2700, "#f2f2ef", 0.5,
                    textur="pulverlack", cad="#f4f1de")
+ARMATUR_SVART = Material("Armatur svart", "Armaturens bländskydd, svart", 2700, "#161617", 0.55, cad="#2b2b2e")
 ARMATURLINS = Material("Armaturlins", "Armaturens reflektor och lins", 2500, "#f7f5f0", 0.15, textur="lins",
                        cad="#ffd84a")
 DRIVDON = Material("Drivdon", "Drivdon för LED (plast)", 1200, "#ececea", 0.6, cad="#8d96a3")

@@ -26,7 +26,13 @@ def _symbol(ax: plt.Axes, slag: str, x: float, y: float, farg: str = "#111111") 
     """Symbolerna (i stil med SS-EN 60617): spot (cirkel med kors), brytare (cirkel med streck), dimmer (dessutom
     en pil), uttag (halvcirkel med streck), dosa (fyrkant), ingjutningsdosa (fyrkant med diagonal)."""
     r = R_SYMBOL
-    if slag in ("spot", "armatur"):
+    if slag == "tubspot":
+        # spot på stam (riktad): cirkel med kors och en kort stam mot väggen/taket
+        ax.add_patch(Circle((x, y), r, fc="white", ec=farg, lw=1.0, zorder=5))
+        for k in (1, -1):
+            ax.plot([x - r * 0.7, x + r * 0.7], [y - k * r * 0.7, y + k * r * 0.7], color=farg, lw=0.8, zorder=6)
+        ax.add_patch(Circle((x, y), r * 0.35, fc=farg, ec="none", zorder=6))
+    elif slag in ("spot", "armatur"):
         ax.add_patch(Circle((x, y), r, fc="white", ec=farg, lw=1.0, zorder=5))
         for k in (1, -1):
             ax.plot([x - r * 0.7, x + r * 0.7], [y - k * r * 0.7, y + k * r * 0.7], color=farg, lw=0.8, zorder=6)
@@ -153,6 +159,13 @@ def elplan(utdrag: dict, delar: list[dict], omrade: tuple[float, float, float, f
         x, y = p["punkt"][:2]
         if p["slag"] == "lampa":
             farg = _tandfarg(utdrag, p["tand"])
+            r = p["riktning"]
+            if abs(r[2]) < 0.999:                  # riktad: pil i ljusets riktning (i planet), från symbolens kant
+                lp = (r[0] ** 2 + r[1] ** 2) ** 0.5
+                ux, uy = r[0] / lp, r[1] / lp
+                ax.add_patch(FancyArrowPatch((x + R_SYMBOL * ux, y + R_SYMBOL * uy),
+                                             (x + 4.5 * R_SYMBOL * ux, y + 4.5 * R_SYMBOL * uy), arrowstyle="-|>",
+                                             mutation_scale=8, color=farg, lw=1.0, zorder=6))
             _symbol(ax, t["symbol"], x, y, farg)
             _etikett(ax, x, y, f"{k}\n{p['tand']}", farg)
         else:
@@ -164,7 +177,9 @@ def elplan(utdrag: dict, delar: list[dict], omrade: tuple[float, float, float, f
             _etikett(ax, x, y, text, dy=-420.0)
     _ram(fig, titel, "Armaturer, apparater och dosor; tändgruppernas styrning (streckade bågar) och rör i väggar och "
                      "innertak. Rören i bjälklagen på bjälklagens ritningar.")
-    y = _teckenforklaring(fig, 222.0, 262.0, [("spot", "Infälld spotlight (armatur)"), ("dimmer", "Dimmer"),
+    y = _teckenforklaring(fig, 222.0, 262.0, [("spot", "Infälld spotlight (armatur)"),
+                                               ("tubspot", "Spot på stam, riktad (pil: ljusets riktning)"),
+                                               ("dimmer", "Dimmer"),
                                                ("brytare", "Strömbrytare"), ("uttag", "Vägguttag"),
                                                ("kopplingsdosa", "Kopplingsdosa"),
                                                ("styrning", "Styrning: brytare/dimmer – tändgrupp"),

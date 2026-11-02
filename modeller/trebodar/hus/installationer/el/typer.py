@@ -30,8 +30,21 @@ class Apparattyp:
 
 
 @dataclass(frozen=True)
+class Tubhuvud:
+    """Spotens huvud under taket: en tub på en stam från frontplattan, vridbar kring stammen och lutbar i leden där
+    stammen fäster i tubens sida (mått i mm)."""
+    diameter: float             # tubens diameter
+    langd: float                # tubens längd
+    stam: float                 # stammens längd från frontplattan till leden
+    stam_d: float               # stammens diameter
+    led: float                  # ledens läge längs tuben, från den bakre änden
+    indrag: float               # reflektorn (den lysande ytan) så långt in från tubens front
+
+
+@dataclass(frozen=True)
 class Armaturtyp:
-    """Armatur med tillverkarens data (datablad och fotometrifil) och mått för modellen och renderingen."""
+    """Armatur med tillverkarens data (datablad och fotometrifil) och mått för modellen och renderingen: infälld
+    (ljuset ut genom takets hål) eller med ett huvud under taket (huvud, t.ex. en tub på en stam)."""
     kod: str
     namn: str                   # tillverkarens namn på varianten
     tillverkare: str
@@ -45,7 +58,7 @@ class Armaturtyp:
     vridbar: float              # hur långt ljuset kan riktas från armaturens axel [°] (0: fast)
     ip: str
     dimring: str                # "bakkant", "DALI" eller "ingen"
-    ring_d: float               # frontringens diameter [mm]
+    ring_d: float               # frontringens eller frontplattans diameter [mm]
     hal_d: float                # håltagningen [mm]
     djup: float                 # inbyggnadsdjupet ovanför takytan [mm]
     lysande_d: float            # den lysande ytans diameter [mm]
@@ -54,6 +67,7 @@ class Armaturtyp:
     fotometri: str              # fotometrifilen (EULUMDAT) under lokalt/el/ (versionshanteras inte)
     fotometri_url: str          # var den hämtas (`./mod el hamta`)
     symbol: str = "spot"
+    huvud: Tubhuvud | None = None               # huvudet under taket; None: infälld
 
 
 @dataclass(frozen=True)

@@ -19,7 +19,7 @@ cd verktyg/modellering
 | Fil | Innehåll |
 |---|---|
 | [`typer.py`](typer.py) | Produkttyperna: `Armaturtyp` (tillverkarens data, mått, fotometrifil), `Apparattyp` (brytare, dimrar, uttag), `Dosatyp`, `Rortyp` |
-| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive, 903201) och tills vidare allmänna dosor, apparater och rör |
+| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam) och tills vidare allmänna dosor, apparater och rör |
 | [`punkter.py`](punkter.py) | Beståndsdelarna (`Lampa`, `Apparat`, `Dosa`, `Tandgrupp`, `Ror`, `Rum`) och hur de placeras: `tak`, `kallartak`, `vagg` och rörens brytpunkter `i_tak`, `i_vagg`, `vid_tak`, `i_bjalklag` |
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
 | `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak |
@@ -71,7 +71,12 @@ drivdon, avstånd till brännbart) och tillverkarens fotometrifil (EULUMDAT), so
 ger varje armatur ett ljus med den uppmätta ljusfördelningen, flödet och färgtemperaturen; linsen lyser för kameran.
 Utan fotometrifilen blir ljuset en stråle med databladets strålvinkel.
 
-Vridbara armaturer riktas med `riktning` (standard lodrätt ned): i snedtaket vrids Junistar Exclusive 30° (den tål 40°).
+Armaturerna är infällda (ljuset ut genom takets hål, som Junistar Exclusive) eller har ett huvud under taket
+(`Tubhuvud`: en tub på en stam från frontplattan, som Tube Mini R, vridbar kring stammen och lutbar i leden).
+Ljuset riktas med `riktning` (standard lodrätt ned) eller mot en punkt med `mot(montering, punkt)`: i snedtaket vrids
+Junistar Exclusive 30° (den tål 40°), och Tube Mini R lutas i leden (högst 90° från stammen, som står vinkelrätt mot
+taket). Tubens läge (leden, tubens ändar och den lysande ytan) räknas fram i `punkter.tuben` och används av både
+geometrin och renderingen.
 
 ## Kontrollen
 

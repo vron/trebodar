@@ -375,6 +375,8 @@ def _hal(lista: list[dict]) -> None:
     hal: dict[str, list[tuple[Vector, Vector, float]]] = {}
     sedda: set[tuple[str, str]] = set()
     for a in lista:
+        if not a.get("infalld", True):            # ljuset kommer från ett huvud under taket, inte genom hålet
+            continue
         p, n = Vector(a["punkt"]) / 1000, Vector(a["normal"]).normalized()
         o, langs = p + n * 0.005, 0.0
         while langs < 0.045:
@@ -421,7 +423,8 @@ def armaturer(lista: list[dict]) -> list[Armatur]:
         namn = f"{a['id']}-LINS"
         linser = [o for o in bpy.data.objects if o.type == "MESH" and
                   (o.name.split(".")[0] == namn or str(o.get("sokvag", "")).endswith("/" + namn))]
-        skugglosa = [o for o in bpy.data.objects if o.type == "MESH" and o.name.split(".")[0] == f"{a['id']}-SPOT"]
+        skugglosa = [o for o in bpy.data.objects if o.type == "MESH" and
+                     o.name.split(".")[0] in (f"{a['id']}-SPOT", f"{a['id']}-BAFFEL")]
         for o in skugglosa:
             o.visible_shadow = False
         ut.append(Armatur(a, texter[a["typ"]], linser))

@@ -3,7 +3,7 @@ tills vidare allmänna typer med vanliga mått (produkterna väljs senare).
 """
 from __future__ import annotations
 
-from .typer import Apparattyp, Armaturtyp, Dosatyp, Rortyp
+from .typer import Apparattyp, Armaturtyp, Dosatyp, Rortyp, Tubhuvud
 
 # ------------------------------------------------------------------ armaturer
 
@@ -20,6 +20,20 @@ JUNISTAR_EXCLUSIVE = Armaturtyp(
     fotometri_url="https://www.sg-as.com/int/en/file/techfile/1QA9/7021989032014_Junistar%20Exclusive%20InOutdoor"
                   "%20White%20730lm%202700K%20Ra%2098-33026.ldt")
 
+# SG Armaturen Tube Mini R, infälld dosa med frontplatta och en tub på en stam, vridbar 350° kring stammen och lutbar
+# 90°: databladet för 320696 och fotometrifilen (880 lm ur fördelningen, största ljusstyrka 1 824 cd, lysande yta
+# Ø54). Frontplatta Ø94, håltagning Ø83, 51 mm över takytan, 50 mm till brännbart; tub Ø59 × 160 (linjeritningen),
+# stammen och leden mätta ur linjeritningen; svart bländskydd i fronten. Drivdonet sitter i dosan.
+TUBE_MINI_R = Armaturtyp(
+    "TUBE-MINI-R", "Tube Mini R White 880lm 2700K Ra 98 Trailing edge", "SG Armaturen", "320696",
+    "https://www.sg-as.com/products/tube-mini-r/320696",
+    ljusflode=880.0, effekt=14.0, fargtemperatur=2700.0, ra=98.0, stralvinkel=40.0, vridbar=90.0, ip="IP20",
+    dimring="bakkant", ring_d=94.0, hal_d=83.0, djup=51.0, lysande_d=54.0, brandavstand=50.0, drivdon=None,
+    fotometri="sg-armaturen/tube-mini-r/320696.ldt",
+    fotometri_url="https://www.sg-as.com/int/en/file/techfile/KLBE/7021983206961_Tube%20Mini%20R%20White%20880lm"
+                  "%202700K%20Ra%2098%20Trailing%20edge%20dimming.ldt",
+    symbol="tubspot", huvud=Tubhuvud(diameter=59.0, langd=160.0, stam=62.0, stam_d=12.0, led=55.0, indrag=18.0))
+
 # ------------------------------------------------------------------ dosor (allmänna)
 
 APPARATDOSA = Dosatyp("APPARATDOSA", "Apparatdosa för skiva, Ø68 (ej vald)", "apparatdosa", 68.0, 45.0)
@@ -30,6 +44,8 @@ INGJUTNINGSDOSA = Dosatyp("INGJUTNINGSDOSA", "Ingjutningsdosa för betongbjälkl
 
 # ------------------------------------------------------------------ apparater (allmänna)
 
+DIMMER_1 = Apparattyp("DIMMER-1", "Dimmer, en kanal, bakkant (LED, ej vald)", "dimmer", 1, (80.0, 80.0), APPARATDOSA,
+                      "dimmer")
 DIMMER_2 = Apparattyp("DIMMER-2", "Dimmer, två kanaler, bakkant (LED, ej vald)", "dimmer", 2, (80.0, 80.0), APPARATDOSA,
                       "dimmer")
 BRYTARE_1 = Apparattyp("BRYTARE-1", "Strömbrytare, en pol (ej vald)", "brytare", 1, (80.0, 80.0), APPARATDOSA,

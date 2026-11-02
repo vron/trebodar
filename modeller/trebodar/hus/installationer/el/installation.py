@@ -16,10 +16,10 @@ from trebodar.hus.invandigt.skikt import LAKT
 from . import lakt
 from .bjalklag import mellanbjalklag
 from .punkter import PLAN, TAKSKIVOR, Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, Vek, anslutning, drivdonet, linsen
-from .rum import allrum
+from .rum import allrum, kok
 from .typer import Armaturtyp
 
-MODULER: tuple[ModuleType, ...] = (allrum, mellanbjalklag)
+MODULER: tuple[ModuleType, ...] = (allrum, kok, mellanbjalklag)
 
 
 @dataclass(frozen=True)
@@ -124,7 +124,8 @@ class Installation:
 def _armatur(t: Armaturtyp) -> dict[str, object]:
     return {"tillverkare": t.tillverkare, "artikel": t.artikel, "url": t.url, "ljusflode": t.ljusflode,
             "effekt": t.effekt, "fargtemperatur": t.fargtemperatur, "stralvinkel": t.stralvinkel,
-            "lysande_d": t.lysande_d, "hal_d": t.hal_d, "fotometri": t.fotometri, "fotometri_url": t.fotometri_url}
+            "lysande_d": t.lysande_d, "hal_d": t.hal_d, "fotometri": t.fotometri, "fotometri_url": t.fotometri_url,
+            "form": "infalld" if t.huvud is None else "tub"}
 
 
 def _vinkel(a: Vek, b: Vek) -> float:

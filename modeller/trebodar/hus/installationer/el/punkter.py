@@ -170,11 +170,43 @@ def i_bjalklag(x: float, y: float, bjalklag: str = "MB") -> Vek:
 
 
 LINS_INDRAG = 8.0              # vridbara armaturers lins: så långt in från takytan (vridningens centrum)
+PLATTA_T = 2.0                 # frontplattans och frontringens tjocklek
+
+
+def _enhet(v: Vek) -> Vek:
+    n = math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
+    return (v[0] / n, v[1] / n, v[2] / n)
+
+
+def tuben(p: Lampa) -> tuple[Vek, Vek, Vek]:
+    """Tubspotens läge: leden (stammens ände), tubens bakre och främre ände (mittpunkterna). Stammen går från
+    frontplattan längs takets normal; leden sitter på tubens sida huvud.led från den bakre änden, och tubens axel
+    går i ljusets riktning, en radie från leden bort från stammen."""
+    h = p.typ.huvud
+    assert h is not None
+    n, d = p.lage.normal, _enhet(p.riktning)
+    led = _flytt(p.lage.punkt, n, PLATTA_T + h.stam)
+    # från leden in mot tubens axel: stammens riktning vinkelrätt mot axeln (rakt ned: tubens sida åt takets x)
+    k = sum(a * b for a, b in zip(n, d))
+    u = (n[0] - k * d[0], n[1] - k * d[1], n[2] - k * d[2])
+    if math.sqrt(sum(a * a for a in u)) < 1e-6:
+        u = (0.0, 1.0, 0.0)
+    u = _enhet(u)
+    axel = _flytt(led, u, h.diameter / 2)
+    return led, _flytt(axel, d, -h.led), _flytt(axel, d, h.langd - h.led)
 
 
 def linsen(p: Lampa) -> Vek:
-    """Mitten på armaturens lins, där ljuset kommer ut: på armaturens axel, LINS_INDRAG in från takytan."""
+    """Mitten på armaturens lysande yta, där ljuset kommer ut: infällda på armaturens axel, LINS_INDRAG in från
+    takytan; tubspotar huvud.indrag in från tubens front."""
+    if p.typ.huvud is not None:
+        return _flytt(tuben(p)[2], _enhet(p.riktning), -p.typ.huvud.indrag)
     return _flytt(p.lage.punkt, p.lage.normal, -LINS_INDRAG)
+
+
+def mot(m: Montering, mal: tuple[float, float, float]) -> Vek:
+    """Ljusets riktning från monteringen mot en punkt (riktade spotar)."""
+    return _enhet((mal[0] - m.punkt[0], mal[1] - m.punkt[1], mal[2] - m.punkt[2]))
 
 
 DRIVDON_AVSTAND = 30.0         # drivdonet på gipsen bredvid armaturens hus, längs y (mellan läkten)
