@@ -126,7 +126,9 @@ egen modell (t.ex. för beställning). Utdata:
   material. Navigeringen som i CAD-program: hjulet för kameran mot punkten under pekaren (ett steg är en andel av
   avståndet dit, och rotationscentrum följer med, så att man kommer hur nära som helst och genom väggar), vridning och
   panorering sker kring djupet för punkten där man tar tag, dubbelklick sätter rotationscentrum och piltangenterna och
-  PgUp/PgDn går genom huset. Högerklick på en del (delen och
+  PgUp/PgDn går genom huset. En ruta (O) växlar till ortografisk vy (parallellprojektion, som en fasadritning): samma
+  navigering, bilden lika stor som perspektivets vid rotationscentrum och hjulet skalar den kring punkten under
+  pekaren. Djupbufferten är logaritmisk, så att tunna skikt nära varandra (takplåten på pappen) inte flimrar. Högerklick på en del (delen och
   grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
   genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
   `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. Mätverktygen uppe till höger mäter
