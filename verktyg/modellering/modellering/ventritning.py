@@ -264,14 +264,23 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
 
 # ------------------------------------------------------------------ sektionen
 
-def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, omrade: tuple[float, float, float, float],
-             nummer: str, plan1: str, kallare: str) -> Blad:
+def sektioner(utdrag: dict) -> list[tuple[str, float]]:
+    """Grenarna som går genom mellanbjälklaget och sektionens y (där kanalen går genom bjälklaget)."""
+    return [(x["element"].split("-")[0], x["punkt"][1]) for x in utdrag["genomforingar"]
+            if x["del"] == "Mellanbjälklaget"]
+
+
+def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, nummer: str, plan1: str, kallare: str) -> Blad:
     """Sektionen y = konstant längs grenens kanal (x, z): huset ur snittet och grenens kanaler, don, fläkt och
-    avluftsdon, med genomföringarna."""
+    avluftsdon, med genomföringarna. Området ur grenens geometri, från källarens golv till takhuven."""
+    el, niv = utdrag["element"], utdrag["nivaer"]
+    pkt = [p for k in utdrag["grenar"][gren]["element"] for p in (el[k]["vag"] if "vag" in el[k] else [el[k]["punkt"]])]
+    xs, zs = [p[0] for p in pkt], [p[2] for p in pkt]
+    omrade = (min(xs) - 1900.0, max(xs) + 5400.0, niv["källarens golv"] - 450.0, max(zs) + 800.0)
     v = vy(SKALA_SEKTION, omrade, 24.0, 27.0)
     ram = Polygon([(omrade[0], omrade[2]), (omrade[1], omrade[2]), (omrade[1], omrade[3]), (omrade[0], omrade[3])])
     sektion(v, delar, ram)
-    el, typer = utdrag["element"], utdrag["typer"]
+    typer = utdrag["typer"]
     mina = utdrag["grenar"][gren]["element"]
     with v.lager("kanaler"):
         for k in mina:
@@ -323,8 +332,10 @@ def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, omrade: tuple
             txt = f"{'±0' if abs(z) < 0.5 else svm(z)} {txt}"
             v.linje([(omrade[0], z), (omrade[0] + v.m(10.0), z)], "tunn")
             v.ptext(omrade[0], z, 0.5, 0.6, txt, a="lb", sz=5.4)
+    vagg = next((x["del"].lower() for x in utdrag["genomforingar"] if x["element"] in mina
+                 and x["atgard"].startswith("i regelfacket")), "bjälklaget")
     v.rubrik(*papper(v, 24.0, 21.0), f"Sektion y = {svm(y)}, {utdrag['grenar'][gren]['namn'].lower()} upp genom "
-             f"väggen 1C", round(v.s))
+             f"{vagg}", round(v.s))
     with v.lager("skalstock"):
         v.skalstock(*papper(v, 24.0, 27.0 + (omrade[3] - omrade[2]) / v.s + 8.0), langd_m=2, steg_m=1)
     alla = utdrag["genomforingar"]
@@ -338,13 +349,7 @@ def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, omrade: tuple
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
-            "Källarrummets frånluft: kanalen går under källarens tak genom V19 (kärnborrning) och upp i den bärande "
-            "innerväggen 1C mellan badrummet och hallen, som platt kanal 204 × 60 i regelfacket mellan reglarna "
-            "1C-R01 och 1C-R02, så att den inte syns på plan 1.",
-            "Över innertaket går kanalen isolerad mellan takbalkarna (y 7 850–8 405) till takhuven. Ångbromsen tätas "
-            "runt kanalen med manschett.",
-            "Ursparingen i mellanbjälklaget görs före gjutningen (R-06). Syll och hammarband i 1C urtas mellan "
-            "reglarna; kanalen efter fläkten har övertryck och ska vara tät.",
+            *utdrag["grenar"][gren]["beskrivning"],
             f"Höjder z från plan 1:s golv (mellanbjälklagets överkant); x, y i K-05:s koordinater. Planerna: {plan1}, "
             f"{kallare}.",
         ]),
@@ -367,18 +372,21 @@ def _mitt(vag: list[list[float]]) -> tuple[float, float]:
     return (a[0] + b[0]) / 2, (a[2] + b[2]) / 2
 
 
-def ritningar(utdrag: dict, plan1: list[dict], kallare: list[dict], snitt_y: list[dict], y: float,
+def ritningar(utdrag: dict, plan1: list[dict], kallare: list[dict], snitt: dict[tuple[str, float], list[dict]],
               norr: tuple[float, float], arbete: Path, ut: Path) -> Path:
-    """Ventilationsritningarna (serien SERIE): plan 1, källaren och sektionen genom källarrummets kanal, som pdf i
-    mappen ut (bladen för sig i arbetsmappen, under repots rot)."""
-    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3)]
-    z_k = min(e["vag"][0][2] for e in utdrag["element"].values() if e["slag"] == "kanal") - 1000.0
+    """Ventilationsritningarna (serien SERIE): plan 1, källaren och en sektion per gren genom mellanbjälklaget (snitt:
+    sektionernas snitt per (gren, y), se sektioner), som pdf i mappen ut (bladen för sig i arbetsmappen, under repots
+    rot)."""
+    pre = SERIE.split()[0]
+    nr = [f"{pre}.{i}" for i in range(1, 3 + len(snitt))]
+    sekt = ", ".join(nr[2:])
+    niv = utdrag["nivaer"]
     bladen = [
         (nr[0], _plan(utdrag, plan1, (0.0, 1e5), nr[0], "Plan 1", "Plan 1, ventilation", norr,
-                      f"Källaren: {nr[1]}; sektionen genom källarrummets kanal: {nr[2]}.")),
-        (nr[1], _plan(utdrag, kallare, (z_k - 2000.0, -150.0), nr[1], "Källaren", "Källaren, ventilation", None,
-                      f"Plan 1: {nr[0]}; sektionen genom källarrummets kanal: {nr[2]}.")),
-        (nr[2], _sektion(utdrag, snitt_y, "FF3", y, (900.0, 10300.0, -2700.0, 4400.0), nr[2], nr[0], nr[1])),
+                      f"Källaren: {nr[1]}; sektionerna: {sekt}.")),
+        (nr[1], _plan(utdrag, kallare, (niv["källarens golv"], niv["källarens tak"]), nr[1], "Källaren",
+                      "Källaren, ventilation", None, f"Plan 1: {nr[0]}; sektionerna: {sekt}.")),
+        *[(n, _sektion(utdrag, delar, g, y, n, nr[0], nr[1])) for n, ((g, y), delar) in zip(nr[2:], snitt.items())],
     ]
     pdf = ut / f"{SERIE}.pdf"
     kompilera(bladen, arbete, pdf)

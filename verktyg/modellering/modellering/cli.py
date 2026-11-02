@@ -595,11 +595,11 @@ def main(argv: list[str] | None = None) -> None:
                 raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
             ma = ROT / "verktyg" / "modellanalys" / "ma"
             skel = importlib.import_module("trebodar.skelett")
-            y = skel.INNERVAGGAR["1C"].origo[1] + skel.INNERVAGGAR["1C"].tjocklek / 2
             plan1 = snitt(ma, step_fil, 1200.0, UT / "ventilation-plan1.json")
             kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "ventilation-kallare.json")
-            sektion = snitt(ma, step_fil, f"y={y:g}", UT / "ventilation-sektion.json")
-            pdf = ventritning.ritningar(utdrag, plan1, kallare, sektion, y, _norr(), UT / "ventilation" / "blad", arg.ut)
+            sektioner = {(g, y): snitt(ma, step_fil, f"y={y:g}", UT / f"ventilation-sektion-{g}.json")
+                         for g, y in ventritning.sektioner(utdrag)}
+            pdf = ventritning.ritningar(utdrag, plan1, kallare, sektioner, _norr(), UT / "ventilation" / "blad", arg.ut)
             print(f"  {pdf}")
     elif arg.kommando == "kontroll":
         from . import kontroll

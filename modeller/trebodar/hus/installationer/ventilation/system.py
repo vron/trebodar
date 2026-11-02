@@ -338,7 +338,8 @@ class Ventilation:
                           "ref": e.lage.ref}
                 element[e.id] = d
         return {"grenar": {g.id: {"namn": g.namn, "rum": g.rum, "flode": g.flode, "flode_normal": g.flode_normal,
-                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g)}
+                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g),
+                                  "beskrivning": list(g.beskrivning)}
                            for g in self.grenar.values()},
                 "element": element, "typer": typer,
                 "nivaer": {"plan 1:s golv": 0.0, "källarens tak": KALLARTAK, "källarens golv": S.Z_BOTTENPLATTA},

@@ -15,6 +15,7 @@ Kanalfläkten sitter i källaren (åtkomlig för service); kanalen efter fläkte
 from __future__ import annotations
 
 from trebodar import skelett as S
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 
 from ...montering import KALLARTAK, angbromsen, pa_tak, under_kallartak
 from ..delar import Avluft, Don, Flakt, Gren, Kanal, Overgang, fri
@@ -26,6 +27,14 @@ X_STIG = 2810.0                             # mitt i regelfacket 1C-R01–1C-R02
 X_DON, Y_DON = 4950.0, 10400.0              # rummets nordvästra hörn
 X_FLAKT = 3950.0                            # i källarens vänstra del, 400 mm väster om V19
 Z = KALLARTAK - 155.0                       # kanalens mitt under taket (fläkten 30 mm under betongen)
+
+_BALKAR = FALT["1NV"].y                     # takbalkarnas lägen (lägsta y) i takfallet ovanför
+FACK = (max(y for y in _BALKAR if y < Y) + S.TAKBALK_B, min(y for y in _BALKAR if y > Y))       # facket mellan dem
+
+
+def _mm(x: float) -> str:
+    return f"{x:,.0f}".replace(",", "\u00a0")
+
 
 _O1 = (X_STIG, Y, KALLARTAK - 15.0 - RUND_PLATT_125.langd / 2)          # utloppet 15 mm under betongen
 _O2 = (X_STIG, Y, angbromsen(X_STIG, Y) + PLATT_RUND_125.langd / 2)          # från ångbromsen och uppåt
@@ -40,4 +49,12 @@ GREN = Gren("FF3", "Källarrummet", "Källarrummet", 10.0, (
     Overgang("FF3-O2", PLATT_RUND_125, _O2, (0.0, 0.0, 1.0)),
     Kanal("FF3-K4", ISOLERAD_125),                                # genom takets isolering
     Avluft("FF3-A1", TAKHUV_125, pa_tak(X_STIG, Y)),
-), flode_normal=10.0)
+), flode_normal=10.0, beskrivning=(
+    "Kanalen går under källarens tak genom V19 (kärnborrning) och upp i den bärande innerväggen 1C mellan badrummet "
+    "och hallen, som platt kanal 204 × 60 i regelfacket mellan reglarna 1C-R01 och 1C-R02, så att den inte syns på "
+    "plan 1.",
+    f"Över innertaket går kanalen isolerad mellan takbalkarna (y {_mm(FACK[0])}–{_mm(FACK[1])}) till takhuven; "
+    "ångbromsen tätas runt kanalen med manschett.",
+    "Ursparingen i mellanbjälklaget görs före gjutningen (R-06), syll och hammarband i 1C urtas mellan reglarna, och "
+    "kanalen efter fläkten har övertryck och ska vara tät.",
+))
