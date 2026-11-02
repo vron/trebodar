@@ -84,7 +84,8 @@ egen modell (t.ex. för beställning). Utdata:
   `dagsljus(månad, dag, klocka, väder)` ger solens riktning, färg och belysning och himlens färg och belysning. I
   Blender blir solen en sollampa med belysningen (lux / 683) och solskivans storlek efter vädret, och himlen skalas så
   att dess belysning på en horisontell yta och dess färg blir dagsljusets (mäts med en liten panoramarendering);
-  mulet är en CIE-himmel. Ljusportaler i fönster, glasdörrar och takfönster i inomhusbilderna. Exponeringen (EV100)
+  mulet är en CIE-himmel. Ljusportaler i fönster, glasdörrar och takfönster i inomhusbilderna, och taklampor (LED-
+  paneler, `LAMPOR` i `vyer.py`) som tänds i de vyer som anger dem, t.ex. källaren. Exponeringen (EV100)
   räknas fram ur en snabb förhandsbild; inne också vitbalansen, som ögats anpassning till rummets ljus (medelfärgen
   utan fönstren blir nästan neutral), ute efter dagsljusets färgtemperatur (solens och himlens, med en del kvar av
   kvällssolens värme). Cycles på GPU med brusreducering (OIDN),

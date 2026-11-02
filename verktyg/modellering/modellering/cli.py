@@ -304,6 +304,8 @@ def main(argv: list[str] | None = None) -> None:
             vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev}
         scen = {"glb": str(fil), "ut": str(arg.ut.resolve()), "kvalitet": arg.kvalitet, "bredd": arg.bredd,
                 "hojd_m": plats.hojd, "portaler": vy_mod.portaler() if hasattr(vy_mod, "portaler") else [],
+                "lampor": {k: {**g, "farg": dagsljus.svartkropp(float(g["kelvin"]))}
+                           for k, g in getattr(vy_mod, "LAMPOR", {}).items()},
                 "omgivning": getattr(vy_mod, "OMGIVNING", None),
                 "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
                             and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),

@@ -30,6 +30,7 @@ Dagsljuset är 20 april kl. 14.00 med sol (`INNE_LJUS` i `vyer.py`), räknat fö
 styrka och himlens ljus (`./mod ljus 4 20 14:00 sol`). Himlen lyser in genom ljusportaler i fönstren, och utanför
 syns omgivningen ur öppna geodata (`./mod omgivning --hamta`, sparas i `lokalt/omgivning/`; utan den en enkel mark).
 Exponeringen och vitbalansen räknas fram ur en snabb förhandsbild per bild, som ögats anpassning till rummets ljus.
+I källaren (I28–I30) är taklamporna tända (`LAMPOR` i `vyer.py`), eftersom de små fönstren ger för lite ljus.
 
 En bild i 4K och slutlig kvalitet (högst 512 sampel per pixel, brusreducerad) tar knappt 4 minuter att rendera på
 en Mac med Apple M5 Max (Metal), och scenen tar ungefär en minut att bygga, en gång per körning; hela serien tar

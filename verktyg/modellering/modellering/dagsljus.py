@@ -207,6 +207,11 @@ def fargen(e: np.ndarray) -> tuple[tuple[float, float, float], float, float]:
     return (float(rgb[0]), float(rgb[1]), float(rgb[2])), LUMEN_PER_WATT * Y, float(cct)
 
 
+def svartkropp(kelvin: float) -> tuple[float, float, float]:
+    """Glödande kropps färg vid temperaturen (t.ex. en lampa på 3 000 K) i linjär Rec. 709 med luminansen 1."""
+    return fargen(_planck(L, kelvin))[0]
+
+
 def _luftmassa(z_grader: float) -> float:
     return 1.0 / (math.cos(math.radians(z_grader)) + 0.50572 * (96.07995 - z_grader) ** -1.6364)
 

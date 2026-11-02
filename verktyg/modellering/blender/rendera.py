@@ -4,8 +4,9 @@ himlen och solen efter dagsljuset, ljusportalerna i fönstren och en kamera per 
     Blender -b --factory-startup -P rendera.py -- scen.json
 
 scen.json (från `mod rendera`): {"glb": fil, "ut": mapp, "kvalitet": "skiss" … "slutlig", "bredd": px eller null,
-"hojd_m": platsens höjd, "portaler": [...], "material": {namn: parametrar}, "vyer": {namn: vy}, "blend": fil eller
-null}; vy: "kamera" och "mal" [x, y, z] i mm, "lins" (mm), "lodrat" (vågrät kamera), "inne", "ljus" (dagsljus.Ljus),
+"hojd_m": platsens höjd, "portaler": [...], "lampor": {grupp: lampor}, "material": {namn: parametrar}, "vyer": {namn:
+vy}, "blend": fil eller null}; vy: "kamera" och "mal" [x, y, z] i mm, "lins" (mm), "lodrat" (vågrät kamera), "inne",
+"lampor" (grupperna som är tända), "ljus" (dagsljus.Ljus),
 "ev" (EV100 eller null: automatisk), "vitbalans" (K; standard ute efter dagsljusets färgtemperatur och inne
 automatisk, som ögats anpassning), "dolj" (delar av sökvägar).
 """
@@ -40,6 +41,7 @@ if SCEN.get("omgivning"):
     omgivning.bygg((o["mitt"][0] / 1000, o["mitt"][1] / 1000), o["z_bas"] / 1000, o.get("terrang", "Mark/"),
                    SCEN.get("geodata"))
 portaler = [o for o in bpy.data.objects if o.name.startswith("Portal ")]
+lampor = S.lampor(SCEN.get("lampor", {}))
 
 
 def stall_in(namn: str, vy: dict) -> None:
@@ -49,6 +51,9 @@ def stall_in(namn: str, vy: dict) -> None:
             o.hide_render = any(d in sok for d in vy.get("dolj", []))
     for o in portaler:
         o.hide_render = not vy.get("inne", False)
+    for grupp, obs in lampor.items():
+        for o in obs:
+            o.hide_render = grupp not in vy.get("lampor", [])
     himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0))
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     sc.camera = S.kamera(namn, vy)

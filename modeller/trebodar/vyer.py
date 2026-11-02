@@ -60,12 +60,12 @@ _INNE = [
     ("I12", "vardagsrum", "mot-altandorr", "öga", (700, 13700), (4245, 14575, 1150)),
     ("I13", "vardagsrum", "mot-golvfonster", "öga", (3700, 12300), (1900, 15835, 1100)),
     ("I14", "hall", "fran-entre", "vid", (650, 10250), (6500, 9000, 1350)),
-    ("I15", "hall", "mot-entre", "öga", (3600, 9700), (-30, 10255, 1100)),
+    ("I15", "hall", "mot-entre", "vid", (3700, 9800), (-30, 10255, 1150)),
     ("I16", "badrum", "fran-dorr", "vid", (3000, 6700), (700, 4400, 1200)),
     ("I17", "badrum", "mot-dorr", "vid", (450, 3950), (2900, 7300, 1300)),
     ("I18", "sovrum", "fran-dorr", "vid", (4150, 5650), (8600, 3000, 1300)),
     ("I19", "sovrum", "mot-fonster", "öga", (6100, 5300), (6300, 135, 1500)),
-    ("I20", "sovrum", "mot-golvfonster", "vid", (4250, 5600), (3300, 3655, 1050)),
+    ("I20", "sovrum", "mot-golvfonster", "vid", (6000, 5150), (3270, 3800, 1000)),
     ("I21", "kontor", "oversikt", "vid", (9050, 1100), (4700, 1900, 1300)),
     ("I22", "kontor", "mot-altandorr", "öga", (7200, 1300), (4565, 2520, 1150)),
     ("I23", "sovrum-litet", "fran-dorr", "vid", (10450, 2700), (13200, 1500, 1200)),
@@ -73,13 +73,15 @@ _INNE = [
     ("I25", "gastrum", "fran-dorr", "vid", (11250, 5180), (13675, 5500, 1300)),
     ("I26", "gang", "mot-kok", "öga", (10300, 3250), (10300, 9500, 1300)),
     ("I27", "gang", "mot-sovrum", "öga", (10300, 6900), (10300, 2905, 1300)),
-    ("I28", "trappa", "ned", "öga", (9475, 5470), (7700, 5470, -1500)),
+    ("I28", "trappa", "ned", "öga", (9360, 5470), (7700, 5470, -1500)),
     ("I29", "kallare", "oversikt", "vid", (12800, 11500, Z_KALLARE), (7000, 3500, Z_KALLARE + 1200)),
     ("I30", "kallare", "mot-trappan", "vid", (5300, 2000, Z_KALLARE), (8600, 5500, Z_KALLARE + 900)),
 ]
 
-# inomhusbilder med egna inställningar: trappan ned med lutande kamera (lodräta linjer konvergerar)
-_INNE_EXTRA: dict[str, dict[str, object]] = {"I28": {"lodrat": False}}
+# inomhusbilder med egna inställningar: trappan ned med lutande kamera (lodräta linjer konvergerar), källarens
+# taklampor tända
+_INNE_EXTRA: dict[str, dict[str, object]] = {"I28": {"lodrat": False, "lampor": ["kallare"]},
+                                             "I29": {"lampor": ["kallare"]}, "I30": {"lampor": ["kallare"]}}
 
 
 def _inne() -> dict[str, dict[str, object]]:
@@ -102,6 +104,16 @@ RUMSNAMN = {
     "kontor": ("Kontor", (6300, 1100)), "sovrum-litet": ("Sovrum, litet", (12300, 1850)),
     "kontor-litet": ("Kontor, litet", (12400, 3750)), "gastrum": ("Gästrum", (12400, 5650)),
     "gang": ("Gång", (10250, 4600)), "trappa": ("Trappa", (8350, 5470)), "kallare": ("Källare", (7000, 7800, "k")),
+}
+
+# taklampor (LED-paneler, fyrkantiga och nedåtlysande) som tänds i bilderna som anger dem: källaren är mörk med
+# sina små fönster. Lägena (x, y), höjden z under bjälklaget, sidan [mm], ljusflödet per panel [lm] och
+# färgtemperaturen [K]
+LAMPOR = {
+    "kallare": {"lagen": [(1500, 5200), (3300, 5200), (1500, 7700), (3300, 7700), (5800, 1800), (8200, 1800),
+                          (5800, 4200), (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300), (11600, 2600),
+                          (11600, 5600), (11600, 8600), (11600, 11000)],
+                "z": -S.H_BJALKLAG - 20.0, "sida": 600.0, "lumen": 2500.0, "kelvin": 3000.0},
 }
 
 # marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)

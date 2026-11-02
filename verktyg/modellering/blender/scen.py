@@ -300,6 +300,27 @@ def portaler(lista: list[dict]) -> None:
         ob.rotation_euler = Matrix((y.cross(z), y, z)).transposed().to_euler()
 
 
+def lampor(grupper: dict[str, dict]) -> dict[str, list[bpy.types.Object]]:
+    """Taklampor per grupp (modellens mm): fyrkantiga arealjus som lyser nedåt, med ljusflödet (lm / 683 som solen och
+    himlen) och färgen; släckta tills en vy tänder sin grupp."""
+    ut: dict[str, list[bpy.types.Object]] = {}
+    for grupp, g in grupper.items():
+        ut[grupp] = []
+        for i, (x, y) in enumerate(g["lagen"]):
+            namn = f"Lampa {grupp} {i + 1:02d}"
+            lj = bpy.data.lights.new(namn, "AREA")
+            lj.shape = "SQUARE"
+            lj.size = g["sida"] / 1000
+            lj.energy = g["lumen"] / LUMEN_PER_WATT
+            lj.color = tuple(g["farg"])
+            ob = bpy.data.objects.new(namn, lj)
+            bpy.context.scene.collection.objects.link(ob)
+            ob.location = (x / 1000, y / 1000, g["z"] / 1000)          # arealjuset lyser längs −Z, nedåt
+            ob.hide_render = True
+            ut[grupp].append(ob)
+    return ut
+
+
 def kamera(namn: str, vy: dict) -> bpy.types.Object:
     """Kameran: lodräta linjer lodräta (kameran vågrät, bilden flyttas upp eller ned med objektivförskjutning, som en
     arkitekturkamera), linsen i mm (36 mm sensor), eller som förut riktad mot målet (lodrat=False)."""
