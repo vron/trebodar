@@ -57,3 +57,12 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    102 mm (2A till x 6 815, 1D till x 2 245) så att stolparna står mitt under balkarna; K-03:s `geometri.json` och
    K-05:s `laster.STOLPLAGEN` (LN3_1 x 7 007 → 6 905, LN5_2 x 2 053 → 2 155) följer med. Annars räknar K-03 stolparna
    med två reglar och excentrisk last.
+11. **Stommens mått som är kvar från Onshape-modellen.** Stommen byggs med regler (`regelstomme.py`, `takstol.py`),
+   men några mått står som data i väggens eller takstolens fil, som i Onshape-modellen och utan känt skäl:
+   spikplåtarna vid takstolarnas fötter ligger olika långt från foten i varje stol; underramen är 120 hög, men 145 i
+   2C och 220 i 2SV; 2NO har spikreglar på insidan (0,5 mm över takbalkarnas underkant), 2 mm hak för ståndarna i
+   underramen och toppens plåt 6 mm under balken (de andra 8); 2C har säten i diagonalerna och 2 mm hak i underramen
+   för ståndare som inte finns (mittståndarens 3 mm från nockens mitt); i 1A är sätena på de två mittre reglarna 23,4
+   breda (annars 22,5), 1C:s hammarband ligger 0,5 mm över hammarbandsplanet och LN5_1:s första regel har ett urtag
+   för ett hammarband som inte finns; kortlingarna i 1A och 1C ligger på z 2 199,6 (i 1C bara i ett fack). Bestäm om
+   de ska följa reglerna (geometrin ändras några mm).
