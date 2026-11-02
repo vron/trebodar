@@ -54,18 +54,15 @@ def vaggens_oppningar(kod: str) -> list[Oppning]:
 
 
 def plattor(v: Plan, langd: float, skarvar: Sequence[float] = (), oppningar: Sequence[Oppning] = (),
-            hammarband: tuple[float, float] | None = (0.0, 0.0)) -> None:
-    """Syll från 0 till langd och hammarband över intervallet (inget om None, hela väggen om (0, 0)), delade i
-    skarvarna; syllen bryts vid öppningar till golvet."""
+            hammarband: tuple[float, float] | None = None) -> None:
+    """Syll från 0 till langd och hammarband över intervallet (inget om None), delade i skarvarna; syllen bryts vid
+    öppningar till golvet."""
     def bitar(a: float, b: float, hal: Sequence[tuple[float, float]]) -> list[tuple[float, float]]:
         kanter = sorted({a, b} | {s for s in skarvar if a < s < b} | {e for h in hal for e in h if a < e < b})
         return [(x, y) for x, y in zip(kanter, kanter[1:]) if not any(h0 <= x and y <= h1 for h0, h1 in hal)]
     for a, b in bitar(0.0, langd, [(o.u0, o.u1) for o in oppningar if o.z0 <= 0.0]):
         v.syll(a, b)
-    if hammarband is None:
-        return
-    h0, h1 = hammarband if hammarband != (0.0, 0.0) else (0.0, langd)
-    for a, b in bitar(h0, h1, []):
+    for a, b in bitar(*hammarband, []) if hammarband else ():
         v.hammarband(a, b)
 
 
