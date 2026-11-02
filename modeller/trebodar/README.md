@@ -34,6 +34,14 @@ väggen (w = 0 stommens utsida) och z uppåt; deras delar skrivs som regel(u), s
 liggande(u0, u1, z) och profil([...]). Takets delar räknas fram ur takfallen i `skelett.py`: ändras takplanet,
 väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets skikt, isolering och innertak med.
 
+Stommen byggs med regler. Väggarnas regelverk följer
+[`hus/stomme/prefab/regelstomme.py`](hus/stomme/prefab/regelstomme.py): syll och hammarband med skarvar, karmreglar,
+överstycken, bröstningar och kortlingar ur öppningarna i `oppningar.py`, reglar c/c 600 från ett raster, hörnstolpar,
+stolpar, dalbalkarnas upplag på gavlarna och lutande hammarband under takfallen. Takstolarna följer
+[`byggdelar/takstol.py`](byggdelar/takstol.py): ytterbalkar, diagonaler, underram, ståndare och säten ur takfallen,
+nockbalken, dalbalkarna och väggens överkant. Varje vägg och takstol har en egen fil med sina egna data (rastrets
+början, fria reglar, skarvar, öppningarnas utförande, stolpar, underramens höjd) och är ett eget montage.
+
 Varje läge skrivs på ett ställe. Det som handlingarna bestämmer (väggarnas, takbalkarnas, takstolarnas och
 stolparnas lägen, öppningarna) står i `skelett.py` eller i montagets egen fil. Det som ska passa mot det (skikt,
 isolering, fasad, läkt, syllar) räknas fram ur `skelett.py` eller ur stommens delar:
@@ -71,8 +79,11 @@ beskrivning, eller flyttas till underlaget den hör till.
 |---|---|
 | Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
 | En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
-| En regel, syll eller öppning i en vägg | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py` (lägen i väggens u och z) |
-| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, modulmått och produkttyp) och väggens regelverk; fasad, isolering, insida och smyg följer med |
+| Väggens regelverk | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py`: rastrets början, fria reglar, skarvar, öppningarnas utförande (`Karm`: dubbla karmreglar, överstycke, kortlingar), hörnstolpar, stolpar och dalbalkarnas upplag; reglerna i `regelstomme.py` |
+| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, modulmått och produkttyp); regelverket (karmreglar, överstycke, bröstning, kortlingar), fasad, isolering, insida och smyg följer med |
+| En takstol | stolens fil i `hus/stomme/prefab/takstolar/` (underramens höjd, ståndarnas lägen, spikplåtarna vid fötterna) och reglerna i `byggdelar/takstol.py` |
+| Takbalkarnas lägen och takfönstren | `hus/stomme/prefab/takbalkar/takbalkar.py` (`FALT`: följder c/c 600 per takfall; `TF1`–`TF3`); dubbla takbalkar och avväxlingar vid takfönstren följer med |
+| En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
@@ -154,8 +165,8 @@ Trebodar
                                 källarväggarnas gips
 ```
 
-`./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell (och på samma sätt
-nock- och dalbalkarna).
+`./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
+dalbalkarna och varje vägg eller takstol för sig (`--del "Hus/Stomme/Stomme prefab/Ytterväggar/Vägg 1NO"`).
 
 ## Namn
 
