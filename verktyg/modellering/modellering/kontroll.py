@@ -70,11 +70,11 @@ def _init(cachefil: str) -> None:
 
 
 def _form(k: str):  # type: ignore[no-untyped-def]
-    from .karna import _brep_fran_bytes
+    from .karna import brep_fran_bytes
     f = _W["former"]
     if k not in f:  # type: ignore[operator]
         r = _W["db"].execute("select brep from former where nyckel = ?", (k,)).fetchone()  # type: ignore[attr-defined]
-        f[k] = _brep_fran_bytes(r[0])  # type: ignore[index]
+        f[k] = brep_fran_bytes(r[0])  # type: ignore[index]
     return f[k]  # type: ignore[index]
 
 

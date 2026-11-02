@@ -334,7 +334,7 @@ def _brep_till_bytes(s: TopoDS_Shape) -> bytes:
     return b.getvalue()
 
 
-def _brep_fran_bytes(data: bytes) -> TopoDS_Shape:
+def brep_fran_bytes(data: bytes) -> TopoDS_Shape:
     s = TopoDS_Shape()
     BinTools.Read_s(s, io.BytesIO(data))
     return s
@@ -424,7 +424,7 @@ class Karna:
     def form(self, f: F.Form) -> TopoDS_Shape:
         k = self._sakra(f)
         if k not in self._former:
-            self._former[k] = _brep_fran_bytes(self._rad(k, "brep"))  # type: ignore[arg-type]
+            self._former[k] = brep_fran_bytes(self._rad(k, "brep"))  # type: ignore[arg-type]
         return self._former[k]
 
     def egenskaper(self, f: F.Form) -> Egenskaper:
