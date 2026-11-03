@@ -180,6 +180,7 @@ Trebodar
     │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler),
     │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
     └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
+                                dubbelsängen där (160 × 200, huvudgaveln mot 2B),
                                 köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor, bänken längs 3NV
                                 och 3SV och ön med lådskåp, bänkskiva, diskho, häll och diskmaskin)
 ```
@@ -321,6 +322,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
   snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
+- **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
+  mot 2B:s gips och mitt mellan 2A:s och L6:s, för att se hur rummet räcker.
 - **Kökets inbyggnad** (hus/invandigt/kokets_inbyggnad.py och hus/inredning/kok.py, ärende #20; inte på
   planritning 201): kyl, frys och skafferi framför L4 mot köket, från L2:s linje till 3NV, bakom en vägg av gips
   från golvet till innertaket. Lätta väggar 45×70 (lägena i invandigt/lattvaggar.py) framför L4:s och 3NV:s färdiga

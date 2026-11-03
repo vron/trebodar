@@ -178,7 +178,7 @@ LAMPOR = {
 # marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)
 OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}
 # omgivningen ur öppna geodata (`./mod omgivning --hamta`): radien och cellen (m), mappen (versionshanteras inte)
-# och tillgångarna (Poly Havens texturer och modeller, CC0, lokalt/polyhaven/hamta.py)
+# och tillgångarna (Poly Havens texturer och modeller, CC0, `./mod omgivning --hamta`)
 GEODATA = {"mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0, "tillgangar": "lokalt/polyhaven"}
 
 

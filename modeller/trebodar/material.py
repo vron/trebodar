@@ -147,6 +147,8 @@ LOPARE = Material("Löpare", "Lådlöpare Blum MOVENTO 760H, förzinkat stål (f
                   cad="#8c96a0")
 BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 mm, slipad (honed)", 2400, "#d9d1c2",
                      0.55, cad="#cfc4ae")
+SANGKLADER = Material("Sängkläder", "Madrass och sängkläder, vitt linne (sängen i sovrummet)", 250, "#ebe9e3", 0.95,
+                      cad="#ebe7dd")
 VIT_SKIVA = Material("Vit skiva", "Skiva, vitmålad (köksbänkens och öns sidor och öns baksida)", 700, "#efede7", 0.6,
                      cad="#f1efe9")
 HALLGLAS = Material("Hällglas", "Induktionshällens glaskeramik, svart", 2500, "#111214", 0.06, cad="#2a2c30")
