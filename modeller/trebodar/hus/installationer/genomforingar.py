@@ -22,6 +22,7 @@ from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.skikt import INSIDA_T, innertak_vid, innertakets_fall
 from trebodar.hus.invandigt.vaggar import LATTA, skiktets_tjocklek, vaggdef
 from trebodar.hus.rum import BADRUM
+from trebodar.hus.stomme import lagen
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 
 from .montering import KALLARTAK, Vek
@@ -96,6 +97,16 @@ def vaggarna() -> dict[str, tuple[Polygon, Polygon, float, bool]]:
         ut[kod] = (_vaggband(kod, -skiktets_tjocklek(kod, -1, u), v.tjocklek + skiktets_tjocklek(kod, 1, u)),
                    _vaggband(kod, 0.0, v.tjocklek), v.tjocklek, False)
     return ut
+
+
+def _over_vaggen(kod: str, x: float, y: float, z: float) -> bool:
+    """Om höjden z i punkten (x, y) på innerväggen kod ligger över väggen: de lätta väggarna och alla väggars skikt går
+    upp till innertaket, de bärande innerväggarnas stomme där den går högre."""
+    topp = innertak_vid(x, y)
+    if kod in S.INNERVAGGAR:
+        topp = max([topp, *(d.lada[5] for d in lagen.vagg(kod)
+                            if d.lada[0] - 1.0 <= x <= d.lada[3] + 1.0 and d.lada[1] - 1.0 <= y <= d.lada[4] + 1.0)])
+    return z > topp
 
 
 @cache
@@ -204,8 +215,11 @@ def genomforingar(stycken: list[Stycke]) -> tuple[list[Genomforing], list[str]]:
                 if s.intersection(hel).length > 1.0 and not (inne.contains(Point(a[0], a[1])) and
                                                               inne.contains(Point(b[0], b[1]))):
                     m = s.intersection(hel).centroid
-                    vatrum = BADRUM.buffer(200.0).contains(Point(a[0], a[1])) or \
-                        BADRUM.buffer(200.0).contains(Point(b[0], b[1]))
+                    f = s.project(m) / s.length
+                    if not yttre and not (hel.contains(Point(a[0], a[1])) or hel.contains(Point(b[0], b[1]))) and \
+                            _over_vaggen(kod, m.x, m.y, a[2] + f * (b[2] - a[2]) - tjock / 2):
+                        continue                                # i innertakets installationsskikt, över väggen
+                    vatrum = s.difference(hel).intersects(BADRUM)      # stycket går ut i badrummet
                     ut.append(Genomforing(f"{'Yttervägg' if yttre else 'Vägg'} {kod}",
                                           ("väggenomföring" if yttre else "genomföring")
                                           + ("; tätskiktet tätas med manschett (våtrum)" if vatrum else ""),

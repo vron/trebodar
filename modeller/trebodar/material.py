@@ -142,6 +142,12 @@ DRIVDON = Material("Drivdon", "Drivdon för LED (plast)", 1200, "#ececea", 0.6, 
 APPARAT = Material("Apparat", "Strömbrytare, dimrar och uttag, vit plast", 1200, "#f4f4f1", 0.35, cad="#fbfbf7")
 ELDOSA = Material("Eldosa", "Dosor (plast)", 1000, "#7f8a95", 0.6, cad="#ff7a1a")
 ELROR = Material("Elrör", "Flexrör (PVC)", 1400, "#8f9499", 0.6, cad="#ff9d2e")
+
+# ------------------------------------------------------------------ brandlarmet (hus/installationer/brandlarm)
+# röda i CAD-färgerna, så att brandlarmet skiljer sig från elen
+BRANDVARNARE = Material("Brandvarnare", "Brandvarnare, vit plast", 1100, "#f3f3f0", 0.4, cad="#e8433a")
+BRANDLARMSKABEL = Material("Brandlarmskabel", "Installationskabel 4G1,5, vit PVC-mantel (brandlarmet)", 2000,
+                           "#ecebe6", 0.5, cad="#c8102e")
 # pendlarna: mässing (blank och obehandlad med patina), opalglas och frostat glas (lyser som linsen när armaturen är
 # tänd) och textilsladd
 MASSING = Material("Mässing", "Mässing, blank (pendlarnas fästen)", 8500, "#d8b56e", 0.22, metall=1.0, cad="#c9a35b")

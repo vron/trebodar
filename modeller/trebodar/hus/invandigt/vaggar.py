@@ -253,6 +253,43 @@ def barande_skikt() -> list[Hinder]:
     return [h for kod in S.INNERVAGGAR for h in _skikt().band[kod]]
 
 
+def _spann(lv: Lattvagg) -> tuple[list[tuple[float, float]], list[float]]:
+    """Dörrarnas utsträckning i stommen (öppningen och fickorna, också fickor som går in från en annan vägg) och
+    överstyckets underkant; en öppning och dess ficka är ett spann."""
+    bitar = sorted([(d.u0, d.u1, d.hojd + (FICKA_SKENA if d.ficka else 0.0)) for d in INNERDORRAR if d.vagg == lv.kod]
+                   + [(a, b, z1 - H_VIRKE) for a, b, z1, _ in fickor(lv.kod)])
+    sammanslagna: list[list[float]] = []
+    for a, b, zo in bitar:
+        a, b = max(a, 0.0), min(b, lv.langd)
+        if b - a < 1.0:
+            continue
+        if sammanslagna and a <= sammanslagna[-1][1] + 1.0:
+            sammanslagna[-1][1:] = [max(sammanslagna[-1][1], b), max(sammanslagna[-1][2], zo)]
+        else:
+            sammanslagna.append([a, b, zo])
+    return [(a, b) for a, b, _ in sammanslagna], [zo for _, _, zo in sammanslagna]
+
+
+def _reglarnas_u(lv: Lattvagg, spann: list[tuple[float, float]]) -> list[float]:
+    """Reglarnas u: vid ändarna, vid dörrarnas sidor och c/c 600; ändarna först, och en regel vid en dörr eller ficka
+    som skulle överlappa en annan utgår."""
+    L = lv.langd
+    lagen_u: list[float] = []
+    for u in [0.0, L - H_VIRKE] + sorted({a - H_VIRKE for a, _ in spann} | {b for _, b in spann}):
+        if all(abs(u - v) >= H_VIRKE for v in lagen_u):
+            lagen_u.append(u)
+    for k in range(1, int(L // CC) + 1):
+        if all(abs(k * CC - u) >= H_VIRKE for u in lagen_u):
+            lagen_u.append(k * CC)
+    return [u for u in sorted(lagen_u) if 0.0 <= u <= L - H_VIRKE + 1e-6]
+
+
+def reglarna(kod: str) -> list[tuple[float, float]]:
+    """De lätta väggarnas reglar (u0, u1) längs väggen, för installationer som går i regelfacken."""
+    lv = next(lv for lv in LATTA if lv.kod == kod)
+    return [(u, u + H_VIRKE) for u in _reglarnas_u(lv, _spann(lv)[0])]
+
+
 def _stomme(lv: Lattvagg) -> Montage:
     v = lv.vagg
     p = Plan(lv.kod, f"Vägg {lv.kod}", T, beskrivning=f"Lätt vägg 45×70 C24, {lv.beskrivning}")
@@ -270,21 +307,7 @@ def _stomme(lv: Lattvagg) -> Montage:
         for q in P.polygoner(poly.difference(hindret), 100.0):
             p.profil(P.kontur(q), 0.0, T, typ=typ)
 
-    # dörrarnas utsträckning i stommen (öppningen och fickorna, också fickor som går in från en annan vägg) och
-    # överstyckets underkant; en öppning och dess ficka är ett spann
-    bitar = sorted([(d.u0, d.u1, d.hojd + (FICKA_SKENA if d.ficka else 0.0)) for d in INNERDORRAR if d.vagg == lv.kod]
-                   + [(a, b, z1 - H_VIRKE) for a, b, z1, _ in fickor(lv.kod)])
-    sammanslagna: list[list[float]] = []
-    for a, b, zo in bitar:
-        a, b = max(a, 0.0), min(b, L)
-        if b - a < 1.0:
-            continue
-        if sammanslagna and a <= sammanslagna[-1][1] + 1.0:
-            sammanslagna[-1][1:] = [max(sammanslagna[-1][1], b), max(sammanslagna[-1][2], zo)]
-        else:
-            sammanslagna.append([a, b, zo])
-    spann = [(a, b) for a, b, _ in sammanslagna]
-    over = [zo for _, _, zo in sammanslagna]
+    spann, over = _spann(lv)
     if lv.syll:
         for q in P.polygoner(box(0.0, 0.0, L, H_VIRKE).difference(
                 unary_union([box(a, -1.0, b, H_VIRKE + 1.0) for a, b in spann] or [Polygon()]))):
@@ -292,17 +315,7 @@ def _stomme(lv: Lattvagg) -> Montage:
     lagg("H", Polygon([(u, z - H_VIRKE) for u, z in topp] + [(u, z) for u, z in topp[::-1]]))
     # reglar: vid ändarna, c/c 600 och vid dörrarnas sidor (i dörröppningarna och fickorna bara kortreglar över
     # överstycket)
-    # ändarna först; en regel vid en dörr eller ficka som skulle överlappa en annan utgår
-    lagen_u: list[float] = []
-    for u in [0.0, L - H_VIRKE] + sorted({a - H_VIRKE for a, _ in spann} | {b for _, b in spann}):
-        if all(abs(u - v) >= H_VIRKE for v in lagen_u):
-            lagen_u.append(u)
-    for k in range(1, int(L // CC) + 1):
-        if all(abs(k * CC - u) >= H_VIRKE for u in lagen_u):
-            lagen_u.append(k * CC)
-    for u in sorted(lagen_u):
-        if not 0.0 <= u <= L - H_VIRKE + 1e-6:
-            continue
+    for u in _reglarnas_u(lv, spann):
         z0 = next((zo + H_VIRKE for (a, b), zo in zip(spann, over) if u + H_VIRKE > a + 1e-6 and u < b - 1e-6),
                   H_VIRKE)
         lagg("R", Polygon([(u, z0), (u + H_VIRKE, z0), (u + H_VIRKE, ztopp(u + H_VIRKE) - H_VIRKE),

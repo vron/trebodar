@@ -247,6 +247,12 @@ def main(argv: list[str] | None = None) -> None:
     pb = sub.add_parser("kollektor", help="köldbärarledningarna: kontroll (med krockar mot huset)")
     pb.add_argument("atgard", choices=("kontroll",),
                     help="kontroll: böjarna, genomföringarna och krockarna mot husets delar och de andra installationerna")
+    pa = sub.add_parser("brandlarm", help="brandlarmet: kontroll (med krockar mot huset), lista och ritningar")
+    pa.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
+                    help="kontroll: sammankopplingen, varnarnas placering, genomföringarna och krockarna mot husets "
+                         "delar och de andra installationerna; lista: varnare, dosor, kablar och "
+                         "genomföringar (markdown); ritning: plan 1 och källaren (B-01)")
+    pa.add_argument("--ut", type=Path, default=UT / "brandlarm")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pk.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar",
@@ -735,6 +741,47 @@ def main(argv: list[str] | None = None) -> None:
             sek = snitt(ma, step_fil, f"x={x_kb:g}", UT / "golvvarme-kollektor.json")
             pdf = golvvarmeritning.ritningar(utdrag, plan1, kallare, mb, vyn, _norr(), UT / "golvvarme" / "blad",
                                              arg.ut, kb, sek)
+            print(f"  {pdf}")
+    elif arg.kommando == "brandlarm":
+        import json
+        from . import brandlarmritning, installationer
+        from .planritning import snitt
+        regler = importlib.import_module("trebodar.kontrollregler")
+        bl = importlib.import_module("trebodar.hus.installationer.brandlarm.larm")
+        utdrag = bl.utdrag()
+        fel, anm = bl.kontroll()
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        if arg.atgard in ("kontroll", "lista"):
+            kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Brandlarm")
+            fel += [f"krock med {k}" for k in kr.installationer + kr.armering]
+            krockar = kr.stomme + kr.skikt
+        if arg.atgard == "kontroll":
+            print(f"  {len(utdrag['varnare'])} brandvarnare, {len(utdrag['dosor'])} dosor, "
+                  f"{len(utdrag['kablar'])} kablar, {len(utdrag['genomforingar'])} genomföringar: {len(fel)} fel, "
+                  f"{len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for x in anm:
+                print(f"    {x}")
+            print("  krockar mot husets delar (stommen var för sig):")
+            for k in krockar:
+                print(f"    {k}")
+            if fel:
+                raise SystemExit(1)
+        elif arg.atgard == "lista":
+            fil = arg.ut / "brandlarm.md"
+            fil.write_text(brandlarmritning.lista(utdrag, (fel, anm), krockar), encoding="utf-8")
+            (arg.ut / "brandlarm.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
+        else:
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            ma = ROT / "verktyg" / "modellanalys" / "ma"
+            skel = importlib.import_module("trebodar.skelett")
+            plan1 = snitt(ma, step_fil, 1200.0, UT / "brandlarm-plan1.json")
+            kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "brandlarm-kallare.json")
+            pdf = brandlarmritning.ritningar(utdrag, plan1, kallare, _norr(), UT / "brandlarm" / "blad", arg.ut)
             print(f"  {pdf}")
     elif arg.kommando == "kollektor":
         from . import installationer
