@@ -16,10 +16,9 @@ from shapely.geometry import box as plan_box
 
 from modellering import Del, Form, Kapad, Montage, Placering, box, prisma
 
-from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.invandigt.lattvaggar import GARDEROB, H_VIRKE, LATTA, T
-from trebodar.hus.invandigt.skikt import GIPS_YTTRE_W, innertakets_fall
+from trebodar.hus.invandigt.skikt import under_taket, upp_till_taket, vid_nocken
 from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
 from trebodar.hus.stomme.prefab.stolpar.stolpar import LD4_1, LD4_1_B
 from trebodar.material import C24, FONSTERTRA, FURU, GIPS, OSB
@@ -29,7 +28,6 @@ GIPS_T, OSB_T, SMYG_T, BLAD_T = 13.0, 12.0, 15.0, 22.0
 SPEL = 3.0                                                            # mellan bladen och ovanför dem
 H_OPPNING = 2100.0                                                    # öppningarnas höjd
 TAK_Z = H_OPPNING + H_VIRKE                                           # garderobens tak på överstyckena
-HOJD = 6000.0                                                         # prismornas höjd före kapningen vid taket
 POST_NORR = LD4_1[1] - LD4_1_B / 2                                    # stolpens norra sida (mot sovrummet)
 # frontens öppningar i GA:s u: väster om kåpan (djup) och framför kåpan (grund), med två reglar emellan i linje
 # med kåpans vägg L14
@@ -65,30 +63,6 @@ def _klipp(i: int, p: Polygon) -> Polygon:
     return p
 
 
-def _tak(p: Polygon, ned: float = 0.0) -> list[tuple[tuple[float, float, float], tuple[float, float, float]]]:
-    """Innertakets plan över ytan (punkt, normal uppåt), ned mm under det: ett per takfall ytan ligger under."""
-    c = p.centroid
-    fall = {}
-    for x, y in [*list(p.exterior.coords)[:-1], (c.x, c.y)]:
-        t = innertakets_fall(x + (c.x - x) * 0.05, y + (c.y - y) * 0.05)
-        if t:
-            fall[t.kod] = t
-    ut = []
-    for t in fall.values():
-        def z(x: float) -> float:
-            return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS - ned
-        ut.append(((c.x, c.y, z(c.x)), (z(c.x) - z(c.x + 1.0), 0.0, 1.0)))
-    return ut
-
-
-def _upp_till_taket(p: Polygon, z0: float, ned: float = 0.0) -> Form:
-    """Prisma över ytan från z0 upp till innertaket (ned mm under det)."""
-    f: Form = prisma(list(p.exterior.coords)[:-1], HOJD - z0, z0=z0)
-    for pkt, n in _tak(p, ned):
-        f = Kapad(f, pkt, n)
-    return f
-
-
 def _yta(i: int, d0: float, d1: float) -> Polygon:
     return _klipp(i, _band(i, d0, d1))
 
@@ -117,44 +91,21 @@ def _stomme() -> Montage:
             for hal in _halen(lv.origo[1], lv.origo[1] + T):
                 syll = syll - hal
         lagg("S", f"Syll 45×{fmt(T)} garderob {lv.kod}", syll)
-        for bit in _vid_nocken(band):
+        for bit in vid_nocken(band):
             lagg("H", f"Hammarband 45×{fmt(T)} garderob {lv.kod}",
-                 Kapad(_upp_till_taket(bit, 0.0), *_under(bit, H_VIRKE)))
+                 Kapad(upp_till_taket(bit, 0.0), *under_taket(bit, H_VIRKE)))
         pl = vaggdef(lv.kod).placering()
         for u in REGLAR[lv.kod]:
             r = Polygon([pl.punkt((uu, w, 0.0))[:2] for uu, w in ((u, 0.0), (u + 45.0, 0.0), (u + 45.0, T), (u, T))])
-            lagg("R", f"Regel 45×{fmt(T)} garderob {lv.kod}", _upp_till_taket(r, H_VIRKE, H_VIRKE))
+            lagg("R", f"Regel 45×{fmt(T)} garderob {lv.kod}", upp_till_taket(r, H_VIRKE, H_VIRKE))
         if lv.kod == "GA":
             for x0, x1 in _oppningar_x():
                 y0, y1 = lv.origo[1], lv.origo[1] + T
                 lagg("L", f"Överstycke 45×{fmt(T)} garderob", box(x0, x1, y0, y1, H_OPPNING, TAK_Z))
                 xm = (x0 + x1) / 2 - 22.5
                 lagg("R", f"Kortling 45×{fmt(T)} garderob",
-                     _upp_till_taket(plan_box(xm, y0, xm + 45.0, y1), TAK_Z, H_VIRKE))
+                     upp_till_taket(plan_box(xm, y0, xm + 45.0, y1), TAK_Z, H_VIRKE))
     return m
-
-
-def _vid_nocken(p: Polygon) -> list[Polygon]:
-    """Ytan delad vid nockbalkarnas linjer (ett takplan per del)."""
-    bitar = [p]
-    for b in S.BALKAR.values():
-        if b.typ == "nock":
-            ny = []
-            for q in bitar:
-                x0, y0, x1, y1 = q.bounds
-                if x0 < b.x < x1:
-                    ny += [q.intersection(plan_box(x0 - 1, y0 - 1, b.x, y1 + 1)),
-                           q.intersection(plan_box(b.x, y0 - 1, x1 + 1, y1 + 1))]
-                else:
-                    ny.append(q)
-            bitar = ny
-    return [q for q in bitar if isinstance(q, Polygon) and q.area > 1.0]
-
-
-def _under(p: Polygon, ned: float) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
-    """Planet ned mm under innertaket över ytan, med normalen nedåt (för att ta bort det som ligger under)."""
-    (pkt, n), *_ = _tak(p, ned)
-    return pkt, (-n[0], -n[1], -n[2])
 
 
 def _skikt() -> Montage:
@@ -165,7 +116,7 @@ def _skikt() -> Montage:
         for namn, d0, d1, mat, typ in (("OSB", -OSB_T, 0.0, OSB, "OS"),
                                         ("Gips", -OSB_T - GIPS_T, -OSB_T, GIPS, "GI")):
             assert utsida.contains(_band(i, d0, d1).buffer(-0.01)), "skikten mot rummet är OSB och gips"
-            f = _upp_till_taket(_band(i, d0, d1), 0.0)
+            f = upp_till_taket(_band(i, d0, d1), 0.0)
             if lv.kod == "GA":
                 for hal in _halen(ga.origo[1] + d0, ga.origo[1] + d1):
                     f = f - hal

@@ -1,12 +1,14 @@
 """De invändiga skiktens uppbyggnad (F-01), gemensam för ytterväggarnas insida, innertaket, innerväggarna och
 fönstrens smyg: ångbroms, installationsskikt och skivor, med tjocklekar och avstånd från stommen, och innertakets
-underkant (den yttre gipsskivan) som väggarna och kaminen går upp till.
+underkant (den yttre gipsskivan) som väggarna och kaminen går upp till, med former som går upp till den (för de
+inbyggda väggarna: garderoben och kökets inbyggnad).
 """
 from __future__ import annotations
 
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
+from shapely.geometry import box as plan_box
 
-from modellering import Material
+from modellering import Form, Kapad, Material, prisma
 
 from trebodar import skelett as S
 from trebodar.hus.rum import BADRUM
@@ -69,3 +71,54 @@ def innertak_vid(x: float, y: float) -> float:
     det lägsta)."""
     t = innertakets_fall(x, y)
     return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS if t else S.H_VAGG
+
+
+HOJD = 6000.0                                  # prismornas höjd före kapningen vid innertaket
+Plan3 = tuple[tuple[float, float, float], tuple[float, float, float]]
+
+
+def takplan(p: Polygon, ned: float = 0.0) -> list[Plan3]:
+    """Innertakets plan över ytan p (punkt, normal uppåt), ned mm under det: ett per takfall ytan ligger under."""
+    c = p.centroid
+    fall = {}
+    for x, y in [*list(p.exterior.coords)[:-1], (c.x, c.y)]:
+        t = innertakets_fall(x + (c.x - x) * 0.05, y + (c.y - y) * 0.05)
+        if t:
+            fall[t.kod] = t
+    ut = []
+    for t in fall.values():
+        def z(x: float) -> float:
+            return t.z_overkant(x) + GIPS_YTTRE_W[0] / S.COS - ned
+        ut.append(((c.x, c.y, z(c.x)), (z(c.x) - z(c.x + 1.0), 0.0, 1.0)))
+    return ut
+
+
+def upp_till_taket(p: Polygon, z0: float, ned: float = 0.0) -> Form:
+    """Prisma över ytan p från z0 upp till innertaket (ned mm under det)."""
+    f: Form = prisma(list(p.exterior.coords)[:-1], HOJD - z0, z0=z0)
+    for pkt, n in takplan(p, ned):
+        f = Kapad(f, pkt, n)
+    return f
+
+
+def under_taket(p: Polygon, ned: float) -> Plan3:
+    """Planet ned mm under innertaket över ytan p, med normalen nedåt (för att ta bort det som ligger under)."""
+    (pkt, n), *_ = takplan(p, ned)
+    return pkt, (-n[0], -n[1], -n[2])
+
+
+def vid_nocken(p: Polygon) -> list[Polygon]:
+    """Ytan p delad vid nockbalkarnas linjer (ett takplan per del)."""
+    bitar = [p]
+    for b in S.BALKAR.values():
+        if b.typ == "nock":
+            ny = []
+            for q in bitar:
+                x0, y0, x1, y1 = q.bounds
+                if x0 < b.x < x1:
+                    ny += [q.intersection(plan_box(x0 - 1, y0 - 1, b.x, y1 + 1)),
+                           q.intersection(plan_box(b.x, y0 - 1, x1 + 1, y1 + 1))]
+                else:
+                    ny.append(q)
+            bitar = ny
+    return [q for q in bitar if isinstance(q, Polygon) and q.area > 1.0]

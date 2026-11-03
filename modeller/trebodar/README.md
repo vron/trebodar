@@ -86,6 +86,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
+| Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
 | En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
@@ -173,9 +174,11 @@ Trebodar
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
-    │                           innerväggarna: lätta väggar L1–L14 och skikten på alla innerväggar,
+    │                           innerväggarna: lätta väggar L1–L14 och skikten på alla innerväggar, kökets
+    │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler),
     │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
-    └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar)
+    └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
+                                köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor)
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
@@ -213,7 +216,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   heter efter väggen eller fönstret (V3-GI01, F1-GI01; bröstningarnas F1-GIB). Innerdörrarna ID1–ID6 är
   fickdörrar med BLAD och SKENA (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
   fönsterbänken, SMYG-V, -H och -O smygen. Garderoben: GA-, GB- och GC-delar som väggarna, GD1 och GD2 dörrarna
-  (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket.
+  (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket. Kökets inbyggnad: L15 fronten, L16 gaveln och mellanväggarna L17 och
+  L18 med delar som de lätta väggarna (insidans gips GI02), KYL-, FRYS- och SKAFFERI-SMYG-V, -H, -O smygen,
+  LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R regel och
+  FG-OS01 golv, SKAFFERI-TAK; i köket KYL och FRYS vitvarorna med -SOCKEL-R, -B, -G (reglar, bottenskiva, galler),
+  -SKAP- (S sidor, B botten, T tak, H hyllor) och -FRONT1, -FRONT2, SKAFFERI-DORR och SKAFFERI-HYLLA-L4-1 osv.
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
@@ -303,6 +310,18 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
   snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
+- **Kökets inbyggnad** (hus/invandigt/kokets_inbyggnad.py och hus/inredning/kok.py, ärende #20; inte på
+  planritning 201): kyl, frys och skafferi framför L4 mot köket, från L2:s linje till 3NV, bakom en vägg av gips
+  från golvet till innertaket. Lätta väggar 45×70 (lägena i invandigt/lattvaggar.py) framför L4:s och 3NV:s färdiga
+  skikt: fronten L15, 833 mm från L4:s yta (13 mm söder om huvudstolpen LN1_3:s strävor och överstycke, som hamnar i
+  förrådet), gaveln L16 i L2:s linje och mellanväggarna L17 (mot huvudstolpen) och L18 upp till förrådsgolvet. Tre
+  öppningar i fronten från golvet till 2 100 med smyg av vitmålad furu: nischerna för integrerad kyl (560 × 1 780)
+  och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 500 fri, så att bänken längs 3NV ryms öster
+  om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
+  2 167 och en lucka 500 × 600 i gavelns norra del. Vitvarornas luft tas in genom socklarnas galler och går upp
+  bakom dem, genom en springa mellan förrådsgolvet och L4 och ut genom ett galler i fronten över varje nisch.
+  Köksbelysningens dimmer och brytare sitter på gaveln söder om luckan, uttagen till kylen och frysen på L4 i
+  förrådet.
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
   helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, 22 mm innanför
   panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
@@ -348,7 +367,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 ## Inte modellerat ännu
 
 Källardörren D1 (öppningen och smygens gips finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02),
-badrummets inredning, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
+badrummets inredning, köksbänken och köksön, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
 hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, elinstallationen utanför allrummet och
 köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken och avloppet läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

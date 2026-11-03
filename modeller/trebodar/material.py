@@ -131,6 +131,14 @@ ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad
 HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")
 
+# ------------------------------------------------------------------ inredning (hus/inredning)
+SKAPSTOMME = Material("Skåpstomme", "Skåpstommar och hyllor, vit melamin (köket, skafferiet)", 650, "#efeee9", 0.5,
+                      cad="#e4e0ee")
+VITVARA = Material("Vitvara", "Integrerade kyl- och frysskåp (förenklade som lådor)", 300, "#f2f2f0", 0.35,
+                   cad="#9fc2dc")
+SOCKELGALLER = Material("Sockelgaller", "Sockelgaller för vitvarornas ventilation, svartlackerad aluminium", 2700,
+                        "#1d1d1e", 0.55, cad="#34363a")
+
 # ------------------------------------------------------------------ el (hus/installationer/el)
 # armaturens lins lyser i renderingen när armaturen är tänd (typen lins); CAD-färgerna lyser fram i webbvisaren
 ARMATUR = Material("Armatur", "Armatur, aluminium pulverlackerad matt vit RAL 9003", 2700, "#f2f2ef", 0.5,

@@ -15,7 +15,8 @@ hörnen; på den inre sidan slutar de mot den andra väggens skikt. Ytterväggar
 med deras skikt; de lätta väggarnas stommar går genom ytterväggarnas skivor. Skikten går upp till innertaket: där
 taket lutar tvärs över väggen (väggar längs y, under takfall som lutar i x) är skivornas överkant sned som taket.
 
-Lägena och fickorna står i lattvaggar.py. Väggarna i en grupp (garderoben) byggs i hus/inredning.
+Lägena och fickorna står i lattvaggar.py. Väggarna i en grupp byggs av sin egen modul: garderoben i
+hus/inredning/garderob.py och kökets inbyggnad i kokets_inbyggnad.py.
 """
 from __future__ import annotations
 
