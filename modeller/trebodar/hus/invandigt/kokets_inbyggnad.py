@@ -3,14 +3,17 @@ innertaket, framför L4:s skikt mot köket från L2:s linje till 3NV:s insida, o
 i gaveln mot gången. Kylen, frysen, skåpen, fronterna och skafferiets dörr och hyllor är inredning
 (hus/inredning/kok.py).
 
-Fronten L15 och gaveln L16 (lägena i lattvaggar.py) är lätta väggar 45×70 C24 som de andra innerväggarna och står
-framför de befintliga väggarnas färdiga skikt (L4, 3NV); de går upp till innertaket (fronten snett efter båda
-takfallen, med hammarbandet delat i nocken) och har mot köket och gången OSB 12 och gips 13. Frontens gips står mot
+Fronten L15 (läget i lattvaggar.py) är en lätt vägg 45×70 C24 som de andra innerväggarna och står framför de
+befintliga väggarnas färdiga skikt (L4, 3NV); den går upp till innertaket (snett efter båda takfallen, med
+hammarbandet delat i nocken) och har mot köket OSB 12 och gips 13. Gaveln L16 mot gången är under förrådet bara två
+gipsskivor i L2:s yta mot gången, så att köket blir bredare (ärende #21); ovanför har den stomme 45×70 på en syll i
+förrådsgolvets överkant, med luckan, och OSB och gips mot gången. Fronten har en egen ändregel innanför gavelns
+gipsskivor, kylens vänstra sida. Frontens gips står mot
 huvudstolpen LN1_3:s strävor och topregel (de slutar vid y 7 362) och går förbi dem; där strävorna når in i frontens
 stomme upptill (över dem, strävornas underkant i stommens bakkant) har stommen och OSB:n ett urtag: hammarbandet
 slutar på var sida, en kortling under strävorna mellan två reglar på överstyckena bär gipsen och regeln mellan kylen
 och frysen slutar under kortlingen. Fronten har tre öppningar från golvet till 2 100 med överstycken: kylens och
-frysens nischer (600 fria) och skafferiets dörr (540 fri, bänken längs 3NV öster om den), med en regel mellan
+frysens nischer (600 fria) och skafferiets dörr (564 fri, bänken längs 3NV öster om den), med en regel mellan
 öppningarna och smyg av vitmålad furu 15 i stommens och skivornas djup. Mellan nischerna och mot skafferiet bara två
 gipsskivor (L17 och L18, mitt bakom regeln mellan öppningarna), upp till förrådets reglar.
 
@@ -33,8 +36,8 @@ from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.stomme.prefab.stolpar import ln1_3
 from trebodar.material import C24, FONSTERTRA, GIPS, OSB, VENTILATIONSDON
 
-from .lattvaggar import (H_VIRKE, K_BAK, K_FRAM, K_LUCKA, K_OPPNINGAR, K_SMYG, K_STOLPE, K_X0, K_X1, K_YTA, KOKET,
-                         LATTA, T)
+from .lattvaggar import (H_VIRKE, K_BAK, K_FRAM, K_GIPS, K_LUCKA, K_OPPNINGAR, K_SMYG, K_STOLPE, K_X0, K_X1, K_X_OPP,
+                         K_YTA, KOKET, LATTA, T)
 from .skikt import SKIVOR, under_taket, upp_till_taket, vid_nocken
 
 VAGGAR = {lv.kod: lv for lv in LATTA if lv.grupp == KOKET}
@@ -48,8 +51,10 @@ GALLER = (400.0, 100.0, 2650.0)                             # gallret över nisc
 CC = 600.0
 assert K_LUCKA[2] == Z_GOLV + GOLV_T, "luckans underkant i förrådsgolvets överkant"
 
-OPPNINGAR = {namn: (K_X0 + u0, K_X0 + u1) for namn, (u0, u1) in K_OPPNINGAR.items()}   # x i stommen
-X_VAST = K_X0 - T - OSB_T - GIPS_T                         # gavelns yta mot gången
+OPPNINGAR = {namn: (K_X_OPP + u0, K_X_OPP + u1) for namn, (u0, u1) in K_OPPNINGAR.items()}   # x i stommen
+X_VAST = K_X0 - T - OSB_T - GIPS_T                         # gavelns yta mot gången ovanför förrådet
+X_GANG = K_GIPS - 2 * GIPS_T                               # gavelns gipsskivor under förrådet, ytan mot gången
+Z_SYLL = K_LUCKA[2] - H_VIRKE                              # gavelns syll ovanför förrådet: gipsskivorna under den
 # gipsväggarna L17 och L18: två skivor mitt bakom frontens regel mellan öppningarna, och regeln över var och en
 MITT = {kod: VAGGAR[kod].origo[0] - T / 2 for kod in ("L17", "L18")}
 L17_X = (MITT["L17"] - GIPS_T, MITT["L17"] + GIPS_T)
@@ -78,9 +83,9 @@ def _regel(p: Polygon) -> Form:
 
 
 def _frontens_reglar() -> list[float]:
-    """Frontens reglar (x0): vid öppningarnas sidor (gaveln är kylens vänstra), i änden mot 3NV och c/c högst 600
-    däremellan där väggen är hel."""
-    xs = sorted({x for x0, x1 in OPPNINGAR.values() for x in (x0 - H_VIRKE, x1) if x > K_X0 - 1.0}
+    """Frontens reglar (x0): vid öppningarnas sidor (ändregeln mot gaveln är kylens vänstra), i änden mot 3NV och
+    c/c högst 600 däremellan där väggen är hel."""
+    xs = sorted({x for x0, x1 in OPPNINGAR.values() for x in (x0 - H_VIRKE, x1) if x > K_GIPS - 1.0}
                 | {K_X1 - H_VIRKE})
     ut = [xs[0]]
     for x in xs[1:]:
@@ -103,7 +108,7 @@ def _stomme() -> Montage:
     # strävornas toppar slutar hammarbandet, och en kortling mellan två reglar på överstyckena bär gipsen
     y0, y1 = K_FRAM, K_FRAM + T
     sx0, sx1, sz = STRAVOR
-    hel = [(a, b) for a, b in zip([K_X0] + [x1 for _, x1 in OPPNINGAR.values()],
+    hel = [(a, b) for a, b in zip([K_GIPS] + [x1 for _, x1 in OPPNINGAR.values()],
                                   [x0 for x0, _ in OPPNINGAR.values()] + [K_X1]) if b - a > 1.0]
     for a, b in hel:
         lagg("L15", "S", "Syll", box(a, b, y0, y1, 0.0, H_VIRKE))
@@ -117,17 +122,17 @@ def _stomme() -> Montage:
     lagg("L15", "K", "Kortling", box(sx0, sx1, y0, y1, sz - H_VIRKE, sz))
     for x0, x1 in OPPNINGAR.values():
         lagg("L15", "L", "Överstycke", box(x0, x1, y0, y1, H_OPPNING, H_OPPNING + H_VIRKE))
-    for a, b in ((K_X0, sx0), (sx1, K_X1)):
+    for a, b in ((K_GIPS, sx0), (sx1, K_X1)):
         for f in _hammarband(plan_box(a, y0, b, y1)):
             lagg("L15", "H", "Hammarband", f)
-    # gaveln L16 med luckan: reglar vid ändarna och luckans sidor, bröstning och överstycke
+    # gaveln L16 ovanför förrådet: syll från L4 till frontens ändregel med överkanten i förrådsgolvets (luckans
+    # underkant), reglar vid luckans sidor (den norra mot L4) och överstycke; under förrådet bara gipsskivorna
     xa, xb = K_X0 - T, K_X0
-    ya, yb = K_BAK, K_FRAM + T
+    ya, yb = K_BAK, K_FRAM
     (u0, u1, z0, z1), (yl0, yl1) = K_LUCKA, Y_LUCKA
-    lagg("L16", "S", "Syll", box(xa, xb, ya, yb, 0.0, H_VIRKE))
-    for y in sorted({ya, yl0 - H_VIRKE, yl1, yb - H_VIRKE}):                        # gavelns första är luckans
-        lagg("L16", "R", "Regel", _regel(plan_box(xa, y, xb, y + H_VIRKE)))
-    lagg("L16", "L", "Bröstning", box(xa, xb, yl0, yl1, z0 - H_VIRKE, z0))
+    lagg("L16", "S", "Syll", box(xa, xb, ya, yb, Z_SYLL, z0))
+    for y in (yl0 - H_VIRKE, yl1):
+        lagg("L16", "R", "Regel", upp_till_taket(plan_box(xa, y, xb, y + H_VIRKE), z0, H_VIRKE))
     lagg("L16", "L", "Överstycke", box(xa, xb, yl0, yl1, z1, z1 + H_VIRKE))
     for f in _hammarband(plan_box(xa, ya, xb, yb)):
         lagg("L16", "H", "Hammarband", f)
@@ -139,7 +144,8 @@ def _galler_x() -> list[tuple[str, float]]:
 
 
 def _skikt() -> Montage:
-    m = Montage("Skikt", beskrivning="Mot köket och gången OSB 12 och gips 13 upp till innertaket, inuti gips 13")
+    m = Montage("Skikt", beskrivning="Mot köket och gången OSB 12 och gips 13 upp till innertaket, inuti gips 13; "
+                                      "gaveln under förrådet två gipsskivor")
     # fronten mot köket, förbi gavelns ände till dess yta mot gången, med hål för öppningarna och gallren
     halen: list[Form] = [box(x0, x1, K_FRAM, K_YTA + 1.0, -1.0, H_OPPNING) for x0, x1 in OPPNINGAR.values()]
     b, h, z = GALLER
@@ -147,22 +153,26 @@ def _skikt() -> Montage:
     # gaveln mot gången, med hål för luckan
     (_, _, z0, z1), (yl0, yl1) = K_LUCKA, Y_LUCKA
     lucka = box(X_VAST - 1.0, K_X0, yl0, yl1, z0, z1)
-    # i hörnet möts skikten var för sig: frontens OSB fram till gavelns OSB och dess gips fram till gavelns yta,
-    # gavelns gips förbi änden över frontens OSB, så att gipsen går runt hörnet
+    # i hörnet möts skikten var för sig: frontens OSB fram till gavelns skivor, dess gips fram till gavelns yta
+    # under förrådet; gavelns skivor förbi frontens ände över dess OSB, så att gipsen går runt hörnet
     w = K_FRAM + T
-    for kod, typ, mat, d0, d1, hal, slut in (
-            ("L15", "OS", OSB, w, w + OSB_T, halen, K_X0 - T - OSB_T),
-            ("L15", "GI", GIPS, w + OSB_T, K_YTA, halen, X_VAST),
-            ("L16", "OS", OSB, K_X0 - T - OSB_T, K_X0 - T, [lucka], w),
-            ("L16", "GI", GIPS, X_VAST, K_X0 - T - OSB_T, [lucka], w + OSB_T)):
+    for kod, typ, mat, d0, d1, hal, slut, z in (
+            ("L15", "OS", OSB, w, w + OSB_T, halen, K_GIPS, 0.0),
+            ("L15", "GI", GIPS, w + OSB_T, K_YTA, halen, X_GANG, 0.0),
+            ("L16", "OS", OSB, K_X0 - T - OSB_T, K_X0 - T, [lucka], w, Z_SYLL),
+            ("L16", "GI", GIPS, X_VAST, K_X0 - T - OSB_T, [lucka], w + OSB_T, Z_SYLL)):
         yta = plan_box(slut, d0, K_X1, d1) if kod == "L15" else plan_box(d0, K_BAK, d1, slut)
-        f = upp_till_taket(yta, 0.0)
+        f = upp_till_taket(yta, z)
         for hl in hal:
             f = f - hl
         if typ == "OS" and kod == "L15":                                            # strävornas toppar
             f = f - upp_till_taket(plan_box(STRAVOR[0], d0 - 1.0, STRAVOR[1], d1 + 1.0), STRAVOR[2])
         namn = "OSB" if mat is OSB else "Gips"
         m.lagg(Del(f"{namn} {fmt(d1 - d0)} {kod}", f, mat), Placering(), f"{kod}-{typ}01")
+    # gaveln under förrådet: två gipsskivor upp till syllen, förbi frontens ände
+    for nr, (a, b) in enumerate(((X_GANG, X_GANG + GIPS_T), (X_GANG + GIPS_T, K_GIPS)), start=2):
+        m.lagg(Del(f"Gips {fmt(GIPS_T)} L16", box(a, b, K_BAK, w + OSB_T, 0.0, Z_SYLL), GIPS), Placering(),
+               f"L16-GI0{nr}")
     # inuti: gips på frontens insida i skafferiet upp till bärläkten och i skafferiets tak; gipsväggarna mellan
     # nischerna och mot skafferiet, två skivor upp till förrådets reglar
     x_dorr = OPPNINGAR["Skafferi"][1]

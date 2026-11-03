@@ -48,12 +48,12 @@ _G_X, _G_Y = 4405.0, 4989.5              # stolpen LD4_1:s västra sida, L6:s no
 # kökets inbyggnad (ärende #20 och #21, kokets_inbyggnad.py; kylen, frysen och skafferiets inredning i
 # hus/inredning/kok.py): kyl, frys och skafferi framför L4:s skikt mot köket, från L2:s linje till 3NV:s insida.
 # Frontens gips står mot huvudstolpens strävor och topregel (LN1_3, de slutar vid y 7 362), som hamnar i förrådet;
-# frontens stomme går runt deras toppar. Gaveln L16 i L2:s linje fram till frontens utsida; mellan nischerna och mot
-# skafferiet bara två gipsskivor (L17 och L18, mitt bakom frontens regel mellan öppningarna). Öppningarna i fronten (u
-# längs L15 från gaveln) är 600 fria mellan smygarna, dörren till skafferiet 540, så att bänken längs 3NV (700 djup,
-# hus/inredning/koksbank.py) ryms öster om dörren. Luckan till förrådet ovanför sitter i gavelns norra del (u längs
-# L16 från L4:s yta), med underkanten i förrådsgolvets överkant, och regelfacket söder om den rymmer köksbelysningens
-# dimmer och brytare (hus/installationer/el/rum/kok.py), med rören rakt upp.
+# frontens stomme går runt deras toppar. Gaveln L16 i L2:s linje: under förrådet bara två gipsskivor i L2:s yta mot
+# gången, ovanför stomme med luckan till förrådet (i gavelns norra del, u längs L16 från L4:s yta, underkanten i
+# förrådsgolvets överkant), OSB och gips; mellan nischerna och mot skafferiet också bara två gipsskivor (L17 och L18,
+# mitt bakom frontens regel mellan öppningarna). Fronten har en egen ändregel innanför gavelns skivor. Öppningarna i
+# fronten (u från ändregeln) är 600 fria mellan smygarna och dörren till skafferiet resten fram till _K_DORR_OST, där
+# bänken längs 3NV (700 djup, hus/inredning/koksbank.py) börjar.
 KOKET = "Kökets inbyggnad"
 K_SMYG = 15.0                            # smygarna i öppningarna och luckan
 K_BAK = 6542.0 + T + SKIVOR_T            # L4:s yta mot köket
@@ -61,11 +61,15 @@ K_STOLPE = 6662.0                        # huvudstolpen LN1_3:s södra sida
 K_STRAVA = ln1_3.MITT[1] + ln1_3.TOPPREGEL                   # där huvudstolpens strävor och topregel slutar
 K_FRAM = K_STRAVA - SKIVOR[0][1] - T     # frontens stomme, insidan: gipsen mot strävornas ändar
 K_YTA = K_FRAM + T + SKIVOR_T            # frontens yta mot köket
-K_X0 = 11050.0                           # gavelns stomme, östra sidan (som L2)
+K_GIPS = 11050.0 - T - SKIVOR_T + 2 * SKIVOR[1][1]   # gavelns två gipsskivor under förrådet, insidan (ytan mot
+                                                      # gången i L2:s, 11 050 − T − skivorna)
+K_X0 = K_GIPS + T                        # gavelns stomme ovanför förrådet, östra sidan
+K_X_OPP = K_GIPS + H_VIRKE               # frontens ändregel, östra sidan: öppningarna börjar här
 K_X1 = X_3NV - SKIVOR_T                  # 3NV:s insida
-_K_OPP, _K_DORR, _K_MELLAN = 600.0 + 2 * K_SMYG, 540.0 + 2 * K_SMYG, H_VIRKE
+_K_OPP, _K_MELLAN = 600.0 + 2 * K_SMYG, H_VIRKE
+_K_DORR_OST = 12970.0                    # skafferidörrens östra sida i stommen (bänken längs 3NV öster om den)
 K_OPPNINGAR = {"Kyl": (0.0, _K_OPP), "Frys": (_K_OPP + _K_MELLAN, 2 * _K_OPP + _K_MELLAN),
-               "Skafferi": (2 * (_K_OPP + _K_MELLAN), 2 * (_K_OPP + _K_MELLAN) + _K_DORR)}
+               "Skafferi": (2 * (_K_OPP + _K_MELLAN), _K_DORR_OST - K_X_OPP)}
 K_LUCKA = (45.0, 545.0, 2167.0, 2767.0)   # luckans öppning i gavelns stomme: u0, u1, z0, z1
 LATTA = (
     Lattvagg("L1", (9440.0, 2760.0), _PX, X_3NV - 9440.0, "mellan sovrummet och kontoret i höger huskropp"),
@@ -87,13 +91,13 @@ LATTA = (
              grupp=GARDEROB),
     Lattvagg("GA", (_G_X + _G_HORN, _G_Y), _PX, 7278.0 - SKIVOR_T - (_G_X + _G_HORN),
              "garderobens front med dörrarna, fram till L7:s skikt", grupp=GARDEROB),
-    Lattvagg("L15", (K_X0, K_FRAM), _PX, K_X1 - K_X0, "kökets inbyggnad, fronten med kylen, frysen och skafferiet",
-             grupp=KOKET),
-    Lattvagg("L16", (K_X0, K_BAK), _PY, K_FRAM + T - K_BAK, "kökets inbyggnad, gaveln mot gången med luckan",
-             grupp=KOKET),
-    Lattvagg("L17", (K_X0 + _K_OPP + _K_MELLAN / 2 + T / 2, K_STOLPE), _PY, K_FRAM - K_STOLPE,
+    Lattvagg("L15", (K_GIPS, K_FRAM), _PX, K_X1 - K_GIPS,
+             "kökets inbyggnad, fronten med kylen, frysen och skafferiet", grupp=KOKET),
+    Lattvagg("L16", (K_X0, K_BAK), _PY, K_FRAM - K_BAK,
+             "kökets inbyggnad, gaveln mot gången (två gipsskivor, stomme med luckan ovanför förrådet)", grupp=KOKET),
+    Lattvagg("L17", (K_X_OPP + _K_OPP + _K_MELLAN / 2 + T / 2, K_STOLPE), _PY, K_FRAM - K_STOLPE,
              "kökets inbyggnad, mellan kylen och frysen (två gipsskivor)", grupp=KOKET),
-    Lattvagg("L18", (K_X0 + 2 * _K_OPP + 1.5 * _K_MELLAN + T / 2, K_BAK), _PY, K_FRAM - K_BAK,
+    Lattvagg("L18", (K_X_OPP + 2 * _K_OPP + 1.5 * _K_MELLAN + T / 2, K_BAK), _PY, K_FRAM - K_BAK,
              "kökets inbyggnad, mellan frysen och skafferiet (två gipsskivor)", grupp=KOKET),
 )
 VAGGAR = {lv.kod: lv.vagg for lv in LATTA}

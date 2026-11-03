@@ -225,7 +225,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   fickdörrar med BLAD och SKENA (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
   fönsterbänken, SMYG-V, -H och -O smygen. Garderoben: GA-, GB- och GC-delar som väggarna, GD1 och GD2 dörrarna
   (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket. Kökets inbyggnad: L15 fronten och L16 gaveln med delar som de lätta
-  väggarna (K kortlingen under huvudstolpens strävor, insidans gips GI02), gipsväggarna L17 och L18 (GI01, GI02),
+  väggarna (K kortlingen under huvudstolpens strävor, insidans gips GI02, gavelns gipsskivor GI02 och GI03),
+  gipsväggarna L17 och L18 (GI01, GI02),
   KYL-, FRYS- och SKAFFERI-SMYG-V, -H, -O smygen,
   LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R reglar och
   FG-OS01 golv, SKAFFERI-TAK; i köket KYL och FRYS vitvarorna med -SOCKEL-R, -B, -G (reglar, bottenskiva, galler),
@@ -343,13 +344,14 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   från golvet till innertaket. Lätta väggar 45×70 (lägena i invandigt/lattvaggar.py) framför L4:s och 3NV:s färdiga
   skikt: fronten L15, 738 mm från L4:s yta, med gipsen mot huvudstolpen LN1_3:s strävor och topregel (som hamnar i
   förrådet; stommen och OSB:n har ett urtag runt deras toppar, med en kortling under dem), och gaveln L16 i L2:s
-  linje. Mellan nischerna och mot skafferiet bara två gipsskivor (L17 mot huvudstolpen och L18), upp till förrådets
-  reglar. Tre öppningar i fronten från golvet till 2 100, med en regel emellan och smyg av vitmålad furu: nischerna
-  för integrerad kyl (560 × 1 780) och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 540 fri,
+  linje: under förrådet bara två gipsskivor i L2:s yta mot gången, ovanför stomme på en syll med luckan; fronten har
+  en egen ändregel innanför gipsskivorna. Mellan nischerna och mot skafferiet också bara två gipsskivor (L17 mot
+  huvudstolpen och L18), upp till förrådets reglar. Tre öppningar i fronten från golvet till 2 100, med en regel emellan och smyg av vitmålad furu: nischerna
+  för integrerad kyl (560 × 1 780) och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 564 fri,
   så att bänken längs 3NV (700) ryms öster om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
   2 167 och en lucka 500 × 600 i gavelns norra del. Vitvarornas luft tas in genom socklarnas galler och går upp
   bakom dem, genom en springa mellan förrådsgolvet och L4 och ut genom ett galler i fronten över varje nisch.
-  Köksbelysningens dimmer och brytaren över den sitter på gaveln söder om luckan, uttagen till kylen och frysen på
+  Köksbelysningens dimmer och brytaren över den sitter på 2B mot gången, mitt emot gaveln, uttagen till kylen och frysen på
   L4 i förrådet.
 - **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
   användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
