@@ -20,6 +20,11 @@ FURU = Material("Furu", "Furu, hyvlad och oljad (trappa)", 500, "#dcb47e", 0.46,
                 rendering=rendering(art="furu", yta="olja", riktning="x", tvars="y"), cad="#c98a52")
 BRADA = Material("Bräda", "Hyvlade granbrädor 12 mm (fickdörrarnas fickor, i stället för OSB)", 450, "#e3cfa3", 0.74,
                  textur="virke", rendering=_GRAN, cad="#e3cb92")
+TRALL = Material("Trall", "Trall, tryckimpregnerad furu NTR AB, grånad (altanen)", 550, "#a29d94", 0.86,
+                 textur="virke", rendering=rendering(art="furu", yta="granad", riktning="x", tvars="y"), cad="#a7a198")
+TRYCKIMP = Material("Tryckimpregnerat", "Tryckimpregnerat virke NTR AB (altanens bjälkar och bärlinor)", 550,
+                    "#b9b48f", 0.8, textur="virke", rendering=rendering(art="furu", yta="impregnerad", riktning="x",
+                                                                        tvars="y"), cad="#a9b58a")
 LARK = Material("Lärk", "Sibirisk lärk, obehandlad (trätrappa ute)", 600, "#d2a872", 0.74, textur="virke",
                 rendering=rendering(art="lark", riktning="x", tvars="y"), cad="#d6ad74")
 GL30H = Material("GL30h", "Limträ GL30h", 430, "#e3cfa3", 0.7, textur="virke",

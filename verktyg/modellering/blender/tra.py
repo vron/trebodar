@@ -199,6 +199,10 @@ YTOR: dict[str, dict[str, object]] = {
     "lack": {"grovhet": 0.42, "gamma": 1.12, "ton": (1.0, 0.97, 0.9), "vit": 0.0, "lack": 0.7, "relief": 0.35},
     "vitpigmenterad": {"grovhet": 0.5, "gamma": 1.0, "ton": (1.0, 1.0, 1.0), "vit": 0.22, "lack": 0.0,
                        "relief": 0.6},
+    # tryckimpregnerat: grönaktigt; grånat: utomhus i några år, silvergrått (olika mycket per bit och längs fibrerna)
+    "impregnerad": {"grovhet": 0.78, "gamma": 1.05, "ton": (0.86, 0.95, 0.8), "vit": 0.0, "lack": 0.0, "relief": 1.0},
+    "granad": {"grovhet": 0.88, "gamma": 1.0, "ton": (1.0, 1.0, 1.0), "vit": 0.0, "lack": 0.0, "relief": 1.8,
+               "gra": 0.9, "grafarg": "#8c8780"},
 }
 
 
@@ -323,6 +327,11 @@ def virke(g: Graf, p: dict) -> None:
         col = g.vmatte("MULTIPLY", col, yta["ton"])
     if _f(yta, "vit", 0.0) > 0:
         col = g.blanda(yta["vit"], col, rgba("#f4efe6"))
+    if _f(yta, "gra", 0.0) > 0:                   # grånat: mot silvergrått med träets ljushet, olika per bit
+        ljushet = g.vmatte("DOT_PRODUCT", col, (0.2126, 0.7152, 0.0722))
+        gra = g.ljus(rgba(str(yta["grafarg"])), lin((ljushet, 1.2), (rob, 0.35), bas=0.35))
+        andel = m("MINIMUM", lin((rob, 0.2), (m("SUBTRACT", fib, 0.5), 0.4), bas=_f(yta, "gra", 0.0) - 0.1), 1.0)
+        col = g.blanda(andel, col, gra)
     rel = _f(yta, "relief", 1.0) * _f(d, "relief", 1.0)
     hojd = lin((m("SUBTRACT", fib, 0.5), 0.00025 * rel), (porer, -0.00035 * rel), (ton, 0.00008 * rel),
                (kvist, 0.00005))

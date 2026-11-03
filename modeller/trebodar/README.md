@@ -173,6 +173,7 @@ Trebodar
     │                           brandlarm och teknikrummets utrustning (hus/installationer/el, ventilation, vatten,
     │                           golvvarme, kollektor och brandlarm, se deras README)
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
+    ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
@@ -326,6 +327,12 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
   mot 2B:s gips och mitt mellan 2A:s och L6:s, för att se hur rummet räcker.
+- **Altanen** (hus/altan/altan.py, ärende #30): trädäck framför skjutpartiet 2SV mellan fasaderna 1NV och 3SO, från
+  2SV ut till gaveln 1SV:s linje, överkanten i golvets höjd. Varje bräda (grånad tryckimpregnerad trall 34 × 135) är
+  en egen del; `LANGS` väljer brädornas riktning (längs 2SV eller tvärs) och `RAM` om en ram av brädor går runt om.
+  Bjälkar 45×145 c/c 600 på bärlinor 2 × 45×145 och betongplintar Ø200 i borrade hål i berget (marken har hålen),
+  sargbräda längs de fria kanterna, hål runt stuprören i de inre hörnen. Delarna heter AL-T (brädorna), AL-RAM,
+  AL-S (sargen), AL-B (bjälkarna), AL-L (bärlinorna) och AL-P (plintarna).
 - **Ändbrädorna** (hus/invandigt/andbrador.py, ärende #31): där väggarna 1B, 1D, 2A och 2B slutar fritt i ett rum
   en bräda av oljad ask 22 över änden (stommen och skikten på båda sidorna), från golvet till innertaket, som smygen
   runt fönstren; delarna heter `<vägg>-ANDE`.

@@ -3,6 +3,7 @@ from modellering import Montage
 
 from trebodar.byggdelar.genomforing import genomfor, genomfor_alla
 
+from .altan import altan
 from .armering import armering
 from .fasad import fasad
 from .fonster_och_dorrar import fonster_och_dorrar
@@ -33,6 +34,7 @@ def montage() -> Montage:
     m.lagg(invandigt.montage())
     m.lagg(inredning.montage())
     m.lagg(trappa.montage())
+    m.lagg(altan.montage())
     m.lagg(kamin.montage())
     # skorstenens och förbränningsluftens hål genom taket, isoleringen och innertaket
     for (hal, lada), montage in ((kamin.genomforing(), ("Tak", "Isolering", "Invändigt")),
