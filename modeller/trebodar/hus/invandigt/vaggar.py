@@ -4,14 +4,18 @@ De lätta väggarna (LATTA) enligt planritning 201 rev 02 med modellens bärande
 45×70 C24 med syll, reglar c/c 600 och vid ändar och dörrar, överstycke och kortreglar över dörrarna och hammarband
 under innertaket (snett där taket lutar längs väggen). Där en stolpes syll ligger under väggen har väggen ingen egen.
 Skikten (invandigt.SKIVOR, mot badrummet SKIVOR_VATRUM) på båda sidor av varje innervägg, från bjälklaget upp till
-innertaket, med hål för dörrarna (oppningar.INNERDORRAR) och runt delar som sticker ut ur väggen (stolpar, klossar).
+innertaket, med hål för dörrarna (oppningar.INNERDORRAR) och där delar går genom ett skikt (stolpar, klossar), var
+skikt för sig: når en del bara en bit in i skiktet går skiktet över den med ett urtag (gipsen över stolparna 45×95 i
+de lätta väggarna, som sticker ut 12,5 mm, en halv millimeter mer än OSB:n).
 Fickdörrarnas fickor: hela stommens tjocklek är fickan (inga reglar), och OSB:n byts mot brädor 12 mm på båda sidor
 (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13), upp till överstyckets överkant.
 
 Möten: stommarna möts, och en lätt väggs stomme går fram till ytterväggens installationsskikt. Skikten möts: de
 genomgående väggarnas skikt läggs först (ORDNING) och skikten på väggarna som möter dem slutar mot dem. Där en vägg
-slutar mot en annan går dess skikt förbi änden till den andra väggens yttre yta (hornet), så att skikten möts runt
-hörnen; på den inre sidan slutar de mot den andra väggens skikt. Ytterväggarnas insida går runt de bärande väggarna
+slutar mot en annan (ytterhörnet, Horn) möts skikten var för sig: väggens skikt går förbi änden fram till den andra
+väggens skikt på samma djup och den andra väggens skikt förbi sin ände över skikten innanför, så att gipsen (och i
+badrummet tätskiktet och kaklet) går runt hörnet och OSB:n inte syns; på den inre sidan slutar de mot den andra
+väggens skikt. Ytterväggarnas insida går runt de bärande väggarna
 med deras skikt; de lätta väggarnas stommar går genom ytterväggarnas skivor. Skikten går upp till innertaket: där
 taket lutar tvärs över väggen (väggar längs y, under takfall som lutar i x) är skivornas överkant sned som taket.
 
@@ -86,13 +90,22 @@ def _snett_tak(v: S.Vaggdef, u: float, w0: float, w1: float) -> tuple[tuple[floa
     return (u, w0, za), (0.0, -k, 1.0)
 
 
-def _horn(v: S.Vaggdef, kod: str) -> dict[tuple[int, int], float]:
-    """Hur långt skikten på väggens sidor går förbi dess början (0) och slut (1), {(ände, sida): mm}: där väggen slutar
-    mot en annan innervägg i rät vinkel och den andra väggen inte fortsätter på sidan (hörnets utsida), till den andra
-    väggens yttre yta, så att skikten går runt hörnet. På hörnets insida och i T-möten slutar skikten mot den andra
-    väggens skikt (ORDNING)."""
+@dataclass(frozen=True)
+class Horn:
+    """Ett ytterhörn där väggen slutar mot en annan: hur långt skikten går förbi änden till den andra väggens yttre
+    yta, den andra väggen, dess ände i hörnet (0, 1) och dess sida bort från väggen."""
+    forbi: float
+    annan: str
+    ande: int | None
+    sida: int
+
+
+def _horn(v: S.Vaggdef, kod: str) -> dict[tuple[int, int], Horn]:
+    """Ytterhörnen vid väggens början (0) och slut (1), {(ände, sida): Horn}: där väggen slutar mot en annan
+    innervägg i rät vinkel och den andra väggen inte fortsätter på sidan (hörnets utsida) går skikten runt hörnet
+    (_forbi). På hörnets insida och i T-möten slutar skikten mot den andra väggens skikt (ORDNING)."""
     pl = v.placering()
-    ut: dict[tuple[int, int], float] = {}
+    ut: dict[tuple[int, int], Horn] = {}
     for ande, (u_slut, steg) in enumerate(((0.0, -1.0), (v.langd, 1.0))):
         p = pl.punkt((u_slut + steg, v.tjocklek / 2, 0.0))
         for k in [*S.INNERVAGGAR, *(lv.kod for lv in LATTA if not lv.grupp)]:
@@ -113,13 +126,52 @@ def _horn(v: S.Vaggdef, kod: str) -> dict[tuple[int, int], float]:
                 ua, ub_ = sorted((u_slut, u_slut + steg * e))
                 forbi = _band(v, ua, ub_, w0, w1)
                 if forbi.intersection(stomme_b).area < 1.0:          # den andra väggen fortsätter inte här
-                    ut[(ande, sida)] = e
+                    # den andra väggens ände i hörnet: där väggens stomme slutar på sidan
+                    u_horn = Pb.punkt(pl.punkt((u_slut, 0.0 if sida < 0 else v.tjocklek, 0.0)))[0]
+                    b_ande = 0 if abs(u_horn) < 1.0 else 1 if abs(u_horn - b.langd) < 1.0 else None
+                    ut[(ande, sida)] = Horn(e, k, b_ande, bort)
             break
     return ut
 
 
+def _forbi(kod: str, ande: int, sida: int, inre: float, utanfor: float) -> float:
+    """Hur långt ett skikt på väggens sida går förbi änden (inre och utanfor: skiktens tjocklek innanför och
+    utanför det). I ett ytterhörn möts skikten var för sig: där väggen slutar mot en annan går skiktet fram till den
+    andra väggens skikt på samma djup, och den andra väggens skikt går förbi sin ände över skikten innanför, så att
+    gipsen och tätskiktet går runt hörnet och OSB:n inte syns."""
+    h = _hornen()
+    if (ande, sida) in h[kod]:
+        return h[kod][(ande, sida)].forbi - utanfor
+    mot = {(x.annan, x.ande, x.sida) for hv in h.values() for x in hv.values()}
+    return inre if (kod, ande, sida) in mot else 0.0
+
+
+@cache
+def _hornen() -> dict[str, dict[tuple[int, int], Horn]]:
+    return {kod: _horn(vaggdef(kod), kod) for kod in ORDNING}
+
+
 def _yta(topp: list[tuple[float, float]]) -> Polygon:
     return Polygon([(topp[0][0], 0.0), (topp[-1][0], 0.0)] + topp[::-1])
+
+
+def _i_skiktet(v: S.Vaggdef, band: Polygon, w0: float, w1: float, hinder: list[Hinder]
+               ) -> tuple[list[Polygon], list[tuple[float, float, float, float, float, float]]]:
+    """Hindren som når in i skiktet w0–w1 (bandet): hål i väggens (u, z) där de går genom hela skiktet, annars urtag
+    (u0, u1, w0, w1, z0, z1) i skiktet, som då går över dem (t.ex. gipsen över en stolpe som sticker ut lite mer än
+    OSB:ns tjocklek)."""
+    Pi = v.placering().invers()
+    hal, urtag = [], []
+    for poly, z0, z1 in hinder:
+        g = poly.intersection(band)
+        if g.area > 1.0:
+            pkt = [Pi.punkt((x, y, 0.0)) for x, y in g.exterior.coords]
+            us, ws = [p[0] for p in pkt], [p[1] for p in pkt]
+            if min(ws) <= w0 + 0.01 and max(ws) >= w1 - 0.01:
+                hal.append(box(min(us), z0, max(us), z1))
+            else:
+                urtag.append((min(us), max(us), max(min(ws), w0), min(max(ws), w1), z0, z1))
+    return hal, urtag
 
 
 def _i_vaggen(v: S.Vaggdef, band: Polygon, hinder: list[Hinder]) -> list[Polygon]:
@@ -211,25 +263,25 @@ def _skikt() -> _Skikt:
         # fickdörrarnas fickor (också de som går in från en annan vägg): brädor i stället för OSB, upp till
         # överstyckets överkant
         fickzon = unary_union([box(a, 0.0, b, z1) for a, b, z1, _ in fickor(kod)] or [Polygon()])
-        horn = _horn(v, kod)
         plan: dict[str, Plan] = {}
         res.band[kod] = []
         for sida in (-1, 1):
             w_yta = 0.0 if sida < 0 else v.tjocklek
             segment = _skivor(v, sida)
             for i, (a, b, skivor) in enumerate(segment):
-                a -= horn.get((0, sida), 0.0) if i == 0 else 0.0
-                b += horn.get((1, sida), 0.0) if i == len(segment) - 1 else 0.0
                 tjock = sum(t for _, t, _, _ in skivor)
-                w_ut = w_yta + sida * tjock
-                wa, wb = sorted((w_yta, w_ut))
-                band = _band(v, a, b, wa, wb)
+                wa, wb = sorted((w_yta, w_yta + sida * tjock))
                 tak = _snett_tak(v, (a + b) / 2, wa, wb)
-                omrade = _yta(_topp(v, a, b, wa, wb, hogst=tak is not None)).difference(
-                    unary_union(dorrar + _i_vaggen(v, band, hinder)))
-                ws = w_yta
+                ws, inre = w_yta, 0.0
                 for namn, t, typ, mat in skivor:
                     w0, w1 = sorted((ws, ws + sida * t))
+                    utanfor = tjock - inre - t
+                    ua = a - (_forbi(kod, 0, sida, inre, utanfor) if i == 0 else 0.0)
+                    ub = b + (_forbi(kod, 1, sida, inre, utanfor) if i == len(segment) - 1 else 0.0)
+                    band = _band(v, ua, ub, w0, w1)
+                    hal, urtag = _i_skiktet(v, band, w0, w1, hinder)
+                    omrade = _yta(_topp(v, ua, ub, wa, wb, hogst=tak is not None)).difference(
+                        unary_union(dorrar + hal))
                     delar = [(namn, typ, mat, omrade)]
                     if namn == "OSB" and not fickzon.is_empty:
                         delar = [(namn, typ, mat, omrade.difference(fickzon)),
@@ -237,9 +289,12 @@ def _skikt() -> _Skikt:
                     for namn_, typ_, mat_, yta in delar:
                         p = plan.setdefault(namn_, Plan(kod, f"{namn_} {kod}", t, material=mat_))
                         for q in P.polygoner(yta, 100.0):
-                            p.skiva(P.kontur(q), P.hal(q), w0, w1, typ_, mat_, f"{namn_} {kod}", kapa=tak)
+                            x0, z0, x1, z1 = q.bounds
+                            ur = [r for r in urtag if r[0] < x1 and r[1] > x0 and r[4] < z1 and r[5] > z0]
+                            p.skiva(P.kontur(q), P.hal(q), w0, w1, typ_, mat_, f"{namn_} {kod}", kapa=tak, urtag=ur)
+                    res.band[kod].append((band, 0.0, 10000.0))
                     ws += sida * t
-                res.band[kod].append((band, 0.0, 10000.0))
+                    inre += t
         lagda += res.band[kod]
         m = Montage(f"Skikt {kod}", beskrivning="OSB och gips, mot badrummet plywood, gips, tätskikt och kakel")
         for p in plan.values():

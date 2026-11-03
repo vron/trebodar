@@ -303,9 +303,12 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   stommens tjocklek, med brädor 12 mm i stället för OSB (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13), också
   där den går in i en annan vägg (lattvaggar.fickor). ID3 stängs mot L1:s gips och fickan slutar vid L3, ID4:s ficka
   vid L4.
-- **Skiktens hörn och överkant**: där en innervägg slutar mot en annan går skikten på hörnets utsida förbi änden till
-  den andra väggens yttre yta, och på insidan slutar de mot den andra väggens skikt. Skikten går upp till innertaket,
-  och där taket lutar tvärs över väggen är skivornas överkant sned som taket.
+- **Skiktens hörn och överkant**: där en innervägg slutar mot en annan möts skikten på hörnets utsida var för sig:
+  väggens skikt går förbi änden fram till den andra väggens skikt på samma djup och den andra väggens skikt förbi sin
+  ände över skikten innanför, så att gipsen (i badrummet tätskiktet och kaklet) går runt hörnet och OSB:n inte syns;
+  på insidan slutar de mot den andra väggens skikt. Där en del bara når en bit in i ett skikt går skiktet över den med
+  ett urtag: gipsen går över stolparna 45×95 i de lätta väggarna (12,5 mm utanför reglarna) och OSB:n slutar mot dem.
+  Skikten går upp till innertaket, och där taket lutar tvärs över väggen är skivornas överkant sned som taket.
 - **Garderoben i sovrummet** (hus/inredning, ärende #16): lätta väggar GC, GB och GA (lägena i
   invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
   snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i

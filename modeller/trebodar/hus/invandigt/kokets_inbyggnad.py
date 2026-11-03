@@ -134,12 +134,15 @@ def _skikt() -> Montage:
     # gaveln mot gången, med hål för luckan
     (_, _, z0, z1), (yl0, yl1) = K_LUCKA, Y_LUCKA
     lucka = box(X_VAST - 1.0, K_X0, yl0, yl1, z0, z1)
+    # i hörnet möts skikten var för sig: frontens OSB fram till gavelns OSB och dess gips fram till gavelns yta,
+    # gavelns gips förbi änden över frontens OSB, så att gipsen går runt hörnet
     w = K_FRAM + T
-    for kod, typ, mat, d0, d1, hal in (
-            ("L15", "OS", OSB, w, w + OSB_T, halen), ("L15", "GI", GIPS, w + OSB_T, K_YTA, halen),
-            ("L16", "OS", OSB, K_X0 - T - OSB_T, K_X0 - T, [lucka]),
-            ("L16", "GI", GIPS, X_VAST, K_X0 - T - OSB_T, [lucka])):
-        yta = plan_box(X_VAST, d0, K_X1, d1) if kod == "L15" else plan_box(d0, K_BAK, d1, K_FRAM + T)
+    for kod, typ, mat, d0, d1, hal, slut in (
+            ("L15", "OS", OSB, w, w + OSB_T, halen, K_X0 - T - OSB_T),
+            ("L15", "GI", GIPS, w + OSB_T, K_YTA, halen, X_VAST),
+            ("L16", "OS", OSB, K_X0 - T - OSB_T, K_X0 - T, [lucka], w),
+            ("L16", "GI", GIPS, X_VAST, K_X0 - T - OSB_T, [lucka], w + OSB_T)):
+        yta = plan_box(slut, d0, K_X1, d1) if kod == "L15" else plan_box(d0, K_BAK, d1, slut)
         f = upp_till_taket(yta, 0.0)
         for hl in hal:
             f = f - hl

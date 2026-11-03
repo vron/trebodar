@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
-from modellering import Del, Kapad, Material, Montage, Placering
+from modellering import Del, Form, Kapad, Material, Montage, Placering, box
 
 from .. import skelett as S
 from ..material import C24
@@ -77,14 +77,22 @@ class Plan:
 
     def skiva(self, pts: Sequence[Sequence[float]], hal: Sequence[Sequence[Sequence[float]]], w0: float, w1: float,
               typ: str, material: Material, namn_del: str, namn: str | None = None,
-              kapa: tuple[Sequence[float], Sequence[float]] | None = None) -> Plan:
+              kapa: tuple[Sequence[float], Sequence[float]] | None = None,
+              urtag: Sequence[tuple[float, float, float, float, float, float]] = ()) -> Plan:
         """Skiva med kontur och hål i (u, z), från w0 till w1 genom väggen. kapa: (punkt, normal) i väggens system,
-        planet som skivan kapas av (det som ligger åt normalen tas bort), t.ex. ett snett innertak."""
+        planet som skivan kapas av (det som ligger åt normalen tas bort), t.ex. ett snett innertak. urtag: lådor
+        (u0, u1, w0, w1, z0, z1) som tas ur skivan, där en del når en bit in i den (skivan går över delen)."""
         d = virke.skiva([tuple(p) for p in pts], w1 - w0, material, namn_del, [[tuple(p) for p in h] for h in hal])
         bas = Placering(((1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)), (0.0, w1, 0.0))
-        if kapa:
+        if kapa or urtag:
+            # skivans system: x = u, y = z, z = w1 − w
             inv = bas.invers()
-            d = Del(d.namn, Kapad(d.form, inv.punkt(kapa[0]), inv.riktning(kapa[1])), d.material, d.beskrivning)
+            f: Form = d.form
+            for u0, u1, wa, wb, z0, z1 in urtag:
+                f = f - box(u0, u1, z0, z1, w1 - wb, w1 - wa)
+            if kapa:
+                f = Kapad(f, inv.punkt(kapa[0]), inv.riktning(kapa[1]))
+            d = Del(d.namn, f, d.material, d.beskrivning)
         self.bitar.append(_Bit(typ, d, bas, (min(x for x, _ in pts), min(z for _, z in pts)), namn))
         return self
 
