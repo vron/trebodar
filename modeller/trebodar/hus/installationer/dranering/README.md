@@ -1,0 +1,53 @@
+# Dräneringen och dagvattnet
+
+Dräneringen runt grunden och dagvattnet från stuprören som data i modellen: två skilda ledningar runt huset till en
+ny brunn B1 utanför källarväggen V9, nära den gamla brunnen (som låg i väggen), ansluten till det befintliga utgående
+röret Ø110 mot nordost (mot rampen in på tomten mellan boden och planteringen; överkant +5,759 vid brunnen, AR-02).
+Samma data ger modellens geometri (rören och brunnarna i 3D), kontrollen och ritningen med höjderna. Ledningarna går i
+marken och ingår inte i modellens krockkontroll; den egna kontrollen prövar dem mot husets delar och de andra
+installationerna (marken, berget och fyllningen räknas inte).
+
+```
+cd verktyg/modellering
+./mod dranering kontroll     # fallet, höjderna vid brunnen, brunnarnas djup och krockarna mot husets delar och de
+                             # andra installationerna (utom marken; ledningarna i berget redovisas)
+./mod dranering lista        # ledningarna med brytpunkternas höjder och brunnarna (ut/dranering/dranering.md)
+./mod dranering ritning      # ritningen D-01 (ut/dranering/D-01 Dagvatten och dränering.pdf, kräver STEP-filen:
+                             # ./mod bygg)
+```
+
+## Filerna
+
+| Fil | Innehåll |
+|---|---|
+| [`ledningar.py`](ledningar.py) | Måtten, ringarna runt grunden, vattengångens höjder, stuprörens anslutningar, utloppet, brunnarna, kontrollen och utdraget för ritningen |
+| [`dranering.py`](dranering.py) | Geometrin under `Hus/Installationer/Dränering`: rören som raka bitar längs vattengången och brunnarna som rör med botten |
+
+Stuprörens lägen kommer ur taket (`../../tak/takkanter.py` och `../../tak/dalar.py`: `stupror`), grundens ytterkant ur
+källarväggarna och plattan på mark (`../../grund`) och marken vid fasaderna ur `../../fasad/markniva.py`.
+
+## Ledningarna
+
+- **Dräneringen** (D1, D2): dränrör Ø110 i en ring `AVSTAND` 300 mm utanför grundens ytterkant, med överkanten i
+  grundens underkant (källaren och plattan på mark, den närmaste) och fall minst 1:200.
+- **Dagvattnet** (S1, S2): täta rör Ø110 i en ring 600 mm utanför grunden, minst 300 mm under marken vid den
+  närmaste fasaden, fall minst 1:100. Varje stuprör ansluts (A-…) med en stuprörsanslutning med lövsil vid stuprörets
+  ände, lodrätt ned och en sticka till ringen.
+- Ringarna delas längst från brunnen i två grenar som faller åt var sitt håll mot den, med spolrör (D0, S0) där de
+  börjar. Höjderna räknas så högt som möjligt och läggs sedan i raka lutningar mellan brytpunkterna (rören läggs i
+  raka längder), högst `DJUPARE` under den högsta vattengången, så att schaktet bredvid grunden inte blir djupare än
+  det behöver. Där grunden eller marken faller brantare än 1:1 faller ledningen lodrätt i en spolbrunn Ø200 (SB).
+- Under stenarna i marken (`HINDER`: entréavsatsen och sovrumsavsatsen i `mark`, som huset inte får läsa) går
+  ledningarna under stenarnas underkant, utan spolbrunnar och lodräta fall. Ändras stenarna syns det som krockar i
+  kontrollen.
+- **Brunnen** B1: Ø400 med sandfång 300 mm under utloppet och locket i marken; alla fyra grenarna går in över
+  utloppet.
+
+Altanens plintar (`../../altan/altan.py`) står fria från ledningarna, och köldbärarledningarna (`../kollektor`) går
+under dräneringen där de korsar den.
+
+## Kontrollen
+
+`./mod dranering kontroll`: fallet i varje sträcka, att grenarna når brunnen över utloppet, brunnarnas djup och
+stickornas täckning, och krockarna ur modellens geometri mot husets delar och de andra installationerna (fel). Krockar
+med marken, fyllningen och berget räknas inte; ledningarna i berget (schakt i berg) redovisas som anmärkning.

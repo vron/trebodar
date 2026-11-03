@@ -23,6 +23,8 @@
 #let KV = rgb("#2f6db3")                           // tappvattenritningarna: kallvatten och varmvatten
 #let VV = rgb("#c4372f")
 #let GV = rgb("#d9661f")                           // golvvärmeritningarna: golvvärmens rör
+#let DG = rgb("#2f6db3")                           // dräneringsritningen: dagvatten och dränering
+#let DR = rgb("#4f7d3a")
 // elritningarnas tändgrupper: styrningens linjer (styr0, styr1, …) och märkning (tand0, tand1, …), i ordning
 #let TAND = ("#2c4a6e", "#b5463a", "#4f7d3a", "#7a4f8f", "#a8701a", "#2f7f7f", "#8a3a5c", "#5a6b2a").map(rgb)
 #let FYLL = (
@@ -68,6 +70,10 @@
   vv: (thickness: 0.35mm, paint: VV, cap: "round", join: "round"),
   gv: (thickness: 0.25mm, paint: GV, cap: "round", join: "round"),
   gv0: (thickness: 0.25mm, paint: GV, dash: (1.2mm, 0.6mm), cap: "butt", join: "round"),
+  // dräneringsritningen: dagvattnets täta rör, stuprörens anslutningar och dränrören
+  dg: (thickness: 0.45mm, paint: DG, cap: "round", join: "round"),
+  dg_tunn: (thickness: 0.3mm, paint: DG, cap: "round", join: "round"),
+  dr: (thickness: 0.45mm, paint: DR, dash: (2.4mm, 0.8mm), cap: "butt", join: "round"),
   // ljusplanerna (på belysningsstyrkans färger): isolinjer, statistikens yta, delområden
   iso: (thickness: 0.2mm, paint: white, cap: "round"),
   matyta: (thickness: 0.2mm, paint: white, dash: (0.5mm, 0.7mm), cap: "butt"),
@@ -75,7 +81,7 @@
 ) + TAND.enumerate().map(((i, c)) => ("styr" + str(i), (thickness: 0.25mm, paint: c, dash: (1.2mm, 0.7mm), cap: "butt"))).to-dict()
 #let st(n) = if n == none or n == "" { none } else { stroke(STIL.at(n)) }
 #let fy(n) = if n == none or n == "" { none } else if n.starts-with("#") { rgb(n) } else { FYLL.at(n) }
-#let FARG = (ink: INK, gra: GRA, uk: UK, ok: OK, zon: ZON, vit: white, kv: KV, vv: VV, gv: GV) + TAND.enumerate().map(((i, c)) => ("tand" + str(i), c)).to-dict()
+#let FARG = (ink: INK, gra: GRA, uk: UK, ok: OK, zon: ZON, vit: white, kv: KV, vv: VV, gv: GV, dg: DG, dr: DR) + TAND.enumerate().map(((i, c)) => ("tand" + str(i), c)).to-dict()
 
 #set document(title: B.huvud.nummer + " " + B.huvud.titel.join(", "), author: B.huvud.upprattad)
 #set page(width: BLAD.b * 1mm, height: BLAD.h * 1mm, margin: 0mm)

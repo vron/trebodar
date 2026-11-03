@@ -6,17 +6,24 @@ fördelas lika, nära FOG.
 
 Under brädorna bjälkar 45×145 tvärs brädorna, c/c högst 600 (med ram en extra bjälke under ramens bräda vid
 ändarna), på bärlinor 2 × 45×145 längs brädorna, som står på betongplintar Ø200 gjutna i borrade hål i berget
-(marken har hål för dem, mark.py). Längs de fria kanterna (ytterkanten och sidan förbi den högra kroppens hörn) en
-sargbräda under brädorna, i liv med dem, som täcker bjälkändarna; stommen slutar innanför den. Stuprören DB4-ST2 och DB2-ST2 i de inre hörnen går ned genom däcket, med hål
-runt dem. Kanterna mot fasaderna har FRI mm luft."""
+(marken har hål för dem, mark.py), fria från dräneringens och dagvattnets ledningar längs grunden
+(installationer/dranering): en plint som skulle stå på dem flyttas längs bärlinan. Längs de fria kanterna
+(ytterkanten och sidan förbi den högra kroppens hörn) en sargbräda under brädorna, i liv med dem, som täcker
+bjälkändarna; stommen slutar innanför den. Stuprören DB4-ST2 och DB2-ST2 i de inre hörnen går ned genom däcket, med
+hål runt dem. Kanterna mot fasaderna har FRI mm luft."""
 from __future__ import annotations
 
 import math
+from functools import cache
 
 from modellering import Del, Form, Montage, Placering, cylinder, minus
+from shapely.geometry import LineString, Point
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import unary_union
 
 from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt, virke_i_lada
+from trebodar.hus.installationer.dranering import ledningar as dr
 from trebodar.hus.tak.dalar import STOS_D, STOS_FRI
 from trebodar.material import BETONG, TRALL, TRYCKIMP
 
@@ -34,6 +41,7 @@ INDRAG = 300.0                # bärlinornas och plintarnas indrag från däcket
 BALK_INDRAG = 150.0           # bärlinornas ändar innanför stommens kant (bjälkarna kragar ut)
 PLINT_D, PLINT_UK = 200.0, -800.0
 HAL_FRI = 10.0                # runt stuprören
+LEDNING_FRI = 50.0            # plintarna från dräneringens och dagvattnets rör och brunnar, i plan
 SARG = (34.0, 145.0)          # sargbrädan längs de fria kanterna: tjocklek, höjd
 
 
@@ -88,13 +96,32 @@ def _del(namn: str, kod: str, lada: tuple[float, float, float, float, float, flo
     m.lagg(Del(namn, minus(d.form, hal) if hal else d.form, mat), pl, kod)     # type: ignore[arg-type]
 
 
+@cache
+def _ledningarna() -> BaseGeometry:
+    """Där plintarnas mitt inte får stå: dräneringens och dagvattnets rör och brunnar i plan, utvidgade med
+    plintens radie och LEDNING_FRI, där de går högre än plintarnas underkant."""
+    ytor = []
+    for led in dr.ledningar().values():
+        for a, b in zip(led.vag, led.vag[1:]):
+            if max(a[2], b[2]) + dr.D > PLINT_UK - LEDNING_FRI:
+                ytor.append(LineString([a[:2], b[:2]]).buffer(dr.D / 2 + LEDNING_FRI + PLINT_D / 2))
+    ytor += [Point(br.x, br.y).buffer(br.d / 2 + LEDNING_FRI + PLINT_D / 2) for br in dr.brunnar().values()]
+    return unary_union(ytor)
+
+
 def plintar() -> list[tuple[float, float]]:
-    """Plintarnas mitt (x, y): under varje bärlina, c/c högst CC_PLINT."""
+    """Plintarnas mitt (x, y): under varje bärlina, c/c högst CC_PLINT, och där en plint skulle stå på dräneringens
+    eller dagvattnets ledningar flyttad längs bärlinan, så lite som möjligt, till där den går fri (under bärlinan)."""
     a0, a1, b0, b1 = _ab(stomme=True)
+    lo, hi = a0 + BALK_INDRAG + PLINT_D / 2, a1 - BALK_INDRAG - PLINT_D / 2
+    ror = _ledningarna()
     ut = []
     for b in _barlinor(b0, b1):
         for a in _cc(a0 + INDRAG - PLINT_D / 2, a1 - INDRAG + PLINT_D / 2, PLINT_D, CC_PLINT):
-            x, _, y, _ = _xy(a + PLINT_D / 2, 0.0, b, 0.0)
+            for d in sorted(range(-1500, 1501, 5), key=abs):
+                x, _, y, _ = _xy(a + PLINT_D / 2 + d, 0.0, b, 0.0)
+                if lo <= a + PLINT_D / 2 + d <= hi and not ror.contains(Point(x, y)):
+                    break
             ut.append((x, y))
     return ut
 

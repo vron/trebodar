@@ -28,7 +28,8 @@ VINKEL = 15.0                               # största böj [°]
 S_BOJ = 120.0                               # sträckan mellan svängens böjar
 Z_GOLV = PLAN[0]
 Z_TOPP = Z_GOLV + 100.0                     # rörens ände över golvet i teknikrummet
-Z_VAG = Z_GOLV - 500.0                      # rörens mitt under plattan (under cellplasten och makadamen)
+Z_VAG = Z_GOLV - 650.0                      # rörens mitt under plattan: under cellplasten och makadamen, under
+                                            # avloppet och under dräneringen (installationer/dranering) söder om V7
 UPP = (3840.0, 8200.0)                      # upp genom plattan (mitt mellan rören), användarens markering
 BRUNN = (3500.0, -2000.0)                   # energibrunnen, ungefärligt
 Y_SIDA = 1000.0                             # sidoförskjutningen börjar (utanför huset, söder om V7)

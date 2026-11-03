@@ -170,10 +170,12 @@ Trebodar
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
     ├── Installationer          avlopp (ur Onshape-modellen), el, ventilation, tappvatten, golvvärme, köldbärare,
-    │                           brandlarm och teknikrummets utrustning (hus/installationer/el, ventilation, vatten,
-    │                           golvvarme, kollektor och brandlarm, se deras README)
+    │                           brandlarm, dränering och dagvatten och teknikrummets utrustning
+    │                           (hus/installationer/el, ventilation, vatten, golvvarme, kollektor, brandlarm och
+    │                           dranering, se deras README)
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
-    ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar
+    ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
+    │                           från dräneringens och dagvattnets ledningar)
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),

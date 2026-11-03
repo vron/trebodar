@@ -256,6 +256,13 @@ def main(argv: list[str] | None = None) -> None:
                          "delar och de andra installationerna; lista: varnare, dosor, kablar och "
                          "genomföringar (markdown); ritning: plan 1 och källaren (B-01)")
     pa.add_argument("--ut", type=Path, default=UT / "brandlarm")
+    pd = sub.add_parser("dranering", help="dräneringen och dagvattnet: kontroll (med krockar mot huset), lista och "
+                                          "ritning")
+    pd.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
+                    help="kontroll: fallet, höjderna vid brunnen, brunnarnas djup och krockarna mot husets delar och "
+                         "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
+                         "(markdown); ritning: planen med höjderna (D-01)")
+    pd.add_argument("--ut", type=Path, default=UT / "dranering")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pk.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar",
@@ -813,6 +820,48 @@ def main(argv: list[str] | None = None) -> None:
             plan1 = snitt(ma, step_fil, 1200.0, UT / "brandlarm-plan1.json")
             kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "brandlarm-kallare.json")
             pdf = brandlarmritning.ritningar(utdrag, plan1, kallare, _norr(), UT / "brandlarm" / "blad", arg.ut)
+            print(f"  {pdf}")
+    elif arg.kommando == "dranering":
+        import json
+        import re
+        from . import draneringsritning, installationer
+        from .planritning import snitt
+        regler = importlib.import_module("trebodar.kontrollregler")
+        dr = importlib.import_module("trebodar.hus.installationer.dranering.ledningar")
+        utdrag = dr.utdrag()
+        fel, anm = dr.kontroll()
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        if arg.atgard in ("kontroll", "lista"):
+            kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Dränering")
+            fel += [f"krock med {k}" for k in kr.installationer + kr.armering + kr.stomme]
+            krockar = [k for k in kr.skikt if not draneringsritning.bara_mark(k, utdrag["genom_sten"])]
+            berg = sorted({re.sub(r"-\d\d$", "", k.split(":")[0]) for k in kr.skikt if " Berg " in k + " "})
+            if berg:
+                anm.append("i berget (schakt i berg): " + ", ".join(berg))
+        if arg.atgard == "kontroll":
+            print(f"  {len(utdrag['ledningar'])} ledningar, {len(utdrag['brunnar'])} brunnar: {len(fel)} fel, "
+                  f"{len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for x in anm:
+                print(f"    {x}")
+            print("  krockar mot husets delar (utom marken):")
+            for k in krockar:
+                print(f"    {k}")
+            if fel or krockar:
+                raise SystemExit(1)
+        elif arg.atgard == "lista":
+            fil = arg.ut / "dranering.md"
+            fil.write_text(draneringsritning.lista(utdrag, (fel, anm), krockar), encoding="utf-8")
+            (arg.ut / "dranering.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
+        else:
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            ma = ROT / "verktyg" / "modellanalys" / "ma"
+            plan1 = snitt(ma, step_fil, 1200.0, UT / "dranering-plan1.json")
+            pdf = draneringsritning.ritningar(utdrag, plan1, _norr(), UT / "dranering" / "blad", arg.ut)
             print(f"  {pdf}")
     elif arg.kommando == "kollektor":
         from . import installationer

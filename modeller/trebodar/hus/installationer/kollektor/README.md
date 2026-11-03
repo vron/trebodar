@@ -24,8 +24,9 @@ cd verktyg/modellering
 - Rören kommer lodrätt upp genom bottenplattan i teknikrummet vid användarens markering (`UPP`), c/c 140, mellan
   armeringsnätets järn (`../strak.mellan_jarnen`), och slutar 100 mm över golvet.
 - Under plattan svänger de till vågrätt med sex böjar om 15° (`S_BOJ` mellan böjarna) och går söderut under plattans
-  cellplast och makadam (`Z_VAG`), under kantbalken vid V7 och ut i trädgården, där de förskjuts i sidled med två böjar
-  om 15° mot energibrunnen (`BRUNN`, ungefärligt läge), frostfritt.
+  cellplast och makadam och under avloppet (`Z_VAG`), under kantbalken vid V7 och ut i trädgården, under dräneringen
+  runt grunden (`../dranering`), där de förskjuts i sidled med två böjar om 15° mot energibrunnen (`BRUNN`,
+  ungefärligt läge), frostfritt.
 - Golvvärmen i bottenplattan håller sig fri från rören (`../golvvarme/system.py`).
 
 Rörens läge ändras med `UPP`, `BRUNN`, `Z_VAG` och `Y_SIDA` i `ledningar.py`.

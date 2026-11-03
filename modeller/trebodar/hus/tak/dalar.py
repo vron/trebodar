@@ -26,7 +26,7 @@ from trebodar.hus.fasad.markniva import mark_vid
 from trebodar.material import PLYWOOD, TAKPLAT
 
 from .takkanter import STUPROR_MARK
-from .takytor import REGIONER
+from .takytor import REGIONER, Region
 
 LADA_DJUP = 40.0             # dalens ändlåda: botten under dalens botten
 LADA_BRADD = 30.0            # ändlådans yttre kant (bräddavlopp), lägre än de andra kanterna
@@ -45,11 +45,17 @@ def _tunn(tri: tuple[Punkt, Punkt, Punkt], t0: float, t1: float) -> Form:
     n = [x / ln for x in n]
     horn = [tuple(p[i] + n[i] * t for i in range(3)) for t in (t0, t1) for p in tri]
     return polyeder(horn, [[0, 1, 2], [3, 4, 5], [0, 1, 4, 3], [1, 2, 5, 4], [2, 0, 3, 5]])
+def _sidor(dal: str) -> tuple[list[tuple[str, Region]], float, float]:
+    """Dalens takfall längs balken (kod, region) och dalens ändar y0, y1."""
+    b = S.BALKAR[dal]
+    sidor = [(kod, r) for kod, rs in REGIONER.items() for r in rs if r.nedre.x == b.x and not r.ande]
+    return sidor, min(r.y0 for _, r in sidor), max(r.y1 for _, r in sidor)
+
+
 def randal(dal: str) -> Montage:
     """Kilarna, rändalens papp och plåt i dalen längs balken dal."""
     b = S.BALKAR[dal]
-    sidor = [(kod, r) for kod, rs in REGIONER.items() for r in rs if r.nedre.x == b.x and not r.ande]
-    y0, y1 = min(r.y0 for _, r in sidor), max(r.y1 for _, r in sidor)
+    sidor, y0, y1 = _sidor(dal)
     ym, h = (y0 + y1) / 2, (y1 - y0) / 2 * L.RANDAL_FALL
     kilar: list[Form] = []
     ytor: list[tuple[Punkt, Punkt, Punkt]] = []
@@ -74,15 +80,44 @@ def randal(dal: str) -> Montage:
         for typ, d in _dalens_ande(dal, ye, s):
             m.lagg(d, Placering(), f"{dal}-{typ}{n}")
     return m
-def _dalens_ande(dal: str, ye: float, s: float) -> list[tuple[str, Del]]:
-    """Dalens ände vid den kortare kroppens gavel (fasadlivet ye, utåt s = ±1): ändlådan (LA) i hörnet under
-    gavelutsticket, rörstosen (RS) i dess botten och stupröret (ST) ned i hörnet."""
+def _hornet(dal: str, ye: float, s: float) -> tuple[S.Takfall, set[str], float]:
+    """Hörnet vid dalens ände (fasadlivet ye, utåt s = ±1): den kortare kroppens takfall, de längre kropparnas
+    takfall och sidan mot den kortare kroppen (±1 i x)."""
     xd = S.BALKAR[dal].x
     langre = {kod for kod, rs in REGIONER.items() for r in rs
               if r.ande and r.nedre.x == xd and abs((r.y1 if s < 0 else r.y0) - ye) < 1e-6}
     kort = next(kod for kod, rs in REGIONER.items() for r in rs if r.nedre.x == xd and kod not in langre)
     t = S.TAKFALL[kort]
-    sida = math.copysign(1.0, S.HUSKROPPAR[t.kropp].nock - xd)       # mot den kortare kroppen
+    return t, langre, math.copysign(1.0, S.HUSKROPPAR[t.kropp].nock - xd)
+
+
+def _fot(dal: str, ye: float, s: float) -> tuple[float, float, float]:
+    """Stuprörets läge (x, y) i hörnet och marken där: den högsta vid de två fasaderna i hörnet."""
+    t, langre, sida = _hornet(dal, ye, s)
+    xs, ys = S.BALKAR[dal].x + sida * (STOS_D / 2 + STOS_FRI), ye + s * (STOS_D / 2 + STOS_FRI)
+    gavel = next(k for k, v in S.YTTERVAGGAR.items() if k[0] == str(t.kropp) and k not in S.TAKFALL
+                 and abs(v.placering().punkt((0.0, -S.T_FASAD, 0.0))[1] - ye) < 1.0)
+    z_mark = max(mark_vid(k, S.YTTERVAGGAR[k].placering().invers().punkt((xs, ys, 0.0))[0])
+                 for k in (gavel, *langre))
+    return xs, ys, z_mark
+
+
+def stupror() -> list[tuple[str, float, float, float, float]]:
+    """Dalarnas stuprör (som i montaget): namnet, läget (x, y), änden (z) och diametern."""
+    ut = []
+    for dal in ("DB2", "DB4"):
+        _, y0, y1 = _sidor(dal)
+        for n, (ye, s) in enumerate(((y0, -1.0), (y1, 1.0)), 1):
+            xs, ys, z_mark = _fot(dal, ye, s)
+            ut.append((f"{dal}-ST{n}", xs, ys, z_mark + STUPROR_MARK, STOS_D))
+    return ut
+
+
+def _dalens_ande(dal: str, ye: float, s: float) -> list[tuple[str, Del]]:
+    """Dalens ände vid den kortare kroppens gavel (fasadlivet ye, utåt s = ±1): ändlådan (LA) i hörnet under
+    gavelutsticket, rörstosen (RS) i dess botten och stupröret (ST) ned i hörnet."""
+    xd = S.BALKAR[dal].x
+    t, _, sida = _hornet(dal, ye, s)
 
     def X(u: float) -> float:
         return xd + sida * u
@@ -97,7 +132,7 @@ def _dalens_ande(dal: str, ye: float, s: float) -> list[tuple[str, Del]]:
     zv = L.z_skikt(t, xd, L.PLAT[1])                  # plåtens överkant i dallinjen (båda takfallen)
     zk = L.z_skikt(t, X(B), L.PLAT[1])                # den kortare kroppens plåt vid lådans sida
     zb = zv - LADA_DJUP
-    xs, ys = X(STOS_D / 2 + STOS_FRI), Y(STOS_D / 2 + STOS_FRI)
+    xs, ys, z_mark = _fot(dal, ye, s)
     botten = ruta(0.0, B, 0.0, G, zb, zb + L.PLAT_T) - stang((xs, ys, zb - 1.0), (xs, ys, zb + L.PLAT_T + 1.0), STOS_D)
     ya, yb = sorted((Y(0.0), Y(L.PLAT_T)))
     lada = Union((botten,
@@ -105,11 +140,6 @@ def _dalens_ande(dal: str, ye: float, s: float) -> list[tuple[str, Del]]:
                   ruta(B - L.PLAT_T, B, 0.0, G, zb, zk),                 # mot den kortare kroppens utstick
                   ruta(0.0, B, G - L.PLAT_T, G, zb, zb + LADA_BRADD),    # yttre kanten, bräddavlopp
                   prisma_y([(X(0.0), zb), (X(B), zb), (X(B), zk), (X(0.0), zv)], ya, yb)))     # mot rändalen
-    # marken vid stupröret: den högsta vid de två fasaderna i hörnet
-    gavel = next(k for k, v in S.YTTERVAGGAR.items() if k[0] == str(t.kropp) and k not in S.TAKFALL
-                 and abs(v.placering().punkt((0.0, -S.T_FASAD, 0.0))[1] - ye) < 1.0)
-    z_mark = max(mark_vid(k, S.YTTERVAGGAR[k].placering().invers().punkt((xs, ys, 0.0))[0])
-                 for k in (gavel, *langre))
     za = zb - STOS_L
     return [("LA", Del(f"Dalens ändlåda {fmt(B)}×{fmt(G)}, plåt 0,6", lada, TAKPLAT)),
             ("RS", Del(f"Rörstos Ø{fmt(STOS_D)}", ror((xs, ys, zb + L.PLAT_T), (xs, ys, za), STOS_D, L.PLAT_T), TAKPLAT)),

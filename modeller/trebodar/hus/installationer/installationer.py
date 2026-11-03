@@ -1,6 +1,7 @@
 """Installationer: avloppet, som i Onshape-modellen (referensdel), elinstallationen (el/), ventilationen
 (ventilation/), tappvattnet (vatten/), golvvärmen (golvvarme/), köldbärarledningarna (kollektor/), brandlarmet
-(brandlarm/) och teknikrummets utrustning (teknikrum.py), se deras README. Lägena på husets ytor i montering.py,
+(brandlarm/), dräneringen och dagvattnet (dranering/) och teknikrummets utrustning (teknikrum.py), se deras
+README. Lägena på husets ytor i montering.py,
 genomföringarna i genomforingar.py och stråken i betongen i strak.py, gemensamma för installationerna."""
 from __future__ import annotations
 
@@ -11,6 +12,7 @@ from trebodar.material import INSTALLATION
 
 from . import teknikrum
 from .brandlarm import brandlarm
+from .dranering import dranering
 from .el import el
 from .golvvarme import golvvarme
 from .kollektor import kollektor
@@ -20,7 +22,7 @@ from .ventilation import ventilation
 
 def montage() -> Montage:
     m = Montage("Installationer", beskrivning="Avlopp (ur Onshape-modellen), el, ventilation, tappvatten, golvvärme, "
-                                              "köldbärare, brandlarm och teknikrum")
+                                              "köldbärare, brandlarm, dränering och teknikrum")
     vvs = Montage("VVS")
     vvs.lagg(Del("Avloppssystem", importerad("avloppssystem.bbrep"), INSTALLATION), Placering(), "Avlopp")
     m.lagg(vvs)
@@ -30,5 +32,6 @@ def montage() -> Montage:
     m.lagg(golvvarme.montage())
     m.lagg(kollektor.montage())
     m.lagg(brandlarm.montage())
+    m.lagg(dranering.montage())
     m.lagg(teknikrum.montage())
     return m

@@ -238,6 +238,12 @@ GOLVVARME = Material("Golvvärmerör", "Golvvärmerör PE-RT med syrespärr och 
 # ------------------------------------------------------------------ köldbärare (hus/installationer/kollektor)
 # skyddsröret är massivt: densiteten är rörets och kollektorslangens massa fördelad på hela tvärsnittet (PE 110 × 4,2
 # med två slangar PE 40 med köldbärare ungefär 3 kg/m)
+# dräneringen och dagvattnet (hus/installationer/dranering): rören massiva i densiteten (PVC/PP)
+DRANROR = Material("Dränrör", "Dränrör PVC Ø110, slitsat, med filterduk", 1400, "#d9a441", 0.6, cad="#e0b040")
+DAGVATTENROR = Material("Dagvattenrör", "Markavloppsrör PP Ø110, tätt (dagvatten)", 900, "#c9662e", 0.5,
+                        cad="#d0703a")
+DRANBRUNN = Material("Dränbrunn", "Brunn PP (dagvatten- och dräneringsbrunn, spolbrunnar)", 900, "#3a3d40", 0.6,
+                     cad="#4a4f55")
 SKYDDSROR = Material("Skyddsrör", "Skyddsrör PE Ø110 med kollektorslangar", 320, "#2e3238", 0.6, cad="#3a7d44")
 
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)

@@ -122,18 +122,26 @@ def _stupror_lagen() -> list[tuple[str, float]]:
     return ut
 
 
-def _stupror(kod: str, y: float) -> Del:
+def _fot(kod: str, y: float) -> tuple[float, float]:
+    """Stuprörets x och dess ände (z): STUPROR_FRI från panelen och STUPROR_MARK över marken vid fasaden."""
     t = S.TAKFALL[kod]
-    r_ = t.riktning
+    xs = t.x_utsida - t.riktning * (S.T_FASAD + STUPROR_FRI + STUPROR_D / 2)
+    return xs, mark_vid(kod, S.YTTERVAGGAR[kod].placering().invers().punkt((xs, y, 0.0))[0]) + STUPROR_MARK
+
+
+def stupror() -> list[tuple[str, float, float, float, float]]:
+    """Rännornas stuprör (som i montaget): namnet, läget (x, y), änden (z) och diametern."""
+    return [(f"ST{i}", *_fot(kod, y)[:1], y, _fot(kod, y)[1], STUPROR_D)
+            for i, (kod, y) in enumerate(sorted(_stupror_lagen()), 1)]
+
+
+def _stupror(kod: str, y: float) -> Del:
     _, xr, zr = _ranna(kod)
-    v = S.YTTERVAGGAR[kod]
-    x_fasad = t.x_utsida - r_ * S.T_FASAD
-    xs = x_fasad - r_ * (STUPROR_FRI + STUPROR_D / 2)
-    z_mark = mark_vid(kod, v.placering().invers().punkt((xs, y, 0.0))[0])
+    xs, z_ande = _fot(kod, y)
     a = (xr, y, zr - RANNA_D / 2)
     b = (xr, y, a[2] - 60.0)
     c = (xs, y, b[2] - abs(xr - xs))                   # 45° in mot fasaden
-    d = (xs, y, z_mark + STUPROR_MARK)
+    d = (xs, y, z_ande)
     form = Union(tuple(ror(p, q, STUPROR_D, L.PLAT_T) for p, q in ((a, b), (b, c), (c, d))))
     return Del(f"Stuprör Ø{fmt(STUPROR_D)} L={fmt(b[2] - d[2] + 60.0)}", form, TAKPLAT)
 
