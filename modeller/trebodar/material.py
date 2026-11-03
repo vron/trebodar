@@ -31,7 +31,7 @@ GL30C = Material("GL30c", "Limträ GL30c", 430, "#e3cfa3", 0.7, textur="virke",
 DISTANS = Material("Distansregel", "Distansregel trä eller plywood 10 mm", 450, "#e3cfa3", 0.8, textur="virke",
                    rendering=_GRAN, cad="#c7b3d6")
 # Ask, oljad: snickerier och bänkskivor (köket); lamell och lamelltjocklek för lamellimmade skivor
-ASK = Material("Ask", "Ask, oljad (snickerier)", 680, "#d5c3a7", 0.46, textur="virke",
+ASK = Material("Ask", "Ask, oljad (snickerier)", 680, "#d5ccbb", 0.46, textur="virke",
                rendering=rendering(art="ask", yta="olja", riktning="x", tvars="y"), cad="#dccbaa")
 RASPONT = Material("Råspont", "Råspont 20 mm", 450, "#d9bb8a", 0.85, textur="bradpanel", enhet="m2",
                    rendering=rendering(farg2="#b8955f", riktning="z", tvars="x", bredd=95.0, fog=1.5,
