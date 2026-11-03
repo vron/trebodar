@@ -8,7 +8,8 @@ kalciumsilikat med luft emellan.
 Innbyggingskassen (anvisningen: 50 mm kalciumsilikat, Skamotec 225, mot brännbar vägg minst 1 600 × 920 × 498): kåpan
 på sovrumssidan av 2C (de lätta väggarna L7, L13 och L14 med 50 mm kalciumsilikat på insidan, invandigt/vaggar.py) och
 fronten i 2C:s öppning, 50 mm kalciumsilikat med hål 730 × 615 för insatsen och konvektionsöppningar 300 cm² under och
-550 cm² över insatsen (minst 250 och 500). Kassen är täckt med en obrännbar plåt 50 mm direkt över den övre
+550 cm² över insatsen (minst 250 och 500). Öppningen är symmetrisk kring insatsen, så att fronten syns lika bred på
+båda sidorna, och fronten är målad i väggarnas vita färg: kaminen sitter mitt i en vit vägg. Kassen är täckt med en obrännbar plåt 50 mm direkt över den övre
 konvektionsöppningen, 1 600 över golvet, och skorstenens isolerade del börjar inne i kassen och går genom plåten.
 
 Förbränningsluften (AirSystem, anvisningen: flexslang Ø100 upp till 5 m, Ø120 för 5–10 m; luftbehov minst 18 m³/h):
@@ -34,7 +35,7 @@ from trebodar.byggdelar.ror import ror, stang
 from trebodar.hus.fonster_och_dorrar.oppningar import INNEROPPNINGAR
 from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.hus.rum import KAMINKAPA
-from trebodar.material import GLAS, KALCIUMSILIKAT, KAMIN, ROSTFRITT
+from trebodar.material import GLAS, KALCIUMSILIKAT, KALCIUMSILIKAT_MALAD, KAMIN, ROSTFRITT
 
 # insatsen (Rais 600, måttritning)
 KROPP = (720.0, 402.0, 611.0)               # bredd, djup, höjd
@@ -121,7 +122,7 @@ def _kasse(m: Montage) -> None:
                            (X_MITT - KONV_OVER[0] / 2, X_MITT + KONV_OVER[0] / 2, H_KASSE - KS_T - KONV_OVER[1],
                             H_KASSE - KS_T)):
         front = front - box(x0, x1, yb - 1.0, Y_FRONT + 1.0, z0, z1)
-    m.lagg(Del(f"Front kalciumsilikat {KS_T:g} med konvektionsöppningar", front, KALCIUMSILIKAT,
+    m.lagg(Del(f"Front kalciumsilikat {KS_T:g} med konvektionsöppningar, målad", front, KALCIUMSILIKAT_MALAD,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-FRONT")
     # plåten: över kåpans insida (innanför kalciumsilikaten, mot 2C bara där väggen har öppningen) och öppningen i
     # väggen, med hål för skorstenen och kanalen

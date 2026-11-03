@@ -167,5 +167,7 @@ INNERDORRAR = (
     Innerdorr("ID6", "L12", 0.0, 1060.0, 1, rum="sovrummet i mittre huskroppen, från allrummet", ficka=True),
 )
 
-# öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt
-INNEROPPNINGAR = (("2C", 1983.0, 2993.0, 0.0, 2045.0, "kaminen (Rais 600), planritning 201"),)
+# öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt. Kaminens öppning (x 6 400–
+# 7 236) är symmetrisk kring insatsen (x 6 818, kamin.X_MITT), så att fronten syns lika bred på båda sidorna; i
+# planritning 201 är den bredare åt öster (u 2 993)
+INNEROPPNINGAR = (("2C", 1983.0, 2819.0, 0.0, 2045.0, "kaminen (Rais 600), planritning 201"),)

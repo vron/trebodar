@@ -39,8 +39,8 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    till marken. Framför skjutpartiet 2SV
    ligger berget 600 mm under golvet (K-06 räknade med fyllning till −250): bestäm marken eller ett trädäck där.
    Panelen följer `markniva.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
-7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 410 i 2C, under takstolen 2C:s topp (nockbalk 3:s
-   stöd C, 36,7 kN). Överstycket är en liggande regel 45 mm över 1 010 mm; kontrollera lastvägen i K-03.
+7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 236 i 2C, under takstolen 2C:s topp (nockbalk 3:s
+   stöd C, 36,7 kN, vid x 6 905). Överstycket är en liggande regel 45 mm över 836 mm; kontrollera lastvägen i K-03.
 8. **Stolparna LN3_1 och LN5_2 står till hälften utanför balken.** Stolparna (fyra reglar 45×95 i änden av väggarna
    2A och 1D) står med 83 av 180 mm under nockbalk 3 respektive 5, som i Onshape-modellen: väggarna slutar 12 mm före
    balkens mittlinje (2A vid x 6 917, balken x 6 810–7 000; 1D vid x 2 143, balken x 2 060–2 250). K-03 räknar med att
