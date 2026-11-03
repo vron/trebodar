@@ -7,7 +7,9 @@ Karmen sitter INDRAG (22 mm) innanför panelens utsida, med aluminiumbeklädnade
 panelen 10 mm in över den vid sidorna och överkanten (fasad.py); under fönstren leder ett fönsterbleck i karmens
 aluminium vattnet ut över panelen. Invändigt går väggens skikt fram till karmens linje (vagginsida.py) och smygen är
 av oljad ask 20 mm i liv med karmens kant, med fibrerna längs varje bit: sidorna, överstycket och fönsterbänken med
-20 mm utstick och öron 30 mm (dörrarna har ingen); i badrummet kakel runt om. Källarens fönster sitter i
+20 mm utstick och öron 30 mm (dörrarna har ingen); i badrummet kakel runt om. Med smyglister (oppningar.SMYGLIST > 0)
+slutar insidans skivor längre från karmen och lister av ask i skivornas tjocklek går runt smygen, sidorna från
+fönsterbänken (dörrarna från golvet) och överstycket över dem, och fönsterbänkens öron blir lika mycket längre. Källarens fönster sitter i
 cellplastens smyg; smygens och bröstningens gips hör till källarväggarnas insida (invandigt/kallare.py).
 """
 from __future__ import annotations
@@ -21,7 +23,7 @@ from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
 from trebodar.material import ALUMINIUM, ASK, FURU, KAKEL, KARM, MINERALULL
 
-from .oppningar import BLECK_T, DORRAR, FICKA_UT, INDRAG, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
+from .oppningar import BLECK_T, DORRAR, FICKA_UT, INDRAG, INNERDORRAR, OPPNINGAR, SMYGLIST, Innerdorr, Oppning
 
 W_UT = -S.T_FASAD + INDRAG           # karmens utsida
 SMYG_T, BANK_T = 20.0, 20.0          # smygen och fönsterbänken, ask
@@ -67,8 +69,9 @@ def enhet(o: Oppning) -> Montage:
     # skjutdörren på tröskeln, som går in i rummet; överstycket går över sidorna
     zb = kz0 + (BANK_T if o.typ not in DORRAR else F.S_TROSKEL if o.typ == "skjutdörr" else -F.DREV)
     if o.typ not in DORRAR:
-        bank = [(ku0, w_karm), (ku1, w_karm), (ku1, w_yta), (ku1 + BANK_ORA, w_yta), (ku1 + BANK_ORA, w_yta + BANK_UT),
-                (ku0 - BANK_ORA, w_yta + BANK_UT), (ku0 - BANK_ORA, w_yta), (ku0, w_yta)]
+        ora = BANK_ORA + SMYGLIST
+        bank = [(ku0, w_karm), (ku1, w_karm), (ku1, w_yta), (ku1 + ora, w_yta), (ku1 + ora, w_yta + BANK_UT),
+                (ku0 - ora, w_yta + BANK_UT), (ku0 - ora, w_yta), (ku0, w_yta)]
         d, pl = virke_profil(bank, BANK_T, ASK, prefix="Fönsterbänk ")
         m.lagg(d, Placering.flytt(0.0, 0.0, kz0) @ pl, f"{o.kod}-BANK")
     for namn, (u0, u1, z0, z1, fiber) in (("V", (ku0, ku0 + SMYG_T, zb, kz1 - SMYG_T, "z")),
@@ -76,6 +79,14 @@ def enhet(o: Oppning) -> Montage:
                                           ("O", (ku0, ku1, kz1 - SMYG_T, kz1, "x"))):
         d, pl = virke_i_lada(u0, u1, w_karm, w_yta, z0, z1, fiber, ASK)
         m.lagg(d, pl, f"{o.kod}-SMYG-{namn}")
+    if SMYGLIST > 0.0:
+        # smyglisterna i skivornas tjocklek runt smygen (skivorna slutar vid dem, vagginsida.py): sidorna från
+        # karmens underkant (bakom fönsterbänkens öron) eller golvet, överstycket över dem
+        L, wl, zl = SMYGLIST, w_yta - SKIVOR_T, kz0 if o.typ not in DORRAR else o.z0
+        for namn, (u0, u1, z0, z1, fiber) in (("V", (ku0 - L, ku0, zl, kz1, "z")), ("H", (ku1, ku1 + L, zl, kz1, "z")),
+                                              ("O", (ku0 - L, ku1 + L, kz1, kz1 + L, "x"))):
+            d, pl = virke_i_lada(u0, u1, wl, w_yta, z0, z1, fiber, ASK)
+            m.lagg(Del(f"Smyglist ask {fmt(SKIVOR_T)}×{fmt(L)}", d.form, ASK), pl, f"{o.kod}-LIST-{namn}")
     return m
 
 

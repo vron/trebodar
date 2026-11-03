@@ -148,6 +148,8 @@ def insida(kod: str) -> Montage:
     # öppningarna i karmens linje (dörrarna från golvet)
     opp = [o for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0]
     hal_lista = [box(o.karm[0], o.z0 if o.typ in DORRAR else o.karm[1], o.karm[2], o.karm[3]) for o in opp]
+    # skivorna slutar SMYGLIST längre från karmen, för smyglisterna (utom i badrummet, med kakel runt om)
+    hal_skivor = [box(*o.skivornas_hal) for o in opp if insida_t(kod, (o.u0 + o.u1) / 2) == INSIDA_T]
     # installationsläkten runt öppningarna i karmens linje: på sidorna, över och under fönstren
     ram = []
     for o in opp:
@@ -164,8 +166,8 @@ def insida(kod: str) -> Montage:
                     pl.punkt((u0, S.T_STOMME + INSIDA_VATRUM_T, 0))[:2]])
     Pi = pl.invers()
 
-    def oppet_mot(hinder: list[tuple[Polygon, float, float]]) -> Polygon:
-        hal = list(hal_lista)
+    def oppet_mot(hinder: list[tuple[Polygon, float, float]], hal_bas: list[Polygon]) -> Polygon:
+        hal = list(hal_bas)
         for poly, z0, z1 in hinder:
             g = poly.intersection(band)
             if g.area > 1.0:
@@ -173,7 +175,7 @@ def insida(kod: str) -> Montage:
                 us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]
                 hal.append(box(min(us), z0, max(us), z1))
         return unary_union(hal) if hal else Polygon()
-    oppet, oppet_skivor = oppet_mot(_hinder()[0]), oppet_mot(_hinder()[1])
+    oppet, oppet_skivor = oppet_mot(_hinder()[0], hal_lista), oppet_mot(_hinder()[1], hal_lista + hal_skivor)
     if kod not in S.TAKFALL:
         # gavlarna: takets stomme i skiktens band (takbalken och upplagsregeln över 1NO vid dalbalk 4), exakt
         y_lo, y_hi = band.bounds[1], band.bounds[3]

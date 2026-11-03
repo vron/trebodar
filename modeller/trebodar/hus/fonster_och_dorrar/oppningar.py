@@ -20,6 +20,11 @@ from trebodar.hus.grund import kallarvaggar as K
 
 INDRAG = 22.0                # karmens utsida innanför panelens utsida (i panelens insida, fonster_och_dorrar.py)
 BLECK_T = 1.5                # fönsterblecket under karmen (fonster_och_dorrar.py, fasad.py)
+# Smyglisterna (ärende #24): en extra synlig träkant runt fönstren och dörrarna invändigt [mm]. Insidans skivor (OSB
+# och gips) slutar så mycket längre från karmen vid sidorna och överkanten, och lister av oljad ask i skivornas
+# tjocklek fyller ut mot smygen (fonster_och_dorrar.py), så att träet syns 20 + SMYGLIST mm runt öppningen. 0: inga
+# lister, bara smygen. Inte i badrummet (kakel runt om).
+SMYGLIST = 0.0
 
 
 @dataclass(frozen=True)
@@ -45,6 +50,13 @@ class Oppning:
     def karm(self) -> tuple[float, float, float, float]:
         """Karmens yttermått (u0, z0, u1, z1): DREV innanför öppningen runt om."""
         return (self.u0 + DREV, self.z0 + DREV, self.u1 - DREV, self.z1 - DREV)
+
+    @property
+    def skivornas_hal(self) -> tuple[float, float, float, float]:
+        """Hålet i insidans skivor (u0, z0, u1, z1): karmens yttermått (dörrarna från golvet) och SMYGLIST till vid
+        sidorna och överkanten, för smyglisterna."""
+        ku0, kz0, ku1, kz1 = self.karm
+        return (ku0 - SMYGLIST, self.z0 if self.typ in DORRAR else kz0, ku1 + SMYGLIST, kz1 + SMYGLIST)
 
 
 _R = (

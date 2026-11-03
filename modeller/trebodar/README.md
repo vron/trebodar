@@ -85,6 +85,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Takbalkarnas lägen och takfönstren | `hus/stomme/prefab/takbalkar/takbalkar.py` (`FALT`: följder c/c 600 per takfall; `TF1`–`TF3`); dubbla takbalkar och avväxlingar vid takfönstren följer med |
 | En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
+| Smyglister: en bredare synlig träkant runt fönstren och dörrarna invändigt | `hus/fonster_och_dorrar/oppningar.py` (`SMYGLIST` i mm, 0 = bara smygen); skivorna slutar längre från karmen och listerna och fönsterbänkens öron följer med |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
 | Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
 | En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
@@ -332,7 +333,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
   9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt går
   väggens skikt och installationsläkten fram till karmens linje, och smygen och fönsterbänken är oljad ask 20 mm med
-  fibrerna längs varje bit; i badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).
+  fibrerna längs varje bit (med smyglister, `SMYGLIST` > 0, lister av ask runt smygen i skivornas tjocklek); i
+  badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).
 - **Källarväggarnas insida**: gips 13 direkt på cellplasten (brandskydd), från bottenplattan till bjälklaget, på
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
   och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta
