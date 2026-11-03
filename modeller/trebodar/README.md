@@ -220,9 +220,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   heter efter väggen eller fönstret (V3-GI01, F1-GI01; bröstningarnas F1-GIB). Innerdörrarna ID1–ID6 är
   fickdörrar med BLAD och SKENA (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
   fönsterbänken, SMYG-V, -H och -O smygen. Garderoben: GA-, GB- och GC-delar som väggarna, GD1 och GD2 dörrarna
-  (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket. Kökets inbyggnad: L15 fronten, L16 gaveln och mellanväggarna L17 och
-  L18 med delar som de lätta väggarna (insidans gips GI02), KYL-, FRYS- och SKAFFERI-SMYG-V, -H, -O smygen,
-  LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R regel och
+  (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket. Kökets inbyggnad: L15 fronten och L16 gaveln med delar som de lätta
+  väggarna (K kortlingen under huvudstolpens strävor, insidans gips GI02), gipsväggarna L17 och L18 (GI01, GI02),
+  KYL-, FRYS- och SKAFFERI-SMYG-V, -H, -O smygen,
+  LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R reglar och
   FG-OS01 golv, SKAFFERI-TAK; i köket KYL och FRYS vitvarorna med -SOCKEL-R, -B, -G (reglar, bottenskiva, galler),
   -SKAP- (S sidor, B botten, T tak, H hyllor) och -FRONT1, -FRONT2, SKAFFERI-DORR och SKAFFERI-HYLLA-L4-1 osv.
   Köksskåpen: B1–B7 längs 3NV norrifrån, B8–B10 längs 3SV österifrån, O1 (diskmaskinen)–O3 i ön norrifrån, med
@@ -324,27 +325,30 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
   mot 2B:s gips och mitt mellan 2A:s och L6:s, för att se hur rummet räcker.
-- **Kökets inbyggnad** (hus/invandigt/kokets_inbyggnad.py och hus/inredning/kok.py, ärende #20; inte på
+- **Kökets inbyggnad** (hus/invandigt/kokets_inbyggnad.py och hus/inredning/kok.py, ärende #20 och #21; inte på
   planritning 201): kyl, frys och skafferi framför L4 mot köket, från L2:s linje till 3NV, bakom en vägg av gips
   från golvet till innertaket. Lätta väggar 45×70 (lägena i invandigt/lattvaggar.py) framför L4:s och 3NV:s färdiga
-  skikt: fronten L15, 833 mm från L4:s yta (13 mm söder om huvudstolpen LN1_3:s strävor och överstycke, som hamnar i
-  förrådet), gaveln L16 i L2:s linje och mellanväggarna L17 (mot huvudstolpen) och L18 upp till förrådsgolvet. Tre
-  öppningar i fronten från golvet till 2 100 med smyg av vitmålad furu: nischerna för integrerad kyl (560 × 1 780)
-  och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 450 fri, så att bänken längs 3NV (700) ryms
-  öster om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
+  skikt: fronten L15, 738 mm från L4:s yta, med gipsen mot huvudstolpen LN1_3:s strävor och topregel (som hamnar i
+  förrådet; stommen och OSB:n har ett urtag runt deras toppar, med en kortling under dem), och gaveln L16 i L2:s
+  linje. Mellan nischerna och mot skafferiet bara två gipsskivor (L17 mot huvudstolpen och L18), upp till förrådets
+  reglar. Tre öppningar i fronten från golvet till 2 100, med en regel emellan och smyg av vitmålad furu: nischerna
+  för integrerad kyl (560 × 1 780) och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 540 fri,
+  så att bänken längs 3NV (700) ryms öster om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
   2 167 och en lucka 500 × 600 i gavelns norra del. Vitvarornas luft tas in genom socklarnas galler och går upp
   bakom dem, genom en springa mellan förrådsgolvet och L4 och ut genom ett galler i fronten över varje nisch.
-  Köksbelysningens dimmer och brytare sitter på gaveln söder om luckan, uttagen till kylen och frysen på L4 i
-  förrådet.
+  Köksbelysningens dimmer och brytaren över den sitter på gaveln söder om luckan, uttagen till kylen och frysen på
+  L4 i förrådet.
 - **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
   användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
-  mitt under Stav. Skåpen byggs vart för sig av björkplywood 20 (600 djupa, från sparklisten 90 till bänkskivans
+  1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (600 djupa, från sparklisten 90 till bänkskivans
   underkant 888) med fyra lådor av björkplywood 14 och botten 4 på Blum MOVENTO 760H (SKW = LW − 42, SKL = NL − 10,
   urtag 13, NL 550; under diskhon 350) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
   3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
-  600,2 breda (fronterna 572,2) mellan brädan och hörnet; hörnet är dött med en fogbräda 22 × 22. Diskhon i B2 under
-  fönstret 3NV-F4 över golvdosan KO-DB1, hällen i B4 under köksfläkten. Ön: diskmaskinen och två lådskåp mot bänken,
-  vita sidor och rygg, öppen för benen mot väster. Bänkskivorna Bricmate Jura 12.
+  mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,4
+  breda (fronterna 605,4), B4–B7 och skåpen längs 3SV 599,1 (571,1); hörnet är dött med en fogbräda 22 × 22. Diskhon
+  i B2 över golvdosan KO-DB1. Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
+  och två lådskåp, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
+  Bricmate Jura 12.
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
   helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, 22 mm innanför
   panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
