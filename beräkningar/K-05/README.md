@@ -25,9 +25,9 @@ Kontroll av det platsgjutna mellanbjälklaget, 150 mm, och källarens stålrör,
 ```
 pip install -r requirements.txt
 python laster.py          # lastsammanställning
-python berakning.py       # cirka 8 min
+python berakning.py       # under en halv minut
 python validering/konvergens.py
-python validering/vaggande.py    # cirka 10 min
+python validering/vaggande.py    # cirka en minut
 python rapport.py         # rapport/K-05_mellanbjalklag.pdf
 ```
 

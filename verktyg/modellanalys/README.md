@@ -11,7 +11,33 @@ uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python -r requirements.txt
 ```
 
-Kör sedan allt via `./ma` (använder `.venv`). Första körningen mot en fil bygger en cache i `.cache/` (några sekunder); en ny export (annat innehåll) får automatiskt en ny cache.
+Kör sedan allt via `./ma` (använder `.venv`).
+
+## Tjänsten, cachen och modellens senaste bygge
+
+`./ma` skickar kommandot till **ma-tjänsten** ([`tjanst.py`](tjanst.py), via [`klient.py`](klient.py)): en process som
+ligger kvar med biblioteken och modellen inlästa, så att ett anrop tar en bråkdel av en sekund i stället för
+sekunder. Tjänsten startas av första anropet och avslutar sig själv efter 20 minuter utan anrop, eller när
+modellanalysens kod ändras (nästa anrop startar en ny). Den kör ett anrop i taget, i anroparens mapp, och
+utdata och slutkod blir desamma som utan tjänsten. Snitten räknas per del och sparas i tjänsten (`geometri.snitt`),
+så att ett nytt snitt i samma plan bara räknar om de delar som har ändrats, även efter att modellen har byggts om.
+
+```
+./ma tjanst            # körs tjänsten?
+./ma tjanst stopp      # avsluta den
+MA_TJANST=0 ./ma …     # utan tjänsten, i en egen process
+```
+
+Varje fil som läses får en **cache** i `.cache/<filnamn>-<hash>/` (`index.json`, `nat.npz`, `former.bin`); en ny
+export (annat innehåll) får en ny cache och de fyra senast använda per filnamn sparas. Att bygga cachen ur en STEP-fil
+tar en halv minut.
+
+Den **kodgenererade modellen** (standardfilen) läses i sitt senaste bygge: `mod bygg` skriver cachen direkt ur
+modellen (samma innehåll, men egenskaperna och näten räknas bara för de delar som har ändrats), för STEP-filen eller
+med `mod bygg --format analys` utan att skriva STEP-filen, och pekar ut den i `ut/trebodar.analys.json`. Har
+modellens källor (modellen, modelleringsverktyget och beräkningarna som modellen läser) ändrats sedan dess bygger
+`./ma` först om analysen (`mod bygg --format analys`, några sekunder), så att snitt och kontroller alltid gäller
+den aktuella koden. `MA_BYGG=0` varnar bara.
 
 ## Kommandon
 
@@ -44,22 +70,24 @@ Kör sedan allt via `./ma` (använder `.venv`). Första körningen mot en fil by
 - Snittytorna beräknas exakt ur B-rep och fylls i delens färg; tabellen under bilden ger varje dels utbredning i snittet.
 - `--bortom -3000` ritar även det som syns upp till 3 m bortom snittet (tecknet anger åt vilket håll man tittar), skuggat och ljusare med avståndet.
 - `--origo u,v` mäter i ett lokalt system (t.ex. en ritnings origo i globala koordinater); `--omrade` och alla utskrivna koordinater blir relativa.
-- `--omrade u0,u1,v0,v1` beskär, `--rutnat 500` rutnät var 500 mm, `--koordinater` skriver ut snittytornas hörn, `--json fil` sparar all snittgeometri, `--inga-etiketter`.
+- `--omrade u0,u1,v0,v1` beskär, `--rutnat 500` rutnät var 500 mm, `--koordinater` skriver ut snittytornas hörn, `--json fil` sparar all snittgeometri, `--inga-etiketter`, `--ingen-bild` (bara tabellen och `--json`, som ritningarna i `verktyg/modellering` använder).
 
 Bilder hamnar i `ut/` om inte `--ut` anges.
 
 ## Underlag till beräkningarna
 
-Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser den kodgenererade modellen (bygg den först med `verktyg/modellering/mod bygg`; de varnar om STEP-filen är äldre än modellens kod). Där källfilerna har Onshape-modellens namn (K-03:s takbalkstyper, takstolsstavar och stolpdelar) paras delarna på läget och namnen jämförs inte. Kör dem när modellen har ändrats:
+Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser den kodgenererade modellen i dess senaste bygge (se ovan). Där källfilerna har Onshape-modellens namn (K-03:s takbalkstyper, takstolsstavar och stolpdelar) paras delarna på läget och namnen jämförs inte. Kör dem när modellen har ändrats:
 
 ```
-.venv/bin/python kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter
-.venv/bin/python kontroll_k03.py          # K-03:s geometri.json och K-05:s stolplägen
-.venv/bin/python kontroll_r061.py         # geometri.json och R-06.1:s måttkedjor
-.venv/bin/python kontroll_r045.py         # R-04/R-05: öppningar, bröstningar, bottenplattans kontur, väggarnas höjd
-.venv/bin/python kontroll_laster.py       # lastgeometrin i F-01, K-01, K-05 och K-06
-.venv/bin/python kontroll_balkplattor.py  # balkplåtarnas skärfiler mot K-01
+./ma kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter
+./ma kontroll_k03.py          # K-03:s geometri.json och K-05:s stolplägen
+./ma kontroll_r061.py         # geometri.json och R-06.1:s måttkedjor
+./ma kontroll_r045.py         # R-04/R-05: öppningar, bröstningar, bottenplattans kontur, väggarnas höjd
+./ma kontroll_laster.py       # lastgeometrin i F-01, K-01, K-05 och K-06
+./ma kontroll_balkplattor.py  # balkplåtarnas skärfiler mot K-01
 ```
+
+`./ma skript.py` kör skriptet i tjänsten (med modellen redan inläst); `.venv/bin/python skript.py` fungerar också.
 
 `marknivaer.py` går åt andra hållet, för modellen: den skriver tabellen `MARKNIVA` för
 `modeller/trebodar/hus/fasad/markniva.py` (marken vid fasaderna, panelens underkant) ur den byggda modellen. Kör den när
@@ -81,7 +109,8 @@ V, F = m.nat(platta)           # triangelnät
 | Fil | Innehåll |
 |---|---|
 | `ma`, `ma.py` | Kommandoraden |
-| `modell.py` | Inläsning av STEP (namn, färg, placering), cache, urval |
+| `klient.py`, `tjanst.py` | ma-tjänsten: klienten som `./ma` kör (startar tjänsten vid behov) och tjänsten som kör kommandona |
+| `modell.py` | Inläsning av STEP (namn, färg, placering), cache (även den som `mod bygg` skriver), modellens senaste bygge, urval |
 | `geometri.py` | Exakta frågor: plansnitt, linjeprob, punkt, avstånd, krock, ytanalys |
 | `vy.py` | 3D-rendering (pyvista/VTK, offscreen) |
 | `ritning.py` | 2D-snittritningar (matplotlib) |

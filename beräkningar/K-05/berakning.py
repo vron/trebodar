@@ -65,6 +65,7 @@ import os
 import math
 
 import numpy as np
+import shapely
 from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
@@ -191,7 +192,7 @@ if polys:
     for g in getattr(U, "geoms", [U]):
         x0, y0, x1, y1 = g.bounds
         z = box(x0 - LBD, y0 - LBD, x1 + LBD, y1 + LBD).intersection(Polygon(GEO["kontur"]))
-        m = np.array([Point(p).within(g.buffer(5)) for p in P.xy])
+        m = shapely.within(shapely.points(P.xy), g.buffer(5))
         Mx, My = -sm["mox"][m].min(), -sm["moy"][m].min()
         val = None
         for t in TILLAGG:

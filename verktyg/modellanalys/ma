@@ -1,4 +1,5 @@
 #!/bin/sh
-# Kör modellanalysen med verktygets egen Python-miljö (.venv). Se README.md.
+# Kör modellanalysen med verktygets egen Python-miljö (.venv), via ma-tjänsten (tjanst.py, klient.py). Se README.md.
+unset PYTHONDONTWRITEBYTECODE      # bytekoden sparas (__pycache__ ignoreras av git)
 D="$(cd "$(dirname "$0")" && pwd)"
-exec "$D/.venv/bin/python" "$D/ma.py" "$@"
+exec "$D/.venv/bin/python" "$D/klient.py" "$@"

@@ -51,7 +51,11 @@ class Form:
         return _data(self)
 
     def nyckel(self) -> str:
-        return hashlib.sha1(json.dumps(_data(self), sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:20]
+        k = self.__dict__.get("_nyckel")             # receptet är oföränderligt: nyckeln räknas en gång
+        if k is None:
+            k = hashlib.sha1(json.dumps(_data(self), sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:20]
+            object.__setattr__(self, "_nyckel", k)
+        return k
 
 
 @dataclass(frozen=True)
@@ -154,6 +158,12 @@ def _v(p: Sequence[float]) -> Vek:
 
 
 def _data(o: object) -> object:
+    if isinstance(o, Form):                          # delrecept som delas mellan former räknas en gång
+        d = o.__dict__.get("_data")
+        if d is None:
+            d = {"_": type(o).__name__, **{f.name: _data(getattr(o, f.name)) for f in fields(o)}}  # type: ignore[arg-type]
+            object.__setattr__(o, "_data", d)
+        return d
     if is_dataclass(o) and not isinstance(o, type):
         return {"_": type(o).__name__, **{f.name: _data(getattr(o, f.name)) for f in fields(o)}}
     if isinstance(o, (tuple, list)):

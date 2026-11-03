@@ -6,6 +6,8 @@ produkternas namn). Annars delar likadana delar en produkt med delens namn.
 """
 from __future__ import annotations
 
+import os
+import re
 from pathlib import Path
 
 from OCP.BRepBuilderAPI import BRepBuilderAPI_Copy
@@ -96,18 +98,23 @@ def skriv(rot: Montage, fil: Path, karna: Karna, unika_produkter: bool = True) -
     w.SetNameMode(True)
     w.Transfer(doc, STEPControl_AsIs)
     fil.parent.mkdir(parents=True, exist_ok=True)
-    if w.Write(str(fil)) != IFSelect_RetDone:
-        raise RuntimeError(f"kunde inte skriva {fil}")
-    _ascii(fil)
+    tmp = fil.with_name(f".{fil.name}.{os.getpid()}")      # bytes i ett steg: läsare ser aldrig en halv fil
+    try:
+        if w.Write(str(tmp)) != IFSelect_RetDone:
+            raise RuntimeError(f"kunde inte skriva {fil}")
+        _ascii(tmp)
+        os.replace(tmp, fil)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def _ascii(fil: Path) -> None:
     """ISO 10303-21 tillåter bara ASCII: övriga tecken skrivs \\X\\hh (Latin-1) eller \\X2\\hhhh\\X0\\."""
-    txt = fil.read_text(encoding="utf-8")
-    if txt.isascii():
+    data = fil.read_bytes()
+    if data.isascii():
         return
-    ut = []
-    for c in txt:
-        o = ord(c)
-        ut.append(c if o < 128 else f"\\X\\{o:02X}" if o < 256 else f"\\X2\\{o:04X}\\X0\\")
-    fil.write_text("".join(ut), encoding="ascii")
+
+    def kod(m: re.Match[bytes]) -> bytes:              # en följd av UTF-8-kodade tecken
+        return "".join(f"\\X\\{o:02X}" if o < 256 else f"\\X2\\{o:04X}\\X0\\"
+                       for o in map(ord, m.group().decode("utf-8"))).encode("ascii")
+    fil.write_bytes(re.sub(rb"[\x80-\xff]+", kod, data))

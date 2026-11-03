@@ -169,7 +169,8 @@ class Ar:
         for k in m["gv"]:
             A1.rows[k] = [k]
             A1.data[k] = [1.0]
-        self.los = {False: spl.factorized(A0.tocsc()), True: spl.factorized(A1.tocsc())}
+        # minsta grad på AᵀA + A: hälften så mycket fyllnad som standardordningen (matrisen är symmetrisk utan golvvärme)
+        self.los = {k: spl.splu(a.tocsc(), permc_spec="MMD_AT_PLUS_A").solve for k, a in ((False, A0), (True, A1))}
 
     def steg(self, T, d, kraft=True):
         m = self.m

@@ -18,7 +18,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | Kommando | Gör |
 |---|---|
 | `./mod trad [--djup N] [--del VÄG]` | Modellträdet med antal delar |
-| `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/` |
+| `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/`; med STEP också modellanalysens cache. `--format analys`: bara modellanalysens cache, utan STEP-fil (några sekunder; `./ma` kör det själv när modellens källor har ändrats) |
 | `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt |
 | `./mod avtryck spara\|jamfor [--del VÄG]` | Modellens fingeravtryck (varje dels låda, volym och tyngdpunkt): spara före en omstrukturering och jämför efter, så syns att geometrin är oförändrad (flyttade delar paras på namn, delar med samma geometri och nytt delnamn redovisas för sig; `ut/<modell>-avtryck.json`) |
 | `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
@@ -42,6 +42,7 @@ egen modell (t.ex. för beställning). Utdata:
 | Fil i `modeller/trebodar/ut/` | Innehåll |
 |---|---|
 | `trebodar.step` | STEP AP242 med sammanställningar, namn och färger (Onshape, `./ma` i modellanalys) |
+| `trebodar.analys.json` | Pekar ut modellanalysens cache för det senaste bygget (`verktyg/modellanalys/.cache/`) |
 | `trebodar.glb` | glTF med delade nät, material och metadata (Blender, webben) |
 | `trebodar-materiallista.md`, `.csv` | Materiallista per del och per material: antal, kapmått, volym, massa |
 | `trebodar-index.json` | Alla delar med sökväg, material, omslutande låda, volym, massa och tyngdpunkt |
@@ -66,6 +67,10 @@ egen modell (t.ex. för beställning). Utdata:
 - **Export** (`export/`): STEP AP242 (OCCT XCAF; varje placerad del en egen produkt med instansens namn, eller
   delade produkter med `--delade`; utan 2D-kurvor på ytorna, som läsarna räknar fram), GLB (eget skrivprogram: hierarki, delade nät, material i CAD-färgerna med det verkliga
   utseendet i `extras`, UV i delens system så att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
+  STEP-filen skrivs i ett steg (en temporär fil som byter namn), så att andra processer aldrig läser en halv fil.
+  `export/analys.py` skriver modellanalysens cache direkt ur modellen, med modellanalysens egna funktioner och format
+  (`verktyg/modellanalys/modell.py`): egenskaperna per placerad del och näten per recept sparas i kärnans cache, så
+  att bara det som har ändrats räknas (under en sekund för hela huset i stället för en halv minut när STEP-filen läses).
 - **Kontroll** (`kontroll.py`): grovsållning med omslutande lådor, sedan exakt kontroll per par i parallella
   processer: gemensam volym (krock över 5 mm³), anliggande plana ytor (kontaktarea), minsta avstånd (glipor 0,01–2
   mm, utom mellan delar som båda ligger an mot en tredje). Resultaten per par cachas med nyckel från recepten och
@@ -149,5 +154,5 @@ gratiskonto i Onshape kan bara skapa publika dokument; då krävs `--publik`. On
 sammanställningar per import och slår ihop de djupaste nivåerna i större modeller (hela huset har drygt 300); ladda
 upp delträd med `--del` (t.ex. `"Hus/Stomme/Stomme prefab"`) för att få hela strukturen.
 
-STEP-filen analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma …`, som läser den genererade modellen
-som standard).
+STEP-filen analyseras med [`verktyg/modellanalys`](../modellanalys/) (`./ma …`, som läser den genererade modellen i
+dess senaste bygge som standard, via ma-tjänsten; snitten i ritningarna ovan hämtas där).

@@ -6,7 +6,8 @@ Eget underlag, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6)
 |---|---|
 | `indata.toml` | Sektionen (markytans nivåer ur modellen, P7:s dubbelrör), uppbyggnad L300/L400, material, klimat, drift, fuktdata, nät och känslighetsfall |
 | `mark2d.py` | Nät, finita volymer, tidsstegning (implicit Euler), periodiskt tillstånd med GMRES och värmebalans |
-| `berakning.py` | Huvudskript: alla fall och kontroller, fuktbalans, figurer, `resultat.json`, PDF |
+| `fall.py` | Ett fall: parametrarna, nätet, det periodiska tillståndet, plattans temperaturer och fuktbalansen (egen modul, så att fallen kan räknas i parallella processer) |
+| `berakning.py` | Huvudskript: alla fall och kontroller (i parallella processer, grundfallet i den egna), figurer, `resultat.json`, PDF |
 | `mall.typ` | Typst-mall för dokumentet |
 
 Väggarnas och rörens lägen läses ur `../K-05/bild/geometri.json` (modellen) och plintarnas storlek ur `../K-06/resultat.json`. Markytans nivå utanför väggarna är mätt i modellen med `verktyg/modellanalys` (`./ma linje`).
@@ -15,7 +16,7 @@ Väggarnas och rörens lägen läses ur `../K-05/bild/geometri.json` (modellen) 
 
 ```
 pip install -r requirements.txt
-python berakning.py            # alla fall, kontroller och PDF, några minuter
+python berakning.py            # alla fall, kontroller och PDF, cirka 2 minuter
 python berakning.py figurer    # bara grundfallet och figurerna
 ```
 

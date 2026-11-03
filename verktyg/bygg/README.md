@@ -9,15 +9,20 @@
 ./bygg --om K-01        # bygg om även när steget är aktuellt
 ./bygg --snabb          # bara de snabba stegen (GitHub Actions)
 ./bygg --markera U-03   # ange att stegets resultat är aktuella utan att köra det
+./bygg --jobb 4         # högst fyra steg samtidigt (standard: hälften av kärnorna)
 ```
 
-Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/modellanalys/.venv`) skapas och uppdateras med `uv` när de saknas eller kravfilerna ändras. Typsnittet Carlito ska vara installerat eller ligga i `beräkningar/.fonts`.
+Stegen körs parallellt: ett steg startar när stegen det bygger på är klara (beroendena i `STEG`), så att hela bygget
+tar ungefär så lång tid som den längsta kedjan (lokalt under en halv minut för de snabba stegen). När flera steg körs
+har deras utdata stegets namn först på raden, och ett steg som misslyckas stoppar bygget när de pågående är klara.
+
+Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/modellanalys/.venv`) skapas och uppdateras med `uv` när de saknas, kravfilerna ändras eller `MILJO_VERSION` höjs, före stegen. Paketens bytekod kompileras då i förväg, så att Python inte kompilerar dem vid varje start där den inte får spara bytekoden (`PYTHONDONTWRITEBYTECODE`, som i Claude Code); stegen själva får spara den (`__pycache__` ignoreras av git). Modellanalysens steg körs genom `./ma` (ma-tjänsten, se [`verktyg/modellanalys`](../modellanalys/)), så att modellen läses en gång. Typsnittet Carlito ska vara installerat eller ligga i `beräkningar/.fonts`.
 
 ## Stegen
 
 | Steg | Kör | Utdata |
 |---|---|---|
-| `modell` | `./mod bygg --format step` | `modeller/trebodar/ut/trebodar.step` |
+| `modell` | `./mod bygg --format step` | `modeller/trebodar/ut/trebodar.step` och modellanalysens cache för den |
 | `webb` | `./mod webb` | `docs/` (webbvisaren) |
 | `kameraplan` | `./mod kameraplan` | `renderingar/kameraplan.pdf`, `docs/renderingar/` (renderingarna på planerna) |
 | `granskning` | `kontroll_laster.py` | `verktyg/modellanalys/granskning/ytterväggens_läge.png` |
@@ -35,7 +40,7 @@ Ett steg är aktuellt när dess kontrollsumma är oförändrad sedan det byggdes
 
 ## Tunga steg
 
-K-05 (cirka 20 min), K-06, U-01 (många tidsstegade fall) och U-03 (cirka 1,5 h med 12 processer) tar för lång tid för GitHub Actions, och rapporterna för K-05, K-06 och U-03 ritas ur stora mellanresultat (FE-fält, `*.npz`, `*.pkl`) som inte versionshanteras. De räknas lokalt. Det som checkas in:
+K-05 (cirka 2 min), K-06 (under en halv minut), U-01 (cirka 2 min) och U-03 (cirka 15 min) räknas lokalt: U-01 och U-03 räknar sina fall i parallella processer, och tillsammans tar stegen för lång tid för GitHub Actions (fyra kärnor). Rapporterna för K-05, K-06 och U-03 ritas ur stora mellanresultat (FE-fält, `*.npz`, `*.pkl`) som inte versionshanteras. Det som checkas in:
 
 - `räknat.json`: kontrollsumman för källorna som resultaten räknades med;
 - resultaten som andra steg läser (K-05 och K-06: `resultat.json`; K-05 också valideringarnas `konvergens.json` och `vaggande.json`);

@@ -10,6 +10,9 @@ figur, beräkningarna, rapporterna, ritningarna och webbplatsen med handlingarna
     ./bygg --markera U-03   ange att stegets resultat är aktuella utan att köra det (efter en ändring i källorna
                             som inte påverkar resultaten)
 
+Stegen körs parallellt (högst --jobb åt gången): ett steg startar när stegen det bygger på är klara. När flera
+steg körs har deras utdata stegets namn först på raden.
+
 Ett steg är aktuellt när dess kontrollsumma är oförändrad sedan det byggdes och dess utdata finns. Summan räknas
 över stegets källor (alla filer i dess mappar som inte ignoreras av git, utom dess incheckade resultat), dess
 kommandon och summorna för stegen det bygger på. Snabba steg sparar summan i .bygg/ (versionshanteras inte). Tunga
@@ -24,7 +27,9 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import time
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 import tomllib
 import unicodedata
 import urllib.parse
@@ -37,6 +42,7 @@ BER = "beräkningar"
 MALL = f"{BER}/ritningsmall"
 MODELL = ["modeller/trebodar", "verktyg/modellering"]
 PYTHON = "3.12"
+MILJO_VERSION = "2"            # höj när miljöerna ska byggas om (2: bytekoden kompileras i förväg)
 
 # Pythonmiljöerna: mapp med .venv och kravfilerna
 MILJOER = {
@@ -71,7 +77,8 @@ def ritning(nr: str, titel: str, *kor: str, bygger_pa: list[str] = (), kallor: l
 
 
 STEG = [
-    Steg("modell", "modeller/trebodar", [["mod", "bygg", "--format", "step"]], kallor=MODELL,
+    Steg("modell", "modeller/trebodar", [["mod", "bygg", "--format", "step"]],
+         kallor=[*MODELL, "verktyg/modellanalys/modell.py"],             # modellanalysens cache skrivs också
          utdata=["modeller/trebodar/ut/trebodar.step"]),
     Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL,
          utdata=["docs/index.html", "docs/vyer.json", "docs/modell/trebodar.glb"]),
@@ -209,7 +216,7 @@ def miljo(namn: str) -> Path:
     mapp, krav = MILJOER[namn]
     venv = ROT / mapp / ".venv"
     python = venv / "bin" / "python"
-    summa = hashlib.sha256(b"".join((ROT / k).read_bytes() for k in krav)).hexdigest()
+    summa = hashlib.sha256(MILJO_VERSION.encode() + b"".join((ROT / k).read_bytes() for k in krav)).hexdigest()
     markering = venv / "bygg-krav.txt"
     if python.exists() and markering.exists() and markering.read_text() == summa:
         return python
@@ -218,23 +225,48 @@ def miljo(namn: str) -> Path:
         subprocess.run(["uv", "venv", "--python", PYTHON, str(venv)], check=True)
     subprocess.run(["uv", "pip", "install", "--python", str(python), *sum((["-r", str(ROT / k)] for k in krav), [])],
                    check=True)
+    # bytekoden i förväg: annars kompileras paketen vid varje start där Python inte får skriva den
+    # (PYTHONDONTWRITEBYTECODE, t.ex. i Claude Code); inte i GitHub Actions, där miljöerna är nya varje gång
+    if not os.environ.get("CI"):
+        subprocess.run([str(python), "-m", "compileall", "-q", "-j", "0", str(venv / "lib")],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     markering.write_text(summa)
     return python
 
 
-def kor_steg(s: Steg) -> None:
-    env = {**os.environ, "MPLBACKEND": "Agg", "PYTHONUNBUFFERED": "1"}
-    for m in s.miljoer:
-        miljo(m)
+_UTSKRIFT = threading.Lock()
+
+
+def skriv(rad: str, prefix: str = "") -> None:
+    with _UTSKRIFT:
+        print(f"{prefix}{rad}", flush=True)
+
+
+def miljoer(steg: list[Steg]) -> None:
+    """Skapa eller uppdatera stegens Pythonmiljöer före bygget (inte parallellt)."""
+    for s in steg:
+        for m in [*s.miljoer, *(k[0] for k in s.kor)]:
+            miljo(m)
+
+
+def kor_steg(s: Steg, prefix: str = "") -> None:
+    """Stegets kommandon (miljöerna ska finnas), med utdata rad för rad (med prefix när flera steg körs)."""
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}   # __pycache__ ignoreras av git
+    env |= {"MPLBACKEND": "Agg", "PYTHONUNBUFFERED": "1"}
     for k in s.kor:
-        if k[0] == "mod":
-            miljo("mod")
-            argv = [str(ROT / "verktyg/modellering/mod"), *k[1:]]
+        if k[0] in ("mod", "ma"):                  # ./mod och ./ma (ma-tjänsten) i sina egna mappar
+            argv = [str(ROT / {"mod": "verktyg/modellering/mod", "ma": "verktyg/modellanalys/ma"}[k[0]]), *k[1:]]
         else:
             argv = [str(miljo(k[0])), *k[1:]]
-        print(f"   $ {' '.join(k[1:]) if k[0] != 'mod' else './mod ' + ' '.join(k[1:])}", flush=True)
-        cwd = ROT / ("verktyg/modellering" if k[0] == "mod" else s.mapp)   # ./mod körs i sin egen mapp
-        subprocess.run(argv, cwd=cwd, env=env, check=True)
+        skriv(f"   $ {'./mod ' if k[0] == 'mod' else ''}{' '.join(k[1:])}", prefix)
+        cwd = ROT / ("verktyg/modellering" if k[0] == "mod" else s.mapp)
+        with subprocess.Popen(argv, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                              errors="replace") as p:
+            assert p.stdout
+            for rad in p.stdout:
+                skriv(rad.rstrip("\n"), prefix)
+        if p.returncode:
+            raise subprocess.CalledProcessError(p.returncode, argv)
     if s.rapport:
         dst = rapportfil(s)
         for gammal in (ROT / "rapporter").glob(f"{s.namn}rev*.pdf"):
@@ -242,8 +274,45 @@ def kor_steg(s: Steg) -> None:
         shutil.copy(ROT / s.mapp / s.rapport[0], dst)
     if fel := saknas(s):
         raise SystemExit(f"{s.namn}: utdata saknas efter bygget: {', '.join(fel)}")
-    _summor.clear()                    # steget kan ha skrivit om källor (t.ex. K-01:s hålbilder)
-    spara_summa(s)
+
+
+def kor_alla(steg: list[Steg], jobb: int) -> list[tuple[str, float]]:
+    """Stegen i beroendeordning, parallellt när de inte bygger på varandra. Returnerar (steg, tid) i den ordning
+    de blev klara; ett steg som misslyckas stoppar bygget (de som redan körs får bli klara)."""
+    kvar = list(steg)
+    namn = {s.namn for s in steg}
+    pagar: dict[Future[None], tuple[Steg, float]] = {}
+    tider: list[tuple[str, float]] = []
+    fel: BaseException | None = None
+    flera = len(steg) > 1 and jobb > 1
+    with ThreadPoolExecutor(max_workers=jobb) as ex:
+        while (kvar and fel is None) or pagar:
+            igang = {s.namn for s, _ in pagar.values()}
+            for s in list(kvar):
+                if fel is not None or len(pagar) >= jobb:
+                    break
+                vantar = [b for b in s.bygger_pa if b in namn and (b in igang or any(k.namn == b for k in kvar))]
+                if not vantar:
+                    kvar.remove(s)
+                    skriv(f"== {s.namn}{' (tung)' if s.tung else ''}")
+                    pagar[ex.submit(kor_steg, s, f"[{s.namn}] " if flera else "")] = (s, time.perf_counter())
+                    igang.add(s.namn)
+            klara, _ = wait(pagar, return_when=FIRST_COMPLETED)
+            for f in klara:
+                s, t = pagar.pop(f)
+                try:
+                    f.result()
+                except BaseException as e:   # noqa: BLE001  (stegets fel rapporteras när de pågående är klara)
+                    skriv(f"   {s.namn} misslyckades: {e}")
+                    fel = fel or e
+                    continue
+                _summor.clear()                    # steget kan ha skrivit om källor (t.ex. K-01:s hålbilder)
+                spara_summa(s)
+                tider.append((s.namn, time.perf_counter() - t))
+                skriv(f"   {s.namn} klart ({tid(tider[-1][1])})")
+    if fel is not None:
+        raise SystemExit(1) from fel
+    return tider
 
 
 def spara_summa(s: Steg) -> None:
@@ -314,6 +383,8 @@ def main() -> None:
     a.add_argument("--snabb", action="store_true", help="bara snabba steg; stoppa om ett tungt steg är inaktuellt")
     a.add_argument("--om", action="store_true", help="bygg om de valda stegen även om de är aktuella")
     a.add_argument("--lista", action="store_true", help="visa stegen och om de är aktuella")
+    a.add_argument("--jobb", type=int, default=max(1, (os.cpu_count() or 2) // 2),
+                   help="högst så många steg samtidigt (standard: hälften av kärnorna)")
     a.add_argument("--markera", action="store_true",
                    help="spara kontrollsumman för de valda stegen utan att köra dem (resultaten är aktuella)")
     arg = a.parse_args()
@@ -341,17 +412,14 @@ def main() -> None:
                              f"källor. Kör ./bygg {' '.join(inaktuella)} lokalt och checka in resultaten och "
                              f"räknat.json.")
     steg = plan(arg.steg or list(STEG_NAMN), arg.om, arg.snabb)
-    tider = []
-    for s in steg:
-        print(f"== {s.namn}{' (tung)' if s.tung else ''}", flush=True)
-        t = time.perf_counter()
-        kor_steg(s)
-        tider.append((s.namn, time.perf_counter() - t))
-        print(f"   klart ({tid(tider[-1][1])})", flush=True)
+    t0 = time.perf_counter()
+    miljoer(steg)
+    tider = kor_alla(steg, arg.jobb)
     if not arg.steg:
         webbplats()
     if tider:
-        print(f"\nTid {tid(sum(t for _, t in tider))}: " + ", ".join(f"{n} {tid(t)}" for n, t in tider))
+        print(f"\nTid {tid(time.perf_counter() - t0)} (stegen sammanlagt {tid(sum(t for _, t in tider))}): "
+              + ", ".join(f"{n} {tid(t)}" for n, t in tider))
     else:
         print("Allt är aktuellt.")
 

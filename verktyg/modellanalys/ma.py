@@ -6,7 +6,7 @@ ma – modellanalys av STEP-sammanställningar. Kör via ./ma <kommando> (använ
     ./ma delar "K Pillar" [--sortera x]        tabell över delar (urval: delsträng, glob, #id, #a-b)
     ./ma info "#42" [--horn]                   exakt geometri: plana ytor med läge, cylindrar, hörn
     ./ma vy [--fran iso,ovan] [--klipp "z<13000"] [--delar …] [--spok …] [--markera …] [--rutnat]
-    ./ma snitt z=12500 [--bortom -3000] [--omrade x0,x1,y0,y1] [--koordinater]
+    ./ma snitt z=12500 [--bortom -3000] [--omrade x0,x1,y0,y1] [--koordinater] [--json f.json] [--ingen-bild]
     ./ma linje "x=1000,y=2000"                 alla delar längs en linje (skikttjocklekar)
     ./ma linje 0,0,0 1000,0,0                  … eller mellan två punkter
     ./ma punkt 1000,2000,12500                 vilka delar innehåller / är närmast punkten
@@ -211,11 +211,15 @@ def k_snitt(m, args):
     delar = urval(m, args)
     kontrollera(delar, args.delar)
     omrade = [float(v) for v in args.omrade.split(",")] if args.omrade else None
-    ut = utfil(args, f"snitt_{slug(plan.namn)}{'_b' + str(int(args.bortom)) if args.bortom else ''}"
-                     f"{'_' + slug(args.delar) if args.delar else ''}.png")
-    sd = rita_snitt(m, plan, delar, ut, bortom=args.bortom, omrade=omrade, etiketter=not args.inga_etiketter,
-                    rutnat=args.rutnat, titel=args.titel, dpi=args.dpi)
-    print(f"{ut}\n")
+    if args.ingen_bild:
+        from geometri import snitt
+        sd = snitt(m, delar, plan)
+    else:
+        ut = utfil(args, f"snitt_{slug(plan.namn)}{'_b' + str(int(args.bortom)) if args.bortom else ''}"
+                         f"{'_' + slug(args.delar) if args.delar else ''}.png")
+        sd = rita_snitt(m, plan, delar, ut, bortom=args.bortom, omrade=omrade, etiketter=not args.inga_etiketter,
+                        rutnat=args.rutnat, titel=args.titel, dpi=args.dpi)
+        print(f"{ut}\n")
     a, b = plan.axlar
     print(f"{'id':>5}  {a + ' från':>10} {a + ' till':>10}  {b + ' från':>10} {b + ' till':>10}  {'area m²':>9}  del")
     for s in sorted(sd, key=lambda s: s.del_.sokvag):
@@ -405,6 +409,7 @@ def main():
     a.add_argument("--rutnat", type=float, help="rutnätsavstånd mm"); a.add_argument("--inga-etiketter", action="store_true")
     a.add_argument("--koordinater", action="store_true", help="skriv ut snittytornas hörn")
     a.add_argument("--json", help="spara snittgeometrin som JSON"); a.add_argument("--dpi", type=int, default=160)
+    a.add_argument("--ingen-bild", action="store_true", help="ingen bild (bara tabellen och --json)")
     a.add_argument("--titel"); a.add_argument("--ut")
 
     a = sp.add_parser("linje", parents=[gem]); a.add_argument("p1"); a.add_argument("p2", nargs="?")

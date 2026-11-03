@@ -157,40 +157,58 @@ class SnittDel:
     linjer: list         # 2D-polylinjer (np N×2) för alla snittkanter
 
 
-def snitt(m, delar, plan, avvikelse=0.3):
-    """Exakt snitt av delarna med planet. Returnerar SnittDel per del som skärs."""
+# delarnas snitt per plan: en process som ligger kvar (ma-tjänsten, tjanst.py) räknar bara om delar som har ändrats,
+# även när modellen har byggts om (delens nyckel är dess recept och placering när cachen är skriven ur modellen)
+_SNITT = {}
+_SNITT_MAX = 300_000
+
+
+def _snitt_del(m, d, plan, avvikelse):
+    """(yta, linjer) för delens snitt med planet, eller None."""
     from OCP.BRepAlgoAPI import BRepAlgoAPI_Section
     from OCP.TopAbs import TopAbs_EDGE
     from OCP.TopoDS import TopoDS
+    s = m.form(d)
+    sec = BRepAlgoAPI_Section(s, plan.gp(), False)
+    sec.Approximation(False)
+    sec.Build()
+    if not sec.IsDone():
+        return None
+    linjer = []
+    for e in _utforska(sec.Shape(), TopAbs_EDGE):
+        p = kantpunkter(TopoDS.Edge(e), avvikelse)
+        if len(p) >= 2:
+            linjer.append(np.round(plan.till2d(p), 4))
+    if not linjer:
+        return None
+    yta = Polygon()
+    if d.volym > 0:
+        ls = [LineString(l) for l in linjer if len(np.unique(l, axis=0)) >= 2]
+        ytor = []
+        for poly in polygonize(unary_union(ls)):
+            if poly.area < 1e-6:
+                continue
+            rp = poly.representative_point()
+            if inuti(s, plan.till3d([rp.x, rp.y])[0], 1e-5) == "in":
+                ytor.append(poly)
+        yta = unary_union(ytor) if ytor else Polygon()
+    return yta, linjer
+
+
+def snitt(m, delar, plan, avvikelse=0.3):
+    """Exakt snitt av delarna med planet. Returnerar SnittDel per del som skärs."""
+    pk = (tuple(plan.o), tuple(plan.n), tuple(plan.u), tuple(plan.v), avvikelse)
+    if len(_SNITT) > _SNITT_MAX:
+        _SNITT.clear()
     ut = []
     for d in delar:
         if not plan.korsar(d.bbox):
             continue
-        s = m.form(d)
-        sec = BRepAlgoAPI_Section(s, plan.gp(), False)
-        sec.Approximation(False)
-        sec.Build()
-        if not sec.IsDone():
-            continue
-        linjer = []
-        for e in _utforska(sec.Shape(), TopAbs_EDGE):
-            p = kantpunkter(TopoDS.Edge(e), avvikelse)
-            if len(p) >= 2:
-                linjer.append(np.round(plan.till2d(p), 4))
-        if not linjer:
-            continue
-        yta = Polygon()
-        if d.volym > 0:
-            ls = [LineString(l) for l in linjer if len(np.unique(l, axis=0)) >= 2]
-            ytor = []
-            for poly in polygonize(unary_union(ls)):
-                if poly.area < 1e-6:
-                    continue
-                rp = poly.representative_point()
-                if inuti(s, plan.till3d([rp.x, rp.y])[0], 1e-5) == "in":
-                    ytor.append(poly)
-            yta = unary_union(ytor) if ytor else Polygon()
-        ut.append(SnittDel(d, yta, linjer))
+        k = (d.nyckel or (str(m.cache), d.id), pk)
+        if k not in _SNITT:
+            _SNITT[k] = _snitt_del(m, d, plan, avvikelse)
+        if _SNITT[k] is not None:
+            ut.append(SnittDel(d, *_SNITT[k]))
     return ut
 
 

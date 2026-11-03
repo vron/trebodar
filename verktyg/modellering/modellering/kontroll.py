@@ -208,15 +208,16 @@ def kor(rot: Montage, karna: Karna, marginal: float = GLIPA, arbetare: int | Non
     karna.forbered(d.form for _, d, _ in poster)
     nycklar = [karna.nyckel(d.form) for _, d, _ in poster]
     B = np.array([_varldslada(karna.egenskaper(d.form).bbox, p) for _, d, p in poster])
+    # svep längs x: varje låda mot de tidigare som når fram till den (i svepets ordning)
     ordning = np.argsort(B[:, 0])
+    Bo = B[ordning]
     kandidater: list[tuple[int, int]] = []
-    aktiva: list[int] = []
-    for i in ordning:
-        aktiva = [j for j in aktiva if B[j, 3] >= B[i, 0] - marginal]
-        for j in aktiva:
-            if np.all(B[i, 1:3] <= B[j, 4:6] + marginal) and np.all(B[j, 1:3] <= B[i, 4:6] + marginal):
-                kandidater.append((min(i, j), max(i, j)))
-        aktiva.append(i)
+    for p in range(1, len(Bo)):
+        q = Bo[:p]
+        nara = ((q[:, 3] >= Bo[p, 0] - marginal) & (Bo[p, 1] <= q[:, 4] + marginal) & (Bo[p, 2] <= q[:, 5] + marginal)
+                & (q[:, 1] <= Bo[p, 4] + marginal) & (q[:, 2] <= Bo[p, 5] + marginal))
+        i, js = int(ordning[p]), ordning[np.flatnonzero(nara)].tolist()
+        kandidater += [(min(i, j), max(i, j)) for j in js]
     if bara:
         i_traet = [under(p[0], bara) for p in poster]
         kandidater = [(i, j) for i, j in kandidater if i_traet[i] or i_traet[j]]

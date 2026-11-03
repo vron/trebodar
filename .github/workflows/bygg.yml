@@ -43,7 +43,7 @@ jobs:
           restore-keys: modell-
 
       - name: Bygg
-        run: ./bygg --snabb
+        run: ./bygg --snabb --jobb 4
 
       # bilderna renderas lokalt och publiceras i releasen bilder (./mod publicera, renderingar/README.md)
       - name: Renderingarna

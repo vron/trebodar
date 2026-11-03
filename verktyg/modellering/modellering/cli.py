@@ -171,7 +171,8 @@ def main(argv: list[str] | None = None) -> None:
     pt.add_argument("--del", dest="vag")
     pb = sub.add_parser("bygg", help="bygg och exportera")
     pb.add_argument("--del", dest="vag")
-    pb.add_argument("--format", default="step,glb,lista,index")
+    pb.add_argument("--format", default="step,glb,lista,index",
+                    help="step, glb, lista, index; analys: bara modellanalysens cache (utan STEP-fil)")
     pb.add_argument("--delade", action="store_true", help="likadana delar delar produkt i STEP")
     pb.add_argument("--ut", type=Path, default=UT)
     pk = sub.add_parser("kontroll", help="krockar, kontakter och glipor")
@@ -468,9 +469,17 @@ def main(argv: list[str] | None = None) -> None:
         namn = filnamn(rot)
         format_ = arg.format.split(",")
         if "step" in format_:
+            from .export import analys
             t = time.perf_counter()
             step.skriv(rot, arg.ut / f"{namn}.step", karna, unika_produkter=not arg.delade)
             print(f"  STEP {arg.ut / (namn + '.step')} ({time.perf_counter() - t:.2f} s)")
+            if not arg.delade:                       # modellanalysens cache för STEP-filen (sökvägarna som i den)
+                katalog, n, tid_ = analys.skriv(rot, karna, arg.ut / f"{namn}.step")
+                print(f"  modellanalysens cache {katalog.name} ({n} nya, {tid_:.2f} s)")
+        elif "analys" in format_:                    # bara modellanalysens cache, utan STEP-fil
+            from .export import analys
+            katalog, n, tid_ = analys.skriv(rot, karna, arg.ut / f"{namn}.step", med_step=False)
+            print(f"  modellanalysens cache {katalog.name} ({n} nya, {tid_:.2f} s)")
         if "glb" in format_:
             t = time.perf_counter()
             glb.skriv(rot, arg.ut / f"{namn}.glb", karna)

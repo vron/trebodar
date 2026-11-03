@@ -223,39 +223,54 @@ def placera(texter, mal, ruta, bildruta, img, fri=()):
         if not k:
             raise RuntimeError(f"ingen plats för texten: {t}")
 
-    def konflikt(i, ci, j, cj):
-        _, pi, _, ri = kand[i][ci]
-        _, pj, _, rj = kand[j][cj]
-        n = 0
-        if ri[0] < rj[2] + 1.5 and rj[0] - 1.5 < ri[2] and ri[1] < rj[3] + 1.2 and rj[1] - 1.2 < ri[3]:
-            n += 1
-        if _korsar(mal[i], pi, mal[j], pj):
-            n += 1
-        if _seg_i_ruta(mal[i], pi, rj) or _seg_i_ruta(mal[j], pj, ri):
-            n += 1
+    T25 = np.linspace(0, 1, 25)
+
+    def ccw(a, b, c):
+        return (c[..., 1] - a[..., 1]) * (b[..., 0] - a[..., 0]) - (b[..., 1] - a[..., 1]) * (c[..., 0] - a[..., 0])
+
+    def seg_i_rutor(p, Q, R):
+        """_seg_i_ruta för sträckorna p–Q[k] och rutorna R[l]: (len(Q), len(R))."""
+        X = p[0] + T25[None, :] * (Q[:, :1] - p[0])
+        Y = p[1] + T25[None, :] * (Q[:, 1:] - p[1])
+        X, Y, R = X[:, :, None], Y[:, :, None], R[None, None, :, :]
+        return ((R[..., 0] <= X) & (X <= R[..., 2]) & (R[..., 1] <= Y) & (Y <= R[..., 3])).any(axis=1)
+
+    P = [np.array([c[1] for c in k]) for k in kand]
+    R = [np.array([c[3] for c in k]) for k in kand]
+    M = [np.array(m, float) for m in mal]
+
+    def konflikter(i, j):
+        """Antalet konflikter för text i:s kandidater mot text j:s (len(kand[i]), len(kand[j])): rutorna
+        överlappar, ledarna korsar varandra, en ledare går genom den andra texten."""
+        A, B = R[i][:, None, :], R[j][None, :, :]
+        n = ((A[..., 0] < B[..., 2] + 1.5) & (B[..., 0] - 1.5 < A[..., 2]) & (A[..., 1] < B[..., 3] + 1.2)
+             & (B[..., 1] - 1.2 < A[..., 3])).astype(int)
+        p1, p2, p3, p4 = M[i], P[i][:, None, :], M[j], P[j][None, :, :]
+        n += (ccw(p3, p4, p1) * ccw(p3, p4, p2) < 0) & (ccw(p1, p2, p3) * ccw(p1, p2, p4) < 0)
+        n += seg_i_rutor(mal[i], P[i], R[j]) | seg_i_rutor(mal[j], P[j], R[i]).T
         return n
 
+    nt = len(texter)
+    K = {(i, j): konflikter(i, j) for i in range(nt) for j in range(nt) if i != j}
+    bas = [np.array([c[0] for c in k]) for k in kand]
     rng = np.random.default_rng(1)
     bast = None
     for start in range(12):
-        val = [0] * len(texter)
-        ordning = list(range(len(texter)))
+        val = [0] * nt
+        ordning = list(range(nt))
         if start:
             rng.shuffle(ordning)
         for _ in range(40):
             andrat = False
             for i in ordning:
-                besta = None
-                for ci in range(len(kand[i])):
-                    c = kand[i][ci][0] + 400.0 * sum(konflikt(i, ci, j, val[j]) for j in range(len(texter)) if j != i)
-                    if besta is None or c < besta[0]:
-                        besta = (c, ci)
-                if besta[1] != val[i]:
-                    val[i], andrat = besta[1], True
+                n = sum((K[i, j][:, val[j]] for j in range(nt) if j != i), np.zeros(len(kand[i]), int))
+                ci = int(np.argmin(bas[i] + 400.0 * n))
+                if ci != val[i]:
+                    val[i], andrat = ci, True
             if not andrat:
                 break
-        tot = sum(kand[i][val[i]][0] for i in range(len(texter)))
-        fel = sum(konflikt(i, val[i], j, val[j]) for i in range(len(texter)) for j in range(i + 1, len(texter)))
+        tot = sum(kand[i][val[i]][0] for i in range(nt))
+        fel = sum(int(K[i, j][val[i], val[j]]) for i in range(nt) for j in range(i + 1, nt))
         if bast is None or (fel, tot) < bast[0]:
             bast = ((fel, tot), list(val))
     (fel, _), val = bast

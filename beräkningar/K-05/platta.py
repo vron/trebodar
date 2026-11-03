@@ -18,9 +18,10 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
+import shapely
 import triangle as tr
 from matplotlib.tri import Triangulation, LinearTriInterpolator
-from shapely.geometry import Polygon, Point, LineString
+from shapely.geometry import Polygon, LineString
 from matplotlib.path import Path as MplPath
 
 
@@ -30,42 +31,37 @@ GW = np.array([1 / 3, 1 / 3, 1 / 3])
 EDGES = ((1, 2), (2, 0), (0, 1))     # mittnod 3, 4, 5 ligger på sidan mitt emot hörn 0, 1, 2
 
 
-def _geom(xy):
-    x, y = xy[:, 0], xy[:, 1]
-    b = np.array([y[1] - y[2], y[2] - y[0], y[0] - y[1]])
-    c = np.array([x[2] - x[1], x[0] - x[2], x[1] - x[0]])
-    A2 = x[0] * b[0] + x[1] * b[1] + x[2] * b[2]
-    return b, c, A2
-
-
-def _T(xy):
-    """Rotationer (βx, βy) i 6 noder ur elementets 9 frihetsgrader [w, θx, θy]×3 (θ = ∂w/∂x, ∂w/∂y)."""
-    T = np.zeros((12, 9))
+def _geom_och_T(xy):
+    """Elementens geometri (b, c, 2A) och T, rotationerna (βx, βy) i 6 noder ur elementets 9 frihetsgrader
+    [w, θx, θy]×3 (θ = ∂w/∂x, ∂w/∂y), för alla element på en gång (xy: (ne, 3, 2))."""
+    x, y = xy[..., 0], xy[..., 1]
+    b = np.stack([y[:, 1] - y[:, 2], y[:, 2] - y[:, 0], y[:, 0] - y[:, 1]], axis=1)
+    c = np.stack([x[:, 2] - x[:, 1], x[:, 0] - x[:, 2], x[:, 1] - x[:, 0]], axis=1)
+    A2 = x[:, 0] * b[:, 0] + x[:, 1] * b[:, 1] + x[:, 2] * b[:, 2]
+    ne = len(xy)
+    T = np.zeros((ne, 12, 9))
     for k in range(3):                              # hörn
-        T[2 * k, 3 * k + 1] = 1
-        T[2 * k + 1, 3 * k + 2] = 1
+        T[:, 2 * k, 3 * k + 1] = 1
+        T[:, 2 * k + 1, 3 * k + 2] = 1
     for m, (i, j) in enumerate(EDGES):              # mittnoder: Kirchhoff längs sidan
-        d = xy[j] - xy[i]
-        L = np.hypot(*d)
-        c, s = d / L
-        # ws_m = 1.5(wj-wi)/L - 0.25(ws_i+ws_j),  wn_m = 0.5(wn_i+wn_j)
-        ws = np.zeros(9); wn = np.zeros(9)
-        ws[3 * i] = -1.5 / L; ws[3 * j] = 1.5 / L
+        d = xy[:, j] - xy[:, i]
+        L = np.hypot(d[:, 0], d[:, 1])
+        cs, sn = d[:, 0] / L, d[:, 1] / L
+        ws = np.zeros((ne, 9)); wn = np.zeros((ne, 9))
+        ws[:, 3 * i] = -1.5 / L; ws[:, 3 * j] = 1.5 / L
         for n in (i, j):
-            ws[3 * n + 1] += -0.25 * c; ws[3 * n + 2] += -0.25 * s
-            wn[3 * n + 1] += 0.5 * -s;  wn[3 * n + 2] += 0.5 * c
+            ws[:, 3 * n + 1] += -0.25 * cs; ws[:, 3 * n + 2] += -0.25 * sn
+            wn[:, 3 * n + 1] += 0.5 * -sn;  wn[:, 3 * n + 2] += 0.5 * cs
         r = 2 * (3 + m)
-        T[r] = c * ws - s * wn
-        T[r + 1] = s * ws + c * wn
-    return T
+        T[:, r] = cs[:, None] * ws - sn[:, None] * wn
+        T[:, r + 1] = sn[:, None] * ws + cs[:, None] * wn
+    return (b, c, A2), T
 
 
-def _B(xy, L, T=None, geo=None):
-    """Krökning χ = [∂βx/∂x, ∂βy/∂y, ∂βx/∂y + ∂βy/∂x] = B u i punkten med arekoordinater L."""
-    b, c, A2 = geo if geo is not None else _geom(xy)
-    T = _T(xy) if T is None else T
+def _B(L, T, geo):
+    """Krökning χ = [∂βx/∂x, ∂βy/∂y, ∂βx/∂y + ∂βy/∂x] = B u i punkten med arekoordinater L, för alla element."""
+    b, c, A2 = geo
     L1, L2, L3 = L
-    # derivator av kvadratiska formfunktioner med avseende på L1..L3
     dN = np.array([
         [4 * L1 - 1, 0, 0],
         [0, 4 * L2 - 1, 0],
@@ -74,13 +70,13 @@ def _B(xy, L, T=None, geo=None):
         [4 * L3, 0, 4 * L1],
         [4 * L2, 4 * L1, 0],
     ])
-    dNx = dN @ b / A2
-    dNy = dN @ c / A2
-    Bb = np.zeros((3, 12))
-    Bb[0, 0::2] = dNx
-    Bb[1, 1::2] = dNy
-    Bb[2, 0::2] = dNy
-    Bb[2, 1::2] = dNx
+    dNx = (dN @ b[:, :, None])[..., 0] / A2[:, None]
+    dNy = (dN @ c[:, :, None])[..., 0] / A2[:, None]
+    Bb = np.zeros((len(T), 3, 12))
+    Bb[:, 0, 0::2] = dNx
+    Bb[:, 1, 1::2] = dNy
+    Bb[:, 2, 0::2] = dNy
+    Bb[:, 2, 1::2] = dNx
     return Bb @ T
 
 
@@ -170,12 +166,11 @@ class Platta:
         self.nn = len(self.xy)
         self.ne = len(self.tri)
         self.ndof = 3 * self.nn
-        self._T = [_T(self.xy[t]) for t in self.tri]
-        self._geo = [_geom(self.xy[t]) for t in self.tri]
-        self.area = np.array([g[2] / 2 for g in self._geo])
-        self.Bg = np.array([[_B(self.xy[t], L, self._T[e], self._geo[e]) for L in GP] for e, t in enumerate(self.tri)])
-        self.Bc = np.array([[_B(self.xy[t], L, self._T[e], self._geo[e]) for L in np.eye(3)] for e, t in enumerate(self.tri)])
-        self.B0 = np.array([_B(self.xy[t], (1 / 3, 1 / 3, 1 / 3), self._T[e], self._geo[e]) for e, t in enumerate(self.tri)])
+        geo, T = _geom_och_T(self.xy[self.tri])
+        self.area = geo[2] / 2
+        self.Bg = np.stack([_B(L, T, geo) for L in GP], axis=1)
+        self.Bc = np.stack([_B(L, T, geo) for L in np.eye(3)], axis=1)
+        self.B0 = _B((1 / 3, 1 / 3, 1 / 3), T, geo)
         self.edofs = (np.repeat(3 * self.tri, 3, axis=1) + np.tile([0, 1, 2], 3)).astype(int)
         self.cen = self.xy[self.tri].mean(axis=1)
         self.fixed = {}          # dof -> föreskrivet värde (0)
@@ -188,13 +183,23 @@ class Platta:
     def nod(self, x, y):
         return int(np.argmin(np.hypot(self.xy[:, 0] - x, self.xy[:, 1] - y)))
 
+    def triangulering(self):
+        """Nätet som matplotlib-triangulering, en gång per platta (dess sökstruktur delas av alla resultat)."""
+        if getattr(self, "_triangulering", None) is None:
+            self._triangulering = Triangulation(self.xy[:, 0], self.xy[:, 1], self.tri)
+        return self._triangulering
+
+    def _punkter(self):
+        if getattr(self, "_shapely_punkter", None) is None:
+            self._shapely_punkter = shapely.points(self.xy)
+        return self._shapely_punkter
+
     def noder_pa_linje(self, pl, tol=1.0):
-        ls = LineString(pl)
-        return [i for i, p in enumerate(self.xy) if ls.distance(Point(p)) < tol]
+        return np.flatnonzero(shapely.distance(LineString(pl), self._punkter()) < tol).tolist()
 
     def noder_i_rekt(self, xc, yc, bx, by, tol=1.0):
-        return [i for i, (x, y) in enumerate(self.xy)
-                if abs(x - xc) <= bx / 2 + tol and abs(y - yc) <= by / 2 + tol]
+        x, y = self.xy[:, 0], self.xy[:, 1]
+        return np.flatnonzero((np.abs(x - xc) <= bx / 2 + tol) & (np.abs(y - yc) <= by / 2 + tol)).tolist()
 
     # ---------------------------------------------------------- stöd
     def stod_linje(self, namn, pl, k=None):
@@ -209,13 +214,12 @@ class Platta:
 
     def stod_mark(self, namn, poly, k):
         """Platta på mark/isolering: bäddmodul k [N/mm³] inom polygonen, fördelad på noderna efter area."""
-        Pg = Polygon(poly)
+        inne = shapely.contains_xy(Polygon(poly), *self.xy[self.tri].mean(axis=1).T)
         nod = set()
-        for e, t in enumerate(self.tri):
-            if Pg.contains(Point(self.xy[t].mean(axis=0))):
-                for n in t:
-                    self.springs[3 * n] = self.springs.get(3 * n, 0) + k * self.area[e] / 3
-                    nod.add(int(n))
+        for e in np.flatnonzero(inne):
+            for n in self.tri[e]:
+                self.springs[3 * n] = self.springs.get(3 * n, 0) + k * self.area[e] / 3
+                nod.add(int(n))
         self.stod.append(dict(namn=namn, typ="mark", noder=sorted(nod), k=k, geo=poly))
 
     def stod_punkt(self, namn, x, y, k=None):
@@ -229,8 +233,7 @@ class Platta:
         else:
             kk = k / len(nod) if typ != "linje" else None
             if typ == "linje":       # fördela per tillhörande längd
-                ls = LineString(geo)
-                s = np.array([ls.project(Point(self.xy[n])) for n in nod])
+                s = shapely.line_locate_point(LineString(geo), self._punkter()[nod])
                 o = np.argsort(s); s = s[o]; nod = [nod[i] for i in o]
                 w = np.zeros(len(s))
                 w[:-1] += np.diff(s) / 2; w[1:] += np.diff(s) / 2
@@ -289,8 +292,7 @@ class Platta:
         """Linjelast p [N/mm] längs en polyline som finns i nätet."""
         f = np.zeros(self.ndof)
         nod = self.noder_pa_linje(pl)
-        ls = LineString(pl)
-        s = np.array([ls.project(Point(self.xy[n])) for n in nod])
+        s = shapely.line_locate_point(LineString(pl), self._punkter()[nod])
         o = np.argsort(s); s = s[o]; nod = [nod[i] for i in o]
         w = np.zeros(len(s)); w[:-1] += np.diff(s) / 2; w[1:] += np.diff(s) / 2
         for n, wi in zip(nod, w):
@@ -352,7 +354,7 @@ class Resultat:
             np.add.at(an, P.tri[:, k], P.area)
         self.m_nod = mn / an[:, None]      # Nmm/mm, utjämnat
         self.m_el = me                     # i elementens tyngdpunkt
-        self._tri = Triangulation(P.xy[:, 0], P.xy[:, 1], P.tri)
+        self._tri = P.triangulering()
         self._ip = [LinearTriInterpolator(self._tri, self.m_nod[:, k]) for k in range(3)]
         self._ipw = LinearTriInterpolator(self._tri, self.w)
 

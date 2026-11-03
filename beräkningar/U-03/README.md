@@ -6,8 +6,8 @@ Eget underlag, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6)
 |---|---|
 | `indata.toml` | Takets geometri (fasadliv, gavlar, takfötter, takfönster, gavelöppningar), uppbyggnad, ångbroms, inneklimat och badrum, strömning, vindtryck, fuktdata, mögelmodell, klimatfil och fall |
 | `geometri.py` | Nätverket: remsor, noder, takfall, takfönster, omluftning, kanaler längs nockar och dalar, gavelöppningar |
-| `modell.py` | Klimat, vindtryck, luftflöde (Newton), värme och fukt per cell, blandning i noderna, VTT |
-| `berakning.py` | Huvudskript: alla fall parallellt, sammanställning, figurer, `resultat.json` och PDF |
+| `modell.py` | Klimat, vindtryck, luftflöde (Newton från det laminära nätet, Jacobianen löst glest för alla timmar på en gång), värme och fukt per cell, blandning i noderna, VTT |
+| `berakning.py` | Huvudskript: alla fall parallellt (de längsta först), sammanställning, figurer, `resultat.json` och PDF |
 | `mall.typ` | Typst-mall för dokumentet |
 | `klimat_era5.csv.gz` | Timvärden 2013-07 – 2023-12 från ERA5 (Open-Meteo, CC BY 4.0) för 58,80 N, 11,25 E |
 
@@ -17,7 +17,7 @@ Geometrin är tagen ur K-03:s `geometri.json` (nock- och dalbalkar, takbalkarnas
 
 ```
 pip install -r requirements.txt
-python berakning.py            # alla 43 fall parallellt (högst 12 processer, ca 1,5 h), figurer, resultat.json, PDF
+python berakning.py            # alla 43 fall parallellt (kärnorna utom två, cirka 15 min), figurer, resultat.json, PDF
 python berakning.py rapport    # bara figurer och PDF ur sparade resultat
 python berakning.py fall bas   # bara angivna fall
 ```

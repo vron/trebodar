@@ -111,6 +111,62 @@ def f_re(b, h):
     return 96 * (1 - 1.3553 * a + 1.9467 * a ** 2 - 1.7012 * a ** 3 + 0.9564 * a ** 4 - 0.2537 * a ** 5)
 
 
+class GlesLDL:
+    """LDLᵀ för många symmetriska positivt definita matriser med samma glesa mönster (nätets Jacobian, en per
+    timme): elimineringsordningen (minsta grad på nätets graf) och fyllnaden bestäms en gång, och faktoriseringen
+    och lösningen räknas för alla timmar på en gång. Nätet är nästan ett träd, så det blir lite arbete."""
+
+    def __init__(self, n, kanter):
+        """n noder; kanter: nodpar (p, q), p ≠ q, som matriserna kan ha element i utanför diagonalen."""
+        nb = [set() for _ in range(n)]
+        for p, q in kanter:
+            nb[p].add(q); nb[q].add(p)
+        kvar, ordning, senare = set(range(n)), [], []
+        while kvar:
+            k = min(kvar, key=lambda i: (len(nb[i] & kvar), i))
+            g = sorted(nb[k] & kvar - {k})
+            for a in g:                                  # fyllnad: grannarna blir grannar till varandra
+                nb[a].update(x for x in g if x != a)
+            ordning.append(k); senare.append(g); kvar.remove(k)
+        self.par = {}                                    # nodpar (p < q) -> kolumn bland elementen utanför diagonalen
+
+        def kol(i, j):
+            return self.par.setdefault((min(i, j), max(i, j)), len(self.par))
+        for p, q in kanter:
+            kol(p, q)
+        self.steg = []
+        for k, g in zip(ordning, senare):
+            ab = [(a, b) for a in range(len(g)) for b in range(a + 1, len(g))]
+            self.steg.append((k, np.array(g, int), np.array([kol(i, k) for i in g], int),
+                              np.array([a for a, _ in ab], int), np.array([b for _, b in ab], int),
+                              np.array([kol(g[a], g[b]) for a, b in ab], int)))
+        self.n, self.m = n, len(self.par)
+
+    def los(self, D, V, F):
+        """x med A x = F per rad: A:s diagonal D (nh, n) och element utanför diagonalen V (nh, m, kolumner enligt
+        par). D och V skrivs över."""
+        d = np.empty_like(D)
+        for k, g, ik, a, b, ij in self.steg:
+            dk = D[:, k]
+            d[:, k] = dk
+            if len(g):
+                W = V[:, ik]
+                L = W / dk[:, None]
+                D[:, g] -= W * L
+                if len(ij):
+                    V[:, ij] -= W[:, a] * L[:, b]
+                V[:, ik] = L
+        y = F.copy()
+        for k, g, ik, *_ in self.steg:
+            if len(g):
+                y[:, g] -= V[:, ik] * y[:, k:k + 1]
+        x = y / d
+        for k, g, ik, *_ in reversed(self.steg):
+            if len(g):
+                x[:, k] -= (V[:, ik] * x[:, g]).sum(axis=1)
+        return x
+
+
 class Natverk:
     def __init__(self, I, N):
         g, S = N["gren"], I["stromning"]
@@ -141,6 +197,17 @@ class Natverk:
                 for q in ends:
                     r.append(j); c_.append(p * n + q); v.append(1.0 if p == q else -1.0)
         self.SJ = sp.csr_matrix((v, (r, c_)), shape=(nb, n * n))
+        # samma Jacobian glest: diagonalen och elementen mellan inre noder ur grenarnas ledningsförmåga
+        inre = [j for j in range(nb) if self.ain[j] and self.bin[j] and self.a[j] != self.b[j]]
+        self.ldl = GlesLDL(n, [(self.a[j], self.b[j]) for j in inre])
+        r, c_, v = [], [], []
+        for j in range(nb):
+            for p, ok in ((self.a[j], self.ain[j]), (self.b[j], self.bin[j])):
+                if ok:
+                    r.append(j); c_.append(p); v.append(1.0)
+        self.J_diag = sp.csr_matrix((v, (r, c_)), shape=(nb, n))
+        self.J_utom = sp.csr_matrix((-np.ones(len(inre)), (inre, [self.ldl.par[(min(self.a[j], self.b[j]),
+                                    max(self.a[j], self.b[j]))] for j in inre])), shape=(nb, self.ldl.m))
         # ändar vid inre noder för blandningen: (gren, nod, andra änden, är änden b)
         e_gren, e_nod, e_andra, e_arb = [], [], [], []
         for j in range(nb):
@@ -189,40 +256,56 @@ class Natverk:
         df = np.where(Rt > self.R_lam, 1.75 * Rt, self.R_lam) + 2 * self.R2 * aq
         return Q, 1.0 / df
 
+    def los_jacobian(self, g, F):
+        """dP med J dP = F per timme, där J är Jacobianen för grenarnas ledningsförmåga g (nh, nb). Glest för många
+        timmar på en gång, tätt (LAPACK) för få."""
+        if len(g) < 16:
+            J = (self.SJ.T @ g.T).T.reshape(len(g), self.n, self.n)
+            return np.linalg.solve(J, F[..., None])[..., 0]
+        return self.ldl.los(np.asarray(g @ self.J_diag), np.asarray(g @ self.J_utom), F)
+
     def flode(self, p_ext_a, p_ext_b, B, P0=None, tol=1e-9, maxit=40):
         """Flödet i alla grenar [m³/s] för timmarna i blocket (Newton med linjesökning per timme).
-        p_ext: tryck ute vid grenändarna, B: stigkraft i grenarna [Pa]."""
+        p_ext: tryck ute vid grenändarna, B: stigkraft i grenarna [Pa]. Utan startvärde (P0) börjar Newton i det
+        laminära nätets tryck; bara timmarna som inte har konvergerat räknas i varje iteration."""
         nh = B.shape[0]
 
-        def res(P):
-            Pa = np.where(self.ain, P[:, np.maximum(self.a, 0)], p_ext_a)
-            Pb = np.where(self.bin, P[:, np.maximum(self.b, 0)], p_ext_b)
-            Q, gq = self.gren_q(Pa - Pb + B)
+        def res(P, r):
+            Pa = np.where(self.ain, P[:, np.maximum(self.a, 0)], p_ext_a[r])
+            Pb = np.where(self.bin, P[:, np.maximum(self.b, 0)], p_ext_b[r])
+            Q, gq = self.gren_q(Pa - Pb + B[r])
             return Q, gq, (self.Ainc @ Q.T).T
 
-        P = np.zeros((nh, self.n)) if P0 is None else P0.copy()
-        Q, gq, F = res(P)
+        if P0 is None:                                         # det laminära nätet: ett linjärt system
+            g0 = np.broadcast_to(1.0 / self.R_lam, (nh, self.nb))
+            Pa0 = np.where(self.ain, 0.0, p_ext_a); Pb0 = np.where(self.bin, 0.0, p_ext_b)
+            F0 = (self.Ainc @ (g0 * (Pa0 - Pb0 + B)).T).T
+            P = -self.los_jacobian(g0, F0)
+        else:
+            P = P0.copy()
+        Q, gq, F = res(P, slice(None))
         nF = np.abs(F).max(axis=1)
         for it in range(maxit):
             skala = tol + 1e-7 * np.abs(Q).max(axis=1)
-            if (nF < skala).all():
+            a = np.flatnonzero(nF >= skala)                   # konvergerade timmar flyttas inte
+            if not len(a):
                 break
-            J = (self.SJ.T @ gq.T).T.reshape(nh, self.n, self.n)
-            dP = np.linalg.solve(J, F[..., None])[..., 0]
-            lam = np.ones(nh)
-            klar = nF < skala                                  # konvergerade timmar flyttas inte
-            P0, nF0 = P.copy(), nF.copy()
+            dP = self.los_jacobian(gq[a], F[a])
+            lam = np.ones(len(a))
+            kvar = np.ones(len(a), bool)                       # linjesökningen pågår
+            P0, nF0 = P[a], nF[a]
             for _ in range(12):
-                Pn = P0 - lam[:, None] * dP
-                Qn, gn, Fn = res(Pn)
+                k = np.flatnonzero(kvar)
+                r = a[k]
+                Pn = P0[k] - lam[k, None] * dP[k]
+                Qn, gn, Fn = res(Pn, r)
                 nFn = np.abs(Fn).max(axis=1)
-                ok = ~klar & (nFn < nF0)
-                P = np.where(ok[:, None], Pn, P); Q = np.where(ok[:, None], Qn, Q)
-                gq = np.where(ok[:, None], gn, gq); F = np.where(ok[:, None], Fn, F); nF = np.where(ok, nFn, nF)
-                klar = klar | ok
-                if klar.all():
+                ok = nFn < nF0[k]
+                P[r[ok]], Q[r[ok]], gq[r[ok]], F[r[ok]], nF[r[ok]] = Pn[ok], Qn[ok], gn[ok], Fn[ok], nFn[ok]
+                kvar[k[ok]] = False
+                if not kvar.any():
                     break
-                lam = np.where(klar, lam, lam / 2)
+                lam[kvar] /= 2
         return Q, P
 
     # -------------------------------------------------------------- blandning i noderna

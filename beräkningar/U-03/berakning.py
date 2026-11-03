@@ -422,7 +422,13 @@ if __name__ == "__main__":
     arg = sys.argv[1:]
     if not arg or arg[0] == "fall":
         ids = arg[1:] if arg else list(FALL)
-        with ProcessPoolExecutor(max_workers=min(len(ids), 12, max(1, (os.cpu_count() or 2) - 2))) as ex:
+
+        def kostnad(fid):                              # varv × timmar: de längsta fallen först (jämn fördelning)
+            f = FALL[fid]
+            varv = 1 if f.get("oventilerad") else indata_for(f)["modell"]["varv"]
+            return varv * (np.datetime64("2024-01-01") - np.datetime64(f.get("start", "2013-07-01"))).astype(int)
+        ids.sort(key=kostnad, reverse=True)
+        with ProcessPoolExecutor(max_workers=max(1, min(len(ids), (os.cpu_count() or 2) - 2))) as ex:
             for fid, sek in ex.map(kor_fall, ids):
                 print(f"{fid}: {sek:.0f} s", flush=True)
     S, D, K, F = rapport()
