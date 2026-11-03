@@ -21,6 +21,29 @@ STRALAR = 1440
 RINGAR = 120
 NARA_STEG = 0.3                 # ringarnas avstånd över tomten (det fina rutnätet)
 OVERGANG = 5.0                  # från modellens mark till höjdmodellen [m] (med det fina rutnätet)
+LUMA = (0.2126, 0.7152, 0.0722)
+# Poly Havens texturer (CC0) i tillgångarna (lokalt/polyhaven/texturer): sida [m]; kroma, hur mycket av texturens egna
+# färgskiftningar som följer med (0: bara ljusheten, resten är markens färg); kontrast, hur mycket av dess
+# ljusskiftningar; höjd, höjdkartans amplitud [m]
+TEXTURER = {
+    "berg": {"namn": "rock_01", "sida": 2.0, "kroma": 0.15, "kontrast": 0.8, "hojd": 0.012},
+    "gras": {"namn": "leafy_grass", "sida": 2.0, "kroma": 0.3, "kontrast": 0.7, "hojd": 0.02},
+    "barr": {"namn": "forrest_ground_03", "sida": 2.0, "kroma": 0.4, "kontrast": 0.9, "hojd": 0.01},
+}
+TALL_HOJD = (11.0, 15.0)        # de inmätta tallarnas höjd [m]
+HALL_TRAD = 0.8                 # trädens täthet i hällmarkens dungar (skogen 1)
+DUNGE_CELL = (45.0, 15.0)       # dungarnas två rutnät [m]
+# Poly Havens modeller (CC0) i tillgångarna (lokalt/polyhaven/modeller): blend-filen och objektet för varje variant
+MODELLER = {
+    "tall": [("pine_tree_01/pine_tree_01_1k.blend", f"pine_tree_01_{v}_LOD2") for v in "abc"],
+    "gran": [("fir_tree_01/fir_tree_01_1k.blend", f"fir_tree_01_{v}_LOD2") for v in "abc"],
+    "block": [(f"namaqualand_boulder_0{n}/namaqualand_boulder_0{n}_2k.blend", f"namaqualand_boulder_0{n}_LOD1")
+              for n in (4, 6)],
+}
+SKOGENS = {"tall": ("Tall", 10.0), "gran": ("Gran", 9.0)}    # modellerna i skogen: ersätter sorten, höjd [m]
+# modellernas färgbilder: mättnaden gånger den första, sedan gånger färgen (linjärt), som granit och tallbarr på platsen
+TONING = {"namaqualand_boulder_04": (0.3, (1.15, 1.2, 1.25)), "namaqualand_boulder_06": (0.3, (1.15, 1.2, 1.25)),
+          "pine_tree_01_twig": (1.0, (0.72, 0.88, 0.8))}
 
 
 def _bilinjar(z: np.ndarray, x0: float, y0: float, cell: float, x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -77,21 +100,32 @@ class Rutnat:
 
 def inre_ring(mitt: tuple[float, float], z_bas: float, terrang: str, vinklar: int = STRALAR
               ) -> list[tuple[float, float, float]]:
-    """Terrängens ytterkant i varje riktning från mitt: (vinkel, radie, höjd), en bit innanför kanten."""
-    sc = bpy.context.scene
+    """Terrängens ytterkant i varje riktning från mitt: (vinkel, radie, höjd), en bit innanför kanten. Strålarna
+    uppifrån träffar bara terrängen (ett BVH-träd av dess trianglar i världens koordinater)."""
+    from mathutils.bvhtree import BVHTree
     dg = bpy.context.evaluated_depsgraph_get()
-    terr = {o.name for o in sc.objects if o.type == "MESH" and terrang in (o.get("sokvag", "") or o.name)}
+    hornen, trianglar, n = [], [], 0
+    for o in bpy.context.scene.objects:
+        if o.type != "MESH" or terrang not in (o.get("sokvag", "") or o.name):
+            continue
+        me = o.evaluated_get(dg).data
+        me.calc_loop_triangles()
+        co = np.zeros(len(me.vertices) * 3)
+        me.vertices.foreach_get("co", co)
+        M = np.array(o.matrix_world)
+        hornen.append(co.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3])
+        tri = np.zeros(len(me.loop_triangles) * 3, dtype=np.int64)
+        me.loop_triangles.foreach_get("vertices", tri)
+        trianglar.append(tri.reshape(-1, 3) + n)
+        n += len(me.vertices)
+    if not hornen:
+        return []
+    bvh = BVHTree.FromPolygons(np.concatenate(hornen).tolist(), np.concatenate(trianglar).tolist())
+    ned = Vector((0, 0, -1))
 
     def traff(x: float, y: float) -> float | None:
-        z0 = 300.0
-        for _ in range(8):
-            ok, loc, _, _, ob, _ = sc.ray_cast(dg, Vector((x, y, z0)), Vector((0, 0, -1)), distance=600.0)
-            if not ok:
-                return None
-            if ob.name in terr:
-                return loc.z
-            z0 = loc.z - 0.001
-        return None
+        loc = bvh.ray_cast(Vector((x, y, 300.0)), ned, 600.0)[0]
+        return None if loc is None else loc.z
 
     cx, cy = mitt
     ut = []
@@ -253,30 +287,96 @@ def vattenmaterial() -> bpy.types.Material:
     return mat
 
 
-def markmaterial(rut: Rutnat | None) -> bpy.types.Material:
-    """Marken: västkustens hällmark som standard (gräs, ljung, en och berg i dagen efter brus och lutning) och
-    marktäcket från geodata (berg, skog, åker, trädgård, snår, våtmark, sand, vägar, stigar, havsbotten)."""
+def _textur(g: Graf, k: bpy.types.NodeSocket, mapp: str, t: dict) -> tuple[object, object, object] | None:
+    """Poly Havens textur t på marken efter världens x och y: (detalj, grovhet, höjd), där detalj är det som markens
+    egen färg multipliceras med (texturens färg genom dess medelfärg, efter kroma och kontrast). Två avläsningar med
+    olika skala och vridning blandas efter brus, så att upprepningen inte syns."""
+    bas = os.path.join(mapp, t["namn"], t["namn"])
+    if not all(os.path.exists(f"{bas}_{karta}_2k.jpg") for karta in ("diff", "rough", "disp")):
+        return None
+    fak = g.jamn(g.brus(k, 0.3, 2.0), 0.42, 0.58)
+    vektorer = [g.nod("ShaderNodeMapping", Vector=k, Location=forskj, Rotation=(0.0, 0.0, vrid),
+                      Scale=(1 / sida,) * 3).outputs["Vector"]
+                for sida, vrid, forskj in ((t["sida"], 0.0, (0.0, 0.0, 0.0)), (t["sida"] * 1.37, 0.9, (0.31, 0.67, 0.0)))]
+
+    def bild(karta: str) -> tuple[bpy.types.NodeSocket, bpy.types.Image]:
+        im = bpy.data.images.load(f"{bas}_{karta}_2k.jpg", check_existing=True)
+        if karta != "diff":
+            im.colorspace_settings.name = "Non-Color"
+        avl = []
+        for v in vektorer:
+            n = g.nod("ShaderNodeTexImage", Vector=v)
+            n.image = im
+            avl.append(n.outputs["Color"])
+        return g.blanda(fak, *avl), im
+    diff, im = bild("diff")
+    px = np.empty(len(im.pixels), dtype=np.float32)
+    im.pixels.foreach_get(px)
+    c = px.reshape(-1, 4)[:, :3]
+    medel = np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4).mean(axis=0)     # linjärt, som i noderna
+    ljus = float(medel @ np.array(LUMA))
+    farg = g.vmatte("DIVIDE", diff, tuple(float(v) for v in medel))
+    ljushet = g.vmatte("DOT_PRODUCT", diff, tuple(v / ljus for v in LUMA))
+    r = g.vmatte("ADD", g.vmatte("SCALE", farg, t["kroma"]), g.vmatte("SCALE", ljushet, 1 - t["kroma"]))
+    detalj = g.vmatte("ADD", g.vmatte("SCALE", r, t["kontrast"]), (1 - t["kontrast"],) * 3)
+    hojd = g.matte("MULTIPLY", g.matte("SUBTRACT", bild("disp")[0], 0.5), t["hojd"])
+    return detalj, bild("rough")[0], hojd
+
+
+def markmaterial(rut: Rutnat | None, tillgangar: str | None = None) -> bpy.types.Material:
+    """Marken: västkustens hällmark som standard (mest berg i dagen, efter brus och lutning, med sprickor av ljung och
+    gräs och barr i svackorna; gräs, ljung och en emellan) och marktäcket från geodata (berg, skog, åker, trädgård, snår, våtmark, sand, vägar, stigar,
+    havsbotten). Över tomten följer marktäcket de inmätta punkterna (nara_tacke.png): berg, gräsmatta och barr under
+    träden. Med tillgångarna får berget, gräset och barren detaljer ur riktiga texturer (TEXTURER)."""
     mat = bpy.data.materials.get("Omgivning mark") or bpy.data.materials.new("Omgivning mark")
     g = Graf(mat)
     m, lin = g.matte, g.linj
-    k = g.nod("ShaderNodeTexCoord").outputs["Object"]
+    geo = g.nod("ShaderNodeNewGeometry")
+    k = geo.outputs["Position"]                 # världens x och y (också på modellens terräng, med sina egna axlar)
     x, y, z = g.sep(k)
-    normal = g.nod("ShaderNodeNewGeometry").outputs["Normal"]
+    normal = geo.outputs["Normal"]
     lutning = m("SUBTRACT", 1.0, g.sep(normal)[2])                     # 0 plant, 1 lodrätt
     stor = g.brus(k, 0.025, 4.0, 0.6)
     mellan = g.brus(k, 0.25, 4.0, 0.6)
     fin = g.brus(k, 3.0, 3.0, 0.6)
     korn = g.brus(k, 40.0, 2.0, 0.6)
-    # hällmarken: berg där det är brant eller där bruset säger så, annars gräs med ljung och en
-    hall = g.jamn(lin((lutning, 2.2), (stor, 0.9), (mellan, 0.35), bas=-0.75), 0.35, 0.6)
-    gras = g.blanda(g.jamn(mellan, 0.35, 0.65), rgba("#57622f"), rgba("#77733c"))
+    tx = {}
+    for namn, t in TEXTURER.items() if tillgangar else ():
+        if (v := _textur(g, k, os.path.join(tillgangar, "texturer"), t)) is not None:
+            tx[namn] = v
+
+    def detalj(farg: object, namn: str) -> object:
+        return g.vmatte("MULTIPLY", farg, tx[namn][0]) if namn in tx else farg
+
+    def tal(namn: str, i: int, annars: float) -> object:
+        """Texturens grovhet (i = 1) eller höjd (2), annars."""
+        return tx[namn][i] if namn in tx else annars
+
+    def mix(f: object, a: object, b: object) -> object:
+        """Från talet a till b efter f."""
+        return m("ADD", a, m("MULTIPLY", f, m("SUBTRACT", b, a)))
+    # hällmarken: mest berg i dagen (som i flygbilderna), i svackorna gräs med ljung och en
+    hall = g.jamn(lin((lutning, 2.2), (stor, 1.6), (mellan, 0.6), bas=-0.6), 0.35, 0.6)
+    gras = g.blanda(g.jamn(mellan, 0.35, 0.65), rgba("#525a2f"), rgba("#6c6a3a"))
     gras = g.blanda(m("MULTIPLY", g.jamn(stor, 0.55, 0.7), 0.6), gras, rgba("#5b4f3d"))       # ljung
-    gras = g.blanda(m("MULTIPLY", g.jamn(fin, 0.62, 0.72), 0.7), gras, rgba("#2f3b26"))       # enar
-    berg = g.blanda(g.jamn(fin, 0.3, 0.7), rgba("#8b827a"), rgba("#a9a097"))
-    berg = g.blanda(m("MULTIPLY", g.jamn(korn, 0.6, 0.75), 0.5), berg, rgba("#c9c6b8"))       # lavar
-    berg = g.blanda(m("MULTIPLY", g.jamn(mellan, 0.62, 0.7), 0.6), berg, rgba("#4a4640"))     # mörka strimmor
+    gras = detalj(g.blanda(m("MULTIPLY", g.jamn(fin, 0.62, 0.72), 0.7), gras, rgba("#2f3b26")), "gras")   # enar
+    barr = detalj(g.blanda(g.jamn(mellan, 0.3, 0.7), rgba("#5f4a3a"), rgba("#7d5c44")), "barr")
+    berg = g.blanda(g.jamn(fin, 0.3, 0.7), rgba("#8a8882"), rgba("#a19f98"))
+    berg = g.blanda(m("MULTIPLY", g.jamn(korn, 0.6, 0.75), 0.5), berg, rgba("#bbbab2"))       # lavar
+    berg = g.blanda(m("MULTIPLY", g.jamn(mellan, 0.62, 0.7), 0.6), berg, rgba("#4d4b47"))     # mörka strimmor
+    # sprickorna i berget, med ljung och gräs: kanterna i ett starkt förvrängt Voronoi-mönster (celler om 15–20 m),
+    # avbrutna efter brus
+    vr = g.nod("ShaderNodeTexVoronoi", {"feature": "DISTANCE_TO_EDGE"}, Scale=0.06,
+               Vector=g.vmatte("ADD", k, g.vmatte("SCALE", g.vmatte("SUBTRACT", g.nod(
+                   "ShaderNodeTexNoise", Vector=k, Scale=0.12, Detail=4.0).outputs["Color"], (0.5, 0.5, 0.5)), 9.0)))
+    spricka = m("MULTIPLY", g.jamn(vr.outputs["Distance"], 0.03, 0.008),
+                g.jamn(g.brus(k, 0.07, 2.0), 0.4, 0.55))
+    berg = g.blanda(spricka, berg, rgba("#3c3f2b"))
+    svacka = m("MULTIPLY", g.jamn(g.brus(k, 0.9, 3.0, 0.6), 0.68, 0.73), 0.9)                  # barr i svackorna
+    berg = g.blanda(svacka, detalj(berg, "berg"), barr)
     col = g.blanda(hall, gras, berg)
-    grov = lin((hall, -0.15), bas=0.92)
+    grov = mix(hall, tal("gras", 1, 0.92), mix(svacka, tal("berg", 1, 0.77), tal("barr", 1, 0.95)))
+    hojd_tx = mix(hall, tal("gras", 2, 0.0), mix(svacka, tal("berg", 2, 0.0), tal("barr", 2, 0.0)))
     if rut:
         bilder = []
         for i in range(3):
@@ -308,22 +408,45 @@ def markmaterial(rut: Rutnat | None) -> bpy.types.Material:
         col = g.blanda(mask("hav", 0.05), col, rgba("#4a4a40"))
         col = g.blanda(g.jamn(kanal["stig"], 0.3, 0.7), col, rgba("#8a7a62"))
         col = g.blanda(g.jamn(kanal["vag"], 0.3, 0.7), col, rgba("#4b4c4e"))
-        grov = lin((kanal["vag"], -0.25), (mask("hav", 0.05), -0.4), bas=0.0)
-        grov = m("ADD", grov, lin((hall, -0.15), bas=0.92))
+        grov = m("ADD", grov, lin((kanal["vag"], -0.25), (mask("hav", 0.05), -0.4)))
+        tacke = os.path.join(rut.mapp, "nara_tacke.png")
+        if rut.nara and os.path.exists(tacke):
+            na = rut.nara
+            uv = g.vektor(m("DIVIDE", m("SUBTRACT", x, na["x0"] - na["cell"] / 2), na["cell"] * na["nx"]),
+                          m("DIVIDE", m("SUBTRACT", y, na["y0"] - na["cell"] / 2), na["cell"] * na["ny"]), 0.0)
+            t = g.nod("ShaderNodeTexImage", Vector=uv)
+            t.image = bpy.data.images.load(tacke, check_existing=True)
+            t.image.colorspace_settings.name = "Non-Color"
+            t.extension = "CLIP"
+            t.interpolation = "Cubic"
+            kant = m("SUBTRACT", mellan, 0.5)
+
+            def nara(v: object, skarpa: float) -> object:
+                """Tomtens mask med brusig kant."""
+                return g.jamn(lin((v, 1.0), (kant, skarpa)), 0.3, 0.55)
+            fb, fg, fbarr = (nara(v, s) for v, s in zip(g.sep(t.outputs["Color"]), (0.3, 0.15, 0.4)))
+            fbarr = m("MULTIPLY", fbarr, g.jamn(g.brus(k, 0.6, 3.0, 0.6), 0.38, 0.6))          # fläckvis
+            gmatta = detalj(g.blanda(g.jamn(fin, 0.35, 0.65), rgba("#4c6633"), rgba("#5a7639")), "gras")
+            for f, farg, namn, gv in ((fb, berg, "berg", 0.77), (fg, gmatta, "gras", 0.92), (fbarr, barr, "barr", 0.95)):
+                col = g.blanda(f, col, farg)
+                grov = mix(f, grov, tal(namn, 1, gv))
+                hojd_tx = mix(f, hojd_tx, tal(namn, 2, 0.0))
     col = g.ljus(col, lin((m("SUBTRACT", korn, 0.5), 0.25), (m("SUBTRACT", fin, 0.5), 0.2), bas=1.0))
     hojd = lin((m("SUBTRACT", fin, 0.5), 0.08), (m("SUBTRACT", korn, 0.5), 0.02))
-    g.yta(col, grov, 0.0, hojd, styrka=0.6, avstand=1.0)
+    g.yta(col, grov, 0.0, m("ADD", hojd, hojd_tx) if tx else hojd, styrka=0.6, avstand=1.0)
     return mat
 
 
-def bygg(mitt: tuple[float, float], z_bas: float, terrang: str, mapp: str | None) -> None:
-    """Hela omgivningen: marken (med eller utan geodata), havet och grannhusen."""
+def bygg(mitt: tuple[float, float], z_bas: float, terrang: str, mapp: str | None, tillgangar: str | None = None
+         ) -> None:
+    """Hela omgivningen: marken (med eller utan geodata), havet, grannhusen och träden; med tillgångarna (Poly Haven,
+    lokalt/polyhaven) markens texturer och tomtens inmätta träd och stenar."""
     rut = Rutnat(mapp) if mapp and os.path.exists(os.path.join(mapp, "omgivning.json")) else None
     inre = inre_ring(mitt, z_bas, terrang)
     if len(inre) < 8:
         return
     ob = mark(mitt, inre, rut, z_bas)
-    mm = markmaterial(rut)
+    mm = markmaterial(rut, tillgangar)
     ob.data.materials.append(mm)
     # modellens terräng (fyllnaden runt huset) får samma material som omgivningen
     for o in bpy.context.scene.objects:
@@ -334,7 +457,9 @@ def bygg(mitt: tuple[float, float], z_bas: float, terrang: str, mapp: str | None
     if rut:
         hav(rut.besk["z_hav"])
         byggnader(rut)
-        trad(ob, rut, mitt)
+        trad(ob, rut, mitt, tillgangar=tillgangar)
+        if tillgangar:
+            inmatta(rut, tillgangar)
 
 
 # ------------------------------------------------------------------ träd
@@ -398,11 +523,19 @@ def _trad_mesh(namn: str, stam_h: float, stam_r: float, krona: dict, stamfarg: s
     return ob
 
 
-def tradsorter() -> bpy.types.Collection:
-    """Tallar, granar, björkar och enar som förlagor för instanserna (två av vissa sorter)."""
+def tradsorter(tillgangar: str | None = None) -> bpy.types.Collection:
+    """Tallar, granar, björkar och enar som förlagor för instanserna (två av vissa sorter); med tillgångarna är
+    tallarna och granarna Poly Havens (SKOGENS)."""
     kol = bpy.data.collections.get("Träd") or bpy.data.collections.new("Träd")
     if kol.objects:
         return kol
+    ersatta = set()
+    for namn, (sort, h) in SKOGENS.items():
+        for j, o in enumerate(_modell(tillgangar, namn)):
+            ob = bpy.data.objects.new(f"{sort} {j + 1}", o.data)
+            ob.scale = (h / _granser(o.data)[1][2],) * 3
+            kol.objects.link(ob)
+            ersatta.add(sort)
     sorter = [
         ("Tall", 10.0, 0.17, {"form": "klot", "z": 9.6, "rx": 2.4, "rz": 1.3, "klumpar": 70}, "#9a6a45", "#26331f"),
         ("Tall 2", 7.5, 0.15, {"form": "klot", "z": 7.0, "rx": 2.8, "rz": 1.4, "klumpar": 80}, "#9a6a45", "#2b3822"),
@@ -415,14 +548,16 @@ def tradsorter() -> bpy.types.Collection:
         ("En", 0.2, 0.05, {"form": "kon", "z": (0.1, 2.2, 0.55), "klumpar": 40}, "#4d3a2c", "#24301e"),
     ]
     for i, (namn, h, r, krona, sf, kf) in enumerate(sorter):
-        kol.objects.link(_trad_mesh(namn, h, r, krona, sf, kf, i + 3))
+        if namn.split()[0] not in ersatta:
+            kol.objects.link(_trad_mesh(namn, h, r, krona, sf, kf, i + 3))
     return kol
 
 
-def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri: float = 18.0) -> None:
-    """Träd i skogen (tät) och spridda på hällmarken (gles), med Geometry Nodes: punkter på marken efter tätheten
-    (attributet täthet per hörn: skogens mask, inget på hav, vägar, byggnader och nära huset) och en slumpad sort,
-    vridning och storlek per träd."""
+def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri: float = 18.0,
+         tillgangar: str | None = None) -> None:
+    """Träd i skogen (tät) och i dungar på hällmarken (_dungar), med Geometry Nodes: punkter på marken efter tätheten
+    (attributet täthet per hörn: skogens mask, inget på hav, vägar, byggnader, nära huset och på tomten, där de inmätta
+    träden står) och en slumpad sort, vridning och storlek per träd."""
     me = mark_ob.data
     co = np.zeros(len(me.vertices) * 3)
     me.vertices.foreach_get("co", co)
@@ -437,14 +572,17 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
         for j, kn in enumerate(namn):
             mask[kn] = px[fy, fx, j]
     d = np.hypot(co[:, 0] - mitt[0], co[:, 1] - mitt[1])
-    tathet = np.clip(mask["skog"] + 0.06 * (1 - mask["skog"]) * (1 - mask["tradgard"]) * (1 - mask["aker"]), 0, 1)
+    tathet = np.clip(mask["skog"] + HALL_TRAD * _dungar(co[:, 0], co[:, 1]) * (1 - mask["skog"])
+                     * (1 - mask["tradgard"]) * (1 - mask["aker"]), 0, 1)
     tathet *= ((1 - mask["hav"]) * (1 - mask["vatten"]) * (1 - mask["vag"]) * (1 - mask["byggnad"])
                * (1 - mask["berg"] * 0.7))
     tathet *= np.clip((d - fri) / 25.0, 0, 1) * (d < 1800.0)
     tathet *= co[:, 2] > rut.besk["z_hav"] + 0.5
+    if (omrade := _objekt(rut).get("omrade")):
+        tathet *= ~_inuti(co[:, 0], co[:, 1], np.array(omrade))
     attr = me.attributes.new("tathet", "FLOAT", "POINT")
     attr.data.foreach_set("value", tathet.astype(np.float32))
-    kol = tradsorter()
+    kol = tradsorter(tillgangar)
     ng = bpy.data.node_groups.new("Träd", "GeometryNodeTree")
     ng.interface.new_socket("Geometri", in_out="INPUT", socket_type="NodeSocketGeometry")
     ng.interface.new_socket("Geometri", in_out="OUTPUT", socket_type="NodeSocketGeometry")
@@ -453,7 +591,7 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
     ford = N.new("GeometryNodeDistributePointsOnFaces")
     ford.distribute_method = "POISSON"
     ford.inputs["Distance Min"].default_value = 3.2
-    ford.inputs["Density Max"].default_value = 0.05
+    ford.inputs["Density Max"].default_value = 0.08
     fat = N.new("GeometryNodeInputNamedAttribute")
     fat.data_type = "FLOAT"
     fat.inputs["Name"].default_value = "tathet"
@@ -463,7 +601,7 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
     samling = N.new("GeometryNodeCollectionInfo")
     samling.inputs["Collection"].default_value = kol
     samling.inputs["Separate Children"].default_value = True
-    samling.inputs["Reset Children"].default_value = True
+    samling.inputs["Reset Children"].default_value = False         # förlagorna står i origo, med sin skala
     inst = N.new("GeometryNodeInstanceOnPoints")
     inst.inputs["Pick Instance"].default_value = True
     ngl.new(ford.outputs["Points"], inst.inputs["Points"])
@@ -491,3 +629,106 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
     ngl.new(forena.outputs[0], ut.inputs[0])
     mod = mark_ob.modifiers.new("Träd", "NODES")
     mod.node_group = ng
+
+
+def _dungar(x: np.ndarray, y: np.ndarray, fro: int = 7) -> np.ndarray:
+    """Tallarnas dungar på hällmarken: 0–1 ur slumptal i två rutnät (DUNGE_CELL m), bilinjärt och summerat, med en
+    mjuk tröskel så att dungarna täcker nästan hälften av marken (som i flygbilderna)."""
+    rng = np.random.default_rng(fro)
+    f = np.zeros_like(x)
+    for cell, vikt in zip(DUNGE_CELL, (0.65, 0.35)):
+        x0, y0 = x.min() - cell, y.min() - cell
+        nx, ny = int((x.max() - x0) / cell) + 3, int((y.max() - y0) / cell) + 3
+        f += vikt * _bilinjar(rng.random((ny, nx)), x0, y0, cell, x, y)
+    t = np.clip((f - 0.42) / 0.15, 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def _objekt(rut: Rutnat) -> dict:
+    """Tomtens inmätta träd, stenar och området de är inmätta i (nara_objekt.json, modellering/terrang.py)."""
+    fil = os.path.join(rut.mapp, "nara_objekt.json")
+    return json.load(open(fil, encoding="utf-8")) if os.path.exists(fil) else {}
+
+
+def _inuti(x: np.ndarray, y: np.ndarray, poly: np.ndarray) -> np.ndarray:
+    """Punkterna (x, y) inuti polygonen poly (hörnen, n × 2)."""
+    inne = np.zeros(len(x), dtype=bool)
+    for (x1, y1), (x2, y2) in zip(poly, np.roll(poly, -1, axis=0)):
+        if y1 != y2:
+            inne ^= ((y1 > y) != (y2 > y)) & (x < (x2 - x1) * (y - y1) / (y2 - y1) + x1)
+    return inne
+
+
+def _tona(mat: bpy.types.Material, mattnad: float, farg: tuple[float, float, float]) -> None:
+    """Materialets färgbilder (diff): mättnaden gånger mattnad, sedan gånger farg."""
+    nt = mat.node_tree
+    for n in [n for n in nt.nodes if n.type == "TEX_IMAGE" and n.image and "_diff" in n.image.name]:
+        till = [lk.to_socket for lk in nt.links if lk.from_node == n and lk.from_socket.name == "Color"]
+        hsv = nt.nodes.new("ShaderNodeHueSaturation")
+        hsv.inputs["Saturation"].default_value = mattnad
+        nt.links.new(n.outputs["Color"], hsv.inputs["Color"])
+        mul = nt.nodes.new("ShaderNodeMix")
+        mul.data_type, mul.blend_type = "RGBA", "MULTIPLY"
+        mul.inputs[0].default_value = 1.0
+        nt.links.new(hsv.outputs["Color"], mul.inputs[6])
+        mul.inputs[7].default_value = (*farg, 1.0)
+        for sockel in till:
+            nt.links.new(mul.outputs[2], sockel)
+
+
+_MODELLER: dict[str, list[bpy.types.Object]] = {}
+
+
+def _modell(tillgangar: str | None, namn: str) -> list[bpy.types.Object]:
+    """Varianterna av Poly Havens modell namn (MODELLER) med sina nät, material (tonade efter TONING) och bilder, en
+    gång per scen; de som saknas i tillgångarna hoppas över."""
+    if namn not in _MODELLER:
+        _MODELLER[namn] = []
+        for fil, objekt in MODELLER[namn] if tillgangar else ():
+            fil = os.path.join(tillgangar, "modeller", fil)
+            if not os.path.exists(fil):
+                continue
+            with bpy.data.libraries.load(os.path.abspath(fil), link=False) as (src, dst):
+                dst.objects = [objekt] if objekt in src.objects else []
+            _MODELLER[namn] += [o for o in dst.objects if o is not None]
+        for mat in {m for o in _MODELLER[namn] for m in o.data.materials if m}:
+            if mat.name in TONING:
+                _tona(mat, *TONING[mat.name])
+    return _MODELLER[namn]
+
+
+def _granser(me: bpy.types.Mesh) -> tuple[np.ndarray, np.ndarray]:
+    co = np.zeros(len(me.vertices) * 3)
+    me.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)
+    return co.min(axis=0), co.max(axis=0)
+
+
+def inmatta(rut: Rutnat, tillgangar: str) -> None:
+    """Tomtens inmätta träd och stenar (nara_objekt.json): Poly Havens tallar (tre sorter, TALL_HOJD höga, vridna och
+    lite lutade) och rundade granitblock (två sorter), så stora som stenarna är inmätta och nedsjunkna i marken."""
+    obj = _objekt(rut)
+    if not obj:
+        return
+    kol = bpy.data.collections.new("Inmätta")
+    bpy.context.scene.collection.children.link(kol)
+    rng = np.random.default_rng(11)
+    tallar = _modell(tillgangar, "tall")
+    for i, (x, y, z) in enumerate(obj["trad"] if tallar else []):
+        me = tallar[int(rng.integers(len(tallar)))].data
+        s = rng.uniform(*TALL_HOJD) / _granser(me)[1][2]
+        ob = bpy.data.objects.new(f"Tall {i + 1}", me)
+        ob.scale = (s, s, s)
+        ob.rotation_euler = (rng.normal(0, 0.03), rng.normal(0, 0.03), rng.uniform(0, 2 * math.pi))
+        ob.location = (x, y, z - 0.2)                                   # rotfoten i marken, också i en slänt
+        kol.objects.link(ob)
+    block = [(o.data, *_granser(o.data)) for o in _modell(tillgangar, "block")]
+    for i, (x, y, z, storlek, hojd) in enumerate(obj["stenar"] if block else []):
+        me, lo, hi = block[int(rng.integers(len(block)))]
+        sxy = storlek / max(hi[0] - lo[0], hi[1] - lo[1])
+        sz = float(np.clip(hojd / (0.7 * hi[2]), 0.4 * sxy, 1.2 * sxy))
+        ob = bpy.data.objects.new(f"Sten {i + 1}", me)
+        ob.scale = (sxy, sxy, sz)
+        ob.rotation_euler = (0.0, 0.0, rng.uniform(0, 2 * math.pi))
+        ob.location = (x, y, min(z + hojd - hi[2] * sz, z - 0.05 - lo[2] * sz))
+        kol.objects.link(ob)

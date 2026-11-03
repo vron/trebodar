@@ -98,6 +98,8 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
             "omgivning": getattr(vy_mod, "OMGIVNING", None),
             "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
                         and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
+            "tillgangar": (str(ROT / vy_mod.GEODATA["tillgangar"]) if "tillgangar" in getattr(vy_mod, "GEODATA", {})
+                           and (ROT / vy_mod.GEODATA["tillgangar"]).is_dir() else None),
             "armaturer": _armaturer(),
             "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
             "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if blend else None}
@@ -274,7 +276,8 @@ def main(argv: list[str] | None = None) -> None:
     pm.add_argument("--ut", type=Path, default=UT / "bilder")
     pm.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pg = sub.add_parser("omgivning", help="omgivningen ur öppna geodata (OpenStreetMap, höjdmodell) för renderingen")
-    pg.add_argument("--hamta", action="store_true", help="ladda ner det som saknas (Overpass API, Terrarium-rutor)")
+    pg.add_argument("--hamta", action="store_true",
+                    help="ladda ner det som saknas (Overpass API, Terrarium-rutor, Poly Havens tillgångar)")
     pa = sub.add_parser("avtryck", help="spara modellens fingeravtryck eller jämför med det (oförändrad geometri)")
     pa.add_argument("atgard", choices=("spara", "jamfor"))
     pa.add_argument("--del", dest="vag")
@@ -431,12 +434,19 @@ def main(argv: list[str] | None = None) -> None:
         mapp = ROT / cfg["mapp"]
         if arg.hamta:
             geodata.hamta(float(lat[0]), float(lon[0]), cfg["radie"] + 300.0, str(mapp))
+            if "tillgangar" in cfg:
+                from . import polyhaven
+                nya = polyhaven.hamta(str(ROT / cfg["tillgangar"]))
+                print(f"  Poly Haven: {', '.join(nya) if nya else 'inget nytt'} -> {ROT / cfg['tillgangar']}")
         besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
         print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
         terr = ROT / cfg.get("terrang", "lokalt/terrang")
         if (terr / "hojd").is_dir():
             from . import terrang
-            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd)
+            S = importlib.import_module("trebodar.skelett")
+            from shapely.geometry import Polygon
+            fasad = list(Polygon(S.KONTUR).buffer(95.0, join_style=2).exterior.coords)
+            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd, fasad)
             na = st["nara"]
             print(f"  Lantmäteriets höjder ur {terr}; tomten {na['nx']}×{na['ny']} celler à {na['cell']} m, "
                   f"{st['uteslutna']} markpunkter avviker mer än {terrang.RATT_MAX} m och räknas inte")

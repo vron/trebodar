@@ -41,7 +41,7 @@ S.portaler(SCEN.get("portaler", []))
 if SCEN.get("omgivning"):
     o = SCEN["omgivning"]
     omgivning.bygg((o["mitt"][0] / 1000, o["mitt"][1] / 1000), o["z_bas"] / 1000, o.get("terrang", "Mark/"),
-                   SCEN.get("geodata"))
+                   SCEN.get("geodata"), SCEN.get("tillgangar"))
 portaler = [o for o in bpy.data.objects if o.name.startswith("Portal ")]
 lampor = S.lampor(SCEN.get("lampor", {}))
 armaturer = S.armaturer(SCEN.get("armaturer", []))

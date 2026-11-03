@@ -32,6 +32,13 @@ VYER = {
                      "ljus": (6, 21, "18:30", "sol"), "lodrat": False},
     "ute-nordost": {"kamera": [4000, -14000, 3500], "mal": [7000, 5000, 1500], "lins": 32,
                     "ljus": (6, 21, "06:30", "sol"), "lodrat": False},
+    # flygbilderna rakt ovanifrån med verklig norr uppåt (som flygfoton; norr i modellen är (0,751, −0,660) enligt
+    # passningen mot SWEREF, sweref_passning), för att se och kommentera var saker står: tomten (omkring 150 × 85 m)
+    # och omgivningen (400 × 225 m)
+    "flyg-tomten": {"kamera": [2500, 6800, 125000], "mal": [3251, 6140, 0], "lins": 30,
+                    "ljus": (6, 21, "12:00", "sol"), "lodrat": False},
+    "flyg-omgivningen": {"kamera": [2500, 6800, 330000], "mal": [3251, 6140, 0], "lins": 30,
+                         "ljus": (6, 21, "12:00", "sol"), "lodrat": False},
     "detalj-fasad": {"kamera": [6500, -4200, 1700], "mal": [8200, 0, 1500], "lins": 40, "ljus": (9, 15, "12:00", "mulet")},
     "detalj-falu": {"kamera": [-3600, 5600, 1500], "mal": [-95, 6600, 1300], "lins": 40,
                     "ljus": (9, 15, "12:00", "mulet")},
@@ -81,6 +88,7 @@ VYER = {
 # installationerna, en egen grupp på startsidan
 TEXTER = {
     "ute-sydost": "Huset från sydost", "ute-nordvast": "Huset från nordväst", "ute-nordost": "Huset från nordost",
+    "flyg-tomten": "Tomten uppifrån, norr uppåt", "flyg-omgivningen": "Omgivningen uppifrån, norr uppåt",
     "detalj-fasad": "Fasaden i järnvitriol", "detalj-falu": "Fasaden i falu rödfärg",
     "detalj-sten": "Sockeln av granit", "detalj-tak": "Taket, bandtäckt plåt med takfönster",
     "detalj-spot": "Spotlights i allrummets tak",
@@ -170,7 +178,8 @@ LAMPOR = {
 # marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)
 OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}
 # omgivningen ur öppna geodata (`./mod omgivning --hamta`): radien och cellen (m), mappen (versionshanteras inte)
-GEODATA = {"mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0}
+# och tillgångarna (Poly Havens texturer och modeller, CC0, lokalt/polyhaven/hamta.py)
+GEODATA = {"mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0, "tillgangar": "lokalt/polyhaven"}
 
 
 def sweref_passning() -> tuple[object, float]:
