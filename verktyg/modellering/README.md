@@ -129,7 +129,9 @@ egen modell (t.ex. för beställning). Utdata:
   Med Poly Havens tillgångar (CC0, `lokalt/polyhaven`, `./mod omgivning --hamta`) får berget, gräset och barren
   detaljer ur riktiga texturer och träden och stenarna är riktiga modeller (tallar och granar, även i skogen, och
   rundade granitblock), tonade som på platsen; utan dem är allt procedurellt. Hällmarken är mest berg i
-  dagen med sprickor av ljung och gräs och tallar i dungar, som i flygbilderna. Flygbilderna `flyg-tomten` och
+  dagen med sprickor av ljung och gräs och tallar i dungar, som i flygbilderna. Det som saknas i OpenStreetMap
+  (grannhus, skog) och inmätta träd som inte finns står i `vyer.GEODATA` (`byggnader`, `skog`, `utan_trad`, i
+  modellens mm); byggnadernas mark tas ur Lantmäteriets höjder. Flygbilderna `flyg-tomten` och
   `flyg-omgivningen` visar tomten och omgivningen rakt ovanifrån med verklig norr uppåt, för att jämföra med flygfoton
   och kommentera var saker står.
 - **Kameror** (`modeller/trebodar/vyer.py`): kameran hålls vågrät med objektivförskjutning, så att lodräta linjer

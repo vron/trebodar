@@ -446,7 +446,8 @@ def main(argv: list[str] | None = None) -> None:
             S = importlib.import_module("trebodar.skelett")
             from shapely.geometry import Polygon
             fasad = list(Polygon(S.KONTUR).buffer(95.0, join_style=2).exterior.coords)
-            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd, fasad)
+            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd, fasad, cfg.get("byggnader", ()),
+                              cfg.get("skog", ()), cfg.get("utan_trad", ()))
             na = st["nara"]
             print(f"  Lantmäteriets höjder ur {terr}; tomten {na['nx']}×{na['ny']} celler à {na['cell']} m, "
                   f"{st['uteslutna']} markpunkter avviker mer än {terrang.RATT_MAX} m och räknas inte")

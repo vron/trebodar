@@ -179,7 +179,31 @@ LAMPOR = {
 OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}
 # omgivningen ur öppna geodata (`./mod omgivning --hamta`): radien och cellen (m), mappen (versionshanteras inte)
 # och tillgångarna (Poly Havens texturer och modeller, CC0, `./mod omgivning --hamta`)
-GEODATA = {"mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0, "tillgangar": "lokalt/polyhaven"}
+GEODATA = {
+    "mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0, "tillgangar": "lokalt/polyhaven",
+    # det som saknas i OpenStreetMap eller inte stämmer (ärende #26, efter flygfoton och inmätningen), i modellens mm:
+    # byggnader (hörnen, höjden [m], valfritt platt tak och färger), skog (täta träd i olika höjd) och inmätta träd som
+    # inte finns
+    "byggnader": [
+        # grannhuset i norr (nybygge): väggen mot tomten inmätt (punkterna hus vid x 21,4–21,9), djupet ur flygfotot
+        {"horn": [(21600, -12800), (29000, -12800), (29000, 6200), (21600, 6200)], "hojd": 6.5,
+         "takfarg": "#4a4d50"},
+        # grannhuset i sydost (flygfotot): två delar med platta tak
+        {"horn": [(-35300, 11950), (-46600, 5400), (-50100, 11900), (-38700, 18400)], "hojd": 6.0, "tak": "platt",
+         "farg": "#e8e4da", "takfarg": "#3a3c3e"},
+        {"horn": [(-36700, 20100), (-45600, 14800), (-48400, 20200), (-39400, 25300)], "hojd": 3.5, "tak": "platt",
+         "farg": "#e8e4da", "takfarg": "#3a3c3e"},
+    ],
+    "skog": [
+        # mellan tomten och stranden i västsydväst
+        [(29900, 49000), (23900, 56500), (22600, 72200), (26500, 91900), (34500, 110400), (44500, 122600),
+         (53700, 125400), (59800, 117900), (61000, 102200), (57100, 82400), (49100, 64000), (39200, 51700)],
+        # söder om tomten
+        [(-10900, 35400), (-19600, 29100), (-29600, 27600), (-38300, 31500), (-43200, 39500), (-43000, 49600),
+         (-37900, 59100), (-29200, 65400), (-19200, 66800), (-10500, 63000), (-5600, 55000), (-5800, 44800)],
+    ],
+    "utan_trad": [(800, -6500), (2400, -300)],          # öster om huset
+}
 
 
 def sweref_passning() -> tuple[object, float]:

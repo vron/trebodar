@@ -216,7 +216,8 @@ def _valj(lista: list[tuple[float, str]], r: float) -> str:
 
 
 def byggnader(rut: Rutnat) -> bpy.types.Object | None:
-    """Grannhusen: väggar till takfoten och valmat tak (ringen krympt mot mitten), färgerna slumpade per hus."""
+    """Grannhusen: väggar till takfoten och valmat tak (ringen krympt mot mitten), eller platt tak ("tak": "platt");
+    färgerna slumpade per hus, om de inte anges ("farg", "takfarg")."""
     hus = rut.besk.get("byggnader", [])
     if not hus:
         return None
@@ -235,12 +236,12 @@ def byggnader(rut: Rutnat) -> bpy.types.Object | None:
         cx = sum(v[0] for v in p) / len(p)
         cy = sum(v[1] for v in p) / len(p)
         z0 = h["z"] - 0.6
-        zv = h["z"] + max(2.4, h["hojd"] - 2.2)
-        zt = h["z"] + max(3.6, h["hojd"])
+        zt = h["z"] + max(3.6, h["hojd"]) if h.get("tak") != "platt" else h["z"] + h["hojd"]
+        zv = h["z"] + max(2.4, h["hojd"] - 2.2) if h.get("tak") != "platt" else zt - 0.01
         bredd = min(math.dist(p[i], p[(i + 1) % len(p)]) for i in range(len(p)))
         k = max(0.0, 1.0 - min(0.9, (zt - zv) / max(bredd * 0.5, 0.5) * 0.9))
-        vf = rgba(_valj(VAGGFARGER, rng.random()))
-        tf = rgba(_valj(TAKFARGER, rng.random()))
+        vf, tf = rgba(_valj(VAGGFARGER, rng.random())), rgba(_valj(TAKFARGER, rng.random()))
+        vf, tf = rgba(h["farg"]) if "farg" in h else vf, rgba(h["takfarg"]) if "takfarg" in h else tf
         b = len(verts)
         n = len(p)
         verts += [(x, y, z0) for x, y in p] + [(x, y, zv) for x, y in p]
@@ -619,8 +620,8 @@ def trad(mark_ob: bpy.types.Object, rut: Rutnat, mitt: tuple[float, float], fri:
     ngl.new(vrid.outputs["Value"], inst.inputs["Rotation"])
     stl = N.new("FunctionNodeRandomValue")
     stl.data_type = "FLOAT"
-    stl.inputs["Min"].default_value = 0.65
-    stl.inputs["Max"].default_value = 1.35
+    stl.inputs["Min"].default_value = 0.45
+    stl.inputs["Max"].default_value = 1.4
     stl.inputs["Seed"].default_value = 5
     ngl.new(stl.outputs["Value"], inst.inputs["Scale"])
     forena = N.new("GeometryNodeJoinGeometry")
