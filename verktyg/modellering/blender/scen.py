@@ -370,54 +370,9 @@ class Armatur:
             o["lysande_farg"] = self.farg
 
 
-def _hal(lista: list[dict]) -> None:
-    """Hålen för infällda armaturer i skivorna som de sitter i, bara i renderingen (modellen har inga hål för
-    elinstallationen): en cylinder per armatur, hålets diameter och 60 mm lång längs armaturens axel, ur de
-    objekt som en stråle in i taket från armaturens mitt träffar inom 40 mm (gipsskivorna)."""
-    sc = bpy.context.scene
-    dg = bpy.context.evaluated_depsgraph_get()
-    hal: dict[str, list[tuple[Vector, Vector, float]]] = {}
-    sedda: set[tuple[str, str]] = set()
-    for a in lista:
-        if not a.get("infalld", True):            # ljuset kommer från ett huvud under taket, inte genom hålet
-            continue
-        p, n = Vector(a["punkt"]) / 1000, Vector(a["normal"]).normalized()
-        o, langs = p + n * 0.005, 0.0
-        while langs < 0.045:
-            ok, loc, _, _, ob, _ = sc.ray_cast(dg, o, -n, distance=0.045 - langs)
-            if not ok:
-                break
-            if ("/Installationer/El/" not in str(ob.get("sokvag", "")) and not ob.name.startswith("Hål ") and
-                    (ob.name, a["id"]) not in sedda):
-                sedda.add((ob.name, a["id"]))
-                hal.setdefault(ob.name, []).append((p, n, a["hal_d"] / 2000))
-            langs += (loc - o).length + 1e-4
-            o = loc - n * 1e-4
-    for namn, cyl in hal.items():
-        me = bpy.data.meshes.new(f"Hål {namn}")
-        bm = bmesh.new()
-        for p, n, r in cyl:
-            M = Matrix.Translation(p - n * 0.03) @ n.to_track_quat("Z", "Y").to_matrix().to_4x4()
-            bmesh.ops.create_cone(bm, cap_ends=True, segments=32, radius1=r, radius2=r, depth=0.06,
-                                  matrix=M @ Matrix.Translation((0.0, 0.0, 0.0)))
-        bm.to_mesh(me)
-        bm.free()
-        verktyg = bpy.data.objects.new(f"Hål {namn}", me)
-        sc.collection.objects.link(verktyg)
-        verktyg.hide_render = True
-        verktyg.display_type = "WIRE"
-        skiva = bpy.data.objects[namn]
-        skiva.modifiers.new("Sammanfoga", "WELD")      # GLB-nätet har delade hörn vid kanterna: täta det först
-        mod = skiva.modifiers.new("Hål för armaturer", "BOOLEAN")
-        mod.operation = "DIFFERENCE"
-        mod.object = verktyg
-        mod.solver = "EXACT"
-
-
 def armaturer(lista: list[dict]) -> list[Armatur]:
-    """Armaturerna ur scenens beskrivning; en IES-text per armaturtyp, linserna efter delarnas namn (<id>-LINS),
-    hålen i taket (bara i renderingen)."""
-    _hal(lista)
+    """Armaturerna ur scenens beskrivning; en IES-text per armaturtyp, linserna efter delarnas namn (<id>-LINS).
+    Hålen i taket för de infällda armaturerna finns i modellen (el.installation.haltagningar)."""
     texter: dict[str, bpy.types.Text] = {}
     ut = []
     for a in lista:

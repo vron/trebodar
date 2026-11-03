@@ -27,3 +27,23 @@ def genomfor(m: Montage, verktyg: Form, lada: Lada, plac: Placering = IDENTITET)
             m.barn[k] = replace(i, barn=replace(i.barn, form=minus(i.barn.form, [verktyg.placerad(p.invers())])))
             n += 1
     return n
+
+
+def genomfor_alla(m: Montage, verktyg: list[tuple[Form, Lada]], plac: Placering = IDENTITET) -> int:
+    """Som genomfor, med många verktyg (form, låda): varje del skärs en gång med de verktyg som når den. Ger antalet
+    delar som skars."""
+    n = 0
+    for k, i in enumerate(m.barn):
+        p = plac @ i.placering
+        if isinstance(i.barn, Montage):
+            n += genomfor_alla(i.barn, verktyg, p)
+            continue
+        b = omslutande(i.barn.form)
+        if b is None:
+            continue
+        lb = i_foraldern(b, p)
+        nar = [v.placerad(p.invers()) for v, lada in verktyg if _overlappar(lb, lada)]
+        if nar:
+            m.barn[k] = replace(i, barn=replace(i.barn, form=minus(i.barn.form, nar)))
+            n += 1
+    return n

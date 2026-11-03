@@ -11,11 +11,15 @@ from dataclasses import dataclass
 from functools import cache
 from types import ModuleType
 
+from modellering import Form
+
+from trebodar.byggdelar.genomforing import Lada
+from trebodar.byggdelar.ror import stang
 from trebodar.hus.invandigt.skikt import LAKT
 
 from . import lakt
 from .bjalklag import mellanbjalklag
-from ..montering import PLAN, TAKSKIVOR, Vek
+from ..montering import PLAN, TAKSKIVOR, Vek, flytt
 from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
 from .rum import (allrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
@@ -185,3 +189,16 @@ def installation() -> Installation:
                 modul[o.id] = m.NAMN
     return Installation(rum, punkter, tandgrupper, ror, modul)
 
+
+def haltagningar() -> list[tuple[Form, Lada]]:
+    """De infällda armaturernas håltagning i innertaket (typens hal_d), från takytan så djupt som armaturen går in:
+    verktygen och deras lådor, som skärs ur de invändiga skikten (hus.py), så att ljuset kommer ut ur taket."""
+    ut = []
+    for p in installation().punkter.values():
+        if isinstance(p, Lampa) and p.typ.pendel is None and p.typ.hal_d > 0 and p.typ.djup > 0:
+            m, r = p.lage, p.typ.hal_d / 2
+            a, b = flytt(m.punkt, m.normal, 1.0), flytt(m.punkt, m.normal, -p.typ.djup)
+            lada = (min(a[0], b[0]) - r, min(a[1], b[1]) - r, min(a[2], b[2]) - r,
+                    max(a[0], b[0]) + r, max(a[1], b[1]) + r, max(a[2], b[2]) + r)
+            ut.append((stang(a, b, p.typ.hal_d), lada))
+    return ut

@@ -99,8 +99,8 @@ egen modell (t.ex. för beställning). Utdata:
   paneler, `LAMPOR` i `vyer.py`) som tänds i de vyer som anger dem, t.ex. källaren. Elinstallationens armaturer
   blir ljus med tillverkarens uppmätta ljusfördelning (EULUMDAT → IES, `modellering/fotometri.py`; Cycles läser
   IES-filens candela som 0,0706 · P / 4π, så effekten 4π / (683 · 0,0706) W ger ljusstyrkan i samma enheter som
-  solen), färgtemperatur och lysande yta; de infällda tar hål i gipsen i renderingen, och linsen lyser för
-  kameran. Exponeringen (EV100)
+  solen), färgtemperatur och lysande yta; de infällda sitter i sina hål i gipsen (i modellen), och linsen lyser
+  för kameran. Exponeringen (EV100)
   räknas fram ur en snabb förhandsbild; inne också vitbalansen, som ögats anpassning till ljuset i rummet:
   förhandsbildens diffusa ljuspass ger färgen på ljuset som når ytorna (sol, himmel, lampor och färgen från det
   ljuset studsat på, men inte ytornas egen färg), och graden av anpassning följer CIECAM02 ur

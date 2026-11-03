@@ -145,7 +145,7 @@ def _armaturer() -> list[dict[str, object]]:
             f = fordelningar[p["typ"]]
             ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "kalla": p["lins"],
                        "kalla_d": pe["kalla_d"], "riktning": p["riktning"], "punkt": p["punkt"],
-                       "normal": p["normal"], "hal_d": 0.0, "infalld": False, "ies": f.ies(),
+                       "normal": p["normal"], "ies": f.ies(),
                        "farg": dagsljus.svartkropp(float(t["fargtemperatur"])), "lysande_d": t["lysande_d"],
                        "max_cd": float(f.cd.max()),
                        "luminans": t["ljusflode"] * pe["lysande_andel"] * pe["transmission"]
@@ -159,8 +159,8 @@ def _armaturer() -> list[dict[str, object]]:
                 print(f"  {p['typ']}: fotometrifilen saknas ({ldt}), stråle {t['stralvinkel']:g}° (./mod el hamta)")
         f = fordelningar[p["typ"]]
         ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "riktning": p["riktning"],
-                   "punkt": p["punkt"], "normal": p["normal"], "hal_d": t["hal_d"], "infalld": t["form"] == "infalld",
-                   "ies": f.ies(), "farg": dagsljus.svartkropp(float(t["fargtemperatur"])),
+                   "punkt": p["punkt"], "normal": p["normal"], "ies": f.ies(),
+                   "farg": dagsljus.svartkropp(float(t["fargtemperatur"])),
                    "lysande_d": t["lysande_d"], "max_cd": float(f.cd.max())})
     return ut
 

@@ -108,7 +108,8 @@ reflekterar), medan glaset inte skuggar men lyser med flödet genom det fördela
 - rören: summan av böjarna mellan dosorna (mer än 270° är svårt att dra) och att varje punkt har ett rör.
 
 Elinstallationens delar ingår inte i modellens krockkontroll (`kontrollregler.UTOM_KONTROLL`): rören och dosorna går
-genom skikten utan att andra delar får hål. I renderingen tar de infällda armaturerna hål i gipsen (bara där).
+genom skikten utan att andra delar får hål. De infällda armaturerna har sin håltagning (typens hål, så djupt som
+armaturen går in) i de invändiga skikten (`installation.haltagningar`, skärs i hus.py), så att ljuset kommer ut.
 
 ## Ritningarna
 
