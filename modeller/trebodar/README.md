@@ -368,7 +368,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Ytterdörrarna
   (ärende #33): huvudentrén 1SO-D1 och källarens pardörr D1 (i 3NO:s system under bjälklaget, ett blad 900 till höger
   sett utifrån och ett smalare som öppnas ibland) har blad av en plywoodkärna 44, liggande läkt och stående panel
-  utanpå, i den andra kulören än fasaden runt dem (grå järnvitriol i det röda huset, falu rödfärg i det grå). Invändigt går
+  utanpå, i den andra kulören än fasaden runt dem (grå järnvitriol i det röda huset, falu rödfärg i det grå). Panelen
+  ligger i liv med fasadpanelen och täcker karmen fram till en fog 4 mm mot den, så att ingen karm syns utifrån. Invändigt går
   väggens skikt och installationsläkten fram till karmens linje, och smygen och fönsterbänken är oljad ask 20 mm med
   fibrerna längs varje bit (med smyglister, `SMYGLIST` > 0, lister av ask runt smygen i skivornas tjocklek); i
   badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).

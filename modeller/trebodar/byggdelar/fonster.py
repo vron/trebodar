@@ -123,9 +123,13 @@ V_BAGE, V_GLAS = (43.0, 43.0, 44.0, 41.5), (104.0, 104.0, 105.5, 101.5)   # båg
 F_GLAS = _alla(53.5)
 D_LAPP, D_STOMME, D_BOTTEN = (52.0, 52.0, 42.0, 53.5), (37.5, 37.5, 28.0, 39.5), 20.5
 D_BAGE, D_GLAS = (41.0, 41.0, 31.0, 41.5), (103.5, 103.5, 94.0, 107.0)
-# ytterdörrarnas blad (ärende #33): en kärna av plywood, liggande läkt och stående panel utanpå, som fasaden
-B_KARNA, B_LAKT, B_PANEL = 44.0, 22.0, 22.0
+# ytterdörrarnas blad (ärende #33): en kärna av plywood i karmen, liggande läkt och stående panel utanpå, i
+# fasadpanelens plan (utanför karmen, som fasadpanelen) och över karmen fram till en fog mot panelen, som går
+# PANEL_OVER in över karmen vid sidorna och upptill (hus/fasad): karmen syns inte utifrån, bara tröskeln
+B_KARNA, B_PANEL = 44.0, 22.0
+B_LAKT = DJUP - BAGE_IN - B_KARNA        # läkten fyller ut till karmens ytterkant
 B_LAKT_B, B_LAKT_CC = 70.0, 400.0        # läkten: bredd och c/c (högst), nedtill och upptill på bladet
+PANEL_OVER, B_FOG = 10.0, 4.0            # fasadpanelen över karmen och fogen mellan den och dörrens panel
 P_HUVUD, P_MOTE = 900.0, 4.0             # pardörren: huvudbladet (till höger sett utifrån) och glipan mellan bladen
 
 
@@ -183,9 +187,10 @@ def fonsterdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     return m
 
 
-def _blad(m: Montage, kod: str, x0: float, x1: float, z0: float, z1: float, panel: Material, namn: str) -> None:
-    """Ett ytterdörrblad i bågens kontur: kärnan, liggande läkt (nedtill, upptill och c/c högst B_LAKT_CC) och
-    stående panel utanpå."""
+def _blad(m: Montage, kod: str, x0: float, x1: float, z0: float, z1: float, panel: Material, namn: str,
+          px0: float, px1: float, pz1: float) -> None:
+    """Ett ytterdörrblad: kärnan i bågens kontur (x0–x1, z0–z1), liggande läkt (nedtill, upptill och c/c högst
+    B_LAKT_CC) till karmens ytterkant och stående panel utanför karmen, från px0 till px1 och upp till pz1."""
     y = -BAGE_IN - B_KARNA
     m.lagg(Del(f"Dörrblad {_matt(x1 - x0, z1 - z0)}×{fmt(B_KARNA)}", box(x0, x1, y, -BAGE_IN, z0, z1), DORRBLAD),
            Placering(), f"{kod}-{namn}")
@@ -194,9 +199,8 @@ def _blad(m: Montage, kod: str, x0: float, x1: float, z0: float, z1: float, pane
         z = z0 + i * (z1 - z0 - B_LAKT_B) / n
         d, pl = virke_i_lada(x0, x1, y - B_LAKT, y, z, z + B_LAKT_B, "x", C24_LAKT)
         m.lagg(d, pl, f"{kod}-{namn}-L{i + 1}")
-    y -= B_LAKT
-    m.lagg(Del(f"{panel.namn.replace('Dörrpanel', 'Panel 22 mm')} {_matt(x1 - x0, z1 - z0)}",
-               box(x0, x1, y - B_PANEL, y, z0, z1), panel), Placering(), f"{kod}-{namn}-PANEL")
+    m.lagg(Del(f"{panel.namn.replace('Dörrpanel', 'Panel 22 mm')} {_matt(px1 - px0, pz1 - z0)}",
+               box(px0, px1, -DJUP - B_PANEL, -DJUP, z0, pz1), panel), Placering(), f"{kod}-{namn}-PANEL")
 
 
 def ytterdorr(kod: str, b: float, h: float, alu: Material, panel: Material) -> Montage:
@@ -204,7 +208,8 @@ def ytterdorr(kod: str, b: float, h: float, alu: Material, panel: Material) -> M
     m = Montage(kod, kod, f"Ytterdörr, karm {_matt(b, h)}")
     _dorrkarm(m, kod, b, h, "ytterdörr", f"Ytterdörr, karm {_matt(b, h)}", alu)
     v, hg, u, o = D_BAGE
-    _blad(m, kod, v, b - hg, u, h - o, panel, "BLAD")
+    k = PANEL_OVER + B_FOG
+    _blad(m, kod, v, b - hg, u, h - o, panel, "BLAD", k, b - k, h - k)
     return m
 
 
@@ -214,9 +219,10 @@ def pardorr(kod: str, b: float, h: float, alu: Material, panel: Material) -> Mon
     m = Montage(kod, kod, f"Pardörr, karm {_matt(b, h)}")
     _dorrkarm(m, kod, b, h, "pardörr", f"Pardörr, karm {_matt(b, h)}", alu)
     v, hg, u, o = D_BAGE
+    k = PANEL_OVER + B_FOG
     xm = b - hg - P_HUVUD - P_MOTE / 2                     # mötet mellan bladen
-    _blad(m, kod, v, xm - P_MOTE / 2, u, h - o, panel, "BLAD1")
-    _blad(m, kod, xm + P_MOTE / 2, b - hg, u, h - o, panel, "BLAD2")
+    _blad(m, kod, v, xm - P_MOTE / 2, u, h - o, panel, "BLAD1", k, xm - P_MOTE / 2, h - k)
+    _blad(m, kod, xm + P_MOTE / 2, b - hg, u, h - o, panel, "BLAD2", xm + P_MOTE / 2, b - k, h - k)
     return m
 
 

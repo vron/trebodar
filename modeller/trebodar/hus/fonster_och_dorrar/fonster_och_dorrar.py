@@ -40,7 +40,8 @@ def enhet(o: Oppning) -> Montage:
     """Produkten i öppningen med drevning, smyg och fönsterbänk, i väggens system."""
     funktion, djup = F.PRODUKTER[o.typ]
     b, h = o.bredd - 2 * F.DREV, o.hojd - 2 * F.DREV
-    w_ut = W_UT if o.z1 > 0.0 else -S.T_FASAD            # källarens fönster i cellplastens smyg som förut
+    # källarens fönster i cellplastens smyg som förut; dörrarna med panel som på plan 1 (panelen i fasadens plan)
+    w_ut = W_UT if o.z1 > 0.0 or o.typ in F.MED_PANEL else -S.T_FASAD
     w_karm = w_ut + djup                                 # karmens insida
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (modul)" +
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
