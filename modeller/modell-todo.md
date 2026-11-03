@@ -48,3 +48,12 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    102 mm (2A till x 6 815, 1D till x 2 245) så att stolparna står mitt under balkarna; K-03:s `geometri.json` och
    K-05:s `laster.STOLPLAGEN` (LN3_1 x 7 007 → 6 905, LN5_2 x 2 053 → 2 155) följer med. Annars räknar K-03 stolparna
    med två reglar och excentrisk last.
+
+## Köket (ärende #21)
+
+9. **Vatten och avlopp till diskmaskinen i ön.** Diskmaskinen står i öns nordligaste skåp (O1, mitt i y 8 540, x
+   11 293–11 843; hus/inredning/koksbank.py). Kallvatten (en golvdosa under diskmaskinens bakkant, från stråket O i
+   mellanbjälklaget, `hus/installationer/vatten`; kallvattenfördelarens tionde utgång) och avlopp från ön till
+   stammen, ingjutna i mellanbjälklaget innan det gjuts. Avloppet läses ur Onshape-modellen och måste läggas till där.
+10. **El i köket.** Hällen (400 V) i skåpet B4, diskmaskinen i ön, uttag till bänken och ön
+    (`hus/installationer/el/rum/kok.py`).

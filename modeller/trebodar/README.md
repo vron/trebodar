@@ -87,6 +87,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
 | Smyglister: en bredare synlig träkant runt fönstren och dörrarna invändigt | `hus/fonster_och_dorrar/oppningar.py` (`SMYGLIST` i mm, 0 = bara smygen); skivorna slutar längre från karmen och listerna och fönsterbänkens öron följer med |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
+| Köksbänken och ön | skåpen (stomme, lådor på Blum MOVENTO, fronter; varje skåp i sitt eget system för ritningar) i `hus/inredning/koksskap.py`, uppställningen (antal skåp, bänkens djup, ön, diskho, häll) i `hus/inredning/koksbank.py` |
 | Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
 | En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
@@ -179,7 +180,8 @@ Trebodar
     │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler),
     │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
     └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
-                                köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor)
+                                köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor, bänken längs 3NV
+                                och 3SV och ön med lådskåp, bänkskiva, diskho, häll och diskmaskin)
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
@@ -222,6 +224,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R regel och
   FG-OS01 golv, SKAFFERI-TAK; i köket KYL och FRYS vitvarorna med -SOCKEL-R, -B, -G (reglar, bottenskiva, galler),
   -SKAP- (S sidor, B botten, T tak, H hyllor) och -FRONT1, -FRONT2, SKAFFERI-DORR och SKAFFERI-HYLLA-L4-1 osv.
+  Köksskåpen: B1–B7 längs 3NV norrifrån, B8–B10 längs 3SV österifrån, O1 (diskmaskinen)–O3 i ön norrifrån, med
+  -SIDA-V, -SIDA-H, -BOTTEN, -TAK (eller -TAK-F och -TAK-B), -RYGG, -SKIVA, -FRONT1–4 nedifrån och lådorna
+  -LADA1-SIDA-V, -SIDA-H, -BOTTEN, -FRAM, -BAK, -SKENA-V, -SKENA-H; B-BRADA, B-FOG1–10, O-FOG1–4 fogbrädorna, B-SIDA,
+  O-SIDA1–2 och O-RYGG de vita sidorna, B-SPARK1–2 och O-SPARK sparklisterna, B-SKIVA och O-SKIVA bänkskivorna,
+  DISKHO, BLANDARE, HALL och HALL-KROPP.
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
@@ -320,12 +327,21 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   skikt: fronten L15, 833 mm från L4:s yta (13 mm söder om huvudstolpen LN1_3:s strävor och överstycke, som hamnar i
   förrådet), gaveln L16 i L2:s linje och mellanväggarna L17 (mot huvudstolpen) och L18 upp till förrådsgolvet. Tre
   öppningar i fronten från golvet till 2 100 med smyg av vitmålad furu: nischerna för integrerad kyl (560 × 1 780)
-  och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 500 fri, så att bänken längs 3NV ryms öster
-  om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
+  och frys (560 × 880, högskåp ovanför), 600 fria, och skafferiets dörr, 450 fri, så att bänken längs 3NV (700) ryms
+  öster om den. Fronterna och dörren av oljad ask i liv med väggen. Förrådet ovanför: OSB 22 på bärläkt med överkanten
   2 167 och en lucka 500 × 600 i gavelns norra del. Vitvarornas luft tas in genom socklarnas galler och går upp
   bakom dem, genom en springa mellan förrådsgolvet och L4 och ut genom ett galler i fronten över varje nisch.
   Köksbelysningens dimmer och brytare sitter på gaveln söder om luckan, uttagen till kylen och frysen på L4 i
   förrådet.
+- **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
+  användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
+  mitt under Stav. Skåpen byggs vart för sig av björkplywood 20 (600 djupa, från sparklisten 90 till bänkskivans
+  underkant 888) med fyra lådor av björkplywood 14 och botten 4 på Blum MOVENTO 760H (SKW = LW − 42, SKL = NL − 10,
+  urtag 13, NL 550; under diskhon 350) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
+  3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
+  600,2 breda (fronterna 572,2) mellan brädan och hörnet; hörnet är dött med en fogbräda 22 × 22. Diskhon i B2 under
+  fönstret 3NV-F4 över golvdosan KO-DB1, hällen i B4 under köksfläkten. Ön: diskmaskinen och två lådskåp mot bänken,
+  vita sidor och rygg, öppen för benen mot väster. Bänkskivorna Bricmate Jura 12.
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
   helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, 22 mm innanför
   panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
@@ -372,7 +388,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 ## Inte modellerat ännu
 
 Källardörren D1 (öppningen och smygens gips finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02),
-badrummets inredning, köksbänken och köksön, trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
+badrummets inredning, köksskåpens beslag (låskrokar, gångjärn) och vattnet, avloppet och elen till köksön och
+hällen (modell-todo), trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
 hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, elinstallationen utanför allrummet och
 köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken och avloppet läses ur Onshape-modellen
 (`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.

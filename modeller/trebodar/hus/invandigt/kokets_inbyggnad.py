@@ -8,8 +8,8 @@ LN1_3) och L18, mitt bakom frontens dubbla reglar mellan öppningarna. Fronten o
 (fronten snett efter båda takfallen, med hammarbandet delat i nocken) och har mot köket och gången OSB 12 och gips 13
 som de andra innerväggarna; fronten står 13 mm söder om huvudstolpens strävor och överstycke, som hamnar i förrådet.
 Fronten har tre öppningar från golvet till 2 100 med överstycken: kylens och frysens nischer (600 fria) och
-skafferiets dörr (500 fri), med smyg av vitmålad furu 15 i stommens och skivornas djup. Mellanväggarna går upp till
-förrådsgolvet.
+skafferiets dörr (450 fri, bänken längs 3NV öster om den), med smyg av vitmålad furu 15 i stommens och skivornas
+djup. Mellanväggarna går upp till förrådsgolvet.
 
 Förrådet: golv av OSB 22 med överkanten 2 167 på bärläkt 45×45 längs gaveln, fronten och (över skafferiet) L4 och
 3NV, på mellanväggarnas hammarband och på en regel mitt över skafferiet. Över kylen och frysen slutar golvet 60 mm

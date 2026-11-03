@@ -48,8 +48,8 @@ _G_X, _G_Y = 4405.0, 4989.5              # stolpen LD4_1:s västra sida, L6:s no
 # kyl, frys och skafferi framför L4:s skikt mot köket, från L2:s linje till 3NV:s insida. Fronten L15 står 13 mm
 # söder om huvudstolpens strävor och överstycke (LN1_3, y ≤ 7 362), gaveln L16 i L2:s linje fram till frontens
 # utsida, mellanväggarna L17 och L18 mitt bakom frontens två reglar mellan öppningarna, L17 mot huvudstolpen.
-# Öppningarna i fronten (u längs L15 från gaveln) är 600 fria mellan smygarna, dörren till skafferiet 500, så att
-# bänken längs 3NV (600 djup) ryms öster om dörren. Luckan till förrådet ovanför sitter i gavelns norra del (u längs
+# Öppningarna i fronten (u längs L15 från gaveln) är 600 fria mellan smygarna, dörren till skafferiet 450, så att
+# bänken längs 3NV (700 djup, hus/inredning/kok.py) ryms öster om dörren. Luckan till förrådet ovanför sitter i gavelns norra del (u längs
 # L16 från L4:s yta), med underkanten i förrådsgolvets överkant, och regelfacket söder om den rymmer köksbelysningens
 # dimmer och brytare (hus/installationer/el/rum/kok.py), med rören rakt upp.
 KOKET = "Kökets inbyggnad"
@@ -60,7 +60,7 @@ K_FRAM = 7375.0                          # frontens stomme, insidan
 K_YTA = K_FRAM + T + SKIVOR_T            # frontens yta mot köket
 K_X0 = 11050.0                           # gavelns stomme, östra sidan (som L2)
 K_X1 = X_3NV - SKIVOR_T                  # 3NV:s insida
-_K_OPP, _K_DORR, _K_MELLAN = 600.0 + 2 * K_SMYG, 500.0 + 2 * K_SMYG, 2 * H_VIRKE
+_K_OPP, _K_DORR, _K_MELLAN = 600.0 + 2 * K_SMYG, 450.0 + 2 * K_SMYG, 2 * H_VIRKE
 K_OPPNINGAR = {"Kyl": (0.0, _K_OPP), "Frys": (_K_OPP + _K_MELLAN, 2 * _K_OPP + _K_MELLAN),
                "Skafferi": (2 * (_K_OPP + _K_MELLAN), 2 * (_K_OPP + _K_MELLAN) + _K_DORR)}
 K_LUCKA = (45.0, 545.0, 2167.0, 2767.0)   # luckans öppning i gavelns stomme: u0, u1, z0, z1

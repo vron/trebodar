@@ -27,7 +27,7 @@ class Matyta:
 PLAN1: Ruta = (-500.0, 14300.0, -300.0, 16300.0)
 KALLARE: Ruta = (0.0, 14000.0, 0.0, 12800.0)
 _NV = S.YTTERVAGGAR["3NV"].origo[0] - S.T_STOMME - 70.0                    # köksväggens yta (insida)
-BANK: Ruta = (_NV - 600.0, _NV, K_YTA, 12400.0)        # bänken längs köksväggen, 600 djup, från kökets inbyggnad
+BANK: Ruta = (_NV - 700.0, _NV, K_YTA, 12400.0)        # bänken längs köksväggen, 700 djup, från kökets inbyggnad
 
 MATYTOR = {
     "plan1-golv": Matyta("Plan 1, golvet", 1, 0.0, PLAN1),

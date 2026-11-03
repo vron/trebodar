@@ -58,6 +58,9 @@ VYER = {
                            "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "lampor": ["kallare"]},
     "detalj-1c": {"kamera": [2600, 9700, 1300], "mal": [2810, 8220, 1700], "lins": 24, "ljus": (9, 15, "12:00", "mulet"),
                   "lodrat": False, "inne": True, "dolj": ["Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C"]},
+    # köket (ärende #21): bänken längs 3NV med lådskåpen, hällen och diskhon, och ön
+    "detalj-koket": {"kamera": [10700, 11900, 1550], "mal": [13300, 8700, 950], "lins": 22,
+                   "ljus": (9, 15, "12:00", "mulet"), "inne": True},
     # kökets inbyggnad (ärende #20): kyl, frys och skafferi bakom en vägg till innertaket, luckan till förrådet ovanför
     "detalj-inbyggnad": {"kamera": [10150, 9900, 1550], "mal": [12000, 7300, 1650], "lins": 20,
                          "ljus": (9, 15, "12:00", "mulet"), "inne": True},
@@ -87,6 +90,7 @@ TEXTER = {
     "detalj-takhuv": "Takhuven", "detalj-koksgaller": "Köksfläktens galler i fasaden",
     "detalj-teknikrum": "Teknikrummet", "stomme": "Stommen",
     "detalj-inbyggnad": "Kyl, frys och skafferi i köket, förråd ovanför",
+    "detalj-koket": "Köket: lådor av fräst ask och bänkskiva av granitkeramik",
 }
 TEKNIK = {"stomme", "detalj-spot", "detalj-tubspot", "detalj-kallarkanal", "detalj-1c", "detalj-takhuv",
           "detalj-koksgaller", "detalj-teknikrum"}
@@ -99,7 +103,7 @@ _INNE = [
     ("I04", "allrum", "matplats", "öga", (9900, 9600), (5000, 8800, 1200)),
     ("I05", "allrum", "mot-hall", "vid", (8800, 7200), (1500, 10200, 1300)),
     ("I06", "kok", "oversikt", "vid", (8300, 9900), (13000, 9300, 1200)),
-    ("I07", "kok", "mot-allrum", "vid", (13000, 7800), (7500, 10600, 1300)),     # framför kökets inbyggnad
+    ("I07", "kok", "mot-allrum", "vid", (12750, 7800), (7500, 10600, 1300)),     # framför kökets inbyggnad
     ("I08", "kok", "mot-fonster", "öga", (11400, 10100), (13675, 9400, 1300)),
     ("I09", "kok", "mot-uteplats", "öga", (12600, 7900), (10900, 12445, 1100)),
     ("I10", "vardagsrum", "fran-hall", "vid", (2600, 11450), (2155, 15800, 1150)),

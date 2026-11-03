@@ -1,6 +1,6 @@
-"""Köket (ärende #20): kylen, frysen, skåpen och skafferiets dörr och hyllor i kökets inbyggnad
-(hus/invandigt/kokets_inbyggnad.py: väggarna, smygarna och förrådet ovanför). Bänken längs 3NV och köksön finns inte
-i modellen ännu.
+"""Köket: kylen, frysen, skåpen och skafferiets dörr och hyllor i kökets inbyggnad (ärende #20;
+hus/invandigt/kokets_inbyggnad.py: väggarna, smygarna och förrådet ovanför), och bänken och ön (ärende #21,
+koksbank.py, med skåpen i koksskap.py).
 
 Kylen (A) och frysen (B) är integrerade vitvaror för nischer 560 breda och 1 780 respektive 880 höga (förenklade som
 lådor, 556 breda och 545 djupa med dörren), på en sockel 100 (två reglar och en bottenskiva) med ett sockelgaller 40
@@ -18,6 +18,8 @@ from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.invandigt.kokets_inbyggnad import H_OPPNING, SKAFFERI, fritt
 from trebodar.hus.invandigt.lattvaggar import K_SMYG, K_YTA
 from trebodar.material import ASK, C24, SKAPSTOMME, SOCKELGALLER, VITVARA
+
+from . import koksbank
 
 FRONT_T, SPEL = 19.0, 3.0
 SOCKEL, SOCKEL_IN, GALLER_T = 100.0, 40.0, 20.0           # sockelns höjd, gallret innanför fronten, gallrets djup
@@ -81,8 +83,10 @@ def _skafferi() -> Montage:
 
 
 def montage() -> Montage:
-    m = Montage("Kök", beskrivning="Kyl, frys och skafferi i kökets inbyggnad (ärende #20)")
+    m = Montage("Kök", beskrivning="Kyl, frys och skafferi i kökets inbyggnad (ärende #20), bänken och ön (ärende #21)")
     m.lagg(_nisch("Kyl"))
     m.lagg(_nisch("Frys"))
     m.lagg(_skafferi())
+    m.lagg(koksbank.bank())
+    m.lagg(koksbank.on())
     return m

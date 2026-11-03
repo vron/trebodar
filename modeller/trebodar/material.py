@@ -138,6 +138,16 @@ VITVARA = Material("Vitvara", "Integrerade kyl- och frysskåp (förenklade som l
                    cad="#9fc2dc")
 SOCKELGALLER = Material("Sockelgaller", "Sockelgaller för vitvarornas ventilation, svartlackerad aluminium", 2700,
                         "#1d1d1e", 0.55, cad="#34363a")
+# köksskåpen (hus/inredning/koksskap.py): stommar 20 mm och lådor 14 mm av björkplywood, lådbotten 4 mm
+BJORKPLYWOOD = Material("Björkplywood", "Björkplywood, klarlackad (köksskåpens stommar och lådor)", 680, "#e4d6ba",
+                        0.5, cad="#e9cf9c")
+LOPARE = Material("Löpare", "Lådlöpare Blum MOVENTO 760H, förzinkat stål (förenklade)", 7850, "#a3a7ab", 0.45, 0.8,
+                  cad="#8c96a0")
+BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 mm, slipad (honed)", 2400, "#d9d1c2",
+                     0.55, cad="#cfc4ae")
+VIT_SKIVA = Material("Vit skiva", "Skiva, vitmålad (köksbänkens och öns sidor och öns baksida)", 700, "#efede7", 0.6,
+                     cad="#f1efe9")
+HALLGLAS = Material("Hällglas", "Induktionshällens glaskeramik, svart", 2500, "#111214", 0.06, cad="#2a2c30")
 
 # ------------------------------------------------------------------ el (hus/installationer/el)
 # armaturens lins lyser i renderingen när armaturen är tänd (typen lins); CAD-färgerna lyser fram i webbvisaren
