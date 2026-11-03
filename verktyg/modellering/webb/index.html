@@ -81,8 +81,9 @@
     trädet eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
     parallella kanter med knapparna uppe till höger (K, A, P). G går genom huset i ögonhöjd: på golven och i
     trapporna, genom väggarna.</div>
-  <div style="margin-top: 6px"><a href="renderingar/" style="color: var(--accent)">Renderingar</a> ·
-    <a href="handlingar/" style="color: var(--accent)">Handlingar</a></div>
+  <div style="margin-top: 6px"><a href="../" style="color: var(--accent)">Startsidan</a> ·
+    <a href="../renderingar/" style="color: var(--accent)">Renderingar</a> ·
+    <a href="../#handlingar" style="color: var(--accent)">Handlingar</a></div>
   <h2>Vyer</h2><div id="vyer"></div>
   <div class="rad"><label><input type="checkbox" id="orto"> ortografisk (parallellprojektion, O)</label></div>
   <div class="rad"><label><input type="checkbox" id="gaRuta"> gå genom huset (G)</label>
@@ -963,7 +964,7 @@ document.getElementById("stang").onclick = () => { document.getElementById("pane
 document.getElementById("knapp").onclick = () => { document.getElementById("panel").classList.remove("dold"); storlek(); };
 
 const vyer = await (await fetch("vyer.json")).json();
-new GLTFLoader().load("modell/trebodar.glb", gltf => {
+new GLTFLoader().load("trebodar.glb", gltf => {
   modell = gltf.scene; scene.add(modell);
   modell.traverse(o => { if (o.isMesh) delar.push(o); });
   modell.updateMatrixWorld(true);

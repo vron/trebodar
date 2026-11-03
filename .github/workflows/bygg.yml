@@ -1,6 +1,6 @@
-# Bygger webbplatsen ur källorna på main och publicerar den med GitHub Pages: modellen i 3D (webbvisaren),
-# handlingarna (rapporterna, ritningarna och kameraplanen) och renderingarna på planerna, med bilderna ur releasen
-# bilder. Bara de snabba stegen körs här (./bygg --snabb); de tunga beräkningarna räknas lokalt och deras resultat
+# Bygger webbplatsen ur källorna på main och publicerar den med GitHub Pages: startsidan med bilderna, planerna och
+# handlingsförteckningen, modellen i 3D (webbvisaren), handlingarna (rapporterna, ritningarna och kameraplanen) och
+# renderingarna på planerna, med bilderna ur releasen bilder. Bara de snabba stegen körs här (./bygg --snabb); de tunga beräkningarna räknas lokalt och deras resultat
 # checkas in (se verktyg/bygg/README.md). En tagg rev-* (t.ex. rev-B) på main publicerar dessutom handlingarna som en
 # release.
 name: Bygg
@@ -42,16 +42,17 @@ jobs:
           key: modell-${{ hashFiles('modeller/trebodar/**', 'verktyg/modellering/**') }}
           restore-keys: modell-
 
-      - name: Bygg
-        run: ./bygg --snabb --jobb 4
-
-      # bilderna renderas lokalt och publiceras i releasen bilder (./mod publicera, renderingar/README.md)
+      # bilderna renderas lokalt och publiceras i releasen bilder (./mod publicera, renderingar/README.md); de hämtas
+      # före bygget, som skriver startsidan med dem
       - name: Renderingarna
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download bilder --repo "$GITHUB_REPOSITORY" --dir docs/renderingar/bilder --clobber \
             || echo "inga renderingar publicerade"
+
+      - name: Bygg
+        run: ./bygg --snabb --jobb 4
 
       - uses: actions/upload-pages-artifact@v3
         with:

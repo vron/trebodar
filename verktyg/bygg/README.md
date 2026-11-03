@@ -23,14 +23,21 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | Steg | Kör | Utdata |
 |---|---|---|
 | `modell` | `./mod bygg --format step` | `modeller/trebodar/ut/trebodar.step` och modellanalysens cache för den |
-| `webb` | `./mod webb` | `docs/` (webbvisaren) |
+| `webb` | `./mod webb` | `docs/modell/` (webbvisaren) |
 | `kameraplan` | `./mod kameraplan` | `renderingar/kameraplan.pdf`, `docs/renderingar/` (renderingarna på planerna) |
 | `granskning` | `kontroll_laster.py` | `verktyg/modellanalys/granskning/ytterväggens_läge.png` |
 | F-01, AV-01, K-01, K-02, K-03, U-02 | beräkningen och rapporten (se mappens README) | rapporten i `rapporter/` |
 | **K-05, K-06, U-01, U-03** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | R-01, R-03, R-04, R-05, R-06, AR-01, AR-02 | `ritningar.py` | ritningsserien i `ritningar/` |
 
-Efter stegen skriver `./bygg` (utan valda steg) `docs/handlingar/`: en sida med länkar till rapporterna, ritningarna och kameraplanen, med kopior bredvid. GitHub Pages publicerar hela `docs/`: modellen på https://vron.github.io/trebodar/, handlingarna på https://vron.github.io/trebodar/handlingar/ och renderingarna på https://vron.github.io/trebodar/renderingar/. Renderingarnas bilder byggs inte här: de renderas lokalt och publiceras i releasen `bilder` (`renderingar/publicera.sh`, se [`renderingar/README.md`](../../renderingar/README.md)), och GitHub Actions hämtar dem till `docs/renderingar/bilder/` efter `./bygg --snabb`.
+Efter stegen skriver `./bygg` (utan valda steg) webbplatsens startsida, `docs/index.html` ([`startsida.py`](startsida.py) med mallen [`startsida.html`](startsida.html)), och kopierar rapporterna, ritningarna och kameraplanen till `docs/handlingar/`. Startsidan byggs ur det som redan är byggt:
+
+- projektets uppgifter och handlingsförteckningen (med status) ur F-01:s `indata.toml`;
+- rapporternas revision och datum och ritningsbladens nummer, titel, skala, revision och datum (bladens JSON);
+- bilderna ur renderingarnas förteckning (`docs/renderingar/bilder/renderingar.json`) med vyernas texter (`TEXTER` och `TEKNIK` i `modeller/trebodar/vyer.py`), i grupperna urval (`URVAL` i `startsida.py`), ute, inne och stomme och teknik;
+- planerna ur `docs/renderingar/plan.json` (`./mod kameraplan`).
+
+Beskrivningen av huset står i mallen. GitHub Pages publicerar hela `docs/`: startsidan på https://vron.github.io/trebodar/, modellen på https://vron.github.io/trebodar/modell/ och renderingarna på https://vron.github.io/trebodar/renderingar/ (`handlingar/` leder till förteckningen på startsidan). Renderingarnas bilder byggs inte här: de renderas lokalt och publiceras i releasen `bilder` (`renderingar/publicera.sh`, se [`renderingar/README.md`](../../renderingar/README.md)), och GitHub Actions hämtar dem till `docs/renderingar/bilder/` före `./bygg --snabb`, så att startsidan visar dem. Lokalt syns nya bilder på startsidan efter nästa `./bygg`.
 
 Beroendena står i `STEG` i `bygg.py`. Läser ett steg en ny mapp eller ett nytt resultat: lägg till det i stegets `kallor` eller `bygger_pa`.
 

@@ -71,6 +71,22 @@ VYER = {
                                          "Fönster och dörrar", "Mark/", "Hus/Grund", "Installationer"]},
 }
 
+# vyernas bildtexter på webbplatsen (inomhusbilderna får sin ur rummet och vyn); TEKNIK: bilderna av stommen och
+# installationerna, en egen grupp på startsidan
+TEXTER = {
+    "ute-sydost": "Huset från sydost", "ute-nordvast": "Huset från nordväst", "ute-nordost": "Huset från nordost",
+    "detalj-fasad": "Fasaden i järnvitriol", "detalj-falu": "Fasaden i falu rödfärg",
+    "detalj-sten": "Sockeln av granit", "detalj-tak": "Taket, bandtäckt plåt med takfönster",
+    "detalj-spot": "Spotlights i allrummets tak",
+    "detalj-tubspot": "Spotlights i köket", "detalj-ph5": "PH 5 över matbordet", "detalj-stav": "Pendlarna över köksön",
+    "detalj-vl45": "VL45 i vardagsrummet", "detalj-glob": "Glob i sovrummet",
+    "detalj-kallarkanal": "Ventilationen i källaren", "detalj-1c": "Ventilationskanalen i väggen 1C",
+    "detalj-takhuv": "Takhuven", "detalj-koksgaller": "Köksfläktens galler i fasaden",
+    "detalj-teknikrum": "Teknikrummet", "stomme": "Stommen",
+}
+TEKNIK = {"stomme", "detalj-spot", "detalj-tubspot", "detalj-kallarkanal", "detalj-1c", "detalj-takhuv",
+          "detalj-koksgaller", "detalj-teknikrum"}
+
 # Inomhusbilderna: (nummer, rum, vy, objektiv, kamerans läge (x, y) [, golvets z], målet (x, y, z))
 _INNE = [
     ("I01", "allrum", "mot-kok", "vid", (5100, 10450), (11500, 8300, 1300)),

@@ -25,11 +25,12 @@ plan 1 och i källaren med en förteckning över bilderna; skriptet ritar den oc
 
 Sidan [renderingar](https://vron.github.io/trebodar/renderingar/) visar plan 1, källaren och huset ute med alla
 vyernas kameror (läge, riktning och bildvinkel). Ett klick på en kamera visar bilden över hela fönstret; piltangenterna
-eller ett svep går till nästa, Esc stänger, och adressen (`#<namn>`) går att dela.
+eller ett svep går till nästa, Esc stänger, och adressen (`#<namn>`) går att dela. Startsidan visar bilderna i
+ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
 
 Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna
 renderas inte där: rendering tar för lång tid. `./publicera.sh` (`./mod publicera`) gör om de renderade bilderna till
-JPEG i tre bredder (480, 1 920 och 3 840 px), laddar upp dem med förteckningen `renderingar.json` till releasen
+JPEG i fyra bredder (480, 960, 1 920 och 3 840 px, högst bildens egen), laddar upp dem med förteckningen `renderingar.json` till releasen
 [`bilder`](https://github.com/vron/trebodar/releases/tag/bilder) på GitHub (bilderna hamnar alltså inte i git) och
 startar ett nytt bygge av webbplatsen, som hämtar dem därifrån. En publicering ersätter bara de bilder den tar med;
 vyer som har tagits bort ur `vyer.py` tas bort. Kräver `gh` (inloggad). En kamera som har flyttats i `vyer.py` sedan

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trebodar – fritidshus på Resö</title>
+<meta name="description" content="Fritidshus Trebodar, Resö, Tanums kommun: bilder, planer, modellen i 3D och handlingarna.">
+<meta name="color-scheme" content="light dark">
+<!-- Startsidan. Mallen för verktyg/bygg/startsida.py, som byter platshållarna (kommentarerna med @namn) mot det
+     som byggs ur källorna (./bygg). -->
+<script>
+  // de gamla länkarna till webbvisaren (som låg här) går till modellen
+  const tillModellen = () => { if (/^#(bara|tona)=/.test(location.hash)) location.replace("modell/" + location.hash); };
+  tillModellen();
+  addEventListener("hashchange", tillModellen);
+</script>
+<style>
+  :root {
+    --papper: #f5f3ee; --yta: #fbfaf7; --blek: #e9e5dc; --text: #1c1b19; --dov: #6b665e; --linje: #d9d4c9;
+    --accent: #8f463a; --mork: #1b1a18; --mork-text: #ecebe6; --mork-dov: #a8a399;
+    --klar: #4f7d3a; --upprattas: #b7832a; --inlamnad: #2f6f8f; --ej: #9a958c;
+    --bredd: 1360px; --kant: clamp(16px, 4.5vw, 64px);
+    --sans: "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --papper: #141412; --yta: #1c1b19; --blek: #262522; --text: #ecebe6; --dov: #a29d94; --linje: #34322e;
+            --accent: #d27c69; --mork: #0c0c0b; --klar: #7fae67; --upprattas: #d9a54b; --inlamnad: #6fb3d3; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--papper); color: var(--text); font: 16px/1.6 var(--sans);
+         -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  img { display: block; max-width: 100%; height: auto; }
+  .dold { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .etikett { display: block; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+             color: var(--dov); }
+  .sektion { max-width: var(--bredd); margin: 0 auto; padding: clamp(72px, 11vw, 152px) var(--kant) 0; }
+  .sektionshuvud { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px 40px;
+                   margin-bottom: clamp(28px, 4vw, 48px); }
+  h2 { font-weight: 300; font-size: clamp(30px, 3.8vw, 52px); line-height: 1.1; letter-spacing: -.02em;
+       margin: 14px 0 0; max-width: 18ch; text-wrap: balance; }
+  .pil { text-decoration: none; font-size: 14px; letter-spacing: .04em; border-bottom: 1px solid var(--linje);
+         padding-bottom: 2px; white-space: nowrap; }
+  .pil:hover { border-color: currentColor; }
+  .pil::after { content: " →"; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* sidhuvudet: genomskinligt över den stora bilden, fast när man har scrollat förbi den */
+  .topp { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 24px;
+          padding: 20px var(--kant); color: #fff; transition: background .35s, color .35s, padding .35s,
+          box-shadow .35s; }
+  .topp.fast, .utan-bild-sida .topp { background: color-mix(in srgb, var(--papper) 90%, transparent);
+          -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: var(--text); padding-block: 13px;
+          box-shadow: 0 1px 0 var(--linje); }
+  .ordmarke { font-size: 14px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; text-decoration: none; }
+  .topp nav { margin-left: auto; display: flex; gap: clamp(16px, 2.4vw, 36px); }
+  .topp nav a { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; opacity: .88; }
+  .topp nav a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+  #menyknapp { display: none; margin-left: auto; font: inherit; font-size: 13px; letter-spacing: .1em;
+               text-transform: uppercase; color: inherit; background: none; border: 0; padding: 6px 0; cursor: pointer; }
+
+  /* den stora bilden */
+  .hjalte { position: relative; height: 100vh; height: 100svh; min-height: 540px; max-height: 1180px; overflow: hidden;
+            background: #2a2926; color: #fff; }
+  .hjalte img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%;
+                animation: in 1.6s ease-out both; }
+  @keyframes in { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+  .hjalte::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+                   background: linear-gradient(180deg, rgba(0,0,0,.38) 0, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 46%,
+                   rgba(0,0,0,.58) 100%); }
+  .hjalte .text { position: absolute; z-index: 1; inset: auto 0 0; max-width: var(--bredd); margin: 0 auto;
+                  padding: 0 var(--kant) clamp(36px, 7vh, 80px); display: flex; flex-wrap: wrap; align-items: end;
+                  justify-content: space-between; gap: 16px 40px; }
+  .hjalte .etikett { color: #ffffffd9; }
+  h1 { font-weight: 300; font-size: clamp(64px, 12.5vw, 184px); line-height: .86; letter-spacing: -.045em;
+       margin: 14px 0 0 -.05em; }
+  .hjalte .under { font-size: clamp(16px, 1.6vw, 20px); font-weight: 300; margin: 22px 0 0; max-width: 34ch;
+                   color: #fffffff0; }
+  .hjalte .bildtext { font-size: 12px; letter-spacing: .04em; color: #ffffffb3; margin: 0; }
+  .hjalte.utan-bild { height: auto; min-height: 0; background: var(--papper); color: var(--text); padding-top: 120px; }
+  .hjalte.utan-bild::after { display: none; }
+  .hjalte.utan-bild .text { position: static; }
+  .hjalte.utan-bild .etikett, .hjalte.utan-bild .under { color: var(--dov); }
+
+  /* projektet */
+  .intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0 clamp(20px, 3vw, 48px); }
+  .intro .vanster { grid-column: 1 / span 5; }
+  .intro .hoger { grid-column: 7 / span 6; padding-top: 34px; }
+  .intro h2 { max-width: 14ch; }
+  .intro p { margin: 0 0 1.1em; font-size: 17px; max-width: 60ch; color: color-mix(in srgb, var(--text) 86%, var(--papper)); }
+  .intro p:first-child { font-size: 20px; line-height: 1.5; color: var(--text); }
+  .fakta { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 40px 0 0; border-top: 1px solid var(--linje); }
+  .fakta div { padding: 15px 0 14px; border-bottom: 1px solid var(--linje); }
+  .fakta dt { font-size: 11.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--dov); }
+  .fakta dd { margin: 5px 0 0; font-size: 15.5px; line-height: 1.4; }
+  .fakta small { display: block; color: var(--dov); font-size: 13px; margin-top: 2px; }
+
+  /* bilderna */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: inherit; font-size: 13px; letter-spacing: .02em; color: var(--text); background: transparent;
+          border: 1px solid var(--linje); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: .2s; }
+  .chip span { color: var(--dov); font-size: 12px; margin-left: 2px; font-variant-numeric: tabular-nums; }
+  .chip:hover { border-color: var(--text); }
+  .chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--papper); }
+  .chip[aria-pressed="true"] span { color: color-mix(in srgb, var(--papper) 70%, var(--text)); }
+  .galleri { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(28px, 3vw, 44px) clamp(10px, 1.4vw, 20px); }
+  .galleri figure { grid-column: span 2; margin: 0; }
+  .galleri figure.stor { grid-column: span 3; }
+  .galleri figure[hidden] { display: none; }
+  .galleri button { display: block; width: 100%; padding: 0; border: 0; background: var(--blek); cursor: zoom-in;
+                    aspect-ratio: 16 / 9; overflow: hidden; }
+  .galleri img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.7,.2,1), opacity .4s; }
+  .galleri button:hover img { transform: scale(1.035); }
+  .galleri figcaption { font-size: 13.5px; color: var(--dov); margin-top: 10px; }
+  .tom { color: var(--dov); }
+  .underrad { display: flex; justify-content: flex-end; margin-top: 36px; }
+
+  /* planerna */
+  .planer { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 2vw, 28px); align-items: start; }
+  .planfigur { margin: 0; }
+  .papper { background: #fbfaf7; padding: clamp(10px, 2vw, 28px); box-shadow: inset 0 0 0 1px #00000010; }
+  @media (prefers-color-scheme: dark) { .papper { background: #e8e5de; } }
+  .plan { display: block; width: 100%; height: auto; }
+  .plan path { vector-effect: non-scaling-stroke; stroke-linejoin: round; fill-rule: evenodd; stroke: #3a3a3a; }
+  .plan .tunn { stroke-width: .7px; } .plan .fin { stroke-width: .4px; } .plan .kontur { stroke: #3a3a3a55; stroke-width: .5px; }
+  .plan .trappa { fill: none; stroke: #3a3a3a; stroke-width: .6px; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
+  .plan text { font-family: var(--sans); fill: #5d5a54; }
+  .plan .rum { text-anchor: middle; dominant-baseline: middle; letter-spacing: .02em; }
+  .plan .norr path { fill: #2d2c2a; }
+  .plan .norr text { text-anchor: middle; dominant-baseline: middle; font-weight: 700; fill: #2d2c2a; }
+  .plan .skala rect { stroke: #2d2c2a; stroke-width: .6px; vector-effect: non-scaling-stroke; }
+  .plan .skala .svart { fill: #2d2c2a; } .plan .skala .vit { fill: #fbfaf7; }
+  .planfigur figcaption { margin-top: 14px; }
+
+  /* modellen i 3D */
+  .modell { margin-top: clamp(72px, 11vw, 152px); background: var(--mork); color: var(--mork-text); }
+  .modell .inre { max-width: var(--bredd); margin: 0 auto; display: grid; grid-template-columns: 5fr 7fr;
+                  align-items: center; gap: clamp(28px, 5vw, 80px); padding: clamp(56px, 8vw, 112px) var(--kant); }
+  .modell .etikett { color: var(--mork-dov); }
+  .modell p { color: #d5d2cb; max-width: 46ch; font-size: 17px; margin: 22px 0 32px; }
+  .modell .bild { display: block; position: relative; overflow: hidden; background: #222; aspect-ratio: 16 / 9; }
+  .modell .bild img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s cubic-bezier(.2,.7,.2,1); }
+  .modell .bild:hover img { transform: scale(1.03); }
+  .modell .bild span { position: absolute; left: 16px; bottom: 14px; font-size: 12px; letter-spacing: .14em;
+                       text-transform: uppercase; color: #fff; background: #0008; padding: 5px 10px; }
+  .knappar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+  .knapp { display: inline-block; text-decoration: none; font-size: 14px; letter-spacing: .06em; padding: 14px 24px;
+           border-radius: 999px; background: var(--mork-text); color: var(--mork); transition: .2s; }
+  .knapp:hover { background: #fff; }
+  .modell .pil { border-color: #ffffff40; }
+
+  /* handlingarna */
+  .sammanfattning { color: var(--dov); margin: 0; font-size: 15px; max-width: 52ch; }
+  .hgrupp { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: 16px clamp(20px, 3vw, 48px);
+            padding: 30px 0 34px; border-top: 1px solid var(--text); }
+  .hrubrik h3 { font-size: 17px; font-weight: 500; margin: 0; letter-spacing: -.005em; }
+  .hrubrik p { color: var(--dov); font-size: 14px; margin: 8px 0 0; max-width: 32ch; }
+  .register { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 15px;
+               font-variant-numeric: tabular-nums; }
+  .register th:nth-child(1) { width: 5.5em; } .register th:nth-child(3) { width: 3.5em; }
+  .register th:nth-child(4) { width: 7.5em; } .register th:nth-child(5) { width: 7.5em; }
+  .register th:nth-child(6) { width: 7.5em; }
+  .register th { text-align: left; font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+                 color: var(--dov); padding: 0 12px 10px 0; border-bottom: 1px solid var(--linje); }
+  .register td { padding: 13px 12px 13px 0; border-bottom: 1px solid var(--linje); vertical-align: top; }
+  .register tr:last-child td { border-bottom: 0; }
+  .register .nr { white-space: nowrap; font-weight: 500; }
+  .register .namn small { display: block; color: var(--dov); font-size: 13px; margin-top: 2px; }
+  .register .datum { white-space: nowrap; color: var(--dov); }
+  .register .fil { text-align: right; white-space: nowrap; padding-right: 0; }
+  .register details { margin-top: 4px; }
+  .register summary { cursor: pointer; color: var(--dov); font-size: 13px; width: max-content; }
+  .register summary:hover { color: var(--text); }
+  .blad { list-style: none; margin: 8px 0 2px; padding: 0; font-size: 13.5px; }
+  .blad li { display: grid; grid-template-columns: 5.5em minmax(0, 1fr) auto 2em; gap: 12px; padding: 5px 0;
+             border-top: 1px dotted var(--linje); color: var(--dov); }
+  .blad li span:nth-child(2) { color: var(--text); }
+  .status { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; white-space: nowrap; }
+  .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ej); }
+  .s-klar::before { background: var(--klar); } .s-upprattas::before { background: var(--upprattas); }
+  .s-inlamnad::before { background: var(--inlamnad); }
+  .pdf { display: inline-flex; gap: 8px; align-items: baseline; text-decoration: none; font-weight: 500; font-size: 13px;
+         letter-spacing: .06em; border: 1px solid var(--linje); border-radius: 999px; padding: 4px 12px; transition: .2s; }
+  .pdf span { color: var(--dov); font-weight: 400; letter-spacing: 0; }
+  .pdf:hover { border-color: var(--text); }
+  .ingen { color: var(--dov); }
+
+  footer { margin-top: clamp(80px, 11vw, 152px); border-top: 1px solid var(--linje); }
+  footer .inre { max-width: var(--bredd); margin: 0 auto; padding: 36px var(--kant) 48px; display: grid;
+                 grid-template-columns: 1fr 1.4fr auto; gap: 24px 48px; font-size: 13.5px; color: var(--dov); }
+  footer .ordmarke { color: var(--text); display: block; margin-bottom: 8px; }
+  footer p { margin: 0; max-width: 54ch; }
+  footer nav { display: flex; flex-direction: column; gap: 6px; text-align: right; }
+  footer nav a { text-decoration: none; } footer nav a:hover { color: var(--text); }
+
+  /* ljuslådan */
+  #ljus { position: fixed; inset: 0; z-index: 50; display: none; grid-template-rows: minmax(0, 1fr) auto;
+          background: #0d0d0cf5; color: #e8e6e1; touch-action: pan-y; }
+  #ljus.oppen { display: grid; animation: tona .25s ease-out; }
+  @keyframes tona { from { opacity: 0; } }
+  #ljus figure { margin: 0; min-height: 0; display: grid; place-items: center; padding: 64px 80px 0; }
+  #ljusbild { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; background: #1a1a18;
+              box-shadow: 0 10px 60px #000a; }
+  #ljustext { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; align-items: baseline;
+              padding: 18px 80px 24px; font-size: 13.5px; color: #a8a49c; }
+  #ljustext b { color: #fff; font-weight: 500; font-size: 16px; margin-right: 14px; }
+  #ljustext a { color: #e8e6e1; text-decoration: none; border-bottom: 1px solid #ffffff40; margin-left: 18px; }
+  #ljustext a:hover { border-color: #fff; }
+  #raknare { position: absolute; top: 22px; left: 24px; font-size: 12px; letter-spacing: .14em; color: #a8a49c;
+             font-variant-numeric: tabular-nums; }
+  #ljus button { position: absolute; display: grid; place-items: center; width: 48px; height: 48px; border: 0;
+                 border-radius: 50%; color: #fff; background: #ffffff12; cursor: pointer; transition: background .2s; }
+  #ljus button:hover { background: #ffffff2e; }
+  #ljus button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+  #forra { left: 16px; top: 50%; transform: translateY(-50%); }
+  #nasta { right: 16px; top: 50%; transform: translateY(-50%); }
+  #stang { right: 16px; top: 12px; }
+
+  @media (max-width: 960px) {
+    .intro .vanster, .intro .hoger { grid-column: 1 / -1; }
+    .intro .hoger { padding-top: 28px; }
+    .galleri { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .galleri figure, .galleri figure.stor { grid-column: span 1; }
+    .galleri figure.stor:first-child { grid-column: span 2; }
+    .modell .inre { grid-template-columns: 1fr; }
+    .hgrupp { grid-template-columns: 1fr; }
+    footer .inre { grid-template-columns: 1fr; } footer nav { text-align: left; }
+  }
+  @media (max-width: 720px) {
+    .topp nav { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0;
+                background: var(--papper); color: var(--text); padding: 6px var(--kant) 14px;
+                box-shadow: 0 1px 0 var(--linje), 0 12px 24px #0002; }
+    .topp nav a { padding: 12px 0; border-bottom: 1px solid var(--linje); }
+    .topp nav a:last-child { border-bottom: 0; }
+    .topp.oppen nav { display: flex; }
+    .topp.oppen { background: var(--papper); color: var(--text); }
+    #menyknapp { display: block; }
+    .planer { grid-template-columns: 1fr; }
+    .fakta { grid-template-columns: 1fr; }
+    /* förteckningen som rader: numret och benämningen, sedan revisionen, datumet, statusen och filen */
+    .register thead { display: none; }
+    .register, .register tbody { display: block; }
+    .register tr { display: grid; grid-template-columns: 3.8em 1fr auto; gap: 2px 12px; padding: 14px 0;
+                   border-bottom: 1px solid var(--linje); }
+    .register tr:last-child { border-bottom: 0; }
+    .register td { padding: 0; border: 0; }
+    .register .nr { grid-column: 1; } .register .namn { grid-column: 2 / -1; }
+    .register .rev { grid-column: 1; font-size: 13px; color: var(--dov); }
+    .register .rev::before { content: "Rev "; }
+    .register .datum { grid-column: 2; font-size: 13px; }
+    .register td:nth-child(5) { grid-column: 2; grid-row: 3; }
+    .register .fil { grid-column: 3; grid-row: 2 / span 2; align-self: center; }
+    .blad li { grid-template-columns: 4.8em minmax(0, 1fr); }
+    .blad li span:nth-child(n+3) { display: none; }
+  }
+  /* på högkant (telefonen): bilden i 4:3 överst, så att alla tre huskropparna syns, och texten under */
+  @media (max-width: 900px) and (orientation: portrait) {
+    .hjalte:not(.utan-bild) { height: auto; min-height: 0; max-height: none; background: var(--mork); }
+    .hjalte:not(.utan-bild) img { position: relative; height: auto; aspect-ratio: 4 / 3; }
+    .hjalte:not(.utan-bild)::after { background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,0) 96px); }
+    .hjalte:not(.utan-bild) .text { position: relative; padding-top: 26px; padding-bottom: 44px; }
+  }
+  @media (max-width: 560px) {
+    .galleri { grid-template-columns: 1fr; row-gap: 26px; }
+    .galleri figure.stor:first-child { grid-column: span 1; }
+    #ljus figure { padding: 56px 0 0; }
+    #ljustext { padding: 14px 16px 76px; }
+    #ljustext a { margin: 0 18px 0 0; }
+    #forra, #nasta { top: auto; bottom: 14px; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<header class="topp" id="topp">
+  <a class="ordmarke" href="#">Trebodar</a>
+  <button id="menyknapp" type="button" aria-expanded="false" aria-controls="meny">Meny</button>
+  <nav id="meny" aria-label="Sidan">
+    <a href="#projektet">Projektet</a>
+    <a href="#bilder">Bilder</a>
+    <a href="#planer">Planer</a>
+    <a href="modell/">Modellen i 3D</a>
+    <a href="#handlingar">Handlingar</a>
+  </nav>
+</header>
+
+<main>
+<section class="hjalte<!--@hjalteklass-->" id="start">
+  <!--@hjalte-->
+  <div class="text">
+    <div>
+      <span class="etikett">Fritidshus · Resö, Tanum</span>
+      <h1>Trebodar</h1>
+      <p class="under">Tre huskroppar under bandtäckta plåttak, på en källare i betong.</p>
+    </div>
+    <p class="bildtext"><!--@hjaltetext--></p>
+  </div>
+</section>
+
+<section class="sektion intro" id="projektet">
+  <div class="vanster">
+    <span class="etikett">Projektet</span>
+    <h2>Ett fritidshus i tre delar vid havet i norra Bohuslän.</h2>
+  </div>
+  <div class="hoger">
+    <p>Trebodar är ett fritidshus på Resö i Tanums kommun. Tre sammanbyggda huskroppar med sadeltak rymmer allrum
+      med kök och matplats, vardagsrum, hall, badrum, tre sovrum och två arbetsrum. Under huset finns en källare med
+      teknikrum.</p>
+    <p>Fasaderna är klädda med stående sågad granpanel i falu rödfärg och järnvitriol, på en sockel av granit.
+      Taken är bandtäckt plåt och fönstren vitmålat trä.</p>
+    <p>Hela huset finns som en modell i kod. Ritningarna, beräkningarnas kontroller, bilderna och modellen i 3D
+      bygger på den, och sidan byggs om automatiskt när modellen eller handlingarna ändras.</p>
+    <dl class="fakta"><!--@fakta--></dl>
+  </div>
+</section>
+
+<section class="sektion" id="bilder">
+  <div class="sektionshuvud">
+    <div><span class="etikett">Bilder</span><h2>Ute och inne</h2></div>
+    <div class="chips" role="group" aria-label="Visa bilderna"><!--@knappar--></div>
+  </div>
+  <div class="galleri" id="galleri">
+<!--@galleri-->
+  </div>
+  <div class="underrad"><a class="pil" href="renderingar/">Kamerorna på planerna</a></div>
+</section>
+
+<section class="sektion" id="planer">
+  <div class="sektionshuvud">
+    <div><span class="etikett">Planer</span><h2>Plan 1 och källare</h2></div>
+    <a class="pil" href="renderingar/">Bilderna på planerna</a>
+  </div>
+  <div class="planer"><!--@planer--></div>
+</section>
+
+<section class="modell" id="modell">
+  <div class="inre">
+    <div>
+      <span class="etikett">Modellen i 3D</span>
+      <h2>Gå runt huset och in i rummen.</h2>
+      <p>Hela huset del för del, från grunden och armeringen till installationerna: gå genom rummen i ögonhöjd,
+        snitta, mät och sök i modellträdet, direkt i webbläsaren.</p>
+      <div class="knappar"><a class="knapp" href="modell/">Öppna modellen</a>
+        <a class="pil" href="renderingar/">Renderingarna</a></div>
+    </div>
+    <a class="bild" href="modell/" aria-label="Öppna modellen i 3D"><!--@modellbild--><span>3D</span></a>
+  </div>
+</section>
+
+<section class="sektion" id="handlingar">
+  <div class="sektionshuvud">
+    <div><span class="etikett">Handlingar</span><h2>Handlingsförteckning</h2></div>
+    <p class="sammanfattning">Rapporterna och ritningarna byggs ur källorna och visar alltid det senaste läget.
+      Byggda <!--@byggd--> ur version <!--@version-->.</p>
+  </div>
+<!--@handlingar-->
+</section>
+</main>
+
+<footer>
+  <div class="inre">
+    <div><a class="ordmarke" href="#">Trebodar</a>Fritidshus på Resö, Tanums kommun</div>
+    <p>Sidan, rapporterna, ritningarna och modellen byggs automatiskt ur källorna i
+      <a href="<!--@repo-->">vron/trebodar</a>. Bilderna renderas ur samma modell.</p>
+    <nav aria-label="Länkar">
+      <a href="modell/">Modellen i 3D</a>
+      <a href="renderingar/">Renderingarna</a>
+      <a href="<!--@repo-->">Källorna på GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<div id="ljus" role="dialog" aria-modal="true" aria-label="Bild" hidden>
+  <span id="raknare"></span>
+  <figure><img id="ljusbild" alt=""></figure>
+  <div id="ljustext"></div>
+  <button id="forra" type="button" aria-label="Föregående bild"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button id="nasta" type="button" aria-label="Nästa bild"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <button id="stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+
+<script id="bilddata" type="application/json"><!--@bilddata--></script>
+<script>
+const $ = id => document.getElementById(id);
+const BILDER = JSON.parse($("bilddata").textContent);
+const topp = $("topp"), galleri = $("galleri"), ljus = $("ljus"), ljusbild = $("ljusbild");
+const figurer = [...galleri.querySelectorAll("figure")];
+
+// sidhuvudet blir fast när den stora bilden är förbi
+const hjalte = document.querySelector(".hjalte:not(.utan-bild)");
+if (hjalte) new IntersectionObserver(([p]) => topp.classList.toggle("fast", !p.isIntersecting),
+                                     { rootMargin: "-72px 0px 0px 0px" }).observe(hjalte);
+else document.body.classList.add("utan-bild-sida");
+$("menyknapp").addEventListener("click", () => {
+  const oppen = topp.classList.toggle("oppen");
+  $("menyknapp").setAttribute("aria-expanded", oppen);
+});
+$("meny").addEventListener("click", e => { if (e.target.closest("a")) topp.classList.remove("oppen"); });
+
+// grupperna: urvalet (i sin ordning), ute, inne, stomme och teknik eller alla
+let synliga = [];
+function filtrera(filter) {
+  for (const k of document.querySelectorAll(".chip")) k.setAttribute("aria-pressed", k.dataset.filter === filter);
+  const med = f => filter === "alla" || (filter === "urval" ? "urval" in f.dataset : f.dataset.grupp === filter);
+  const plats = f => "urval" in f.dataset ? +f.dataset.urval : Infinity;
+  const ordning = filter === "urval" ? [...figurer].sort((a, b) => plats(a) - plats(b)) : figurer;
+  for (const f of ordning) galleri.appendChild(f);
+  synliga = ordning.filter(med);
+  figurer.forEach(f => { f.hidden = !med(f); f.classList.remove("stor"); });
+  synliga.slice(0, 2).forEach(f => f.classList.add("stor"));
+}
+for (const k of document.querySelectorAll(".chip")) k.addEventListener("click", () => filtrera(k.dataset.filter));
+const forsta = document.querySelector(".chip");
+if (forsta) filtrera(forsta.dataset.filter);
+
+// ljuslådan
+let index = -1, tillbaka = null;
+const srcset = b => b.src.map(([s, w]) => `${s} ${w}w`).join(", ");
+function visa(i) {
+  index = (i + synliga.length) % synliga.length;
+  const b = BILDER[+synliga[index].querySelector("button").dataset.i];
+  ljusbild.removeAttribute("srcset");
+  ljusbild.src = b.src[0][0];                              // tumnageln tills den stora är laddad
+  ljusbild.sizes = "100vw";
+  ljusbild.srcset = srcset(b);
+  ljusbild.alt = b.text;
+  $("raknare").textContent = `${index + 1} / ${synliga.length}`;
+  const stor = b.src.at(-1);
+  $("ljustext").innerHTML = "";
+  const v = document.createElement("div"), h = document.createElement("div");
+  v.append(Object.assign(document.createElement("b"), { textContent: b.text }), b.ljus);
+  h.append(Object.assign(document.createElement("a"), { href: "renderingar/#" + encodeURIComponent(b.namn),
+                                                        textContent: "Visa på planen" }),
+           Object.assign(document.createElement("a"), { href: stor[0], target: "_blank",
+                                                        textContent: `${b.storlek[0]} × ${b.storlek[1]} px` }));
+  $("ljustext").append(v, h);
+  history.replaceState(null, "", "#bild=" + encodeURIComponent(b.namn));
+  for (const j of [index + 1, index - 1]) {             // grannarna i förväg
+    const g = BILDER[+synliga[(j + synliga.length) % synliga.length].querySelector("button").dataset.i];
+    Object.assign(new Image(), { sizes: "100vw", srcset: srcset(g) });
+  }
+}
+function oppna(i) {
+  tillbaka = document.activeElement;
+  ljus.hidden = false;
+  ljus.classList.add("oppen");
+  document.documentElement.style.overflow = "hidden";
+  visa(i);
+  $("stang").focus();
+}
+function stang() {
+  ljus.classList.remove("oppen");
+  ljus.hidden = true;
+  document.documentElement.style.overflow = "";
+  history.replaceState(null, "", location.pathname + location.search);
+  if (tillbaka) tillbaka.focus({ preventScroll: true });
+}
+galleri.addEventListener("click", e => {
+  const k = e.target.closest("button");
+  if (k) oppna(synliga.indexOf(k.closest("figure")));
+});
+$("forra").addEventListener("click", () => visa(index - 1));
+$("nasta").addEventListener("click", () => visa(index + 1));
+$("stang").addEventListener("click", stang);
+ljus.addEventListener("click", e => { if (e.target === ljus || e.target.tagName === "FIGURE") stang(); });
+document.addEventListener("keydown", e => {
+  if (ljus.hidden) return;
+  if (e.key === "Escape") stang();
+  else if (e.key === "ArrowLeft") visa(index - 1);
+  else if (e.key === "ArrowRight") visa(index + 1);
+});
+let x0 = null;
+ljus.addEventListener("touchstart", e => { x0 = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+ljus.addEventListener("touchend", e => {
+  if (x0 === null) return;
+  const dx = e.changedTouches[0].clientX - x0;
+  if (Math.abs(dx) > 50) visa(index + (dx < 0 ? 1 : -1));
+  x0 = null;
+});
+// en länk till en bild (#bild=namn) öppnar den
+const start = decodeURIComponent((location.hash.match(/^#bild=(.+)$/) || [])[1] || "");
+if (start) {
+  let f = synliga.find(f => BILDER[+f.querySelector("button").dataset.i].namn === start);
+  if (!f) { filtrera("alla"); f = synliga.find(f => BILDER[+f.querySelector("button").dataset.i].namn === start); }
+  if (f) oppna(synliga.indexOf(f));
+}
+</script>
+</body>
+</html>

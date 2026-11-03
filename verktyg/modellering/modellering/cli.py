@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> None:
     pr.add_argument("--blend", action="store_true", help="spara scenen som modeller/trebodar/ut/trebodar.blend")
     pr.add_argument("--tand", nargs="*", default=[], metavar="GRUPP[=NIVÅ]",
                     help="tänd elinstallationens tändgrupper, t.ex. AL-T1 AL-T2=0.5 (dimrad till hälften)")
-    wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/ för GitHub Pages")
+    wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/modell/ för GitHub Pages")
     wb.add_argument("--ut", type=Path, default=ROT / "docs")
     sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
     po = sub.add_parser("onshape", help="ladda upp modellen (STEP) till ett nytt dokument i Onshape")
@@ -379,7 +379,7 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  {arg.ut}")
         from modellering import renderingar
         sida = renderingar.webb(plan1, kallare, vy_mod.VYER, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), _norr(),
-                                arg.webb)
+                                arg.webb, getattr(vy_mod, "TEXTER", {}), getattr(vy_mod, "TEKNIK", set()))
         print(f"  {sida}")
         return
     if arg.kommando == "publicera":
@@ -599,13 +599,14 @@ def main(argv: list[str] | None = None) -> None:
         vy_mod = importlib.import_module("trebodar.vyer")
         utom = getattr(vy_mod, "WEBB_UTOM", [])
         webbrot = _utan(rot, utom)
-        (arg.ut / "modell").mkdir(parents=True, exist_ok=True)
-        glb.skriv(webbrot, arg.ut / "modell" / "trebodar.glb", karna)
-        (arg.ut / "vyer.json").write_text(json.dumps(vy_mod.VYER, ensure_ascii=False, indent=1))
-        shutil.copy(Path(__file__).resolve().parents[1] / "webb" / "index.html", arg.ut / "index.html")
+        mapp = arg.ut / "modell"
+        mapp.mkdir(parents=True, exist_ok=True)
+        glb.skriv(webbrot, mapp / "trebodar.glb", karna)
+        (mapp / "vyer.json").write_text(json.dumps(vy_mod.VYER, ensure_ascii=False, indent=1))
+        shutil.copy(Path(__file__).resolve().parents[1] / "webb" / "index.html", mapp / "index.html")
         (arg.ut / ".nojekyll").write_text("")
-        print(f"  {arg.ut}: index.html, vyer.json, modell/trebodar.glb "
-              f"({(arg.ut / 'modell' / 'trebodar.glb').stat().st_size / 1e6:.1f} MB, utan {', '.join(utom) or '–'})")
+        print(f"  {mapp}: index.html, vyer.json, trebodar.glb "
+              f"({(mapp / 'trebodar.glb').stat().st_size / 1e6:.1f} MB, utan {', '.join(utom) or '–'})")
     elif arg.kommando == "jamfor":
         from . import jamfor
         ref = importlib.import_module("trebodar.referens")

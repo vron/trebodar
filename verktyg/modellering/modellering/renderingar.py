@@ -2,10 +2,10 @@
 källaren och ute, ur kameraplanens snitt) med vyernas kameror (trebodar.vyer: INNE och VYER) och bilderna.
 
 Bilderna renderas lokalt (renderingar/rendera.sh) och versionshanteras inte. `./mod publicera` gör om dem till
-JPEG i tre storlekar och laddar upp dem till releasen RELEASE på GitHub tillsammans med förteckningen (MANIFEST:
-vyns kamera, objektiv och ljus när bilden renderades, modellens version och datum). Webbplatsens bygge (GitHub
-Actions) hämtar dem därifrån, så bilderna ändras bara när de publiceras medan planerna och kamerorna alltid följer
-modellen. En kamera som har flyttats sedan bilden renderades märks på sidan.
+JPEG i fyra storlekar (BREDDER) och laddar upp dem till releasen RELEASE på GitHub tillsammans med förteckningen
+(MANIFEST: vyns kamera, objektiv och ljus när bilden renderades, modellens version och datum). Webbplatsens bygge
+(GitHub Actions) hämtar dem därifrån, så bilderna ändras bara när de publiceras medan planerna och kamerorna alltid
+följer modellen. En kamera som har flyttats sedan bilden renderades märks på sidan.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from .planritning import MINSTA_HAL, plan_ytor
 
 RELEASE = "bilder"              # releasens tagg (inte "renderingar", som är en mapp: `git log renderingar` vore tvetydigt)
 MANIFEST = "renderingar.json"
-BREDDER = (480, 1920, 3840)     # tumnagel, skärm och original [px]
+BREDDER = (480, 960, 1920, 3840)    # tumnagel, rutnät, skärm och original [px]
 KVALITET = {480: 80}            # JPEG-kvaliteten (annars 86)
 SIDA = Path(__file__).resolve().parents[1] / "webb" / "renderingar.html"
 FYLL = {"karna": "#b9b3a9", "betong": "#ecebe7", "stal": "#5a5f66", "vit": "#ffffff"}   # ritningsmallens FYLL
@@ -82,9 +82,11 @@ def _ytor(delar: list[dict]) -> list[dict]:
     return [{"d": _svg(g), "f": FYLL.get(f, f) if f else None, "s": s} for g, f, s in plan_ytor(delar)]
 
 
-def _kameror(ute: dict[str, dict], inne: dict[str, dict], rum: dict[str, tuple]) -> list[dict]:
+def _kameror(ute: dict[str, dict], inne: dict[str, dict], rum: dict[str, tuple], texter: dict[str, str],
+             teknik: set[str]) -> list[dict]:
     """Vyernas kameror på planerna: inomhusbilderna (I01–I30) på plan 1 eller i källaren, de andra vyerna (ute,
-    detalj) ute eller, när de är inne, på sitt plan. r: bildvinkelns kil i planen [mm]."""
+    detalj) ute eller, när de är inne, på sitt plan. text: bildtexten (texter, annars ur namnet); teknik: bilden
+    hör till stommen och installationerna; r: bildvinkelns kil i planen [mm]."""
     ut = []
     for namn, k in {**inne, **ute}.items():
         (x, y, z), (tx, ty, _) = k["kamera"], k["mal"]
@@ -98,19 +100,21 @@ def _kameror(ute: dict[str, dict], inne: dict[str, dict], rum: dict[str, tuple])
         else:
             serie = "detalj" if namn.startswith("detalj-") else "ute"
             etikett = namn.split("-", 1)[-1]
-            text = ", ".join(namn.split("-", 1)).capitalize()
+            text = texter.get(namn) or ", ".join(namn.split("-", 1)).capitalize()
             r = min(max(0.4 * math.hypot(tx - x, ty - y), 900.0), 6000.0)
         ut.append({"namn": namn, "etikett": etikett, "text": text, "plan": plan, "serie": serie,
-                   "objektiv": k.get("objektiv"), "kamera": k["kamera"], "mal": k["mal"], "lins": k["lins"],
+                   "teknik": namn in teknik, "objektiv": k.get("objektiv"), "kamera": k["kamera"], "mal": k["mal"],
+                   "lins": k["lins"],
                    "ljus": list(k["ljus"]), "r": round(r)})
     return ut
 
 
 def webb(plan1: list[dict], kallare: list[dict], ute: dict[str, dict], inne: dict[str, dict], rum: dict[str, tuple],
-         trapphal: list[tuple[float, float]], norr: tuple[float, float], ut: Path) -> Path:
-    """Sidan med renderingarna (index.html) och dess data (plan.json) i mappen ut; bilderna hämtas till ut/bilder
-    (`./mod publicera`, GitHub Actions)."""
-    kameror = _kameror(ute, inne, rum)
+         trapphal: list[tuple[float, float]], norr: tuple[float, float], ut: Path, texter: dict[str, str] | None = None,
+         teknik: set[str] | None = None) -> Path:
+    """Sidan med renderingarna (index.html) och dess data (plan.json, som startsidan också läser) i mappen ut;
+    bilderna hämtas till ut/bilder (`./mod publicera`, GitHub Actions)."""
+    kameror = _kameror(ute, inne, rum, texter or {}, teknik or set())
     hus = _ytor(plan1)
     xs = [PLAN1[0], PLAN1[1]] + [k["kamera"][0] for k in kameror if k["plan"] == "ute"]
     ys = [PLAN1[2], PLAN1[3]] + [k["kamera"][1] for k in kameror if k["plan"] == "ute"]

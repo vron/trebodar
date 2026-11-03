@@ -2,8 +2,9 @@
 
 Konstruktionshandlingar för Fritidshus Trebodar, Resö, Tanum: den kodgenererade modellen, beräkningarna, rapporterna och ritningarna.
 
-- **Modellen i 3D:** https://vron.github.io/trebodar/
-- **Handlingarna** (rapporter, ritningar och kameraplanen, byggda ur `main`): https://vron.github.io/trebodar/handlingar/
+- **Webbplatsen:** https://vron.github.io/trebodar/ – projektet, bilderna, planerna och handlingsförteckningen med
+  rapporterna, ritningarna och kameraplanen (byggda ur `main`)
+- **Modellen i 3D:** https://vron.github.io/trebodar/modell/
 - **Renderingarna** på planerna (klicka på en kamera för bilden; renderas lokalt och publiceras med `renderingar/publicera.sh`): https://vron.github.io/trebodar/renderingar/
 
 Webbplatsen byggs och publiceras av GitHub Actions ([`.github/workflows/bygg.yml`](.github/workflows/bygg.yml)) vid varje push till `main`. En tagg `rev-*` på `main` (t.ex. `rev-B`) publicerar dessutom handlingarna som en release.
@@ -11,7 +12,7 @@ Webbplatsen byggs och publiceras av GitHub Actions ([`.github/workflows/bygg.yml
 ## Bygga lokalt
 
 ```sh
-./bygg            # allt som är inaktuellt: modellen, webbvisaren (docs/), beräkningarna, rapporterna och ritningarna
+./bygg            # allt som är inaktuellt: modellen, beräkningarna, rapporterna, ritningarna och webbplatsen (docs/)
 ./bygg --lista    # stegen och om de är aktuella
 ./bygg R-05       # en ritning och det den bygger på
 ```

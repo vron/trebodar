@@ -4,7 +4,7 @@ Konstruktionshandlingar för Fritidshus Trebodar, Resö, Tanum: beräkningar, ra
 
 ## Vid start av en ny session
 
-Läs F-01, förutsättningarna (`rapporter/F-01revA …pdf` efter `./bygg F-01`, eller på https://vron.github.io/trebodar/handlingar/; källa i `beräkningar/F-01/`), för en översikt över huset, det bärande systemet, lasterna och handlingarna.
+Läs F-01, förutsättningarna (`rapporter/F-01revA …pdf` efter `./bygg F-01`, eller i handlingsförteckningen på https://vron.github.io/trebodar/; källa i `beräkningar/F-01/`), för en översikt över huset, det bärande systemet, lasterna och handlingarna.
 
 ## Källmodell
 
@@ -21,7 +21,7 @@ Husets modell är koden i `modeller/trebodar/` (se dess README): geometriskript 
 - `verktyg/modellering/` – ramverket som bygger modellen: kärna (OCCT, cache, parallellt), export (STEP, GLB, materiallista), kontroll av krockar och kontakter, jämförelse med referensen, rendering (Blender) och webbvisaren.
 - `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`). Kontrollerna läser den kodgenererade modellen (bygg den först med `./mod bygg`).
 - `renderingar/` – inomhusbilderna I01–I30 och de andra vyerna i 4K (`rendera.sh`; bilderna versionshanteras inte), kameraplanen (`./bygg kameraplan`) och `publicera.sh`, som lägger ut bilderna på webbplatsen via releasen `bilder` på GitHub (inte i git).
-- `docs/` – webbplatsen: webbvisaren (three.js) med modellen, `handlingar/` med rapporterna, ritningarna och kameraplanen och `renderingar/` med kamerorna på planerna och bilderna. Byggs av `./bygg`; GitHub Actions bygger den ur `main`, hämtar de publicerade bilderna ur releasen `bilder` och publicerar den med GitHub Pages på https://vron.github.io/trebodar/.
+- `docs/` – webbplatsen: startsidan (`verktyg/bygg/startsida.py`) med projektet, bilderna, planerna och handlingsförteckningen, `modell/` med webbvisaren (three.js), `handlingar/` med rapporterna, ritningarna och kameraplanen och `renderingar/` med kamerorna på planerna och bilderna. Byggs av `./bygg`; GitHub Actions bygger den ur `main`, hämtar de publicerade bilderna ur releasen `bilder` och publicerar den med GitHub Pages på https://vron.github.io/trebodar/.
 - `verktyg/bygg/` – `./bygg` (i roten): bygger allt som genereras ur källorna i beroendeordning. `.github/workflows/bygg.yml` kör det i GitHub Actions.
 
 ## Arbetssätt

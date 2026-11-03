@@ -9,7 +9,7 @@ cd verktyg/modellering
 ./mod bygg          # STEP, GLB, materiallista och index i modeller/trebodar/ut/
 ./mod kontroll      # krockar, kontakter, glipor och delar utan kontakt
 ./mod rendera       # bilder med Blender (Cycles), vyerna i vyer.py (inomhusbilderna: renderingar/rendera.sh)
-./mod webb          # webbvisaren i docs/ (GitHub Pages)
+./mod webb          # webbvisaren i docs/modell/ (GitHub Pages)
 ```
 
 Koordinater som i K-05 (mm): x och y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant.
@@ -25,7 +25,7 @@ bara geometri (rätblock, prismor med hål, plan som kapar, placeringar) och mat
 | [`skelett.py`](skelett.py) | Gemensam geometri: huskroppar, väggarnas lägen och system, takfallen, nock- och dalbalkarna, nivåer |
 | [`material.py`](material.py) | Material: densitet, färg, rendering och materiallistans enhet |
 | [`byggdelar/`](byggdelar/) | Regelväggar och plana stommar, takstolar, takbalkar, takets skikt, virke och skivor, referensdelar |
-| [`vyer.py`](vyer.py) | Kameror och dagsljus för rendering och webbvisaren, inomhusbilderna I01–I30, ljusportalerna och omgivningen |
+| [`vyer.py`](vyer.py) | Kameror och dagsljus för rendering och webbvisaren, inomhusbilderna I01–I30, bildtexterna på webbplatsen, ljusportalerna och omgivningen |
 | [`kontrollregler.py`](kontrollregler.py) | Avsiktliga överlapp som kontrollen godtar, med motivering |
 | [`referens.py`](referens.py) | Referensmodellen och transformen till K-05 (för `mod jamfor`) |
 

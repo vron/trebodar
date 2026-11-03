@@ -1,6 +1,7 @@
 """
 Bygger allt som genereras ur källorna, i beroendeordning: modellen (STEP), webbvisaren, kameraplanen, granskningens
-figur, beräkningarna, rapporterna, ritningarna och webbplatsen med handlingarna (docs/). Se README.md.
+figur, beräkningarna, rapporterna, ritningarna och webbplatsen: startsidan med bilderna, planerna och
+handlingarna (docs/, startsida.py). Se README.md.
 
     ./bygg                  allt som är inaktuellt
     ./bygg K-05 R-05        de stegen och det de bygger på
@@ -19,10 +20,8 @@ kommandon och summorna för stegen det bygger på. Snabba steg sparar summan i .
 steg sparar den i <mapp>/räknat.json, som checkas in tillsammans med resultaten som andra steg läser och rapporten.
 """
 import argparse
-import datetime
 import fnmatch
 import hashlib
-import html
 import json
 import os
 import shutil
@@ -32,9 +31,10 @@ import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 import tomllib
 import unicodedata
-import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
+
+import startsida
 
 ROT = Path(__file__).resolve().parents[2]
 STAMPAR = ROT / ".bygg"
@@ -81,7 +81,7 @@ STEG = [
          kallor=[*MODELL, "verktyg/modellanalys/modell.py"],             # modellanalysens cache skrivs också
          utdata=["modeller/trebodar/ut/trebodar.step"]),
     Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL,
-         utdata=["docs/index.html", "docs/vyer.json", "docs/modell/trebodar.glb"]),
+         utdata=["docs/modell/index.html", "docs/modell/vyer.json", "docs/modell/trebodar.glb"]),
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
          bygger_pa=["modell"], miljoer=["ma"],
          utdata=["renderingar/kameraplan.pdf", "docs/renderingar/index.html", "docs/renderingar/plan.json"]),
@@ -164,13 +164,18 @@ def rapportfil(s: Steg) -> Path | None:
     return ROT / "rapporter" / nfc(f"{s.namn}rev{rev} {s.rapport[1]}.pdf")
 
 
-def revision(s: Steg) -> str:
+def projekt(s: Steg) -> dict:
+    """Rapportens projektuppgifter (revision, datum …): [projekt] i indata.toml, annars rapport/projekt.json."""
     mapp = ROT / s.mapp
     if (mapp / "indata.toml").exists():
-        rev = tomllib.loads((mapp / "indata.toml").read_text(encoding="utf-8")).get("projekt", {}).get("revision")
-        if rev:
-            return rev
-    return json.loads((mapp / "rapport" / "projekt.json").read_text(encoding="utf-8"))["revision"]
+        p = tomllib.loads((mapp / "indata.toml").read_text(encoding="utf-8")).get("projekt", {})
+        if p.get("revision"):
+            return p
+    return json.loads((mapp / "rapport" / "projekt.json").read_text(encoding="utf-8"))
+
+
+def revision(s: Steg) -> str:
+    return projekt(s)["revision"]
 
 
 def saknas(s: Steg) -> list[str]:
@@ -321,56 +326,9 @@ def spara_summa(s: Steg) -> None:
 
 
 def webbplats() -> None:
-    """docs/handlingar/: en sida med länkar till rapporterna, ritningarna och kameraplanen (kopior bredvid)."""
-    ut = ROT / "docs" / "handlingar"
-    shutil.rmtree(ut, ignore_errors=True)
-    grupper = [("Rapporter", sorted((ROT / "rapporter").glob("*.pdf"))),
-               ("Ritningar", sorted((ROT / "ritningar").glob("*.pdf"))),
-               ("Övrigt", [p for p in [ROT / "renderingar" / "kameraplan.pdf"] if p.exists()])]
-    rader = []
-    for rubrik, filer in grupper:
-        rader.append(f"<h2>{rubrik}</h2>\n<ul>")
-        for f in filer:
-            dst = ut / f.parent.name / nfc(f.name)
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(f, dst)
-            lank = urllib.parse.quote(f"{f.parent.name}/{nfc(f.name)}")
-            rader.append(f'<li><a href="{lank}">{html.escape(nfc(f.stem))}</a> '
-                         f'<span>{f.stat().st_size / 1e6:.1f} MB</span></li>')
-        rader.append("</ul>")
-    version = git("rev-parse", "--short", "HEAD").decode().strip()
-    tid = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    (ut / "index.html").write_text(f"""<!doctype html>
-<html lang="sv">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trebodar – handlingar</title>
-<style>
-  :root {{ --bg: #f4f3ef; --panel: #fff; --ink: #222; --dim: #777; --accent: #2f6f8f; }}
-  @media (prefers-color-scheme: dark) {{ :root {{ --bg: #1b1d20; --panel: #26292d; --ink: #e8e6e1; --dim: #9a9a9a;
-    --accent: #6fb3d3; }} }}
-  body {{ margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, sans-serif; }}
-  main {{ max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }}
-  h1 {{ font-size: 22px; margin: 0 0 4px; }} h2 {{ font-size: 13px; margin: 28px 0 8px; color: var(--dim);
-    text-transform: uppercase; letter-spacing: .04em; }}
-  ul {{ list-style: none; margin: 0; padding: 0; background: var(--panel); border-radius: 6px; }}
-  li {{ display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-top: 1px solid #8882; }}
-  li:first-child {{ border-top: 0; }} li span, p {{ color: var(--dim); }} li span {{ white-space: nowrap; }}
-  a {{ color: var(--accent); }}
-</style>
-</head>
-<body>
-<main>
-<h1>Fritidshus Trebodar – handlingar</h1>
-<p>Byggda ur källorna i <a href="https://github.com/vron/trebodar">vron/trebodar</a> ({version}, {tid}).
-<a href="../">Modellen i 3D</a> · <a href="../renderingar/">Renderingar</a></p>
-{chr(10).join(rader)}
-</main>
-</body>
-</html>
-""", encoding="utf-8")
-    print(f"== webbplats: {ut.relative_to(ROT)}/index.html ({sum(len(f) for _, f in grupper)} filer)")
+    """Webbplatsens startsida och handlingarna i docs/ (startsida.py), ur det som stegen har byggt."""
+    startsida.bygg(ROT, {s.namn: projekt(s) for s in STEG if s.rapport},
+                   git("rev-parse", "--short", "HEAD").decode().strip())
 
 
 def tid(t: float) -> str:
