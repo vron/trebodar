@@ -178,6 +178,40 @@ def vid_tak(kod: str, u: float, sida: int = 1) -> tuple[Vek, Vek]:
     return i_vagg(kod, u, i[2]), i
 
 
+def _fallet(x: float, y: float) -> str | None:
+    t = innertakets_fall(x, y)
+    return None if t is None else t.kod
+
+
+def langs_taket(a: Vek, b: Vek, steg: float = 250.0) -> list[Vek]:
+    """Sträckan a–b genom innertakets installationsskikt, med en brytpunkt där innertaket byter fall (nocken, en dal),
+    så att röret följer skiktet i stället för att skära genom rummet; rak om inte båda punkterna ligger i skiktet.
+    Fallen letas upp med steg mellan punkterna och gränsen mellan dem på 1 mm när."""
+    fa, fb = _fallet(a[0], a[1]), _fallet(b[0], b[1])
+    halv = LAKT / 2 / math.cos(math.radians(S.TAKVINKEL))       # skiktets halva tjocklek, lodrätt
+    if fa is None or fb is None or abs(i_tak(a[0], a[1])[2] - a[2]) > halv or abs(i_tak(b[0], b[1])[2] - b[2]) > halv:
+        return [a, b]
+    n = max(1, math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / steg))
+    ut = [a]
+    s0, f0 = 0.0, fa
+    for k in range(1, n + 1):
+        s1 = k / n
+        f1 = _fallet(a[0] + (b[0] - a[0]) * s1, a[1] + (b[1] - a[1]) * s1)
+        if f1 is None:
+            return [a, b]
+        if f1 != f0:
+            lo, hi = s0, s1
+            while (hi - lo) * math.hypot(b[0] - a[0], b[1] - a[1]) > 1.0:
+                mid = (lo + hi) / 2
+                if _fallet(a[0] + (b[0] - a[0]) * mid, a[1] + (b[1] - a[1]) * mid) == f0:
+                    lo = mid
+                else:
+                    hi = mid
+            ut.append(i_tak(a[0] + (b[0] - a[0]) * lo, a[1] + (b[1] - a[1]) * lo))
+        s0, f0 = s1, f1
+    return [*ut, b]
+
+
 def i_bjalklag(x: float, y: float, bjalklag: str = "MB") -> Vek:
     """Ingjutet i bjälklaget (mitt i betongen)."""
     return (float(x), float(y), BJALKLAG[bjalklag])

@@ -1,8 +1,9 @@
 """Det lilla kontoret i högra huskroppen: en glob i opalglas, dimmern vid dörren och ett uttag ovanför fönstret i
 3NV (belysningsplanen i ärende #8).
 
-Globen hänger med underkanten 2,1 m över golvet. Dimmern sitter på L2 (rumssidan) intill fickdörren ID3; röret går
-upp i väggen och i installationsskiktet till takkoppen.
+Globen hänger med underkanten 2,1 m över golvet. Dimmern sitter på L1 (rumssidan) öster om stolpen LN1_1, eftersom
+L2 vid dörren är fickdörren ID3:s ficka och L1 där fickdörren ID5:s; röret går upp i väggen och i installationsskiktet
+till takkoppen.
 """
 from __future__ import annotations
 
@@ -13,14 +14,14 @@ from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, ovan_fonstret
 RUM = Rum("KL", "Kontor, litet", plan=1)
 NAMN = RUM.namn
 
-U_B = 991.0                                   # dimmern längs L2, intill dörren ID3 (u 25–841)
+U_B = 2560.0                                  # dimmern längs L1 (x 12 000), i facket öster om stolpen LN1_1
 
 TANDGRUPPER = [Tandgrupp("KL-T1", "Kontor litet, glob")]
 
 PUNKTER = [
     Lampa("KL-L01", GLOB_250, tak(12085.0, 3425.0), "KL-T1", underkant=2100.0),
-    Apparat("KL-B1", DIMMER_1, vagg("L2", U_B, 1050.0, sida=-1), styr=("KL-T1",)),
+    Apparat("KL-B1", DIMMER_1, vagg("L1", U_B, 1050.0, sida=1), styr=("KL-T1",)),
     Apparat("KL-U1", UTTAG_1, ovan_fonstret("3NV", 2300.0)),
 ]
 
-ROR = [Ror("KL-R01", FXP16, "KL-B1", "KL-L01", via=vid_tak("L2", U_B, sida=-1))]
+ROR = [Ror("KL-R01", FXP16, "KL-B1", "KL-L01", via=vid_tak("L1", U_B, sida=1))]

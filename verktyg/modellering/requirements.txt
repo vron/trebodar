@@ -1,4 +1,5 @@
 cadquery-ocp>=8.0
+vtk>=9.3               # installationernas vägar (vagar.py); följer med cadquery-ocp
 numpy>=2.0
 shapely>=2.1
 mypy>=1.13

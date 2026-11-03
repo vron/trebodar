@@ -263,6 +263,9 @@ def main(argv: list[str] | None = None) -> None:
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
                          "(markdown); ritning: planen med höjderna (D-01)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
+    pv = sub.add_parser("vagar", help="installationernas vägar: rören, kablarna och kanalerna dolda i skikten, inte "
+                                      "fritt i rummen eller i fickdörrarnas fickor (kontrollregler, ingår i kontroll)")
+    pv.add_argument("--trad", default=None, help="bara delträdet, t.ex. Hus/Installationer/El")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pk.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar",
@@ -904,6 +907,25 @@ def main(argv: list[str] | None = None) -> None:
               f"({r.sekunder:.1f} s) -> {fil}")
         for x, y, v in sorted(r.krockar, key=lambda q: -q[2])[:15]:
             print(f"    KROCK {x} / {y}: {v:.0f} mm³")
+        if hasattr(regler, "LEDNINGAR"):
+            from . import vagar
+            vg = vagar.kontrollera(rot, karna, regler)
+            print(f"  installationernas vägar: {vg.delar} ledningsdelar, {len(vg.fel)} fel, {len(vg.anm)} "
+                  f"utanpåliggande ({vg.sekunder:.1f} s; alla: ./mod vagar)")
+            for f in vg.fel:
+                print(f"    FEL {f}")
+    elif arg.kommando == "vagar":
+        from . import vagar
+        regler = importlib.import_module("trebodar.kontrollregler")
+        vg = vagar.kontrollera(rot, karna, regler, arg.trad)
+        print(f"  {vg.delar} ledningsdelar, {vg.kuber} kuber à {vagar.STEG:g} mm: {len(vg.fel)} fel, {len(vg.anm)} "
+              f"utanpåliggande ({vg.sekunder:.1f} s)")
+        for f in vg.fel:
+            print(f"    FEL {f}")
+        for x in vg.anm:
+            print(f"    {x}")
+        if vg.fel:
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":

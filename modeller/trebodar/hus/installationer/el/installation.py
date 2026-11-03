@@ -19,7 +19,7 @@ from trebodar.hus.invandigt.skikt import LAKT
 
 from . import lakt
 from .bjalklag import mellanbjalklag
-from ..montering import PLAN, TAKSKIVOR, Vek, flytt
+from ..montering import PLAN, TAKSKIVOR, Vek, flytt, langs_taket
 from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
 from .rum import (allrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
@@ -41,8 +41,10 @@ class Installation:
         return [p.id for p in self.punkter.values() if isinstance(p, Apparat) and tand in p.styr]
 
     def vag(self, r: Ror) -> list[Vek]:
-        """Rörets mittlinje: från punktens anslutning genom brytpunkterna till den andra punktens."""
-        return [anslutning(self.punkter[r.fran]), *r.via, anslutning(self.punkter[r.till])]
+        """Rörets mittlinje: från punktens anslutning genom brytpunkterna till den andra punktens, i innertakets
+        installationsskikt över nocken och dalarna (montering.langs_taket)."""
+        p = [anslutning(self.punkter[r.fran]), *r.via, anslutning(self.punkter[r.till])]
+        return [p[0], *(q for a, b in zip(p, p[1:]) for q in langs_taket(a, b)[1:])]
 
     def kontroll(self) -> tuple[list[str], list[str]]:
         """(fel, anmärkningar): referenser, styrning, armaturernas vinkel och djup (pendlarna: sladden räcker ned från

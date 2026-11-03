@@ -34,6 +34,7 @@ from trebodar.hus.invandigt import kallarens_innervaggar as KV
 from trebodar.hus.invandigt import vaggar
 from trebodar.hus.invandigt.lattvaggar import vaggdef
 from trebodar.hus.stomme import lagen
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import TF3
 
 from ..genomforingar import Genomforing, Stycke, genomforingar, vaggarna
 from ..golvvarme.system import golvvarme
@@ -60,6 +61,7 @@ KABEL_D = 10.0                               # kabeln 4G1,5, rund (installations
 KABEL = "installationskabel 4G1,5 (fas, nolla, skyddsjord och larmledaren), i hylsa genom bjälklaget"
 AVSTAND_NOCK = 600.0                         # brandvarnarna i snedtaken: avståndet från nocken i planet
 D_UNDER = 10.0                               # kabeln klammad under källarens tak: mitt så långt under betongen
+OVER_ROREN = 14.0                            # i innertakets skikt över elens rör, där kabeln korsar dem
 OVER_MITT = 15.0                             # kabeln i innertakets installationsskikt: så långt över skiktets mitt
 SPEL_REGEL = 10.0                            # stigarna i regelfacket: fritt från reglarna
 SPEL_ROR = 10.0                              # stigarna genom bjälklaget: fritt från de ingjutna rören
@@ -230,11 +232,18 @@ def brandlarm() -> Brandlarm:
     a = {k: anslutning(v.lage) for k, v in varnare.items()} | {k: anslutning(d.lage) for k, d in dosor.items()}
     z = KALLARTAK - D_UNDER
     kt, kn = a["BV-KT"], a["BV-KN"]
+    x_tf3 = (TF3.x_upp + nb5) / 2                                  # förbi takfönstret TF3, mellan det och nocken,
+
+    def hogt(x: float, y: float) -> Vek:
+        """I installationsskiktets övre del, över elens rör (som ligger mitt i skiktet) som kabeln korsar."""
+        m = tak(x, y)
+        return flytt(m.punkt, m.normal, -(I_TAKET + OVER_ROREN))
     kablar = [
         Kabel("K01", "D01", "BV-KT", (a["D01"], (kt[0], a["D01"][1], z), kt)),
         Kabel("K02", "BV-KT", "DV", (kt, (kt[0], yv, z), a["DV"])),
         Kabel("K03", "DV", "BV-HA", upp_v),
-        Kabel("K04", "BV-HA", "BV-VR", (a["BV-HA"], (a["BV-HA"][0], a["BV-VR"][1], a["BV-HA"][2]), a["BV-VR"])),
+        Kabel("K04", "BV-HA", "BV-VR", (a["BV-HA"], hogt(x_tf3, a["BV-HA"][1]), hogt(x_tf3, a["BV-VR"][1]),
+                                         a["BV-VR"])),
         Kabel("K05", "BV-KT", "BV-KN", (kt, kn)),
         Kabel("K06", "BV-KN", "DM", (kn, a["DM"])),
         Kabel("K07", "DM", "BV-SV", (a["DM"], *upp_m)),

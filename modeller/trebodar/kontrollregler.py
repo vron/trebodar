@@ -1,5 +1,9 @@
-"""Regler för kontrollerna: materialpar som inte prövas och avsiktliga överlapp (`mod kontroll`), med motivering, och
-modulernas lagerordning (`mod typ`)."""
+"""Regler för kontrollerna: materialpar som inte prövas och avsiktliga överlapp (`mod kontroll`), med motivering,
+installationernas vägar (`mod kontroll`, `mod vagar`) och modulernas lagerordning (`mod typ`)."""
+from __future__ import annotations
+
+from trebodar import skelett as S
+from trebodar.hus.installationer.fria_volymer import fria_volymer
 
 # moduler (prefix) och vad de inte får importera ur paketet: beroendena går från skelettet och materialen via
 # byggdelarna till husets system, och huset beror inte på marken
@@ -49,3 +53,16 @@ TILLATNA_OVERLAPP = {
     frozenset(("Kamin", "Rostfritt")): "rökröret går in i den isolerade skorstenens anslutning i kassen",
     frozenset(("Spikplåt", "Utegips")): "spikplåt 2 mm på gavelstolens utsida, utegipsen fräses ur",
 }
+
+# installationernas vägar (verktyg/modellering/modellering/vagar.py, ärende #34): rören, kablarna och kanalerna (delar
+# av LEDNINGAR) ska gå dolda i skikten, ingjutna eller i marken, inte fritt genom rummens luft (eller fönstrens och
+# takfönstrens öppningar). I UTANPA-zonerna (under z) får de gå utanpå väggarna och taket, högst så långt från ytan
+# (på konsoler); SYNLIGA får synas; in i FRIA_VOLYMER (fickdörrarnas fickor) får de inte gå
+LEDNINGAR = ("Elrör", "Brandlarmskabel", "Tappvatten KV", "Tappvatten VV", "Spirokanal", "Plattkanal", "Golvvärmerör")
+VAGAR_UTOM = {
+    "Hus/Installationer/Dränering": "dräneringen och dagvattnet går i marken",
+    "Hus/Installationer/Köldbärare": "köldbärarledningarna går i marken och under bottenplattan",
+}
+UTANPA = (("källaren", -S.H_BJALKLAG, 300.0),)     # på konsoler eller i pendlar under taket
+SYNLIGA: dict[str, str] = {}                         # delträd: motivering
+FRIA_VOLYMER = fria_volymer

@@ -16,10 +16,11 @@ from __future__ import annotations
 
 from trebodar import skelett as S
 from trebodar.hus.inredning.koksbank import ON_X, ON_Y
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import TF2
 
 from ..katalog import BRYTARE_1, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, STAV, TUBE_MINI_R, UTTAG_1
 from ..lakt import mellan_lakten
-from ...montering import tak, vagg, vid_tak
+from ...montering import i_tak, tak, vagg, vid_tak
 from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot, ovan_fonstret
 
 RUM = Rum("KO", "Kök", plan=1)
@@ -37,6 +38,7 @@ STAV_X, Y_STAV, O_Z = ON_X, (ON_Y - 465.0, ON_Y, ON_Y + 465.0), 900.0    # Stav 
 U_B = 6007.0                                 # dimmern och brytaren på 2B, mitt i facket vid köket (y 7 072)
 Z_B = (1050.0, 1130.0)                       # dimmern och brytaren över den
 Z_UTTAG = 2300.0                             # uttagen till kylen och frysen, i förrådet
+X_TF2 = (TF2.x_upp + NOCK) / 2               # rören till Stav förbi takfönstret TF2, mellan det och nocken
 
 TANDGRUPPER = [
     Tandgrupp("KO-T1", "Kök, tubspotar mot taket"),
@@ -77,16 +79,18 @@ PUNKTER = [
 ]
 
 
+_VID_2B = vid_tak("2B", U_B, sida=-1)
+
 ROR = [
-    Ror("KO-R01", FXP16, "KO-B1", "KO-L01", via=vid_tak("2B", U_B, sida=-1)),
+    Ror("KO-R01", FXP16, "KO-B1", "KO-L01", via=_VID_2B),
     Ror("KO-R02", FXP16, "KO-L01", "KO-L02"),
     Ror("KO-R03", FXP16, "KO-L02", "KO-L03"),
-    Ror("KO-R04", FXP16, "KO-B1", "KO-L04", via=vid_tak("2B", U_B, sida=-1)),
+    Ror("KO-R04", FXP16, "KO-B1", "KO-L04", via=_VID_2B),
     Ror("KO-R05", FXP16, "KO-L04", "KO-L05"),
     Ror("KO-R06", FXP16, "KO-L05", "KO-L06"),
-    Ror("KO-R07", FXP16, "KO-B1", "KO-L07", via=vid_tak("2B", U_B, sida=-1)),
+    Ror("KO-R07", FXP16, "KO-B1", "KO-L07", via=_VID_2B),
     *[Ror(f"KO-R{8 + i:02d}", FXP16, f"KO-L{7 + i:02d}", f"KO-L{8 + i:02d}") for i in range(5)],
-    Ror("KO-R13", FXP16, "KO-B2", "KO-L13", via=vid_tak("2B", U_B, sida=-1)),
+    Ror("KO-R13", FXP16, "KO-B2", "KO-L13", via=(*_VID_2B, i_tak(X_TF2, _VID_2B[1][1]), i_tak(X_TF2, Y_STAV[0]))),
     Ror("KO-R14", FXP16, "KO-L13", "KO-L14"),
     Ror("KO-R15", FXP16, "KO-L14", "KO-L15"),
 ]
