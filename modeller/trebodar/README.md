@@ -177,8 +177,9 @@ Trebodar
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
     │                           innerväggarna: lätta väggar L1–L14 och skikten på alla innerväggar, kökets
-    │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler),
-    │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
+    │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler), ändbrädor av ask
+    │                           där väggarna slutar fritt, källarväggarnas gips, källarens innerväggar KL1–KL10
+    │                           (stomme och gips per vägg)
     └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
                                 dubbelsängen där (160 × 200, huvudgaveln mot 2B),
                                 köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor, bänken längs 3NV
@@ -325,6 +326,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
   mot 2B:s gips och mitt mellan 2A:s och L6:s, för att se hur rummet räcker.
+- **Ändbrädorna** (hus/invandigt/andbrador.py, ärende #31): där väggarna 1B, 1D, 2A och 2B slutar fritt i ett rum
+  en bräda av oljad ask 22 över änden (stommen och skikten på båda sidorna), från golvet till innertaket, som smygen
+  runt fönstren; delarna heter `<vägg>-ANDE`.
 - **Kökets inbyggnad** (hus/invandigt/kokets_inbyggnad.py och hus/inredning/kok.py, ärende #20 och #21; inte på
   planritning 201): kyl, frys och skafferi framför L4 mot köket, från L2:s linje till 3NV, bakom en vägg av gips
   från golvet till innertaket. Lätta väggar 45×70 (lägena i invandigt/lattvaggar.py) framför L4:s och 3NV:s färdiga
