@@ -64,6 +64,9 @@
              background: var(--panel); border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); padding: 4px 10px;
              font-size: 12.5px; color: var(--dim); white-space: nowrap; max-width: 94vw; overflow: hidden;
              text-overflow: ellipsis; }
+  #sikte { position: fixed; z-index: 3; display: none; pointer-events: none; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    background: radial-gradient(circle, #fff 0 1.5px, transparent 2px), linear-gradient(#fff8, #fff8) center / 1px 100% no-repeat,
+    linear-gradient(#fff8, #fff8) center / 100% 1px no-repeat; mix-blend-mode: difference; }
   #objektiv { font: inherit; font-size: 12px; margin-left: 4px; background: transparent; color: var(--ink);
               border: 1px solid #8886; border-radius: 4px; }
 </style>
@@ -80,7 +83,7 @@
     perspektiv och ortografisk vy (parallellprojektion, som en fasadritning). Högerklicka på en del, i
     trädet eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
     parallella kanter med knapparna uppe till höger (K, A, P). G går genom huset i ögonhöjd: på golven och i
-    trapporna, genom väggarna.</div>
+    trapporna, genom väggarna, och musen tittar runt som i ett spel (Esc släpper den).</div>
   <div style="margin-top: 6px"><a href="../" style="color: var(--accent)">Startsidan</a> ·
     <a href="../renderingar/" style="color: var(--accent)">Renderingar</a> ·
     <a href="../#handlingar" style="color: var(--accent)">Handlingar</a></div>
@@ -112,7 +115,9 @@
   title="Ta bort mätningarna">rensa</button><div id="mathjalp"></div></div>
 <div class="snapp" id="snapp"></div><div class="snapp horn" id="snappstart"></div>
 <div id="matinfo"></div>
-<div id="gahjalp">W A S D eller piltangenterna: gå · dra: titta · dubbelklick: gå dit · Skift: fortare · G: sluta gå</div>
+<div id="gahjalp">W A S D eller piltangenterna: gå · musen: titta (Esc släpper den, klick fångar den igen) ·
+  dubbelklick: gå dit (siktet) · Skift: fortare · G: sluta gå</div>
+<div id="sikte"></div>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -856,8 +861,10 @@ function narplan() {
 // ---------------------------------------------------------------- gå genom huset
 // Kameran i ögonhöjd över golvet under den, på golven och i trapporna (ett steg upp högst STEG_UPP; nedåt så långt
 // som golvet går), genom väggarna. Golvet är närmaste uppåtvända yta under kameran bland de synliga delarna. Blicken
-// styrs med musen (dra) och bildvinkeln är vågrät, som renderingarnas objektiv: öga 48° (40 mm) eller 84° (20 mm).
+// styrs med musen som i ett spel (pekaren fångas, Pointer Lock; Esc släpper den och då går det att dra) och
+// bildvinkeln är vågrät, som renderingarnas objektiv: öga 48° (40 mm) eller 84° (20 mm).
 const OGA = 1.6, STEG_UPP = 0.45, GA_FART = 1.4;      // ögonhöjd och högsta steg upp [m], gångfart [m/s]
+const MUS_TITT = 0.0022;                              // blickens vridning per pixel med fångad pekare [rad]
 const gaRuta = document.getElementById("gaRuta"), objektivVal = document.getElementById("objektiv");
 const blick = () => new THREE.Vector3(-Math.sin(gaende.gir), 0, -Math.cos(gaende.gir));
 function gaFov() {
@@ -899,13 +906,14 @@ function borjaGa() {
   camera.position.set(start.x, gaende.golv + OGA, start.z);
   controls.enabled = false; gaRuta.checked = true;
   document.getElementById("gahjalp").style.display = "block";
-  gaFov(); visaRiktning();
+  gaFov(); visaRiktning(); fangaMusen();
 }
 function slutaGa() {
   // rotationscentrum 2 m framför kameran, så att man kan vrida runt där man stod
   controls.target.copy(camera.position).addScaledVector(blick(), 2);
   camera.up.set(0, 1, 0);
   gaende = null; controls.enabled = true; gaRuta.checked = false; tangenter.clear();
+  if (musFangad()) document.exitPointerLock();
   document.getElementById("gahjalp").style.display = "none";
   camera.fov = 35; camera.updateProjectionMatrix();
 }
@@ -928,19 +936,41 @@ function gaSteg(dt) {
   camera.position.y += (y - camera.position.y) * Math.min(1, dt * 12);
   visaRiktning();
 }
+// blicken: med fångad pekare (Pointer Lock) vrider musens rörelse blicken som i ett spel; utan den (Esc, eller om
+// webbläsaren inte tillåter det) drar man i bilden
 let titt = null;
-renderer.domElement.addEventListener("pointerdown", e => { if (gaende && e.button === 0) titt = [e.clientX, e.clientY]; });
+const musFangad = () => document.pointerLockElement === renderer.domElement;
+function fangaMusen() {
+  if (gaende && !musFangad() && renderer.domElement.requestPointerLock)
+    Promise.resolve(renderer.domElement.requestPointerLock()).catch(() => {});
+}
+const sikte = document.getElementById("sikte");
+document.addEventListener("pointerlockchange", () => {
+  const r = renderer.domElement.getBoundingClientRect();
+  sikte.style.left = (r.left + r.width / 2) + "px"; sikte.style.top = (r.top + r.height / 2) + "px";
+  sikte.style.display = gaende && musFangad() ? "block" : "none";
+});
+renderer.domElement.addEventListener("pointerdown", e => {
+  if (!gaende || e.button !== 0 || musFangad()) return;
+  titt = [e.clientX, e.clientY]; fangaMusen();
+});
 window.addEventListener("pointermove", e => {
-  if (!gaende || !titt || !e.buttons) return;
-  const k = THREE.MathUtils.degToRad(camera.fov) / el.clientHeight;     // en pixel i radianer
-  gaende.gir += (e.clientX - titt[0]) * k; gaende.lut += (e.clientY - titt[1]) * k;
-  gaende.lut = Math.max(-1.45, Math.min(1.45, gaende.lut)); titt = [e.clientX, e.clientY];
+  if (!gaende) return;
+  if (musFangad()) {
+    gaende.gir -= e.movementX * MUS_TITT; gaende.lut -= e.movementY * MUS_TITT;
+  } else {
+    if (!titt || !e.buttons) return;
+    const k = THREE.MathUtils.degToRad(camera.fov) / el.clientHeight;     // en pixel i radianer
+    gaende.gir += (e.clientX - titt[0]) * k; gaende.lut += (e.clientY - titt[1]) * k; titt = [e.clientX, e.clientY];
+  }
+  gaende.lut = Math.max(-1.45, Math.min(1.45, gaende.lut));
 });
 window.addEventListener("pointerup", () => { titt = null; });
 renderer.domElement.addEventListener("dblclick", e => {
   if (!gaende) return;
   const r = renderer.domElement.getBoundingClientRect();
-  mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  const [x, y] = musFangad() ? [r.left + r.width / 2, r.top + r.height / 2] : [e.clientX, e.clientY];   // siktet
+  mus.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
   stral(mus);
   const t = traffLangsStralen()[0];
   if (!t) return;
