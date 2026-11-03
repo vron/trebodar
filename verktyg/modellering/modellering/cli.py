@@ -433,6 +433,16 @@ def main(argv: list[str] | None = None) -> None:
             geodata.hamta(float(lat[0]), float(lon[0]), cfg["radie"] + 300.0, str(mapp))
         besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
         print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
+        terr = ROT / cfg.get("terrang", "lokalt/terrang")
+        if (terr / "hojd").is_dir():
+            from . import terrang
+            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd)
+            na = st["nara"]
+            print(f"  Lantmäteriets höjder ur {terr}; tomten {na['nx']}×{na['ny']} celler à {na['cell']} m, "
+                  f"{st['uteslutna']} markpunkter avviker mer än {terrang.RATT_MAX} m och räknas inte")
+            print("  inmätta punkter mot Lantmäteriet (median avvikelse, median |avvikelse| före och efter rättningen):")
+            for k, (antal, med, fore, efter, mark) in st["punkter"].items():
+                print(f"    {k:8s} {antal:4d}  {med:+.3f}  {fore:.3f} → {efter:.3f} m" + ("" if mark else "  (föremål)"))
         return
     t0 = time.perf_counter()
     rot = valj(ladda(), getattr(arg, "vag", None))

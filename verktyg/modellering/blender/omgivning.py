@@ -19,30 +19,60 @@ from graf import Graf, rgba
 
 STRALAR = 1440
 RINGAR = 120
+NARA_STEG = 0.3                 # ringarnas avstånd över tomten (det fina rutnätet)
+OVERGANG = 5.0                  # från modellens mark till höjdmodellen [m] (med det fina rutnätet)
+
+
+def _bilinjar(z: np.ndarray, x0: float, y0: float, cell: float, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    ny, nx = z.shape
+    fx = np.clip((x - x0) / cell, 0, nx - 1.001)
+    fy = np.clip((y - y0) / cell, 0, ny - 1.001)
+    j, i = fx.astype(int), fy.astype(int)
+    tx, ty = fx - j, fy - i
+    return (z[i, j] * (1 - tx) * (1 - ty) + z[i, j + 1] * tx * (1 - ty) + z[i + 1, j] * (1 - tx) * ty
+            + z[i + 1, j + 1] * tx * ty)
 
 
 class Rutnat:
-    """Höjdmodellen: modellens z (m) i ett rutnät med cellen cell från (x0, y0)."""
+    """Höjdmodellen: modellens z (m) i ett rutnät med cellen cell från (x0, y0), och över tomten ett fint rutnät
+    (nara, ur Lantmäteriets markhöjdmodell och inmätningarna, modellering/terrang.py) där det finns."""
 
     def __init__(self, mapp: str):
         self.besk = json.load(open(os.path.join(mapp, "omgivning.json"), encoding="utf-8"))
         b = self.besk
         self.n, self.cell, self.x0, self.y0 = b["n"], b["cell"], b["x0"], b["y0"]
         self.z = np.fromfile(os.path.join(mapp, "hojd.f32"), dtype=np.float32).reshape(self.n, self.n)
+        self.nara = b.get("nara")
+        if self.nara and os.path.exists(os.path.join(mapp, "nara.f32")):
+            na = self.nara
+            self.zn = np.fromfile(os.path.join(mapp, "nara.f32"), dtype=np.float32).reshape(na["ny"], na["nx"])
+        else:
+            self.nara = None
         self.mapp = mapp
 
     @property
     def radie(self) -> float:
         return self.cell * (self.n - 1) / 2
 
+    @property
+    def nara_radie(self) -> float:
+        """Avståndet från rutnätets mitt där det fina rutnätet slutar (det minsta, 0 utan det)."""
+        if not self.nara:
+            return 0.0
+        na = self.nara
+        mx, my = self.x0 + self.radie, self.y0 + self.radie
+        return float(min(mx - na["x0"], na["x0"] + na["cell"] * (na["nx"] - 1) - mx,
+                         my - na["y0"], na["y0"] + na["cell"] * (na["ny"] - 1) - my))
+
     def hojd(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        fx = np.clip((x - self.x0) / self.cell, 0, self.n - 1.001)
-        fy = np.clip((y - self.y0) / self.cell, 0, self.n - 1.001)
-        j, i = fx.astype(int), fy.astype(int)
-        tx, ty = fx - j, fy - i
-        z = self.z
-        return (z[i, j] * (1 - tx) * (1 - ty) + z[i, j + 1] * tx * (1 - ty) + z[i + 1, j] * (1 - tx) * ty
-                + z[i + 1, j + 1] * tx * ty)
+        z = _bilinjar(self.z, self.x0, self.y0, self.cell, x, y)
+        if self.nara:
+            na = self.nara
+            inne = ((x >= na["x0"]) & (x <= na["x0"] + na["cell"] * (na["nx"] - 1)) & (y >= na["y0"])
+                    & (y <= na["y0"] + na["cell"] * (na["ny"] - 1)))
+            zn = _bilinjar(self.zn, na["x0"], na["y0"], na["cell"], x, y)
+            z = np.where(inne & np.isfinite(zn), zn, z)
+        return z
 
 
 def inre_ring(mitt: tuple[float, float], z_bas: float, terrang: str, vinklar: int = STRALAR
@@ -90,6 +120,11 @@ def mark(mitt: tuple[float, float], inre: list[tuple[float, float, float]], rut:
     yttre = rut.radie - 30.0 if rut else radie
     k = np.arange(RINGAR + 1) / RINGAR
     avst = yttre * k ** 2.3
+    if rut and rut.nara:
+        # över tomten ringar tätt (NARA_STEG), så att det fina rutnätets former kommer med, sedan glesare utåt
+        r_n = max(rut.nara_radie - 5.0, 10.0)
+        tata = np.arange(0.0, r_n, NARA_STEG)
+        avst = np.concatenate([tata, r_n + (yttre - r_n) * (np.arange(1, RINGAR + 1) / RINGAR) ** 2.3])
     th = np.array([t for t, _, _ in inre])
     r0 = np.array([r for _, r, _ in inre])
     z0 = np.array([z for _, _, z in inre])
@@ -103,10 +138,10 @@ def mark(mitt: tuple[float, float], inre: list[tuple[float, float, float]], rut:
         zf = zf * (1 - kant) + (rut.besk["z_hav"] - 3.0) * kant
     else:
         zf = z_bas + np.zeros_like(X)
-    w = np.exp(-avst / 20.0)[None, :]
+    w = np.exp(-avst / (OVERGANG if rut and rut.nara else 20.0))[None, :]
     Z = w * z0[:, None] + (1 - w) * zf
     verts = np.stack([X, Y, Z], axis=-1).reshape(-1, 3)
-    n, kk = len(inre), RINGAR + 1
+    n, kk = len(inre), len(avst)
     i = np.arange(n)[:, None]
     a = np.arange(kk - 1)[None, :]
     j = (i + 1) % n
