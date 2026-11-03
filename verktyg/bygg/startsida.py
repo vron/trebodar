@@ -35,6 +35,10 @@ GRUPPER = {"ute": "Exteriör", "inne": "Interiör", "teknik": "Stomme och teknik
 STATUS = {"klar": "Klar", "upprattas": "Upprättas", "inlamnad": "Inlämnad", "ej aktuell": "Ej aktuell"}
 MANAD = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober",
          "november", "december"]
+# rutornas bredd i galleriet (img sizes), så att webbläsaren väljer den minsta bilden som räcker; de två första rutorna
+# är större (STOR, sätts av skriptet)
+RUTA = "(max-width: 560px) 100vw, (max-width: 960px) 50vw, (max-width: 1440px) 29vw, 420px"
+STOR = "(max-width: 960px) 100vw, (max-width: 1440px) 44vw, 630px"
 SKALSTOCK = 5000.0                # planernas skalstock [mm]
 SVG_TEXT = 300.0                  # rumsnamnens höjd i planerna [mm]
 
@@ -202,7 +206,7 @@ def html_galleri(bl: list[dict]) -> tuple[str, str]:
         urval = "" if b["urval"] is None else f' data-urval="{b["urval"]}"'
         figurer.append(f'<figure data-grupp="{b["grupp"]}"{urval}><button type="button" data-i="{i}" '
                        f'aria-label="Visa {e(b["text"])}">'
-                       + html_bild(b, "(max-width: 560px) 100vw, (max-width: 960px) 50vw, 34vw")
+                       + html_bild(b, RUTA)
                        + f'</button><figcaption>{e(b["text"])}</figcaption></figure>')
     antal = {g: sum(b["grupp"] == g for b in bl) for g in GRUPPER}
     knappar = ([("urval", "Urval", sum(b["urval"] is not None for b in bl))]
@@ -311,6 +315,8 @@ def bygg(rot: Path, rapporter: dict[str, dict], version: str) -> Path:
         "byggd": f"{nu.day} {MANAD[nu.month - 1]} {nu.year}",
         "repo": REPO,
         "bilddata": json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
+        "ruta": RUTA,
+        "stor": STOR,
     }
     sida = MALL.read_text(encoding="utf-8")
     for k, v in ersatt.items():

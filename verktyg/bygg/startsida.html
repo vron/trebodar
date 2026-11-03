@@ -386,6 +386,7 @@
 <script>
 const $ = id => document.getElementById(id);
 const BILDER = JSON.parse($("bilddata").textContent);
+const RUTA = "<!--@ruta-->", STOR = "<!--@stor-->";       // bildernas bredd i rutnätet (img sizes)
 const topp = $("topp"), galleri = $("galleri"), ljus = $("ljus"), ljusbild = $("ljusbild");
 const figurer = [...galleri.querySelectorAll("figure")];
 
@@ -409,8 +410,12 @@ function filtrera(filter) {
   const ordning = filter === "urval" ? [...figurer].sort((a, b) => plats(a) - plats(b)) : figurer;
   for (const f of ordning) galleri.appendChild(f);
   synliga = ordning.filter(med);
-  figurer.forEach(f => { f.hidden = !med(f); f.classList.remove("stor"); });
-  synliga.slice(0, 2).forEach(f => f.classList.add("stor"));
+  for (const f of figurer) {                              // de två första rutorna är större
+    const i = synliga.indexOf(f), stor = i === 0 || i === 1;
+    f.hidden = i < 0;
+    f.classList.toggle("stor", stor);
+    f.querySelector("img").sizes = stor ? STOR : RUTA;
+  }
 }
 for (const k of document.querySelectorAll(".chip")) k.addEventListener("click", () => filtrera(k.dataset.filter));
 const forsta = document.querySelector(".chip");
