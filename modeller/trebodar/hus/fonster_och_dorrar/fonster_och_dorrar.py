@@ -9,8 +9,10 @@ aluminium vattnet ut över panelen. Invändigt går väggens skikt fram till kar
 av oljad ask 20 mm i liv med karmens kant, med fibrerna längs varje bit: sidorna, överstycket och fönsterbänken med
 20 mm utstick och öron 30 mm (dörrarna har ingen); i badrummet kakel runt om. Med smyglister (oppningar.SMYGLIST > 0)
 slutar insidans skivor längre från karmen och lister av ask i skivornas tjocklek går runt smygen, sidorna från
-fönsterbänken (dörrarna från golvet) och överstycket över dem, och fönsterbänkens öron blir lika mycket längre. Källarens fönster sitter i
-cellplastens smyg; smygens och bröstningens gips hör till källarväggarnas insida (invandigt/kallare.py).
+fönsterbänken (dörrarna från golvet) och överstycket över dem, och fönsterbänkens öron blir lika mycket längre. Källarens fönster
+och dess ytterdörr D1 (en pardörr) sitter i cellplastens smyg; smygens och bröstningens gips hör till källarväggarnas
+insida (invandigt/kallare.py). Ytterdörrarnas blad har stående panel i den andra kulören än fasaden runt dem
+(material.DORRPANEL: grått i det röda huset och tvärtom).
 """
 from __future__ import annotations
 
@@ -21,7 +23,7 @@ from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
 from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
-from trebodar.material import ALUMINIUM, ASK, FURU, KAKEL, KARM, MINERALULL
+from trebodar.material import ALUMINIUM, ASK, DORRPANEL, FURU, KAKEL, KARM, MINERALULL
 
 from .oppningar import BLECK_T, DORRAR, FICKA_UT, INDRAG, INNERDORRAR, OPPNINGAR, SMYGLIST, Innerdorr, Oppning
 
@@ -43,7 +45,10 @@ def enhet(o: Oppning) -> Montage:
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (modul)" +
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
     plac = Placering.flytt(o.u0 + F.DREV, w_karm, o.z0 + F.DREV)
-    for i in funktion(o.kod, b, h, ALUMINIUM[int(o.vagg[0])]).barn:
+    kropp = int(o.vagg[0])
+    produkt = (funktion(o.kod, b, h, ALUMINIUM[kropp], DORRPANEL[kropp]) if o.typ in F.MED_PANEL else
+               funktion(o.kod, b, h, ALUMINIUM[kropp]))
+    for i in produkt.barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)
     # drevningen i regelverket; där karmen går längre in (skjutdörren) går insidans skikt fram till den
     w_drev = min(w_karm, S.T_STOMME)

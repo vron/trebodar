@@ -22,15 +22,17 @@ Ritningarna (Inwido):
 """
 from __future__ import annotations
 
+import math
+
 from collections.abc import Callable, Sequence
 
 from modellering import Del, Form, Montage, Placering, Union, box, polyeder
 
 from trebodar.byggdelar.polygon import prisma_x
-from trebodar.byggdelar.virke import fmt
+from trebodar.byggdelar.virke import fmt, virke_i_lada
 from modellering import Material
 
-from trebodar.material import DORRBLAD, FONSTERTRA, GLAS, HARDTRA
+from trebodar.material import C24_LAKT, DORRBLAD, FONSTERTRA, GLAS, HARDTRA
 
 Sidor = tuple[float, float, float, float]          # vänster, höger, under, över
 Profil = Sequence[tuple[float, Sidor]]             # (d, sidor) runt en sluten polygon
@@ -121,7 +123,10 @@ V_BAGE, V_GLAS = (43.0, 43.0, 44.0, 41.5), (104.0, 104.0, 105.5, 101.5)   # båg
 F_GLAS = _alla(53.5)
 D_LAPP, D_STOMME, D_BOTTEN = (52.0, 52.0, 42.0, 53.5), (37.5, 37.5, 28.0, 39.5), 20.5
 D_BAGE, D_GLAS = (41.0, 41.0, 31.0, 41.5), (103.5, 103.5, 94.0, 107.0)
-D_BLAD = 68.0               # ytterdörrens blad
+# ytterdörrarnas blad (ärende #33): en kärna av plywood, liggande läkt och stående panel utanpå, som fasaden
+B_KARNA, B_LAKT, B_PANEL = 44.0, 22.0, 22.0
+B_LAKT_B, B_LAKT_CC = 70.0, 400.0        # läkten: bredd och c/c (högst), nedtill och upptill på bladet
+P_HUVUD, P_MOTE = 900.0, 4.0             # pardörren: huvudbladet (till höger sett utifrån) och glipan mellan bladen
 
 
 def vridfonster(kod: str, b: float, h: float, alu: Material) -> Montage:
@@ -178,13 +183,40 @@ def fonsterdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     return m
 
 
-def ytterdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
-    """Ytterdörr (huvudentrén): dörrkarmen som fönsterdörrens och ett tätt dörrblad i bågens kontur."""
+def _blad(m: Montage, kod: str, x0: float, x1: float, z0: float, z1: float, panel: Material, namn: str) -> None:
+    """Ett ytterdörrblad i bågens kontur: kärnan, liggande läkt (nedtill, upptill och c/c högst B_LAKT_CC) och
+    stående panel utanpå."""
+    y = -BAGE_IN - B_KARNA
+    m.lagg(Del(f"Dörrblad {_matt(x1 - x0, z1 - z0)}×{fmt(B_KARNA)}", box(x0, x1, y, -BAGE_IN, z0, z1), DORRBLAD),
+           Placering(), f"{kod}-{namn}")
+    n = max(1, math.ceil((z1 - z0 - B_LAKT_B) / B_LAKT_CC))
+    for i in range(n + 1):
+        z = z0 + i * (z1 - z0 - B_LAKT_B) / n
+        d, pl = virke_i_lada(x0, x1, y - B_LAKT, y, z, z + B_LAKT_B, "x", C24_LAKT)
+        m.lagg(d, pl, f"{kod}-{namn}-L{i + 1}")
+    y -= B_LAKT
+    m.lagg(Del(f"{panel.namn.replace('Dörrpanel', 'Panel 22 mm')} {_matt(x1 - x0, z1 - z0)}",
+               box(x0, x1, y - B_PANEL, y, z0, z1), panel), Placering(), f"{kod}-{namn}-PANEL")
+
+
+def ytterdorr(kod: str, b: float, h: float, alu: Material, panel: Material) -> Montage:
+    """Ytterdörr (huvudentrén): dörrkarmen som fönsterdörrens och ett blad med panel i bågens kontur."""
     m = Montage(kod, kod, f"Ytterdörr, karm {_matt(b, h)}")
     _dorrkarm(m, kod, b, h, "ytterdörr", f"Ytterdörr, karm {_matt(b, h)}", alu)
     v, hg, u, o = D_BAGE
-    m.lagg(Del(f"Dörrblad {_matt(b - v - hg, h - u - o)}×{fmt(D_BLAD)}",
-               box(v, b - hg, -BAGE_IN - D_BLAD, -BAGE_IN, u, h - o), DORRBLAD), Placering(), f"{kod}-BLAD")
+    _blad(m, kod, v, b - hg, u, h - o, panel, "BLAD")
+    return m
+
+
+def pardorr(kod: str, b: float, h: float, alu: Material, panel: Material) -> Montage:
+    """Pardörr (källaren): dörrkarmen som ytterdörrens och två blad med panel, huvudbladet P_HUVUD till höger sett
+    utifrån (växande x) och ett smalare, som öppnas ibland, till vänster."""
+    m = Montage(kod, kod, f"Pardörr, karm {_matt(b, h)}")
+    _dorrkarm(m, kod, b, h, "pardörr", f"Pardörr, karm {_matt(b, h)}", alu)
+    v, hg, u, o = D_BAGE
+    xm = b - hg - P_HUVUD - P_MOTE / 2                     # mötet mellan bladen
+    _blad(m, kod, v, xm - P_MOTE / 2, u, h - o, panel, "BLAD1")
+    _blad(m, kod, xm + P_MOTE / 2, b - hg, u, h - o, panel, "BLAD2")
     return m
 
 
@@ -256,6 +288,7 @@ def skjutdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     return m
 
 
-PRODUKTER: dict[str, tuple[Callable[[str, float, float, Material], Montage], float]] = {
+PRODUKTER: dict[str, tuple[Callable[..., Montage], float]] = {
     "vridfönster": (vridfonster, DJUP), "fast fönster": (fast_karm, DJUP), "fönsterdörr": (fonsterdorr, DJUP),
-    "ytterdörr": (ytterdorr, DJUP), "skjutdörr": (skjutdorr, S_DJUP)}
+    "ytterdörr": (ytterdorr, DJUP), "pardörr": (pardorr, DJUP), "skjutdörr": (skjutdorr, S_DJUP)}
+MED_PANEL = ("ytterdörr", "pardörr")        # produkterna med panel (anropas med panelens material)

@@ -365,7 +365,10 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
   överkanten och ett fönsterbleck med fall och droppnäsa under fönstren. Typerna: vridfönster 10×10 och 8×8 och i
   källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
-  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt går
+  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Ytterdörrarna
+  (ärende #33): huvudentrén 1SO-D1 och källarens pardörr D1 (i 3NO:s system under bjälklaget, ett blad 900 till höger
+  sett utifrån och ett smalare som öppnas ibland) har blad av en plywoodkärna 44, liggande läkt och stående panel
+  utanpå, i den andra kulören än fasaden runt dem (grå järnvitriol i det röda huset, falu rödfärg i det grå). Invändigt går
   väggens skikt och installationsläkten fram till karmens linje, och smygen och fönsterbänken är oljad ask 20 mm med
   fibrerna längs varje bit (med smyglister, `SMYGLIST` > 0, lister av ask runt smygen i skivornas tjocklek); i
   badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).

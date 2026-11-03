@@ -6,8 +6,8 @@ Huvudentrén 1SO-D1 (planritning 201) saknades i Onshape-modellen; bara öppning
 fönster F1–F3 (R-05) står i väggen 2NO:s system under bjälklaget. Fasaden, isoleringen och insidan får hål här och
 fönster- och dörrmodulen sätter produkterna i dem.
 
-Typerna: "vridfönster", "fast fönster", "fönsterdörr" (helglasad), "skjutdörr" (lyftglid, fyra delar) och
-"ytterdörr".
+Typerna: "vridfönster", "fast fönster", "fönsterdörr" (helglasad), "skjutdörr" (lyftglid, fyra delar),
+"ytterdörr" och "pardörr" (källarens dörr D1, i väggen 3NO:s system under bjälklaget).
 """
 from __future__ import annotations
 
@@ -84,7 +84,7 @@ _R = (
     ("3SV", "vridfönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
     ("3SV", "fast fönster", 2775, 3675, 0, 2100, "wdoor_21x9_gray"),
 )
-DORRAR = ("fönsterdörr", "skjutdörr", "ytterdörr")
+DORRAR = ("fönsterdörr", "skjutdörr", "ytterdörr", "pardörr")
 
 
 def _numrera() -> dict[str, list[Oppning]]:
@@ -113,8 +113,25 @@ def _kallarfonster() -> list[Oppning]:
     return ut
 
 
+def _kallardorr() -> list[Oppning]:
+    """Källarens ytterdörr D1 (pardörr, ärende #33) i fasadens plan ovanför, väggen 3NO (cellplastens utsida i
+    w = 0): mellan smygarnas cellplast och från bottenplattan till bjälklagets underkant (kallarvaggar)."""
+    v = S.YTTERVAGGAR["3NO"]
+    vaggar = {k.namn: k for k in K.VAGGAR}
+    ut = []
+    for namn, va, vb, zb in K.OPPNINGAR:
+        a, b = vaggar[va], vaggar[vb]
+        if zb > 0 or a.typ != "yttre":
+            continue
+        assert a.riktning == b.riktning == "h" and abs(a.c - K.KARNA / 2 - K.CELL - v.origo[1]) < 1e-6
+        x0, x1 = max(a.a, a.b) + K.CELL, min(b.a, b.b) - K.CELL
+        ut.append(Oppning(namn, "3NO", "pardörr", x0 - v.origo[0], x1 - v.origo[0], K.Z0, K.Z1))
+    return ut
+
+
 OPPNINGAR = _numrera()
 OPPNINGAR["2NO"] += _kallarfonster()
+OPPNINGAR["3NO"] = OPPNINGAR.get("3NO", []) + _kallardorr()
 
 
 @dataclass(frozen=True)

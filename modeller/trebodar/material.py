@@ -56,7 +56,21 @@ PANEL_JARNVITRIOL = Material("Panel järnvitriol", "Stående panel, sågad gran 
                              rendering=rendering(**_PANEL, behandling="jarnvitriol", farg="#938f89", farg2="#3b3835",
                                                  farg3="#6d6357", kvistfarg="#1f1b18", variation=0.22, strimmor=1.5,
                                                  relief=1.6, skruvfarg="#c9cbcd"), cad="#8c8579")
-DORRBLAD = Material("Dörrblad", "Dörrblad", 500, "#3d4246", 0.5, cad="#7a7f88")
+# dörrarnas panel (ärende #33): stående panel på dörrbladet, brädorna på höjden (dörrens z), i den andra kulören än
+# fasaden runt dörren (DORRPANEL nedan)
+_DORRPANEL = {**_PANEL, "riktning": "z", "tvars": "x", "skruv_cc": 400.0, "skruv_start": 0.0}
+DORRPANEL_FALUROD = Material("Dörrpanel falu rödfärg", "Stående panel på dörrbladet, sågad gran 22 mm, Falu rödfärg",
+                             450, "#8f463a", 0.95, textur="bradpanel", enhet="m2",
+                             rendering=rendering(**_DORRPANEL, behandling="tackfarg", farg2="#743529",
+                                                 variation=0.07, genomslag=0.18, strimmor=0.5, relief=2.0,
+                                                 skruvfarg="#9a8580"), cad="#b5463a")
+DORRPANEL_JARNVITRIOL = Material("Dörrpanel järnvitriol", "Stående panel på dörrbladet, sågad gran 22 mm, järnvitriol",
+                                 450, "#7f7b74", 0.9, textur="bradpanel", enhet="m2",
+                                 rendering=rendering(**_DORRPANEL, behandling="jarnvitriol", farg="#938f89",
+                                                     farg2="#3b3835", farg3="#6d6357", kvistfarg="#1f1b18",
+                                                     variation=0.22, strimmor=1.5, relief=1.6, skruvfarg="#c9cbcd"),
+                                 cad="#8c8579")
+DORRBLAD = Material("Dörrblad", "Dörrbladets kärna, plywood", 550, "#c9a878", 0.6, cad="#d2b383")
 
 # ------------------------------------------------------------------ skivor och folier
 HDF = Material("Hårdboard", "Hårdboard (masonit) 3 mm", 950, "#6b4a2f", 0.7, enhet="m2", cad="#6b4a2f")
@@ -228,4 +242,5 @@ SKYDDSROR = Material("Skyddsrör", "Skyddsrör PE Ø110 med kollektorslangar", 3
 
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
+DORRPANEL = {1: DORRPANEL_JARNVITRIOL, 2: DORRPANEL_FALUROD, 3: DORRPANEL_FALUROD}   # den andra kulören än fasaden
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}
