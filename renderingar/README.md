@@ -1,18 +1,39 @@
 # Renderingar
 
-Inomhusbilderna I01–I30 ur den kodgenererade modellen (Blender, Cycles) och ritningen över var de är tagna.
+Inomhusbilderna I01–I30 och de andra vyerna (ute och detaljer) ur den kodgenererade modellen (Blender, Cycles),
+ritningen över var inomhusbilderna är tagna och webbplatsens sida med alla kamerorna på planerna:
+https://vron.github.io/trebodar/renderingar/.
 
 ```
-./rendera.sh                          # alla 30 i 4K (3 840 × 2 160), slutlig kvalitet, till inne/
+./rendera.sh                          # inomhusbilderna I01–I30 i 4K (3 840 × 2 160), slutlig kvalitet, till inne/
 ./rendera.sh I05 I07                  # bara några (namnen eller början av dem)
+./rendera.sh --ute                    # de andra vyerna (ute-*, detalj-*, stomme) till ute/
 ./rendera.sh --kvalitet normal        # 1 920 × 1 080 (skiss 640, utkast 1 280)
 ./rendera.sh --ljus 12 21 13:00 mulet # ett annat dagsljus: månad, dag, klocka, väder (sol, lätt mulet, mulet)
+./publicera.sh                        # alla renderade bilder till webbplatsen
+./publicera.sh I05 I07                # bara några
+./publicera.sh --lokalt               # bara till docs/renderingar/bilder (för ./bygg lokalt), utan att ladda upp
 ```
 
-Bilderna hamnar i `inne/` och versionshanteras inte. Kameraplanen [`kameraplan.pdf`](kameraplan.pdf) (I-01, i
-ritningsmallen) visar kamerornas lägen, riktningar och bildvinklar på plan 1 och i källaren med en förteckning över
-bilderna; skriptet ritar den också (`./mod kameraplan` i `verktyg/modellering`, ur STEP-filen, så bygg den först med
-`./mod bygg`).
+Bilderna hamnar i `inne/` och `ute/` och versionshanteras inte. Bredvid varje bild står vyns data när den
+renderades (`<namn>.json`: kamera, mål, objektiv, ljus, kvalitet, tid och modellens version). Kameraplanen
+[`kameraplan.pdf`](kameraplan.pdf) (I-01, i ritningsmallen) visar kamerornas lägen, riktningar och bildvinklar på
+plan 1 och i källaren med en förteckning över bilderna; skriptet ritar den också (`./mod kameraplan` i
+`verktyg/modellering`, ur STEP-filen, så bygg den först med `./mod bygg`).
+
+## På webbplatsen
+
+Sidan [renderingar](https://vron.github.io/trebodar/renderingar/) visar plan 1, källaren och huset ute med alla
+vyernas kameror (läge, riktning och bildvinkel). Ett klick på en kamera visar bilden över hela fönstret; piltangenterna
+eller ett svep går till nästa, Esc stänger, och adressen (`#<namn>`) går att dela.
+
+Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna
+renderas inte där: rendering tar för lång tid. `./publicera.sh` (`./mod publicera`) gör om de renderade bilderna till
+JPEG i tre bredder (480, 1 920 och 3 840 px), laddar upp dem med förteckningen `renderingar.json` till releasen
+[`bilder`](https://github.com/vron/trebodar/releases/tag/bilder) på GitHub (bilderna hamnar alltså inte i git) och
+startar ett nytt bygge av webbplatsen, som hämtar dem därifrån. En publicering ersätter bara de bilder den tar med;
+vyer som har tagits bort ur `vyer.py` tas bort. Kräver `gh` (inloggad). En kamera som har flyttats i `vyer.py` sedan
+bilden renderades märks på sidan, och kameror utan bild visas ofyllda.
 
 ## Bilderna
 

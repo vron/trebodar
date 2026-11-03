@@ -20,8 +20,8 @@ Husets modell är koden i `modeller/trebodar/` (se dess README): geometriskript 
 - `modeller/` – `trebodar/` den kodgenererade modellen, `referens/` Onshape-modellen (fryst), balkar och balkplåtar som STEP (med DXF). `modeller/modell-todo.md` listar det som ska ändras i modellen för att stämma med handlingarna. Lägg till punkter när handlingarna kräver något som modellen saknar, och ta bort dem när modellen är uppdaterad.
 - `verktyg/modellering/` – ramverket som bygger modellen: kärna (OCCT, cache, parallellt), export (STEP, GLB, materiallista), kontroll av krockar och kontakter, jämförelse med referensen, rendering (Blender) och webbvisaren.
 - `verktyg/modellanalys/` – verktyg för STEP-modellen och kontroller av handlingarna mot den (`kontroll_*.py`, redovisning i `granskning/`). Kontrollerna läser den kodgenererade modellen (bygg den först med `./mod bygg`).
-- `renderingar/` – inomhusbilderna I01–I30 i 4K (`rendera.sh`; bilderna versionshanteras inte) och kameraplanen (`./bygg kameraplan`).
-- `docs/` – webbplatsen: webbvisaren (three.js) med modellen och `handlingar/` med rapporterna, ritningarna och kameraplanen. Byggs av `./bygg`; GitHub Actions bygger den ur `main` och publicerar den med GitHub Pages på https://vron.github.io/trebodar/.
+- `renderingar/` – inomhusbilderna I01–I30 och de andra vyerna i 4K (`rendera.sh`; bilderna versionshanteras inte), kameraplanen (`./bygg kameraplan`) och `publicera.sh`, som lägger ut bilderna på webbplatsen via releasen `bilder` på GitHub (inte i git).
+- `docs/` – webbplatsen: webbvisaren (three.js) med modellen, `handlingar/` med rapporterna, ritningarna och kameraplanen och `renderingar/` med kamerorna på planerna och bilderna. Byggs av `./bygg`; GitHub Actions bygger den ur `main`, hämtar de publicerade bilderna ur releasen `bilder` och publicerar den med GitHub Pages på https://vron.github.io/trebodar/.
 - `verktyg/bygg/` – `./bygg` (i roten): bygger allt som genereras ur källorna i beroendeordning. `.github/workflows/bygg.yml` kör det i GitHub Actions.
 
 ## Arbetssätt

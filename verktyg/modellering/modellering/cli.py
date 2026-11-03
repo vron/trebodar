@@ -249,6 +249,15 @@ def main(argv: list[str] | None = None) -> None:
                     help="kontroll: böjarna, genomföringarna och krockarna mot husets delar och de andra installationerna")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
+    pk.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar",
+                    help="sidan med renderingarna på planerna (index.html och plan.json)")
+    pp = sub.add_parser("publicera", help="publicera de renderade bilderna på webbplatsen (releasen bilder på GitHub)")
+    pp.add_argument("vyer", nargs="*", help="vyernas namn eller början av dem (standard: alla renderade)")
+    pp.add_argument("--fran", type=Path, nargs="+", default=[ROT / "renderingar" / "inne", ROT / "renderingar" / "ute"],
+                    help="mapparna med bilderna (png och sidodata, ./mod rendera)")
+    pp.add_argument("--lokalt", action="store_true",
+                    help="bara till docs/renderingar/bilder, utan att ladda upp eller bygga om webbplatsen")
+    pp.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar")
     pm = sub.add_parser("materialprov", help="ett material på skåpluckor, bänkskiva och brädor (Blender)")
     pm.add_argument("material", help="materialets namn i modellen, t.ex. Ask")
     pm.add_argument("--param", nargs="*", default=[], help="ändrade parametrar, t.ex. yta=lack lamell=y")
@@ -361,6 +370,17 @@ def main(argv: list[str] | None = None) -> None:
         kameraplan.rita(plan1, kallare, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), _norr(), arg.ut,
                         UT / "kameraplan")
         print(f"  {arg.ut}")
+        from modellering import renderingar
+        sida = renderingar.webb(plan1, kallare, vy_mod.VYER, vy_mod.INNE, vy_mod.RUMSNAMN, list(skel.TRAPPHAL), _norr(),
+                                arg.webb)
+        print(f"  {sida}")
+        return
+    if arg.kommando == "publicera":
+        from modellering import renderingar
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        vy_mod = importlib.import_module("trebodar.vyer")
+        renderingar.publicera(arg.fran, arg.vyer, arg.webb, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt)
         return
     if arg.kommando == "materialprov":
         import json
@@ -466,13 +486,19 @@ def main(argv: list[str] | None = None) -> None:
             valda = {"ute": vy_mod.VYER, "inne": getattr(vy_mod, "INNE", {}), "alla": alla}[arg.serie]
         if not valda:
             raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
-        vyer = {}
+        from . import renderingar
+        vyer, vyljus = {}, {}
         tand = {g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
         for namn, v in valda.items():
             m, d, k, w = arg.ljus or v["ljus"]
+            vyljus[namn] = [int(m), int(d), k, w]
             vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev,
                           "tand": {**dict(v.get("tand", {})), **tand}}
-        _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend)
+        start = time.time()
+        try:
+            _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend)
+        finally:                       # även när Blender stannar efter några bilder
+            renderingar.sidodata(arg.ut, valda, vyljus, arg.kvalitet, start)
     elif arg.kommando == "ljusplan":
         import json
         import numpy as np

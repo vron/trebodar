@@ -4,6 +4,7 @@ Konstruktionshandlingar för Fritidshus Trebodar, Resö, Tanum: den kodgenererad
 
 - **Modellen i 3D:** https://vron.github.io/trebodar/
 - **Handlingarna** (rapporter, ritningar och kameraplanen, byggda ur `main`): https://vron.github.io/trebodar/handlingar/
+- **Renderingarna** på planerna (klicka på en kamera för bilden; renderas lokalt och publiceras med `renderingar/publicera.sh`): https://vron.github.io/trebodar/renderingar/
 
 Webbplatsen byggs och publiceras av GitHub Actions ([`.github/workflows/bygg.yml`](.github/workflows/bygg.yml)) vid varje push till `main`. En tagg `rev-*` på `main` (t.ex. `rev-B`) publicerar dessutom handlingarna som en release.
 

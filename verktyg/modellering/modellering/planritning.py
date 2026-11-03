@@ -23,7 +23,7 @@ if str(ROT / "beräkningar" / "ritningsmall") not in sys.path:
 from ritning import Blad, Vy, figur, huvud, sv, svm  # noqa: E402   (ritningsmallen)
 
 __all__ = ["Blad", "Vy", "figur", "sv", "svm", "MINSTA_HAL", "UTOM", "VAGGAR", "blad", "kompilera", "norrpil",
-           "origo", "papper", "plan", "polygoner", "rita_ytor", "sektion", "snitt", "vy"]
+           "origo", "papper", "plan", "plan_ytor", "polygoner", "rita_ytor", "sektion", "snitt", "vy"]
 
 # delarna som inte ritas i planerna (sökvägens början)
 UTOM = ("Mark/", "Hus/Armering", "Hus/Grund/Plattan", "Hus/Grund/Fasadsten", "Hus/Installationer", "Hus/Tak")
@@ -75,10 +75,10 @@ def rita_ytor(v: Vy, g: Any, fyll: str | None, stil: str | None, minsta_hal: flo
                       hal=[list(r.coords) for r in p.interiors if Polygon(r).area >= minsta_hal])
 
 
-def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> None:
-    """Planens snitt i vyn: väggarna (stomme, invändigt, fasad och isolering) som en sammanhängande yta (hålrummen
-    fyllda), betongen (grund, bjälklag), stålrören, fönster och dörrar (glaset ljusblått), trappan och kaminen; övrigt
-    med tunn linje. ram: bara inom den ytan (en del av planet)."""
+def plan_ytor(delar: list[dict], vagg: str = VAGG) -> list[tuple[Any, str | None, str | None]]:
+    """Planens snitt som ytor i ritordning (geometri, fyllning, linje): väggarna (stomme, invändigt, fasad och
+    isolering) som en sammanhängande yta, betongen (grund, bjälklag), stålrören, fönster och dörrar (glaset
+    ljusblått), trappan och kaminen; övrigt utan fyllning."""
     grupper: list[list[Any]] = [[] for _ in range(len(PLAN) + 2)]
     for d in delar:
         if d["sokvag"].startswith(UTOM):
@@ -89,11 +89,15 @@ def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> None:
             i = next((j for j, (pre, _, _) in enumerate(PLAN) if d["sokvag"].startswith(pre)), len(PLAN) + 1)
         grupper[i] += polygoner([d])
     stilar = [(f if i else vagg, s) for i, (_, f, s) in enumerate(PLAN)] + [(GLAS, "fin"), (None, "fin")]
+    return [(unary_union(ytor), fyll, stil) for ytor, (fyll, stil) in zip(grupper, stilar) if ytor]
+
+
+def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> None:
+    """Planens snitt i vyn (plan_ytor), med hålrummen i väggarna fyllda. ram: bara inom den ytan (en del av
+    planet)."""
     with v.lager("snitt"):
-        for ytor, (fyll, stil) in zip(grupper, stilar):
-            if ytor:
-                u = unary_union(ytor)
-                rita_ytor(v, u if ram is None else u.intersection(ram), fyll, stil, MINSTA_HAL)
+        for u, fyll, stil in plan_ytor(delar, vagg):
+            rita_ytor(v, u if ram is None else u.intersection(ram), fyll, stil, MINSTA_HAL)
 
 
 # sektionernas ytor i ritordning (sökvägens början, fyllning, linje); delarna i en grupp slås ihop till en yta

@@ -76,7 +76,8 @@ STEG = [
     Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL,
          utdata=["docs/index.html", "docs/vyer.json", "docs/modell/trebodar.glb"]),
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
-         bygger_pa=["modell"], utdata=["renderingar/kameraplan.pdf"], miljoer=["ma"]),
+         bygger_pa=["modell"], miljoer=["ma"],
+         utdata=["renderingar/kameraplan.pdf", "docs/renderingar/index.html", "docs/renderingar/plan.json"]),
     Steg("granskning", "verktyg/modellanalys", [["ma", "kontroll_laster.py"]],
          kallor=[f"{BER}/{nr}" for nr in ("F-01", "K-01", "K-05", "K-06")], bygger_pa=["modell"],
          utdata=["verktyg/modellanalys/granskning/ytterväggens_läge.png"]),
@@ -294,7 +295,7 @@ def webbplats() -> None:
 <main>
 <h1>Fritidshus Trebodar – handlingar</h1>
 <p>Byggda ur källorna i <a href="https://github.com/vron/trebodar">vron/trebodar</a> ({version}, {tid}).
-<a href="../">Modellen i 3D</a></p>
+<a href="../">Modellen i 3D</a> · <a href="../renderingar/">Renderingar</a></p>
 {chr(10).join(rader)}
 </main>
 </body>

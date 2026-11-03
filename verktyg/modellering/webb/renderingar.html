@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trebodar – renderingar</title>
+<!-- Renderingarna på planerna: plan.json (./mod kameraplan, ur modellen) och bilder/ (./mod publicera, releasen
+     bilder på GitHub). Se verktyg/modellering/modellering/renderingar.py. -->
+<style>
+  :root { --bg: #f4f3ef; --panel: #ffffff; --ink: #222; --dim: #777; --accent: #2f6f8f; --papper: #fbfaf7;
+          --linje: #3a3a3a; --rumtext: #8a8780; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1d20; --panel: #26292d; --ink: #e8e6e1; --dim: #9a9a9a;
+          --accent: #6fb3d3; } }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.35 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; }
+  h1 { font-size: 17px; margin: 0; white-space: nowrap; }
+  nav.flikar { display: flex; border: 1px solid #8886; border-radius: 6px; overflow: hidden; }
+  nav.flikar button { font: inherit; padding: 5px 14px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+  nav.flikar button + button { border-left: 1px solid #8886; }
+  nav.flikar button.vald { background: var(--accent); color: #fff; }
+  label { white-space: nowrap; cursor: pointer; }
+  .lankar { margin-left: auto; white-space: nowrap; } .lankar a { color: var(--accent); margin-left: 10px; }
+  main { position: relative; flex: 1; min-height: 0; margin: 0 16px 16px; border-radius: 8px; overflow: hidden;
+         background: var(--papper); box-shadow: 0 0 0 1px #0001, 0 1px 6px #0001; }
+  #plan { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; user-select: none; }
+  #plan.drar { cursor: grabbing; }
+  .yta { vector-effect: non-scaling-stroke; stroke-linejoin: round; fill-rule: evenodd; }
+  .yta.tunn { stroke: var(--linje); stroke-width: .6px; } .yta.fin { stroke: var(--linje); stroke-width: .35px; }
+  .trappa { fill: none; stroke: var(--linje); stroke-width: .6px; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
+  .rum { fill: var(--rumtext); font-style: italic; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .kamera { cursor: pointer; }
+  .kamera .kil { fill-opacity: .16; stroke-width: .8px; vector-effect: non-scaling-stroke; }
+  .kamera .axel { stroke-width: .8px; vector-effect: non-scaling-stroke; }
+  .kamera .punkt { stroke: #fff; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+  .kamera .tr { fill: transparent; }
+  .kamera text { font-weight: 600; text-anchor: middle; dominant-baseline: middle; paint-order: stroke;
+                 stroke: var(--papper); stroke-width: 3px; stroke-linejoin: round; }
+  .kamera:hover .kil, .kamera.aktiv .kil { fill-opacity: .32; }
+  .kamera.saknas { cursor: default; } .kamera.saknas .kil { fill-opacity: .05; stroke-dasharray: 3 2; }
+  .kamera.saknas .punkt { fill: var(--papper) !important; stroke-width: 1.5px; }
+  .kamera.flyttad .punkt { stroke: #e8590c; stroke-width: 2.5px; }
+  .dold { display: none; }
+  #norr { position: absolute; top: 12px; right: 12px; width: 34px; height: 46px; pointer-events: none; }
+  #skala { position: absolute; right: 12px; bottom: 10px; font-size: 11px; color: #555; text-align: right; pointer-events: none; }
+  #skala div { height: 5px; border: 1px solid #555; border-top: 0; margin-top: 2px; margin-left: auto; }
+  #status { position: absolute; left: 10px; bottom: 8px; max-width: calc(100% - 140px); font-size: 12px; color: #555;
+            pointer-events: none; background: #fbfaf7d9; padding: 2px 6px; border-radius: 4px; }
+  #hem { position: absolute; top: 10px; left: 10px; font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 4px;
+         border: 1px solid #8886; background: #fffc; color: #333; cursor: pointer; }
+  #tips { position: fixed; z-index: 5; pointer-events: none; display: none; width: 240px; background: var(--panel);
+          color: var(--ink); border-radius: 6px; box-shadow: 0 2px 14px rgba(0,0,0,.28); overflow: hidden; font-size: 12.5px; }
+  #tips img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #0002; }
+  #tips div { padding: 6px 8px; } #tips small { display: block; color: var(--dim); }
+  #ljus { position: fixed; inset: 0; z-index: 10; background: #000; display: none;
+          grid-template-rows: 1fr auto; touch-action: pan-y; }
+  #ljus.oppen { display: grid; }
+  #ljus figure { margin: 0; min-height: 0; display: grid; place-items: center; padding: 2vh 2vw 0; }
+  #bild { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 0 40px #000; background: #111; }
+  #bildtext { color: #ddd; font-size: 13px; padding: 10px 64px 14px; text-align: center; line-height: 1.5; }
+  #bildtext b { color: #fff; font-size: 14.5px; } #bildtext span { color: #aaa; } #bildtext a { color: #9cd0ea; }
+  #varning { color: #ffb37a !important; display: block; }
+  #ljus button { position: absolute; font: 28px/1 system-ui, sans-serif; color: #fff; background: #ffffff14; border: 0;
+                 border-radius: 50%; width: 48px; height: 48px; cursor: pointer; }
+  #ljus button:hover { background: #ffffff30; }
+  #forra { left: 10px; top: 50%; transform: translateY(-50%); } #nasta { right: 10px; top: 50%; transform: translateY(-50%); }
+  #stang { right: 10px; top: 10px; font-size: 24px !important; }
+  @media (max-width: 640px) {
+    header { padding: 8px 10px; } main { margin: 0 6px 6px; } .lankar { margin-left: 0; }
+    #bildtext { padding: 8px 12px 12px; font-size: 12px; } #ljus button { width: 40px; height: 40px; }
+    #forra, #nasta { top: auto; bottom: 8px; transform: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Trebodar – renderingar</h1>
+  <nav class="flikar" id="flikar"></nav>
+  <label><input type="checkbox" id="detalj" checked> detaljbilder</label>
+  <span class="lankar"><a href="../">Modellen i 3D</a><a href="../handlingar/">Handlingar</a></span>
+</header>
+<main>
+  <svg id="plan" xmlns="http://www.w3.org/2000/svg"><g id="ytor"></g><g id="kameror"></g></svg>
+  <button id="hem" title="hela planen">Hela planen</button>
+  <svg id="norr" viewBox="-17 -23 34 46"><g id="norrpil"><path d="M0 -18 L7 2 L0 -3 L-7 2 Z" fill="#333"/>
+    <text x="0" y="17" text-anchor="middle" font-size="12" font-weight="700" fill="#333">N</text></g></svg>
+  <div id="skala"><span></span><div></div></div>
+  <div id="status">Laddar …</div>
+</main>
+<div id="tips"><img alt=""><div><b></b><small></small></div></div>
+<div id="ljus" role="dialog" aria-modal="true" aria-label="Rendering">
+  <figure><img id="bild" alt=""></figure>
+  <div id="bildtext"></div>
+  <button id="forra" aria-label="Föregående">‹</button>
+  <button id="nasta" aria-label="Nästa">›</button>
+  <button id="stang" aria-label="Stäng">×</button>
+</div>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const FARG = { "öga": "#2c4a6e", "vid": "#b5463a", ute: "#4f7d3a", detalj: "#7a4f8f" };
+const SERIER = ["inne", "ute", "detalj"];
+const MANAD = ["jan", "feb", "mars", "apr", "maj", "juni", "juli", "aug", "sep", "okt", "nov", "dec"];
+const svg = document.getElementById("plan"), gYtor = document.getElementById("ytor"), gKam = document.getElementById("kameror");
+const $ = id => document.getElementById(id);
+const el = (namn, attr = {}, far = null) => {
+  const e = document.createElementNS(NS, namn);
+  for (const [k, v] of Object.entries(attr)) e.setAttribute(k, v);
+  if (far) far.appendChild(e);
+  return e;
+};
+const fov = lins => 2 * Math.atan(18 / lins);
+const datum = s => { const d = new Date(s); return `${d.getDate()} ${MANAD[d.getMonth()]} ${d.getFullYear()}`; };
+const ljustext = ([m, d, k, w]) => `${d} ${MANAD[m - 1]} kl. ${k.replace(":", ".")}, ${w}`;
+
+let data, bilder = {}, planNamn = "plan1", vb, aktiv = null;
+
+function farg(k) { return k.serie === "inne" ? FARG[k.objektiv] : FARG[k.serie]; }
+function synlig(k) { return k.plan === planNamn && (k.serie !== "detalj" || $("detalj").checked); }
+function flyttad(k) {
+  const b = bilder[k.namn];
+  if (!b) return false;
+  const lika = (a, c) => a.every((v, i) => Math.abs(v - c[i]) < 1);
+  return !lika(b.kamera, k.kamera) || !lika(b.mal, k.mal) || Math.abs(b.lins - k.lins) > 0.01;
+}
+// bildernas ordning i ljuslådan: planens synliga kameror med bild, inomhusbilderna först
+function ordning() {
+  return data.kameror.filter(k => synlig(k) && bilder[k.namn])
+    .sort((a, b) => SERIER.indexOf(a.serie) - SERIER.indexOf(b.serie) || a.namn.localeCompare(b.namn, "sv"));
+}
+
+// planen ----------------------------------------------------------------------------------------------------------
+function ritaPlan() {
+  const p = data.planer[planNamn];
+  gYtor.replaceChildren();
+  for (const y of p.ytor)
+    el("path", { d: y.d, class: `yta ${y.s || ""}`, fill: y.f || "none", stroke: y.s ? null : "#3a3a3a55" }, gYtor);
+  if (p.trappa) el("polygon", { class: "trappa", points: p.trappa.map(([x, y]) => `${x},${-y}`).join(" ") }, gYtor);
+  for (const r of p.rum) Object.assign(el("text", { class: "rum", x: r.x, y: -r.y }, gYtor), { textContent: r.namn });
+  gKam.replaceChildren();
+  for (const k of data.kameror.filter(synlig)) {
+    const [x, y] = k.kamera, [tx, ty] = k.mal, c = farg(k);
+    const a = Math.atan2(ty - y, tx - x), h = fov(k.lins) / 2, n = 16;
+    const bage = Array.from({ length: n + 1 }, (_, i) => {
+      const v = a - h + 2 * h * i / n;
+      return `${x + k.r * Math.cos(v)},${-(y + k.r * Math.sin(v))}`;
+    });
+    const g = el("g", { class: "kamera" + (bilder[k.namn] ? "" : " saknas") + (flyttad(k) ? " flyttad" : ""),
+                        "data-namn": k.namn }, gKam);
+    el("polygon", { class: "kil", points: `${x},${-y} ${bage.join(" ")}`, fill: c, stroke: c }, g);
+    el("line", { class: "axel", x1: x, y1: -y, x2: x + k.r * Math.cos(a), y2: -(y + k.r * Math.sin(a)), stroke: c }, g);
+    el("circle", { class: "tr", cx: x, cy: -y }, g);
+    el("circle", { class: "punkt", cx: x, cy: -y, fill: c, stroke: c }, g);
+    Object.assign(el("text", { fill: c }, g), { textContent: k.etikett });
+    g.kamera = k;
+    g.riktning = a;
+  }
+  skala();
+}
+
+function satt(v) {
+  vb = v;
+  svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`);
+  skala();
+}
+function hem() {
+  const [x0, x1, y0, y1] = data.planer[planNamn].omrade;
+  satt({ x: x0, y: -y1, w: x1 - x0, h: y1 - y0 });
+}
+// punkter, text och skalstock i skärmens storlek: mm per pixel ur vyn
+function skala() {
+  const m = svg.getScreenCTM();
+  if (!m) return;
+  const k = 1 / m.a;
+  gYtor.setAttribute("font-size", 12 * k);
+  gKam.setAttribute("font-size", 11 * k);
+  // etiketten bakom kameran om det är ledigt, annars snett bakom eller vid sidan (som i kameraplanen)
+  const lagda = [], punkter = [...gKam.children].map(g => g.kamera.kamera);
+  for (const g of gKam.children) {
+    const [x, y] = g.kamera.kamera, a = g.riktning;
+    g.querySelector(".punkt").setAttribute("r", 4.5 * k);
+    g.querySelector(".tr").setAttribute("r", 13 * k);
+    const bredd = 6.5 * k * g.kamera.etikett.length;
+    let val = null;
+    for (const dv of [0, 45, -45, 90, -90, 135, -135]) for (const r of [15, 24]) {
+      const v = a + Math.PI + dv * Math.PI / 180, ex = x + r * k * Math.cos(v), ey = y + r * k * Math.sin(v);
+      if (!val && lagda.every(([lx, ly, lb]) => Math.abs(ex - lx) > (bredd + lb) / 2 + 3 * k || Math.abs(ey - ly) > 13 * k)
+          && punkter.every(([px, py]) => (px === x && py === y) || Math.hypot(ex - px, ey - py) > 10 * k)) val = [ex, ey];
+    }
+    val ||= [x - 15 * k * Math.cos(a), y - 15 * k * Math.sin(a)];
+    lagda.push([...val, bredd]);
+    const t = g.querySelector("text");
+    t.setAttribute("x", val[0]);
+    t.setAttribute("y", -val[1]);
+  }
+  const mal = 110 * k, steg = [1, 2, 5].flatMap(s => [s * 1e3, s * 1e4, s * 1e5]).sort((a, b) => a - b);
+  const l = steg.filter(s => s <= mal).pop() || steg[0];
+  $("skala").querySelector("span").textContent = `${l / 1000} m`;
+  $("skala").querySelector("div").style.width = `${l / k}px`;
+}
+function punkt(ev) {
+  const p = svg.createSVGPoint();
+  p.x = ev.clientX; p.y = ev.clientY;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+function zooma(p, f) {
+  const [x0, x1] = data.planer[planNamn].omrade;
+  f = Math.min(Math.max(f, 800 / vb.w), 3 * (x1 - x0) / vb.w);      // från 0,8 m till tre gånger planen
+  satt({ x: p.x - (p.x - vb.x) * f, y: p.y - (p.y - vb.y) * f, w: vb.w * f, h: vb.h * f });
+}
+
+// dra, nyp och hjul; ett klick utan rörelse på en kamera öppnar bilden
+const pek = new Map();
+let rorelse = 0, nyp = null;
+svg.addEventListener("pointerdown", ev => {
+  svg.setPointerCapture(ev.pointerId);
+  pek.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  if (pek.size === 1) rorelse = 0;
+  if (pek.size === 2) { const [a, b] = [...pek.values()]; nyp = Math.hypot(a.x - b.x, a.y - b.y); }
+});
+svg.addEventListener("pointermove", ev => {
+  const forra = pek.get(ev.pointerId);
+  if (!forra) return visaTips(ev);
+  const s = svg.getScreenCTM().a;
+  if (pek.size === 1) {
+    rorelse += Math.abs(ev.clientX - forra.x) + Math.abs(ev.clientY - forra.y);
+    if (rorelse > 4) {
+      svg.classList.add("drar");
+      satt({ ...vb, x: vb.x - (ev.clientX - forra.x) / s, y: vb.y - (ev.clientY - forra.y) / s });
+      dolTips();
+    }
+  }
+  pek.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  if (pek.size === 2) {
+    const [a, b] = [...pek.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    rorelse = 99;
+    zooma(punkt({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 }), nyp / d);
+    nyp = d;
+  }
+});
+function slapp(ev) {
+  if (!pek.delete(ev.pointerId)) return;
+  svg.classList.remove("drar");
+  if (pek.size === 0 && rorelse <= 4) {
+    const g = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".kamera");
+    if (g && bilder[g.kamera.namn]) oppna(g.kamera.namn);
+  }
+}
+svg.addEventListener("pointerup", slapp);
+svg.addEventListener("pointercancel", slapp);
+svg.addEventListener("wheel", ev => { ev.preventDefault(); zooma(punkt(ev), Math.exp(ev.deltaY * 0.0015)); },
+                     { passive: false });
+svg.addEventListener("pointerleave", dolTips);
+window.addEventListener("resize", skala);
+
+// tips: bilden och vyn när pekaren är över en kamera
+function visaTips(ev) {
+  if (ev.pointerType !== "mouse") return;
+  const g = ev.target.closest?.(".kamera");
+  if (!g) return dolTips();
+  const k = g.kamera, b = bilder[k.namn], t = $("tips");
+  t.querySelector("b").textContent = `${k.serie === "inne" ? k.etikett + " · " : ""}${k.text}`;
+  t.querySelector("small").textContent = b ? (flyttad(k) ? "kameran har flyttats sedan bilden renderades"
+                                                           : `renderad ${datum(b.renderad)}`) : "inte renderad ännu";
+  const img = t.querySelector("img");
+  img.style.display = b ? "" : "none";
+  if (b && img.dataset.namn !== k.namn) { img.src = "bilder/" + b.filer[0]; img.dataset.namn = k.namn; }
+  t.style.display = "block";
+  const x = ev.clientX + 16, y = ev.clientY + 16;
+  t.style.left = Math.min(x, innerWidth - t.offsetWidth - 8) + "px";
+  t.style.top = (y + t.offsetHeight > innerHeight - 8 ? ev.clientY - t.offsetHeight - 12 : y) + "px";
+}
+function dolTips() { $("tips").style.display = "none"; }
+
+// ljuslådan ---------------------------------------------------------------------------------------------------------
+function oppna(namn) {
+  const k = data.kameror.find(k => k.namn === namn), b = bilder[namn];
+  if (!k || !b) return;
+  aktiv = namn;
+  dolTips();
+  for (const g of gKam.children) g.classList.toggle("aktiv", g.kamera.namn === namn);
+  const bild = $("bild"), srcset = b.bredder.map((w, i) => `bilder/${b.filer[i]} ${w}w`).join(", ");
+  bild.removeAttribute("srcset");
+  bild.src = "bilder/" + b.filer[0];                       // tumnageln tills den stora är laddad
+  const stor = new Image();
+  stor.sizes = "96vw";
+  stor.srcset = srcset;
+  stor.onload = () => { if (aktiv === namn) { bild.sizes = "96vw"; bild.srcset = srcset; } };
+  bild.alt = k.text;
+  const obj = k.objektiv ? `${k.objektiv} ${k.lins} mm` : `${k.lins} mm`;
+  const [bw, bh] = b.storlek;
+  $("bildtext").innerHTML = "";
+  const rad = (tagg, text, far = $("bildtext")) => Object.assign(far.appendChild(document.createElement(tagg)),
+                                                                  { textContent: text });
+  rad("b", `${k.serie === "inne" ? k.etikett + " · " : ""}${k.text}`);
+  rad("span", `  ·  ${obj} · ${ljustext(b.ljus)} · renderad ${datum(b.renderad)} (modell ${b.modell})  ·  `);
+  Object.assign(rad("a", `original ${bw} × ${bh}`), { href: "bilder/" + b.filer.at(-1), target: "_blank" });
+  if (flyttad(k)) Object.assign(rad("span", "Kameran har flyttats i modellen sedan bilden renderades."), { id: "varning" });
+  const lista = ordning();
+  $("forra").style.visibility = $("nasta").style.visibility = lista.length > 1 ? "" : "hidden";
+  $("ljus").classList.add("oppen");
+  history.replaceState(null, "", "#" + namn);
+}
+function stega(d) {
+  const lista = ordning(), i = lista.findIndex(x => x.namn === aktiv);
+  if (lista.length) oppna(lista[(i + d + lista.length) % lista.length].namn);
+}
+function stang() {
+  aktiv = null;
+  $("ljus").classList.remove("oppen");
+  for (const g of gKam.children) g.classList.remove("aktiv");
+  history.replaceState(null, "", location.pathname + location.search);
+}
+$("forra").onclick = ev => { ev.stopPropagation(); stega(-1); };
+$("nasta").onclick = ev => { ev.stopPropagation(); stega(1); };
+$("stang").onclick = stang;
+$("ljus").addEventListener("click", ev => { if (ev.target.id === "ljus" || ev.target.tagName === "FIGURE") stang(); });
+let svep = null;
+$("ljus").addEventListener("pointerdown", ev => { svep = ev.clientX; });
+$("ljus").addEventListener("pointerup", ev => {
+  if (svep !== null && Math.abs(ev.clientX - svep) > 60) stega(ev.clientX < svep ? 1 : -1);
+  svep = null;
+});
+document.addEventListener("keydown", ev => {
+  if (!aktiv) return;
+  if (ev.key === "Escape") stang();
+  else if (ev.key === "ArrowLeft") stega(-1);
+  else if (ev.key === "ArrowRight") stega(1);
+});
+
+// flikarna och starten ---------------------------------------------------------------------------------------------
+function valjPlan(namn, behallVy = false) {
+  planNamn = namn;
+  for (const b of $("flikar").children) b.classList.toggle("vald", b.dataset.plan === namn);
+  ritaPlan();
+  if (!behallVy) hem();
+}
+function status() {
+  const med = data.kameror.filter(k => bilder[k.namn]), n = med.length;
+  const senast = Object.values(bilder).map(b => b.publicerad).sort().pop();
+  const flytt = med.filter(flyttad).length;
+  $("status").textContent = n === 0
+    ? `Inga renderingar publicerade ännu: ${data.kameror.length} kameror (renderingar/README.md). Planerna ur modellen ${data.version}.`
+    : `${n} av ${data.kameror.length} vyer har bild, publicerade senast ${datum(senast)}` +
+      (flytt ? `; ${flytt} med kameran flyttad sedan dess` : "") + `. Planerna ur modellen ${data.version}.`;
+}
+
+(async () => {
+  data = await (await fetch("plan.json")).json();
+  try {
+    const svar = await fetch("bilder/renderingar.json", { cache: "no-cache" });
+    if (svar.ok) bilder = await svar.json();
+  } catch (e) { /* inga bilder publicerade */ }
+  for (const [namn, p] of Object.entries(data.planer)) {
+    const b = Object.assign(document.createElement("button"), { textContent: p.namn });
+    b.dataset.plan = namn;
+    b.onclick = () => valjPlan(namn);
+    $("flikar").appendChild(b);
+  }
+  const [nx, ny] = data.norr;
+  $("norrpil").setAttribute("transform", `rotate(${Math.atan2(nx, ny) * 180 / Math.PI})`);
+  $("detalj").onchange = () => valjPlan(planNamn, true);
+  $("hem").onclick = hem;
+  const start = data.kameror.find(k => k.namn === decodeURIComponent(location.hash.slice(1)));
+  if (start && start.serie === "detalj") $("detalj").checked = true;
+  valjPlan(start ? start.plan : "plan1");
+  status();
+  if (start) oppna(start.namn);
+  window.addEventListener("hashchange", () => {
+    const k = data.kameror.find(k => k.namn === decodeURIComponent(location.hash.slice(1)));
+    if (!k || k.namn === aktiv) return;
+    if (k.plan !== planNamn) valjPlan(k.plan);
+    oppna(k.namn);
+  });
+})();
+</script>
+</body>
+</html>
