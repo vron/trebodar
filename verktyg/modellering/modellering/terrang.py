@@ -241,7 +241,7 @@ def _masker(omgivning: str, besk: dict, polygoner: dict[str, list[list[tuple[flo
                 m = Path(q).contains_points(P).reshape(n, n).astype(float)
                 for _ in range(2):                                  # mjuk kant: medel över 3 × 3 celler
                     mp = np.pad(m, 1, mode="edge")
-                    m = sum(mp[a:a + n, b:b + n] for a in range(3) for b in range(3)) / 9
+                    m = np.mean([mp[a:a + n, b:b + n] for a in range(3) for b in range(3)], axis=0)
                 im[..., j] = np.maximum(im[..., j], m)
         imsave(fil, np.clip(im, 0, 1)[::-1])
 
