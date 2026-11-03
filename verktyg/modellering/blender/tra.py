@@ -172,7 +172,9 @@ def bradpanel(g: Graf, p: dict) -> None:
 # origo [m] (min, max), stockens lutning mot biten [°], kvistar per meter och deras diameter [mm], kärnved (andelen
 # bitar som har den, radien [m], färgen), ringtyp ("barr": sommarveden mörknar mot ringens slut; "ringporig": ett
 # band av stora porer i början av varje ring, som ask och ek, porband mm brett, och sommarveden något mörkare mot
-# ringens slut) och kontrasten mellan vår- och sommarved. Ringarnas tydlighet och porbandets bredd skiftar år från år.
+# ringens slut), kontrasten mellan vår- och sommarved och varm, hur mycket de varmaste bitarna dras mot en gyllene ton
+# (standard 0,25). Ringarnas tydlighet och porbandets bredd skiftar år från år. Askens färger är mätta på foton av
+# hyvlad ask (blek, gråaktigt gräddvit, ådrorna gråbruna), vitbalanserade mot neutrala ytor.
 ARTER: dict[str, dict[str, object]] = {
     "gran": {"farg": "#ecdcb6", "farg2": "#d0ad78", "arsring": 3.5, "marg": (0.0, 0.16), "lutning": 1.5,
              "kvistar": 2.2, "kvist": 22.0, "kvistfarg": "#8b5c30", "karnandel": 0.0, "ringtyp": "barr",
@@ -183,10 +185,10 @@ ARTER: dict[str, dict[str, object]] = {
     "lark": {"farg": "#ddb47c", "farg2": "#a66d3c", "arsring": 2.5, "marg": (0.03, 0.2), "lutning": 1.5,
              "kvistar": 1.2, "kvist": 20.0, "kvistfarg": "#6d4220", "karnandel": 0.8, "karnradie": (0.05, 0.15),
              "karnfarg": "#c08650", "ringtyp": "barr", "kontrast": 0.7, "variation": 0.09},
-    "ask": {"farg": "#ecd8b2", "farg2": "#9a7a54", "arsring": 3.4, "marg": (0.12, 0.45), "lutning": 2.5,
-            "kvistar": 0.0, "kvist": 8.0, "kvistfarg": "#6e5638", "karnandel": 0.3, "karnradie": (0.05, 0.16),
-            "karnfarg": "#a58d66", "ringtyp": "ringporig", "porband": 0.7, "sommarved": 0.22, "kontrast": 0.8,
-            "variation": 0.09},
+    "ask": {"farg": "#e1d6c5", "farg2": "#998368", "arsring": 3.4, "marg": (0.12, 0.45), "lutning": 2.5,
+            "kvistar": 0.0, "kvist": 8.0, "kvistfarg": "#6e5638", "karnandel": 0.15, "karnradie": (0.05, 0.16),
+            "karnfarg": "#a89278", "ringtyp": "ringporig", "porband": 0.7, "sommarved": 0.35, "kontrast": 1.0,
+            "variation": 0.09, "varm": 0.1},
 }
 
 # ytbehandlingar: grovhet, mörkning (exponent på färgen: oljan fördjupar och mättar), gulning (oljans och lackens
@@ -308,7 +310,7 @@ def virke(g: Graf, p: dict) -> None:
     var = _f(d, "variation", 0.07)
     col = g.ljus(col, lin((m("SUBTRACT", s11, 0.5), 2 * var), (m("SUBTRACT", flack, 0.5), 0.1),
                          (m("SUBTRACT", fib, 0.5), 0.16), (porer, -0.55), bas=1.0))
-    col = g.blanda(m("MULTIPLY", s12, 0.25), col, rgba("#d8b27c")) if var > 0 else col      # varmare bitar
+    col = g.blanda(m("MULTIPLY", s12, _f(d, "varm", 0.25)), col, rgba("#d8b27c")) if var > 0 else col  # varmare bitar
     if _f(d, "kvistar", 0.0) > 0:
         kf = rgba(str(d["kvistfarg"]))
         col = g.blanda(m("MULTIPLY", kvist, lin((kvistring, -0.35), bas=0.85)), col, kf)
