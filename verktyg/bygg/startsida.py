@@ -1,8 +1,10 @@
 """
-Webbplatsens startsida (docs/index.html) och handlingarna (docs/handlingar/, kopior av rapporterna och ritningarna).
+Webbplatsens startsida (docs/index.html) och handlingarna (docs/handlingar/, kopior av bygglovet, rapporterna och
+ritningarna).
 `./bygg` skriver dem efter stegen, ur det som redan är byggt:
 
-- projektets uppgifter och handlingsförteckningen ur F-01 (beräkningar/F-01/indata.toml);
+- projektets uppgifter och handlingsförteckningen ur F-01 (beräkningar/F-01/indata.toml), bygglovets beslut och
+  handlingar ur bygglov/handlingar.toml;
 - rapporternas revision och datum (rapportens projektuppgifter) och ritningsbladens nummer, titel, skala, revision
   och datum (bladens JSON i beräkningar/<nr>/);
 - bilderna ur renderingarnas förteckning (docs/renderingar/bilder/renderingar.json, ur releasen bilder) med
@@ -32,7 +34,7 @@ MODELLBILD = "stomme"             # bilden vid länken till modellen i 3D
 URVAL = ["ute-sydost", "I03", "I01", "ute-nordvast", "I07", "I06", "I02", "I12", "detalj-tak", "I14", "detalj-ph5",
          "detalj-sten", "I28", "I29", "detalj-fasad", "stomme"]
 GRUPPER = {"ute": "Exteriör", "inne": "Interiör", "teknik": "Stomme och teknik"}
-STATUS = {"klar": "Klar", "upprattas": "Upprättas", "inlamnad": "Inlämnad", "ej aktuell": "Ej aktuell"}
+STATUS = {"beviljad": "Beviljad", "klar": "Klar", "upprattas": "Upprättas", "inlamnad": "Inlämnad", "ej aktuell": "Ej aktuell"}
 MANAD = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober",
          "november", "december"]
 # rutornas bredd i galleriet (img sizes), så att webbläsaren väljer den minsta bilden som räcker; de två första rutorna
@@ -73,11 +75,12 @@ def _blad(rot: Path, nr: str) -> list[dict]:
 
 
 def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tuple[str, str, list[dict]]], dict]:
-    """Handlingsförteckningen: F-01:s grupper (bygglovsritningarna, handlingarna till tekniskt samråd och de egna
-    underlagen) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till ut.
+    """Handlingsförteckningen: bygglovet (beslutet och handlingarna som tillhör det), F-01:s grupper (de reviderade
+    bygglovsritningarna, handlingarna till tekniskt samråd och de egna underlagen) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till ut.
     rapporter: rapportens projektuppgifter per nummer (revision, datum). Returnerar grupperna och F-01:s indata."""
     shutil.rmtree(ut, ignore_errors=True)
     f01 = tomllib.loads((rot / "beräkningar" / "F-01" / "indata.toml").read_text(encoding="utf-8"))
+    lov = tomllib.loads((rot / "bygglov" / "handlingar.toml").read_text(encoding="utf-8"))
     filer: dict[str, Path] = {}
     for mapp in ("rapporter", "ritningar"):
         for p in sorted((rot / mapp).glob("*.pdf")):
@@ -106,7 +109,10 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tu
                 "fil": fil(p), "blad": blad}
 
     grupper = [
-        ("Bygglovshandlingar", "Bygglovsritningarna, reviderade efter beslutet.",
+        ("Bygglov", "Beslut D32 om bygglov och rivningslov, 2026-02-18, med handlingarna som tillhör beslutet.",
+         [rad(h["nr"], h["namn"], "beviljad", h.get("rev", ""), h["datum"], h.get("notering", ""),
+              p=rot / "bygglov" / h["fil"]) for h in lov["handling"]]),
+        ("Bygglov, uppdaterade ritningar", "Bygglovsritningarna, reviderade efter beslutet.",
          [rad(b["nr"], b["namn"], "klar", b["rev"], b["datum"], b.get("andring", ""))
           for b in f01.get("bygglov", [])]),
         ("Tekniskt samråd", "Handlingarna till det tekniska samrådet.",

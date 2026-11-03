@@ -1,0 +1,82 @@
+# Bygglovet: beslut D32 (Miljö- och byggnadsnämnden, Tanums kommun, 2026-02-18, ärende BYGG.2025.2278) och
+# handlingarna som tillhör beslutet, som kommunen skickade ut dem. I ansökan är personnumret och kontrollansvariges
+# telefonnummer maskerade. Reviderade bygglovsritningar ligger i ritningar/ och listas i F-01 (avsnitt 5.1).
+# rev och datum ur ritningarnas namnruta.
+[[handling]]
+nr = "D32"
+namn = "Beslut om bygglov och rivningslov"
+datum = "2026-02-18"
+notering = "Delegationsbeslut med tjänsteskrivelse, villkor och upplysningar"
+fil = "D32 Beslut om bygglov och rivningslov.pdf"
+[[handling]]
+nr = "–"
+namn = "Ansökan om bygg-, mark- och rivningslov"
+datum = "2025-12-18"
+notering = "Reviderad"
+fil = "Ansökan om bygg-, mark- och rivningslov.pdf"
+[[handling]]
+nr = "100"
+namn = "Rivningsplan"
+rev = "00"
+datum = "2025-12-01"
+fil = "100 Rivningsplan.pdf"
+[[handling]]
+nr = "200"
+namn = "Situationsplan"
+rev = "01"
+datum = "2025-12-18"
+fil = "200 Situationsplan.pdf"
+[[handling]]
+nr = "201"
+namn = "Planritning"
+rev = "01"
+datum = "2025-12-18"
+fil = "201 Planritning.pdf"
+[[handling]]
+nr = "202"
+namn = "Planritning källare"
+rev = "01"
+datum = "2025-12-18"
+fil = "202 Planritning källare.pdf"
+[[handling]]
+nr = "203"
+namn = "Markplan"
+rev = "00"
+datum = "2025-12-01"
+fil = "203 Markplan.pdf"
+[[handling]]
+nr = "204"
+namn = "Fasad sydväst och sydost"
+rev = "01"
+datum = "2025-12-18"
+fil = "204 Fasad sydväst och sydost.pdf"
+[[handling]]
+nr = "205"
+namn = "Fasad nordost och nordväst"
+rev = "00"
+datum = "2025-12-01"
+fil = "205 Fasad nordost och nordväst.pdf"
+[[handling]]
+nr = "206"
+namn = "Sektion A och B"
+rev = "01"
+datum = "2025-12-18"
+fil = "206 Sektion A och B.pdf"
+[[handling]]
+nr = "207"
+namn = "Sektion C och D"
+rev = "01"
+datum = "2025-12-18"
+fil = "207 Sektion C och D.pdf"
+[[handling]]
+nr = "208"
+namn = "Sektion E"
+rev = "00"
+datum = "2025-12-01"
+fil = "208 Sektion E.pdf"
+[[handling]]
+nr = "209"
+namn = "Inre fasader"
+rev = "00"
+datum = "2026-01-15"
+fil = "209 Inre fasader.pdf"

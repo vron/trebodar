@@ -27,6 +27,7 @@ Kräver [`uv`](https://docs.astral.sh/uv/) och typsnittet Carlito; Pythonmiljöe
 | [`modeller/`](modeller/) | Den kodgenererade modellen (`trebodar/`), Onshape-modellen (`referens/`, fryst), balkar och balkplåtar |
 | [`verktyg/`](verktyg/) | Modellering (`./mod`), modellanalys (`./ma`) och bygget (`./bygg`) |
 | `rapporter/`, `ritningar/` | Byggda handlingar; bygglovsritningarna 200 och 201 är färdiga pdf:er utan källa |
+| [`bygglov/`](bygglov/) | Bygglovet: beslutet (D32, 2026-02-18) och handlingarna som tillhör det, med förteckningen `handlingar.toml` |
 | [`renderingar/`](renderingar/) | Inomhusbilderna (Blender) och kameraplanen |
 
 Instruktionerna för arbetet står i [`CLAUDE.md`](CLAUDE.md).
