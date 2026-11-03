@@ -2,7 +2,9 @@
 
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
-en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens utsida.
+en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens insida;
+panelen går OVERLAPP (10 mm) in över karmen vid sidorna och överkanten. Under fönstren ligger fönsterblecket
+(fonster_och_dorrar.py) på spikläkten, som är nedkapad för det, och panelen slutar under blecket.
 Fasaden går ned till marken (markniva.py), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
 källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till
 takbalkarnas överkant i panelens utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack;
@@ -21,7 +23,7 @@ from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.fonster_och_dorrar.oppningar import BLECK_T, DORRAR, INDRAG, OPPNINGAR
 from trebodar.hus.grund import fasadsten, kallarvaggar
 from trebodar.hus.tak.takytor import tak_underkant
 from trebodar.material import C24_LAKT, PANEL, UTEGIPS
@@ -30,6 +32,9 @@ from .markniva import MARKNIVA, Z_UK, mark_vid
 
 STENVAGGAR = {kod for b in fasadsten.BEKLADNAD if b.z1 >= Z_UK - 1e-6 for kod in b.vaggar}
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
+OVERLAPP = 10.0                  # panelen över karmen vid sidorna och överkanten
+UNDER_BLECK = 7.0                # panelens överkant under karmens underkant vid fönstren (blecket med fall och glipa)
+assert INDRAG == PANEL_T, "karmen sitter i panelens insida"
 LAKT_B = 45.0
 CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
@@ -167,9 +172,23 @@ def kontur(kod: str) -> Polygon:
 
 def utsida(kod: str) -> Montage:
     hela = kontur(kod)
-    karmar = [o.karm for o in OPPNINGAR.get(kod, [])]                  # fasaden går fram till karmen
+    opp = OPPNINGAR.get(kod, [])
+    karmar = [o.karm for o in opp]                                    # fasaden går fram till karmen
     hal = [box(*k) for k in karmar]
     oppen = unary_union(hal) if hal else Polygon()
+    # panelen över karmen vid sidorna och överkanten; under fönstren under blecket
+    panel_hal = []
+    for o in opp:
+        ku0, kz0, ku1, kz1 = o.karm
+        if o.z1 <= 0.0:                                 # källarens fönster: i stenen, som förut
+            panel_hal.append(box(*o.karm))
+            continue
+        under = kz0 if o.typ in DORRAR else kz0 - UNDER_BLECK
+        panel_hal += [box(ku0 + OVERLAPP, under, ku1 - OVERLAPP, kz1 - OVERLAPP), box(ku0, under, ku1, kz0)]
+    panel_oppen = unary_union(panel_hal) if panel_hal else Polygon()
+    # spikläkten under fönstren: nedkapad för blecket
+    spik_oppen = unary_union([oppen] + [box(o.karm[0], o.karm[1] - BLECK_T, o.karm[2], o.karm[1]) for o in opp
+                                        if o.typ not in DORRAR and o.z1 > 0.0])
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
     w = 0.0
 
@@ -177,16 +196,17 @@ def utsida(kod: str) -> Montage:
         a, b = fasad_u(kod, djup)
         return hela.intersection(box(a, -1e5, b, 1e5))
 
-    def skikt(namn: str, typ: str, t: float, material: Material, del_namn: str, djup: tuple[float, float]) -> None:
+    def skikt(namn: str, typ: str, t: float, material: Material, del_namn: str, djup: tuple[float, float],
+              hal: Polygon = oppen) -> None:
         p = Plan(kod, f"{namn} {kod}", t, beskrivning=material.beskrivning, material=material)
-        for g in P.polygoner(fas(djup).difference(oppen)):
+        for g in P.polygoner(fas(djup).difference(hal)):
             p.skiva(P.kontur(g), P.hal(g), w - t, w, typ, material, f"{del_namn} {kod}")
         m.lagg(p.montage())
 
-    def lakt(namn: str, typ: str, t: float, bitar: list[Polygon]) -> None:
+    def lakt(namn: str, typ: str, t: float, bitar: list[Polygon], hal: Polygon = oppen) -> None:
         p = Plan(kod, f"{namn} {kod}", t, beskrivning=f"{namn} {fmt(t)}×45 C24", material=C24_LAKT)
         for b in bitar:
-            for q in P.polygoner(b.intersection(fas(LAKT_DJUP)).difference(oppen), 45 * 100):
+            for q in P.polygoner(b.intersection(fas(LAKT_DJUP)).difference(hal), 45 * 100):
                 p.profil(P.kontur(q), w - t, w, typ=typ)
         m.lagg(p.montage())
 
@@ -212,10 +232,10 @@ def utsida(kod: str) -> Montage:
     # raderna c/c CC från bjälklagets underkant, uppåt och nedåt till marken
     rader = _lagen(fasta, [Z_UK + CC * k for k in range(-int((Z_UK - zu) // CC), int((zt - Z_UK) // CC) + 1) if k])
     lakt("Spikläkt", "SP", SPIK_T, [box(u0, z, u1, z + LAKT_B) for z in rader]
-         + [box(a, z1 - LAKT_B, b, z1) for a, b, z1 in tand])
+         + [box(a, z1 - LAKT_B, b, z1) for a, b, z1 in tand], spik_oppen)
     w -= SPIK_T
     panel = PANEL[int(kod[0])]
-    skikt("Panel", "PA", PANEL_T, panel, f"Panel 22 mm {panel.namn.removeprefix('Panel ')}", PANEL_DJUP)
+    skikt("Panel", "PA", PANEL_T, panel, f"Panel 22 mm {panel.namn.removeprefix('Panel ')}", PANEL_DJUP, panel_oppen)
     return m
 
 

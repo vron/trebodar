@@ -46,6 +46,9 @@ VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: 
 # Väggen har en dörröppning mot trappan vid trapphålet; karmstolparna står vid hålets två långsidor.
 G_D2VAGG = G_VAGG * H_VAGG                 # 1,5 kN/m
 KARM = (95.0, 90.0)                        # karmstolpens upplagsyta: väggens tjocklek (x) × 2 × 45 (y) [mm]
+# karmstolpen LD2_1 står vid den norra änden av fickdörren ID2:s ficka i väggen 2B (modellen): dalbalk 2 spänner över
+# dörren och fickan till karmstolpen LD2_2 vid trapphålets södra långsida (K-01)
+Y_LD2_1 = 4048.0
 STOLPE = (95.0, 90.0)                      # minsta stolpe 2 × 45×95 [mm]
 STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03), står direkt på plattan
 # Stolparnas lägen (stolpens mitt) [mm], samma som stolparna i K-03. Kontrollerade mot Onshape-modellen 2026-10-10
@@ -54,7 +57,7 @@ STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K
 STOLPLAGEN = {
     "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
     "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),
-    "LD4_1": (4474, 5856), "LD4_2": (4438, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
+    "LD4_1": (4474, 5844), "LD4_2": (4438, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
     "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
     "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
 }
@@ -141,8 +144,8 @@ def punktlaster():
     sD2_2 = st["D2, väggände"]["Sk"]
     (hx0, hy0), (hx1, hy1) = G["hal"][0], G["hal"][2]
     xD2 = G["linjelaster"][0]["x"]
-    y_karm1, y_karm2 = hy0 - KARM[1] / 2 - 3, hy1 + KARM[1] / 2 + 3      # karmstolparnas mitt
-    l_dorr = 0.5 * (y_karm2 - y_karm1) / 1000 + KARM[1] / 2000             # halva dörröppningen + karmen [m]
+    y_karm1, y_karm2 = Y_LD2_1, hy1 + KARM[1] / 2 + 3                      # karmstolparnas mitt
+    l_dorr = 0.5 * (y_karm2 - y_karm1) / 1000 + KARM[1] / 2000             # halva dörren med fickan + karmen [m]
     gq = G["linjelaster"][0]
     y_slut2 = G["linjelaster"][1]["y0"]                                   # qD2 börjar igen efter öppningen
     l_mellan = (y_slut2 - y_karm2) / 1000 - KARM[1] / 2000                 # vägg mellan karm och qD2
@@ -155,7 +158,7 @@ def punktlaster():
         dict(namn="LD2_1", x=xD2, y=y_karm1, Gk=(gq["gk"] + G_D2VAGG) * l_dorr, Sk=gq["sk"] * l_dorr,
              Sb={"V": 0.0, "M": 0.5 * gq["sk"] * l_dorr, "H": 0.5 * gq["sk"] * l_dorr},
              Wd=K01["D2"]["vagg_lyft"] / 6.487 * l_dorr, yta=KARM,
-             urspr="dalbalk 2, karmstolpe vid dörröppningen", delar="karm: D2 och vägg över halva öppningen"),
+             urspr="dalbalk 2, karmstolpe vid fickdörrens ficka", delar="karm: D2 och vägg över halva öppningen"),
         dict(namn="LD2_2", x=xD2, y=y_karm2, Gk=st["D2 vid trapphålet + ½ N3 C"]["Gk"] + G_D2VAGG * (l_dorr + l_mellan),
              Sk=sD2_1, Sb={"V": 0.0, "M": 0.5 * (sD2_1 - 0.5 * n3c["Sk"]) + 0.5 * n3c["Sk"],
                            "H": 0.5 * (sD2_1 - 0.5 * n3c["Sk"])}, Wd=0.5 * n3c["Wd"] + K01["D2"]["vagg_lyft"] / 6.487 * 1.83,
@@ -293,7 +296,7 @@ def linjelaster():
     lyft = K01["D2"]["vagg_lyft"] / (K01["D2"]["vagg"][1] / 1000)      # kN/m
     (hx0, hy0), (hx1, hy1) = G["hal"][0], G["hal"][2]
     for i, l in enumerate(ll):
-        y1 = min(l["y1"], hy0 - KARM[1] - 3) if l["y0"] < hy0 else l["y1"]   # slutar vid karmstolpen
+        y1 = min(l["y1"], Y_LD2_1 - KARM[1] / 2) if l["y0"] < hy0 else l["y1"]   # slutar vid karmstolpen LD2_1
         L.append(dict(namn="qD2", pl=[(l["x"], l["y0"]), (l["x"], y1)], gk=l["gk"] + G_D2VAGG, sk=l["sk"], qk=0.0, wd=lyft,
                       skropp={"M": 0.5, "H": 0.5},
                       text="dalbalk 2 via bärande vägg på plan 1"))

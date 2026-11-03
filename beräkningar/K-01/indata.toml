@@ -184,6 +184,7 @@ namn        = "Dalbalk 2"
 typ         = "dal"
 total       = 10070
 vagg        = [0, 6487]
+oppningar   = [[3123, 4921]]   # fickdörren ID2 och dess ficka i väggen 2B, mellan karmstolparna LD2_1 och LD2_2
 spann       = [3583]
 platar      = [[6337, 10070]]
 

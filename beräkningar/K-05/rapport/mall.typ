@@ -99,7 +99,7 @@ Stolparna under nock- och dalbalkarna och takstolarna redovisas i K-03 och balka
 
 Övriga laster från plan 1:
 
-- *Dalbalk 2* vilar på en bärande vägg (qD2) med dörröppning mot trappan. Karmstolparna LD2_1 och LD2_2 står intill trapphålets långsidor (upplagsyta 95 × 90 mm), och LD2_3 är väggens ände.
+- *Dalbalk 2* vilar på en bärande vägg (qD2) med en fickdörr mot trappan. Balken spänner över dörren och dess ficka mellan karmstolparna: LD2_2 intill trapphålets södra långsida och LD2_1 vid fickans norra ände (upplagsyta 95 × 90 mm). LD2_3 är väggens ände.
 - *Ytterväggarna* (qY1–qY12): egentyngd #D.enh.g_vagg kN/m² väggyta, höjd #D.enh.h_vagg m till takfot och gavelspetsen upp till taket. Takfotsväggarna bär taket till halva takbalkens horisontella längd plus takutsprånget #D.enh.utspr m: #D.enh.t_sida m i vänstra och högra huskroppen, #D.enh.t_mitt m i mittre.
 - *Trappan* (trä, brant, i trapphålet) står på källarens golv vid hålets västra kortsida och hänger med halva sin vikt på den östra kortsidan, vid väggen 2B (qT): #D.enh.tr_l m horisontell längd, #D.enh.tr_b m bredd, egentyngd #D.enh.tr_g kN/m² och nyttig last #D.enh.tr_q kN/m² i plan.
 

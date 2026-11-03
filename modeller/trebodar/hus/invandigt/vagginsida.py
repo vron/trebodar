@@ -1,7 +1,9 @@
 """Ytterväggarnas insida (F-01): ångbroms, liggande installationsläkt 45×45 c/c 600, OSB 12 och gips 13, i badrummet
 plywood 15, gips 12, tätskikt och kakel.
 
-Insidan går från bjälklaget upp till innertaket, kapad längs det så att gipsen möts i en skarp linje; gavlarnas
+Vid fönstren och dörrarna går skikten fram till karmens linje (10 mm in i regelverkets öppning, över drevningen),
+med installationsläkt runt öppningen i samma linje, så att smygen (fonster_och_dorrar.py) ligger an mot dem utan
+språng. Insidan går från bjälklaget upp till innertaket, kapad längs det så att gipsen möts i en skarp linje; gavlarnas
 insida följer taket upp till takbalkarnas underkant och innertaket slutar mot den. Långsidorna går mellan gavlarna och
 gavlarnas insida börjar vid långsidornas insida. I dalarna, där en gavel går förbi en långsidas ände (ytterhörn sett
 inifrån), går skikten runt hörnet var för sig: gavelns fram till långsidans och långsidans förbi gaveln. Delar som
@@ -21,7 +23,7 @@ from trebodar import skelett as S
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.genomforing import genomfor
 from trebodar.byggdelar.regelvagg import Plan
-from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.fonster_och_dorrar.oppningar import DORRAR, OPPNINGAR
 from trebodar.hus.rum import BADRUM
 from trebodar.hus.stomme import lagen
 from trebodar.hus.tak.takytor import tak_underkant
@@ -143,7 +145,18 @@ def insida(kod: str) -> Montage:
     granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in GRUND + SKIVLAGER["vanligt"] + SKIVLAGER["vatrum"]}
     u0, u1 = min(g[0] for g in granser.values()), max(g[1] for g in granser.values())
     topp = _yta(kod, u0, u1).bounds[3]
-    hal_lista = [box(o.u0, o.z0, o.u1, o.z1) for o in OPPNINGAR.get(kod, [])]
+    # öppningarna i karmens linje (dörrarna från golvet)
+    opp = [o for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0]
+    hal_lista = [box(o.karm[0], o.z0 if o.typ in DORRAR else o.karm[1], o.karm[2], o.karm[3]) for o in opp]
+    # installationsläkten runt öppningarna i karmens linje: på sidorna, över och under fönstren
+    ram = []
+    for o in opp:
+        ku0, kz0, ku1, kz1 = o.karm
+        zb = o.z0 if o.typ in DORRAR else kz0 - LAKT
+        ram += [box(ku0 - LAKT, zb, ku0, kz1 + LAKT), box(ku1, zb, ku1 + LAKT, kz1 + LAKT), box(ku0, kz1, ku1, kz1 + LAKT)]
+        if o.typ not in DORRAR:
+            ram.append(box(ku0, kz0 - LAKT, ku1, kz0))
+    ram_u = unary_union(ram) if ram else Polygon()
     # delar som står mot väggens insida: deras utbredning i u och z tas bort
     pl = v.placering()
     band = Polygon([pl.punkt((u0, S.T_STOMME, 0))[:2], pl.punkt((u1, S.T_STOMME, 0))[:2],
@@ -177,7 +190,11 @@ def insida(kod: str) -> Montage:
             rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1))
                       if all(abs(z - r) >= LAKT for r in rader)]
             for z in sorted(rader):
-                for q in P.polygoner(box(ua, z, ub, z + LAKT).intersection(yta).difference(oppet), 45 * 100):
+                for q in P.polygoner(box(ua, z, ub, z + LAKT).intersection(yta).difference(oppet).difference(ram_u),
+                                     45 * 100):
+                    p.profil(P.kontur(q), S.T_STOMME + a, S.T_STOMME + b, typ=typ, material=mat)
+            for r in ram:
+                for q in P.polygoner(r.intersection(yta).difference(oppet), 45 * 100):
                     p.profil(P.kontur(q), S.T_STOMME + a, S.T_STOMME + b, typ=typ, material=mat)
         else:
             for q in P.polygoner(yta.difference(oppet)):

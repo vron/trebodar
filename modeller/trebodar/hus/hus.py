@@ -7,6 +7,7 @@ from .armering import armering
 from .fasad import fasad
 from .fonster_och_dorrar import fonster_och_dorrar
 from .grund import grund
+from .inredning import inredning
 from .installationer import installationer
 from .invandigt import invandigt
 from .isolering import isolering
@@ -29,6 +30,7 @@ def montage() -> Montage:
     m.lagg(installationer.montage())
     m.lagg(isolering.montage())
     m.lagg(invandigt.montage())
+    m.lagg(inredning.montage())
     m.lagg(trappa.montage())
     m.lagg(kamin.montage())
     # skorstenens och förbränningsluftens hål genom taket, isoleringen och innertaket

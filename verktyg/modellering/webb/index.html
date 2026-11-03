@@ -60,6 +60,12 @@
              border: 1px solid #e8590c; border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); padding: 6px 10px;
              font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
   #matinfo b { font-size: 14px; }
+  #gahjalp { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: none;
+             background: var(--panel); border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,.2); padding: 4px 10px;
+             font-size: 12.5px; color: var(--dim); white-space: nowrap; max-width: 94vw; overflow: hidden;
+             text-overflow: ellipsis; }
+  #objektiv { font: inherit; font-size: 12px; margin-left: 4px; background: transparent; color: var(--ink);
+              border: 1px solid #8886; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -73,11 +79,15 @@
     rotationscentrum. Piltangenterna går genom huset (PgUp/PgDn upp och ned, Skift fortare). O växlar mellan
     perspektiv och ortografisk vy (parallellprojektion, som en fasadritning). Högerklicka på en del, i
     trädet eller på ett material för att visa bara det eller tona ner resten; Esc avslutar. Mät kanter, avstånd och
-    parallella kanter med knapparna uppe till höger (K, A, P).</div>
+    parallella kanter med knapparna uppe till höger (K, A, P). G går genom huset i ögonhöjd: på golven och i
+    trapporna, genom väggarna.</div>
   <div style="margin-top: 6px"><a href="renderingar/" style="color: var(--accent)">Renderingar</a> ·
     <a href="handlingar/" style="color: var(--accent)">Handlingar</a></div>
   <h2>Vyer</h2><div id="vyer"></div>
   <div class="rad"><label><input type="checkbox" id="orto"> ortografisk (parallellprojektion, O)</label></div>
+  <div class="rad"><label><input type="checkbox" id="gaRuta"> gå genom huset (G)</label>
+    <select id="objektiv" title="Bildvinkeln när man går">
+      <option value="48">öga, 48° (40 mm)</option><option value="84">arkitektbild, 84° (20 mm)</option></select></div>
   <h2>Snitt</h2>
   <div class="rad"><label><input type="checkbox" id="kx"> x</label><input type="range" id="sx"></div>
   <div class="rad"><label><input type="checkbox" id="ky"> y</label><input type="range" id="sy"></div>
@@ -101,6 +111,7 @@
   title="Ta bort mätningarna">rensa</button><div id="mathjalp"></div></div>
 <div class="snapp" id="snapp"></div><div class="snapp horn" id="snappstart"></div>
 <div id="matinfo"></div>
+<div id="gahjalp">W A S D eller piltangenterna: gå · dra: titta · dubbelklick: gå dit · Skift: fortare · G: sluta gå</div>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
@@ -127,6 +138,7 @@ const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
 // rotationscentrum; allt längs blickriktningen syns, också bakom kameran, som i en fasad- eller sektionsritning
 const ortoKamera = new THREE.OrthographicCamera(-1, 1, 1, -1, -500, 500);
 let orto = false;
+let gaende = null;             // när man går genom huset (G, nedan): { gir, lut, golv, mal, ytor }
 const aktiv = () => orto ? ortoKamera : camera;
 // strålen genom pekaren (ray, nedan): ortografiskt från långt bakom kameran, så att allt som syns kan väljas
 const stral = m => { ray.setFromCamera(m, aktiv()); if (orto) ray.ray.origin.addScaledVector(ray.ray.direction, -500); };
@@ -292,10 +304,12 @@ function storlek() {
   if (panelBredd) camera.setViewOffset(w + panelBredd, h, 0, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
   for (const m of linjeMaterialen) m.resolution.set(w, h);
+  if (gaende) gaFov();
 }
 window.addEventListener("resize", storlek); storlek();
 
 function gaTill(v) {
+  if (gaende) slutaGa();
   camera.position.copy(tillScen(v.kamera)); controls.target.copy(tillScen(v.mal));
   camera.fov = 2 * Math.atan(18 / (v.brannvidd || 35)) * 180 / Math.PI; camera.updateProjectionMatrix();
 }
@@ -485,11 +499,14 @@ function traff(e) {
   });
 }
 renderer.domElement.addEventListener("dblclick", e => {
+  if (gaende) return;
   const t = traff(e);
   if (t.length) controls.target.copy(t[0].point);
 });
+let klickNer = null;
+renderer.domElement.addEventListener("pointerdown", e => { klickNer = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener("click", e => {
-  if (matLage) return;
+  if (matLage || (klickNer && Math.hypot(e.clientX - klickNer[0], e.clientY - klickNer[1]) > 5)) return;
   const traffar = traff(e);
   const info = document.getElementById("info");
   if (!traffar.length) { info.style.display = "none"; return; }
@@ -621,7 +638,7 @@ function snappa(e) {
   const r = renderer.domElement.getBoundingClientRect();
   mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   stral(mus);
-  const stral = ray.ray.clone();
+  const pekstral = ray.ray.clone();
   let t = traffLangsStralen()[0];
   const paYtan = !!t;
   // pekaren bredvid en tunn del: strålar runt pekaren hittar delen, så att dess kanter och hörn kan snäppas
@@ -641,7 +658,7 @@ function snappa(e) {
   let narmast = null;
   const pS = new THREE.Vector3(), pK = new THREE.Vector3();
   for (const k of kand) {
-    stral.distanceSqToSegment(k.a, k.b, pS, pK);
+    pekstral.distanceSqToSegment(k.a, k.b, pS, pK);
     const d = avstPx(pK);
     if (d <= KANT_PX && (!narmast || d < narmast.d)) narmast = { d, punkt: pK.clone(), kant: k };
   }
@@ -741,7 +758,7 @@ document.getElementById("rensa").onclick = () => {
   taBort(matningar); matStart = null; taBort(tillfalligt); document.getElementById("matinfo").style.display = "none";
 };
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT") return;
+  if (e.target.tagName === "INPUT" || gaende) return;          // när man går är A ett steg åt vänster
   const k = { k: "kant", a: "avstand", p: "parallell" }[e.key.toLowerCase()];
   if (k && !e.metaKey && !e.ctrlKey && !e.altKey) satMatLage(k);
   if (e.key === "Escape" && matLage) { if (matStart) { matStart = null; taBort(tillfalligt); } else satMatLage(matLage); }
@@ -779,6 +796,7 @@ function centrumPaDjup(punkt) {
 }
 renderer.domElement.addEventListener("wheel", e => {
   e.preventDefault(); e.stopImmediatePropagation();          // OrbitControls zoomar bara med två fingrar
+  if (gaende) { gaende.mal = null; flytta(blick(), -e.deltaY * 0.002); return; }
   const { riktning, punkt } = underPekaren(e);
   if (orto) {
     // ortografiskt: bilden skalas kring punkten under pekaren (kameran närmare rotationscentrum ger en mindre bild)
@@ -797,16 +815,18 @@ renderer.domElement.addEventListener("wheel", e => {
   if (punkt) centrumPaDjup(punkt);
 }, { passive: false, capture: true });
 renderer.domElement.addEventListener("pointerdown", e => {
-  if (matLage && e.button === 0) return;
+  if (gaende || (matLage && e.button === 0)) return;
   const { punkt } = underPekaren(e);
   if (punkt) centrumPaDjup(punkt);
 }, true);
 const tangenter = new Set(), GANG = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown"];
+const WASD = { w: "ArrowUp", s: "ArrowDown", a: "ArrowLeft", d: "ArrowRight" };
+const tangent = e => (gaende && !e.metaKey && !e.ctrlKey && WASD[e.key.toLowerCase()]) || e.key;
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT" || !GANG.includes(e.key)) return;
-  tangenter.add(e.key); e.preventDefault();
+  if (["INPUT", "SELECT"].includes(e.target.tagName) || !GANG.includes(tangent(e))) return;
+  tangenter.add(tangent(e)); e.preventDefault();
 });
-document.addEventListener("keyup", e => tangenter.delete(e.key));
+document.addEventListener("keyup", e => { tangenter.delete(tangent(e)); tangenter.delete(e.key); });
 window.addEventListener("blur", () => tangenter.clear());
 let fortare = false;
 document.addEventListener("keydown", e => { fortare = e.shiftKey; });
@@ -832,10 +852,111 @@ function narplan() {
   if (Math.abs(camera.near - near) > 0.2 * near) { camera.near = near; camera.updateProjectionMatrix(); }
 }
 
+// ---------------------------------------------------------------- gå genom huset
+// Kameran i ögonhöjd över golvet under den, på golven och i trapporna (ett steg upp högst STEG_UPP; nedåt så långt
+// som golvet går), genom väggarna. Golvet är närmaste uppåtvända yta under kameran bland de synliga delarna. Blicken
+// styrs med musen (dra) och bildvinkeln är vågrät, som renderingarnas objektiv: öga 48° (40 mm) eller 84° (20 mm).
+const OGA = 1.6, STEG_UPP = 0.45, GA_FART = 1.4;      // ögonhöjd och högsta steg upp [m], gångfart [m/s]
+const gaRuta = document.getElementById("gaRuta"), objektivVal = document.getElementById("objektiv");
+const blick = () => new THREE.Vector3(-Math.sin(gaende.gir), 0, -Math.cos(gaende.gir));
+function gaFov() {
+  const h = THREE.MathUtils.degToRad(Number(objektivVal.value)), b = el.clientWidth / el.clientHeight;
+  camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(h / 2) / b));
+  camera.near = 0.05; camera.updateProjectionMatrix();
+}
+function golvUnder(p, ovanfor) {
+  // höjden på närmaste uppåtvända yta under punkten, från höjden ovanfor och nedåt, eller null
+  const fran = new THREE.Vector3(p.x, ovanfor, p.z);
+  const nara = gaende.ytor.filter(d => {
+    const b = d.userData.lada;
+    return b.min.x <= p.x && b.max.x >= p.x && b.min.z <= p.z && b.max.z >= p.z && b.min.y <= ovanfor;
+  });
+  ray.set(fran, new THREE.Vector3(0, -1, 0));
+  const n = new THREE.Vector3();
+  for (const t of ray.intersectObjects(nara, false))
+    if (t.face && n.copy(t.face.normal).transformDirection(t.object.matrixWorld).y > 0.5) return t.point.y;
+  return null;
+}
+function flytta(riktning, langd) {
+  camera.position.addScaledVector(riktning, langd);
+  const g = golvUnder(camera.position, gaende.golv + STEG_UPP);
+  if (g !== null) gaende.golv = g;
+}
+function borjaGa() {
+  orto = ortoRuta.checked = false;
+  for (const d of delar) if (!d.userData.lada) d.userData.lada = new THREE.Box3().setFromObject(d);
+  const ytor = delar.filter(d => arMatbar(d) && !d.material.transparent);
+  // där kameran står, om den står inne (ett golv högst 3 m under den), annars vid punkten mitt i bilden
+  // (rotationscentrum); riktad som kameran
+  const fram = new THREE.Vector3(); camera.getWorldDirection(fram);
+  gaende = { gir: Math.atan2(-fram.x, -fram.z), lut: 0, golv: 0, mal: null, ytor };
+  const hos = golvUnder(camera.position, camera.position.y);
+  const inne = hos !== null && camera.position.y - hos < 3;
+  const start = inne ? camera.position.clone() : controls.target.clone();
+  const g = inne ? hos : golvUnder(start, start.y + 0.5) ?? golvUnder(start, start.y + 20);
+  gaende.golv = g ?? start.y;
+  camera.position.set(start.x, gaende.golv + OGA, start.z);
+  controls.enabled = false; gaRuta.checked = true;
+  document.getElementById("gahjalp").style.display = "block";
+  gaFov(); visaRiktning();
+}
+function slutaGa() {
+  // rotationscentrum 2 m framför kameran, så att man kan vrida runt där man stod
+  controls.target.copy(camera.position).addScaledVector(blick(), 2);
+  camera.up.set(0, 1, 0);
+  gaende = null; controls.enabled = true; gaRuta.checked = false; tangenter.clear();
+  document.getElementById("gahjalp").style.display = "none";
+  camera.fov = 35; camera.updateProjectionMatrix();
+}
+function visaRiktning() { camera.rotation.set(gaende.lut, gaende.gir, 0, "YXZ"); }
+function gaSteg(dt) {
+  const fram = blick(), hoger = new THREE.Vector3(-fram.z, 0, fram.x), v = new THREE.Vector3();
+  if (tangenter.has("ArrowUp")) v.add(fram);
+  if (tangenter.has("ArrowDown")) v.sub(fram);
+  if (tangenter.has("ArrowRight")) v.add(hoger);
+  if (tangenter.has("ArrowLeft")) v.sub(hoger);
+  const fart = GA_FART * (fortare ? 3 : 1);
+  if (v.lengthSq()) { gaende.mal = null; flytta(v.normalize(), fart * dt); }
+  else if (gaende.mal) {
+    // dubbelklick: gå till punkten
+    const kvar = gaende.mal.clone().sub(camera.position).setY(0), l = kvar.length();
+    if (l < 0.02) gaende.mal = null; else flytta(kvar.normalize(), Math.min(l, 2.5 * fart * dt));
+  }
+  // ögonhöjden följer golvet mjukt (trappsteg, nivåskillnader)
+  const y = gaende.golv + OGA;
+  camera.position.y += (y - camera.position.y) * Math.min(1, dt * 12);
+  visaRiktning();
+}
+let titt = null;
+renderer.domElement.addEventListener("pointerdown", e => { if (gaende && e.button === 0) titt = [e.clientX, e.clientY]; });
+window.addEventListener("pointermove", e => {
+  if (!gaende || !titt || !e.buttons) return;
+  const k = THREE.MathUtils.degToRad(camera.fov) / el.clientHeight;     // en pixel i radianer
+  gaende.gir += (e.clientX - titt[0]) * k; gaende.lut += (e.clientY - titt[1]) * k;
+  gaende.lut = Math.max(-1.45, Math.min(1.45, gaende.lut)); titt = [e.clientX, e.clientY];
+});
+window.addEventListener("pointerup", () => { titt = null; });
+renderer.domElement.addEventListener("dblclick", e => {
+  if (!gaende) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  mus.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  stral(mus);
+  const t = traffLangsStralen()[0];
+  if (!t) return;
+  // till punkten på golvet, eller framför väggen som träffas
+  const n = t.face ? t.face.normal.clone().transformDirection(t.object.matrixWorld) : new THREE.Vector3(0, 1, 0);
+  gaende.mal = n.y > 0.5 ? t.point.clone() : t.point.clone().addScaledVector(ray.ray.direction.clone().setY(0).normalize(), -0.4);
+});
+gaRuta.onchange = () => { if (gaRuta.checked) borjaGa(); else slutaGa(); };
+objektivVal.onchange = () => { if (gaende) gaFov(); };
+
 const ortoRuta = document.getElementById("orto");
-ortoRuta.onchange = () => { orto = ortoRuta.checked; };
+ortoRuta.onchange = () => { if (gaende) slutaGa(); orto = ortoRuta.checked; };
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT" || e.key.toLowerCase() !== "o" || e.metaKey || e.ctrlKey) return;
+  if (["INPUT", "SELECT"].includes(e.target.tagName) || e.metaKey || e.ctrlKey) return;
+  if (e.key.toLowerCase() === "g") { if (gaende) slutaGa(); else if (modell) borjaGa(); return; }
+  if (e.key.toLowerCase() !== "o") return;
+  if (gaende) slutaGa();
   ortoRuta.checked = orto = !orto;
 });
 document.getElementById("stang").onclick = () => { document.getElementById("panel").classList.add("dold"); storlek(); };
@@ -942,8 +1063,9 @@ window.visare = { scene, camera, ortoKamera, controls, gaTill, byggSnitt, fokuse
                   satMatLage };
 const klocka = new THREE.Clock();
 renderer.setAnimationLoop(() => {
-  ga(Math.min(klocka.getDelta(), 0.1)); narplan();
-  controls.update(); if (orto) synkaOrto(); renderer.render(scene, aktiv()); flyttaEtiketter();
+  const dt = Math.min(klocka.getDelta(), 0.1);
+  if (gaende) gaSteg(dt); else { ga(dt); narplan(); controls.update(); }
+  if (orto) synkaOrto(); renderer.render(scene, aktiv()); flyttaEtiketter();
 });
 </script>
 </body>

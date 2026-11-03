@@ -226,9 +226,16 @@ def rita_balk(path, B, A, env, rad, BOKST):
     tw = 0.011 * L
     if A.vagg:
         v0, v1 = A.vagg
-        ax.add_patch(Rectangle((v0, -0.95), v1 - v0, 0.95, fc="white", ec=INK, lw=0.5, hatch="////", zorder=1))
-        ax.text((v0 + v1) / 2, -0.47, "innervägg", ha="center", va="center", fontsize=7,
+        kanter = [v0] + [q for o in A.oppningar for q in o] + [v1]
+        bitar = list(zip(kanter[0::2], kanter[1::2]))
+        for a_, b_ in bitar:
+            ax.add_patch(Rectangle((a_, -0.95), b_ - a_, 0.95, fc="white", ec=INK, lw=0.5, hatch="////", zorder=1))
+        a_, b_ = max(bitar, key=lambda q: q[1] - q[0])
+        ax.text((a_ + b_) / 2, -0.47, "innervägg", ha="center", va="center", fontsize=7,
                 bbox=dict(fc="white", ec="none", pad=1.0), zorder=5)
+        for o0, o1 in A.oppningar:
+            ax.text((o0 + o1) / 2, -0.47, "dörr + ficka", ha="center", va="center", fontsize=6.3, style="italic",
+                    color="#333", zorder=5)
     tri = B.get("triangel")
     strava = B.get("strava") or ((tri["x"], tri["x"] + tri["e"]) if tri else None)
     ej_stod = bool(tri)

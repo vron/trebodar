@@ -2,27 +2,31 @@
 (skjutdörrar utanpå väggen eller fickdörrar i väggen, planritning 201 rev 02). Öppningarna och produkttyperna står i
 oppningar.py.
 
-Karmen sitter med aluminiumbeklädnaden i panelens utsida (w −65) och 10 mm drevmån runt om i regelverkets öppning
-(modulmåttet), drevad med mineralull. Fasaden går fram till karmen (fasad.py). Invändigt: smygbrädor 15 mm av
-vitmålad furu från karmen till väggens yta och fönsterbänk 22 mm med 20 mm utstick och öron 30 mm (dörrarna har
-ingen); i badrummet kakel runt om. Källarens fönster sitter i cellplastens smyg; smygens och bröstningens gips hör
-till källarväggarnas insida (invandigt/kallare.py).
+Karmen sitter INDRAG (22 mm) innanför panelens utsida, med aluminiumbeklädnaden i panelens insida (w −43), och
+10 mm drevmån runt om i regelverkets öppning (modulmåttet), drevad med mineralull. Fasaden går fram till karmen och
+panelen 10 mm in över den vid sidorna och överkanten (fasad.py); under fönstren leder ett fönsterbleck i karmens
+aluminium vattnet ut över panelen. Invändigt går väggens skikt fram till karmens linje (vagginsida.py) och smygen är
+av oljad ask 20 mm i liv med karmens kant, med fibrerna längs varje bit: sidorna, överstycket och fönsterbänken med
+20 mm utstick och öron 30 mm (dörrarna har ingen); i badrummet kakel runt om. Källarens fönster sitter i
+cellplastens smyg; smygens och bröstningens gips hör till källarväggarnas insida (invandigt/kallare.py).
 """
 from __future__ import annotations
 
-from modellering import Del, Montage, Placering, box
+from modellering import Del, Montage, Placering, box, prisma
 
 from trebodar import skelett as S
 from trebodar.byggdelar import fonster as F
-from trebodar.byggdelar.virke import fmt
+from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
 from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
-from trebodar.material import ALUMINIUM, FONSTERTRA, FURU, KAKEL, KARM, MINERALULL
+from trebodar.material import ALUMINIUM, ASK, FURU, KAKEL, KARM, MINERALULL
 
-from .oppningar import DORRAR, FICKA_UT, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
+from .oppningar import BLECK_T, DORRAR, FICKA_UT, INDRAG, INNERDORRAR, OPPNINGAR, Innerdorr, Oppning
 
-W_UT = -S.T_FASAD                    # karmens utsida i panelens utsida
-SMYG_T, BANK_T = 15.0, 22.0          # smygbrädor och fönsterbänk
+W_UT = -S.T_FASAD + INDRAG           # karmens utsida
+SMYG_T, BANK_T = 20.0, 20.0          # smygen och fönsterbänken, ask
+BLECK_UT, BLECK_FALL = 30.0, 8.0     # fönsterblecket: utstick från panelen och fall utåt
+BLECK_NAS = 14.0                     # droppnäsan nedåt
 BANK_UT, BANK_ORA = 20.0, 30.0       # fönsterbänkens utstick från väggen och öron förbi öppningen
 KAKEL_T = 12.0                       # badrummets smyg (kakel på skiva, förenklat)
 SKJUT_T, SKJUT_GLAPP = 40.0, 10.0   # skjutdörrens blad och dess avstånd till väggens skikt
@@ -32,40 +36,62 @@ def enhet(o: Oppning) -> Montage:
     """Produkten i öppningen med drevning, smyg och fönsterbänk, i väggens system."""
     funktion, djup = F.PRODUKTER[o.typ]
     b, h = o.bredd - 2 * F.DREV, o.hojd - 2 * F.DREV
-    w_karm = W_UT + djup                                 # karmens insida
+    w_ut = W_UT if o.z1 > 0.0 else -S.T_FASAD            # källarens fönster i cellplastens smyg som förut
+    w_karm = w_ut + djup                                 # karmens insida
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (modul)" +
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
     plac = Placering.flytt(o.u0 + F.DREV, w_karm, o.z0 + F.DREV)
     for i in funktion(o.kod, b, h, ALUMINIUM[int(o.vagg[0])]).barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)
-    drev = box(o.u0, o.u1, 0.0, w_karm, o.z0, o.z1) - box(o.u0 + F.DREV, o.u1 - F.DREV, -1.0, w_karm + 1.0,
+    # drevningen i regelverket; där karmen går längre in (skjutdörren) går insidans skikt fram till den
+    w_drev = min(w_karm, S.T_STOMME)
+    drev = box(o.u0, o.u1, 0.0, w_drev, o.z0, o.z1) - box(o.u0 + F.DREV, o.u1 - F.DREV, -1.0, w_drev + 1.0,
                                                           o.z0 + F.DREV, o.z1 - F.DREV)
     m.lagg(Del(f"Drevning {fmt(o.bredd)}×{fmt(o.hojd)}", drev, MINERALULL), Placering(), f"{o.kod}-DREV")
     if o.z1 <= 0.0:                                      # källaren: gipsen i invandigt/kallare.py
         return m
+    ku0, kz0, ku1, kz1 = o.karm
+    if o.typ not in DORRAR:
+        m.lagg(*_fonsterbleck(o, ku1 - ku0), f"{o.kod}-BLECK")
     t = insida_t(o.vagg, (o.u0 + o.u1) / 2)
     w_yta = S.T_STOMME + t                               # väggens insida
-    u0, u1, z0, z1 = o.u0, o.u1, o.z0, o.z1
     if t == INSIDA_VATRUM_T:
         k = KAKEL_T
-        for namn, f in (("V", box(u0, u0 + k, w_karm, w_yta, z0, z1)), ("H", box(u1 - k, u1, w_karm, w_yta, z0, z1)),
-                        ("U", box(u0 + k, u1 - k, w_karm, w_yta, z0, z0 + k)),
-                        ("O", box(u0 + k, u1 - k, w_karm, w_yta, z1 - k, z1))):
+        for namn, f in (("V", box(ku0, ku0 + k, w_karm, w_yta, kz0, kz1)),
+                        ("H", box(ku1 - k, ku1, w_karm, w_yta, kz0, kz1)),
+                        ("U", box(ku0 + k, ku1 - k, w_karm, w_yta, kz0, kz0 + k)),
+                        ("O", box(ku0 + k, ku1 - k, w_karm, w_yta, kz1 - k, kz1))):
             m.lagg(Del(f"Smyg kakel {fmt(w_yta - w_karm)}", f, KAKEL), Placering(), f"{o.kod}-SMYG-{namn}")
         return m
-    # smygbrädorna står på fönsterbänken, vid dörrarna på golvet och vid skjutdörren på tröskeln, som går in i rummet
-    zb = z0 + (BANK_T if o.typ not in DORRAR else F.DREV + F.S_TROSKEL if o.typ == "skjutdörr" else 0.0)
+    # smygen i karmens linje, inom karmens yttermått: sidorna står på fönsterbänken, vid dörrarna på golvet och vid
+    # skjutdörren på tröskeln, som går in i rummet; överstycket går över sidorna
+    zb = kz0 + (BANK_T if o.typ not in DORRAR else F.S_TROSKEL if o.typ == "skjutdörr" else -F.DREV)
     if o.typ not in DORRAR:
-        bank = box(u0, u1, w_karm, w_yta, z0, z0 + BANK_T) | box(u0 - BANK_ORA, u1 + BANK_ORA, w_yta, w_yta + BANK_UT,
-                                                                 z0, z0 + BANK_T)
-        m.lagg(Del(f"Fönsterbänk {fmt(o.bredd + 2 * BANK_ORA)}×{fmt(w_yta - w_karm + BANK_UT)}×{fmt(BANK_T)}", bank,
-                   FONSTERTRA), Placering(), f"{o.kod}-BANK")
-    d = w_yta - w_karm
-    for namn, f in (("V", box(u0, u0 + SMYG_T, w_karm, w_yta, zb, z1)),
-                    ("H", box(u1 - SMYG_T, u1, w_karm, w_yta, zb, z1)),
-                    ("O", box(u0 + SMYG_T, u1 - SMYG_T, w_karm, w_yta, z1 - SMYG_T, z1))):
-        m.lagg(Del(f"Smygbräda {fmt(d)}×{fmt(SMYG_T)}", f, FONSTERTRA), Placering(), f"{o.kod}-SMYG-{namn}")
+        bank = [(ku0, w_karm), (ku1, w_karm), (ku1, w_yta), (ku1 + BANK_ORA, w_yta), (ku1 + BANK_ORA, w_yta + BANK_UT),
+                (ku0 - BANK_ORA, w_yta + BANK_UT), (ku0 - BANK_ORA, w_yta), (ku0, w_yta)]
+        d, pl = virke_profil(bank, BANK_T, ASK, prefix="Fönsterbänk ")
+        m.lagg(d, Placering.flytt(0.0, 0.0, kz0) @ pl, f"{o.kod}-BANK")
+    for namn, (u0, u1, z0, z1, fiber) in (("V", (ku0, ku0 + SMYG_T, zb, kz1 - SMYG_T, "z")),
+                                          ("H", (ku1 - SMYG_T, ku1, zb, kz1 - SMYG_T, "z")),
+                                          ("O", (ku0, ku1, kz1 - SMYG_T, kz1, "x"))):
+        d, pl = virke_i_lada(u0, u1, w_karm, w_yta, z0, z1, fiber, ASK)
+        m.lagg(d, pl, f"{o.kod}-SMYG-{namn}")
     return m
+
+
+def _fonsterbleck(o: Oppning, langd: float) -> tuple[Del, Placering]:
+    """Fönsterblecket under karmen, i karmens aluminium: under karmens utsida över spikläkten, med fall ut över
+    panelen och droppnäsa BLECK_UT utanför den; profilen (w, z) från karmens underkant, längs karmens bredd."""
+    _, kz0, _, _ = o.karm
+    w_in, w_ut = W_UT + 21.0, -S.T_FASAD - BLECK_UT      # spikläktens djup under karmen, droppnäsans utsida
+    t, fall = BLECK_T, BLECK_FALL
+    z_in = -t - fall * (W_UT - (w_ut + t)) / (W_UT - w_ut)      # undersidan vid droppnäsans insida
+    profil = [(w_in, 0.0), (W_UT, 0.0), (w_ut, -fall), (w_ut, -fall - BLECK_NAS), (w_ut + t, -fall - BLECK_NAS),
+              (w_ut + t, z_in), (W_UT, -t), (w_in, -t)]
+    # profilen i lokala (x, y) = (w, z), utdragen längs lokala z = väggens u
+    plac = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (o.karm[0], 0.0, kz0))
+    return Del(f"Fönsterbleck {fmt(langd)}", prisma(profil, langd), ALUMINIUM[int(o.vagg[0])],
+               "Fönsterbleck i karmens aluminium, med fall och droppnäsa"), plac
 
 
 
@@ -77,8 +103,8 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     a, b = d.fickan
     ba, bb = (d.u0, d.u1 + FICKA_UT) if d.mot > 0 else (d.u0 - FICKA_UT, d.u1)
     m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
-    m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", box(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0,
-                                                                   d.hojd + 10.0), FURU), Placering(), f"{d.kod}-BLAD")
+    blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", FURU)
+    m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, FURU), pl, f"{d.kod}-BLAD")
     u0, u1 = min(d.u0, a), max(d.u1, b)
     m.lagg(Del(f"Skena fickdörr {fmt(u1 - u0)}", box(u0, u1, wm - 10.0, wm + 10.0, d.hojd + 10.0, d.hojd + FICKA_SKENA),
                KARM), Placering(), f"{d.kod}-SKENA")

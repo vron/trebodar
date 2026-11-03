@@ -7,7 +7,7 @@ tändgrupp sitter i allrummets västra del under vänstra huskroppens takfall oc
 del (tuben vrids högst 90° från stammen, så den kan inte riktas över dalen). Två PH 5 hänger över bordet, symmetriskt
 kring nocken, 600 mm över bordsskivan (0,72 m).
 
-Dimrarna sitter på väggen 2C (allrumssidan) bredvid sovrummets skjutdörr, utanför bladet i öppet läge: en med två
+Dimrarna sitter på väggen 2C (allrumssidan) bredvid sovrummets fickdörr, öster om fickan: en med två
 kanaler för spotarna och en för PH 5. Ledningarna går i rör: från dimrarna upp i väggen och i innertakets
 installationsskikt längs raderna; till den nordvästra raden går röret i väggen 2C över kaminens öppning. Matningen
 går ned i väggen och i mellanbjälklaget (bjalklag/mellanbjalklag.py).
@@ -32,7 +32,7 @@ MAL = {"2SO": (NOCK + S.TAKFALL["2NV"].x_insida) / 2, "2NV": (NOCK + S.TAKFALL["
 VAST = (3965.0, 7705.0)                      # tubspoten i allrummets västra del (takfallet 1NV)
 L11_X = 3400.0                               # badrumsväggen L11:s yta mot allrummet (ungefär)
 PH5_X, PH5_Y, BORD = 460.0, 8975.0, 720.0   # PH 5: från nocken, längs y och bordsskivans höjd
-DIMMER_U = 1350.0                            # längs 2C: förbi skjutdörrens blad (ID6) i öppet läge
+DIMMER_U = 1350.0                            # längs 2C: öster om fickdörren ID6:s ficka (u 0–1 178)
 
 
 def _rad(kod: str, start: int, tand: str) -> list[Lampa]:

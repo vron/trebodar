@@ -240,7 +240,8 @@ def rader_for(s, P):
 
 
 class Balkanalys:
-    """Balk enligt B (dict): total, spann, typ ('nock'/'dal'), ev. vagg = [x0, x1] (balken vilar på vägg),
+    """Balk enligt B (dict): total, spann, typ ('nock'/'dal'), ev. vagg = [x0, x1] (balken vilar på vägg) med
+    ev. oppningar = [[x0, x1], ...] i väggen (balken spänner fritt över dem, mellan karmstolparna),
     ev. platar = [[x0, x1], ...] (plåtbitar; utan angivelse plåt hela längden).
     Utan vägg antas lika utstick i båda ändar: (total - summa spann) / 2."""
 
@@ -257,6 +258,11 @@ class Balkanalys:
             if huvud[-1] < L:
                 self.zoner[-1] = (self.zoner[-1][0], L)
             self.vagg = (v0, v1)
+            # öppningar i väggen: egna snözoner, så att snön kan ligga bara över öppningen
+            self.oppningar = [tuple(map(float, o)) for o in B.get("oppningar", [])]
+            if self.oppningar:
+                kanter = sorted({0.0, v1} | {q for o in self.oppningar for q in o})
+                self.zoner = list(zip(kanter[:-1], kanter[1:])) + self.zoner[1:]
         else:
             over = (L - sum(B["spann"])) / 2
             huvud = [over]
@@ -266,6 +272,7 @@ class Balkanalys:
             self.zoner[0] = (0.0, self.zoner[0][1])
             self.zoner[-1] = (self.zoner[-1][0], L)
             self.vagg = None
+            self.oppningar = []
         self.huvud = [float(h) for h in huvud]
         self.fria = [(huvud[i], huvud[i + 1]) for i in range(len(huvud) - 1)]
         self.platar = [tuple(map(float, p)) for p in B.get("platar", [[0.0, L]])]
@@ -294,13 +301,19 @@ class Balkanalys:
         self.n_huvud = [nod(h) for h in self.huvud]
         self.fjader = {}
         if self.vagg:
-            self.n_vagg = [i for i, x in enumerate(self.xn) if self.vagg[0] - 1e-6 <= x <= self.vagg[1] + 1e-6]
-            kv = P.get("k_vagg", 1e4)
             v0, v1 = self.vagg
+
+            def buret(a, b):
+                """Längden av [a, b] där balken vilar på väggen (utanför öppningarna)."""
+                lo, hi = max(a, v0), min(b, v1)
+                return max(0.0, hi - lo) - sum(max(0.0, min(hi, o1) - max(lo, o0)) for o0, o1 in self.oppningar)
+            self.n_vagg = [i for i, x in enumerate(self.xn) if v0 - 1e-6 <= x <= v1 + 1e-6
+                           and not any(o0 + 1e-6 < x < o1 - 1e-6 for o0, o1 in self.oppningar)]
+            kv = P.get("k_vagg", 1e4)
             for n in self.n_vagg:
                 xl = self.xn[n - 1] if n > 0 else self.xn[n]
                 xr = self.xn[n + 1] if n < self.ne else self.xn[n]
-                self.fjader[n] = kv * (min(xr, v1) - max(xl, v0)) / 2
+                self.fjader[n] = kv * (buret(xl, self.xn[n]) + buret(self.xn[n], xr)) / 2
         else:
             self.n_vagg = []
         # övriga fjädrande stöd (t.ex. sträva): [[x, k]], tar bara tryck

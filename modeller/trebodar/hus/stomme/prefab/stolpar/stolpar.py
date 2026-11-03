@@ -1,7 +1,8 @@
 """Fristående stolpar under nock- och dalbalkarna (K-03). Stolpar som står i en vägg ingår i väggen.
 
 LN1_1 (ny, nockbalk 1 stöd B), LN1_2 (nockbalk 1 stöd C, fristående), LN1_3 (huvudstolpen, ln1_3.py) och LD4_1
-(stolpe B, GL30h 140×140), med stolparnas mitt som i K-03 och K-05.
+(stolpe B, GL30h 140×140, med södra sidan 12 mm norr om fickdörren ID6:s ficka i 2C), med stolparnas mitt som i
+K-03 och K-05.
 """
 from modellering import Montage
 
@@ -13,7 +14,7 @@ from . import ln1_3
 
 LN1_1 = (S.BALKAR["NB1"].x, 2795.0)          # stolparnas mitt (x, y)
 LN1_2 = (S.BALKAR["NB1"].x, 4686.0)
-LD4_1 = (4475.0, 5855.0)
+LD4_1 = (4475.0, 5843.0)                     # 12 mm norr om fickdörren ID6:s ficka (Onshape-modellens läge)
 LD4_1_B = 140.0
 
 

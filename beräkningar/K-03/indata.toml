@@ -184,7 +184,7 @@ gamla = "F"
 huvud = true
 [[stolpe]]
 namn = "LD2_1"
-sok = [9405, 5012]
+sok = [9405, 4048]
 [[stolpe]]
 namn = "LD2_2"
 sok = [9290, 5947]
@@ -203,7 +203,7 @@ sok = [7007, 2200]
 gamla = "H"
 [[stolpe]]
 namn = "LD4_1"
-sok = [4475, 5855]
+sok = [4475, 5843]
 gamla = "B"
 e = 70
 krav = { delar = 1, b = 140, h = 140, mat = "GL30h", text = "GL30h 140×140", z0 = 0, z1 = 2404, stagad = "" }

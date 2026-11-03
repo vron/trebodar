@@ -91,8 +91,8 @@ _INNE = [
     ("I16", "badrum", "fran-dorr", "vid", (3000, 6700), (700, 4400, 1200)),
     ("I17", "badrum", "mot-dorr", "vid", (450, 3950), (2900, 7300, 1300)),
     ("I18", "sovrum", "fran-dorr", "vid", (4150, 5650), (8600, 3000, 1300)),
-    ("I19", "sovrum", "mot-fonster", "öga", (6100, 5300), (6300, 135, 1500)),
-    ("I20", "sovrum", "mot-golvfonster", "vid", (6000, 5150), (3270, 3800, 1000)),
+    ("I19", "sovrum", "mot-fonster", "öga", (6100, 4800), (6300, 135, 1500)),       # framför garderoben
+    ("I20", "sovrum", "mot-golvfonster", "vid", (6700, 4800), (3270, 3800, 1000)),
     ("I21", "kontor", "oversikt", "vid", (9050, 1100), (4700, 1900, 1300)),
     ("I22", "kontor", "mot-altandorr", "öga", (7200, 1300), (4565, 2520, 1150)),
     ("I23", "sovrum-litet", "fran-dorr", "vid", (10450, 2700), (13200, 1500, 1200)),

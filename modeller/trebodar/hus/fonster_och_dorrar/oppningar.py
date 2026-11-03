@@ -18,6 +18,10 @@ from trebodar.byggdelar.fonster import DREV
 from trebodar.hus.grund import kallarvaggar as K
 
 
+INDRAG = 22.0                # karmens utsida innanför panelens utsida (i panelens insida, fonster_och_dorrar.py)
+BLECK_T = 1.5                # fönsterblecket under karmen (fonster_och_dorrar.py, fasad.py)
+
+
 @dataclass(frozen=True)
 class Oppning:
     kod: str                 # t.ex. "1SO-F1"
@@ -136,18 +140,19 @@ FICKA_UT = 75.0              # bladet är så mycket bredare än öppningen
 FICKA_SPEL = 55.0            # fickan är så mycket längre än bladet
 
 
-# innerdörrarna som i Onshape-modellen (fickdörrarnas fickor där). ID2 och ID6 är skjutdörrar utanpå väggen: deras
-# fickor i Onshape-modellen går genom stolparna LD2_2 och LD4_1, som inte fanns där (modell-todo). ID5 är en fickdörr
-# med fickan mot öster: smalare än i Onshape-modellen (blad 750, öppningen 675) och med minst 600 mm vägg väster om
-# öppningen (garderober i sovrummet), så att fickan slutar före stolpen LN1_1 (x 11 565)
+# innerdörrarna som i Onshape-modellen (fickdörrarnas fickor där), alla fickdörrar. ID2:s ficka går mot norr i 2B,
+# med karmstolpen LD2_1 vid fickans ände (dalbalk 2 spänner över dörren och fickan, K-01). ID5:s ficka går mot öster
+# och slutar före stolpen LN1_1 (x 11 565), med 500 mm vägg väster om öppningen för garderober i sovrummet (blad 800,
+# öppningen 725). ID6:s ficka går från L12 in i 2C, söder om stolpen LD4_1 (som står 12 mm norr om fickan)
 INNERDORRAR = (
     Innerdorr("ID1", "L11", 1010.0, 1860.0, -1, rum="badrummet", ficka=True),
-    Innerdorr("ID2", "2B", 3992.0, 4826.0, -1, 2200.0, "trappan till källaren, mellan karmstolparna LD2_1 och LD2_2"),
+    Innerdorr("ID2", "2B", 3992.0, 4826.0, -1, 2200.0, "trappan till källaren, mellan karmstolparna LD2_1 och LD2_2",
+              mot=-1, ficka=True),
     # ID3 stängs mot L1:s gips, fickan slutar vid L3; ID4 börjar efter L3, fickan slutar vid L4
     Innerdorr("ID3", "L2", 25.0, 841.0, 1, rum="kontoret i höger huskropp", ficka=True),
     Innerdorr("ID4", "L2", 1891.0, 2732.0, 1, rum="kontoret/gästrummet", ficka=True),
-    Innerdorr("ID5", "L1", 625.0, 1300.0, 1, rum="sovrummet i höger huskropp", ficka=True),
-    Innerdorr("ID6", "L12", 0.0, 1060.0, 1, rum="sovrummet i mittre huskroppen, från allrummet", fore=-25.0),
+    Innerdorr("ID5", "L1", 525.0, 1250.0, 1, rum="sovrummet i höger huskropp", ficka=True),
+    Innerdorr("ID6", "L12", 0.0, 1060.0, 1, rum="sovrummet i mittre huskroppen, från allrummet", ficka=True),
 )
 
 # öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt

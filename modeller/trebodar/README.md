@@ -172,9 +172,10 @@ Trebodar
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
-    └── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
-                                innerväggarna: lätta väggar L1–L12 och skikten på alla innerväggar,
-                                källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
+    ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
+    │                           innerväggarna: lätta väggar L1–L14 och skikten på alla innerväggar,
+    │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
+    └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar)
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
@@ -210,7 +211,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Källarväggarnas gips
   heter efter väggen eller fönstret (V3-GI01, F1-GI01; bröstningarnas F1-GIB). Innerdörrarna ID1–ID6 är
-  skjutdörrar med BLAD och SKENA (ID1, ID3, ID4 och ID5 fickdörrar; BR brädorna på fickans sidor).
+  fickdörrar med BLAD och SKENA (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
+  fönsterbänken, SMYG-V, -H och -O smygen. Garderoben: GA-, GB- och GC-delar som väggarna, GD1 och GD2 dörrarna
+  (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket.
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
@@ -279,24 +282,35 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   LD4_2 fyra reglar, ny stolpe LN1_1, toppklossar på takstolarna, kortlingar vid takfönstren, rören VKR 80×80×4 med
   plåtar, bottenplattan på en nivå med kantbalk, balkar, plintar och L-element, källarväggarnas kärnor ihopgjutna,
   plattan på mark med cellplast och fyllning, fasadstenen 15 mm ut, dubbel takbalk vid TF1, karmstolparna LD2_1 och
-  LD2_2 i väggen 2B vid trapphålets långsidor.
+  LD2_2 i väggen 2B: LD2_2 vid trapphålets långsida och LD2_1 vid fickdörren ID2:s fickas ände (dalbalk 2 spänner
+  över dörren och fickan, K-01), LD4_1 12 mm norr om fickdörren ID6:s ficka.
 - **Toppklossar**: en kloss per takstol, på gavelstolarnas insida (utsidan är fasad) och på mittstolen 2C:s nordöstra
   sida, inne i väggens tjocklek (på den sydvästra skulle den gå ut genom gipsen), så att balken vilar på 90 mm.
 - **Innerväggar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med OSB och gips
   (i badrummet plywood, gips, tätskikt och kakel) och skikt på de bärande innerväggarna. 2B är sluten söder om
   trappan och 2C vid väggens början. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
-- **Innerdörrarna** som i Onshape-modellen: fickdörrar ID1 (badrummet), ID3 och ID4 (korridoren i höger huskropp) och
-  ID5 (sovrummet i höger huskropp, blad 750 med fickan mot öster, före stolpen LN1_1, och minst 600 mm vägg väster
-  om öppningen), blad 75 mm bredare än öppningen i en ficka 55 mm längre än bladet. Fickan är hela stommens tjocklek, med brädor
-  12 mm i stället för OSB (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13). ID3 stängs mot L1:s gips och fickan
-  slutar vid L3, ID4:s ficka vid L4. ID2 och ID6 är skjutdörrar utanpå väggen: deras fickor i Onshape-modellen går
-  genom stolparna LD2_2 och LD4_1 (modell-todo).
+- **Innerdörrarna** är fickdörrar: ID1 (badrummet), ID2 (källartrappan, fickan mot norr i 2B till karmstolpen
+  LD2_1), ID3 och ID4 (korridoren i höger huskropp), ID5 (sovrummet i höger huskropp, blad 800 med fickan mot öster,
+  före stolpen LN1_1, och 500 mm vägg väster om öppningen) och ID6 (sovrummet i mittre huskroppen, fickan från L12 in
+  i 2C söder om stolpen LD4_1), blad 75 mm bredare än öppningen i en ficka 55 mm längre än bladet. Fickan är hela
+  stommens tjocklek, med brädor 12 mm i stället för OSB (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13), också
+  där den går in i en annan vägg (lattvaggar.fickor). ID3 stängs mot L1:s gips och fickan slutar vid L3, ID4:s ficka
+  vid L4.
+- **Skiktens hörn och överkant**: där en innervägg slutar mot en annan går skikten på hörnets utsida förbi änden till
+  den andra väggens yttre yta, och på insidan slutar de mot den andra väggens skikt. Skikten går upp till innertaket,
+  och där taket lutar tvärs över väggen är skivornas överkant sned som taket.
+- **Garderoben i sovrummet** (hus/inredning, ärende #16): lätta väggar GC, GB och GA (lägena i
+  invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
+  snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i
+  smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
-  helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, med
-  aluminiumbeklädnaden i panelens utsida och panelen fram till karmen. Typerna: vridfönster 10×10 och 8×8 och i
+  helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, 22 mm innanför
+  panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
+  överkanten och ett fönsterbleck med fall och droppnäsa under fönstren. Typerna: vridfönster 10×10 och 8×8 och i
   källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
-  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt
-  smygbrädor och fönsterbänk av vitmålad furu, i badrummet kakel, i källaren gips.
+  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Invändigt går
+  väggens skikt och installationsläkten fram till karmens linje, och smygen och fönsterbänken är oljad ask 20 mm med
+  fibrerna längs varje bit; i badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).
 - **Källarväggarnas insida**: gips 13 direkt på cellplasten (brandskydd), från bottenplattan till bjälklaget, på
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
   och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta

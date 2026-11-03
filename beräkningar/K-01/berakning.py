@@ -402,6 +402,7 @@ for nr, B in enumerate(IN["balk"], 1):
         utstick=fmt((B["total"] - sum(B["spann"])) / 2, 0) if not B.get("vagg") else "0",
         vagg=bool(B.get("vagg")), strava=bool(B.get("strava")), stolpe=(stolpe["txt"] if stolpe else None),
         vagg_txt=(f"{fmt(B['vagg'][0], 0)}–{fmt(B['vagg'][1], 0)}" if B.get("vagg") else ""),
+        oppning_txt=" och ".join(f"{fmt(a, 0)}–{fmt(b, 0)}" for a, b in B.get("oppningar", [])),
         G=fmt(Lq["G"], 2), S=fmt(Lq["S"], 2), qd=fmt(Lq["q610b"], 2),
         Mmax=fmt(Mmax.max() / 1e6, 1), Mmin=fmt(Mmin.min() / 1e6, 1), V=fmt(Vabs.max() / 1e3, 1),
         kontroller=kontroller, umax=pct(umax), u_full=pct(u_full),
