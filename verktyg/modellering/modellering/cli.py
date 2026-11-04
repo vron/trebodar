@@ -418,9 +418,16 @@ def main(argv: list[str] | None = None) -> None:
         if str(MODELLMAPP) not in sys.path:
             sys.path.insert(0, str(MODELLMAPP))
         vy_mod = importlib.import_module("trebodar.vyer")
-        fran = arg.fran or [ROT / "renderingar" / s / d for s in ("", *[k for k in getattr(vy_mod, "LJUSSERIER", {})
-                                                                        if k != "A"]) for d in ("inne", "ute")]
-        renderingar.publicera(fran, arg.vyer, arg.webb, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt)
+        variant = os.environ.get("TREBODAR_VARIANT", "")
+        if variant:                                      # variantens bilder (bara serien A) och dess webbplats
+            fran = arg.fran or [ROT / "renderingar" / variant / d for d in ("inne", "ute")]
+            webb_ = arg.webb if arg.webb != ROT / "docs" / "renderingar" else ROT / "docs" / variant / "renderingar"
+        else:
+            fran = arg.fran or [ROT / "renderingar" / s / d for s in ("", *[k for k in getattr(vy_mod, "LJUSSERIER", {})
+                                                                            if k != "A"]) for d in ("inne", "ute")]
+            webb_ = arg.webb
+        renderingar.publicera(fran, arg.vyer, webb_, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt,
+                              f"{variant}-" if variant else "")
         return
     if arg.kommando == "materialprov":
         import json

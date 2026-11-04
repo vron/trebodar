@@ -82,6 +82,10 @@ STEG = [
          utdata=["modeller/trebodar/ut/trebodar.step"]),
     Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL,
          utdata=["docs/modell/index.html", "docs/modell/vyer.json", "docs/modell/trebodar.glb"]),
+    # modellens varianter med egen startsida (startsida.VARIANTER): webbvisaren med variantens modell
+    *[Steg(f"webb-{v}", "verktyg/modellering/webb", [["mod", "--variant", v, "webb", "--ut", f"../../docs/{v}"]],
+           kallor=MODELL, utdata=[f"docs/{v}/modell/index.html", f"docs/{v}/modell/vyer.json",
+                                  f"docs/{v}/modell/trebodar.glb"]) for v in startsida.VARIANTER],
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
          bygger_pa=["modell"], miljoer=["ma"],
          utdata=["renderingar/kameraplan.pdf", "docs/renderingar/index.html", "docs/renderingar/plan.json"]),
@@ -326,9 +330,13 @@ def spara_summa(s: Steg) -> None:
 
 
 def webbplats() -> None:
-    """Webbplatsens startsida och handlingarna i docs/ (startsida.py), ur det som stegen har byggt."""
-    startsida.bygg(ROT, {s.namn: projekt(s) for s in STEG if s.rapport},
-                   git("rev-parse", "--short", "HEAD").decode().strip())
+    """Webbplatsens startsida och handlingarna i docs/ (startsida.py), ur det som stegen har byggt, och varianternas
+    startsidor i docs/<variant>/."""
+    rapporter = {s.namn: projekt(s) for s in STEG if s.rapport}
+    version = git("rev-parse", "--short", "HEAD").decode().strip()
+    startsida.bygg(ROT, rapporter, version)
+    for v in startsida.VARIANTER:
+        startsida.bygg(ROT, rapporter, version, v)
 
 
 def tid(t: float) -> str:

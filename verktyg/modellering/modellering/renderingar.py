@@ -178,10 +178,12 @@ def _jpeg(png: Path, mapp: Path, stam: str) -> tuple[list[int], list[int]]:
     return bredder, [bild.width, bild.height]
 
 
-def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[str], lokalt: bool) -> None:
+def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[str], lokalt: bool,
+              prefix: str = "") -> None:
     """De renderade bilderna i mapparna (de med sidodata; urval: namnen eller början av dem, annars alla) som JPEG
     till webb_/bilder med förteckningen och, utom lokalt, till releasen RELEASE, varefter webbplatsen byggs om.
-    Förteckningen slås ihop med den publicerade; vyer som inte finns längre tas bort."""
+    Förteckningen slås ihop med den publicerade; vyer som inte finns längre tas bort. prefix: före filernas och
+    förteckningens namn i releasen (en variant av modellen, t.ex. "velfac-"; förteckningen heter MANIFEST lokalt)."""
     hittade = sorted((p for m in mappar if m.is_dir() for p in m.glob("*.png") if p.with_suffix(".json").exists()
                       and (not urval or any(_namn(p).startswith(unicodedata.normalize("NFC", u)) for u in urval))),
                      key=_namn)
@@ -202,8 +204,8 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
         print(f"  releasen {RELEASE} skapad")
     else:
         with tempfile.TemporaryDirectory() as tmp:
-            if not _gh("release", "download", RELEASE, "-p", MANIFEST, "-D", tmp, kontroll=False).returncode:
-                forteckning = json.loads((Path(tmp) / MANIFEST).read_text(encoding="utf-8"))
+            if not _gh("release", "download", RELEASE, "-p", prefix + MANIFEST, "-D", tmp, kontroll=False).returncode:
+                forteckning = json.loads((Path(tmp) / (prefix + MANIFEST)).read_text(encoding="utf-8"))
     idag = datetime.date.today().isoformat()
     nya: list[Path] = []
     bort: set[str] = set()
@@ -211,7 +213,7 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
         namn = _namn(png)
         data = json.loads(png.with_suffix(".json").read_text(encoding="utf-8"))
         serie = data.pop("serie", "A")
-        stam = _filnamn(namn) + ("" if serie == "A" else f"-{serie.lower()}")
+        stam = prefix + _filnamn(namn) + ("" if serie == "A" else f"-{serie.lower()}")
         bredder, storlek = _jpeg(png, mapp, stam)
         filer = [f"{stam}-{b}.jpg" for b in bredder]
         post = {**data, "storlek": storlek, "bredder": bredder, "filer": filer, "publicerad": idag}
@@ -239,7 +241,10 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
     if lokalt:
         return
     _gh("release", "upload", RELEASE, *map(str, nya), "--clobber")          # bilderna före förteckningen
-    _gh("release", "upload", RELEASE, str(mapp / MANIFEST), "--clobber")
+    with tempfile.TemporaryDirectory() as tmp:
+        kopia = Path(tmp) / (prefix + MANIFEST)
+        shutil.copy(mapp / MANIFEST, kopia)
+        _gh("release", "upload", RELEASE, str(kopia), "--clobber")
     for f in sorted(bort):
         _gh("release", "delete-asset", RELEASE, f, "--yes", kontroll=False)
     _gh("workflow", "run", "bygg.yml", "--ref", "main")
