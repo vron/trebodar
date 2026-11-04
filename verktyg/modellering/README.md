@@ -127,15 +127,16 @@ egen modell (t.ex. för beställning). Utdata:
   `modellering/terrang.py`, bara i renderingen) Lantmäteriets markhöjdmodell (1 m över tomten, 2,5 m omkring) i
   stället för Terrarium, rättad mot de egna inmätta markpunkterna (`lokalt/terrang`, versionshanteras inte), och
   marken från modellens terräng ut till den på omkring 5 m. Över tomten följer marktäcket de inmätta punkterna (berg,
-  gräsmatta, barr under träden) och de inmätta träden och stenarna står där de är inmätta; på tomten inga andra träd.
+  gräsmatta, barr under träden) och de inmätta träden och stenarna står där de är inmätta; på tomten inga andra träd
+  än de tillagda.
   Med Poly Havens tillgångar (CC0, `lokalt/polyhaven`, `./mod omgivning --hamta`) får berget, gräset och barren
   detaljer ur riktiga texturer och träden och stenarna är riktiga modeller (tallar och granar, även i skogen, och
   rundade granitblock), tonade som på platsen; utan dem är allt procedurellt. Hällmarken är mest berg i
   dagen med sprickor av ljung och gräs och tallar i dungar, som i flygbilderna. Det som saknas i OpenStreetMap
-  (grannhus, skog) och inmätta träd som inte finns står i `vyer.GEODATA` (`byggnader`, `skog`, `utan_trad`, i
-  modellens mm); byggnadernas mark tas ur Lantmäteriets höjder. Flygbilderna `flyg-tomten` och
-  `flyg-omgivningen` visar tomten och omgivningen rakt ovanifrån med verklig norr uppåt, för att jämföra med flygfoton
-  och kommentera var saker står.
+  (grannhus, skog), inmätta träd som inte finns och tallar som saknas står i `vyer.GEODATA` (`byggnader`, `skog`,
+  `utan_trad`, `nya_trad`, i modellens mm); byggnadernas mark tas ur Lantmäteriets höjder. Flygbilderna `flyg-tomten`
+  och `flyg-omgivningen` visar tomten och omgivningen rakt ovanifrån med verklig norr uppåt, för att jämföra med
+  flygfoton och kommentera var saker står; tomten i mulet väder, så att trädens skuggor inte ser ut som träd.
 - **Kameror** (`modeller/trebodar/vyer.py`): kameran hålls vågrät med objektivförskjutning, så att lodräta linjer
   blir lodräta. Inomhusbilderna I01–I30 heter `<nummer>-<rum>-<vy>-<objektiv>` med objektiven `öga` (40 mm i
   ögonhöjd 1,60 m: bildvinkeln och perspektivet som när man står i rummet) och `vid` (20 mm på 1,45 m); se

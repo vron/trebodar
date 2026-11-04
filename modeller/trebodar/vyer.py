@@ -34,9 +34,9 @@ VYER = {
                     "ljus": (6, 21, "06:30", "sol"), "lodrat": False},
     # flygbilderna rakt ovanifrån med verklig norr uppåt (som flygfoton; norr i modellen är (0,751, −0,660) enligt
     # passningen mot SWEREF, sweref_passning), för att se och kommentera var saker står: tomten (omkring 150 × 85 m)
-    # och omgivningen (400 × 225 m)
+    # och omgivningen (400 × 225 m); tomten i mulet väder, så att trädens skuggor på gräsmattan inte ser ut som träd
     "flyg-tomten": {"kamera": [2500, 6800, 125000], "mal": [3251, 6140, 0], "lins": 30,
-                    "ljus": (6, 21, "12:00", "sol"), "lodrat": False},
+                    "ljus": (6, 21, "12:00", "mulet"), "lodrat": False},
     "flyg-omgivningen": {"kamera": [2500, 6800, 330000], "mal": [3251, 6140, 0], "lins": 30,
                          "ljus": (6, 21, "12:00", "sol"), "lodrat": False},
     "detalj-fasad": {"kamera": [6500, -4200, 1700], "mal": [8200, 0, 1500], "lins": 40, "ljus": (9, 15, "12:00", "mulet")},
@@ -183,8 +183,8 @@ OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}
 GEODATA = {
     "mapp": "lokalt/omgivning", "radie": 2300.0, "cell": 5.0, "tillgangar": "lokalt/polyhaven",
     # det som saknas i OpenStreetMap eller inte stämmer (ärende #26, efter flygfoton och inmätningen), i modellens mm:
-    # byggnader (hörnen, höjden [m], valfritt platt tak och färger), skog (täta träd i olika höjd) och inmätta träd som
-    # inte finns
+    # byggnader (hörnen, höjden [m], valfritt platt tak och färger), skog (täta träd i olika höjd), inmätta träd som
+    # inte finns och tallar som saknas
     "byggnader": [
         # grannhuset i norr (nybygge): väggen mot tomten inmätt (punkterna hus vid x 21,4–21,9), djupet ur flygfotot
         {"horn": [(21600, -12800), (29000, -12800), (29000, 6200), (21600, 6200)], "hojd": 6.5,
@@ -203,7 +203,11 @@ GEODATA = {
         [(-10900, 35400), (-19600, 29100), (-29600, 27600), (-38300, 31500), (-43200, 39500), (-43000, 49600),
          (-37900, 59100), (-29200, 65400), (-19200, 66800), (-10500, 63000), (-5600, 55000), (-5800, 44800)],
     ],
-    "utan_trad": [(800, -6500), (2400, -300)],          # öster om huset
+    # öster om huset; de två väster om huset, vid gaveln mot grannhuset i norr
+    "utan_trad": [(800, -6500), (2400, -300), (16950, 12950), (20260, 11680)],
+    # öster om huset bortom de inmätta tallarna, i sydost och i sydväst
+    "nya_trad": [(-20660, -13170), (-14940, 9820), (-17060, 5580), (-21900, 6290), (-19980, 11040),
+                 (4670, 40540), (320, 38890), (170, 43840), (-3440, 41550)],
 }
 
 

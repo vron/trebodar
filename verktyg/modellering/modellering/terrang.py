@@ -124,12 +124,12 @@ def rattning(xs: np.ndarray, ys: np.ndarray, px: np.ndarray, py: np.ndarray, r: 
 
 def bygg(omgivning: str, mapp: str, passning: Passning, z0: float, hus: list[tuple[float, float]] | None = None,
          byggnader: Sequence[dict] = (), skog: Sequence[Sequence[tuple[float, float]]] = (),
-         utan_trad: Sequence[tuple[float, float]] = ()) -> dict:
+         utan_trad: Sequence[tuple[float, float]] = (), nya_trad: Sequence[tuple[float, float]] = ()) -> dict:
     """Lägg Lantmäteriets höjder i omgivningens rutnät (omgivning/hojd.f32) och skriv ett fint rutnät över tomten
     (omgivning/nara.f32, NARA_CELL m) med rättningen mot de inmätta markpunkterna. Det som saknas i OpenStreetMap
     läggs till (modellens mm): byggnaderna (hörn, höjd [m], valfritt tak och färger) och skogen (polygoner) i
-    marktäcket; de inmätta träden nära punkterna utan_trad finns inte. Byggnadernas mark tas ur de nya höjderna. Ger
-    statistiken."""
+    marktäcket; de inmätta träden nära punkterna utan_trad finns inte och träden i nya_trad läggs till. Byggnadernas
+    mark tas ur de nya höjderna. Ger statistiken."""
     besk = json.load(open(os.path.join(omgivning, "omgivning.json"), encoding="utf-8"))
     rut = las(mapp)
     # omgivningens rutnät: Lantmäteriet där det finns, mjukt mot Terrarium vid ytterkanten
@@ -168,7 +168,7 @@ def bygg(omgivning: str, mapp: str, passning: Passning, z0: float, hus: list[tup
     (zn - z0).astype(np.float32).tofile(os.path.join(omgivning, "nara.f32"))
     _tacke(omgivning, xs, ys, px, py, p["kategori"])
     _objekt(omgivning, xs, ys, zn - z0, px, py, p["H"] - z0, p["kategori"], hus,
-            [(x / 1000, y / 1000) for x, y in utan_trad])
+            [(x / 1000, y / 1000) for x, y in utan_trad], [(x / 1000, y / 1000) for x, y in nya_trad])
     besk["nara"] = {"x0": float(xs[0]), "y0": float(ys[0]), "cell": NARA_CELL, "nx": len(xs), "ny": len(ys)}
     nya = [[(x / 1000, y / 1000) for x, y in b["horn"]] for b in byggnader]
     besk["byggnader"] += [{"horn": [list(q) for q in h], "hojd": float(b["hojd"]), "typ": "tillagd",
@@ -257,10 +257,10 @@ def _grupper(x: np.ndarray, y: np.ndarray, z: np.ndarray, avst: float) -> list[l
 
 def _objekt(omgivning: str, xs: np.ndarray, ys: np.ndarray, zn: np.ndarray, px: np.ndarray, py: np.ndarray,
             pz: np.ndarray, kat: np.ndarray, hus: list[tuple[float, float]] | None,
-            utan: Sequence[tuple[float, float]] = ()) -> None:
+            utan: Sequence[tuple[float, float]] = (), nya: Sequence[tuple[float, float]] = ()) -> None:
     """Träden och stenarna över tomten (nara_objekt.json, modellens m): träden i de inmätta trädpunkterna på marken
     (punkterna närmare än TRAD_AVST är samma träd, mätt flera gånger; utom de inom TRAD_AVST från en punkt i utan,
-    som inte finns), stenarna som grupper av stenpunkter
+    som inte finns) och de tillagda i nya, stenarna som grupper av stenpunkter
     (STEN_AVST) med läge, storlek och höjd över marken; inget inom HUS_FRI m från husets fasad (hus, mm: det som
     stod där är borta). Området är tomten, där träden är inmätta: det konvexa höljet
     kring punkterna i OMRADE_KAT (OMRADE_KANT m utanför); där står bara de inmätta träden."""
@@ -281,6 +281,7 @@ def _objekt(omgivning: str, xs: np.ndarray, ys: np.ndarray, zn: np.ndarray, px: 
         cx, cy = float(np.mean([a[0] for a in g])), float(np.mean([a[1] for a in g]))
         if all(math.hypot(cx - ux, cy - uy) > TRAD_AVST for ux, uy in utan):
             trad.append([cx, cy, mark(cx, cy)])
+    trad += [[x, y, mark(x, y)] for x, y in nya]
     stenar = []
     for g in _grupper(px[kat == "sten"], py[kat == "sten"], pz[kat == "sten"], STEN_AVST):
         a = np.array(g)
