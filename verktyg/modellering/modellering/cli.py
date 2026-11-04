@@ -542,13 +542,14 @@ def main(argv: list[str] | None = None) -> None:
             valda = {n: v for n, v in alla.items() if any(n == x or n.startswith(x) for x in arg.vyer)}
         else:
             valda = {"ute": vy_mod.VYER, "inne": getattr(vy_mod, "INNE", {}), "alla": alla}[arg.serie]
-        if not valda:
-            raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
         from . import renderingar
         serier = getattr(vy_mod, "LJUSSERIER", {"A": {}})
         if arg.ljusserie and arg.ljusserie not in serier:
             raise SystemExit(f"okänd ljusserie {arg.ljusserie} (finns: {', '.join(serier)})")
         serie = serier.get(arg.ljusserie or "A", {})
+        valda = {n: v for n, v in valda.items() if not any(n.startswith(x) for x in serie.get("utan", ()))}
+        if not valda:
+            raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
         serie_tand: dict[str, float] = {}
         if serie.get("tand") == "alla":
             inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()

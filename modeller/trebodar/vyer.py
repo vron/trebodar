@@ -26,12 +26,16 @@ OBJEKTIV = {"öga": {"lins": 40.0, "hojd": 1600.0}, "vid": {"lins": 20.0, "hojd"
 INNE_LJUS = (4, 20, "14:00", "sol")       # standardljuset för inomhusbilderna: april, eftermiddag, sol från SSV
 # ljusserierna (webbplatsens växel i bildvisaren): A är varje vys eget ljus, de andra samma tid och väder för alla
 # vyer, ute och inne (rendera.sh --ljusserie B, bilderna i renderingar/B/); "tand": "alla" tänder hela
-# elinstallationen
+# elinstallationen; "utan" är vyerna (eller början av namnen) som inte renderas i serien
 LJUSSERIER = {
     "A": {"namn": "Bildens eget ljus"},
     "B": {"namn": "April, kväll, mest sol", "ljus": (4, 28, "18:30", "halvklart")},
     "C": {"namn": "Oktober, förmiddag, mulet", "ljus": (10, 6, "10:00", "mulet")},
-    "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "18:00", "klart"), "tand": "alla"},
+    # D utan badrummet, som ännu inte har någon belysning i elinstallationen, närbilderna av fasaderna och taket,
+    # som är svarta i mörker, och stommen, som är byggskedet
+    "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "18:00", "klart"), "tand": "alla",
+          "utan": ("I16", "I17", "detalj-falu", "detalj-fasad", "detalj-koksgaller", "detalj-sten", "detalj-tak",
+                   "detalj-takhuv", "stomme")},
 }
 Z_KALLARE = S.Z_BOTTENPLATTA
 
