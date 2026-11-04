@@ -20,6 +20,7 @@
     --accent: #8f463a; --mork: #1b1a18; --mork-text: #ecebe6; --mork-dov: #a8a399;
     --klar: #4f7d3a; --upprattas: #b7832a; --inlamnad: #2f6f8f; --ej: #9a958c;
     --bredd: 1360px; --kant: clamp(16px, 4.5vw, 64px);
+    --ram: 12px; --rund: 18px; --rund-liten: 12px;   /* den stora bilden och modellens band inramade, bildernas hörn */
     --sans: "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, system-ui, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
@@ -49,7 +50,10 @@
   /* sidhuvudet: genomskinligt över den stora bilden, fast när man har scrollat förbi den */
   .topp { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 24px;
           padding: 20px var(--kant); color: #fff; transition: background .35s, color .35s, padding .35s,
-          box-shadow .35s; }
+          box-shadow .35s, top .35s; }
+  /* över den inramade bilden: innanför ramen */
+  body:not(.utan-bild-sida) .topp:not(.fast):not(.oppen) { top: var(--ram);
+          padding-inline: calc(var(--kant) + var(--ram)); }
   .topp.fast, .utan-bild-sida .topp { background: color-mix(in srgb, var(--papper) 90%, transparent);
           -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: var(--text); padding-block: 13px;
           box-shadow: 0 1px 0 var(--linje); }
@@ -61,7 +65,9 @@
                text-transform: uppercase; color: inherit; background: none; border: 0; padding: 6px 0; cursor: pointer; }
 
   /* den stora bilden */
-  .hjalte { position: relative; height: 100vh; height: 100svh; min-height: 540px; max-height: 1180px; overflow: hidden;
+  .hjalte { position: relative; margin: var(--ram); height: calc(100vh - 2 * var(--ram));
+            height: calc(100svh - 2 * var(--ram)); min-height: 540px; max-height: 1160px; overflow: hidden;
+            border-radius: var(--rund); isolation: isolate;
             background: #2a2926; color: #fff; }
   .hjalte img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%;
                 animation: in 1.6s ease-out both; }
@@ -78,7 +84,8 @@
   .hjalte .under { font-size: clamp(16px, 1.6vw, 20px); font-weight: 300; margin: 22px 0 0; max-width: 34ch;
                    color: #fffffff0; }
   .hjalte .bildtext { font-size: 12px; letter-spacing: .04em; color: #ffffffb3; margin: 0; }
-  .hjalte.utan-bild { height: auto; min-height: 0; background: var(--papper); color: var(--text); padding-top: 120px; }
+  .hjalte.utan-bild { height: auto; min-height: 0; margin: 0; border-radius: 0; background: var(--papper);
+                     color: var(--text); padding-top: 120px; }
   .hjalte.utan-bild::after { display: none; }
   .hjalte.utan-bild .text { position: static; }
   .hjalte.utan-bild .etikett, .hjalte.utan-bild .under { color: var(--dov); }
@@ -90,8 +97,10 @@
   .intro h2 { max-width: 14ch; }
   .intro p { margin: 0 0 1.1em; font-size: 17px; max-width: 60ch; color: color-mix(in srgb, var(--text) 86%, var(--papper)); }
   .intro p:first-child { font-size: 20px; line-height: 1.5; color: var(--text); }
-  .fakta { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 40px 0 0; border-top: 1px solid var(--linje); }
-  .fakta div { padding: 15px 0 14px; border-bottom: 1px solid var(--linje); }
+  .fakta { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 36px 0 0; padding: 4px 22px;
+           background: var(--yta); border-radius: var(--rund-liten); }
+  .fakta div { padding: 15px 0 14px; border-top: 1px solid var(--linje); }
+  .fakta div:nth-child(-n+2) { border-top: 0; }
   .fakta dt { font-size: 11.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--dov); }
   .fakta dd { margin: 5px 0 0; font-size: 15.5px; line-height: 1.4; }
   .fakta small { display: block; color: var(--dov); font-size: 13px; margin-top: 2px; }
@@ -109,7 +118,7 @@
   .galleri figure.stor { grid-column: span 3; }
   .galleri figure[hidden] { display: none; }
   .galleri button { display: block; width: 100%; padding: 0; border: 0; background: var(--blek); cursor: zoom-in;
-                    aspect-ratio: 16 / 9; overflow: hidden; }
+                    aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--rund-liten); isolation: isolate; }
   .galleri img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.7,.2,1), opacity .4s; }
   .galleri button:hover img { transform: scale(1.035); }
   .galleri figcaption { font-size: 13.5px; color: var(--dov); margin-top: 10px; }
@@ -119,7 +128,8 @@
   /* planerna */
   .planer { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 2vw, 28px); align-items: start; }
   .planfigur { margin: 0; }
-  .papper { background: #fbfaf7; padding: clamp(10px, 2vw, 28px); box-shadow: inset 0 0 0 1px #00000010; }
+  .papper { background: #fbfaf7; padding: clamp(10px, 2vw, 28px); box-shadow: inset 0 0 0 1px #00000010;
+            border-radius: var(--rund-liten); }
   @media (prefers-color-scheme: dark) { .papper { background: #e8e5de; } }
   .plan { display: block; width: 100%; height: auto; }
   .plan path { vector-effect: non-scaling-stroke; stroke-linejoin: round; fill-rule: evenodd; stroke: #3a3a3a; }
@@ -134,12 +144,14 @@
   .planfigur figcaption { margin-top: 14px; }
 
   /* modellen i 3D */
-  .modell { margin-top: clamp(72px, 11vw, 152px); background: var(--mork); color: var(--mork-text); }
+  .modell { margin: clamp(72px, 11vw, 152px) var(--ram) 0; border-radius: var(--rund); overflow: hidden;
+            background: var(--mork); color: var(--mork-text); }
   .modell .inre { max-width: var(--bredd); margin: 0 auto; display: grid; grid-template-columns: 5fr 7fr;
                   align-items: center; gap: clamp(28px, 5vw, 80px); padding: clamp(56px, 8vw, 112px) var(--kant); }
   .modell .etikett { color: var(--mork-dov); }
   .modell p { color: #d5d2cb; max-width: 46ch; font-size: 17px; margin: 22px 0 32px; }
-  .modell .bild { display: block; position: relative; overflow: hidden; background: #222; aspect-ratio: 16 / 9; }
+  .modell .bild { display: block; position: relative; overflow: hidden; background: #222; aspect-ratio: 16 / 9;
+                  border-radius: var(--rund-liten); isolation: isolate; }
   .modell .bild img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s cubic-bezier(.2,.7,.2,1); }
   .modell .bild:hover img { transform: scale(1.03); }
   .modell .bild span { position: absolute; left: 16px; bottom: 14px; font-size: 12px; letter-spacing: .14em;
@@ -238,6 +250,8 @@
     #menyknapp { display: block; }
     .planer { grid-template-columns: 1fr; }
     .fakta { grid-template-columns: 1fr; }
+    .fakta div:nth-child(2) { border-top: 1px solid var(--linje); }
+    :root { --ram: 8px; --rund: 14px; }
     /* förteckningen som rader: numret och benämningen, sedan revisionen, datumet, statusen och filen */
     .register thead { display: none; }
     .register, .register tbody { display: block; }
@@ -294,7 +308,7 @@
     <div>
       <span class="etikett">Fritidshus · Resö, Tanum</span>
       <h1>Trebodar</h1>
-      <p class="under">Tre huskroppar under bandtäckta plåttak, på en källare i betong.</p>
+      <p class="under">Ett fritidshus i tre sammanbyggda bodar, på Resö i norra Bohuslän.</p>
     </div>
     <p class="bildtext"><!--@hjaltetext--></p>
   </div>
@@ -303,16 +317,23 @@
 <section class="sektion intro" id="projektet">
   <div class="vanster">
     <span class="etikett">Projektet</span>
-    <h2>Ett fritidshus i tre delar vid havet i norra Bohuslän.</h2>
+    <h2>Tre sadeltak i rad, som bodarna längs kusten.</h2>
   </div>
   <div class="hoger">
-    <p>Trebodar är ett fritidshus på Resö i Tanums kommun. Tre sammanbyggda huskroppar med sadeltak rymmer allrum
-      med kök och matplats, vardagsrum, hall, badrum, tre sovrum och två arbetsrum. Under huset finns en källare med
-      teknikrum.</p>
-    <p>Fasaderna är klädda med stående sågad granpanel i falu rödfärg och järnvitriol, på en sockel av granit.
-      Taken är bandtäckt plåt och fönstren vitmålat trä.</p>
-    <p>Hela huset finns som en modell i kod. Ritningarna, beräkningarnas kontroller, bilderna och modellen i 3D
-      bygger på den, och sidan byggs om automatiskt när modellen eller handlingarna ändras.</p>
+    <p>Trebodar är inspirerat av de omålade och faluröda fiskebodarna som står i rader längs den bohuslänska
+      kusten. Tre huskroppar med var sitt sadeltak är sammanbyggda och förskjutna mot varandra, så att huset hålls
+      lågt och får ett formspråk som passar in bland kustsamhällets sjöbodar.</p>
+    <p>Huset ersätter ett fritidshus från omkring 1950 på tomten, med samma färdiga golvhöjd och lägre nockhöjd.
+      Särskild vikt har lagts vid vyn från havsstigen, där man kommer över berget från havet.</p>
+    <p>Fasaderna är stående sågad granpanel: en huskropp strykt med falu rödfärg och två behandlade med järnvitriol,
+      som ger träet den grå ton som omålat trä får med åren. Ytterdörrarna har panel i den andra kulören och
+      fönstren aluminium i oxidrött eller basaltgrått efter fasaden. Huset står på en sockel av granit, och taken är bandtäckt
+      plåt i 30 graders lutning, med tre takfönster.</p>
+    <p>Inne följer innertaken takens lutning upp till nocken. Allrummet med matplats ligger i den mittersta
+      huskroppen, öppet mot köket, med en kamin i väggen mot sovrummet. Runt det finns vardagsrum, hall, badrum, tre
+      sovrum och två arbetsrum. Innerdörrarna är skjutdörrar som går in i väggen, och köksluckorna och dörrarnas smygar
+      är av oljad ask. En altan av trä ligger i vinkeln mellan två av huskropparna, och under huset finns en källare
+      med teknikrum.</p>
     <dl class="fakta"><!--@fakta--></dl>
   </div>
 </section>
@@ -363,8 +384,8 @@
 <footer>
   <div class="inre">
     <div><a class="ordmarke" href="#">Trebodar</a>Fritidshus på Resö, Tanums kommun</div>
-    <p>Sidan, rapporterna, ritningarna och modellen byggs automatiskt ur källorna i
-      <a href="<!--@repo-->">vron/trebodar</a>. Bilderna renderas ur samma modell.</p>
+    <p>Huset finns som en modell i kod. Sidan, rapporterna, ritningarna och modellen i 3D byggs automatiskt ur
+      källorna i <a href="<!--@repo-->">vron/trebodar</a>, och bilderna renderas ur samma modell.</p>
     <nav aria-label="Länkar">
       <a href="modell/">Modellen i 3D</a>
       <a href="renderingar/">Renderingarna</a>

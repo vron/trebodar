@@ -282,13 +282,14 @@ def _fakta(f01: dict) -> str:
     klara = sum(h["status"] in ("klar", "inlämnad") for h in register)
     fakta = [
         ("Plats", "Resö, Tanums kommun"),
-        ("Byggnad", "Fritidshus, plan 1 och källare"),
+        ("Byggnad", "Fritidshus i ett plan med källare"),
         ("Byggnadsarea", f"{o.get('bya', '–')} m²", "fritidshus och bygglovsbefriad tillbyggnad"),
         ("Bruttoarea", f"{o.get('bta', '–')} m²"),
-        ("Stomme", "Trä, på källare och bjälklag i betong"),
-        ("Tak", f"Bandtäckt plåt, {f01.get('sno', {}).get('alfa', 30)}°"),
-        ("Bygglov", f"Beviljat {lov.group(0)}" if lov else "Beviljat"),
-        ("Skede", "Projektering inför tekniskt samråd", f"{klara} av {len(register)} handlingar klara"),
+        ("Rum", "Allrum, kök, vardagsrum, tre sovrum och två arbetsrum", "hall, badrum och källare med teknikrum"),
+        ("Fasader", "Stående granpanel, falu rödfärg och järnvitriol", "sockel av granit"),
+        ("Tak", f"Bandtäckt plåt, {f01.get('sno', {}).get('alfa', 30)}°", "tre sadeltak"),
+        ("Bygglov", f"Beviljat {lov.group(0)}" if lov else "Beviljat",
+         f"projektering inför tekniskt samråd, {klara} av {len(register)} handlingar klara"),
     ]
     return "".join(f'<div><dt>{e(f[0])}</dt><dd>{e(f[1])}'
                    + (f"<small>{e(f[2])}</small>" if len(f) > 2 else "") + "</dd></div>" for f in fakta)

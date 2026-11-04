@@ -32,6 +32,12 @@ VYER = {
                      "ljus": (6, 21, "18:30", "sol"), "lodrat": False},
     "ute-nordost": {"kamera": [4000, -14000, 3500], "mal": [7000, 5000, 1500], "lins": 32,
                     "ljus": (6, 21, "06:30", "sol"), "lodrat": False},
+    # från havets sida (sydväst och väster, ögonhöjden omkring fasadens mitt, kvällssol): som när man kommer över
+    # berget från havet
+    "ute-sydvast": {"kamera": [-12000, 34000, 3600], "mal": [7000, 8000, 2300], "lins": 40,
+                    "ljus": (6, 21, "19:00", "sol"), "lodrat": False},
+    "ute-vast": {"kamera": [26000, 34000, 1800], "mal": [7000, 8000, 2000], "lins": 40, "ljus": (6, 21, "19:00", "sol"),
+                 "lodrat": False},
     # flygbilderna rakt ovanifrån med verklig norr uppåt (som flygfoton; norr i modellen är (0,751, −0,660) enligt
     # passningen mot SWEREF, sweref_passning), för att se och kommentera var saker står: tomten (omkring 150 × 85 m)
     # och omgivningen (400 × 225 m); tomten i mulet väder, så att trädens skuggor på gräsmattan inte ser ut som träd
@@ -89,6 +95,7 @@ VYER = {
 # installationerna, en egen grupp på startsidan
 TEXTER = {
     "ute-sydost": "Huset från sydost", "ute-nordvast": "Huset från nordväst", "ute-nordost": "Huset från nordost",
+    "ute-sydvast": "Huset från sydväst", "ute-vast": "Huset från väster",
     "flyg-tomten": "Tomten uppifrån, norr uppåt", "flyg-omgivningen": "Omgivningen uppifrån, norr uppåt",
     "detalj-fasad": "Fasaden i järnvitriol", "detalj-falu": "Fasaden i falu rödfärg",
     "detalj-sten": "Sockeln av granit", "detalj-tak": "Taket, bandtäckt plåt med takfönster",
