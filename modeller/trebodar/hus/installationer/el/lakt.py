@@ -1,5 +1,6 @@
-"""Innertakets läkt (installationsskiktet, c/c 400 längs takfallet) ur innertakets geometri: armaturernas hål och
-drivdon ska ligga mellan läkten (med armaturens avstånd till brännbart material).
+"""Innertakets läkt (installationsskiktet, c/c 400 längs takfallet) och gips ur innertakets geometri: armaturernas hål
+och drivdon ska ligga mellan läkten (med armaturens avstånd till brännbart material) och hålen i gipsen, inte i
+takfönstrens öppningar eller utanför innertakets kanter.
 """
 from __future__ import annotations
 
@@ -22,6 +23,20 @@ def lakt(kod: str) -> tuple[Ruta, ...]:
         if y1 - y0 > x1 - x0:
             ut.append((x0, x1, y0, y1))
     return tuple(ut)
+
+
+@cache
+def gips(kod: str) -> tuple[Ruta, ...]:
+    """Den yttre gipsskivan (takytan) under takfallet som lådor i planet, ur innertakets profiler."""
+    return tuple((min(x for x, _ in q), max(x for x, _ in q), y0, y1)
+                 for q, y0, y1, typ in innertak.skikten(kod)["gips"] if typ == "GY")
+
+
+def i_gipsen(kod: str, x: float, y: float, r: float) -> bool:
+    """Om ett hål med radien r (mitt x, y på takytan) ligger helt i innertakets gips under takfallet: mitten och
+    punkterna r åt sidorna längs takfallet och längs y."""
+    return all(any(g[0] <= px <= g[1] and g[2] <= py <= g[3] for g in gips(kod))
+               for px, py in ((x, y), (x - i_planet(r), y), (x + i_planet(r), y), (x, y - r), (x, y + r)))
 
 
 def mellan_lakten(kod: str, x: float, y: float) -> float:

@@ -1,11 +1,11 @@
 """Allrummet: tubspotar som lyser upp mot snedtaket, två PH 5 över bordet, dimrarna vid sovrummets dörr och uttagen
 ovanför skjutdörren mot sydväst (belysningsplanen i ärende #8).
 
-Två rader med fyra Tube Mini R nära takfoten på var sida om nocken, mitt emellan installationsskiktets läkt, vinklade
-tvärs över rummet mot mitten av det motsatta takfallet, så att de lyser upp taket. En femte på den sydöstra sidans
-tändgrupp sitter i allrummets västra del under vänstra huskroppens takfall och lyser mot badrumsväggen L11:s övre
-del (tuben vrids högst 90° från stammen, så den kan inte riktas över dalen). Två PH 5 hänger över bordet, symmetriskt
-kring nocken, 600 mm över bordsskivan (0,72 m).
+Två rader med fyra Tube Mini R en bit upp på takfallen på var sida om nocken (två läktfack högre än vid takfoten), mitt
+emellan installationsskiktets läkt, vinklade tvärs över rummet mot mitten av det motsatta takfallet, så att de lyser upp
+taket. En femte på den sydöstra sidans tändgrupp sitter i allrummets västra del under vänstra huskroppens takfall och
+lyser mot badrumsväggen L11:s övre del (tuben vrids högst 90° från stammen, så den kan inte riktas över dalen). Två PH 5
+hänger över bordet, symmetriskt kring nocken, 600 mm över bordsskivan (0,72 m).
 
 Dimrarna sitter på väggen 2C (allrumssidan) bredvid sovrummets fickdörr, öster om fickan: en med två
 kanaler för spotarna och en för PH 5. Ledningarna går i rör: från dimrarna upp i väggen och i innertakets
@@ -26,7 +26,7 @@ NAMN = RUM.namn
 
 NOCK = S.BALKAR["NB3"].x                     # mittre huskroppens nock
 Y = (6745.0, 7945.0, 9145.0, 10345.0)
-RADER = {"2SO": 4815.0, "2NV": 8685.0}      # önskat läge, flyttas till mitt mellan läkten
+RADER = {"2SO": 5510.0, "2NV": 7990.0}      # önskat läge, flyttas till mitt mellan läkten
 # riktningen: mot mitten av det motsatta takfallet (mellan nocken och takfotsväggens insida)
 MAL = {"2SO": (NOCK + S.TAKFALL["2NV"].x_insida) / 2, "2NV": (NOCK + S.TAKFALL["2SO"].x_insida) / 2}
 VAST = (3965.0, 7705.0)                      # tubspoten i allrummets västra del (takfallet 1NV)

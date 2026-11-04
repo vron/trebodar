@@ -47,8 +47,8 @@ class Installation:
         return [p[0], *(q for a, b in zip(p, p[1:]) for q in langs_taket(a, b)[1:])]
 
     def kontroll(self) -> tuple[list[str], list[str]]:
-        """(fel, anmärkningar): referenser, styrning, armaturernas vinkel och djup (pendlarna: sladden räcker ned från
-        takkoppen), rörens böjar och anslutningar."""
+        """(fel, anmärkningar): referenser, styrning, armaturernas vinkel, djup och hål i innertakets gips (pendlarna:
+        sladden räcker ned från takkoppen), rörens böjar och anslutningar."""
         fel: list[str] = []
         anm: list[str] = []
         for p in self.punkter.values():
@@ -70,6 +70,9 @@ class Installation:
                         fel.append(f"{p.id}: {p.typ.djup:g} mm djup + {p.typ.brandavstand:g} mm till brännbart, "
                                    f"innertaket har {plats:g} mm")
                     x, y, _ = p.lage.punkt
+                    if not lakt.i_gipsen(p.lage.ref, x, y, p.typ.hal_d / 2):
+                        fel.append(f"{p.id}: hålet Ø{p.typ.hal_d:g} ligger inte i innertakets gips (ett takfönsters "
+                                   f"öppning eller innertakets kant)")
                     rad = p.typ.hal_d / 2 + p.typ.brandavstand
                     for q in lakt.krockar(p.lage.ref, x, y, lakt.i_planet(rad), rad):
                         fel.append(f"{p.id}: hålet Ø{p.typ.hal_d:g} (med {p.typ.brandavstand:g} mm till brännbart) "

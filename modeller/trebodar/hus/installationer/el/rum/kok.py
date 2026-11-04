@@ -1,10 +1,11 @@
 """Köket: tubspotar som lyser upp mot snedtaket, spotar mot bänken, tre Stav över köksön och uttag ovanför fönstren
 (belysningsplanen i ärende #8).
 
-Två rader med tre Tube Mini R nära takfoten på var sida om nocken, mitt emellan installationsskiktets läkt, vinklade
-tvärs över rummet mot mitten av det motsatta takfallet. En rad med sex Junistar Exclusive i takfallet 3NV, riktade mot
-bänkens mitt (450 mm från väggen, 900 mm över golvet), alltså lutade mot väggen. Tre Stav i råmässing hänger över
-köksön i nockens riktning, 700 mm över öns bänkskiva, mitt över ön (hus/inredning/koksbank.py).
+Två rader med tre Tube Mini R en bit upp på takfallen på var sida om nocken (två läktfack högre än vid takfoten; den
+under takfönstret TF2 nära takfoten, eftersom fönstret tar takfallet ovanför), mitt emellan installationsskiktets läkt,
+vinklade tvärs över rummet mot mitten av det motsatta takfallet. En rad med sex Junistar Exclusive i takfallet 3NV,
+riktade mot bänkens mitt (450 mm från väggen, 900 mm över golvet), alltså lutade mot väggen. Tre Stav i råmässing hänger
+över köksön i nockens riktning, 700 mm över öns bänkskiva, mitt över ön (hus/inredning/koksbank.py).
 
 Dimmern (två kanaler) och brytaren (Stav går inte att dimra) sitter på 2B mot gången, i facket närmast köket mitt
 emot gaveln L16 av kökets inbyggnad (som under förrådet bara är två gipsskivor, ärende #21), brytaren över dimmern:
@@ -28,7 +29,8 @@ NAMN = RUM.namn
 
 NOCK = S.BALKAR["NB1"].x                     # högra huskroppens nock
 Y_TUB = (8120.0, 9590.0, 11295.0)
-RADER = {"3SO": 10070.0, "3NV": 13385.0}    # tubspotarna: önskat läge, flyttas till mitt mellan läkten
+RADER = {"3SO": 10765.0, "3NV": 12690.0}    # tubspotarna: önskat läge, flyttas till mitt mellan läkten
+UNDER_TF2 = 10070.0                          # tubspoten i 3SO under takfönstret TF2, som tar takfallet ovanför
 MAL = {"3SO": (NOCK + S.TAKFALL["3NV"].x_insida) / 2, "3NV": (NOCK + S.TAKFALL["3SO"].x_insida) / 2}
 SPOT_X = 12970.0                             # spotarna mot bänken
 Y_SPOT = (7745.0, 8495.0, 9245.0, 9995.0, 10745.0, 11495.0)
@@ -39,6 +41,7 @@ U_B = 6007.0                                 # dimmern och brytaren på 2B, mitt
 Z_B = (1050.0, 1130.0)                       # dimmern och brytaren över den
 Z_UTTAG = 2300.0                             # uttagen till kylen och frysen, i förrådet
 X_TF2 = (TF2.x_upp + NOCK) / 2               # rören till Stav förbi takfönstret TF2, mellan det och nocken
+_X_UNDER = mellan_lakten("3SO", UNDER_TF2, Y_TUB[0])    # KO-L01 under TF2: röret till KO-L02 längs y under fönstret
 
 TANDGRUPPER = [
     Tandgrupp("KO-T1", "Kök, tubspotar mot taket"),
@@ -51,7 +54,8 @@ def _tubar(kod: str, start: int) -> list[Lampa]:
     """En rad tubspotar i takfallet kod, riktade mot det motsatta takfallet."""
     ut = []
     for i, y in enumerate(Y_TUB):
-        m = tak(mellan_lakten(kod, RADER[kod], y), y)
+        x = UNDER_TF2 if kod == "3SO" and TF2.y0 <= y <= TF2.y1 else RADER[kod]
+        m = tak(mellan_lakten(kod, x, y), y)
         ut.append(Lampa(f"KO-L{start + i:02d}", TUBE_MINI_R, m, "KO-T1", riktning=mot(m, tak(MAL[kod], y).punkt)))
     return ut
 
@@ -83,7 +87,7 @@ _VID_2B = vid_tak("2B", U_B, sida=-1)
 
 ROR = [
     Ror("KO-R01", FXP16, "KO-B1", "KO-L01", via=_VID_2B),
-    Ror("KO-R02", FXP16, "KO-L01", "KO-L02"),
+    Ror("KO-R02", FXP16, "KO-L01", "KO-L02", via=(i_tak(_X_UNDER, Y_TUB[1]),)),
     Ror("KO-R03", FXP16, "KO-L02", "KO-L03"),
     Ror("KO-R04", FXP16, "KO-B1", "KO-L04", via=_VID_2B),
     Ror("KO-R05", FXP16, "KO-L04", "KO-L05"),
