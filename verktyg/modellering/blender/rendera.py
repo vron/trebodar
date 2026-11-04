@@ -86,6 +86,7 @@ for namn, vy in SCEN["vyer"].items():
             cct, la, d = S.auto_vitbalans(sc, px)
             print(f"VITBALANS {namn}: ljuset {cct:.0f} K, adaptationsluminansen {la:.0f} cd/m², anpassning {d:.2f}")
     S.exponering(sc, ev)
+    S.brusgrans(sc, kvalitet["troskel"], ev)
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "
           f"{lj['himmel_lux'] / 1000:.1f} klx, EV {ev:.1f}")

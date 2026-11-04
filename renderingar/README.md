@@ -45,7 +45,8 @@ sin fas med NASA:s karta och sitt ljus (`modellering/natthimmel.py`); serien D �
 fulla månen står i östnordost. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
 bländare ljusare (`INNE_LJUSARE`), och ute i mörker exponeras bilden som ett nattfoto i månsken (`NATT_EV`):
 huset och omgivningen syns och fönstren lyser, med vitbalansen ungefär efter månskenet, så att natthimlen blir
-blå och lamporna varma.
+blå och lamporna varma. Den adaptiva samplingens brusgräns följer exponeringen (`brusgrans` i `blender/scen.py`), så
+att mörka bilder som exponeras upp samplas lika noga som de ljusa.
 
 Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna
 renderas inte där: rendering tar för lång tid. `./publicera.sh` (`./mod publicera`) gör om de renderade bilderna till

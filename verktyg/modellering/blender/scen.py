@@ -735,6 +735,16 @@ def exponering(sc: bpy.types.Scene, ev: float) -> None:
     sc.view_settings.exposure = 9.94 - ev
 
 
+EV_TROSKEL = 7.0                # kvaliteternas brusgräns (troskel) gäller ned till inomhusbildernas exponering
+
+
+def brusgrans(sc: bpy.types.Scene, troskel: float, ev: float) -> None:
+    """Den adaptiva samplingens gräns efter exponeringen. Cycles jämför bruset med roten ur pixelns värde före
+    exponeringen, så en mörk scen som exponeras upp (natten) skulle sluta sampla långt innan bruset blir lika litet
+    i bilden; under EV_TROSKEL sänks gränsen med roten ur förstärkningen."""
+    sc.cycles.adaptive_threshold = troskel * min(1.0, 2.0 ** ((ev - EV_TROSKEL) / 2))
+
+
 def _exr_delar(fil: str) -> dict[str, np.ndarray]:
     """En flerlagers-EXR (Blender skriver varje pass som en egen del): passens RGB, pixlarna som rader."""
     inp = oiio.ImageInput.open(fil)
