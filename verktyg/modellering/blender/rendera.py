@@ -60,12 +60,16 @@ def stall_in(namn: str, vy: dict) -> None:
             o.hide_render = grupp not in vy.get("lampor", [])
     for a in armaturer:
         a.tand_till(float(vy.get("tand", {}).get(a.tand, 0.0)))
-    himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0), vy.get("himmel"))
+    natt = SCEN.get("natter", {}).get(vy.get("natt") or "")
+    natt_ute = natt is not None and not vy.get("inne")         # nattbilderna ute: månhimlen och tonkurvan
+    mane = natt.get("mane") if natt_ute else None
+    himmel.stall_in(S.manhimlen(vy["ljus"], mane) if mane else vy["ljus"], SCEN.get("hojd_m", 0.0), vy.get("himmel"))
+    omgivning.mark_i_morker(natt_ute)
+    S.nattkompression(sc, False)
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     if "matyta" not in vy:
         sc.camera = S.kamera(namn, vy)
-    natthimmel.stall_in(SCEN.get("natter", {}).get(vy.get("natt") or ""),
-                        Vector(vy["kamera"]) / 1000 if "kamera" in vy else None)
+    natthimmel.stall_in(natt, Vector(vy["kamera"]) / 1000 if "kamera" in vy else None)
 
 
 for namn, vy in SCEN["vyer"].items():
@@ -87,6 +91,7 @@ for namn, vy in SCEN["vyer"].items():
             print(f"VITBALANS {namn}: ljuset {cct:.0f} K, adaptationsluminansen {la:.0f} cd/m², anpassning {d:.2f}")
     S.exponering(sc, ev)
     S.brusgrans(sc, kvalitet["troskel"], ev)
+    S.nattkompression(sc, bool(vy.get("natt")) and not vy.get("inne"))
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "
           f"{lj['himmel_lux'] / 1000:.1f} klx, EV {ev:.1f}")

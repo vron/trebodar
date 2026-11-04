@@ -99,11 +99,12 @@ def vitbalans(sc: bpy.types.Scene, kelvin: float | None) -> None:
         vs.white_balance_tint = 10.0
 
 
-def dagsljusets_vitbalans(ljus: dict, grad: float = 0.7, mot: float = 5500.0, natt: float = 4000.0) -> float:
+def dagsljusets_vitbalans(ljus: dict, grad: float = 0.7, mot: float = 5500.0, natt: float = 3300.0) -> float:
     """Vitbalansen ute [K]: dagsljusets färgtemperatur (solens och himlens, vägda efter belysningen på marken, i
     mired) till graden grad och resten mot `mot` (kamerans dagsljusinställning), så att kvällssolen förblir varm och
-    mulet väder neutralt. I mörker (solen mer än 6° under horisonten) `natt`, ungefär månskenets färg, så att det
-    månbelysta landskapet blir neutralt, natthimlen blå och de tända fönstren varma."""
+    mulet väder neutralt. I mörker (solen mer än 6° under horisonten) `natt`, varmare än månskenet (omkring 4 100 K),
+    som ett nattfoto med glödljusinställning: det månbelysta landskapet och natthimlen blir blå och de tända fönstren
+    varma."""
     if ljus["sol_hojd"] < -6.0:
         return natt
     es = ljus["sol_lux"] * max(0.0, math.sin(math.radians(ljus["sol_hojd"]))) if ljus.get("sol_cct") else 0.0
@@ -700,6 +701,73 @@ class Natthimmel:
         lampa.color = (1.0, 0.93, 0.85)
         lampa.angle = math.radians(MANE_DIAMETER)
         self.ljus.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
+
+
+def manhimlen(ljus: dict, mane: dict) -> dict:
+    """Dagsljuset (dagsljus.Ljus som dict) för Himmel.stall_in i månsken: den klara himlen med månen i solens ställe,
+    med månhimlens belysning och färg (modellering/natthimmel), utan sol (månljuset är Natthimmel:s lampa)."""
+    return {**ljus, "riktning": mane["riktning"], "sol_lux": 0.0, "himmel_lux": mane["himmel_lux"],
+            "himmel_farg": mane["himmel_farg"]}
+
+
+# Nattbilderna ute: rummen bakom de tända fönstren är omkring 10 steg ljusare än det månbelysta landskapet, så att
+# fönstren och ljuset från dem på marken blir vita vid nattexponeringen. Som när man blandar exponeringar av ett
+# nattfoto dämpas därför de ljusa partierna efter sin omgivning (en lokal tonkurva): luminansen relativt mellangrått
+# (scenens linjära värden före vytransformen, kamerans exponering inräknad) i steg (log2), utjämnad med en bilateral
+# oskärpa som stannar vid kanterna (fönstrens karmar), och över NATT_KNA steg tas bara NATT_LUTNING av stegen med.
+# Detaljerna inom ett fönster behåller sin kontrast; landskapet, himlen och fasaderna i månsken ändras inte.
+NATT_KNA = 1.0                  # steg över mellangrått där dämpningen börjar
+NATT_LUTNING = 0.25             # den andel av stegen över knät som behålls
+NATT_RADIE = 0.02               # utjämningens radie, andel av bildens bredd
+NATT_TROSKEL = 1.5              # utjämningen stannar vid språng större än så här många steg
+
+
+def nattkompression(sc: bpy.types.Scene, aktiv: bool) -> None:
+    """Den lokala tonkurvan för nattbilderna ute (se ovan) i kompositören, eller ingen. Efter exponering()."""
+    if not aktiv:
+        sc.render.use_compositing = False
+        return
+    ng = bpy.data.node_groups.get("Nattkompression")
+    if ng is None:
+        ng = bpy.data.node_groups.new("Nattkompression", "CompositorNodeTree")
+        ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        n = ng.nodes
+
+        def matte(op: str, a: object, b: object = 0.0, namn: str = "") -> bpy.types.NodeSocket:
+            m = n.new("ShaderNodeMath")
+            m.operation = op
+            if namn:
+                m.name = namn
+            for i, v in enumerate((a, b)):
+                if isinstance(v, bpy.types.NodeSocket):
+                    ng.links.new(v, m.inputs[i])
+                else:
+                    m.inputs[i].default_value = v
+            return m.outputs[0]
+        bild = n.new("CompositorNodeRLayers").outputs["Image"]
+        lum = n.new("CompositorNodeRGBToBW")
+        ng.links.new(bild, lum.inputs[0])
+        steg = matte("LOGARITHM", matte("MAXIMUM", matte("DIVIDE", lum.outputs[0], 1.0, "Mellangrått"), 1e-4), 2.0)
+        jamn = n.new("CompositorNodeBilateralblur")
+        jamn.name = "Utjämning"
+        ng.links.new(steg, jamn.inputs["Image"])
+        ng.links.new(steg, jamn.inputs["Determinator"])
+        jamn.inputs["Threshold"].default_value = NATT_TROSKEL
+        over = matte("MAXIMUM", matte("SUBTRACT", jamn.outputs[0], NATT_KNA), 0.0)
+        forst = matte("POWER", 2.0, matte("MULTIPLY", over, -(1.0 - NATT_LUTNING)))
+        mix = n.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs[0].default_value = 1.0
+        ng.links.new(bild, mix.inputs[6])
+        ng.links.new(forst, mix.inputs[7])
+        ng.links.new(mix.outputs[2], n.new("NodeGroupOutput").inputs[0])
+    ng.nodes["Mellangrått"].inputs[1].default_value = 0.18 / 2 ** sc.view_settings.exposure
+    r = sc.render
+    ng.nodes["Utjämning"].inputs["Size"].default_value = round(NATT_RADIE * r.resolution_x * r.resolution_percentage
+                                                               / 100)
+    sc.compositing_node_group = ng
+    r.use_compositing = True
 
 
 def kamera(namn: str, vy: dict) -> bpy.types.Object:

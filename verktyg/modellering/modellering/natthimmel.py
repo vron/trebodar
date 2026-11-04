@@ -9,6 +9,8 @@ horisonten.
 - Månen (Schlyter, med de största störningarna och parallaxen; omkring en bågminut): riktningen, den belysta andelen
   och belysningen på marken (fullmåne 0,25 lux, fasvinkelns ljuskurva (Allen) och atmosfärens dämpning), med NASA:s
   karta (CGI Moon Kit, LROC, public domain, lokalt/natthimmel/lroc_color_poles_2k.tif) för ytan i Blender.
+- Månhimlen: månljuset spritt i atmosfären, som den klara dagshimlen med solen där månen står (dagsljus.klar_himmel),
+  nedskalad med månens ljus: belysningen på en horisontell yta och färgen.
 
 Hämta filerna med `./mod omgivning --hamta` (natthimmel.hamta).
 """
@@ -19,7 +21,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .dagsljus import Plats, solposition
+from .dagsljus import OZON, VATTEN, Plats, fargen, klar_himmel, solposition, vader
 from .karna import ROT
 
 MAPP = ROT / "lokalt" / "natthimmel"
@@ -104,8 +106,8 @@ def stjarnor(t: datetime, plats: Plats) -> list[list[float]]:
 
 
 def mane(t: datetime, plats: Plats) -> dict:
-    """Månen: azimut och topocentrisk höjd [°], riktningen i modellens koordinater, belysta andelen, fasvinkeln [°]
-    och belysningen vinkelrätt mot månen på marken [lux]."""
+    """Månen: azimut och topocentrisk höjd [°], riktningen i modellens koordinater, belysta andelen, fasvinkeln [°],
+    belysningen vinkelrätt mot månen på marken [lux] och månhimlen (_manhimlen) när månen står över horisonten."""
     d = _jd(t) - 2451543.5                                          # dagar från 2000-01-00
     N, i, w = 125.1228 - 0.0529538083 * d, 5.1454, 318.0634 + 0.1643573223 * d
     a, e, M = 60.2666, 0.0549, (115.3654 + 13.0649929509 * d) % 360.0
@@ -138,8 +140,20 @@ def mane(t: datetime, plats: Plats) -> dict:
     fas = 180.0 - elong                                             # fasvinkeln
     luft = 1.0 / (math.sin(_r(h)) + 0.50572 * (h + 6.07995) ** -1.6364) if h > 0 else math.inf
     lux = FULLMANE_LUX * 10 ** (-0.4 * (0.026 * fas + 4e-9 * fas ** 4)) * math.exp(-0.21 * luft) / math.exp(-0.21)
+    himmel_lux, himmel_farg = _manhimlen(h, t.month, lux) if h > 0 else (0.0, (1.0, 1.0, 1.0))
     return {"azimut": az, "hojd": h, "riktning": list(plats.riktning(az, h)),
-            "andel": (1 - math.cos(_r(elong))) / 2, "fasvinkel": fas, "lux": lux if h > 0 else 0.0}
+            "andel": (1 - math.cos(_r(elong))) / 2, "fasvinkel": fas, "lux": lux if h > 0 else 0.0,
+            "himmel_lux": himmel_lux, "himmel_farg": himmel_farg}
+
+
+def _manhimlen(hojd: float, manad: int, lux: float) -> tuple[float, tuple[float, float, float]]:
+    """Månhimlen i klart väder: belysningen på en horisontell yta [lux] och färgen (linjär Rec. 709, luminansen 1),
+    som den klara dagshimlen med solen på månens höjd, skalad med kvoten mellan månens och solens ljus vinkelrätt mot
+    dem."""
+    dn, dh, _ = klar_himmel(hojd, 1.0, vader("klart").beta, OZON[manad - 1], VATTEN[manad - 1])
+    _, sol_lux, _ = fargen(dn)
+    farg, himmel_lux, _ = fargen(dh)
+    return lux * himmel_lux / sol_lux, farg
 
 
 def natt(t: datetime, plats: Plats) -> dict | None:

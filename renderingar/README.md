@@ -32,7 +32,7 @@ ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
 ## Ljusserierna
 
 Varje vy renderas i fyra ljus (`LJUSSERIER` i `vyer.py`), inne och ute: A är vyns eget ljus, B slutet av april
-kl. 18.30 med mest sol, C början av oktober kl. 10 mulet och D december kl. 18 med klar himmel, mörkt ute och hela
+kl. 18.30 med mest sol, C början av oktober kl. 10 mulet och D julafton kl. 22 med klar himmel och fullmåne, mörkt ute och hela
 elinstallationen tänd. Serien D har inte badrummet, som ännu saknar belysning i elinstallationen, närbilderna av
 fasaderna och taket, som är svarta i mörker, eller stommen (`utan` i serien). I startsidans bildvisare väljs serien
 med växeln i hörnet, och rutnätet följer med; en bild som saknas i serien visas i sitt eget ljus.
@@ -41,11 +41,15 @@ Himlen som syns (genom kameran, i reflexerna och genom glas) är en fotograferad
 (CC0, `HIMLAR` i `modellering/polyhaven.py`, `./mod omgivning --hamta`): den med vädret och solens höjd närmast
 bildens, vriden så att dess sol står där solen står och med samma ljusstyrka som den beräknade himlen, som ger
 ljuset i scenen. I mörker står stjärnorna där de står på platsen vid tiden (Yale Bright Star Catalogue) och månen i
-sin fas med NASA:s karta och sitt ljus (`modellering/natthimmel.py`); serien D är julafton kl. 18, då den nästan
-fulla månen står i östnordost. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
+sin fas med NASA:s karta och sitt ljus (`modellering/natthimmel.py`), och himlen är månhimlen: den klara himlen
+med månen i solens ställe, nedskalad med månens ljus. Serien D är julafton kl. 22, då fullmånen står 43° upp i
+östsydost och lyser upp landskapet. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
 bländare ljusare (`INNE_LJUSARE`), och ute i mörker exponeras bilden som ett nattfoto i månsken (`NATT_EV`):
-huset och omgivningen syns och fönstren lyser, med vitbalansen ungefär efter månskenet, så att natthimlen blir
-blå och lamporna varma. Den adaptiva samplingens brusgräns följer exponeringen (`brusgrans` i `blender/scen.py`), så
+huset och omgivningen syns, med vitbalansen varmare än månskenet (3 300 K), så att landskapet och natthimlen blir
+blå och fönstren varma. Rummen bakom fönstren är omkring 10 steg ljusare än landskapet, så att de ljusa partierna
+dämpas efter sin omgivning, som när man blandar exponeringar (`nattkompression` i `blender/scen.py`, en lokal
+tonkurva med bilateral utjämning): fönstren visar rummen i stället för att bli vita. Markens speglande del dämpas i
+nattbilderna, där gräset annars speglar månhimlen som is (`mark_i_morker` i `blender/omgivning.py`). Den adaptiva samplingens brusgräns följer exponeringen (`brusgrans` i `blender/scen.py`), så
 att mörka bilder som exponeras upp samplas lika noga som de ljusa.
 
 Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna
