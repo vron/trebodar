@@ -167,6 +167,9 @@ class Himmel:
         for n in list(self.nt.nodes):
             if n not in (self.ut, self.bg):
                 self.nt.nodes.remove(n)
+        # den beräknade himlen direkt till världen, så att mat_horisontell mäter den (inte en tom värld eller den
+        # fotograferade himlen från förra vyn); _fotohimmel lägger sedan den fotograferade himlen emellan
+        self.nt.links.new(self.bg.outputs["Background"], self.ut.inputs["Surface"])
         d = Vector(ljus["riktning"]).normalized()
         el = math.degrees(math.asin(max(-1.0, min(1.0, d.z))))
         rot = math.atan2(d.x, d.y)                                  # Blenders himmel: från +y mot +x
@@ -224,8 +227,6 @@ class Himmel:
         self.sol.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
         if fil and os.path.exists(fil):
             self._fotohimmel(fil, d, float(ljus["himmel_lux"]))
-        else:
-            self.nt.links.new(self.bg.outputs["Background"], self.ut.inputs["Surface"])
 
     _analyser: dict[str, dict] = {}
 
