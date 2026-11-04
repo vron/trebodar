@@ -185,7 +185,7 @@ def main(argv: list[str] | None = None) -> None:
     pr.add_argument("--serie", choices=("ute", "inne", "alla"), default="ute",
                     help="ute: VYER, inne: inomhusbilderna I01–I30 (trebodar.vyer)")
     pr.add_argument("--kvalitet", choices=("skiss", "utkast", "normal", "slutlig"), default="skiss",
-                    help="skiss 640 px, utkast 1280, normal 1920, slutlig 3840 (4K)")
+                    help="skiss 640 px, utkast 1280, normal 1920, slutlig 2048 (2K)")
     pr.add_argument("--ljus", nargs=4, metavar=("MANAD", "DAG", "KLOCKA", "VADER"),
                     help="dagsljuset för alla vyerna, t.ex. 6 21 18:00 sol (annars vyns)")
     pr.add_argument("--ev", type=float, help="exponering EV100 (annars automatisk ur en förhandsbild)")

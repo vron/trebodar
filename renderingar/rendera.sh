@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Inomhusbilderna I01–I30 i 4K (3 840 × 2 160) och slutlig kvalitet till renderingar/inne/ och kameraplanen; med
+# Inomhusbilderna I01–I30 i 2K (2 048 × 1 152) och slutlig kvalitet till renderingar/inne/ och kameraplanen; med
 # --ute i stället de andra vyerna (ute och detalj, trebodar.vyer.VYER) till renderingar/ute/. Bilderna
 # versionshanteras inte; ./publicera.sh lägger ut dem på webbplatsen. Argumenten går vidare till `./mod rendera`,
 # t.ex. bara några bilder (./rendera.sh I05 I07), en annan kvalitet (./rendera.sh --kvalitet normal) eller ett annat

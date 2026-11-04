@@ -33,7 +33,7 @@ KVALITET = {
     "skiss": {"bredd": 640, "sampel": 48, "troskel": 0.05, "studsar": 6},
     "utkast": {"bredd": 1280, "sampel": 160, "troskel": 0.03, "studsar": 8},
     "normal": {"bredd": 1920, "sampel": 384, "troskel": 0.015, "studsar": 10},
-    "slutlig": {"bredd": 3840, "sampel": 512, "troskel": 0.015, "studsar": 12},
+    "slutlig": {"bredd": 2048, "sampel": 512, "troskel": 0.015, "studsar": 12},
 }
 
 

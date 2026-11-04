@@ -28,7 +28,7 @@ from .planritning import MINSTA_HAL, plan_ytor
 
 RELEASE = "bilder"              # releasens tagg (inte "renderingar", som är en mapp: `git log renderingar` vore tvetydigt)
 MANIFEST = "renderingar.json"
-BREDDER = (480, 960, 1920, 3840)    # tumnagel, rutnät, skärm och original [px]
+BREDDER = (480, 960, 1440, 2048)    # tumnagel, rutnät, skärm och original (2K) [px]
 KVALITET = {480: 80}            # JPEG-kvaliteten (annars 86)
 SIDA = Path(__file__).resolve().parents[1] / "webb" / "renderingar.html"
 FYLL = {"karna": "#b9b3a9", "betong": "#ecebe7", "stal": "#5a5f66", "vit": "#ffffff"}   # ritningsmallens FYLL

@@ -28,10 +28,10 @@ from pathlib import Path
 
 MALL = Path(__file__).with_name("startsida.html")
 REPO = "https://github.com/vron/trebodar"
-HJALTE = "ute-nordost"            # startsidans stora bild
+HJALTE = "ute-vast"               # startsidans stora bild
 MODELLBILD = "stomme"             # bilden vid länken till modellen i 3D
 # bildernas urval på startsidan, i den ordningen (vyns namn eller nummer, t.ex. I03); de andra visas i sina grupper
-URVAL = ["ute-sydost", "I03", "I01", "ute-nordvast", "I07", "I06", "I02", "I12", "detalj-tak", "I14", "detalj-ph5",
+URVAL = ["ute-sydvast", "ute-sydost", "I03", "I01", "ute-nordvast", "I07", "I06", "I02", "I12", "detalj-tak", "I14", "detalj-ph5",
          "detalj-sten", "I28", "I29", "detalj-fasad", "stomme"]
 GRUPPER = {"ute": "Exteriör", "inne": "Interiör", "teknik": "Stomme och teknik"}
 STATUS = {"beviljad": "Beviljad", "klar": "Klar", "upprattas": "Upprättas", "inlamnad": "Inlämnad", "ej aktuell": "Ej aktuell"}

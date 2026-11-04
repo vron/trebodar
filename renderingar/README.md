@@ -5,7 +5,7 @@ ritningen över var inomhusbilderna är tagna och webbplatsens sida med alla kam
 https://vron.github.io/trebodar/renderingar/.
 
 ```
-./rendera.sh                          # inomhusbilderna I01–I30 i 4K (3 840 × 2 160), slutlig kvalitet, till inne/
+./rendera.sh                          # inomhusbilderna I01–I30 i 2K (2 048 × 1 152), slutlig kvalitet, till inne/
 ./rendera.sh I05 I07                  # bara några (namnen eller början av dem)
 ./rendera.sh --ute                    # de andra vyerna (ute-*, detalj-*, stomme) till ute/
 ./rendera.sh --kvalitet normal        # 1 920 × 1 080 (skiss 640, utkast 1 280)
@@ -55,6 +55,5 @@ syns omgivningen ur öppna geodata (`./mod omgivning --hamta`, sparas i `lokalt/
 Exponeringen och vitbalansen räknas fram ur en snabb förhandsbild per bild, som ögats anpassning till rummets ljus.
 I källaren (I28–I30) är taklamporna tända (`LAMPOR` i `vyer.py`), eftersom de små fönstren ger för lite ljus.
 
-En bild i 4K och slutlig kvalitet (högst 512 sampel per pixel, brusreducerad) tar knappt 4 minuter att rendera på
-en Mac med Apple M5 Max (Metal), och scenen tar ungefär en minut att bygga, en gång per körning; hela serien tar
-omkring två timmar.
+En bild i 2K och slutlig kvalitet (högst 512 sampel per pixel, brusreducerad) tar omkring en minut att rendera på
+en Mac med Apple M5 Max (Metal), och scenen tar ungefär en minut att bygga, en gång per körning.
