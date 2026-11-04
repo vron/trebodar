@@ -222,7 +222,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Innerväggarna**: de lätta väggarna L1, L2 … (stomme med S, R, H och L som regelväggarna) och skikten på varje
   innervägg och ytterväggarnas insida: OS OSB, GI gips, PW plywood, TS tätskikt, KA kakel. Källarväggarnas gips
   heter efter väggen eller fönstret (V3-GI01, F1-GI01; bröstningarnas F1-GIB). Innerdörrarna ID1–ID6 är
-  fickdörrar med BLAD och SKENA (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
+  fickdörrar med BLAD, SKENA och smygen SMYG-L (låssidan), -F1, -F2 (vid fickan) och -O1, -O2 (överstycket)
+  (BR brädorna på fickans sidor). Fönstren: BLECK fönsterblecket, BANK
   fönsterbänken, SMYG-V, -H och -O smygen. Garderoben: GA-, GB- och GC-delar som väggarna, GD1 och GD2 dörrarna
   (BLAD-V, -H, SMYG-V, -H, -O), G-TAK taket. Kökets inbyggnad: L15 fronten och L16 gaveln med delar som de lätta
   väggarna (K kortlingen under huvudstolpens strävor, insidans gips GI02, gavelns gipsskivor GI02 och GI03),
@@ -317,13 +318,18 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   i 2C söder om stolpen LD4_1), blad 75 mm bredare än öppningen i en ficka 55 mm längre än bladet. Fickan är hela
   stommens tjocklek, med brädor 12 mm i stället för OSB (gips 13 + bräda 12 + ficka 70 + bräda 12 + gips 13), också
   där den går in i en annan vägg (lattvaggar.fickor). ID3 stängs mot L1:s gips och fickan slutar vid L3, ID4:s ficka
-  vid L4.
+  vid L4; ID6 stängs mot L11:s gips och ID2:s öppning börjar vid trapphålets vägg L6. Öppningarna har smyg av oljad
+  ask 22 mm upptill och på sidorna, genom hela väggen i liv med skivorna: hel på låssidan, där bladet stängs mot den,
+  och delad vid fickan och i överstycket med en slits för bladet.
 - **Skiktens hörn och överkant**: där en innervägg slutar mot en annan möts skikten på hörnets utsida var för sig:
   väggens skikt går förbi änden fram till den andra väggens skikt på samma djup och den andra väggens skikt förbi sin
   ände över skikten innanför, så att gipsen (i badrummet tätskiktet och kaklet) går runt hörnet och OSB:n inte syns;
   på insidan slutar de mot den andra väggens skikt. Där en del bara når en bit in i ett skikt går skiktet över den med
   ett urtag: gipsen går över stolparna 45×95 i de lätta väggarna (12,5 mm utanför reglarna) och OSB:n slutar mot dem.
+  Där två väggar i samma linje slutar mot varandra med en lucka mellan stommarna (L12 och 2C över fickdörren ID6) går
+  båda väggarnas skikt halva luckan förbi änden på de sidor där ytorna ligger i samma plan, så att ytan är hel.
   Skikten går upp till innertaket, och där taket lutar tvärs över väggen är skivornas överkant sned som taket.
+  Ytskiktens språng och springor kontrolleras med `./mod ytor` (ingår i `./mod kontroll`).
 - **Garderoben i sovrummet** (hus/inredning, ärende #16): lätta väggar GC, GB och GA (lägena i
   invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
   snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i

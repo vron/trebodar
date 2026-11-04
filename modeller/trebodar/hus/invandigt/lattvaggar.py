@@ -61,8 +61,9 @@ K_STOLPE = 6662.0                        # huvudstolpen LN1_3:s södra sida
 K_STRAVA = ln1_3.MITT[1] + ln1_3.TOPPREGEL                   # där huvudstolpens strävor och topregel slutar
 K_FRAM = K_STRAVA - SKIVOR[0][1] - T     # frontens stomme, insidan: gipsen mot strävornas ändar
 K_YTA = K_FRAM + T + SKIVOR_T            # frontens yta mot köket
-K_GIPS = 11050.0 - T - SKIVOR_T + 2 * SKIVOR[1][1]   # gavelns två gipsskivor under förrådet, insidan (ytan mot
-                                                      # gången i L2:s, 11 050 − T − skivorna)
+K_GIPS_T = SKIVOR_T / 2                  # gavelns två gipsskivor under förrådet (12,5): i liv med skikten ovanför
+K_GIPS = 11050.0 - T - SKIVOR_T + 2 * K_GIPS_T   # gavelns två gipsskivor under förrådet, insidan (ytan mot gången i
+                                                  # L2:s, 11 050 − T − skivorna)
 K_X0 = K_GIPS + T                        # gavelns stomme ovanför förrådet, östra sidan
 K_X_OPP = K_GIPS + H_VIRKE               # frontens ändregel, östra sidan: öppningarna börjar här
 K_X1 = X_3NV - SKIVOR_T                  # 3NV:s insida

@@ -266,6 +266,8 @@ def main(argv: list[str] | None = None) -> None:
     pv = sub.add_parser("vagar", help="installationernas vägar: rören, kablarna och kanalerna dolda i skikten, inte "
                                       "fritt i rummen eller i fickdörrarnas fickor (kontrollregler, ingår i kontroll)")
     pv.add_argument("--trad", default=None, help="bara delträdet, t.ex. Hus/Installationer/El")
+    sub.add_parser("ytor", help="ytskiktens språng och springor: gipsen och kaklet jämna där skivorna möts i samma plan "
+                                "(kontrollregler, ingår i kontroll)")
     pk = sub.add_parser("kameraplan", help="ritningen över inomhusbildernas kameror (kräver STEP-filen, ./mod bygg)")
     pk.add_argument("--ut", type=Path, default=ROT / "renderingar" / "kameraplan.pdf")
     pk.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar",
@@ -914,6 +916,23 @@ def main(argv: list[str] | None = None) -> None:
                   f"utanpåliggande ({vg.sekunder:.1f} s; alla: ./mod vagar)")
             for f in vg.fel:
                 print(f"    FEL {f}")
+        if hasattr(regler, "YTSKIKT"):
+            from . import ytskikt
+            yt = ytskikt.kontrollera(rot, karna, regler)
+            print(f"  ytskikten: {yt.ytor} synliga ytor, {len(yt.fel)} språng och springor ({yt.sekunder:.1f} s; "
+                  f"./mod ytor)")
+            for f in yt.fel:
+                print(f"    FEL {f}")
+    elif arg.kommando == "ytor":
+        from . import ytskikt
+        regler = importlib.import_module("trebodar.kontrollregler")
+        yt = ytskikt.kontrollera(rot, karna, regler)
+        print(f"  {yt.ytor} synliga ytor av {', '.join(getattr(regler, 'YTSKIKT', ()))}: {len(yt.fel)} språng och "
+              f"springor ({yt.sekunder:.1f} s)")
+        for f in yt.fel:
+            print(f"    FEL {f}")
+        if yt.fel:
+            raise SystemExit(1)
     elif arg.kommando == "vagar":
         from . import vagar
         regler = importlib.import_module("trebodar.kontrollregler")

@@ -34,6 +34,8 @@ BLECK_NAS = 14.0                     # droppnäsan nedåt
 BANK_UT, BANK_ORA = 20.0, 30.0       # fönsterbänkens utstick från väggen och öron förbi öppningen
 KAKEL_T = 12.0                       # badrummets smyg (kakel på skiva, förenklat)
 SKJUT_T, SKJUT_GLAPP = 40.0, 10.0   # skjutdörrens blad och dess avstånd till väggens skikt
+DORRSMYG_T = 22.0                    # fickdörrarnas smyg, ask
+SLITS = SKJUT_T / 2 + 3.0            # halva slitsen för bladet i fickdörrarnas delade smyg
 
 
 def enhet(o: Oppning) -> Montage:
@@ -113,18 +115,31 @@ def _fonsterbleck(o: Oppning, langd: float) -> tuple[Del, Placering]:
 
 
 def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
-    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py) täcker öppningen och
-    går FICKA_UT in i fickan; skenan under överstycket över öppningen och fickan."""
+    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py) går FICKA_UT in i
+    fickan; skenan under överstycket över öppningen och fickan. Öppningen har smyg av oljad ask DORRSMYG_T runt om
+    utom vid golvet, genom hela väggen i liv med skivorna på båda sidor: hel på låssidan, där bladet stängs mot den, och
+    delad vid fickan och i överstycket, med en slits för bladet; sidorna står på golvet och överstycket går över dem."""
     v = vaggdef(d.vagg)
     wm = v.tjocklek / 2
     a, b = d.fickan
-    ba, bb = (d.u0, d.u1 + FICKA_UT) if d.mot > 0 else (d.u0 - FICKA_UT, d.u1)
+    r = DORRSMYG_T
+    ba, bb = (d.u0 + r, d.u1 + FICKA_UT + r) if d.mot > 0 else (d.u0 - FICKA_UT - r, d.u1 - r)
     m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
     blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", FURU)
     m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, FURU), pl, f"{d.kod}-BLAD")
     u0, u1 = min(d.u0, a), max(d.u1, b)
     m.lagg(Del(f"Skena fickdörr {fmt(u1 - u0)}", box(u0, u1, wm - 10.0, wm + 10.0, d.hojd + 10.0, d.hojd + FICKA_SKENA),
                KARM), Placering(), f"{d.kod}-SKENA")
+    um = (d.u0 + d.u1) / 2
+    wa, wb = -skiktets_tjocklek(d.vagg, -1, um), v.tjocklek + skiktets_tjocklek(d.vagg, 1, um)
+    las, ficka = ((d.u0, d.u0 + r), (d.u1 - r, d.u1)) if d.mot > 0 else ((d.u1 - r, d.u1), (d.u0, d.u0 + r))
+    delad = ((wa, wm - SLITS), (wm + SLITS, wb))
+    bitar = [("L", *las, wa, wb, 0.0, d.hojd - r, "z")]
+    bitar += [(f"F{i + 1}", *ficka, w0, w1, 0.0, d.hojd - r, "z") for i, (w0, w1) in enumerate(delad)]
+    bitar += [(f"O{i + 1}", d.u0, d.u1, w0, w1, d.hojd - r, d.hojd, "x") for i, (w0, w1) in enumerate(delad)]
+    for namn, x0, x1, w0, w1, z0, z1, fiber in bitar:
+        smyg, pl = virke_i_lada(x0, x1, w0, w1, z0, z1, fiber, ASK)
+        m.lagg(smyg, pl, f"{d.kod}-SMYG-{namn}")
     return m, v.placering()
 
 

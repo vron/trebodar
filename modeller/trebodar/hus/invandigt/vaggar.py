@@ -143,7 +143,42 @@ def _forbi(kod: str, ande: int, sida: int, inre: float, utanfor: float) -> float
     if (ande, sida) in h[kod]:
         return h[kod][(ande, sida)].forbi - utanfor
     mot = {(x.annan, x.ande, x.sida) for hv in h.values() for x in hv.values()}
-    return inre if (kod, ande, sida) in mot else 0.0
+    return inre if (kod, ande, sida) in mot else _skarvar()[kod].get((ande, sida), 0.0)
+
+
+SKARV = 50.0                   # väggar i linje med så liten lucka mellan ändarna möts i en skarv i skikten [mm]
+
+
+@cache
+def _skarvar() -> dict[str, dict[tuple[int, int], float]]:
+    """Skarvarna där två väggar i samma linje slutar mot varandra med en lucka mellan stommarna (t.ex. L12 och 2C
+    vid fickdörren ID6): på de sidor där skiktens ytor ligger i samma plan går båda väggarnas skikt halva luckan förbi
+    änden, så att ytan är hel. {kod: {(ände, sida): hur långt förbi}}."""
+    ut: dict[str, dict[tuple[int, int], float]] = {kod: {} for kod in ORDNING}
+    for kod in ORDNING:
+        v = vaggdef(kod)
+        pl = v.placering()
+        for ande, u_slut in enumerate((0.0, v.langd)):
+            p = pl.punkt((u_slut, v.tjocklek / 2, 0.0))
+            for k in ORDNING:
+                b = vaggdef(k)
+                if k == kod or abs(b.u[0] * v.u[0] + b.u[1] * v.u[1]) < 0.999:
+                    continue
+                ub, wb, _ = b.placering().invers().punkt(p)
+                lucka = -ub if ub < 0.0 else ub - b.langd
+                if not (0.5 < lucka < SKARV and 0.0 <= wb <= b.tjocklek):
+                    continue
+                vand = b.w[0] * v.w[0] + b.w[1] * v.w[1] < 0          # b:s sidor åt andra hållet
+                for sida in (-1, 1):
+                    sb = -sida if vand else sida
+                    yta_v = -skiktets_tjocklek(kod, -1, u_slut) if sida < 0 else \
+                        v.tjocklek + skiktets_tjocklek(kod, 1, u_slut)
+                    u_b = 0.0 if ub < 0.0 else b.langd
+                    yta_b = -skiktets_tjocklek(k, -1, u_b) if sb < 0 else b.tjocklek + skiktets_tjocklek(k, 1, u_b)
+                    _, w_b, _ = b.placering().invers().punkt(pl.punkt((u_slut, yta_v, 0.0)))
+                    if abs(w_b - yta_b) < 0.5:
+                        ut[kod][(ande, sida)] = lucka / 2
+    return ut
 
 
 @cache

@@ -48,7 +48,7 @@ class Vagar:
     sekunder: float = 0.0
 
 
-class _Huset:
+class Huset:
     """Husets ytor som ett triangelnät med sökstruktur: fria mått längs axlarna och närmaste yta."""
 
     def __init__(self, rot: Montage, karna: Karna, ledningar: set[str]) -> None:
@@ -82,22 +82,23 @@ class _Huset:
         self._cell: Any = reference(0)
         self._x, self._pc, self._gc = [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], vtkGenericCell()
 
+    def matt(self, c: np.ndarray, r: np.ndarray) -> float:
+        """Det fria måttet genom punkten längs r (strålar åt båda hållen, högst STRALE åt vardera)."""
+        summa = 0.0
+        for s in (1.0, -1.0):
+            q = c + s * STRALE * r
+            if self.sok.IntersectWithLine(c.tolist(), q.tolist(), 0.001, self._t, self._x, self._pc, self._sub,
+                                          self._cell, self._gc):
+                summa += self._t.get() * STRALE
+            else:
+                summa += STRALE
+        return summa
+
     def fritt(self, c: np.ndarray) -> bool:
-        """Om det fria måttet genom punkten (strålar åt båda hållen) är större än FRITT i alla RIKTNINGAR: axlarna
-        först, diagonalerna bara om axlarna är fria (där två tunna hålrum möts, t.ex. väggens regelfack och
-        innertakets installationsskikt, är axlarna långa men diagonalen in i hörnet kort)."""
-        for r in RIKTNINGAR:
-            summa = 0.0
-            for s in (1.0, -1.0):
-                q = c + s * STRALE * r
-                if self.sok.IntersectWithLine(c.tolist(), q.tolist(), 0.001, self._t, self._x, self._pc, self._sub,
-                                              self._cell, self._gc):
-                    summa += self._t.get() * STRALE
-                else:
-                    summa += STRALE
-            if summa <= FRITT:
-                return False
-        return True
+        """Om det fria måttet genom punkten är större än FRITT i alla RIKTNINGAR: axlarna först, diagonalerna bara om
+        axlarna är fria (där två tunna hålrum möts, t.ex. väggens regelfack och innertakets installationsskikt, är
+        axlarna långa men diagonalen in i hörnet kort)."""
+        return all(self.matt(c, r) > FRITT for r in RIKTNINGAR)
 
     def narmast(self, punkter: np.ndarray) -> tuple[float, str]:
         """Det kortaste avståndet från punkterna till husets ytor, och delen (material och namn)."""
@@ -128,7 +129,7 @@ def kontrollera(rot: Montage, karna: Karna, regler: ModuleType, trad: str | None
                  and not vag.split("/", 1)[1].startswith(utom)]
     if not ledningar:
         return ut
-    huset = _Huset(rot, karna, material)
+    huset = Huset(rot, karna, material)
     for rel, d, p in ledningar:
         nat = karna.nat(d.form)
         V = nat.V.astype(np.float64) @ np.array(p.R).T + np.array(p.t)

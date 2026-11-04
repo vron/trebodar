@@ -66,3 +66,9 @@ VAGAR_UTOM = {
 UTANPA = (("källaren", -S.H_BJALKLAG, 300.0),)     # på konsoler eller i pendlar under taket
 SYNLIGA: dict[str, str] = {}                         # delträd: motivering
 FRIA_VOLYMER = fria_volymer
+
+# ytskiktens språng och springor (verktyg/modellering/modellering/ytskikt.py, ärende #36): där två skivor av
+# YTSKIKT möts i samma plan ska ytan vara jämn, utan språng eller öppna springor (kaminkåpans omålade kalciumsilikat
+# syns inte); YTSKIKT_UTOM: delträd vars ytor får ha det, med motivering
+YTSKIKT = ("Gips", "Kakel", "Kalciumsilikat målad")
+YTSKIKT_UTOM: dict[str, str] = {}

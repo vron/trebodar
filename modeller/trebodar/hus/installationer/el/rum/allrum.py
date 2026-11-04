@@ -32,7 +32,7 @@ MAL = {"2SO": (NOCK + S.TAKFALL["2NV"].x_insida) / 2, "2NV": (NOCK + S.TAKFALL["
 VAST = (3965.0, 7705.0)                      # tubspoten i allrummets västra del (takfallet 1NV)
 L11_X = 3400.0                               # badrumsväggen L11:s yta mot allrummet (ungefär)
 PH5_X, PH5_Y, BORD = 460.0, 8975.0, 720.0   # PH 5: från nocken, längs y och bordsskivans höjd
-DIMMER_U = 1350.0                            # längs 2C: öster om fickdörren ID6:s ficka (u 0–1 178)
+DIMMER_U = 1350.0                            # längs 2C: öster om fickdörren ID6:s ficka (u 0–1 153)
 
 
 def _rad(kod: str, start: int, tand: str) -> list[Lampa]:

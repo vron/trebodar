@@ -36,8 +36,8 @@ from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.stomme.prefab.stolpar import ln1_3
 from trebodar.material import C24, FONSTERTRA, GIPS, OSB, VENTILATIONSDON
 
-from .lattvaggar import (H_VIRKE, K_BAK, K_FRAM, K_GIPS, K_LUCKA, K_OPPNINGAR, K_SMYG, K_STOLPE, K_X0, K_X1, K_X_OPP,
-                         K_YTA, KOKET, LATTA, T)
+from .lattvaggar import (H_VIRKE, K_BAK, K_FRAM, K_GIPS, K_GIPS_T, K_LUCKA, K_OPPNINGAR, K_SMYG, K_STOLPE, K_X0, K_X1,
+                         K_X_OPP, K_YTA, KOKET, LATTA, T)
 from .skikt import SKIVOR, under_taket, upp_till_taket, vid_nocken
 
 VAGGAR = {lv.kod: lv for lv in LATTA if lv.grupp == KOKET}
@@ -53,7 +53,7 @@ assert K_LUCKA[2] == Z_GOLV + GOLV_T, "luckans underkant i förrådsgolvets öve
 
 OPPNINGAR = {namn: (K_X_OPP + u0, K_X_OPP + u1) for namn, (u0, u1) in K_OPPNINGAR.items()}   # x i stommen
 X_VAST = K_X0 - T - OSB_T - GIPS_T                         # gavelns yta mot gången ovanför förrådet
-X_GANG = K_GIPS - 2 * GIPS_T                               # gavelns gipsskivor under förrådet, ytan mot gången
+X_GANG = K_GIPS - 2 * K_GIPS_T                             # gavelns gipsskivor under förrådet, ytan mot gången
 Z_SYLL = K_LUCKA[2] - H_VIRKE                              # gavelns syll ovanför förrådet: gipsskivorna under den
 # gipsväggarna L17 och L18: två skivor mitt bakom frontens regel mellan öppningarna, och regeln över var och en
 MITT = {kod: VAGGAR[kod].origo[0] - T / 2 for kod in ("L17", "L18")}
@@ -170,8 +170,8 @@ def _skikt() -> Montage:
         namn = "OSB" if mat is OSB else "Gips"
         m.lagg(Del(f"{namn} {fmt(d1 - d0)} {kod}", f, mat), Placering(), f"{kod}-{typ}01")
     # gaveln under förrådet: två gipsskivor upp till syllen, förbi frontens ände
-    for nr, (a, b) in enumerate(((X_GANG, X_GANG + GIPS_T), (X_GANG + GIPS_T, K_GIPS)), start=2):
-        m.lagg(Del(f"Gips {fmt(GIPS_T)} L16", box(a, b, K_BAK, w + OSB_T, 0.0, Z_SYLL), GIPS), Placering(),
+    for nr, (a, b) in enumerate(((X_GANG, X_GANG + K_GIPS_T), (X_GANG + K_GIPS_T, K_GIPS)), start=2):
+        m.lagg(Del(f"Gips {fmt(K_GIPS_T)} L16", box(a, b, K_BAK, w + OSB_T, 0.0, Z_SYLL), GIPS), Placering(),
                f"L16-GI0{nr}")
     # inuti: gips på frontens insida i skafferiet upp till bärläkten och i skafferiets tak; gipsväggarna mellan
     # nischerna och mot skafferiet, två skivor upp till förrådets reglar
