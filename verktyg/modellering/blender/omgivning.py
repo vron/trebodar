@@ -707,15 +707,16 @@ def _granser(me: bpy.types.Mesh) -> tuple[np.ndarray, np.ndarray]:
 
 def inmatta(rut: Rutnat, tillgangar: str) -> None:
     """Tomtens inmätta träd och stenar (nara_objekt.json): Poly Havens tallar (tre sorter, TALL_HOJD höga, vridna och
-    lite lutade) och rundade granitblock (två sorter), så stora som stenarna är inmätta och nedsjunkna i marken."""
+    lite lutade) och rundade granitblock (två sorter), så stora som stenarna är inmätta och nedsjunkna i marken. Varje
+    träd slumpas ur sitt läge, så att ett träd som läggs till eller tas bort inte ändrar de andra eller stenarna."""
     obj = _objekt(rut)
     if not obj:
         return
     kol = bpy.data.collections.new("Inmätta")
     bpy.context.scene.collection.children.link(kol)
-    rng = np.random.default_rng(11)
     tallar = _modell(tillgangar, "tall")
     for i, (x, y, z) in enumerate(obj["trad"] if tallar else []):
+        rng = np.random.default_rng([11, round(x * 1000) % 2 ** 32, round(y * 1000) % 2 ** 32])
         me = tallar[int(rng.integers(len(tallar)))].data
         s = rng.uniform(*TALL_HOJD) / _granser(me)[1][2]
         ob = bpy.data.objects.new(f"Tall {i + 1}", me)
@@ -724,6 +725,7 @@ def inmatta(rut: Rutnat, tillgangar: str) -> None:
         ob.location = (x, y, z - 0.2)                                   # rotfoten i marken, också i en slänt
         kol.objects.link(ob)
     block = [(o.data, *_granser(o.data)) for o in _modell(tillgangar, "block")]
+    rng = np.random.default_rng(12)
     for i, (x, y, z, storlek, hojd) in enumerate(obj["stenar"] if block else []):
         me, lo, hi = block[int(rng.integers(len(block)))]
         sxy = storlek / max(hi[0] - lo[0], hi[1] - lo[1])
