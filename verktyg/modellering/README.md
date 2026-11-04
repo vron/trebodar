@@ -18,6 +18,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | Kommando | Gör |
 |---|---|
 | `./mod trad [--djup N] [--del VÄG]` | Modellträdet med antal delar |
+| `./mod --variant NAMN KOMMANDO …` | Kommandot för en variant av modellen (`trebodar/variant.py`, t.ex. `velfac`): miljövariabeln `TREBODAR_VARIANT` och utmappen `modeller/trebodar/ut/NAMN/` |
 | `./mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]` | Bygger och exporterar till `modeller/trebodar/ut/`; med STEP också modellanalysens cache. `--format analys`: bara modellanalysens cache, utan STEP-fil (några sekunder; `./ma` kör det själv när modellens källor har ändrats) |
 | `./mod kontroll [--del VÄG]` | Krockar, kontakter, glipor och delar utan kontakt, installationernas vägar (felen, som `./mod vagar`) och ytskiktens språng och springor (som `./mod ytor`) |
 | `./mod vagar [--trad VÄG]` | Installationernas vägar ([`vagar.py`](modellering/vagar.py), reglerna i modellens `kontrollregler`): rören, kablarna och kanalerna ska gå dolda i skikten, ingjutna eller i marken, inte fritt i rummens luft eller genom fönstrens och takfönstrens öppningar (fria mått längs axlarna och diagonalerna, strålar mot husets triangelnät med vtk), och inte in i fickdörrarnas fickor; i källaren får de gå utanpå väggarna och taket (anmärkning). Under en sekund |

@@ -10,6 +10,10 @@ källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna gå
 takbalkarnas överkant i panelens utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack;
 ovanför ligger takets luftspalt öppen (luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
 utegips, läkt mot läkt) och panelen täcker hela hörnet (fasad_u).
+
+Vid VELFAC:s fönster och dörrar (varianten velfac) slutar utegipsen i regelverkets öppning och panelen och läkten
+KLADD_V (10 mm) från karmen vid sidorna och upptill; under fönstren slutar varje skikt under fönsterblecket, som
+faller utåt (velfac_under_bleck).
 """
 from __future__ import annotations
 
@@ -23,7 +27,8 @@ from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.fonster_och_dorrar.oppningar import BLECK_T, DORRAR, INDRAG, OPPNINGAR
+from trebodar.hus.fonster_och_dorrar.oppningar import (BLECK_T, DORRAR, INDRAG, KLADD_V, OPPNINGAR, Oppning,
+                                                        velfac_bleck_z)
 from trebodar.hus.grund import fasadsten, kallarvaggar
 from trebodar.hus.tak.takytor import tak_underkant
 from trebodar.material import C24_LAKT, PANEL, UTEGIPS
@@ -42,6 +47,13 @@ GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
 assert all((dict(p.rendering)["skruv_cc"], dict(p.rendering)["skruv_start"]) == (CC, Z_UK + LAKT_B / 2)
            for p in PANEL.values())
 STOMMENS_UTSIDA = Polygon(S.KONTUR).buffer(S.STOMME_UT, join_style=2)
+# skikten under VELFAC:s fönsterbleck slutar så här långt under det
+LUFT_V = {"stro": 0.0, "spik": 0.0, "panel": 2.0}
+
+
+def velfac_under_bleck(o: Oppning, w: float, luft: float) -> float:
+    """Överkanten för ett fasadskikt med utsidan i w under fönsterblecket (luft under bleckets undersida)."""
+    return velfac_bleck_z(o, w) - BLECK_T - luft
 
 
 # skiktgrupperna med djup (inre, yttre) från stommens utsida, för hörnen
@@ -170,15 +182,29 @@ def kontur(kod: str) -> Polygon:
     return Polygon(under + topp[::-1])
 
 
+def _velfac_hal(o: Oppning, skikt: str) -> Polygon:
+    """Hålet i ett fasadskikt vid ett VELFAC-fönster eller en VELFAC-dörr: utegipsen i regelverkets öppning, läkten och
+    panelen KLADD_V från karmen vid sidorna och upptill och under fönstren under blecket (dörrarna till karmen)."""
+    if skikt == "ug":
+        return box(o.u0, o.z0, o.u1, o.z1)
+    ku0, kz0, ku1, kz1 = o.karm
+    if o.typ not in DORRAR:
+        w = {"stro": -UTEGIPS_T - STRO_T, "spik": -UTEGIPS_T - STRO_T - SPIK_T, "panel": -S.T_FASAD}[skikt]
+        kz0 = velfac_under_bleck(o, w, LUFT_V[skikt])
+    return box(ku0 - KLADD_V, kz0, ku1 + KLADD_V, kz1 + KLADD_V)
+
+
 def utsida(kod: str) -> Montage:
     hela = kontur(kod)
     opp = OPPNINGAR.get(kod, [])
-    karmar = [o.karm for o in opp]                                    # fasaden går fram till karmen
-    hal = [box(*k) for k in karmar]
-    oppen = unary_union(hal) if hal else Polygon()
+    elit = [o for o in opp if not o.velfac]
+    velfac = [o for o in opp if o.velfac]
+    hal = [box(*o.karm) for o in elit]                               # fasaden går fram till karmen
+    oppen = unary_union(hal + [_velfac_hal(o, "ug") for o in velfac]) if opp else Polygon()
+    stro_oppen = unary_union(hal + [_velfac_hal(o, "stro") for o in velfac]) if opp else Polygon()
     # panelen över karmen vid sidorna och överkanten; under fönstren under blecket
-    panel_hal = []
-    for o in opp:
+    panel_hal = [_velfac_hal(o, "panel") for o in velfac]
+    for o in elit:
         ku0, kz0, ku1, kz1 = o.karm
         if o.z1 <= 0.0:                                 # källarens fönster: i stenen, som förut
             panel_hal.append(box(*o.karm))
@@ -187,8 +213,9 @@ def utsida(kod: str) -> Montage:
         panel_hal += [box(ku0 + OVERLAPP, under, ku1 - OVERLAPP, kz1 - OVERLAPP), box(ku0, under, ku1, kz0)]
     panel_oppen = unary_union(panel_hal) if panel_hal else Polygon()
     # spikläkten under fönstren: nedkapad för blecket
-    spik_oppen = unary_union([oppen] + [box(o.karm[0], o.karm[1] - BLECK_T, o.karm[2], o.karm[1]) for o in opp
-                                        if o.typ not in DORRAR and o.z1 > 0.0])
+    spik_oppen = unary_union(hal + [_velfac_hal(o, "spik") for o in velfac]
+                             + [box(o.karm[0], o.karm[1] - BLECK_T, o.karm[2], o.karm[1]) for o in elit
+                                if o.typ not in DORRAR and o.z1 > 0.0])
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
     w = 0.0
 
@@ -218,16 +245,21 @@ def utsida(kod: str) -> Montage:
     tand = [] if kod in GAVLAR else [(max(a, u0), min(b, u1), z1) for a, b, z1 in tander(kod)
                                      if min(b, u1) - max(a, u0) >= 3 * LAKT_B]
     fasta = {u0, u1 - LAKT_B}
-    for ku0, _, ku1, _ in karmar:
-        fasta |= {ku0 - LAKT_B, ku1}
+    for o in opp:
+        ku0, _, ku1, _ = o.karm
+        k = KLADD_V if o.velfac else 0.0
+        fasta |= {ku0 - k - LAKT_B, ku1 + k}
     fasta = {u for u in fasta if u0 - 1e-6 <= u <= u1 - LAKT_B + 1e-6}
     staende = _lagen(fasta, [u0 + CC * k for k in range(1, int((u1 - u0) // CC) + 1) if u0 + CC * k < u1 - LAKT_B])
     zu = fasl.bounds[1]
     lakt("Ströläkt", "SR", STRO_T, [box(u, zu, u + LAKT_B, zt) for u in staende]
-         + [box(u, S.H_VAGG, u + LAKT_B, z1) for a, b, z1 in tand for u in (a, b - LAKT_B)])
+         + [box(u, S.H_VAGG, u + LAKT_B, z1) for a, b, z1 in tand for u in (a, b - LAKT_B)], stro_oppen)
     w -= STRO_T
     fasta = {Z_UK, zu}                                   # och vid fasadens underkant
-    for _, kz0, _, kz1 in karmar:
+    for o in opp:
+        _, kz0, _, kz1 = o.karm
+        if o.velfac:
+            _, kz0, _, kz1 = _velfac_hal(o, "spik").bounds
         fasta |= {z for z in (kz0 - LAKT_B, kz1) if z >= zu - 1e-6}
     # raderna c/c CC från bjälklagets underkant, uppåt och nedåt till marken
     rader = _lagen(fasta, [Z_UK + CC * k for k in range(-int((Z_UK - zu) // CC), int((zt - Z_UK) // CC) + 1) if k])

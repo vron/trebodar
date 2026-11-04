@@ -8,13 +8,21 @@ fönster- och dörrmodulen sätter produkterna i dem.
 
 Typerna: "vridfönster", "fast fönster", "fönsterdörr" (helglasad), "skjutdörr" (lyftglid, fyra delar),
 "ytterdörr" och "pardörr" (källarens dörr D1, i väggen 3NO:s system under bjälklaget).
+
+I varianten velfac (trebodar/variant.py) är fönstren och fönsterdörrarna från VELFAC (byggdelar/velfac.py), med
+VELFAC:s fogar: karmen FOG_V innanför regelverket vid sidorna och upptill, fönstren på en påföring PAFORING_V över
+fogen nedtill och dörrarna på en bädd BADD_V. Insidans skikt slutar i karmens linje, under fönstrens bottenkarm vid
+fönsterbänken (Oppning.inre).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from trebodar import skelett as S
+from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.fonster import DREV
+from trebodar.byggdelar.velfac import DJUP as VELFAC_DJUP, PRODUKTER as VELFAC_PRODUKTER, TRA_UT as VELFAC_TRA_UT
+from trebodar.variant import VELFAC
 from trebodar.hus.grund import kallarvaggar as K
 
 
@@ -25,6 +33,15 @@ BLECK_T = 1.5                # fönsterblecket under karmen (fonster_och_dorrar.
 # tjocklek fyller ut mot smygen (fonster_och_dorrar.py), så att träet syns 20 + SMYGLIST mm runt öppningen. 0: inga
 # lister, bara smygen. Inte i badrummet (kakel runt om).
 SMYGLIST = 0.0
+# VELFAC (varianten velfac): fogarna runt karmen, påföringen under fönstren och bädden under dörrarna, aluminiumets
+# utsida INDRAG_V innanför panelens utsida (VELFAC:s minsta indrag är 20) och fasaden (panel och läkt) KLADD_V från
+# karmen vid sidorna och upptill; fönsterbänken BANK_V under bottenkarmen (fonster_och_dorrar.py)
+FOG_V, PAFORING_V, BADD_V = 15.0, 18.0, 10.0
+INDRAG_V, KLADD_V, BANK_V = 20.0, 10.0, 20.0
+# VELFAC:s fönsterbleck (fonster_och_dorrar.py, fasad.py): från påföringens utsida (karmträets utsida, i utegipsens
+# utsida W_TRA_V) med fallet BLECK_FALL_V utåt till droppnäsan BLECK_UT_V utanför panelen
+BLECK_FALL_V, BLECK_UT_V, BLECK_NAS_V, BLECK_UPP_V = 0.25, 30.0, 14.0, 15.0
+W_TRA_V = -S.T_FASAD + INDRAG_V + VELFAC_TRA_UT
 
 
 @dataclass(frozen=True)
@@ -47,16 +64,54 @@ class Oppning:
         return self.z1 - self.z0
 
     @property
+    def velfac(self) -> bool:
+        """Produkten är från VELFAC (varianten velfac)."""
+        return VELFAC and self.typ in VELFAC_PRODUKTER
+
+    @property
     def karm(self) -> tuple[float, float, float, float]:
-        """Karmens yttermått (u0, z0, u1, z1): DREV innanför öppningen runt om."""
+        """Karmens yttermått (u0, z0, u1, z1): DREV innanför öppningen runt om (VELFAC: fogen, och påföringen eller
+        bädden nedtill)."""
+        if self.velfac:
+            nere = BADD_V if self.typ in DORRAR else FOG_V + PAFORING_V
+            return (self.u0 + FOG_V, self.z0 + nere, self.u1 - FOG_V, self.z1 - FOG_V)
         return (self.u0 + DREV, self.z0 + DREV, self.u1 - DREV, self.z1 - DREV)
 
     @property
-    def skivornas_hal(self) -> tuple[float, float, float, float]:
-        """Hålet i insidans skivor (u0, z0, u1, z1): karmens yttermått (dörrarna från golvet) och SMYGLIST till vid
-        sidorna och överkanten, för smyglisterna."""
+    def w_karm(self) -> float:
+        """Karmens insida i väggens w: Elitfönsters karm med aluminiumet i panelens insida (källarens fönster i
+        panelens utsida), VELFAC:s aluminium INDRAG_V innanför panelens utsida."""
+        if self.velfac:
+            return -S.T_FASAD + INDRAG_V + VELFAC_DJUP
+        ut = -S.T_FASAD + (INDRAG if self.z1 > 0.0 or self.typ in F.MED_PANEL else 0.0)
+        return ut + F.PRODUKTER[self.typ][1]
+
+    @property
+    def golvfonster(self) -> bool:
+        """Fönster från golvet (VELFAC: en bräda från golvet till karmen i stället för fönsterbänken)."""
+        return self.typ not in DORRAR and self.z0 == 0.0
+
+    @property
+    def inre(self) -> tuple[float, float, float, float]:
+        """Linjen där insidans skikt slutar (u0, z0, u1, z1): karmens yttermått, vid VELFAC-fönstren nedtill under
+        fönsterbänken (från golvet vid fönstren från golvet)."""
         ku0, kz0, ku1, kz1 = self.karm
+        if self.velfac and self.typ not in DORRAR:
+            kz0 = self.z0 if self.golvfonster else kz0 - BANK_V
+        return (ku0, kz0, ku1, kz1)
+
+    @property
+    def skivornas_hal(self) -> tuple[float, float, float, float]:
+        """Hålet i insidans skivor (u0, z0, u1, z1): insidans linje (dörrarna från golvet) och SMYGLIST till vid
+        sidorna och överkanten, för smyglisterna."""
+        ku0, kz0, ku1, kz1 = self.inre
         return (ku0 - SMYGLIST, self.z0 if self.typ in DORRAR else kz0, ku1 + SMYGLIST, kz1 + SMYGLIST)
+
+
+def velfac_bleck_z(o: Oppning, w: float) -> float:
+    """VELFAC-fönsterbleckets översida vid djupet w (w ≤ W_TRA_V): påföringens underkant vid karmträets utsida och
+    fallet utåt."""
+    return o.z0 + FOG_V - (W_TRA_V - w) * BLECK_FALL_V
 
 
 _R = (

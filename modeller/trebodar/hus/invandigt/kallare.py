@@ -19,7 +19,6 @@ from shapely.ops import unary_union
 from modellering import Del, Montage, Placering, box
 
 from trebodar import skelett as S
-from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR, Oppning
 from trebodar.hus.grund import kallarvaggar as K
@@ -52,7 +51,7 @@ def _fonster() -> list[Fonster]:
     for o in OPPNINGAR["2NO"]:
         if o.z1 > 0:
             continue
-        w_karm = -S.T_FASAD + F.PRODUKTER[o.typ][1]
+        w_karm = o.w_karm
         smyg = _rekt_i_vagg(o.u0 - K.CELL, o.u0, 0.0, W_INSIDA).union(_rekt_i_vagg(o.u1, o.u1 + K.CELL, 0.0, W_INSIDA))
         ut.append(Fonster(o, w_karm, _rekt_i_vagg(o.u0, o.u1, -1.0, w_karm), smyg,
                           _rekt_i_vagg(o.u0 - K.CELL, o.u1 + K.CELL, 0.0, W_INSIDA)))

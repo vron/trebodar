@@ -150,6 +150,19 @@ ALU_RAL3009 = Material("Aluminium RAL 3009", "Aluminiumbeklädnad pulverlackerad
 ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad RAL 7012 basaltgrå (fönster, dörrar)",
                        2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
 HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
+# VELFAC 200 ENERGY (varianten velfac, byggdelar/velfac.py): bågens bärande profil av glasfiberkomposit och de inre
+# profilerna, svarta, tätnings- och distanslisterna och anslutningsplåtarna runt karmen i fönstrens kulör (en egen
+# sort, som får gå upp bakom läkten: kontrollregler.TILLATNA_OVERLAPP)
+BAGPROFIL = Material("Bågprofil", "Bågens profiler av glasfiberkomposit och plast, svarta (VELFAC 200 ENERGY)", 1800,
+                     "#1e2022", 0.45, cad="#30353a")
+TATNINGSLIST = Material("Tätningslist", "Tätnings-, distans- och anslutningslister, EPDM och plast, svarta", 1200,
+                        "#141516", 0.75, cad="#202326")
+FOGMASSA = Material("Fogmassa", "Lufttät fog, MS-polymer på bottningslist (fönstrens och dörrarnas fogar)", 1500,
+                    "#3c4043", 0.8, cad="#5a6066")
+PLAT_RAL3009 = Material("Anslutningsplåt RAL 3009", "Anslutningsplåt aluminium 1 mm pulverlackerad RAL 3009 oxidröd "
+                        "(över- och sidoplåtar vid fönstren)", 2700, "#642424", 0.4, textur="pulverlack", cad="#8c3a32")
+PLAT_RAL7012 = Material("Anslutningsplåt RAL 7012", "Anslutningsplåt aluminium 1 mm pulverlackerad RAL 7012 basaltgrå "
+                        "(över- och sidoplåtar vid fönstren)", 2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
 INSTALLATION = Material("Installation", "Installationer (rör)", 1000, "#f08a24", 0.5, cad="#f08a24")
 
 # ------------------------------------------------------------------ inredning (hus/inredning)
@@ -251,3 +264,4 @@ PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 DORRPANEL = {1: DORRPANEL_JARNVITRIOL, 2: DORRPANEL_FALUROD, 3: DORRPANEL_FALUROD}   # den andra kulören än fasaden
 DORRPANEL_KALLARE = DORRPANEL_JARNVITRIOL                                          # källardörren i granitsockeln
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}
+ANSLUTNINGSPLAT = {1: PLAT_RAL3009, 2: PLAT_RAL7012, 3: PLAT_RAL7012}       # i fönstrens kulör

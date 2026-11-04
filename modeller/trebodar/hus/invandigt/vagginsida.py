@@ -145,15 +145,15 @@ def insida(kod: str) -> Montage:
     granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in GRUND + SKIVLAGER["vanligt"] + SKIVLAGER["vatrum"]}
     u0, u1 = min(g[0] for g in granser.values()), max(g[1] for g in granser.values())
     topp = _yta(kod, u0, u1).bounds[3]
-    # öppningarna i karmens linje (dörrarna från golvet)
+    # öppningarna i karmens linje (dörrarna från golvet, VELFAC-fönstren under fönsterbänken: Oppning.inre)
     opp = [o for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0]
-    hal_lista = [box(o.karm[0], o.z0 if o.typ in DORRAR else o.karm[1], o.karm[2], o.karm[3]) for o in opp]
+    hal_lista = [box(o.inre[0], o.z0 if o.typ in DORRAR else o.inre[1], o.inre[2], o.inre[3]) for o in opp]
     # skivorna slutar SMYGLIST längre från karmen, för smyglisterna (utom i badrummet, med kakel runt om)
     hal_skivor = [box(*o.skivornas_hal) for o in opp if insida_t(kod, (o.u0 + o.u1) / 2) == INSIDA_T]
     # installationsläkten runt öppningarna i karmens linje: på sidorna, över och under fönstren
     ram = []
     for o in opp:
-        ku0, kz0, ku1, kz1 = o.karm
+        ku0, kz0, ku1, kz1 = o.inre
         zb = o.z0 if o.typ in DORRAR else kz0 - LAKT
         ram += [box(ku0 - LAKT, zb, ku0, kz1 + LAKT), box(ku1, zb, ku1 + LAKT, kz1 + LAKT), box(ku0, kz1, ku1, kz1 + LAKT)]
         if o.typ not in DORRAR:

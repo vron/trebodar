@@ -52,6 +52,9 @@ TILLATNA_OVERLAPP = {
     frozenset(("Kamin",)): "rökrörets delar går in i varandra i böjarna",
     frozenset(("Kamin", "Rostfritt")): "rökröret går in i den isolerade skorstenens anslutning i kassen",
     frozenset(("Spikplåt", "Utegips")): "spikplåt 2 mm på gavelstolens utsida, utegipsen fräses ur",
+    # varianten velfac: plåtarna runt VELFAC-fönstren går från karmen upp och ut bakom läkten (läkten skruvas genom dem)
+    frozenset(("Anslutningsplåt RAL 3009", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",
+    frozenset(("Anslutningsplåt RAL 7012", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",
 }
 
 # installationernas vägar (verktyg/modellering/modellering/vagar.py, ärende #34): rören, kablarna och kanalerna (delar

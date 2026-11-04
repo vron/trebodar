@@ -4,12 +4,16 @@
     mod bygg [--del VÄG] [--format step,glb,lista,index] [--delade]
     mod kontroll [--del VÄG]
     mod onshape [--del VÄG] [--dokument NAMN] [--mapp NAMN] [--publik]
+
+`mod --variant NAMN …` bygger en variant av modellen (trebodar/variant.py, t.ex. velfac): miljövariabeln
+TREBODAR_VARIANT och utmappen modeller/trebodar/ut/NAMN/ för det som byggs.
 """
 from __future__ import annotations
 
 import argparse
 import importlib
 import math
+import os
 import sys
 import time
 from pathlib import Path
@@ -168,6 +172,13 @@ def _armaturer() -> list[dict[str, object]]:
 
 
 def main(argv: list[str] | None = None) -> None:
+    global UT
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["--variant"]:                # modellens variant (trebodar/variant.py): före kommandot
+        os.environ["TREBODAR_VARIANT"] = argv[1]
+        UT = UT / argv[1]
+        UT.mkdir(parents=True, exist_ok=True)
+        argv = argv[2:]
     a = argparse.ArgumentParser(prog="mod", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = a.add_subparsers(dest="kommando", required=True)
     pt = sub.add_parser("trad", help="modellträdet")
