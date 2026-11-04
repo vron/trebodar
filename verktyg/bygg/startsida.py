@@ -14,7 +14,7 @@ Mallen är startsida.html: sidans form, stil och skript, med platshållarna <!--
 Saknas bilderna (lokalt utan publicerade bilder) blir startsidan utan bilder.
 
 En variant av modellen (VARIANTER, trebodar/variant.py) får en egen startsida i docs/<variant>/ med samma mall: sin
-modell i 3D (docs/<variant>/modell/), sina bilder (docs/<variant>/renderingar/bilder/, releasens <variant>-filer) och
+modell i 3D (docs/<variant>/modell/), sina bilder (docs/<variant>/renderingar/bilder/, releasen bilder-<variant>) och
 en rad överst om vad som skiljer; planerna och handlingarna är husets (länkarna går till dem).
 """
 from __future__ import annotations

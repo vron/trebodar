@@ -427,7 +427,7 @@ def main(argv: list[str] | None = None) -> None:
                                                                             if k != "A"]) for d in ("inne", "ute")]
             webb_ = arg.webb
         renderingar.publicera(fran, arg.vyer, webb_, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt,
-                              f"{variant}-" if variant else "")
+                              f"{renderingar.RELEASE}-{variant}" if variant else renderingar.RELEASE)
         return
     if arg.kommando == "materialprov":
         import json

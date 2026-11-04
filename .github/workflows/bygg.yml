@@ -45,14 +45,14 @@ jobs:
       # bilderna renderas lokalt och publiceras i releasen bilder (./mod publicera, renderingar/README.md); de hämtas
       # före bygget, som skriver startsidan med dem. Förteckningen och filerna den listar hämtas med releasens
       # nedladdningsadresser, inte API:t (en fil per anrop tog slut på API:ts timgräns); saknas en fil stannar bygget.
-      # Modellens varianter (velfac) har sina bilder i samma release med variantens namn först, till docs/<variant>/
+      # Modellens varianter (velfac) har sina bilder i en egen release, bilder-<variant>, till docs/<variant>/
       - name: Renderingarna
         run: |
-          bas="https://github.com/$GITHUB_REPOSITORY/releases/download/bilder"
           for v in "" velfac; do
+            bas="https://github.com/$GITHUB_REPOSITORY/releases/download/bilder${v:+-$v}"
             mapp=docs/${v:+$v/}renderingar/bilder
             mkdir -p "$mapp"
-            if ! curl -fsSL --retry 3 -o "$mapp/renderingar.json" "$bas/${v:+$v-}renderingar.json"; then
+            if ! curl -fsSL --retry 3 -o "$mapp/renderingar.json" "$bas/renderingar.json"; then
               echo "inga renderingar publicerade ${v:+för $v}"
               continue
             fi

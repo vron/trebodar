@@ -37,7 +37,7 @@ https://vron.github.io/trebodar/velfac/ med sin modell i 3D och sina bilder, bar
 ```sh
 ./rendera.sh --variant velfac         # inomhusbilderna till velfac/inne/
 ./rendera.sh --variant velfac --ute   # de andra vyerna till velfac/ute/
-./publicera.sh --variant velfac       # till releasen bilder med velfac- först i namnen och förteckningen
+./publicera.sh --variant velfac       # till releasen bilder-velfac (en release rymmer högst 1 000 filer)
 ```
 
 ## Ljusserierna
