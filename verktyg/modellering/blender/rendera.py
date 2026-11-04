@@ -18,6 +18,7 @@ import sys
 import time
 
 import bpy
+from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import material  # noqa: E402
@@ -37,6 +38,7 @@ if SCEN.get("bredd"):
     kvalitet["bredd"] = SCEN["bredd"]
 S.cycles(sc, kvalitet)
 himmel = S.Himmel(sc)
+natthimmel = S.Natthimmel(sc)
 S.portaler(SCEN.get("portaler", []))
 if SCEN.get("omgivning"):
     o = SCEN["omgivning"]
@@ -58,10 +60,12 @@ def stall_in(namn: str, vy: dict) -> None:
             o.hide_render = grupp not in vy.get("lampor", [])
     for a in armaturer:
         a.tand_till(float(vy.get("tand", {}).get(a.tand, 0.0)))
-    himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0))
+    himmel.stall_in(vy["ljus"], SCEN.get("hojd_m", 0.0), vy.get("himmel"))
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     if "matyta" not in vy:
         sc.camera = S.kamera(namn, vy)
+    natthimmel.stall_in(SCEN.get("natter", {}).get(vy.get("natt") or ""),
+                        Vector(vy["kamera"]) / 1000 if "kamera" in vy else None)
 
 
 for namn, vy in SCEN["vyer"].items():

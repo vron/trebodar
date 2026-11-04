@@ -79,9 +79,10 @@ def trad(m: Montage, djup: int, nivå: int = 0, namn: str | None = None) -> None
 
 
 def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, bredd: int | None, ut: Path,
-             blender: str, blend: bool) -> None:
+             blender: str, blend: bool, natter: dict[str, dict] | None = None) -> None:
     """Modellens GLB och scenens beskrivning (vyerna med dagsljus och tända grupper, ljusportalerna, lamporna,
-    omgivningen, armaturerna och materialen) och Blender (blender/rendera.py) i bakgrunden."""
+    omgivningen, armaturerna, materialen och natthimlen per tid, natthimmel.natt) och Blender (blender/rendera.py) i
+    bakgrunden."""
     import json
     import subprocess
     from . import dagsljus
@@ -102,6 +103,7 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
                            and (ROT / vy_mod.GEODATA["tillgangar"]).is_dir() else None),
             "armaturer": _armaturer(),
             "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
+            "natter": natter or {},
             "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if blend else None}
     scenfil = UT / "scen.json"
     scenfil.write_text(json.dumps(scen, ensure_ascii=False, indent=1))
@@ -455,6 +457,9 @@ def main(argv: list[str] | None = None) -> None:
                 from . import polyhaven
                 nya = polyhaven.hamta(str(ROT / cfg["tillgangar"]))
                 print(f"  Poly Haven: {', '.join(nya) if nya else 'inget nytt'} -> {ROT / cfg['tillgangar']}")
+            from . import natthimmel
+            nya = natthimmel.hamta()
+            print(f"  natthimlen: {', '.join(nya) if nya else 'inget nytt'} -> {natthimmel.MAPP}")
         besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
         print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
         terr = ROT / cfg.get("terrang", "lokalt/terrang")
@@ -548,16 +553,24 @@ def main(argv: list[str] | None = None) -> None:
         if serie.get("tand") == "alla":
             inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
             serie_tand = {g: 1.0 for g in inst.tandgrupper}
-        vyer, vyljus = {}, {}
+        from . import natthimmel, polyhaven
+        tillgangar = (str(ROT / vy_mod.GEODATA["tillgangar"]) if "tillgangar" in getattr(vy_mod, "GEODATA", {})
+                      else None)
+        vyer, vyljus, natter = {}, {}, {}
         tand = {g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
         for namn, v in valda.items():
             m, d, k, w = arg.ljus or serie.get("ljus") or v["ljus"]
             vyljus[namn] = [int(m), int(d), k, w]
-            vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev,
+            lj = dagsljus.dagsljus(int(m), int(d), k, w, plats)
+            if lj.tid not in natter:
+                natter[lj.tid] = natthimmel.natt(natthimmel.tidpunkt(lj.tid), plats)
+            vyer[namn] = {**v, "ljus": lj.som_dict(), "ev": arg.ev, "natt": lj.tid if natter[lj.tid] else None,
+                          "himmel": polyhaven.himmel(tillgangar, lj.vader, lj.sol_hojd) if tillgangar else None,
                           "tand": {**dict(v.get("tand", {})), **serie_tand, **tand}}
         start = time.time()
         try:
-            _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend)
+            _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend,
+                     {t: n for t, n in natter.items() if n})
         finally:                       # även när Blender stannar efter några bilder
             renderingar.sidodata(arg.ut, valda, vyljus, arg.kvalitet, start, arg.ljusserie or "A")
     elif arg.kommando == "ljusplan":

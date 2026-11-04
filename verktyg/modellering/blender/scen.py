@@ -157,9 +157,10 @@ class Himmel:
                 n.inputs[i].default_value = v
         return n.outputs[0]
 
-    def stall_in(self, ljus: dict, hojd_m: float = 0.0) -> None:
-        """Himlen och solen efter dagsljuset (dagsljus.Ljus som dict)."""
-        nyckel = repr(sorted((k, str(v)) for k, v in ljus.items()))
+    def stall_in(self, ljus: dict, hojd_m: float = 0.0, fil: str | None = None) -> None:
+        """Himlen och solen efter dagsljuset (dagsljus.Ljus som dict); med en fotograferad himmel (fil, HDR) för det
+        kameran ser (_fotohimmel)."""
+        nyckel = repr(sorted((k, str(v)) for k, v in ljus.items())) + str(fil)
         if nyckel == self.nyckel:
             return
         self.nyckel = nyckel
@@ -221,6 +222,71 @@ class Himmel:
         sol.energy *= max(ljus["sol_farg"])
         sol.angle = math.radians(max(float(ljus.get("sol_vinkel", SOLSKIVA)), 0.05))
         self.sol.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
+        if fil and os.path.exists(fil):
+            self._fotohimmel(fil, d, float(ljus["himmel_lux"]))
+        else:
+            self.nt.links.new(self.bg.outputs["Background"], self.ut.inputs["Surface"])
+
+    _analyser: dict[str, dict] = {}
+
+    @classmethod
+    def _analys(cls, bild: bpy.types.Image) -> dict:
+        """Den fotograferade himlens sol (riktningen i bilden), belysningen på en horisontell yta från himlen utom
+        solen (Blenders enheter) och taket för det som visas (de ljusaste delarna utom solen)."""
+        if bild.filepath in cls._analyser:
+            return cls._analyser[bild.filepath]
+        w, h = bild.size
+        px = np.empty(w * h * 4, dtype=np.float32)
+        bild.pixels.foreach_get(px)
+        steg = max(1, w // 1024)
+        px = px.reshape(h, w, 4)[::steg, ::steg, :3]
+        lum = px @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
+        hh, ww = lum.shape
+        el = (np.arange(hh) + 0.5) / hh * math.pi - math.pi / 2               # rad 0 = nederst
+        u = (np.arange(ww) + 0.5) / ww
+        i, j = np.unravel_index(np.argmax(lum), lum.shape)
+        sol_el, sol_alfa = float(el[i]), math.pi - 2 * math.pi * float(u[j])   # Cycles: u = (π − atan2(y, x)) / 2π
+        E, A = np.meshgrid(el, math.pi - 2 * math.pi * u, indexing="ij")
+        cosv = np.sin(E) * math.sin(sol_el) + np.cos(E) * math.cos(sol_el) * np.cos(A - sol_alfa)
+        himmel = (E > 0) & (cosv < math.cos(math.radians(6.0)))
+        d_omega = np.cos(E) * (math.pi / hh) * (2 * math.pi / ww)
+        e = float(np.sum((lum * np.sin(E) * d_omega)[himmel]))
+        tak = float(np.percentile(lum[himmel], 99.8))
+        cls._analyser[bild.filepath] = {"alfa": sol_alfa, "e": e, "tak": tak}
+        return cls._analyser[bild.filepath]
+
+    def _fotohimmel(self, fil: str, sol: Vector, himmel_lux: float) -> None:
+        """Den fotograferade himlen (Poly Haven, utan mark) för kamerans strålar och reflexer och det som syns genom
+        glas (inga diffusa studsar före, inte ljusets strålar mot himlen): vriden så att dess sol står i solens
+        azimut, med samma belysning från himlen som dagsljuset och solskivan avkapad (solen är sollampan). Ljuset
+        i scenen kommer från den beräknade himlen."""
+        bild = bpy.data.images.load(fil, check_existing=True)
+        a = self._analys(bild)
+        k = (himmel_lux / LUMEN_PER_WATT) / max(a["e"], 1e-9)
+        tex = self._nod("ShaderNodeTexEnvironment",
+                        Vector=self._nod("ShaderNodeMapping", Vector=self._nod("ShaderNodeTexCoord").outputs["Generated"],
+                                         Rotation=(0.0, 0.0, a["alfa"] - math.atan2(sol.y, sol.x))).outputs[0])
+        tex.image = bild
+        skala = self._nod("ShaderNodeVectorMath", Vector=tex.outputs["Color"])
+        skala.operation = "SCALE"
+        skala.inputs[3].default_value = k
+        tak = self._nod("ShaderNodeVectorMath", Vector=skala.outputs[0])
+        tak.operation = "MINIMUM"
+        tak.inputs[1].default_value = (a["tak"] * k,) * 3
+        lp = self._nod("ShaderNodeLightPath")
+        # solskivan avkapad bara i reflexerna (där sollampan redan ger högdagern), hel för kameran och genom glas
+        val = self._nod("ShaderNodeMix", Factor=lp.outputs["Is Glossy Ray"])
+        val.data_type = "RGBA"
+        self.nt.links.new(skala.outputs[0], val.inputs[6])
+        self.nt.links.new(tak.outputs[0], val.inputs[7])
+        foto = self._nod("ShaderNodeBackground", Color=val.outputs[2], Strength=1.0)
+        utan_studs = self._matte("LESS_THAN", lp.outputs["Diffuse Depth"], 0.5)
+        f = self._matte("MULTIPLY", self._matte("MULTIPLY", utan_studs, self._matte("SUBTRACT", 1.0,
+                        lp.outputs["Is Shadow Ray"])), self._matte("SUBTRACT", 1.0, lp.outputs["Is Diffuse Ray"]))
+        mix = self._nod("ShaderNodeMixShader", Fac=f)
+        self.nt.links.new(self.bg.outputs["Background"], mix.inputs[1])
+        self.nt.links.new(foto.outputs["Background"], mix.inputs[2])
+        self.nt.links.new(mix.outputs[0], self.ut.inputs["Surface"])
 
     def _moln(self, klar: bpy.types.NodeSocket, sol: Vector, tackning: float, farg: np.ndarray
               ) -> bpy.types.NodeSocket:
@@ -458,6 +524,181 @@ def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
         o.visible_camera = True
     bpy.data.objects.remove(plan)
     bpy.data.objects.remove(kam)
+
+
+# ------------------------------------------------------------------ natthimlen
+
+NATT_AVSTAND = 4000.0           # stjärnorna och månen så långt från kameran [m] (innanför kamerans clip_end)
+STJARNA_VINKEL = 0.06           # stjärnornas skenbara storlek [°] (ett par bildpunkter)
+STJARNA_LUM = 30.0              # en stjärna med magnituden 0 [cd/m²]: synlig i ett nattfoto exponerat för fönstren
+MANE_DIAMETER = 0.518           # månens skenbara diameter [°]
+MANE_LUM = 25.0                 # fullmånens yta [cd/m²] för kartans medelvärde: ljusare än fönstren, inte utbränd
+
+
+def _stjarnfarg(bv: float) -> tuple[float, float, float]:
+    """Stjärnans färg ur färgindex B−V (Ballesteros 2012: temperaturen; Planck som linjär Rec. 709, luminansen 1,
+    ungefärligt)."""
+    t = 4600.0 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62))
+    rgb = []
+    for lam in (0.61, 0.55, 0.465):                                    # µm, ungefär R, G och B
+        rgb.append(1 / (lam ** 5 * (math.exp(14388.0 / (lam * t)) - 1)))
+    r, g, b = rgb
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return (r / y, g / y, b / y)
+
+
+class Natthimmel:
+    """Stjärnorna (små lysande rutor, bara för kamerans och reflexernas strålar), månen (en klot med NASA:s karta,
+    upplyst från solens riktning) och månens ljus, runt kameran efter natthimlen (modellering/natthimmel.natt)."""
+
+    def __init__(self, sc: bpy.types.Scene):
+        self.sc = sc
+        self.stj: bpy.types.Object | None = None
+        self.mane: bpy.types.Object | None = None
+        self.mane_sol: bpy.types.Node | None = None
+        lampa = bpy.data.lights.new("Månljus", "SUN")
+        self.ljus = bpy.data.objects.new("Månljus", lampa)
+        sc.collection.objects.link(self.ljus)
+        self.ljus.hide_render = True
+
+    def _synlighet(self, ob: bpy.types.Object) -> None:
+        ob.visible_diffuse = ob.visible_shadow = ob.visible_volume_scatter = False
+        ob.visible_camera = ob.visible_glossy = ob.visible_transmission = True
+
+    def _stjarnor(self, natt: dict, kamera: Vector) -> None:
+        if self.stj is not None:
+            me_gammal = self.stj.data
+            bpy.data.objects.remove(self.stj)
+            bpy.data.meshes.remove(me_gammal)
+        s = NATT_AVSTAND * math.tan(math.radians(STJARNA_VINKEL)) / 2
+        V, F, C = [], [], []
+        for x, y, z, mag, bv in natt["stjarnor"]:
+            d = Vector((x, y, z)).normalized()
+            c = kamera + d * NATT_AVSTAND
+            u = d.orthogonal().normalized() * s
+            v = d.cross(u).normalized() * s
+            n = len(V)
+            V += [c - u - v, c + u - v, c + u + v, c - u + v]
+            F.append((n, n + 1, n + 2, n + 3))
+            k = 10 ** (-0.4 * mag) * natt["styrka"]
+            C += [tuple(k * f for f in _stjarnfarg(bv)) + (1.0,)] * 4
+        me = bpy.data.meshes.new("Stjärnor")
+        me.from_pydata([tuple(p) for p in V], [], F)
+        attr = me.color_attributes.new("farg", "FLOAT_COLOR", "CORNER")
+        attr.data.foreach_set("color", np.array(C, dtype=np.float32).ravel())
+        mat = bpy.data.materials.get("Stjärnor")
+        if mat is None:
+            mat = bpy.data.materials.new("Stjärnor")
+            mat.use_nodes = True
+            nt = mat.node_tree
+            nt.nodes.clear()
+            ut = nt.nodes.new("ShaderNodeOutputMaterial")
+            em = nt.nodes.new("ShaderNodeEmission")
+            at = nt.nodes.new("ShaderNodeAttribute")
+            at.attribute_name = "farg"
+            em.inputs["Strength"].default_value = STJARNA_LUM / LUMEN_PER_WATT
+            nt.links.new(at.outputs["Color"], em.inputs["Color"])
+            nt.links.new(em.outputs[0], ut.inputs["Surface"])
+        me.materials.append(mat)
+        self.stj = bpy.data.objects.new("Stjärnor", me)
+        self.sc.collection.objects.link(self.stj)
+        self._synlighet(self.stj)
+
+    def _manen(self, karta: str | None) -> bpy.types.Object:
+        if self.mane is not None:
+            return self.mane
+        bm = bmesh.new()
+        bmesh.ops.create_uvsphere(bm, u_segments=64, v_segments=32,
+                                  radius=NATT_AVSTAND * math.tan(math.radians(MANE_DIAMETER / 2)))
+        for f in bm.faces:
+            f.smooth = True
+        me = bpy.data.meshes.new("Månen")
+        bm.to_mesh(me)
+        bm.free()
+        mat = bpy.data.materials.new("Månen")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        nt.nodes.clear()
+
+        def nod(typ: str, **ing: object) -> bpy.types.Node:
+            n = nt.nodes.new(typ)
+            for k_, v_ in ing.items():
+                if isinstance(v_, bpy.types.NodeSocket):
+                    nt.links.new(v_, n.inputs[k_])
+                else:
+                    n.inputs[k_].default_value = v_
+            return n
+
+        def matte(op: str, a_: object, b_: object = 0.0) -> bpy.types.NodeSocket:
+            n = nod("ShaderNodeMath")
+            n.operation = op
+            for i, v_ in enumerate((a_, b_)):
+                if isinstance(v_, bpy.types.NodeSocket):
+                    nt.links.new(v_, n.inputs[i])
+                else:
+                    n.inputs[i].default_value = v_
+            return n.outputs[0]
+        # kartan (longitud 0 mitt i bilden, öster åt höger) på klotet: objektets −y mot kameran och z uppåt
+        p = nod("ShaderNodeSeparateXYZ", Vector=nod("ShaderNodeTexCoord").outputs["Object"])
+        lon = matte("ARCTAN2", p.outputs["X"], matte("MULTIPLY", p.outputs["Y"], -1.0))
+        lat = matte("ARCTAN2", p.outputs["Z"],
+                    matte("SQRT", matte("ADD", matte("MULTIPLY", p.outputs["X"], p.outputs["X"]),
+                                        matte("MULTIPLY", p.outputs["Y"], p.outputs["Y"]))))
+        uv = nod("ShaderNodeCombineXYZ", X=matte("ADD", matte("DIVIDE", lon, 2 * math.pi), 0.5),
+                 Y=matte("ADD", matte("DIVIDE", lat, math.pi), 0.5))
+        farg: object = (0.12, 0.12, 0.12, 1.0)
+        medel = 0.12
+        if karta and os.path.exists(karta):
+            bild = bpy.data.images.load(karta, check_existing=True)
+            bild.colorspace_settings.name = "sRGB"
+            px = np.array(bild.pixels[:], dtype=np.float32).reshape(-1, 4)[::97, :3]
+            medel = float(np.mean(px @ np.array([0.2126, 0.7152, 0.0722])))
+            tex = nod("ShaderNodeTexImage", Vector=uv.outputs[0])
+            tex.image = bild
+            tex.interpolation = "Cubic"
+            farg = tex.outputs["Color"]
+        # fasen: ytan upplyst från solens riktning
+        self.mane_sol = nod("ShaderNodeCombineXYZ")
+        geo = nod("ShaderNodeNewGeometry")
+        dot = nod("ShaderNodeVectorMath", Vector=geo.outputs["Normal"])
+        dot.operation = "DOT_PRODUCT"
+        nt.links.new(self.mane_sol.outputs[0], dot.inputs[1])
+        ljus = matte("MAXIMUM", dot.outputs["Value"], 0.0)
+        em = nod("ShaderNodeEmission", Color=farg,
+                 Strength=matte("MULTIPLY", ljus, MANE_LUM / LUMEN_PER_WATT / max(medel, 1e-3)))
+        nt.links.new(em.outputs[0], nod("ShaderNodeOutputMaterial").inputs["Surface"])
+        me.materials.append(mat)
+        self.mane = bpy.data.objects.new("Månen", me)
+        self.sc.collection.objects.link(self.mane)
+        self._synlighet(self.mane)
+        return self.mane
+
+    def stall_in(self, natt: dict | None, kamera: Vector | None) -> None:
+        """Natthimlen runt kameran (m), eller ingen."""
+        m = natt.get("mane") if natt else None
+        if self.stj is not None:
+            self.stj.hide_render = natt is None or kamera is None
+        if self.mane is not None:
+            self.mane.hide_render = m is None or kamera is None
+        self.ljus.hide_render = m is None or m["lux"] <= 0.0
+        if natt is None or kamera is None:
+            return
+        self._stjarnor(natt, kamera)
+        if m is None:
+            return
+        d = Vector(m["riktning"]).normalized()
+        ob = self._manen(natt.get("kartan"))
+        ob.location = kamera + d * NATT_AVSTAND
+        ob.rotation_euler = (-d).to_track_quat("-Y", "Z").to_euler()
+        sol = Vector(natt["sol"]).normalized()
+        assert self.mane_sol is not None
+        for i, k_ in enumerate("XYZ"):
+            self.mane_sol.inputs[k_].default_value = sol[i]
+        lampa = self.ljus.data
+        lampa.energy = m["lux"] / LUMEN_PER_WATT
+        lampa.color = (1.0, 0.93, 0.85)
+        lampa.angle = math.radians(MANE_DIAMETER)
+        self.ljus.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
 
 
 def kamera(namn: str, vy: dict) -> bpy.types.Object:

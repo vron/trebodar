@@ -34,7 +34,14 @@ ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
 Varje vy renderas i fyra ljus (`LJUSSERIER` i `vyer.py`), inne och ute: A är vyns eget ljus, B slutet av april
 kl. 18.30 med mest sol, C början av oktober kl. 10 mulet och D december kl. 18 med klar himmel, mörkt ute och hela
 elinstallationen tänd. I startsidans bildvisare väljs serien med växeln i hörnet, och rutnätet följer med; en bild
-som saknas i serien visas i sitt eget ljus. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
+som saknas i serien visas i sitt eget ljus.
+
+Himlen som syns (genom kameran, i reflexerna och genom glas) är en fotograferad himmel utan mark från Poly Haven
+(CC0, `HIMLAR` i `modellering/polyhaven.py`, `./mod omgivning --hamta`): den med vädret och solens höjd närmast
+bildens, vriden så att dess sol står där solen står och med samma ljusstyrka som den beräknade himlen, som ger
+ljuset i scenen. I mörker står stjärnorna där de står på platsen vid tiden (Yale Bright Star Catalogue) och månen i
+sin fas med NASA:s karta och sitt ljus (`modellering/natthimmel.py`); serien D är julafton kl. 18, då den nästan
+fulla månen står i östnordost. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
 bländare ljusare (`INNE_LJUSARE`), och ute i mörker exponeras bilden som ett nattfoto för de tända fönstren
 (`NATT_EV`).
 

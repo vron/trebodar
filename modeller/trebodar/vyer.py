@@ -31,7 +31,7 @@ LJUSSERIER = {
     "A": {"namn": "Bildens eget ljus"},
     "B": {"namn": "April, kväll, mest sol", "ljus": (4, 28, "18:30", "halvklart")},
     "C": {"namn": "Oktober, förmiddag, mulet", "ljus": (10, 6, "10:00", "mulet")},
-    "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 21, "18:00", "klart"), "tand": "alla"},
+    "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "18:00", "klart"), "tand": "alla"},
 }
 Z_KALLARE = S.Z_BOTTENPLATTA
 
