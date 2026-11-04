@@ -91,7 +91,10 @@ for namn, vy in SCEN["vyer"].items():
             print(f"VITBALANS {namn}: ljuset {cct:.0f} K, adaptationsluminansen {la:.0f} cd/m², anpassning {d:.2f}")
     S.exponering(sc, ev)
     S.brusgrans(sc, kvalitet["troskel"], ev)
-    S.nattkompression(sc, bool(vy.get("natt")) and not vy.get("inne"))
+    natt_ute = bool(vy.get("natt")) and not vy.get("inne")
+    sc.cycles.samples = int(kvalitet["sampel"]) * (S.NATT_SAMPEL if natt_ute else 1)
+    S.klamp(sc, S.NATT_KLAMP if natt_ute else None)
+    S.nattkompression(sc, natt_ute)
     lj = vy["ljus"]
     print(f"LJUS {namn}: {lj['tid']} {lj['vader']}, sol {lj['sol_lux'] / 1000:.0f} klx, himmel "
           f"{lj['himmel_lux'] / 1000:.1f} klx, EV {ev:.1f}")

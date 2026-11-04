@@ -324,13 +324,13 @@ def _textur(g: Graf, k: bpy.types.NodeSocket, mapp: str, t: dict) -> tuple[objec
     return detalj, bild("rough")[0], hojd
 
 
-MARK_REFLEX_NATT = 0.15        # markens speglande del i nattbilderna ute (Principled: Specular IOR Level, annars 0,5)
+MARK_REFLEX_NATT = 0.0         # markens speglande del i nattbilderna ute (Principled: Specular IOR Level, annars 0,5)
 
 
 def mark_i_morker(morker: bool) -> None:
-    """Markens speglande del, i nattbilderna ute dämpad till MARK_REFLEX_NATT: i mörker är månen och den månbelysta
-    himlen markens enda ljus, och gräset, förenklat till en yta med textur, speglar dem vid flacka vinklar som is; på
-    dagen försvinner det bredvid solljuset."""
+    """Markens speglande del, i nattbilderna ute borttagen (MARK_REFLEX_NATT): i mörker är månen, den månbelysta himlen
+    och fönstren markens enda ljus, och gräset och berget, förenklade till en yta med textur, speglar dem vid flacka
+    vinklar som is och glittrar; på dagen försvinner det bredvid solljuset."""
     mat = bpy.data.materials.get("Omgivning mark")
     if mat is None:
         return

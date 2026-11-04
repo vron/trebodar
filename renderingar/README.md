@@ -48,8 +48,10 @@ bländare ljusare (`INNE_LJUSARE`), och ute i mörker exponeras bilden som ett n
 huset och omgivningen syns, med vitbalansen varmare än månskenet (3 300 K), så att landskapet och natthimlen blir
 blå och fönstren varma. Rummen bakom fönstren är omkring 10 steg ljusare än landskapet, så att de ljusa partierna
 dämpas efter sin omgivning, som när man blandar exponeringar (`nattkompression` i `blender/scen.py`, en lokal
-tonkurva med bilateral utjämning): fönstren visar rummen i stället för att bli vita. Markens speglande del dämpas i
-nattbilderna, där gräset annars speglar månhimlen som is (`mark_i_morker` i `blender/omgivning.py`). Den adaptiva samplingens brusgräns följer exponeringen (`brusgrans` i `blender/scen.py`), så
+tonkurva med bilateral utjämning): fönstren visar rummen i stället för att bli vita. Markens speglande del tas bort i
+nattbilderna, där gräset annars speglar månhimlen som is (`mark_i_morker` i `blender/omgivning.py`). Nattbilderna ute
+får fyra gånger så många sampel (`NATT_SAMPEL`), och varje sampels bidrag begränsas (`NATT_KLAMP`, 11 steg över
+mellangrått direkt och 8 indirekt), så att lamporna inne inte glittrar i fasaderna och gräset genom fönstren. Den adaptiva samplingens brusgräns följer exponeringen (`brusgrans` i `blender/scen.py`), så
 att mörka bilder som exponeras upp samplas lika noga som de ljusa.
 
 Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna

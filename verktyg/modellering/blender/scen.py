@@ -720,6 +720,22 @@ NATT_KNA = 1.0                  # steg över mellangrått där dämpningen börj
 NATT_LUTNING = 0.25             # den andel av stegen över knät som behålls
 NATT_RADIE = 0.02               # utjämningens radie, andel av bildens bredd
 NATT_TROSKEL = 1.5              # utjämningen stannar vid språng större än så här många steg
+# I mörker sänks brusgränsen så mycket (brusgrans) att varje bildpunkt samplas till kvalitetens största antal: ljuset
+# på marken och fasaderna kommer genom fönstren från lampor inne, så nattbilderna ute får så många gånger fler sampel
+NATT_SAMPEL = 4
+# och varje sampel får bidra med högst NATT_KLAMP steg över mellangrått, direkt och indirekt (klamp): lamporna inne är
+# små och mycket ljusa (upp till 330 000 cd/m²), och genom fönstren glittrar de som enstaka ljusa bildpunkter i
+# fasadernas, bergets och stenarnas reflexer, och de sällsynta studsarna in genom fönstren till de upplysta väggarna
+# blir ljusa prickar i gräset; rummen bakom fönstren (omkring 10 steg) och månen (omkring 9,5) klampas inte
+NATT_KLAMP = (11.0, 8.0)
+
+
+def klamp(sc: bpy.types.Scene, steg: tuple[float, float] | None) -> None:
+    """Största bidraget från ett sampel, (direkt, indirekt) steg över mellangrått vid exponeringen, eller inget.
+    Efter exponering()."""
+    c = sc.cycles
+    m = 0.18 / 2 ** sc.view_settings.exposure
+    c.sample_clamp_direct, c.sample_clamp_indirect = (0.0, 0.0) if steg is None else (m * 2 ** steg[0], m * 2 ** steg[1])
 
 
 def nattkompression(sc: bpy.types.Scene, aktiv: bool) -> None:
