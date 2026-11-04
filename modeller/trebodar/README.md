@@ -80,13 +80,12 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Takvinkel, väggarnas höjd, takets lyft, huskropparnas lägen | `skelett.py`; takbalkar, takstolar, takets skikt, isolering och innertak följer med |
 | En väggs läge | `skelett.py` (`YTTERVAGGAR`, `INNERVAGGAR`) och väggens fil; fasadens hörn, isolering, insida och tak följer med |
 | Väggens regelverk | väggens fil, t.ex. `hus/stomme/prefab/yttervaggar/v1so.py`: rastrets början, fria reglar, skarvar, öppningarnas utförande (`Karm`: dubbla karmreglar, överstycke, kortlingar), hörnstolpar, stolpar och dalbalkarnas upplag; reglerna i `regelstomme.py` |
-| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, modulmått och produkttyp); regelverket (karmreglar, överstycke, bröstning, kortlingar), fasad, isolering, insida och smyg följer med |
+| Ett fönster eller en dörr | `hus/fonster_och_dorrar/oppningar.py` (läge, regelöppningens mått och produkttyp); regelverket (karmreglar, överstycke, bröstning, kortlingar), fasad, isolering, insida och smyg följer med |
 | En takstol | stolens fil i `hus/stomme/prefab/takstolar/` (sätet, underramens höjd, ståndarnas lägen, spikreglar) och reglerna i `byggdelar/takstol.py` (delarna, säten, klossar och spikplåtar) |
 | Takbalkarnas lägen och takfönstren | `hus/stomme/prefab/takbalkar/takbalkar.py` (`FALT`: följder c/c 600 per takfall; `TF1`–`TF3`); dubbla takbalkar och avväxlingar vid takfönstren följer med |
 | En stolpe | fristående: `hus/stomme/prefab/stolpar/stolpar.py` (mitt som i K-03) och `ln1_3.py`; i en vägg: väggens fil (`regelstomme.stolpe`) |
-| Fönstrens och dörrarnas utförande | `byggdelar/fonster.py` (Elitfönsters profiler per produkttyp, karmen 20 mm mindre än modulen) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen, drevning, smyg och fönsterbänk) |
+| Fönstrens och dörrarnas utförande | `byggdelar/velfac.py` (fönstren och fönsterdörrarna, VELFAC 200 ENERGY: profilerna och produkterna), `byggdelar/ytterdorrar.py` (ytterdörrarna med panel) och `hus/fonster_och_dorrar/fonster_och_dorrar.py` (läget i väggen: indrag 20, fog 15, påföring, plåtar och fönsterbleck, fasaden 10 mm från karmen, smyg och fönsterbänk) |
 | Smyglister: en bredare synlig träkant runt fönstren och dörrarna invändigt | `hus/fonster_och_dorrar/oppningar.py` (`SMYGLIST` i mm, 0 = bara smygen); skivorna slutar längre från karmen och listerna och fönsterbänkens öron följer med |
-| Fönstren från VELFAC i stället (varianten velfac) | `trebodar/variant.py` (`./mod --variant velfac …`, utmappen `ut/velfac/`), `byggdelar/velfac.py` (VELFAC 200 ENERGY: profilerna, produkterna) och `enhet_velfac` i `hus/fonster_och_dorrar/fonster_och_dorrar.py` (indrag 20, fog 15, påföring, plåtar, fasaden 10 mm från karmen); huset som det är projekterat ändras inte |
 | En lätt innervägg eller innerdörr | `hus/invandigt/vaggar.py` (`LATTA`) och `oppningar.py` (`INNERDORRAR`); stomme, skikt och dörrar följer med |
 | Köksbänken och ön | skåpen (stomme, lådor på Blum MOVENTO, fronter; varje skåp i sitt eget system för ritningar) i `hus/inredning/koksskap.py`, uppställningen (antal skåp, bänkens djup, ön, diskho, häll) i `hus/inredning/koksbank.py` |
 | Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
@@ -169,7 +168,7 @@ Trebodar
     ├── Tak                     per takfall: hårdboard, ströläkt, råspont, underlagspapp, takplåt i banor;
     │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
-    ├── Fönster och dörrar      Elitfönsters fönster och dörrar (även källarens), innerdörrar
+    ├── Fönster och dörrar      VELFAC:s fönster och fönsterdörrar (även källarens), ytterdörrar, innerdörrar
     ├── Installationer          avlopp (ur Onshape-modellen), el, ventilation, tappvatten, golvvärme, köldbärare,
     │                           brandlarm, dränering och dagvatten och teknikrummets utrustning
     │                           (hus/installationer/el, ventilation, vatten, golvvarme, kollektor, brandlarm och
@@ -208,9 +207,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   LA1–LA10 (K-03, K-05); reglar som bildar en stolpe heter som stolpen (LD2_1-1, LA5-2). **Takfönster** TF1–TF3.
   **Källarväggar** V1–V21, bröstningarna F1-B–F3-B, **rör** P1–P19 (P7 två rör) (K-05, K-06, R-05).
 - **Fönster och dörrar** i ytterväggarna: väggen och F eller D med nummer längs väggen (1SO-F1, 2SV-D1);
-  källarens fönster F1–F3 (R-05); innerdörrar ID1–ID6. Delarna: KARM, KARMALU (aluminiumbeklädnad), BOTTEN
-  (bottenstyckets eller tröskelns aluminiumprofil), BAGE, BAGEALU, GLAS, BLAD (ytterdörren), TROSKEL; skjutdörrens
-  delar FV, SV, SH, FH (fast och skjutbar, vänster och höger); i öppningen DREV, SMYG-V/H/O/U och BANK.
+  källarens fönster F1–F3 (R-05); innerdörrar ID1–ID6. Delarna: KARM, KARMALU (aluminiumbeklädnad), LIST
+  (tätningslister), BAGEALU, BAGEPROFIL, GLAS, TROSKEL och BOTTEN (fönsterdörrens tröskel och bågens bottenprofil),
+  BLAD (ytterdörrarna); skjutdörrens partier FV och FH (fasta) och de skjutbara bågarna SV och SH med mittposten
+  SH-POST och KOPPLING mellan partierna; i öppningen PAF (påföringen), DREV, FOG, PROFIL-O/V/H och PLAT-O/OU/V/H
+  (anslutningsprofilen och plåtarna), BLECK, SMYG-V/H/O/U och BANK.
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
@@ -371,19 +372,27 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   i B2 över golvdosan KO-DB1. Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
   och två lådskåp, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
   Bricmate Jura 12.
-- **Fönster och dörrar** enligt Elitfönsters snittritningar (Original Alu 100 vridfönster, fast karm och altandörr
-  helglasad; Skjutdörr Alu ASP4), i Onshape-modellens öppningar som modulmått: karmen 20 mm mindre, 22 mm innanför
-  panelens utsida (aluminiumbeklädnaden i panelens insida) med panelen 10 mm in över karmen vid sidorna och
-  överkanten och ett fönsterbleck med fall och droppnäsa under fönstren. Typerna: vridfönster 10×10 och 8×8 och i
-  källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6 (1SO), fönsterdörrar
-  9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV, fyra delar, de mittre öppnas åt sidorna). Ytterdörrarna
-  (ärende #33): huvudentrén 1SO-D1 och källarens pardörr D1 (i 3NO:s system under bjälklaget, ett blad 900 till höger
-  sett utifrån och ett smalare som öppnas ibland) har blad av en plywoodkärna 44, liggande läkt och stående panel
-  utanpå, i den andra kulören än fasaden runt dem (grå järnvitriol i det röda huset, falu rödfärg i det grå). Panelen
-  ligger i liv med fasadpanelen och täcker karmen fram till en fog 4 mm mot den, så att ingen karm syns utifrån. Invändigt går
-  väggens skikt och installationsläkten fram till karmens linje, och smygen och fönsterbänken är oljad ask 20 mm med
-  fibrerna längs varje bit (med smyglister, `SMYGLIST` > 0, lister av ask runt smygen i skivornas tjocklek); i
-  badrummet kakel, i källaren gips (källarens fönster sitter kvar i cellplastens smyg).
+- **Fönster och fönsterdörrar** från VELFAC (VELFAC 200 ENERGY) efter systemritningarna (utgåva 15, 07.26), med
+  profilerna förenklade till ytterkonturerna och svepta med gering: vändfönster (vändbart fönster), fast fönster med
+  båge, 1-luft fönsterdörr med 24 mm tröskel och en 2-luft skjutdörr med 24 mm tröskel mellan två fasta partier
+  (2SV-D1, de mittre bågarna skjutbara, kopplade med kopplingslist och lika breda rutor). Typerna: vändfönster
+  10×10 och 8×8 och i källaren 8×6 och 6×12, fasta fönster 6×21 (1NO, 3NO), 21×21,86 (1SV), 9×21 (3SV-F2) och 6×6
+  (1SO), fönsterdörrar 9×21, 10×21 och 11×21 och skjutdörren 48×23,6 (2SV). Monteringen enligt VELFAC:s
+  montageanvisning och träfasaddetaljer: aluminiumets utsida 20 mm innanför panelens utsida, så att karmträet ligger i
+  utegipsens utsida; fog 15 mm mot regelverket med drevning och lufttät fog inifrån; fönstren på en påföring 18×114
+  med fönsterbleck (fall 1:4, droppnäsa 30 mm utanför panelen), dörrarna på en bädd 10; anslutningsprofil på karmen
+  upptill och vid sidorna med 1 mm plåt i fönstrens kulör ut och upp bakom läkten (vid vändfönstrens sidor utanför
+  beslagets zon); panelen och läkten 10 mm från karmen. Invändigt går väggens skikt och installationsläkten fram till
+  karmens linje, och smygen är oljad ask 20 mm med fibrerna längs varje bit, fönsterbänken under bottenkarmen och vid
+  fönstren från golvet en bräda av ask från golvet till karmen (med smyglister, `SMYGLIST` > 0, lister av ask runt
+  smygen i skivornas tjocklek); i badrummet kakel, i källaren gips (källarens fönster i cellplastens smyg). Beslagen
+  och handtagen är inte modellerade.
+- **Ytterdörrarna** (ärende #33): huvudentrén 1SO-D1 och källarens pardörr D1 (i 3NO:s system under bjälklaget, ett
+  blad 900 till höger sett utifrån och ett smalare som öppnas ibland) har en karm efter Elitfönsters altandörr (Original
+  Alu 100), 20 mm mindre än öppningen och 22 mm innanför panelens utsida, och blad av en plywoodkärna 44, liggande läkt
+  och stående panel utanpå, i den andra kulören än fasaden runt dem (grå järnvitriol i det röda huset, falu rödfärg i
+  det grå). Panelen ligger i liv med fasadpanelen och täcker karmen fram till en fog 4 mm mot den, så att ingen karm
+  syns utifrån; smygen av ask går från golvet.
 - **Källarväggarnas insida**: gips 13 direkt på cellplasten (brandskydd), från bottenplattan till bjälklaget, på
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
   och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta
@@ -393,7 +402,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   dörrhålen KD1–KD5 för M9×20 och M8×20 (rumshöjden 2 100 rymmer inte M×21). Teknikrummet avgränsas av KL8–KL10 med
   en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje norr därom.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
-  fönsterdörrens karm och ett tätt dörrblad (produkten inte vald).
+  en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
   dränerande fyllning i ett schakt i berget 100 mm utanför plattan.

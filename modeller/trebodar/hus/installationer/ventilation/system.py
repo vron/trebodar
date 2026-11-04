@@ -143,7 +143,7 @@ class Ventilation:
             if a.typ.slag == "galler" and a.lage.ref in OPPNINGAR:
                 vd = S.YTTERVAGGAR[a.lage.ref]
                 u = (a.lage.punkt[0] - vd.origo[0]) * vd.u[0] + (a.lage.punkt[1] - vd.origo[1]) * vd.u[1]
-                nara = [o.kod for o in OPPNINGAR[a.lage.ref] if o.typ in ("vridfönster", "fönsterdörr")
+                nara = [o.kod for o in OPPNINGAR[a.lage.ref] if o.typ in ("vändfönster", "fönsterdörr")
                         and min(abs(u - o.u0), abs(u - o.u1), 0.0 if o.u0 <= u <= o.u1 else 1e9) < 1000.0]
                 if nara:
                     anm.append(f"{a.id}: avluften går ut inom 1 m från de öppningsbara fönstren {', '.join(nara)}")

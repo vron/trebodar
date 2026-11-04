@@ -1,6 +1,6 @@
-"""Fönster och dörrar från VELFAC (VELFAC 200 ENERGY), för varianten velfac (trebodar/variant.py): karm, båge,
-isolerruta, aluminium, bågprofiler och lister efter VELFAC:s systemritningar, i samma system som Elitfönsters
-produkter (byggdelar/fonster.py), så att de sätts i öppningarna på samma sätt.
+"""Husets fönster och fönsterdörrar från VELFAC (VELFAC 200 ENERGY): karm, båge, isolerruta, aluminium, bågprofiler
+och lister efter VELFAC:s systemritningar, i samma system som ytterdörrarna (byggdelar/fonster.py), så att alla
+produkter sätts i öppningarna på samma sätt.
 
 Produktens system: x längs bredden från karmens ytterkant, z uppåt från karmens underkant och y genom väggen med
 y = 0 i karmens insida och negativt utåt. Profilerna anges som polygoner (d, e): d inåt från aluminiumets utsida
@@ -313,7 +313,7 @@ def skjutdorr(kod: str, b: float, h: float, alu: Material) -> Montage:
     return m
 
 
-PRODUKTER = {"vridfönster": vandbart, "fast fönster": fast, "fönsterdörr": fonsterdorr, "skjutdörr": skjutdorr}
+PRODUKTER = {"vändfönster": vandbart, "fast fönster": fast, "fönsterdörr": fonsterdorr, "skjutdörr": skjutdorr}
 # karmens sidor upptill och vid sidorna (o, v, h) för anslutningarna runt fönstren och dörrarna (fonster_och_dorrar.py)
-SIDOR: dict[str, dict[str, Sida]] = {"vridfönster": {"o": A, "v": G, "h": G}, "fast fönster": {"o": A, "v": A, "h": A},
+SIDOR: dict[str, dict[str, Sida]] = {"vändfönster": {"o": A, "v": G, "h": G}, "fast fönster": {"o": A, "v": A, "h": A},
                                      "fönsterdörr": {"o": A, "v": A, "h": A}, "skjutdörr": {"o": A, "v": A, "h": A}}

@@ -149,10 +149,9 @@ ALU_RAL3009 = Material("Aluminium RAL 3009", "Aluminiumbeklädnad pulverlackerad
                        2700, "#642424", 0.4, textur="pulverlack", cad="#8c3a32")
 ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad RAL 7012 basaltgrå (fönster, dörrar)",
                        2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
-HARDTRA = Material("Hårdträ", "Merbau (skjutdörrens tröskel)", 830, "#7a4a2e", 0.6, cad="#8a5536")
-# VELFAC 200 ENERGY (varianten velfac, byggdelar/velfac.py): bågens bärande profil av glasfiberkomposit och de inre
-# profilerna, svarta, tätnings- och distanslisterna och anslutningsplåtarna runt karmen i fönstrens kulör (en egen
-# sort, som får gå upp bakom läkten: kontrollregler.TILLATNA_OVERLAPP)
+# VELFAC 200 ENERGY (fönstren och fönsterdörrarna, byggdelar/velfac.py): bågens bärande profil av glasfiberkomposit
+# och de inre profilerna, svarta, tätnings- och distanslisterna och anslutningsplåtarna runt karmen i fönstrens kulör
+# (en egen sort, som får gå upp bakom läkten: kontrollregler.TILLATNA_OVERLAPP)
 BAGPROFIL = Material("Bågprofil", "Bågens profiler av glasfiberkomposit och plast, svarta (VELFAC 200 ENERGY)", 1800,
                      "#1e2022", 0.45, cad="#30353a")
 TATNINGSLIST = Material("Tätningslist", "Tätnings-, distans- och anslutningslister, EPDM och plast, svarta", 1200,

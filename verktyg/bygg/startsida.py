@@ -12,10 +12,6 @@ ritningarna).
 
 Mallen är startsida.html: sidans form, stil och skript, med platshållarna <!--@namn--> för det som byggs här.
 Saknas bilderna (lokalt utan publicerade bilder) blir startsidan utan bilder.
-
-En variant av modellen (VARIANTER, trebodar/variant.py) får en egen startsida i docs/<variant>/ med samma mall: sin
-modell i 3D (docs/<variant>/modell/), sina bilder (docs/<variant>/renderingar/bilder/, releasen bilder-<variant>) och
-en rad överst om vad som skiljer; planerna och handlingarna är husets (länkarna går till dem).
 """
 from __future__ import annotations
 
@@ -33,14 +29,6 @@ from pathlib import Path
 MALL = Path(__file__).with_name("startsida.html")
 REPO = "https://github.com/vron/trebodar"
 HJALTE = "ute-vast"               # startsidans stora bild
-TITEL = "Trebodar – fritidshus på Resö"
-# varianterna med egen startsida: titel och raden överst
-VARIANTER = {
-    "velfac": ("Trebodar med fönster från VELFAC",
-               "Varianten med fönstren och fönsterdörrarna från VELFAC (VELFAC 200 ENERGY: vändbara fönster, fasta "
-               "fönster med båge, fönsterdörrar och en 2-luft skjutdörr mellan två fasta partier) i stället för "
-               "Elitfönster, 20 mm innanför panelen. Allt annat är som i huset."),
-}
 MODELLBILD = "stomme"             # bilden vid länken till modellen i 3D
 # bildernas urval på startsidan, i den ordningen (vyns namn eller nummer, t.ex. I03); de andra visas i sina grupper
 URVAL = ["ute-sydvast", "ute-sydost", "I03", "I01", "ute-nordvast", "I07", "I06", "I02", "I12", "detalj-tak", "I14", "detalj-ph5",
@@ -88,14 +76,11 @@ def _blad(rot: Path, nr: str) -> list[dict]:
     return blad
 
 
-def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path,
-               prefix: str = "") -> tuple[list[tuple[str, str, list[dict]]], dict]:
+def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tuple[str, str, list[dict]]], dict]:
     """Handlingsförteckningen: bygglovet (beslutet och handlingarna som tillhör det), F-01:s grupper (de reviderade
     bygglovsritningarna, handlingarna till tekniskt samråd och de egna underlagen) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till ut.
-    rapporter: rapportens projektuppgifter per nummer (revision, datum). Returnerar grupperna och F-01:s indata.
-    prefix: före länkarna, och inga kopior (en variants startsida länkar till husets handlingar, "../")."""
-    if not prefix:
-        shutil.rmtree(ut, ignore_errors=True)
+    rapporter: rapportens projektuppgifter per nummer (revision, datum). Returnerar grupperna och F-01:s indata."""
+    shutil.rmtree(ut, ignore_errors=True)
     f01 = tomllib.loads((rot / "beräkningar" / "F-01" / "indata.toml").read_text(encoding="utf-8"))
     lov = tomllib.loads((rot / "bygglov" / "handlingar.toml").read_text(encoding="utf-8"))
     filer: dict[str, Path] = {}
@@ -109,11 +94,10 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path,
         if p is None:
             return None
         if p not in kopior:
-            if not prefix:
-                dst = ut / p.parent.name / nfc(p.name)
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(p, dst)
-            kopior[p] = f"{prefix}handlingar/{p.parent.name}/{nfc(p.name)}"
+            dst = ut / p.parent.name / nfc(p.name)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(p, dst)
+            kopior[p] = f"handlingar/{p.parent.name}/{nfc(p.name)}"
         return {"href": _lank(kopior[p]), "storlek": _mb(p)}
 
     def rad(nr: str, namn: str, status: str, rev: str = "", datum: str = "", notering: str = "",
@@ -316,16 +300,10 @@ def _fakta(f01: dict) -> str:
                    + (f"<small>{e(f[2])}</small>" if len(f) > 2 else "") + "</dd></div>" for f in fakta)
 
 
-def bygg(rot: Path, rapporter: dict[str, dict], version: str, variant: str = "") -> Path:
-    """Startsidan och handlingarna i rot/docs (en variants startsida i rot/docs/<variant>, med kameraplanens sida
-    och planerna kopierade dit). rapporter: rapporternas projektuppgifter per nummer."""
-    docs = rot / "docs" / variant if variant else rot / "docs"
-    if variant:
-        for f in ("index.html", "plan.json"):
-            if (rot / "docs" / "renderingar" / f).exists():
-                (docs / "renderingar").mkdir(parents=True, exist_ok=True)
-                shutil.copy(rot / "docs" / "renderingar" / f, docs / "renderingar" / f)
-    grupper, f01 = handlingar(rot, rapporter, rot / "docs" / "handlingar", "../" if variant else "")
+def bygg(rot: Path, rapporter: dict[str, dict], version: str) -> Path:
+    """Startsidan och handlingarna i rot/docs. rapporter: rapporternas projektuppgifter per nummer."""
+    docs = rot / "docs"
+    grupper, f01 = handlingar(rot, rapporter, docs / "handlingar")
     bl = bilder(docs)
     namn = {b["namn"]: b for b in bl}
     hjalte = namn.get(HJALTE) or next((b for b in bl if b["grupp"] == "ute"), None)
@@ -337,11 +315,7 @@ def bygg(rot: Path, rapporter: dict[str, dict], version: str, variant: str = "")
         d["ljus"] = ljustext(d["ljus"])
         for s in d["serier"].values():
             s["ljus"] = ljustext(s["ljus"])
-    titel, rad = VARIANTER[variant] if variant else (TITEL, "")
     ersatt = {
-        "titel": e(titel),
-        "variant": (f'<p class="under" style="font-size:15px;max-width:52ch">{e(rad)} '
-                    f'<a href="../" style="color:inherit">Huset som det är projekterat</a></p>' if variant else ""),
         "hjalte": html_bild(hjalte, "100vw", prioritet=True),
         "hjalteklass": "" if hjalte else " utan-bild",
         "hjaltetext": (f'{e(hjalte["text"])} · {e(ljustext(hjalte["ljus"]))}' if hjalte else ""),
@@ -365,9 +339,6 @@ def bygg(rot: Path, rapporter: dict[str, dict], version: str, variant: str = "")
     if rest := re.findall(r"<!--@(\w+)-->", sida):
         raise SystemExit(f"startsida.html: okända platshållare {', '.join(rest)}")
     (docs / "index.html").write_text(sida, encoding="utf-8")
-    if variant:
-        print(f"== startsidan för {variant}: docs/{variant}/index.html ({len(bl)} bilder)")
-        return docs / "index.html"
     # den gamla adressen till handlingarna leder till förteckningen på startsidan
     (docs / "handlingar" / "index.html").write_text(
         '<!doctype html><meta charset="utf-8"><title>Trebodar – handlingar</title>'

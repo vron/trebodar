@@ -2,18 +2,16 @@
 
 Från stommen och utåt (w negativt i väggens system): utegips 10 mm, ströläkt 12×45 stående c/c 600 (och vid
 karmarna), spikläkt 21×45 liggande c/c 600 (och vid karmarnas över- och underkant) och panel 22 mm (förenklad,
-en skiva per vägg). Skikten går fram till fönstrens och dörrarnas karmar, vars aluminium ligger i panelens insida;
-panelen går OVERLAPP (10 mm) in över karmen vid sidorna och överkanten. Under fönstren ligger fönsterblecket
-(fonster_och_dorrar.py) på spikläkten, som är nedkapad för det, och panelen slutar under blecket.
+en skiva per vägg). Vid fönstren och fönsterdörrarna (VELFAC) slutar utegipsen i regelverkets öppning och panelen och
+läkten KLADD_V (10 mm) från karmen vid sidorna och upptill; under fönstren slutar varje skikt under fönsterblecket
+(fonster_och_dorrar.py), som faller utåt (velfac_under_bleck). Vid ytterdörrarna med panel går skikten fram till
+karmen, vars aluminium ligger i panelens insida, och panelen går OVERLAPP (10 mm) in över karmen vid sidorna och
+överkanten.
 Fasaden går ned till marken (markniva.py), utom där fasadstenen går upp till bjälklagets underkant (z −150) och över
 källardörrarna, där den slutar i bjälklagets underkant. Vid takfötterna går den upp mellan takbalkarna (tänder) till
 takbalkarnas överkant i panelens utsida, med en ströläkt mot varje takbalk och en spikläkt överst i varje fack;
 ovanför ligger takets luftspalt öppen (luftintaget, U-03). I gavlarna slutar den mot takets hårdboard. I hörnen möts skikten var för sig (utegips mot
 utegips, läkt mot läkt) och panelen täcker hela hörnet (fasad_u).
-
-Vid VELFAC:s fönster och dörrar (varianten velfac) slutar utegipsen i regelverkets öppning och panelen och läkten
-KLADD_V (10 mm) från karmen vid sidorna och upptill; under fönstren slutar varje skikt under fönsterblecket, som
-faller utåt (velfac_under_bleck).
 """
 from __future__ import annotations
 
@@ -37,9 +35,8 @@ from .markniva import MARKNIVA, Z_UK, mark_vid
 
 STENVAGGAR = {kod for b in fasadsten.BEKLADNAD if b.z1 >= Z_UK - 1e-6 for kod in b.vaggar}
 UTEGIPS_T, STRO_T, SPIK_T, PANEL_T = 10.0, 12.0, 21.0, 22.0
-OVERLAPP = 10.0                  # panelen över karmen vid sidorna och överkanten
-UNDER_BLECK = 7.0                # panelens överkant under karmens underkant vid fönstren (blecket med fall och glipa)
-assert INDRAG == PANEL_T, "karmen sitter i panelens insida"
+OVERLAPP = 10.0                  # panelen över ytterdörrarnas karm vid sidorna och överkanten
+assert INDRAG == PANEL_T, "ytterdörrarnas karm sitter i panelens insida"
 LAKT_B = 45.0
 CC = 600.0
 GAVLAR = {"1NO", "1SV", "2NO", "2SV", "3NO", "3SV"}
@@ -183,7 +180,7 @@ def kontur(kod: str) -> Polygon:
 
 
 def _velfac_hal(o: Oppning, skikt: str) -> Polygon:
-    """Hålet i ett fasadskikt vid ett VELFAC-fönster eller en VELFAC-dörr: utegipsen i regelverkets öppning, läkten och
+    """Hålet i ett fasadskikt vid ett fönster eller en fönsterdörr (VELFAC): utegipsen i regelverkets öppning, läkten och
     panelen KLADD_V från karmen vid sidorna och upptill och under fönstren under blecket (dörrarna till karmen)."""
     if skikt == "ug":
         return box(o.u0, o.z0, o.u1, o.z1)
@@ -197,25 +194,18 @@ def _velfac_hal(o: Oppning, skikt: str) -> Polygon:
 def utsida(kod: str) -> Montage:
     hela = kontur(kod)
     opp = OPPNINGAR.get(kod, [])
-    elit = [o for o in opp if not o.velfac]
+    dorrar = [o for o in opp if not o.velfac]                        # ytterdörrarna med panel
     velfac = [o for o in opp if o.velfac]
-    hal = [box(*o.karm) for o in elit]                               # fasaden går fram till karmen
+    hal = [box(*o.karm) for o in dorrar]                             # fasaden går fram till dörrarnas karm
     oppen = unary_union(hal + [_velfac_hal(o, "ug") for o in velfac]) if opp else Polygon()
     stro_oppen = unary_union(hal + [_velfac_hal(o, "stro") for o in velfac]) if opp else Polygon()
-    # panelen över karmen vid sidorna och överkanten; under fönstren under blecket
+    spik_oppen = unary_union(hal + [_velfac_hal(o, "spik") for o in velfac]) if opp else Polygon()
+    # panelen över dörrarnas karm vid sidorna och överkanten (källardörren i stenen: till karmen)
     panel_hal = [_velfac_hal(o, "panel") for o in velfac]
-    for o in elit:
+    for o in dorrar:
         ku0, kz0, ku1, kz1 = o.karm
-        if o.z1 <= 0.0:                                 # källarens fönster: i stenen, som förut
-            panel_hal.append(box(*o.karm))
-            continue
-        under = kz0 if o.typ in DORRAR else kz0 - UNDER_BLECK
-        panel_hal += [box(ku0 + OVERLAPP, under, ku1 - OVERLAPP, kz1 - OVERLAPP), box(ku0, under, ku1, kz0)]
+        panel_hal.append(box(*o.karm) if o.z1 <= 0.0 else box(ku0 + OVERLAPP, kz0, ku1 - OVERLAPP, kz1 - OVERLAPP))
     panel_oppen = unary_union(panel_hal) if panel_hal else Polygon()
-    # spikläkten under fönstren: nedkapad för blecket
-    spik_oppen = unary_union(hal + [_velfac_hal(o, "spik") for o in velfac]
-                             + [box(o.karm[0], o.karm[1] - BLECK_T, o.karm[2], o.karm[1]) for o in elit
-                                if o.typ not in DORRAR and o.z1 > 0.0])
     m = Montage(f"Utsida {kod}", beskrivning=f"Fasad på väggen {kod}: utegips, ströläkt, spikläkt, panel")
     w = 0.0
 

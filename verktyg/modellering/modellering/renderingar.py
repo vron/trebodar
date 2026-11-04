@@ -178,12 +178,10 @@ def _jpeg(png: Path, mapp: Path, stam: str) -> tuple[list[int], list[int]]:
     return bredder, [bild.width, bild.height]
 
 
-def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[str], lokalt: bool,
-              release: str = RELEASE) -> None:
+def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[str], lokalt: bool) -> None:
     """De renderade bilderna i mapparna (de med sidodata; urval: namnen eller början av dem, annars alla) som JPEG
-    till webb_/bilder med förteckningen och, utom lokalt, till releasen (RELEASE; en variant av modellen har en egen,
-    bilder-<variant>: en release rymmer högst 1 000 filer), varefter webbplatsen byggs om. Förteckningen slås ihop med
-    den publicerade; vyer som inte finns längre tas bort."""
+    till webb_/bilder med förteckningen och, utom lokalt, till releasen RELEASE, varefter webbplatsen byggs om.
+    Förteckningen slås ihop med den publicerade; vyer som inte finns längre tas bort."""
     hittade = sorted((p for m in mappar if m.is_dir() for p in m.glob("*.png") if p.with_suffix(".json").exists()
                       and (not urval or any(_namn(p).startswith(unicodedata.normalize("NFC", u)) for u in urval))),
                      key=_namn)
@@ -196,16 +194,15 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
     if lokalt:
         if (mapp / MANIFEST).exists():
             forteckning = json.loads((mapp / MANIFEST).read_text(encoding="utf-8"))
-    elif _gh("release", "view", release, kontroll=False).returncode:
-        _gh("release", "create", release, "--title", "Renderingar" + release.removeprefix(RELEASE), "--latest=false",
-            "--notes",
+    elif _gh("release", "view", RELEASE, kontroll=False).returncode:
+        _gh("release", "create", RELEASE, "--title", "Renderingar", "--latest=false", "--notes",
             "Renderingarna på webbplatsen (https://vron.github.io/trebodar/renderingar/), publicerade med "
             "`./mod publicera` (renderingar/README.md). Bilderna versionshanteras inte; webbplatsens bygge hämtar "
             "dem härifrån.")
-        print(f"  releasen {release} skapad")
+        print(f"  releasen {RELEASE} skapad")
     else:
         with tempfile.TemporaryDirectory() as tmp:
-            if not _gh("release", "download", release, "-p", MANIFEST, "-D", tmp, kontroll=False).returncode:
+            if not _gh("release", "download", RELEASE, "-p", MANIFEST, "-D", tmp, kontroll=False).returncode:
                 forteckning = json.loads((Path(tmp) / MANIFEST).read_text(encoding="utf-8"))
     idag = datetime.date.today().isoformat()
     nya: list[Path] = []
@@ -241,9 +238,9 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
     print(f"  {len(hittade)} bilder, {len(forteckning)} i förteckningen: {mapp}")
     if lokalt:
         return
-    _gh("release", "upload", release, *map(str, nya), "--clobber")          # bilderna före förteckningen
-    _gh("release", "upload", release, str(mapp / MANIFEST), "--clobber")
+    _gh("release", "upload", RELEASE, *map(str, nya), "--clobber")          # bilderna före förteckningen
+    _gh("release", "upload", RELEASE, str(mapp / MANIFEST), "--clobber")
     for f in sorted(bort):
-        _gh("release", "delete-asset", release, f, "--yes", kontroll=False)
+        _gh("release", "delete-asset", RELEASE, f, "--yes", kontroll=False)
     _gh("workflow", "run", "bygg.yml", "--ref", "main")
-    print(f"  uppladdade till releasen {release}; webbplatsen byggs om (gh run list --workflow bygg.yml)")
+    print(f"  uppladdade till releasen {RELEASE}; webbplatsen byggs om (gh run list --workflow bygg.yml)")

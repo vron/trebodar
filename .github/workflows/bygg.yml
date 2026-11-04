@@ -44,25 +44,22 @@ jobs:
 
       # bilderna renderas lokalt och publiceras i releasen bilder (./mod publicera, renderingar/README.md); de hämtas
       # före bygget, som skriver startsidan med dem. Förteckningen och filerna den listar hämtas med releasens
-      # nedladdningsadresser, inte API:t (en fil per anrop tog slut på API:ts timgräns); saknas en fil stannar bygget.
-      # Modellens varianter (velfac) har sina bilder i en egen release, bilder-<variant>, till docs/<variant>/
+      # nedladdningsadresser, inte API:t (en fil per anrop tog slut på API:ts timgräns); saknas en fil stannar bygget
       - name: Renderingarna
         run: |
-          for v in "" velfac; do
-            bas="https://github.com/$GITHUB_REPOSITORY/releases/download/bilder${v:+-$v}"
-            mapp=docs/${v:+$v/}renderingar/bilder
-            mkdir -p "$mapp"
-            if ! curl -fsSL --retry 3 -o "$mapp/renderingar.json" "$bas/renderingar.json"; then
-              echo "inga renderingar publicerade ${v:+för $v}"
-              continue
-            fi
-            python3 -c 'import json, sys
+          bas="https://github.com/$GITHUB_REPOSITORY/releases/download/bilder"
+          mapp=docs/renderingar/bilder
+          mkdir -p "$mapp"
+          if ! curl -fsSL --retry 3 -o "$mapp/renderingar.json" "$bas/renderingar.json"; then
+            echo "inga renderingar publicerade"
+            exit 0
+          fi
+          python3 -c 'import json, sys
           for v in json.load(open(sys.argv[1])).values():
               for f in v["filer"] + [g for s in v.get("serier", {}).values() for g in s["filer"]]:
                   print(f)' "$mapp/renderingar.json" \
-              | xargs -P 16 -I{} curl -fsSL --retry 3 -o "$mapp/{}" "$bas/{}"
-            echo "$mapp: $(ls "$mapp" | wc -l) filer"
-          done
+            | xargs -P 16 -I{} curl -fsSL --retry 3 -o "$mapp/{}" "$bas/{}"
+          echo "$(ls "$mapp" | wc -l) filer"
 
       - name: Bygg
         run: ./bygg --snabb --jobb 4

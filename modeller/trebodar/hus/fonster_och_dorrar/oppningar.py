@@ -1,39 +1,38 @@
 """Öppningarna i ytterväggarna: fönster (F) och dörrar (D) per vägg, numrerade längs väggen, med produkttyp.
 
 Lägen i väggens system (skelett.VAGGAR): u längs väggen och z från bjälklagets överkant. Måtten är regelverkets
-öppning (Onshape-modellens mått), som är Elitfönsters modulmått: karmen är 20 mm mindre (byggdelar/fonster.py).
+öppning (Onshape-modellens mått).
 Huvudentrén 1SO-D1 (planritning 201) saknades i Onshape-modellen; bara öppningen i regelverket fanns. Källarens
 fönster F1–F3 (R-05) står i väggen 2NO:s system under bjälklaget. Fasaden, isoleringen och insidan får hål här och
 fönster- och dörrmodulen sätter produkterna i dem.
 
-Typerna: "vridfönster", "fast fönster", "fönsterdörr" (helglasad), "skjutdörr" (lyftglid, fyra delar),
-"ytterdörr" och "pardörr" (källarens dörr D1, i väggen 3NO:s system under bjälklaget).
+Typerna: "vändfönster", "fast fönster" (med båge), "fönsterdörr" (1-luft), "skjutdörr" (2-luft skjutdörr mellan
+två fasta partier), "ytterdörr" och "pardörr" (källarens dörr D1, i väggen 3NO:s system under bjälklaget).
 
-I varianten velfac (trebodar/variant.py) är fönstren och fönsterdörrarna från VELFAC (byggdelar/velfac.py), med
-VELFAC:s fogar: karmen FOG_V innanför regelverket vid sidorna och upptill, fönstren på en påföring PAFORING_V över
-fogen nedtill och dörrarna på en bädd BADD_V. Insidans skikt slutar i karmens linje, under fönstrens bottenkarm vid
-fönsterbänken (Oppning.inre).
+Fönstren och fönsterdörrarna är från VELFAC (byggdelar/velfac.py), med VELFAC:s fogar: karmen FOG_V innanför
+regelverket vid sidorna och upptill, fönstren på en påföring PAFORING_V över fogen nedtill och dörrarna på en bädd
+BADD_V. Insidans skikt slutar i karmens linje, under fönstrens bottenkarm vid fönsterbänken (Oppning.inre).
+Ytterdörrarna med panel (byggdelar/ytterdorrar.py) har karmen DREV innanför öppningen runt om.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from trebodar import skelett as S
-from trebodar.byggdelar import fonster as F
-from trebodar.byggdelar.fonster import DREV
+from trebodar.byggdelar import ytterdorrar as YD
+from trebodar.byggdelar.ytterdorrar import DREV
 from trebodar.byggdelar.velfac import DJUP as VELFAC_DJUP, PRODUKTER as VELFAC_PRODUKTER, TRA_UT as VELFAC_TRA_UT
-from trebodar.variant import VELFAC
 from trebodar.hus.grund import kallarvaggar as K
 
 
-INDRAG = 22.0                # karmens utsida innanför panelens utsida (i panelens insida, fonster_och_dorrar.py)
-BLECK_T = 1.5                # fönsterblecket under karmen (fonster_och_dorrar.py, fasad.py)
+INDRAG = 22.0                # ytterdörrarnas karm: utsidan innanför panelens utsida (i panelens insida)
+BLECK_T = 1.5                # fönsterblecket under fönstren (fonster_och_dorrar.py, fasad.py)
 # Smyglisterna (ärende #24): en extra synlig träkant runt fönstren och dörrarna invändigt [mm]. Insidans skivor (OSB
 # och gips) slutar så mycket längre från karmen vid sidorna och överkanten, och lister av oljad ask i skivornas
 # tjocklek fyller ut mot smygen (fonster_och_dorrar.py), så att träet syns 20 + SMYGLIST mm runt öppningen. 0: inga
 # lister, bara smygen. Inte i badrummet (kakel runt om).
 SMYGLIST = 0.0
-# VELFAC (varianten velfac): fogarna runt karmen, påföringen under fönstren och bädden under dörrarna, aluminiumets
+# VELFAC: fogarna runt karmen, påföringen under fönstren och bädden under dörrarna, aluminiumets
 # utsida INDRAG_V innanför panelens utsida (VELFAC:s minsta indrag är 20) och fasaden (panel och läkt) KLADD_V från
 # karmen vid sidorna och upptill; fönsterbänken BANK_V under bottenkarmen (fonster_och_dorrar.py)
 FOG_V, PAFORING_V, BADD_V = 15.0, 18.0, 10.0
@@ -65,13 +64,13 @@ class Oppning:
 
     @property
     def velfac(self) -> bool:
-        """Produkten är från VELFAC (varianten velfac)."""
-        return VELFAC and self.typ in VELFAC_PRODUKTER
+        """Produkten är från VELFAC (fönstren och fönsterdörrarna; inte ytterdörrarna med panel)."""
+        return self.typ in VELFAC_PRODUKTER
 
     @property
     def karm(self) -> tuple[float, float, float, float]:
-        """Karmens yttermått (u0, z0, u1, z1): DREV innanför öppningen runt om (VELFAC: fogen, och påföringen eller
-        bädden nedtill)."""
+        """Karmens yttermått (u0, z0, u1, z1): VELFAC FOG_V innanför öppningen och påföringen eller bädden nedtill,
+        ytterdörrarna med panel DREV runt om."""
         if self.velfac:
             nere = BADD_V if self.typ in DORRAR else FOG_V + PAFORING_V
             return (self.u0 + FOG_V, self.z0 + nere, self.u1 - FOG_V, self.z1 - FOG_V)
@@ -79,24 +78,23 @@ class Oppning:
 
     @property
     def w_karm(self) -> float:
-        """Karmens insida i väggens w: Elitfönsters karm med aluminiumet i panelens insida (källarens fönster i
-        panelens utsida), VELFAC:s aluminium INDRAG_V innanför panelens utsida."""
+        """Karmens insida i väggens w: VELFAC:s aluminium INDRAG_V innanför panelens utsida, ytterdörrarnas karm med
+        aluminiumet i panelens insida."""
         if self.velfac:
             return -S.T_FASAD + INDRAG_V + VELFAC_DJUP
-        ut = -S.T_FASAD + (INDRAG if self.z1 > 0.0 or self.typ in F.MED_PANEL else 0.0)
-        return ut + F.PRODUKTER[self.typ][1]
+        return -S.T_FASAD + INDRAG + YD.PRODUKTER[self.typ][1]
 
     @property
     def golvfonster(self) -> bool:
-        """Fönster från golvet (VELFAC: en bräda från golvet till karmen i stället för fönsterbänken)."""
+        """Fönster från golvet (en bräda från golvet till karmen i stället för fönsterbänken)."""
         return self.typ not in DORRAR and self.z0 == 0.0
 
     @property
     def inre(self) -> tuple[float, float, float, float]:
-        """Linjen där insidans skikt slutar (u0, z0, u1, z1): karmens yttermått, vid VELFAC-fönstren nedtill under
+        """Linjen där insidans skikt slutar (u0, z0, u1, z1): karmens yttermått, vid fönstren nedtill under
         fönsterbänken (från golvet vid fönstren från golvet)."""
         ku0, kz0, ku1, kz1 = self.karm
-        if self.velfac and self.typ not in DORRAR:
+        if self.typ not in DORRAR:
             kz0 = self.z0 if self.golvfonster else kz0 - BANK_V
         return (ku0, kz0, ku1, kz1)
 
@@ -109,34 +107,34 @@ class Oppning:
 
 
 def velfac_bleck_z(o: Oppning, w: float) -> float:
-    """VELFAC-fönsterbleckets översida vid djupet w (w ≤ W_TRA_V): påföringens underkant vid karmträets utsida och
+    """Fönsterbleckets översida vid djupet w (w ≤ W_TRA_V): påföringens underkant vid karmträets utsida och
     fallet utåt."""
     return o.z0 + FOG_V - (W_TRA_V - w) * BLECK_FALL_V
 
 
 _R = (
-    ("1NO", "vridfönster", 750, 1750, 1100, 2100, "window_10x10_red"),
+    ("1NO", "vändfönster", 750, 1750, 1100, 2100, "window_10x10_red"),
     ("1NO", "fast fönster", 3000, 3600, 0, 2100, "window_21x6_red"),
-    ("1NV", "vridfönster", 865, 1865, 1100, 2100, "window_10x10_red"),
+    ("1NV", "vändfönster", 865, 1865, 1100, 2100, "window_10x10_red"),
     ("1NV", "fönsterdörr", 3035, 4035, 0, 2100, "wdoor_21x10_red"),
     ("1SO", "fast fönster", 1118, 1718, 1400, 2000, "window_6x6_red"),
     ("1SO", "fast fönster", 2318, 2918, 1400, 2000, "window_6x6_red"),
     ("1SO", "ytterdörr", 5080, 6080, 0, 2100, ""),                    # huvudentrén (planritning 201)
     ("1SO", "fast fönster", 10718, 11318, 1400, 2000, "window_6x6_red"),
     ("1SV", "fast fönster", 1135, 3235, 0, 2186, "window_21x21_red"),
-    ("2NO", "vridfönster", 645, 1645, 1100, 2100, "window_10x10_gray"),
-    ("2NO", "vridfönster", 2045, 3045, 1100, 2100, "window_10x10_gray"),
+    ("2NO", "vändfönster", 645, 1645, 1100, 2100, "window_10x10_gray"),
+    ("2NO", "vändfönster", 2045, 3045, 1100, 2100, "window_10x10_gray"),
     ("2SO", "fönsterdörr", 490, 1590, 0, 2100, "wdoor_21x11_gray"),
     ("2SV", "skjutdörr", 260, 5060, 0, S.BALKAR["DB2"].uk - 45, "slidedoor"),   # upp till hammarbandet
     ("3NO", "fast fönster", 995, 1595, 0, 2100, "window_21x6_gray"),
-    ("3NO", "vridfönster", 2845, 3845, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "vridfönster", 560, 1360, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vridfönster", 2260, 3060, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vridfönster", 3960, 4760, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vridfönster", 7117.5, 8117.5, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "vridfönster", 8970, 9970, 1100, 2100, "window_10x10_gray"),
+    ("3NO", "vändfönster", 2845, 3845, 1100, 2100, "window_10x10_gray"),
+    ("3NV", "vändfönster", 560, 1360, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vändfönster", 2260, 3060, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vändfönster", 3960, 4760, 1300, 2100, "window_8x8_gray"),
+    ("3NV", "vändfönster", 7117.5, 8117.5, 1100, 2100, "window_10x10_gray"),
+    ("3NV", "vändfönster", 8970, 9970, 1100, 2100, "window_10x10_gray"),
     ("3SO", "fönsterdörr", 172.5, 1072.5, 0, 2100, "wdoor_21x9_gray"),
-    ("3SV", "vridfönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
+    ("3SV", "vändfönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
     ("3SV", "fast fönster", 2775, 3675, 0, 2100, "wdoor_21x9_gray"),
 )
 DORRAR = ("fönsterdörr", "skjutdörr", "ytterdörr", "pardörr")
@@ -153,7 +151,7 @@ def _numrera() -> dict[str, list[Oppning]]:
 
 
 def _kallarfonster() -> list[Oppning]:
-    """Källarens fönster (vridfönster) i fasadens plan ovanför, väggen 2NO (cellplastens utsida i w = 0): mellan
+    """Källarens fönster (vändfönster) i fasadens plan ovanför, väggen 2NO (cellplastens utsida i w = 0): mellan
     smygarnas cellplast och från bröstningens cellplast till bjälklagets underkant (kallarvaggar)."""
     v = S.YTTERVAGGAR["2NO"]
     vaggar = {k.namn: k for k in K.VAGGAR}
@@ -164,7 +162,7 @@ def _kallarfonster() -> list[Oppning]:
         a, b = vaggar[va], vaggar[vb]
         assert a.riktning == b.riktning == "h" and abs(a.c - K.KARNA / 2 - K.CELL - v.origo[1]) < 1e-6
         x0, x1 = max(a.a, a.b) + K.CELL, min(b.a, b.b) - K.CELL
-        ut.append(Oppning(namn, "2NO", "vridfönster", x0 - v.origo[0], x1 - v.origo[0], K.Z0 + zb + K.CELL, K.Z1))
+        ut.append(Oppning(namn, "2NO", "vändfönster", x0 - v.origo[0], x1 - v.origo[0], K.Z0 + zb + K.CELL, K.Z1))
     return ut
 
 

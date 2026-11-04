@@ -145,7 +145,7 @@ def insida(kod: str) -> Montage:
     granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in GRUND + SKIVLAGER["vanligt"] + SKIVLAGER["vatrum"]}
     u0, u1 = min(g[0] for g in granser.values()), max(g[1] for g in granser.values())
     topp = _yta(kod, u0, u1).bounds[3]
-    # öppningarna i karmens linje (dörrarna från golvet, VELFAC-fönstren under fönsterbänken: Oppning.inre)
+    # öppningarna i karmens linje (dörrarna från golvet, fönstren under fönsterbänken: Oppning.inre)
     opp = [o for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0]
     hal_lista = [box(o.inre[0], o.z0 if o.typ in DORRAR else o.inre[1], o.inre[2], o.inre[3]) for o in opp]
     # skivorna slutar SMYGLIST längre från karmen, för smyglisterna (utom i badrummet, med kakel runt om)

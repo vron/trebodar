@@ -29,17 +29,6 @@ vyernas kameror (läge, riktning och bildvinkel). Ett klick på en kamera visar 
 eller ett svep går till nästa, Esc stänger, och adressen (`#<namn>`) går att dela. Startsidan visar bilderna i
 ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
 
-## Varianten med VELFAC-fönster
-
-Modellens variant velfac (`trebodar/variant.py`: fönstren och fönsterdörrarna från VELFAC) har en egen startsida på
-https://vron.github.io/trebodar/velfac/ med sin modell i 3D och sina bilder, bara i vyernas eget ljus (serien A):
-
-```sh
-./rendera.sh --variant velfac         # inomhusbilderna till velfac/inne/
-./rendera.sh --variant velfac --ute   # de andra vyerna till velfac/ute/
-./publicera.sh --variant velfac       # till releasen bilder-velfac (en release rymmer högst 1 000 filer)
-```
-
 ## Ljusserierna
 
 Varje vy renderas i fyra ljus (`LJUSSERIER` i `vyer.py`), inne och ute: A är vyns eget ljus, B slutet av april
