@@ -12,7 +12,8 @@ slutar insidans skivor längre från karmen och lister av ask i skivornas tjockl
 fönsterbänken (dörrarna från golvet) och överstycket över dem, och fönsterbänkens öron blir lika mycket längre. Källarens fönster
 och dess ytterdörr D1 (en pardörr) sitter i cellplastens smyg; smygens och bröstningens gips hör till källarväggarnas
 insida (invandigt/kallare.py). Ytterdörrarnas blad har stående panel i den andra kulören än fasaden runt dem
-(material.DORRPANEL: grått i det röda huset och tvärtom).
+(material.DORRPANEL: grått i det röda huset och tvärtom); källardörren i granitsockeln har panel i järnvitriol
+(material.DORRPANEL_KALLARE).
 """
 from __future__ import annotations
 
@@ -23,7 +24,7 @@ from trebodar.byggdelar import fonster as F
 from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
 from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
-from trebodar.material import ALUMINIUM, ASK, DORRPANEL, FURU, KAKEL, KARM, MINERALULL
+from trebodar.material import ALUMINIUM, ASK, DORRPANEL, DORRPANEL_KALLARE, FURU, KAKEL, KARM, MINERALULL
 
 from .oppningar import BLECK_T, DORRAR, FICKA_UT, INDRAG, INNERDORRAR, OPPNINGAR, SMYGLIST, Innerdorr, Oppning
 
@@ -49,7 +50,8 @@ def enhet(o: Oppning) -> Montage:
                 (f" ({o.onshape} i Onshape)" if o.onshape else ""))
     plac = Placering.flytt(o.u0 + F.DREV, w_karm, o.z0 + F.DREV)
     kropp = int(o.vagg[0])
-    produkt = (funktion(o.kod, b, h, ALUMINIUM[kropp], DORRPANEL[kropp]) if o.typ in F.MED_PANEL else
+    panel = DORRPANEL_KALLARE if o.z1 <= 0.0 else DORRPANEL[kropp]
+    produkt = (funktion(o.kod, b, h, ALUMINIUM[kropp], panel) if o.typ in F.MED_PANEL else
                funktion(o.kod, b, h, ALUMINIUM[kropp]))
     for i in produkt.barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)

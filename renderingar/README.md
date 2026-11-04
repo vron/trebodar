@@ -9,13 +9,14 @@ https://vron.github.io/trebodar/renderingar/.
 ./rendera.sh I05 I07                  # bara några (namnen eller början av dem)
 ./rendera.sh --ute                    # de andra vyerna (ute-*, detalj-*, stomme) till ute/
 ./rendera.sh --kvalitet normal        # 1 920 × 1 080 (skiss 640, utkast 1 280)
-./rendera.sh --ljus 12 21 13:00 mulet # ett annat dagsljus: månad, dag, klocka, väder (sol, lätt mulet, mulet)
+./rendera.sh --ljus 12 21 13:00 mulet # ett annat dagsljus: månad, dag, klocka, väder (sol, halvklart, lätt mulet, mulet)
+./rendera.sh --ljusserie B            # i ljusserien B (LJUSSERIER i vyer.py) till B/inne/ (med --ute B/ute/)
 ./publicera.sh                        # alla renderade bilder till webbplatsen
 ./publicera.sh I05 I07                # bara några
 ./publicera.sh --lokalt               # bara till docs/renderingar/bilder (för ./bygg lokalt), utan att ladda upp
 ```
 
-Bilderna hamnar i `inne/` och `ute/` och versionshanteras inte. Bredvid varje bild står vyns data när den
+Bilderna hamnar i `inne/` och `ute/` (ljusserierna i `B/`, `C/` och `D/`) och versionshanteras inte. Bredvid varje bild står vyns data när den
 renderades (`<namn>.json`: kamera, mål, objektiv, ljus, kvalitet, tid och modellens version). Kameraplanen
 [`kameraplan.pdf`](kameraplan.pdf) (I-01, i ritningsmallen) visar kamerornas lägen, riktningar och bildvinklar på
 plan 1 och i källaren med en förteckning över bilderna; skriptet ritar den också (`./mod kameraplan` i
@@ -27,6 +28,15 @@ Sidan [renderingar](https://vron.github.io/trebodar/renderingar/) visar plan 1, 
 vyernas kameror (läge, riktning och bildvinkel). Ett klick på en kamera visar bilden över hela fönstret; piltangenterna
 eller ett svep går till nästa, Esc stänger, och adressen (`#<namn>`) går att dela. Startsidan visar bilderna i
 ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
+
+## Ljusserierna
+
+Varje vy renderas i fyra ljus (`LJUSSERIER` i `vyer.py`), inne och ute: A är vyns eget ljus, B slutet av april
+kl. 18.30 med mest sol, C början av oktober kl. 10 mulet och D december kl. 18 med klar himmel, mörkt ute och hela
+elinstallationen tänd. I startsidans bildvisare väljs serien med växeln i hörnet, och rutnätet följer med; en bild
+som saknas i serien visas i sitt eget ljus. Exponeringen räknas fram ur en förhandsbild, inomhusbilderna en halv
+bländare ljusare (`INNE_LJUSARE`), och ute i mörker exponeras bilden som ett nattfoto för de tända fönstren
+(`NATT_EV`).
 
 Planerna och kamerorna byggs ur modellen vid varje bygge (`./bygg kameraplan`, även i GitHub Actions), men bilderna
 renderas inte där: rendering tar för lång tid. `./publicera.sh` (`./mod publicera`) gör om de renderade bilderna till

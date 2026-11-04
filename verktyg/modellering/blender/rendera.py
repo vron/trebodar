@@ -75,7 +75,9 @@ for namn, vy in SCEN["vyer"].items():
     if ev is None or auto_vit:
         px = S.forhandsbild(sc)
         if ev is None:
-            ev = S.auto_ev(px)
+            ev = S.auto_ev(px) - (S.INNE_LJUSARE if vy.get("inne") else 0.0)
+            if not vy.get("inne") and vy["ljus"]["sol_hojd"] < -6.0:
+                ev = max(ev, S.NATT_EV)
         if auto_vit:
             cct, la, d = S.auto_vitbalans(sc, px)
             print(f"VITBALANS {namn}: ljuset {cct:.0f} K, adaptationsluminansen {la:.0f} cd/m², anpassning {d:.2f}")

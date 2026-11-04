@@ -102,7 +102,10 @@ def vitbalans(sc: bpy.types.Scene, kelvin: float | None) -> None:
 def dagsljusets_vitbalans(ljus: dict, grad: float = 0.7, mot: float = 5500.0) -> float:
     """Vitbalansen ute [K]: dagsljusets färgtemperatur (solens och himlens, vägda efter belysningen på marken, i
     mired) till graden grad och resten mot `mot` (kamerans dagsljusinställning), så att kvällssolen förblir varm och
-    mulet väder neutralt."""
+    mulet väder neutralt. I mörker (solen mer än 6° under horisonten) kamerans dagsljusinställning, så att den blå
+    natthimlen förblir blå och de tända fönstren varma."""
+    if ljus["sol_hojd"] < -6.0:
+        return mot
     es = ljus["sol_lux"] * max(0.0, math.sin(math.radians(ljus["sol_hojd"]))) if ljus.get("sol_cct") else 0.0
     eh = ljus["himmel_lux"] if ljus.get("himmel_cct") else 0.0
     if es + eh <= 0:
@@ -538,6 +541,11 @@ def _urval(px: np.ndarray, hogdagrar: float) -> tuple[np.ndarray, np.ndarray]:
     lum = np.maximum(px @ REC709, 1e-6)
     valda = lum <= np.quantile(lum, hogdagrar)
     return px[valda], lum[valda]
+
+
+INNE_LJUSARE = 0.5              # inomhusbilderna så mycket ljusare [EV] än medelvärdet ger: rummen ljusa som ögat ser dem
+NATT_EV = 3.0                   # ute i mörker (solen mer än 6° under horisonten) högst så lång exponering, som ett
+                                # nattfoto exponerat för de tända fönstren: omgivningen förblir mörk
 
 
 def auto_ev(px: dict[str, np.ndarray], nyckel: float = 0.18, hogdagrar: float = 0.97) -> float:

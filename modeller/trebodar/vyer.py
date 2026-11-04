@@ -1,7 +1,8 @@
 """Vyer för rendering (Blender) och webbvisaren: kamera och mål i husets koordinater (mm), objektiv och dagsljus.
 
 Dagsljuset anges som (månad, dag, klocka, väder) och räknas fram för platsen (skelett.PLATS) med
-modellering/dagsljus.py: solens riktning, färg och styrka och himlen. Väder: "sol", "lätt mulet", "mulet".
+modellering/dagsljus.py: solens riktning, färg och styrka och himlen. Väder: "sol", "halvklart", "lätt mulet",
+"mulet".
 
 Inomhusbilderna (INNE) har standardiserade namn I01–I30, <nummer>-<rum>-<vy>-<objektiv>, och två objektiv: "öga"
 (40 mm, i ögonhöjd 1,60 m: bildvinkeln och perspektivet som när man står i rummet) och "vid" (20 mm på 1,45 m, som
@@ -23,6 +24,15 @@ from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 ROT = Path(__file__).resolve().parents[2]
 OBJEKTIV = {"öga": {"lins": 40.0, "hojd": 1600.0}, "vid": {"lins": 20.0, "hojd": 1450.0}}
 INNE_LJUS = (4, 20, "14:00", "sol")       # standardljuset för inomhusbilderna: april, eftermiddag, sol från SSV
+# ljusserierna (webbplatsens växel i bildvisaren): A är varje vys eget ljus, de andra samma tid och väder för alla
+# vyer, ute och inne (rendera.sh --ljusserie B, bilderna i renderingar/B/); "tand": "alla" tänder hela
+# elinstallationen
+LJUSSERIER = {
+    "A": {"namn": "Bildens eget ljus"},
+    "B": {"namn": "April, kväll, mest sol", "ljus": (4, 28, "18:30", "halvklart")},
+    "C": {"namn": "Oktober, förmiddag, mulet", "ljus": (10, 6, "10:00", "mulet")},
+    "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 21, "18:00", "klart"), "tand": "alla"},
+}
 Z_KALLARE = S.Z_BOTTENPLATTA
 
 VYER = {

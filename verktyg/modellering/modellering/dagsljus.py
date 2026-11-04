@@ -4,9 +4,9 @@ renderingen (sol och himmel i Blender) och för analyser (solstudier, ljus genom
     dagsljus(manad, dag, klocka, vader, plats) -> Ljus
 
 ger solens azimut och höjd, riktningen mot solen i modellens koordinater, solens och himlens färg (linjär Rec. 709,
-som Blenders scen) och belysning (lux) och strålningen (W/m²). Väder: "sol" (klart), "lätt mulet" (halvklart, solen
-skymd en del av tiden och mjukare skuggor) och "mulet" (inget direkt solljus); på engelska "sunny",
-"slightlyovercast" och "overcast".
+som Blenders scen) och belysning (lux) och strålningen (W/m²). Väder: "sol" (klart), "halvklart" (mest sol, några
+moln), "lätt mulet" (solen skymd en del av tiden och mjukare skuggor) och "mulet" (inget direkt solljus); på engelska
+"sunny", "partlycloudy", "slightlyovercast" och "overcast".
 
 Modellen:
 - Solens läge: NOAA:s solkalkylator (efter Meeus), med refraktion; omkring 0,01° åren 1800–2100. Lokal tid med
@@ -21,6 +21,9 @@ Modellen:
   spektrum, något blåare (MOLN_BLA: vattnet i molnen dämpar det röda; mulet dagsljus är omkring 6 500 K). Mulet
   (N = 8): inget direkt solljus; himlen som CIE:s mulna standardhimmel (luminansen tre gånger högre i zenit än vid
   horisonten).
+- Skymningen och natten (solen under horisonten): himlens belysning efter solens djup, omkring 400 lux vid
+  horisonten, 3 vid −6° och 0,008 vid −12° (SKYMNING), ned till natthimlens NATT_LUX (stjärnor och luftsken, utan
+  måne), med skymningens blå färg.
 
 Klimatet (ozon och vattenånga per månad) är ungefärliga medelvärden för västkusten, 58–59° N.
 """
@@ -45,6 +48,10 @@ OZON = (330, 370, 390, 390, 370, 350, 330, 310, 290, 290, 300, 310)
 VATTEN = (0.8, 0.8, 0.9, 1.1, 1.4, 1.8, 2.2, 2.1, 1.7, 1.4, 1.0, 0.9)
 MARKALBEDO = 0.15
 ANGSTROM_ALFA = 1.3
+SKYMNING = (2.6, 0.39)               # log10 av himlens belysning [lux] vid horisonten och ändringen per grad
+NATT_LUX = 0.001                     # natthimlen utan måne [lux]
+NATT_FARG = (0.54, 1.02, 2.15)       # skymningens och nattens blå himmel (linjär Rec. 709, luminansen 1)
+NATT_CCT = 12000.0
 MOLN_BLA = 0.75                      # ljuset genom moln: globalljusets spektrum · (λ/555 nm)^−0,75 (ca 6 500 K mitt på dagen)
 
 
@@ -74,11 +81,12 @@ class Vader:
 
 VADER = {
     "sol": Vader("sol", 0.0, 0.05, 0.53),
+    "halvklart": Vader("halvklart", 2.5, 0.08, 1.0),
     "lätt mulet": Vader("lätt mulet", 4.0, 0.12, 2.5),
     "mulet": Vader("mulet", 8.0, 0.12, 0.0),
 }
 _ALIAS = {"sunny": "sol", "klart": "sol", "slightlyovercast": "lätt mulet", "slightly overcast": "lätt mulet",
-          "latt mulet": "lätt mulet", "halvklart": "lätt mulet", "overcast": "mulet"}
+          "latt mulet": "lätt mulet", "partlycloudy": "halvklart", "partly cloudy": "halvklart", "overcast": "mulet"}
 
 
 def vader(namn: str) -> Vader:
@@ -294,6 +302,10 @@ def dagsljus(manad: int, dag: int, klocka: str | float, vader_: str | Vader = "s
     dfrac = dfrac + (1 - dfrac) * n * n
     dhi = dfrac * ghi
     dni = (ghi - dhi) / sh if sh > 0 else 0.0
+    if h < 0.0:                       # skymningen och natten
+        skym = max(NATT_LUX, 10 ** (SKYMNING[0] + SKYMNING[1] * h)) * (1 - 0.75 * n ** 3.4)
+        if skym > himmel_lux:
+            himmel_rgb, himmel_lux, himmel_cct = NATT_FARG, skym, NATT_CCT
     return Ljus(tid=t.isoformat(timespec="minutes"), vader=w.namn, sol_azimut=az, sol_hojd=h,
                 riktning=plats.riktning(az, h), sol_farg=sol_rgb, sol_lux=sol_lux * k_dir, sol_vinkel=w.sol_vinkel,
                 himmel_farg=himmel_rgb, himmel_lux=himmel_lux,

@@ -34,6 +34,8 @@ MODELLBILD = "stomme"             # bilden vid länken till modellen i 3D
 URVAL = ["ute-sydvast", "ute-sydost", "I03", "I01", "ute-nordvast", "I07", "I06", "I02", "I12", "detalj-tak", "I14", "detalj-ph5",
          "detalj-sten", "I28", "I29", "detalj-fasad", "stomme"]
 GRUPPER = {"ute": "Exteriör", "inne": "Interiör", "teknik": "Stomme och teknik"}
+# ljusserierna i bildvisaren (trebodar.vyer.LJUSSERIER): A är bildens eget ljus
+SERIER = {"A": "Bildens eget ljus", "B": "April, kväll", "C": "Oktober, mulet", "D": "December, kväll"}
 STATUS = {"beviljad": "Beviljad", "klar": "Klar", "upprattas": "Upprättas", "inlamnad": "Inlämnad", "ej aktuell": "Ej aktuell"}
 MANAD = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober",
          "november", "december"]
@@ -169,16 +171,19 @@ def bilder(docs: Path) -> list[dict]:
         plan = json.loads((docs / "renderingar" / "plan.json").read_text(encoding="utf-8"))
     except OSError:
         return []
+    def src(p: dict) -> list[list]:
+        return [[f"renderingar/bilder/{_lank(f)}", w] for f, w in zip(p["filer"], p["bredder"])]
     ut = []
     for k in plan["kameror"]:
         b = manifest.get(k["namn"])
-        if not b:
+        if not b or "filer" not in b:
             continue
         grupp = "teknik" if k.get("teknik") else ("ute" if k["plan"] == "ute" else "inne")
         urval = next((i for i, u in enumerate(URVAL) if k["namn"] == u or k["namn"].startswith(u + "-")), None)
         ut.append({"namn": k["namn"], "text": k["text"], "grupp": grupp, "urval": urval, "ljus": b["ljus"],
-                   "renderad": b["renderad"][:10], "modell": b["modell"], "storlek": b["storlek"],
-                   "src": [[f"renderingar/bilder/{_lank(f)}", w] for f, w in zip(b["filer"], b["bredder"])]})
+                   "renderad": b["renderad"][:10], "modell": b["modell"], "storlek": b["storlek"], "src": src(b),
+                   "serier": {s: {"ljus": p["ljus"], "storlek": p["storlek"], "src": src(p)}
+                              for s, p in b.get("serier", {}).items() if s in SERIER}})
     ordning = list(GRUPPER)
     ut.sort(key=lambda b: (ordning.index(b["grupp"]), not b["namn"].startswith(("I", "ute-", "stomme")), b["namn"]))
     return ut
@@ -305,9 +310,11 @@ def bygg(rot: Path, rapporter: dict[str, dict], version: str) -> Path:
     modellbild = namn.get(MODELLBILD) or next((b for b in bl if b is not hjalte), None)
     figurer, knappar = html_galleri(bl)
     nu = datetime.datetime.now(datetime.timezone.utc)
-    data = [{k: b[k] for k in ("namn", "text", "ljus", "renderad", "modell", "src", "storlek")} for b in bl]
+    data = [{k: b[k] for k in ("namn", "text", "ljus", "renderad", "modell", "src", "storlek", "serier")} for b in bl]
     for d in data:
         d["ljus"] = ljustext(d["ljus"])
+        for s in d["serier"].values():
+            s["ljus"] = ljustext(s["ljus"])
     ersatt = {
         "hjalte": html_bild(hjalte, "100vw", prioritet=True),
         "hjalteklass": "" if hjalte else " utan-bild",
@@ -322,6 +329,7 @@ def bygg(rot: Path, rapporter: dict[str, dict], version: str) -> Path:
         "byggd": f"{nu.day} {MANAD[nu.month - 1]} {nu.year}",
         "repo": REPO,
         "bilddata": json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
+        "serier": json.dumps(SERIER, ensure_ascii=False),
         "ruta": RUTA,
         "stor": STOR,
     }

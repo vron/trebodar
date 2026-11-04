@@ -3,7 +3,9 @@ källaren och ute, ur kameraplanens snitt) med vyernas kameror (trebodar.vyer: I
 
 Bilderna renderas lokalt (renderingar/rendera.sh) och versionshanteras inte. `./mod publicera` gör om dem till
 JPEG i fyra storlekar (BREDDER) och laddar upp dem till releasen RELEASE på GitHub tillsammans med förteckningen
-(MANIFEST: vyns kamera, objektiv och ljus när bilden renderades, modellens version och datum). Webbplatsens bygge
+(MANIFEST: vyns kamera, objektiv och ljus när bilden renderades, modellens version och datum). Bilderna i vyns eget
+ljus är serien A; de i ljusserierna (trebodar.vyer.LJUSSERIER, renderingar/B/ …) står under vyns "serier" och heter
+<vy>-b-<bredd>.jpg osv. Webbplatsens bygge
 (GitHub Actions) hämtar dem därifrån, så bilderna ändras bara när de publiceras medan planerna och kamerorna alltid
 följer modellen. En kamera som har flyttats sedan bilden renderades märks på sidan.
 """
@@ -46,16 +48,18 @@ def version() -> str:
     return git("rev-parse", "--short", "HEAD") + ("+" if andrad else "")
 
 
-def sidodata(ut: Path, vyer: dict[str, dict], ljus: dict[str, list], kvalitet: str, sedan: float) -> list[str]:
+def sidodata(ut: Path, vyer: dict[str, dict], ljus: dict[str, list], kvalitet: str, sedan: float,
+             serie: str = "A") -> list[str]:
     """Vyns data bredvid varje bild som renderats sedan tiden `sedan` (<namn>.json): kameran, målet, objektivet och
-    dagsljuset (månad, dag, klocka, väder), kvaliteten, tiden och modellens version. `./mod publicera` läser dem."""
+    dagsljuset (månad, dag, klocka, väder), ljusserien, kvaliteten, tiden och modellens version. `./mod publicera`
+    läser dem."""
     tid = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
     ver = version()
     klara = []
     for namn, v in vyer.items():
         png = ut / f"{namn}.png"
         if png.exists() and png.stat().st_mtime >= sedan:
-            data = {"kamera": v["kamera"], "mal": v["mal"], "lins": v["lins"], "ljus": ljus[namn],
+            data = {"kamera": v["kamera"], "mal": v["mal"], "lins": v["lins"], "ljus": ljus[namn], "serie": serie,
                     "kvalitet": kvalitet, "renderad": tid, "modell": ver}
             png.with_suffix(".json").write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
             klara.append(namn)
@@ -161,16 +165,15 @@ def _filnamn(namn: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]", "-", ascii_)
 
 
-def _jpeg(png: Path, mapp: Path) -> tuple[list[int], list[int]]:
-    """Bilden som JPEG i BREDDER (högst bildens egen bredd) i mappen, <filnamn>-<bredd>.jpg: bredderna och
-    storleken."""
+def _jpeg(png: Path, mapp: Path, stam: str) -> tuple[list[int], list[int]]:
+    """Bilden som JPEG i BREDDER (högst bildens egen bredd) i mappen, <stam>-<bredd>.jpg: bredderna och storleken."""
     from PIL import Image
     with Image.open(png) as im:
         bild = im.convert("RGB")
     bredder = sorted({min(b, bild.width) for b in BREDDER})
     for b in bredder:
         liten = bild if b == bild.width else bild.resize((b, round(bild.height * b / bild.width)), Image.Resampling.LANCZOS)
-        liten.save(mapp / f"{_filnamn(_namn(png))}-{b}.jpg", "JPEG", quality=KVALITET.get(b, 86), optimize=True,
+        liten.save(mapp / f"{stam}-{b}.jpg", "JPEG", quality=KVALITET.get(b, 86), optimize=True,
                    progressive=True)
     return bredder, [bild.width, bild.height]
 
@@ -206,15 +209,27 @@ def publicera(mappar: list[Path], urval: list[str], webb_: Path, aktuella: set[s
     bort: set[str] = set()
     for png in hittade:
         namn = _namn(png)
-        bredder, storlek = _jpeg(png, mapp)
-        filer = [f"{_filnamn(namn)}-{b}.jpg" for b in bredder]
-        bort |= set(forteckning.get(namn, {}).get("filer", [])) - set(filer)
-        forteckning[namn] = {**json.loads(png.with_suffix(".json").read_text(encoding="utf-8")),
-                                 "storlek": storlek, "bredder": bredder, "filer": filer, "publicerad": idag}
+        data = json.loads(png.with_suffix(".json").read_text(encoding="utf-8"))
+        serie = data.pop("serie", "A")
+        stam = _filnamn(namn) + ("" if serie == "A" else f"-{serie.lower()}")
+        bredder, storlek = _jpeg(png, mapp, stam)
+        filer = [f"{stam}-{b}.jpg" for b in bredder]
+        post = {**data, "storlek": storlek, "bredder": bredder, "filer": filer, "publicerad": idag}
+        gammal = forteckning.get(namn, {})
+        serier = dict(gammal.get("serier", {}))
+        if serie == "A":
+            bort |= set(gammal.get("filer", [])) - set(filer)
+            forteckning[namn] = {**post, **({"serier": serier} if serier else {})}
+        else:
+            bort |= set(serier.get(serie, {}).get("filer", [])) - set(filer)
+            serier[serie] = post
+            forteckning[namn] = {**gammal, "serier": dict(sorted(serier.items()))}
         nya += [mapp / f for f in filer]
-        print(f"  {namn}: {storlek[0]} × {storlek[1]}, {sum((mapp / f).stat().st_size for f in filer) / 1e6:.1f} MB")
+        print(f"  {namn} {serie}: {storlek[0]} × {storlek[1]}, "
+              f"{sum((mapp / f).stat().st_size for f in filer) / 1e6:.1f} MB")
     for namn in [n for n in forteckning if n not in aktuella]:
-        bort |= set(forteckning.pop(namn)["filer"])
+        post = forteckning.pop(namn)
+        bort |= set(post.get("filer", [])) | {f for s in post.get("serier", {}).values() for f in s["filer"]}
         print(f"  {namn}: borttagen (vyn finns inte längre)")
     for f in bort:
         (mapp / f).unlink(missing_ok=True)

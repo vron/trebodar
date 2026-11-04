@@ -225,6 +225,14 @@
                  border-radius: 50%; color: #fff; background: #ffffff12; cursor: pointer; transition: background .2s; }
   #ljus button:hover { background: #ffffff2e; }
   #ljus button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+  /* ljusserierna: bildens eget ljus, april, oktober och december */
+  #serier { position: absolute; top: 12px; right: 76px; display: flex; gap: 2px; padding: 3px; border-radius: 999px;
+            background: #ffffff10; }
+  #ljus #serier button { position: static; width: 36px; height: 36px; color: #a8a49c; background: transparent; }
+  #ljus #serier button:hover { color: #fff; background: #ffffff1c; }
+  #ljus #serier button[aria-pressed="true"] { color: #fff; background: #ffffff30; }
+  #ljus #serier button:disabled { opacity: .28; cursor: default; background: transparent; }
+  #ljus #serier svg { width: 19px; height: 19px; stroke-linecap: round; stroke-linejoin: round; }
   #forra { left: 16px; top: 50%; transform: translateY(-50%); }
   #nasta { right: 16px; top: 50%; transform: translateY(-50%); }
   #stang { right: 16px; top: 12px; }
@@ -326,8 +334,8 @@
     <p>Huset ersätter ett fritidshus från omkring 1950 på tomten, med samma färdiga golvhöjd och lägre nockhöjd.
       Särskild vikt har lagts vid vyn från havsstigen, där man kommer över berget från havet.</p>
     <p>Fasaderna är stående sågad granpanel: en huskropp strykt med falu rödfärg och två behandlade med järnvitriol,
-      som ger träet den grå ton som omålat trä får med åren. Ytterdörrarna har panel i den andra kulören och
-      fönstren aluminium i oxidrött eller basaltgrått efter fasaden. Huset står på en sockel av granit, och taken är bandtäckt
+      som ger träet den grå ton som omålat trä får med åren. Ytterdörrarna på plan 1 har panel i den andra
+      kulören och fönstren aluminium i oxidrött eller basaltgrått efter fasaden. Huset står på en sockel av granit, och taken är bandtäckt
       plåt i 30 graders lutning, med tre takfönster.</p>
     <p>Inne följer innertaken takens lutning upp till nocken. Allrummet med matplats ligger i den mittersta
       huskroppen, öppet mot köket, med en kamin i väggen mot sovrummet. Runt det finns vardagsrum, hall, badrum, tre
@@ -396,6 +404,12 @@
 
 <div id="ljus" role="dialog" aria-modal="true" aria-label="Bild" hidden>
   <span id="raknare"></span>
+  <div id="serier" role="group" aria-label="Ljuset" hidden>
+    <button type="button" data-serie="A"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5"/><path d="M4 16l5-5 4 4 2-2 5 5"/></svg></button>
+    <button type="button" data-serie="B"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3"/><path d="M9 3.5V5M3.5 9H5M5.1 5.1l1 1M12.9 5.1l-1 1"/><path d="M8.5 19h8a3.5 3.5 0 0 0 0-7 4.5 4.5 0 0 0-8.4 1.6A2.7 2.7 0 0 0 8.5 19z"/></svg></button>
+    <button type="button" data-serie="C"><svg viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.9A3 3 0 0 0 7 18z"/></svg></button>
+    <button type="button" data-serie="D"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/></svg></button>
+  </div>
   <figure><img id="ljusbild" alt=""></figure>
   <div id="ljustext"></div>
   <button id="forra" type="button" aria-label="Föregående bild"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -408,6 +422,7 @@
 const $ = id => document.getElementById(id);
 const BILDER = JSON.parse($("bilddata").textContent);
 const RUTA = "<!--@ruta-->", STOR = "<!--@stor-->";       // bildernas bredd i rutnätet (img sizes)
+const SERIER = <!--@serier-->;                               // ljusserierna: A bildens eget ljus, B–D samma för alla
 const topp = $("topp"), galleri = $("galleri"), ljus = $("ljus"), ljusbild = $("ljusbild");
 const figurer = [...galleri.querySelectorAll("figure")];
 
@@ -445,28 +460,63 @@ if (forsta) filtrera(forsta.dataset.filter);
 // ljuslådan
 let index = -1, tillbaka = null;
 const srcset = b => b.src.map(([s, w]) => `${s} ${w}w`).join(", ");
+
+// ljusserien: väljs i bildvisaren och gäller också rutnätet; en bild utan serien visas i sitt eget ljus
+let serie = "A";
+try { serie = localStorage.getItem("trebodar-ljus") || "A"; } catch (e) {}
+if (!(serie in SERIER)) serie = "A";
+const serieknappar = [...document.querySelectorAll("#serier button")];
+const iSerien = b => (serie !== "A" && b.serier[serie]) || b;
+function rutor() {
+  for (const f of figurer) {
+    const img = f.querySelector("img"), p = iSerien(BILDER[+f.querySelector("button").dataset.i]);
+    const s = srcset(p);
+    if (img.getAttribute("srcset") !== s) img.srcset = s;
+  }
+}
+function valjSerie(s) {
+  serie = s;
+  try { localStorage.setItem("trebodar-ljus", s); } catch (e) {}
+  rutor();
+  if (!ljus.hidden) visa(index);
+}
+if (BILDER.some(b => Object.keys(b.serier).length)) {
+  $("serier").hidden = false;
+  for (const k of serieknappar) {
+    k.title = SERIER[k.dataset.serie];
+    k.setAttribute("aria-label", SERIER[k.dataset.serie]);
+    k.addEventListener("click", () => valjSerie(k.dataset.serie));
+  }
+  if (serie !== "A") rutor();
+}
+
 function visa(i) {
   index = (i + synliga.length) % synliga.length;
-  const b = BILDER[+synliga[index].querySelector("button").dataset.i];
+  const b = BILDER[+synliga[index].querySelector("button").dataset.i], p = iSerien(b);
   ljusbild.removeAttribute("srcset");
-  ljusbild.src = b.src[0][0];                              // tumnageln tills den stora är laddad
+  ljusbild.src = p.src[0][0];                              // tumnageln tills den stora är laddad
   ljusbild.sizes = "100vw";
-  ljusbild.srcset = srcset(b);
+  ljusbild.srcset = srcset(p);
   ljusbild.alt = b.text;
   $("raknare").textContent = `${index + 1} / ${synliga.length}`;
-  const stor = b.src.at(-1);
+  for (const k of serieknappar) {
+    const s = k.dataset.serie;
+    k.disabled = s !== "A" && !b.serier[s];
+    k.setAttribute("aria-pressed", s === (p === b ? "A" : serie));
+  }
+  const stor = p.src.at(-1);
   $("ljustext").innerHTML = "";
   const v = document.createElement("div"), h = document.createElement("div");
-  v.append(Object.assign(document.createElement("b"), { textContent: b.text }), b.ljus);
+  v.append(Object.assign(document.createElement("b"), { textContent: b.text }), p.ljus);
   h.append(Object.assign(document.createElement("a"), { href: "renderingar/#" + encodeURIComponent(b.namn),
                                                         textContent: "Visa på planen" }),
            Object.assign(document.createElement("a"), { href: stor[0], target: "_blank",
-                                                        textContent: `${b.storlek[0]} × ${b.storlek[1]} px` }));
+                                                        textContent: `${p.storlek[0]} × ${p.storlek[1]} px` }));
   $("ljustext").append(v, h);
   history.replaceState(null, "", "#bild=" + encodeURIComponent(b.namn));
   for (const j of [index + 1, index - 1]) {             // grannarna i förväg
     const g = BILDER[+synliga[(j + synliga.length) % synliga.length].querySelector("button").dataset.i];
-    Object.assign(new Image(), { sizes: "100vw", srcset: srcset(g) });
+    Object.assign(new Image(), { sizes: "100vw", srcset: srcset(iSerien(g)) });
   }
 }
 function oppna(i) {

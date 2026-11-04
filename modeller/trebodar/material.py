@@ -249,4 +249,5 @@ SKYDDSROR = Material("Skyddsrör", "Skyddsrör PE Ø110 med kollektorslangar", 3
 # panelens utförande och fönstrens och dörrarnas aluminium per huskropp (byt material här för att prova andra kulörer)
 PANEL = {1: PANEL_FALUROD, 2: PANEL_JARNVITRIOL, 3: PANEL_JARNVITRIOL}
 DORRPANEL = {1: DORRPANEL_JARNVITRIOL, 2: DORRPANEL_FALUROD, 3: DORRPANEL_FALUROD}   # den andra kulören än fasaden
+DORRPANEL_KALLARE = DORRPANEL_JARNVITRIOL                                          # källardörren i granitsockeln
 ALUMINIUM = {1: ALU_RAL3009, 2: ALU_RAL7012, 3: ALU_RAL7012}

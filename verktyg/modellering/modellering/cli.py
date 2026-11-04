@@ -188,6 +188,8 @@ def main(argv: list[str] | None = None) -> None:
                     help="skiss 640 px, utkast 1280, normal 1920, slutlig 2048 (2K)")
     pr.add_argument("--ljus", nargs=4, metavar=("MANAD", "DAG", "KLOCKA", "VADER"),
                     help="dagsljuset för alla vyerna, t.ex. 6 21 18:00 sol (annars vyns)")
+    pr.add_argument("--ljusserie", help="ljusserien (trebodar.vyer.LJUSSERIER): samma tid och väder för alla vyerna "
+                                        "och tändgrupperna, t.ex. B (annars vyns ljus, serien A)")
     pr.add_argument("--ev", type=float, help="exponering EV100 (annars automatisk ur en förhandsbild)")
     pr.add_argument("--bredd", type=int, help="bredd i pixlar (annars kvalitetens)")
     pr.add_argument("--ut", type=Path, default=UT / "bilder")
@@ -274,8 +276,9 @@ def main(argv: list[str] | None = None) -> None:
                     help="sidan med renderingarna på planerna (index.html och plan.json)")
     pp = sub.add_parser("publicera", help="publicera de renderade bilderna på webbplatsen (releasen bilder på GitHub)")
     pp.add_argument("vyer", nargs="*", help="vyernas namn eller början av dem (standard: alla renderade)")
-    pp.add_argument("--fran", type=Path, nargs="+", default=[ROT / "renderingar" / "inne", ROT / "renderingar" / "ute"],
-                    help="mapparna med bilderna (png och sidodata, ./mod rendera)")
+    pp.add_argument("--fran", type=Path, nargs="+",
+                    help="mapparna med bilderna (png och sidodata, ./mod rendera; standard: renderingar/inne och ute "
+                         "och ljusseriernas renderingar/B/inne … )")
     pp.add_argument("--lokalt", action="store_true",
                     help="bara till docs/renderingar/bilder, utan att ladda upp eller bygga om webbplatsen")
     pp.add_argument("--webb", type=Path, default=ROT / "docs" / "renderingar")
@@ -402,7 +405,9 @@ def main(argv: list[str] | None = None) -> None:
         if str(MODELLMAPP) not in sys.path:
             sys.path.insert(0, str(MODELLMAPP))
         vy_mod = importlib.import_module("trebodar.vyer")
-        renderingar.publicera(arg.fran, arg.vyer, arg.webb, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt)
+        fran = arg.fran or [ROT / "renderingar" / s / d for s in ("", *[k for k in getattr(vy_mod, "LJUSSERIER", {})
+                                                                        if k != "A"]) for d in ("inne", "ute")]
+        renderingar.publicera(fran, arg.vyer, arg.webb, {*vy_mod.VYER, *vy_mod.INNE}, arg.lokalt)
         return
     if arg.kommando == "materialprov":
         import json
@@ -535,18 +540,26 @@ def main(argv: list[str] | None = None) -> None:
         if not valda:
             raise SystemExit(f"inga vyer: {' '.join(arg.vyer)}")
         from . import renderingar
+        serier = getattr(vy_mod, "LJUSSERIER", {"A": {}})
+        if arg.ljusserie and arg.ljusserie not in serier:
+            raise SystemExit(f"okänd ljusserie {arg.ljusserie} (finns: {', '.join(serier)})")
+        serie = serier.get(arg.ljusserie or "A", {})
+        serie_tand: dict[str, float] = {}
+        if serie.get("tand") == "alla":
+            inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
+            serie_tand = {g: 1.0 for g in inst.tandgrupper}
         vyer, vyljus = {}, {}
         tand = {g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
         for namn, v in valda.items():
-            m, d, k, w = arg.ljus or v["ljus"]
+            m, d, k, w = arg.ljus or serie.get("ljus") or v["ljus"]
             vyljus[namn] = [int(m), int(d), k, w]
             vyer[namn] = {**v, "ljus": dagsljus.dagsljus(int(m), int(d), k, w, plats).som_dict(), "ev": arg.ev,
-                          "tand": {**dict(v.get("tand", {})), **tand}}
+                          "tand": {**dict(v.get("tand", {})), **serie_tand, **tand}}
         start = time.time()
         try:
             _blender(rot, karna, vyer, arg.kvalitet, arg.bredd, arg.ut, arg.blender, arg.blend)
         finally:                       # även när Blender stannar efter några bilder
-            renderingar.sidodata(arg.ut, valda, vyljus, arg.kvalitet, start)
+            renderingar.sidodata(arg.ut, valda, vyljus, arg.kvalitet, start, arg.ljusserie or "A")
     elif arg.kommando == "ljusplan":
         import json
         import numpy as np
