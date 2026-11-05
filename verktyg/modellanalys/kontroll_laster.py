@@ -266,15 +266,18 @@ for n, fy in K06.FYLL.items():
         bed = "K-06 på säker sida"
     rad("Fyllning", n, f"{k[0]:.2f}–{k[1]:.2f} m över bottenplattans ök (K-06)",
         f"{min(hv):.2f}–{max(hv):.2f} m ({material})", bed)
-r = {d.namn[:4]: (a, b) for a, b, d in lodlinje(2000, 12000, m.valj("PM-C*,PM-F*"))}
-if "PM-C" in r and "PM-F" in r:
-    t_c, fyll = r["PM-C"][1] - r["PM-C"][0], r["PM-F"][1] - TOPP_BP
-    rad("Fyllning", "under plattan på mark", "400 mm cellplast på fyllning upp till 1,7 m (K-06)",
-        f"cellplast {t_c:.0f} mm på fyllning upp till {fyll / 1000:.2f} m över bottenplattans ök",
-        "stämmer" if abs(t_c - 400) < 1 and abs(fyll - 1700) < 1 else "AVVIKER")
+# under plattan på mark: cellplasten (alla skikt) och fyllningen med makadamen överst, i plattans mitt
+lag = lodlinje(2000, 12000, m.valj("PM-C1,PM-C2,PM-M,PM-F"))
+c_ = [(a, b) for a, b, d in lag if d.namn.startswith("PM-C")]
+f_ = [(a, b) for a, b, d in lag if d.namn in ("PM-M", "PM-F")]
+k06 = f"{K06.EPS_MARK:.0f} mm cellplast på fyllning och makadam upp till {K06.H_FYLL_MARK:.2f} m (K-06)"
+if c_ and f_:
+    t_c, fyll = sum(b - a for a, b in c_), max(b for _, b in f_) - TOPP_BP
+    rad("Fyllning", "under plattan på mark", k06,
+        f"cellplast {t_c:.0f} mm på fyllning och makadam upp till {fyll / 1000:.2f} m över bottenplattans ök",
+        "stämmer" if abs(t_c - K06.EPS_MARK) < 1 and abs(fyll - K06.H_FYLL_MARK * 1000) < 1 else "AVVIKER")
 else:
-    rad("Fyllning", "under plattan på mark", "400 mm cellplast på fyllning upp till 1,7 m (K-06)",
-        "ingen cellplast eller fyllning under plattan i modellen", "AVVIKER")
+    rad("Fyllning", "under plattan på mark", k06, "ingen cellplast eller fyllning under plattan i modellen", "AVVIKER")
 
 # ---------------------------------------------------------------- F-01 areor
 plan1 = Polygon(pl1.exterior).area / 1e6      # till ytterliv (platta + kantisolering), trapphålet medräknat

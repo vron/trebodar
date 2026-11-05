@@ -20,18 +20,14 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    Gavelstolarna klarar det med K-03:s kontroll (högst 63 %, 3SV); 2C (36,7 kN) ger 109 % med K-03:s förenklade
    kontroll och omkring 86 % med effektiv upplagslängd (+30 mm) och k_c,90 = 1,5 (EN 1995-1-1 6.1.5), som K-03 då
    ska redovisa.
-3. **Plattan på mark med L-element 500 (AR-02):** K-06 (cellplast 350, fyllningen bakom V3 och V20 upp till
-   makadamens underkant −650), R-05 och R-03, och K-05 och R-06: betongen slutar vid L-elementens rygg, 70 mm
-   innanför konturen vid de fria kanterna.
-4. **U-03:** texten hänvisar till modell-todo punkt 7, som är gjord.
-5. **R-04 och R-06 mot armeringen i modellen:** R-06:s järn går ut till K-05:s kontur även vid plattan på marks fria
-   kanter, där betongen slutar vid L-elementens rygg (punkt 3); modellen klipper dem där. R-04:s startjärn under F3:s
-   bröstning (800) går 1 200 upp, genom bröstningen: korta dem till under bröstningens järn (modellen gör det), och
-   startjärnens fördelning lägger ett järn vid F3:s kant (2 mm in i kärnan; modellen flyttar det 40 mm in).
+3. **U-03:** texten hänvisar till en punkt i modell-todo som är gjord.
+4. **R-04 mot armeringen i modellen:** R-04:s startjärn under F3:s bröstning (800) går 1 200 upp, genom bröstningen:
+   korta dem till under bröstningens järn (modellen gör det), och startjärnens fördelning lägger ett järn vid F3:s kant
+   (2 mm in i kärnan; modellen flyttar det 40 mm in).
 
 ## Kontrollera och bestäm
 
-6. **Marken mot K-06.** Modellen följer Onshape-modellens mark fram till huset (användarens beslut: inga fyllningar
+5. **Marken mot K-06.** Modellen följer Onshape-modellens mark fram till huset (användarens beslut: inga fyllningar
    eller ramper längs huset, bara entréavsatsen och sovrumsavsatsen). K-06:s fyllnadshöjder ligger högre vid V1
    (−450; marken −947 … −679), V7 och V18 (−250; sovrumsavsatsen −742 … −841 och marken −1 445), V14 (−1 450 … −450;
    marken −1 414 … −1 071), V16 (−250 … −682; marken −773) och V21 (−250; marken −1 335 … −695). K-06 ligger på säker
@@ -39,15 +35,22 @@ Det som ska ändras i modellen (`modeller/trebodar`) för att den ska stämma me
    till marken. Framför skjutpartiet 2SV ligger berget 600 mm under golvet (K-06 räknade med fyllning till −250);
    där står altanen (hus/altan, ärende #30), med överkanten i golvets höjd.
    Panelen följer `markniva.MARKNIVA`, som körs om med `verktyg/modellanalys/marknivaer.py` när marken ändras.
-7. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 236 i 2C, under takstolen 2C:s topp (nockbalk 3:s
+6. **Kaminöppningen i 2C.** Insatsen sitter i öppningen x 6 400–7 236 i 2C, under takstolen 2C:s topp (nockbalk 3:s
    stöd C, 36,7 kN, vid x 6 905). Överstycket är en liggande regel 45 mm över 836 mm; kontrollera lastvägen i K-03.
-8. **Stolparna LN3_1 och LN5_2 står till hälften utanför balken.** Stolparna (fyra reglar 45×95 i änden av väggarna
+7. **Stolparna LN3_1 och LN5_2 står till hälften utanför balken.** Stolparna (fyra reglar 45×95 i änden av väggarna
    2A och 1D) står med 83 av 180 mm under nockbalk 3 respektive 5, som i Onshape-modellen: väggarna slutar 12 mm före
    balkens mittlinje (2A vid x 6 917, balken x 6 810–7 000; 1D vid x 2 143, balken x 2 060–2 250). K-03 räknar med att
    alla fyra reglarna bär (65 % och 82 %), men balken vilar bara på de två närmast väggen. Förslag: förläng väggarna
    102 mm (2A till x 6 815, 1D till x 2 245) så att stolparna står mitt under balkarna; K-03:s `geometri.json` och
    K-05:s `laster.STOLPLAGEN` (LN3_1 x 7 007 → 6 905, LN5_2 x 2 053 → 2 155) följer med. Annars räknar K-03 stolparna
    med två reglar och excentrisk last.
+8. **Hörnstolparna LA9 och LA10 vid plattan på marks fria hörn.** Stolparna står 40 mm innanför båda de fria kanterna
+   (K-05: 3,6 kN egentyngd och 6,5 kN snö, 12,8 kN dimensionerande, lyft 3,2 kN). Den yttre regeln (LA9-1, LA10-1,
+   x −30…15 vid LA9) står helt utanför betongen, på L-elementens rygg av cellplast, och den inre på fasens tunna betong;
+   plattan har full tjocklek först 70 mm in. Förslag: kapa L-elementens rygg vid hörnen, cirka 300 mm åt var håll, och
+   gjut plattan i full tjocklek ut till plattans kant med 30 mm kantisolering utanför, som vid källarens hörn; annars
+   en stålplåt under syllen som för lasten till plattan. Ytterväggarnas syll mellan hörnen står 45 mm på betongen
+   (K-06 kontrollerar den även med hela lasten på ryggen).
 
 ## Köket (ärende #21)
 

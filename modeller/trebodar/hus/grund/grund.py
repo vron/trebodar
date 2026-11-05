@@ -1,12 +1,13 @@
 """Grunden och källaren: bottenplattan, källarväggarna V1–V21, rören P1–P19, plattan på mark på plan 1 och
 fasadstenen.
 
-Bottenplattan (K-06 utförande L300, R-04) med överkanten z −2 250: betong 100 på cellplast 200, kantbalk och balkar
-under innerväggarna 450 × 200 (med plattan) och plintar under rören, alla på 100 mm cellplast S300, och L-element S300
-längs kanten (ytterkanten i väggarnas ytterliv, betongen börjar 100 mm innanför, i kärnans yttre yta). Plattan på
-mark på plan 1 (bakom V3 och V20, AR-02): mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i
-väggarnas ytterliv), cellplast 350 under plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför
-plattan. Fasadstenen (AR-01) i fasadsten.py.
+Bottenplattan (K-06 utförande L400, R-04) med överkanten z −2 250: betong 100 på cellplast 300 (100 + 200, plastfolien
+mellan i balkarnas underkant), kantbalk och balkar under innerväggarna 450 × 300 (med plattan) och plintar under
+rören, alla på 100 mm cellplast S300, och L-element S300 höjd 400 längs kanten (ytterkanten i väggarnas ytterliv,
+betongen börjar 100 mm innanför, i kärnans yttre yta). Plattan på mark på plan 1 (bakom V3 och V20, AR-02):
+mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast 350 under
+plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan. L-elementens rygg är avfasad 45° i
+ovankant, FAS bred upptill, och betongen fyller fasen. Fasadstenen (AR-01) i fasadsten.py.
 """
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ from shapely.ops import unary_union
 from modellering import Del, Montage, Placering, box, minus
 
 from trebodar import skelett as S
-from trebodar.byggdelar.polygon import polygoner, prisma_ur
+from trebodar.byggdelar.polygon import polygoner, prisma_ur, stympad
 from trebodar.material import BETONG, CELLPLAST, CELLPLAST_S300, FYLLNING, MAKADAM
 
 from . import fasadsten, kallarvaggar, pelare
@@ -30,9 +31,10 @@ from . import fasadsten, kallarvaggar, pelare
 ROT = Path(__file__).resolve().parents[4]
 K06 = ROT / "beräkningar" / "K-06"
 Z_BP = S.Z_BOTTENPLATTA
-H_PLATTA, H_BALK, H_L = 100.0, 200.0, 300.0      # plattan, balkarna med plattan, L-elementen (K-06 L300)
+H_PLATTA, H_BALK, H_L = 100.0, 300.0, 400.0      # plattan, balkarna med plattan, L-elementen (K-06 L400)
 B_BALK = 450.0                   # kantbalk och balkar under innerväggarna
 L_BEN, B_L = 100.0, 600.0        # L-elementets rygg (betongen börjar vid dess insida) och bredd
+FAS = 50.0                       # ryggen avfasad 45° i ovankant: FAS bred upptill, betongen fyller fasen
 INRE_BALKAR = ("V15", "V19")     # balkar under innerväggarna, och linjen V4–V6 mellan dem (K-06)
 # plattan på mark (AR-02): L-element 500 med fot 100, cellplast 100 + 250 under plattan, makadam 150
 H_L_MARK, T_FOT_MARK, T_MAKADAM = 500.0, 100.0, 150.0
@@ -46,7 +48,7 @@ MARK_PLATTA = ((0.0, 9205.0), (4545.0, 9205.0), (4545.0, 11010.0), (4310.0, 1101
 def plintar() -> dict[str, Polygon]:
     """Plintarna i plan per rör: kvadrater med sidan ur K-06, under fotplåtarnas mitt."""
     r = json.loads((K06 / "resultat.json").read_text(encoding="utf-8"))
-    sida = {p["namn"]: float(p["b"]) for p in r["platta"]["L300"]["plintar"]}
+    sida = {p["namn"]: float(p["b"]) for p in r["platta"][f"L{H_L:.0f}"]["plintar"]}
     return {n: Polygon([(x - sida[n] / 2, y - sida[n] / 2), (x + sida[n] / 2, y - sida[n] / 2),
                         (x + sida[n] / 2, y + sida[n] / 2), (x - sida[n] / 2, y + sida[n] / 2)])
             for n, (x, y) in pelare.fotplat_mitt().items()}
@@ -62,8 +64,8 @@ def _inre_balkar(betong: Polygon) -> Polygon:
 
 
 def bottenplatta() -> Montage:
-    m = Montage("Bottenplatta", beskrivning="Betong 100 på cellplast 200 med kantbalk, balkar, plintar och L-element "
-                                            "(K-06, R-04)")
+    m = Montage("Bottenplatta", beskrivning=f"Betong {H_PLATTA:.0f} på cellplast {H_L - H_PLATTA:.0f} med kantbalk, "
+                                            f"balkar, plintar och L-element {H_L:.0f} (K-06, R-04)")
     kontur = kallarvaggar.ytterkontur()                          # väggarnas ytterliv = L-elementens ytterkant
     betong = kontur.buffer(-L_BEN, join_style=2)
     kant = betong.difference(betong.buffer(-B_BALK, join_style=2))
@@ -75,19 +77,25 @@ def bottenplatta() -> Montage:
     urs = [box(x0, x1, y0, y1, Z_BP - pelare.FOT_T, Z_BP + 1) for x0, x1, y0, y1 in pelare.fotplatar()]
     m.lagg(Del("Bottenplatta betong 100", minus(prisma_ur(betong, Z_BP - H_PLATTA, Z_BP), urs), BETONG), Placering(),
            "BP-B")
-    m.lagg(Del("Kantbalk 450×200", prisma_ur(kant, z_balk, Z_BP - H_PLATTA), BETONG), Placering(), "BP-KB")
+    m.lagg(Del(f"Kantbalk {B_BALK:.0f}×{H_BALK:.0f}", prisma_ur(kant, z_balk, Z_BP - H_PLATTA), BETONG), Placering(),
+           "BP-KB")
     for i, q in enumerate(polygoner(inre, 1e4), 1):
-        m.lagg(Del("Balk 450×200 under innervägg", prisma_ur(q, z_balk, Z_BP - H_PLATTA), BETONG), Placering(),
-               f"BP-IB{i}")
+        m.lagg(Del(f"Balk {B_BALK:.0f}×{H_BALK:.0f} under innervägg", prisma_ur(q, z_balk, Z_BP - H_PLATTA), BETONG),
+               Placering(), f"BP-IB{i}")
     upptaget = unary_union([kant, inre])
     for namn, q in pl.items():
         for k, g in enumerate(polygoner(q.intersection(betong).difference(upptaget), 1e4)):
             m.lagg(Del(f"Plint {q.bounds[2] - q.bounds[0]:.0f}", prisma_ur(g, z_balk, Z_BP - H_PLATTA), BETONG),
                    Placering(), f"BP-PL-{namn}" + (f"-{k + 1}" if k else ""))
         upptaget = upptaget.union(q)
-    # cellplasten: L-elementen längs kanten, S300 under balkarna och plintarna, S100 i två lager under plattan
-    m.lagg(Del("L-element S300 höjd 300", prisma_ur(l_fot, z_fot, z_balk) | prisma_ur(kontur.difference(betong),
-                                                                                         z_balk, Z_BP),
+    # fasen i L-elementens rygg: betongen fyller den, ryggen är FAS bred upptill
+    fas = stympad(betong, kontur.buffer(-(L_BEN - FAS), join_style=2), Z_BP - FAS, Z_BP, FAS * 1.5)
+    m.lagg(Del(f"Betong i L-elementens fas {FAS:.0f}", minus(fas, [prisma_ur(betong, Z_BP - FAS, Z_BP)]), BETONG),
+           Placering(), "BP-FAS")
+    # cellplasten: L-elementen längs kanten, S300 under balkarna och plintarna, S100 i två lager under plattan, det
+    # undre lika tjockt som L-elementens fot och plastfolien mellan dem i balkarnas underkant
+    m.lagg(Del(f"L-element S300 höjd {H_L:.0f}",
+               minus(prisma_ur(l_fot, z_fot, z_balk) | prisma_ur(kontur.difference(betong), z_balk, Z_BP), [fas]),
                CELLPLAST_S300), Placering(), "BP-L")
     under = unary_union([inre] + list(pl.values())).intersection(betong)
     for i, q in enumerate(polygoner(under.difference(l_fot), 1e4), 1):
@@ -96,7 +104,7 @@ def bottenplatta() -> Montage:
     for i, (namn, q, z0, z1) in enumerate((("undre", kontur.buffer(-B_L, join_style=2), z_fot, z_balk),
                                           ("övre", betong.buffer(-B_BALK, join_style=2), z_balk, Z_BP - H_PLATTA)), 1):
         for k, g in enumerate(polygoner(q.difference(under), 1e4)):
-            m.lagg(Del(f"Cellplast S100 100, {namn} lagret", prisma_ur(g, z0, z1), CELLPLAST), Placering(),
+            m.lagg(Del(f"Cellplast S100 {z1 - z0:.0f}, {namn} lagret", prisma_ur(g, z0, z1), CELLPLAST), Placering(),
                    f"BP-C{i}" + (f"-{k + 1}" if k else ""))
     return m
 
@@ -122,11 +130,18 @@ def markschakt() -> Polygon:
 def platta_pa_mark() -> Montage:
     m = Montage("Plattan på mark", beskrivning="L-element 500, cellplast 350 och makadam 150 under mellanbjälklaget "
                                                 "på plan 1 (AR-02)")
-    p, _, rygg, fot = markplatta()
+    p, fri, rygg, fot = markplatta()
     z_uk, z_mak = -H_L_MARK, -H_L_MARK - T_MAKADAM
     z_fot = z_uk + T_FOT_MARK
-    m.lagg(Del("L-element S300 höjd 500", prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, 0.0), CELLPLAST_S300),
+    # fasen i L-elementens rygg: mellanbjälklagets betong fyller den (betongen når FAS från ytterkanten i överkant)
+    utan_rygg = p.difference(rygg)
+    fas = stympad(utan_rygg, p.difference(fri.buffer(L_BEN - FAS, cap_style="flat", join_style="mitre")), -FAS, 0.0,
+                  FAS * 1.5)
+    m.lagg(Del(f"L-element S300 höjd {H_L_MARK:.0f}",
+               minus(prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, 0.0), [fas]), CELLPLAST_S300),
            Placering(), "PM-L")
+    m.lagg(Del(f"Betong i L-elementens fas {FAS:.0f}", minus(fas, [prisma_ur(utan_rygg, -FAS, 0.0)]), BETONG),
+           Placering(), "PM-FAS")
     for i, g in enumerate(polygoner(p.difference(fot), 1e4)):
         m.lagg(Del("Cellplast S100 100, undre lagret", prisma_ur(g, z_uk, z_fot), CELLPLAST), Placering(),
                "PM-C1" + (f"-{i + 1}" if i else ""))

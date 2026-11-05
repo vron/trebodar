@@ -28,14 +28,15 @@ T_FOT = 100.0            # cellplast under kantbalk och plintar (L-elementets fo
 L_BEN = 100.0            # L-elementets rygg nedtill: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför,
                          # så att väggens yttre cellplast står på ryggen och kärnan på kantbalkens yttersta 150 mm
 FAS = 50.0               # ryggen är avfasad i ovankant (45°), 50 mm bred upptill; betongen fyller fasen
-B_L = 600.0              # L-elementets bredd: L-element S300, höjd 300, 600 × 1200 (t.ex. Finja), fot 100 mm S300
+B_L = 600.0              # L-elementets bredd: L-element S300, höjd 400, 600 × 1200 (t.ex. Finja), fot 100 mm S300
 OMLOTT = B_L - L_BEN - B_BALK    # plattans övre cellplastskikt går 50 mm in över L-elementets fot (fästs med plastspik)
-L_ELEMENT = "L-element S300, höjd 300, 600 × 1200 (t.ex. Finja)"
+L_ELEMENT = "L-element S300, höjd 400, 600 × 1200 (t.ex. Finja)"
 H_PLATTA = 100.0         # bottenplattans tjocklek i fält (Plattor.pdf)
-# bottenplattans utförande: L-element höjd 300, 200 mm cellplast under plattan och 200 mm hög kantbalk (300 med foten)
+# bottenplattans utförande: L-element höjd 400, 300 mm cellplast under plattan och 300 mm hög kantbalk (400 med foten)
 UTFORANDEN = {
-    "L300": dict(H=300.0, t_eps=200.0, h_balk=200.0),
+    "L400": dict(H=400.0, t_eps=300.0, h_balk=300.0),
 }
+UTF = next(iter(UTFORANDEN))
 
 # ------------------------------------------------------------------ jord och fyllning
 GAMMA_JORD = 18.0        # kN/m³, dränerande friktionsmaterial (krossat berg, grus)
@@ -49,9 +50,13 @@ VIBROPLATTA = dict(massa=100.0, F=15.0, b=0.5)     # kg, kN, m: lätt vibroplatt
 P_PLATTA = (VIBROPLATTA["massa"] * 9.81e-3 + VIBROPLATTA["F"]) / VIBROPLATTA["b"]     # kN/m
 SIG_KOMP = math.sqrt(2 * P_PLATTA * GAMMA_JORD / math.pi)                          # kPa
 LAGER_FYLL = 0.2         # m, största lagertjocklek inom 1 m från väggen
-# bakom V3 och V20: plattan på mark på plan 1 (K-05) med 400 mm cellplast
-EPS_MARK = 400.0
-H_FYLL_MARK = (H_VAGG - EPS_MARK) / 1000            # m, fyllning upp till cellplasten under plattan
+# bakom V3 och V20: plattan på mark på plan 1 (K-05) i L-element 500 (AR-02): 350 mm cellplast S100 under plattan
+H_L_MARK = 500.0
+EPS_MARK = H_L_MARK - H_MB
+# ytterväggarna på plan 1 vid plattan på marks fria kanter: syllen 95 mm från väggens ytterliv (K-05: centrum 17,5 mm
+# innanför plattans kant), L-elementens ytterkant i väggens ytterliv; betongen fyller ryggens fas, FAS från ytterkanten
+B_SYLL = 95.0
+H_FYLL_MARK = (H_VAGG - EPS_MARK) / 1000            # m, fyllning och makadam upp till cellplastens underkant
 G_MARK = 25 * 0.15 + 0.5 + 0.3 * EPS_MARK / 1000    # kN/m², betong, golv och cellplast
 Q_MARK_PLATTA = 2.0 + 0.7                           # kN/m², nyttig last och lätta väggar
 # byggskedet bakom V3 och V20, när plattan på mark gjuts: cellplasten (permanent) och färsk betong med arbetslast
@@ -94,6 +99,9 @@ C_IN, C_UT = 25.0, 30.0  # mot insidan (XC1) och mot utsidan, mot cellplast och 
 ARM_H = dict(d=10, s=600, s_topp=300)     # 2 Ø10 per skift, ett vid var yta; s300 i de två översta skiften (TG 2216)
 ARM_V = [(10, 300), (10, 200), (10, 150), (12, 150)]   # lodräta järn på insidan: TG 2216 anger Ø10 s300
 STARTJARN = dict(d=10, s=300, ned=500, upp=1200)       # på utsidan, i kantbalken och upp i väggen (TG 2216)
+# startjärnets fot längs kantbalken, på byglarna (järnens mitt 41 mm över balkens underkant), så att STARTJARN["ned"]
+# ligger i balken med den lodräta delen
+START_FOT = 10 * math.ceil((STARTJARN["ned"] - (UTFORANDEN[UTF]["h_balk"] - 41)) / 10)
 ARM_INRE = (10, 300)     # innerväggarna, gjutna i ett med bjälklaget: lodräta järn i kärnans mitt, hela höjden upp under
                          # bjälklagets överkantsnät, skarvade med startjärnen
 SKARV = 500.0            # skarvlängd, och vinkeljärn 750 mm åt var håll i hörn (TG 2216)

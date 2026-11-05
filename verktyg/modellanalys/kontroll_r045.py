@@ -9,6 +9,8 @@ modellen (modeller/trebodar/ut/trebodar.step) och jämför:
     - öppningarna i betongkärnan: läge längs väggen och bröstningens höjd (betongen);
     - bottenplattans kontur, som ska ligga i väggarnas ytterliv (L-elementens ytterkant; betongen 100 mm innanför);
     - bottenplattans kantbalk, balkar under innerväggarna och plintar (R-04.1) och L-elementen i plan;
+    - bottenplattans höjder (K-06:s utförande): plattan, cellplasten i fält med skiktgränsen (plastfolien) i balkarnas
+      underkant, kantbalken på L-elementens fot och L-elementens rygg med fasen, som betongen fyller;
     - väggarnas höjd (betongkärnan från bottenplattans överkant till mellanbjälklagets underkant);
     - rörens tvärsnitt och antal, matkällarens golv och att kärnorna går ihop i hörn och anslutningar.
 
@@ -100,11 +102,46 @@ def jamfor_yta(namn, modell, r04):
 
 
 platta = m.valj("/Bottenplatta/")
-jamfor_yta("bottenplattan (L-elementens ytterkant)", plansnitt(Z_GOLV - 250.0, platta), K.KALLARE)
+jamfor_yta("bottenplattan (L-elementens ytterkant)", plansnitt(Z_GOLV - K.UTF["h_balk"] + 50.0, platta), K.KALLARE)
 jamfor_yta("bottenplattans betong", plansnitt(Z_GOLV - 50.0, m.valj("BP-B")), K.BETONG)
 jamfor_yta("kantbalk, balkar och plintar (R-04.1)", plansnitt(Z_GOLV - 150.0, m.valj("BP-KB,BP-IB,BP-PL")),
            unary_union([K.kantbalk(), K.balkar_inre()] + list(K.plintar().values())).intersection(K.BETONG))
-jamfor_yta("L-elementens fot", plansnitt(Z_GOLV - 250.0, m.valj("BP-L")), K.l_element())
+Z_FOT = Z_GOLV - K.UTF["h_balk"] - K.T_FOT / 2                  # mitt i L-elementens fot
+jamfor_yta("L-elementens fot", plansnitt(Z_FOT, m.valj("BP-L")), K.l_element())
+
+
+def lager(x, y, z0, z1, delar):
+    """Delarna längs en lodrät linje genom (x, y): [(z0, z1, namn)] nerifrån."""
+    return sorted((z0 + t0, z0 + t1, d.namn) for t0, t1, d, *_ in linjeprob(m, delar, np.r_[x, y, z0] + O,
+                                                                          np.r_[x, y, z1] + O))
+
+
+def jamfor_z(namn, modell, r04):
+    rapport.append(f"  {namn}: modellen {modell}, R-04 {r04}")
+    if len(modell) != len(r04) or any(abs(a - b) > TOL for p, q in zip(modell, r04) for a, b in zip(p, q)):
+        fel.append(f"{namn}: modellen {modell}, R-04 {r04}")
+
+
+# höjderna i K-06:s utförande: plattan HP på cellplast EPS (det undre skiktet TF, plastfolien i balkarnas underkant)
+HP, HB, TF, EPS = K.H_PLATTA, K.UTF["h_balk"], K.T_FOT, K.UTF["t_eps"]
+tjock = unary_union([K.kantbalk(), K.balkar_inre()] + list(K.plintar().values()))
+fp = K.BETONG.difference(tjock.buffer(300.0)).representative_point()       # i fält, utanför balkar och plintar
+lf = lager(fp.x, fp.y, Z_GOLV - 600, Z_GOLV + 1, m.valj("BP-B,BP-C*"))
+jamfor_z("bottenplattan i fält: betong och cellplastens skikt (z)", [(round(a, 1), round(b, 1)) for a, b, _ in lf],
+         [(Z_GOLV - HP - EPS, Z_GOLV - HB), (Z_GOLV - HB, Z_GOLV - HP), (Z_GOLV - HP, Z_GOLV)])
+w = K.VAGG["V21"]
+xk, yk = w["c"] + w["ute"] * (K.T_VAGG / 2 - K.L_BEN - K.B_BALK / 2), (w["a"] + w["b"]) / 2   # kantbalkens mitt
+lk = lager(xk, yk, Z_GOLV - 600, Z_GOLV + 1, m.valj("BP-B,BP-KB,BP-L"))
+jamfor_z("kantbalken vid V21 på L-elementens fot (z)", [(round(a, 1), round(b, 1)) for a, b, _ in lk],
+         [(Z_GOLV - HB - TF, Z_GOLV - HB), (Z_GOLV - HB, Z_GOLV - HP), (Z_GOLV - HP, Z_GOLV)])
+# ryggen i överkant: cellplast FAS från ytterkanten, sedan fasens betong (45°) och plattan
+xu = w["c"] + w["ute"] * K.T_VAGG / 2                                                     # väggens ytterliv
+z_t = Z_GOLV - 10.0
+ut_in = [(round(abs(t0), 1), round(abs(t1), 1), d.namn[:5])
+         for t0, t1, d, *_ in linjeprob(m, m.valj("BP-L,BP-FAS,BP-B"), np.r_[xu, yk, z_t] + O,
+                                        np.r_[xu - w["ute"] * 200.0, yk, z_t] + O)]
+jamfor_z("L-elementens rygg 10 mm under överkant: cellplast, fasens betong, plattan (mm från ytterlivet)",
+         [(a, b) for a, b, _ in sorted(ut_in)], [(0.0, K.FAS + 10.0), (K.FAS + 10.0, K.L_BEN), (K.L_BEN, 200.0)])
 
 # ---------------------------------------------------------------- väggarnas höjd
 w = K.VAGG["V21"]

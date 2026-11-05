@@ -107,11 +107,12 @@ def hanvisningar(nr):
         x8, y8 = K.ROR_D["P8"]["mitt"]
         return [
             ("L-element S300 längs hela kanten", (20.0, 8000.0, 0.0)),
-            ("kantbalk 450 × 200 under ytterväggarna", (300.0, 4300.0, -100.0)),
+            (f"kantbalk {K.B_BALK:.0f} × {S.HB:.0f} under ytterväggarna", (300.0, 4300.0, -100.0)),
             ("plint under varje rör, fotplåt i överkant", (x8, y8, -100.0)),
-            ("balk 450 × 200 under innerväggarna", (6000.0, 7515.0, -100.0)),
+            (f"balk {K.B_BALK:.0f} × {S.HB:.0f} under innerväggarna", (6000.0, 7515.0, -100.0)),
             ("cellplast S100, S300 under balkar och plintar", (5500.0, 6700.0, -100.0)),
-            ("åldringsbeständig plastfolie i hela ytan, tejpade överlapp minst 200 (radon)", (1300.0, 4400.0, -197.0)),
+            ("åldringsbeständig plastfolie i hela ytan, tejpade överlapp minst 200 (radon)",
+             (1300.0, 4400.0, -S.HB + 3.0)),
             ("bottenplatta 100", (10500.0, 9000.0, 0.0)),
         ]
     if nr == 2:
@@ -128,11 +129,11 @@ def hanvisningar(nr):
         x15, y15 = _ror("P15")
         return [
             ("mellanbjälklag 150, vilar på väggarna och rören", (5000.0, 6500.0, Z1)),
-            ("platta på mark, plan 1, på 400 mm cellplast", (1500.0, 13500.0, Z1)),
+            (f"platta på mark, plan 1, på {K.EPS_MARK:.0f} mm cellplast", (1500.0, 13500.0, Z1)),
             ("trapphål", (8400.0, 5887.0, Z1)),
             ("rören bär bjälklaget med topplåt i plattans undersida", (x15, y15, 1600.0)),
             ("kantisolering 30", (-15.0, 6000.0, Z1 - 75.0)),
-            ("kantelement 500 runt plattan på mark", (-50.0, 12500.0, Z1 - 250.0)),
+            (f"L-element {K.H_L_MARK:.0f} runt plattan på mark", (-30.0, 12500.0, Z1 - 250.0)),
         ]
     x8, y8 = _ror("P8")
     return [
@@ -141,7 +142,7 @@ def hanvisningar(nr):
         ("kantbalk i L-element under väggen", (250.0, Y_SNITT, -150.0)),
         ("cellplast S100 under plattan", (1100.0, Y_SNITT, -200.0)),
         ("rör på fotplåt i plinten", (x8, y8, 900.0)),
-        ("plint 200 på S300", (x8, Y_SNITT, -150.0)),
+        (f"plint {S.HB:.0f} på S300", (x8, Y_SNITT, -S.HB / 2)),
         ("innervägg på balk", (4545.0, 8000.0, 1500.0)),
         ("kantisolering 30", (-15.0, Y_SNITT, Z1 - 75.0)),
     ]
@@ -302,7 +303,7 @@ def blad():
         dict(typ="lista", sz=6.8, rader=[
             "Bilderna visar betongarbetets bärande delar i 3D.",
             "Mellanbjälklaget, 150 mm, bär plan 1 och vilar på källarväggarna och på stålrören P1–P19. Över "
-            "fyllningen norr om källaren ligger det som platta på mark på 400 mm cellplast (K-05).",
+            f"fyllningen norr om källaren ligger det som platta på mark på {K.EPS_MARK:.0f} mm cellplast (K-05, K-06).",
             "Källarväggarna av Sundolitt Kub 350-150 bär bjälklaget och jordtrycket; ytterväggarna hålls i toppen av "
             "bjälklaget och i botten av bottenplattan. Fasaden mot söder har fönster F1–F3 mellan pelare (K-06).",
             "Rören står på fotplåtar som gjuts in i plintarnas överkant. Väggarna står på kantbalken i L-elementen "
@@ -310,10 +311,11 @@ def blad():
             "Bottenplattan, 100 mm, gjuts i en gjutning med kantbalkarna, balkarna och plintarna. De fördelar lasten "
             "på cellplasten, S300 under balkar och plintar och S100 under plattan, som ligger på makadam på "
             "sprängt berg (K-06).",
-            "Mot radon: åldringsbeständig plastfolie i ett plan över hela bottenplattan, 200 mm under överkant: mellan "
+            f"Mot radon: åldringsbeständig plastfolie i ett plan över hela bottenplattan, {S.HB:.0f} mm under överkant: mellan "
             "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot. Skarvarna med minst 200 mm "
             "överlapp, tejpade, och tätade vid genomföringar (R-04).",
-            "Plattan på mark har kantelement av cellplast, 500 mm höga, längs de fria kanterna mot köldbrygga (R-06).",
+            f"Plattan på mark har L-element S300, {K.H_L_MARK:.0f} mm höga, längs de fria kanterna (AR-02, R-06); "
+            "betongen går fram till ryggen och fyller dess fas i överkant.",
             "Bilderna är förenklade: armering, fogar och mindre delar visas inte."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
@@ -322,7 +324,7 @@ def blad():
             dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under plattan"),
             dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element, under balkar och plintar"),
             dict(form="yta", fyll=S.FARG["smyg"], stil="tunn", text="smyglist vid fönster och dörrar"),
-            dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30 och kantelement 500"),
+            dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30"),
             dict(form="yta", fyll=S.FARG["folie"], stil="tunn", text="plastfolie i våder med överlapp (schematiskt)"),
             dict(form="yta", fyll=S.FARG["stal"], stil="tunn", text="stål: rör och fotplåtar")]),
         dict(typ="rubrik", text="Ritningar för betongarbetet"),

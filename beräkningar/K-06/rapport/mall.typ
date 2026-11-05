@@ -31,7 +31,8 @@
 #let M = D.mat
 #let A = D.arm
 #let BY = D.bygg
-#let P3 = D.platta.L300
+#let U = D.utf
+#let P3 = D.platta.at(U.namn)
 
 #table(
   columns: (auto, 1fr, auto, auto),
@@ -51,7 +52,7 @@ Handlingen redovisar också byggskedet innan mellanbjälklaget har gjutits:
 - hur V3 och V20 bär fyllningen innan bjälklaget finns;
 - vilken hållfasthet betongen behöver när det fylls mot väggarna, och hur många dygn den då ska härda.
 
-Bottenplattan är 100 mm på 200 mm cellplast med kantbalkar i L-element (höjd 300), balkar under innerväggarna och plintar under rören. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
+Bottenplattan är 100 mm på #U.t_eps mm cellplast med kantbalkar i L-element (höjd #U.H), balkar under innerväggarna och plintar under rören. Bottenplattan, väggarna, rören och mellanbjälklaget (K-05) räknas i en gemensam FE-modell, så att skillnaden i sättning mellan rör och väggar ingår.
 
 Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1-2 och SS-EN 1997-1 med EKS 12, samt TG 2216 och Sundolitts monteringsanvisning för Kub (2022). Säkerhetsklass 2 ($gamma_d$ = 0,91), livslängd 50 år, geoteknisk kategori 1.
 
@@ -65,14 +66,14 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1
   [Vertikal last], [Ytterväggar #D.vert.yutn (#D.vert.ynamn, med jordtrycket), innerväggar #D.vert.iutn],
   [LD4_2 i hörnet V2/V20], [#D.horn.utn],
   [Byggskedet], [V3 bär fyllningen vågrätt mellan hörnen med #BY.hor3 i båda ytorna ($lambda$ = #BY.lam3). Fyll mot väggarna när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa: #BY.d10N dygn vid 10 °C (#BY.d10R med snabbhärdande cement), se @hardning],
-  [Bottenplatta L300, cellplast], [S300 under balkar och plintar #P3.eps_b.utn. S100 under plattan #P3.eps_f.utn],
-  [Bottenplatta L300, betong], [Kantbalk 450 × 200 med 2 Ø10 i under- och överkant (#P3.kant.utnM). Platta Ø6 s150 i båda lagren (#P3.falt.utn). Plintar #D.plint_bredd mm, genomstansning högst #P3.plint.max],
+  [Bottenplatta #U.namn, cellplast], [S300 under balkar och plintar #P3.eps_b.utn. S100 under plattan #P3.eps_f.utn],
+  [Bottenplatta #U.namn, betong], [Kantbalk 450 × #U.h_balk med #P3.kant.uk_txt i underkant och #P3.kant.ok_txt i överkant (#P3.kant.utnM). Platta Ø6 s150 i båda lagren (#P3.falt.utn). Plintar #D.plint_bredd mm, genomstansning högst #P3.plint.max],
   [Mellanbjälklaget (K-05) med sättningar], [Överkant #P3.topp.ok och underkant #P3.topp.uk av K-05:s armering. K-05:s modell ger #P3.topp.ok5 och #P3.topp.uk5],
-  [Plattan på mark (plan 1), 400 mm S100], [#P3.mark.utn],
+  [Plattan på mark (plan 1), #M.eps_mark mm S100], [#P3.mark.utn],
   [Glidning], [#D.glid.utn],
 )
 
-Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolitts armering för väggar som hålls i topp och botten (Ø10 s300) räcker för jordtrycket men inte för packningstrycket från en vanlig lätt vibroplatta, så de lodräta järnen läggs tätare. Bottenplattan L300 räcker, med S300 under balkar och plintar och S100 under plattan.
+Det som styr väggarna är packningen intill dem, inte vilojordtrycket. Sundolitts armering för väggar som hålls i topp och botten (Ø10 s300) räcker för jordtrycket men inte för packningstrycket från en vanlig lätt vibroplatta, så de lodräta järnen läggs tätare. Bottenplattan #U.namn räcker, med S300 under balkar och plintar och S100 under plattan.
 
 = Förutsättningar
 
@@ -123,7 +124,7 @@ TG 2216 godkänner Kub för väggar mot jord. Ett av de redovisade fallen är v�
   table.header([Del], [Armering], [Kommentar]),
   [Vågräta järn], [2 Ø10 per skift, ett vid var yta, s600. I de två översta skiften s300], [TG 2216. I V3 s300 i hela höjden (@v3)],
   [Lodräta järn], [På insidan, från bottenplattan upp till bjälklagets överkantsnät: #A.txt i #D.armlist.tat\; #D.armlist.gles_txt i #D.armlist.gles], [TG 2216 anger Ø10 s300; tätare där packningstrycket kräver det (@barformaga, @fasad)],
-  [Startjärn], [#A.start på utsidan, 500 mm ned i kantbalken (bockade) och 1 200 mm upp i väggen], [TG 2216],
+  [Startjärn], [#A.start på utsidan, #M.start_ned mm ned i kantbalken (bockade) och 1 200 mm upp i väggen], [TG 2216],
   [Vinkeljärn till bjälklaget], [Ø10 med samma avstånd som de lodräta järnen, 650 mm ned i väggen och 500 mm in i bjälklaget under överkantsnätet], [TG 2216 anger Ø10 s300; pos 14 på R-06],
   [Hörn och anslutningar], [Vinkeljärn Ø10, 750 mm åt var håll, vid båda ytorna; skarvar minst #M.skarv mm], [TG 2216 figur 5–7; @fig-lokala[figur] c och d],
   [Öppningar], [2 Ø12 längs sidorna och under bröstningen, förankrade 600 mm förbi öppningen. Öppningarna går upp till bjälklaget, som har fri kant över dem (K-05)], [TG 2216],
@@ -196,7 +197,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 - *Första gjutningen* är de tre hela skiften i alla väggar, upp till #M.gjut1 mm. Fogen i överkant ruggas och rengörs, och elementens knastar täcks.
 - *Gjutning med bjälklaget:* bjälklagets form och stämp står för sig själva och får inte hänga i Kub-elementen. Väggarnas översta skift fylls först. Efter 30–60 minuter, när betongen har satt sig, fylls de upp igen, och sedan gjuts bjälklaget. Bara bjälklaget vibreras.
 - *Insida:* gips 13 mm (typ A) på all cellplast, också i smygar, skruvad i bindarna. Enligt TG 2216 ger det REI 30. Kärnan klarar REI 90 enligt SS-EN 1992-1-2 tabell 5.4 (150 mm ≥ 140 mm, axelavstånd 30 mm ≥ 25 mm). Gipset skyddar cellplasten och får inte vara genombrutet; eldosor enligt TG 2216. Ingen ångspärr behövs, eftersom halva isoleringen ligger utanför kärnan.
-- *Utsida under mark:* grundmursskiva med knopparna mot väggen och en avslutningslist upptill. Dränledning runt huset med fall minst 1:200. Ledningens högsta punkt ska ligga minst 200 mm under golvets överkant och under plattans cellplast. Ledningen och väggen omges med dränerande material, med fiberduk mot jorden. Marken ska falla från huset, minst 1:50 över 3 m.
+- *Utsida under mark:* grundmursskiva med knopparna mot väggen och en avslutningslist upptill. Dränledning runt huset i jämnt fall mot brunnen, utan bakfall (D-01). Ledningens högsta punkt ska ligga minst 200 mm under golvets överkant och under plattans cellplast. Fallet är 1:200 där det går; längs källaren begränsas det av det befintliga utgående röret (AR-02) och får vara flackare, minst 1:400, så att ledningen når brunnen minst 20 mm över rörets inmätta höjd. Ledningen och väggen omges med dränerande material, med fiberduk mot jorden. Marken ska falla från huset, minst 1:50 över 3 m.
 - *Utsida ovan mark:* fasadsten enligt AR-01. Den täcker all cellplast ovan mark, som TG 2216 kräver.
 
 = Byggskedet <bygg>
@@ -206,7 +207,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 + Gjut bottenplattan (@botten) med startjärnen ingjutna och uppruggad yta under väggarna.
 + Montera Kub-elementen med armering, vinkeljärn i hörnen och staga väggarna.
 + Gjut de tre hela skiften (#M.gjut1 mm) i alla väggar.
-+ Fyll bakom V3 och V20 till #M.hfm m när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan 400 mm cellplast för plattan på mark.
++ Fyll bakom V3 och V20 till #M.hfm m, överst makadam, när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan #M.eps_mark mm cellplast för plattan på mark.
 + Montera väggarnas översta halva skift, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
 + Fyll mot övriga väggar när bjälklaget och det översta skiftet har nått $f_"ck" (t)$ ≥ #BY.regel MPa. Väggarna under har då härdat längre. Bjälklagets stämp får stå kvar; de påverkar inte väggarna.
 + Riv formen under bjälklaget enligt R-06.
@@ -227,7 +228,7 @@ Betongens hållfasthet efter $t$ dygn följer SS-EN 1992-1-1 3.1.2: $f_"cm" (t) 
 - *V3 och V20 innan bjälklaget:* $lambda$ och tvärkraft räcker redan efter tre dygn. Förankringen av vinkeljärnen i hörnen styr och kräver $f_"ck" (t)$ ≥ #BY.fckA MPa.
 - *Övriga väggar efter bjälklaget* (mest belastad #BY.vaggB): böjning, tvärkraft och gjutfogen räcker efter tre dygn. Skarven mellan vinkeljärnen och de lodräta järnen i det översta skiftet (#BY.sigB MPa) kräver $f_"ck" (t)$ ≥ #BY.fckB MPa.
 
-*Kravet blir $f_"ck" (t)$ ≥ #BY.regel MPa, två tredjedelar av $f_"ck"$, innan det fylls mot någon vägg* ($f_"cm" (t)$ ≥ #BY.fcm MPa; provkuber ungefär 20 % högre). Det gäller väggarna och, för de övriga väggarna, också bjälklaget och det översta skiftet. Vid lägre temperatur tar det längre tid. Mognadsåldern enligt SS-EN 1992-1-1 (B.10) är $t_T = sum exp(-(4000 slash (273 + T) - 13,65)) Delta t$, där $T$ är dygnets medeltemperatur. Kravet nås vid mognadsåldern #BY.teqN dygn med cement i klass N ($s$ = 0,25) och #BY.teqR dygn med klass R ($s$ = 0,20), alltså:
+*Kravet blir $f_"ck" (t)$ ≥ #BY.regel MPa, #BY.andel av $f_"ck"$, innan det fylls mot någon vägg* ($f_"cm" (t)$ ≥ #BY.fcm MPa; provkuber ungefär 20 % högre). Det gäller väggarna och, för de övriga väggarna, också bjälklaget och det översta skiftet. Vid lägre temperatur tar det längre tid. Mognadsåldern enligt SS-EN 1992-1-1 (B.10) är $t_T = sum exp(-(4000 slash (273 + T) - 13,65)) Delta t$, där $T$ är dygnets medeltemperatur. Kravet nås vid mognadsåldern #BY.teqN dygn med cement i klass N ($s$ = 0,25) och #BY.teqR dygn med klass R ($s$ = 0,20), alltså:
 
 #figure(placement: auto,
   image("../fig_hardning.svg", width: 88%),
@@ -250,20 +251,20 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 
 #figure(placement: auto,
   image("../fig_detalj.svg", width: 100%),
-  caption: [Yttervägg mot jord (Kub 350-150) på kantbalk i L-element (höjd 300), med mellanbjälklaget. Mått i mm.],
+  caption: [Yttervägg mot jord (Kub 350-150) på kantbalk i L-element (höjd #U.H), med mellanbjälklaget. Mått i mm.],
 ) <fig-det>
 
 - *Underlag:* makadam på sprängt berg, avjämnat och packat.
-- *Under plattan:* cellplast S100 i två skikt, 200 mm. Åldringsbeständig plastfolie ligger i ett plan över hela ytan, 200 mm under överkant: mellan skikten (Plattor.pdf), under balkarna och plintarna och ut över L-elementens fot, med minst 200 mm tejpade överlapp, mot radon (R-04). Bottenplattan är alltså 300 mm hög: 100 mm betong på 200 mm cellplast, samma i hela källaren.
-- *Längs ytterkanten:* L-element S300, 300 mm högt och 600 mm brett (t.ex. Finja L-element S300), med ytterkanten i väggens ytterliv. Ryggen är 100 mm och avfasad i ovankant, och betongen börjar innanför ryggen och fyller fasen (@fig-platta[figur]). Väggens yttre cellplast står på ryggen och fasen. Kantbalken är 450 mm bred och 200 mm hög inklusive plattan och står på L-elementets fot, 100 mm S300. Väggens kärna står på kantbalkens yttersta 150 mm. Foten går 50 mm förbi kantbalken, och plattans övre cellplastskikt läggs in över den och fästs med plastspik. Modellen räknar med kantbalkens bredd 450 mm på S300 och plattans cellplast innanför.
+- *Under plattan:* cellplast S100, #U.t_eps mm: ett undre skikt #U.t_fot mm, lika tjockt som L-elementens fot, och #U.ovre mm ovanpå. Åldringsbeständig plastfolie ligger i ett plan över hela ytan, #U.folie mm under överkant: mellan det undre skiktet och de övre (Plattor.pdf), under balkarna och plintarna och ut över L-elementens fot, med minst 200 mm tejpade överlapp, mot radon (R-04). Bottenplattan är alltså #U.H mm hög: 100 mm betong på #U.t_eps mm cellplast, samma i hela källaren.
+- *Längs ytterkanten:* L-element S300, #U.H mm högt och #U.b_l mm brett (t.ex. Finja L-element med fiberbetong, fot S300), med ytterkanten i väggens ytterliv. Ryggen är #U.l_ben mm och avfasad 45° i ovankant, #U.fas mm bred upptill, och betongen börjar innanför ryggen och fyller fasen (@fig-platta[figur]). Väggens yttre cellplast står på ryggen och fasen. Kantbalken är 450 mm bred och #U.h_balk mm hög inklusive plattan och står på L-elementets fot, #U.t_fot mm S300. Väggens kärna står på kantbalkens yttersta 150 mm. Foten går #U.omlott mm förbi kantbalken, och plattans övre cellplast läggs in över den och fästs med plastspik. Modellen räknar med kantbalkens bredd 450 mm på S300 och plattans cellplast innanför.
 - *Under innerväggarna* V4–V6, V15 och V19: balkar 450 mm breda med samma höjd och 100 mm S300 under.
 - *Under rören:* kvadratiska plintar med samma höjd, sida #D.plint_bredd mm (@fig-platta[figur]). Storleken är vald så att trycket på cellplasten under plintarna blir ungefär lika stort som under väggarna, så att rören och väggarna sätter sig lika mycket. Röret svetsas på en fotplåt 200 × 200 × 15 S355 med fyra svetsbultar Ø13, L = 75 mm, som gjuts in i plintens överkant. Vid P7 står två rör tätt intill varandra på en gemensam fotplåt 280 × 200 × 15 (K-05). Röret bär bara tryck, och bultarna håller det på plats.
 - *Platta:* 100 mm C30/37 med Ø6 s150 i över- och underkant. Golvvärmeslangarna fästs i underkantsnätet.
 
 == Beräkningsmodell
 
-- *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och 200 mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och olika tjocklek och kvalitet under plattan och under balkar och plintar.
-- *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på 400 mm S100.
+- *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och #U.h_balk mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och olika tjocklek och kvalitet under plattan och under balkar och plintar.
+- *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på #M.eps_mark mm S100.
 - *Väggarna:* kärnan som fjäder $E t slash h$ med $t$ = 150 mm längs K-05:s upplagslinjer i kärnans mitt.
 - *Rören:* fjädrar $E A slash L$ mellan plåtarna i de två plattorna.
 - *Styvheter, två omgångar:*
@@ -293,7 +294,9 @@ Betongväggarna med fasadsten väger cirka 8–11 kN/m. Kärnan står på kantba
 
 Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.vagg mm vid väggarna. Väggarna sätter sig alltså cirka #P3.w.skillnad mm mer än rören. Kärnans krympning ensam ger högst #P3.svinn kNm/m i mellanbjälklaget. Effekten finns med i kontrollen i @samverkan.
 
-*Plattan på mark på plan 1* (K-05, 400 mm S100): största tryck är #P3.mark.uls kPa mot $f_d$ = #P3.mark.fdM kPa i brottgränstillstånd och #P3.mark.qp kPa långtid mot #P3.mark.kryp kPa, alltså #P3.mark.utn. S100 räcker där. Tjockleken bestäms av värmeisoleringen, inte av tryckklassen.
+*Plattan på mark på plan 1* (K-05, #M.eps_mark mm S100): största tryck i brottgränstillstånd är #P3.mark.uls kPa, i plattans fria hörn under hörnstolparna LA9 och LA10. Det är en lokal topp; i medel inom $r$ = 150 mm är det #P3.mark.medel kPa mot $f_d$ = #P3.mark.fdM kPa (som under balkarna), och ytterst ligger L-elementens S300. Långtid är det #P3.mark.qp kPa mot #P3.mark.kryp kPa, alltså #P3.mark.utn. S100 räcker där. Tjockleken bestäms av värmeisoleringen, inte av tryckklassen.
+
+*Plattan på marks fria kanter:* L-elementen (höjd #M.l_mark) står med ytterkanten i väggens ytterliv, och betongen går fram till ryggen och fyller dess fas (AR-02, R-06). Ytterväggarnas syll står där #P3.syll.betong mm på betongen och resten på ryggens cellplast. På säker sida går hela väggens last (#P3.syll.vaggar: #P3.syll.gk kN/m permanent och #P3.syll.sk kN/m snö, K-05) genom ryggens överkant, #P3.syll.b mm bred: #P3.syll.p kPa i brottgränstillstånd mot $f_d$ = #P3.syll.fdM kPa för S300 och #P3.syll.pqp kPa långtid mot #P3.syll.kryp kPa, alltså #P3.syll.utn.
 
 == Platta, balkar och plintar
 
@@ -303,10 +306,10 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 ) <fig-platta>
 
 - *Platta 100 mm:* största moment utanför balkar och plintar, minst $d$ = #P3.falt.d mm från dem, är #P3.falt.mu kNm/m i underkant och #P3.falt.mo kNm/m i överkant. Det motsvarar #P3.falt.utn av Ø6 s150 ($M_"Rd"$ = #P3.falt.MRu / #P3.falt.MRo kNm/m). Närmare balkarna är momentet en lokal topp vid den tjocka delens kant, störst i inåtgående hörn mellan balkarna (#P3.falt.topp kNm/m precis vid kanten). Toppen är en singularitet i FE-lösningen och avtar inom några centimeter; nätet går in i balkarna och tar momentet där.
-- *Kantbalkar:* balkmoment (plattans moment integrerat över 450 mm) högst #P3.kant.Ms kNm i underkant och #P3.kant.Mh kNm i överkant. 2 Ø10 i under- och överkant ger $M_"Rd"$ = #P3.kant.MRd / #P3.kant.MRo kNm (#P3.kant.utnM).
+- *Kantbalkar:* balkmoment (plattans moment integrerat över 450 mm) högst #P3.kant.Ms kNm i underkant och #P3.kant.Mh kNm i överkant. #P3.kant.uk_txt i underkant och #P3.kant.ok_txt i överkant ger $M_"Rd"$ = #P3.kant.MRd / #P3.kant.MRo kNm (#P3.kant.utnM).
   - Tvärkraft högst #P3.kant.V kN, #P3.kant.utnV av $V_"Rd,c"$. Ingen tvärkraftsarmering behövs.
   - U-byglar Ø6 s600 håller längsjärnen på plats. Balken är en förtjockning av en platta på bädd, så minimiarmering för byglar behövs inte (6.2.1(4)).
-  - Startjärnen bockas in i kantbalken med foten, 330 mm, på byglarna, så att 500 mm ligger i balken (@fig-det[figur]). Under innerväggarna, där startjärnen står i balkens mitt, läggs foten längs balken.
+  - Startjärnen bockas in i kantbalken med foten, #M.start_fot mm, på byglarna, så att #M.start_ned mm ligger i balken (@fig-det[figur]). Under innerväggarna, där startjärnen står i balkens mitt, läggs foten längs balken.
 - *Balkar under innerväggarna* (@fig-lokala[figur]): #P3.inre.utnM av samma armering, tvärkraft #P3.inre.utnV.
 - *Plintar* (@fig-lokala[figur]): Ø8 s150 i underkant i båda riktningarna. Lastytan är fotplåtens effektiva yta, #P3.plint.beff × #P3.plint.beff mm (SS-EN 1993-1-8 6.2.5 med $f_"jd" = 2 f_"cd"$). Genomstansning räknas med hela rörlasten, utan avdrag för cellplastens tryck innanför snittet:
   - i plinten enligt 6.4.4, snitt från 0,5$d$ till 2$d$ som ligger inom plinten ($d$ = #P3.plint.d mm): högst #P3.plint.stans (#P3.plint.namn);
@@ -343,8 +346,8 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 = Utförande och kontroll
 
 1. Spräng och avjämna berget och lägg makadam. Lägg dränledningen runt huset innan cellplasten läggs.
-2. Lägg L-element med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna och S100 under plattan i två skikt, det övre skiktet 50 mm in över L-elementens fot. Åldringsbeständig plastfolie över hela ytan ovanpå det undre skiktet, under balkar och plintar och ut över L-elementens fot, med minst 200 mm tejpade överlapp (radon). Skär ur cellplasten för balkar och plintar.
-3. Armera: nät Ø6 s150 i båda lagren, kantbalkar och balkar 2 Ø10 + 2 Ø10 med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
+2. Lägg L-element (höjd #U.H) med fot av S300 och ytterkanten i väggarnas ytterliv, cellplast S300 under innerväggarnas balkar och plintarna, #U.t_fot mm, och S100 under plattan: det undre skiktet #U.t_fot mm, sedan plastfolien och #U.ovre mm ovanpå, det översta skiktet #U.omlott mm in över L-elementens fot. Åldringsbeständig plastfolie över hela ytan ovanpå det undre skiktet, under balkar och plintar och ut över L-elementens fot, med minst 200 mm tejpade överlapp (radon). Skär ur cellplasten för balkar och plintar.
+3. Armera: nät Ø6 s150 i båda lagren, kantbalkar #P3.kant.uk_txt + #P3.kant.ok_txt och balkar #P3.inre.uk_txt + #P3.inre.ok_txt med U-byglar Ø6 s600, plintar Ø8 s150 i underkant, diagonaljärn och startjärn #A.start till väggarna. Fixera rörens fotplåtar i läge och höjd. Lägg golvvärmeslangarna.
 4. Gjut bottenplattan med balkar och plintar i en gjutning, med fotplåtarna kant i kant med plintarnas överkant, och rugga ytan under väggarna.
 5. Bygg och gjut väggarna och mellanbjälklaget i den ordning som anges i @bygg, och fyll mot väggarna först när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa.
 6. Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, startjärnen. Kontrollera före väggarnas gjutning: de lodräta järnen (#A.txt och #D.armlist.gles_txt, i innerväggarna #D.inre.arm), de vågräta järnen i V3 (#BY.hor3), vinkeljärnen i hörnen och stagningen. Under gjutningen: sättmått och stighastighet. Före återfyllning: betongens hållfasthet (temperaturgivare eller provkuber) och vibroplattans vikt.

@@ -144,8 +144,10 @@ def main():
              f"{P['b_balk'] * 1000:.0f}", -0.17)
         matt(ax, (xv, -P["h_balk"]), (xv + P["t_ben"], -P["h_balk"]), f"{P['t_ben'] * 1000:.0f}", -0.17)
         xr = 1.13
-        for z0, z1, s in ((-P["h_platta"], 0, f"{P['h_platta'] * 1000:.0f}"), (g["zfolie"], -P["h_platta"], "100"),
-                          (g["zf"], g["zfolie"], "100"), (g["zf"] - P["t_makadam"], g["zf"], f"{P['t_makadam'] * 1000:.0f}")):
+        for z0, z1, s in ((-P["h_platta"], 0, f"{P['h_platta'] * 1000:.0f}"),
+                          (g["zfolie"], -P["h_platta"], f"{(-P['h_platta'] - g['zfolie']) * 1000:.0f}"),
+                          (g["zf"], g["zfolie"], f"{(g['zfolie'] - g['zf']) * 1000:.0f}"),
+                          (g["zf"] - P["t_makadam"], g["zf"], f"{P['t_makadam'] * 1000:.0f}")):
             ax.annotate("", (xr, z0), (xr, z1), arrowprops=dict(arrowstyle="<->", lw=0.4, color=INK, shrinkA=0, shrinkB=0))
             ax.text(xr + 0.015, (z0 + z1) / 2, s, ha="left", va="center", fontsize=6.3)
         for z0, z1, s in ((-P["h_balk"], 0, f"{P['h_balk'] * 1000:.0f}"), (g["zk"], -P["h_balk"], f"{P['t_fot'] * 1000:.0f}")):
@@ -159,7 +161,8 @@ def main():
                 ("kantbalk", (xv + 0.4, -0.13), (xv + 0.2, -0.13)),
                 ("plastfolie", (0.80, g["zfolie"]), (0.70, -0.36)),
                 ("golvvärme", (0.62, g["gv"][2]), (0.66, 0.08)),
-                ("platta 100 på cellplast\nS100 2 × 100", (0.95, -0.05), (0.80, 0.25))]
+                (f"platta {P['h_platta'] * 1000:.0f} på cellplast\nS100 {(P['t_eps'] - P['t_fot']) * 1000:.0f} + "
+                 f"{P['t_fot'] * 1000:.0f}", (0.95, -0.05), (0.80, 0.25))]
         for txt, p, q in etik:
             ax.annotate(txt, p, q, fontsize=6.3, ha="center", va="center", arrowprops=dict(arrowstyle="-", lw=0.35, color=INK),
                         bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
@@ -319,6 +322,8 @@ def main():
                   plintar=", ".join(f"{n} ({fmt(b * 1000, 0)} mm)" for n, _, b in P["plint"]), utbredning=fmt(P["nat"]["utbredning"], 1),
                   ut_m=fmt(P["nat"]["utbredning"] * g["B"], 0), djup=fmt(-bas["m"]["ez"][0], 0),
                   t_eps=fmt(P["t_eps"] * 1000, 0), h_balk=fmt(P["h_balk"] * 1000, 0), gv_kant=fmt(P["golvvarme_kant"] * 1000, 0),
+                  t_fot=fmt(P["t_fot"] * 1000, 0), t_ovre=fmt((P["t_eps"] - P["t_fot"]) * 1000, 0),
+                  h_l=fmt((P["h_balk"] + P["t_fot"]) * 1000, 0),
                   gv_z=fmt(P["golvvarme_z"] * 1000, 0)),
         "mat": {k: dict(lam=fmt(v[0], 3 if v[0] < 0.1 else 2), rc=fmt(v[1], 2)) for k, v in ma.items()},
         "kl": dict(Tm=fmt(P["Tm"], 1), A=fmt(P["A"], 1), Tmax=fmt(P["Tm"] + P["A"], 1), Tmin=fmt(P["Tm"] - P["A"], 1),
@@ -347,7 +352,7 @@ def main():
         v_falt=fmt(bas["falt"]["vinter"], 1), v_plint=fmt(bas["plint"]["vinter"], 1), v_kant=fmt(bas["kant"]["vinter"], 1),
         M_max=fmt(max(r["M"] for r in RES), 0), M_dygn=str(max(r["M_dygn"] for r in RES)),
         min={n: fmt(r["dT"], 1) for n, r in FN.items()},
-        L400=fmt(FN["Utförande L400"]["falt"]["dT"], 1),
+        L300=fmt(FN["Utförande L300"]["falt"]["dT"], 1),
     )
     (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"värmebalans: golvvärme {Q['golvvarme'] / 3.6e6:.0f}, rum {Q['rum'] / 3.6e6:.0f}, ute {Q['ute'] / 3.6e6:.0f}, "

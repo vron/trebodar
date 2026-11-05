@@ -367,8 +367,11 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
         dict(typ="lista", sz=6.6, rader=[
             f"Dränering: dränrör Ø110 runt grunden, {u['avstand']['dränering']:.0f} mm utanför grundens ytterkant med "
             f"överkanten i grundens underkant (källaren {rh(u, uk['källaren'])}, plattan på mark "
-            f"{rh(u, uk['plattan'])}), i makadam 16–32 omsluten av fiberduk; fall minst "
-            f"1:{1 / u['fall']['dränering']:.0f} mot brunnen.",
+            f"{rh(u, uk['plattan'])}), i makadam 16–32 omsluten av fiberduk; fall "
+            f"1:{1 / u['fall']['dränering']:.0f} mot brunnen. Längs källaren begränsar det befintliga utloppet fallet: "
+            + ", ".join(f"{k} 1:{1 / f:.0f}" for k, f in u["fall_kallaren"].items())
+            + f" (minst 1:{1 / u['fall_min']:.0f}), så att ledningarna når brunnen {u['marginal']:.0f} mm över "
+            "utloppets vattengång. Jämnt fall utan bakfall: läggs med laser på avjämnad bädd.",
             f"Dagvatten: täta markavloppsrör Ø110 {u['avstand']['dagvatten']:.0f} mm utanför grunden, minst "
             f"{u['tackning']:.0f} mm under marken; fall minst 1:{1 / u['fall']['dagvatten']:.0f}. Stuprören ansluts "
             "med en stuprörsanslutning med lövsil vid marken, lodrätt ned och en sticka till ledningen. Dräneringen "

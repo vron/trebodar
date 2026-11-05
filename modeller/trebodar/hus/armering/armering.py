@@ -5,9 +5,10 @@ räknar stålförteckningarna, så att modellen och ritningarna har samma källa
 
 Höjder: R-04 och R-05 räknar från bottenplattans överkant (z −2 250), R-06 från mellanbjälklagets underkant
 (z −150). Järn i samma lager och riktning ligger i ett plan; där ritningen inte anger ordningen ligger x-led ytterst.
-Där modellen avviker från ritningarna, eftersom de inte är uppdaterade (modell-todo): mellanbjälklagets järn klipps
-vid plattan på marks fria kanter vid L-elementens rygg (AR-02), startjärnen under F3:s bröstning (800) kortas till
-under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
+Där modellen avviker från ritningarna, eftersom de inte är uppdaterade (modell-todo): startjärnen under F3:s
+bröstning (800) kortas till under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant
+flyttas ut till 40 mm. Mellanbjälklagets järn slutar vid plattan på marks fria kanter vid L-elementens rygg (AR-02),
+som på R-06.
 Kontrollen prövar inte armering mot betong eller mot annan armering (kontrollregler.IGNORERADE), men mot allt annat,
 t.ex. rör och kanaler genom betongen.
 """
@@ -131,7 +132,8 @@ def _mellanbjalklagets_jarn() -> tuple[Jarn, ...]:
 
 
 def _betongen() -> Polygon:
-    """Mellanbjälklagets betong (vid plattan på marks fria kanter till L-elementens rygg) minus täckskiktet."""
+    """Mellanbjälklagets betong (vid plattan på marks fria kanter till L-elementens rygg, som på R-06) minus
+    täckskiktet."""
     return Polygon(S.KONTUR, [S.TRAPPHAL]).difference(markplatta()[2]).buffer(-ritning("R-06").C_KANT, join_style=2)
 
 

@@ -23,7 +23,8 @@ A_ROR, L_ROR = 4 * 4 * (80 - 4), 2100  # VKR 80×80×4: area [mm²], längd [mm]
 # P7 står i trapphålets hörn och behöver två rörs lastyta för genomstansningen (160 × 80 mm).
 DUBBELROR = {"P7": (80.0, 0.0)}
 FIN = float(os.environ.get("FIN", 1.0))   # skala på den lokala förfiningen (konvergensstudie)
-K_EPS = 0.01                           # bäddmodul för plattan på mark, E/t för cellplasten [N/mm³], mjukt (på säker sida)
+K_EPS = 0.01                           # bäddmodul för plattan på mark, E/t för cellplasten [N/mm³] (K-06 räknar med
+                                       # cellplastens verkliga bädd, 350 mm S100)
 # utbredda laster [N/mm²]
 GK = (LA.G_BETONG + LA.G_GOLV) * 1e-3          # 4,25 kN/m²
 QK = LA.Q_NYTTIG * 1e-3                        # 2,0 kN/m²

@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.join(BER, "ritningsmall"))
 from ritning import Vy, Blad, huvud, sv, PROJEKT  # noqa: E402
 import figurer as F05  # noqa: E402   (väggband och inåtgående hörn, samma som i K-05)
 sys.path.insert(0, os.path.join(BER, "R-05"))
-import kallare as KAL  # noqa: E402   (kantisolering och kantelement, samma som i R-03)
+import kallare as KAL  # noqa: E402   (kantisoleringen och plattan på marks L-element, samma som i R-03)
 
 # ================================================================== 1. underlag
 G = json.load(open(os.path.join(K05, "bild", "geometri.json"), encoding="utf-8"))
@@ -69,6 +69,8 @@ KONTUR = Polygon(G["kontur"])
 HAL = Polygon(G["hal"])
 PLATTA = KONTUR.difference(HAL)
 MARK = Polygon(G["mark"])
+RYGG_MARK = KAL.platta_pa_mark()[2]         # L-elementens rygg vid plattan på marks fria kanter (AR-02)
+BETONG = PLATTA.difference(RYGG_MARK)        # betongen: vid plattan på marks fria kanter fram till ryggen
 XMAX, YMAX = KONTUR.bounds[2], KONTUR.bounds[3]   # 13 810, 15 900
 YCUT = 12450.0                              # plattan på mark bryts här i planerna 1:50
 VIKT = {8: 0.395, 10: 0.617, 12: 0.888}     # kg/m
@@ -103,7 +105,7 @@ def zonjarn(zn):
     """Tilläggsjärnen i en zon: linjer i x- och y-led med avståndet s, klippta mot plattan minus täckskikt."""
     x0, y0, x1, y1 = zn["bounds"]
     d, s = zn["tillagg"]
-    yta = box(x0, y0, x1, y1).intersection(PLATTA.buffer(-C_KANT, join_style=2))
+    yta = box(x0, y0, x1, y1).intersection(BETONG.buffer(-C_KANT, join_style=2))
     ut = {"x": [], "y": []}
     for rikt in ("x", "y"):
         a0, a1 = (y0, y1) if rikt == "x" else (x0, x1)
@@ -121,7 +123,7 @@ def zonjarn(zn):
 def natjarn(sc, rikt):
     """Nätets järn i x- eller y-led med avståndet sc: sträckor i plattan minus täckskiktet (stålförteckningen och
     den kodgenererade modellens armering)."""
-    yta = PLATTA.buffer(-C_KANT, join_style=2)
+    yta = BETONG.buffer(-C_KANT, join_style=2)
     minx, miny, maxx, maxy = KONTUR.bounds
     rng = np.arange(miny + C_KANT + sc / 2, maxy, sc) if rikt == "x" else np.arange(minx + C_KANT + sc / 2, maxx, sc)
     ut = []
@@ -179,18 +181,20 @@ def lager_plattan(v, klipp=True):
         v.polygon(G["hal"], fyll="hal", stil="kontur")
         v.linje([(min(hx), min(hy)), (max(hx), max(hy))], "tunn")
         v.linje([(min(hx), max(hy)), (max(hx), min(hy))], "tunn")
-        v.text(*PLAC["mark_text"], "Platta på mark\n(400 mm cellplast, K-06)", a="cm", sz=7.0, col="gra", i=True)
+        v.text(*PLAC["mark_text"], f"Platta på mark\n({sv(KAL.EPS_MARK)} mm cellplast, K-06)", a="cm", sz=7.0,
+               col="gra", i=True)
 
 
 def lager_kanter(v):
-    """Kantisoleringen 30 ovanpå källarväggarna och kantelementen 500 längs plattan på marks fria kanter."""
+    """Kantisoleringen 30 ovanpå källarväggarna och L-elementens rygg (L-element 500) längs plattan på marks fria
+    kanter, med ytterkanten i väggarnas ytterliv."""
     with v.lager("kanter"):
-        for g, fyll in ((KAL.kantisolering(), "eps2"), (KAL.kantelement(), "eps")):
+        for g, fyll in ((KAL.kantisolering(), "eps2"), (RYGG_MARK, "eps")):
             for p in getattr(g, "geoms", [g]):
                 v.polygon(list(p.exterior.coords), fyll=fyll, stil="tunn")
         v.hanvisning((11000.0, 12525.0), (10200.0, 13700.0), "kantisolering 30", a="lm", sz=6.4)
-        v.hanvisning((4360.0, 14200.0), (5200.0, 14600.0),
-                     f"kantelement cellplast, höjd {sv(KAL.H_KANTELEMENT)}", a="lm", sz=6.4)
+        v.hanvisning((4290.0, 14200.0), (5200.0, 14600.0),
+                     f"L-element S300, höjd {sv(KAL.H_L_MARK)}, ryggen {sv(KAL.L_BEN)}", a="lm", sz=6.4)
 
 
 def lager_vaggar(v, namn=True):
@@ -352,7 +356,7 @@ def vaggspann(namn):
 def pos3_jarn():
     """2 + 2 Ø10 över varje rör (pos 3), L = 1 200 centrerade på röret. Vid trapphålet slutar järnen 25 mm från
     hålkanten och går minst skarvlängden (650) bort från hålet. [(p0, p1, rör)]"""
-    yta = PLATTA.buffer(-C_KANT, join_style=2)
+    yta = BETONG.buffer(-C_KANT, join_style=2)
     ut = []
     for namn, x0, y0, x1, y1 in ROR:
         x, y = (x0 + x1) / 2, (y0 + y1) / 2
@@ -725,14 +729,17 @@ def blad_oversikt():
             "Källarväggarna (Kub 350-150, R-05) under plattan streckade.",
             f"Kantisolering {sv(KAL.KI)} mm cellplast utanför plattans kant ovanpå källarväggarna, ut till väggarnas "
             "ytterliv; plattan gjuts mot den (sektion A, R-06.4).",
-            f"Plattan på mark: kantelement av cellplast, höjd {sv(KAL.H_KANTELEMENT)}, längs de fria kanterna, som "
-            "form och mot köldbrygga. Anslutningen mot plan 1:s ytterväggar enligt arkitekten."]),
+            f"Plattan på mark: L-element S300, höjd {sv(KAL.H_L_MARK)}, längs de fria kanterna med ytterkanten i "
+            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S100 under plattan (K-06). Betongen går "
+            f"fram till L-elementens rygg, {sv(KAL.L_BEN - KAL.KI)} mm innanför plattans kant, och fyller ryggens fas "
+            f"i överkant, där den når {sv(KAL.FAS - KAL.KI)} mm innanför kanten. Järnen slutar {sv(C_KANT)} mm från "
+            "ryggen."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
             dict(form="linje", stil="dold", text="källarvägg under plattan"),
             dict(form="yta", fyll="eps2", stil="tunn", text="kantisolering 30"),
-            dict(form="yta", fyll="eps", stil="tunn", text=f"kantelement, höjd {sv(KAL.H_KANTELEMENT)} (schematiskt)"),
+            dict(form="yta", fyll="eps", stil="tunn", text=f"L-elementens rygg, plattan på mark (höjd {sv(KAL.H_L_MARK)})"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),
         dict(typ="tabell", kolumner=["Ritning", "Innehåll", "Skala"], bredd=(0, 1, 0), rader=forteckning,

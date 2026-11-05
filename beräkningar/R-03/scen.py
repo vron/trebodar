@@ -20,7 +20,7 @@ import kallare as K  # noqa: E402
 
 H, HMB = K.H_VAGG, K.H_MB                         # 2 100, 150
 Z1 = H + HMB                                      # plan 1:s golv
-HB, TF, HP = K.UTF["h_balk"], K.T_FOT, K.H_PLATTA # 200, 100, 100
+HB, TF, HP = K.UTF["h_balk"], K.T_FOT, K.H_PLATTA # 300, 100, 100
 
 FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s300="#c6d6e8", stal="#55667a", smyg="#e6d9b8",
             kantisol="#dfe7f0", folie="#cfdcb8")
@@ -101,11 +101,15 @@ def kantisolering():
 
 
 def bjalklag(s, kapa=None):
-    """Mellanbjälklaget 150 med trapphålet och kantisoleringen 30, också plattan på mark (plan 1) på 400 mm
-    cellplast."""
-    p = KONTUR.difference(HAL)
+    """Mellanbjälklaget 150 med trapphålet och kantisoleringen 30, också plattan på mark (plan 1) i L-element 500
+    på 350 mm cellplast (AR-02): betongen går fram till L-elementens rygg vid de fria kanterna (fasen visas inte)."""
+    pm, fri, rygg = K.platta_pa_mark()
+    p = KONTUR.difference(HAL).difference(rygg)
     s.prisma(p if kapa is None else p.difference(kapa), H, Z1, FARG["betong"])
     ki = kantisolering()
     s.prisma(ki if kapa is None else ki.difference(kapa), H, Z1, FARG["kantisol"])
-    s.prisma(K.kantelement(), Z1 - K.H_KANTELEMENT, Z1, FARG["kantisol"])
-    s.prisma(MARK.buffer(-1.0, join_style=2), H - 400.0, H, FARG["eps"])
+    fot = fri.buffer(K.B_L, cap_style="flat", join_style="mitre").intersection(pm)
+    s.prisma(rygg, Z1 - K.H_L_MARK, Z1, FARG["s300"])
+    s.prisma(fot.difference(rygg), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
+    s.prisma(pm.difference(rygg).difference(fot), Z1 - K.H_L_MARK, H, FARG["eps"])
+    s.prisma(fot.difference(rygg), Z1 - K.H_L_MARK + TF, H, FARG["eps"])

@@ -305,7 +305,7 @@ def sektion():
         v.linje([(X_V - 650, Z_MARK_SO), (X_V, Z_MARK_SO)], "normal")
         v.linje([(X_H, Z_MARK_NV), (X_H + 650, Z_MARK_NV)], "normal")
         v.linje([(X_V - 650, Z_BERG), (X_H + 650, Z_BERG)], "tunn")
-    # bottenplattan: cellplast 200 och betong 100, L-elementen i kanterna (K-06, R-04)
+    # bottenplattan: cellplast 300 och betong 100, L-elementen 400 i kanterna (K-06, R-04)
     with v.lager("bottenplatta"):
         v.rekt(XB_V, Z_MAK, XB_H, Z_BP, fyll="eps", stil="tunn")
         lb, bb = K.L_BEN, K.B_BALK
@@ -481,6 +481,8 @@ def blad_sektion():
             f"ø110 är ritat i brunnens x. Överkant rör = brunnens överkant − {svm(BRUNN['ror_under'] * 1000)} = "
             f"{rh(Z_DRAN_INM)}; dimensionerande nivå {svm(H['ror_marginal'] * 1000)} mm högre, {rh(Z_DRAN)}, för "
             "mätosäkerheten.",
+            f"Dräneringen runt källaren har överkanten i cellplastens underkant, {rh(Z_MAK)}, och faller mot brunnen "
+            f"till rörets dimensionerande nivå: {svm(Z_MAK - Z_DRAN)} mm fall längs källaren (D-01).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

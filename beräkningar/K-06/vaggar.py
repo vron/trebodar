@@ -518,11 +518,11 @@ def byggskede(rows, arm):
             for k in ("utn_M", "utn_V", "utn_lb", "utn_fog")}
     out["B"] = dict(vagg=r["namn"], f28=f28, krav=krav)
     # krav på hållfastheten: f_ck vid den styrande mognadsåldern (samma för N och R, eftersom kraven gäller f_ck och
-    # f_ctm, som båda följer β_cc(t)); regeln avrundas uppåt till 5 MPa och gäller all återfyllning
+    # f_ctm, som båda följer β_cc(t)); regeln avrundas uppåt till helt MPa och gäller all återfyllning
     tA = max(max(x["krav"][k]["N"] for k in x["krav"]) for x in out["A"]["vaggar"].values())
     tB = max(out["B"]["krav"][k]["N"] for k in out["B"]["krav"])
     out["A"]["fck"], out["B"]["fck"] = fck_t(tA), fck_t(tB)
-    regel = 5 * math.ceil(max(out["A"]["fck"], out["B"]["fck"]) / 5 - 1e-9)
+    regel = math.ceil(max(out["A"]["fck"], out["B"]["fck"]) - 1e-9)
     out["regel"] = dict(fck=regel, fcm=regel + 8, andel=regel / I.FCK_V,
                         t_eq={c: tid_hallfasthet(regel, s) for c, s in CEM.items()})
     out["regel"]["dygn"] = {c: {T: max(3.0, dagar(out["regel"]["t_eq"][c], T)) for T in TEMP} for c in CEM}

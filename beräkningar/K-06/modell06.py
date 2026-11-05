@@ -11,7 +11,7 @@ Laster som står över en källarvägg (K-05: plats "vägg") går direkt ned i v
 Väggarnas egentyngd och fasadstenen läggs som linjelast på bottenplattan. Alla delar är linjära, så lastfallen kan
 kombineras.
 
-    python modell06.py L300     -> nätstorlek, lastsummor och jämvikt
+    python modell06.py L400     -> nätstorlek, lastsummor och jämvikt
 """
 import os
 import sys
@@ -366,7 +366,7 @@ class System:
 
 if __name__ == "__main__":
     import time
-    utf = sys.argv[1] if len(sys.argv) > 1 else "L300"
+    utf = sys.argv[1] if len(sys.argv) > 1 else I.UTF
     t0 = time.time()
     S_ = System(utf, [1000.0] * len(PEL), I.EPS_FALT, I.EPS_BALK, "lång")
     print(f"topp {S_.Pt.ne} el, botten {S_.Pb.ne} el, dof {S_.ndof}, {time.time() - t0:.0f} s")

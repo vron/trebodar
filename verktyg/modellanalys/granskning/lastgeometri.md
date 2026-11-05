@@ -8,7 +8,6 @@ Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 me
 
 Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av:
 
-- **Plattan på mark:** handlingarna förutsätter 400 mm cellplast på fyllning upp till 1,7 m. Modellen är inte uppdaterad där och visar berget 75 mm under plattan.
 - **Bottenplattan i matkällaren:** K-06 räknar med bottenplatta i hela källaren. Modellen har ingen platta innanför V2, V15, V19 och V20, bara en remsa under väggarna.
 - **Areor:** F-01 anger byggnadsarea 135 + 30 m² och bruttoarea 270 + 30 m² (bygglovet). Modellen ger 160,8 m² för plan 1 och 132,1 m² för källaren, mätt till ytterliv.
 
@@ -69,14 +68,14 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 |---|---|---|---|
 | V1 | 1,8 m | 1,31–1,56 m fyllning | på säker sida |
 | V2 | 2,0 m | 1,51–1,83 m berg | på säker sida |
-| V3 | 1,7 m fyllning + 400 mm cellplast | 1,88–2,02 m berg | se plattan på mark |
+| V3 | 1,75 m fyllning och makadam + 350 mm cellplast | samma (plattan på mark, L-element 500) | stämmer |
 | V7 | 2,0 m | 1,51 m avsats | på säker sida |
 | V9 | 0 → 0,8 m | ingen mark modellerad | kan inte kontrolleras |
 | V10–V13 (fasaden med öppningar) | 0,80 m | 0,80 m fyllning | stämmer |
 | V14 | 0,8 → 1,8 m | 0,84 → 1,18 m fyllning | på säker sida |
 | V16 | 2,0 m | 1,47 m berg | på säker sida |
 | V18 | 2,0 m | 1,41–1,50 m avsats | på säker sida |
-| V20 | 1,7 m fyllning + 400 mm cellplast | 1,87 m berg | se plattan på mark |
+| V20 | 1,75 m fyllning och makadam + 350 mm cellplast | samma (plattan på mark, L-element 500) | stämmer |
 | V21 | 2,0 m | 0,92–1,40 m fyllning | på säker sida |
 
 ## Inte granskat

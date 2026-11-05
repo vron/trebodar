@@ -3,7 +3,7 @@ Källarens geometri för R-04 (bottenplatta) och R-05 (källarstomme), i K-05:s 
 mellan mellanbjälklagets kanter x = 0 och y = 0, y uppåt) och höjder z från bottenplattans överkant.
 
 Underlag: K-05 (bild/geometri.json: väggarnas centrumlinjer, betongkärnans ändar vid öppningarna och rörens lägen;
-resultat.json: rörens lastytor, P7 två rör), K-06 (indata.py: Kub 350-150, höjder, armering, bottenplattan L300;
+resultat.json: rörens lastytor, P7 två rör), K-06 (indata.py: Kub 350-150, höjder, armering, bottenplattan L400;
 resultat.json: plintarnas storlek). Inget läses ur modellen; källfilerna kontrolleras mot modellen med
 verktyg/modellanalys/kontroll_geometri05.py och kontroll_r045.py.
 
@@ -38,8 +38,8 @@ H_VAGG, H_MB, H_GJUT1 = I06.H_VAGG, I06.H_MB, I06.H_GJUT1           # 2 100, 150
 KI = I06.KI                     # mellanbjälklagets kant 30 mm innanför väggens ytterliv
 SKIFT = 600.0                   # Kub-elementens höjd; det översta skiftet är ett halvt element, 300
 C_IN, C_UT = I06.C_IN, I06.C_UT  # täckskikt till de vågräta järnen: insida 25, utsida 30
-UTF = I06.UTFORANDEN["L300"]    # bottenplattan: H 300, cellplast 200, kantbalk 200 (inklusive plattan)
-H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (S200 under balkarna), 450
+UTF = I06.UTFORANDEN[I06.UTF]   # bottenplattan L400: H 400, cellplast 300, kantbalk 300 (inklusive plattan)
+H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (S300 under balkarna), 450
 L_BEN = I06.L_BEN               # L-elementets rygg nedtill, 100: ytterkanten i väggens ytterliv, betongen 100 mm innanför
 FAS = I06.FAS                   # ryggens avfasning i ovankant, 50 (betongen fyller fasen)
 B_L = I06.B_L                   # L-elementets bredd, 600
@@ -67,6 +67,7 @@ ARM_INRE = tuple(I06.ARM_INRE)  # Ø10 s300 i innerväggarnas mitt (gjutna i ett
 ARM_V_VAGG = {v["namn"]: tuple(v["arm"]) for v in R06["vaggar"] if "arm" in v}
 ARM_H = (I06.ARM_H["d"], I06.ARM_H["s"], I06.ARM_H["s_topp"])          # Ø10 s600, s300 i de två översta skiften
 STARTJARN = I06.STARTJARN       # Ø10 s300 på utsidan, 500 i kantbalken, 1 200 upp
+START_FOT = I06.START_FOT       # startjärnets fot längs kantbalken, på byglarna (K-06)
 VINKEL_HORN = (750.0, 750.0)    # vinkeljärn i hörn och anslutningar, båda ytorna, i varje lager
 SKARV = I06.SKARV               # 500
 OPP = I06.OPPNING               # 2 Ø12, förankras 600 förbi öppningen
@@ -125,7 +126,7 @@ def kallare():
 
 KALLARE = kallare()
 BETONG = KALLARE.buffer(-L_BEN, join_style=2)       # bottenplattans betong: kanten 100 mm innanför, i kärnans yttre yta
-T_KANTELEMENT, H_KANTELEMENT = 100.0, 500.0        # kantelement av cellplast längs plattan på marks fria kanter
+H_L_MARK, EPS_MARK = I06.H_L_MARK, I06.EPS_MARK    # plattan på mark: L-element 500 och cellplast 350 (AR-02, K-06)
 
 
 def kantisolering():
@@ -134,12 +135,15 @@ def kantisolering():
     return k.buffer(KI, join_style=2).difference(k).intersection(KALLARE)
 
 
-def kantelement():
-    """Kantelement av cellplast, 500 mm höga, utanför plattan på marks fria kanter (plan 1, utanför källaren), mot
-    köldbrygga; tjockleken T_KANTELEMENT är schematisk."""
-    k = Polygon(G["kontur"])
-    ut = box(-500, VAGG["V3"]["c"] + T_VAGG / 2, VAGG["V20"]["c"] - T_VAGG / 2, 16500)
-    return k.buffer(T_KANTELEMENT, join_style=2).difference(k).intersection(ut)
+def platta_pa_mark():
+    """Plattan på mark på plan 1 (bakom V3 och V20) i väggarnas ytterliv, L-elementens ytterkant (AR-02): ytan, de
+    fria kanterna (inte mot källaren) och L-elementens rygg, L_BEN innanför ytterkanten. Mellanbjälklagets betong går
+    fram till ryggen och fyller dess fas, FAS från ytterkanten i överkant."""
+    p = Polygon(G["mark"]).buffer(KI, join_style=2).difference(KALLARE)
+    p = max(getattr(p, "geoms", [p]), key=lambda g: g.area)
+    fri = p.exterior.difference(KALLARE)
+    rygg = fri.buffer(L_BEN, cap_style="flat", join_style="mitre").intersection(p)
+    return p, fri, rygg
 for v in VAGGAR:
     # utsidan: den sida av centrumlinjen som ligger utanför källaren (ytterväggar); för innerväggar None
     if v["typ"] == "yttre":
@@ -241,7 +245,7 @@ BULT_LAGE = {1: ((-60.0, -60.0), (60.0, -60.0), (60.0, 60.0), (-60.0, 60.0)),
 L_ROR = H_VAGG                   # 2 100: från fotplåten till mellanbjälklagets underkant
 
 # ------------------------------------------------------------------ bottenplattan (K-06)
-PL06 = R06["platta"]["L300"]
+PL06 = R06["platta"][I06.UTF]
 PLINT = {r["namn"]: float(b) for r, b in zip(ROR, PL06["plint"])}   # plintarnas sida, centrerad under stödet
 
 

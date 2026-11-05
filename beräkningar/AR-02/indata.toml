@@ -48,7 +48,7 @@ fg          = 8.500     # färdigt golv plan 1 (bygglov) = mellanplattans överk
 h_bjalklag  = 0.150     # mellanbjälklaget (K-05)
 h_kallare   = 2.100     # bottenplattans överkant till bjälklagets underkant (K-05, R-05)
 h_platta    = 0.100     # bottenplattans betong i fält (R-04)
-t_cellplast = 0.200     # cellplast under plattan, makadamens överkant (R-04)
+t_cellplast = 0.300     # cellplast under plattan (L-element 400), makadamens överkant (R-04, K-06)
 t_makadam   = 0.150     # makadam, minst (U-01); berget sprängs och avjämnas under
 h_l_mark    = 0.500     # plattan på mark: L-elementens höjd; deras underkant och cellplastens underkant på makadamen
 mmn         = 7.68      # medelmarknivå (bygglov, sektion E)

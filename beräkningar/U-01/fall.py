@@ -15,10 +15,10 @@ HERE = Path(__file__).parent
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 G05 = json.load(open(HERE.parent / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
 VAGG = {f"V{i}": v for i, v in enumerate(G05["vagg"], 1)}
-# plintarnas mitt (dubbelrör: mitt emellan rören) och sida ur K-06 (bottenplattan L300)
+# plintarnas mitt (dubbelrör: mitt emellan rören) och sida ur K-06 (bottenplattans utförande, också i jämförelsen)
 PEL = {f"P{i}": (p[0] + IN["dubbelror"].get(f"P{i}", 0.0) / 2, p[1]) for i, p in enumerate(G05["pelare"], 1)}
 R06 = json.load(open(HERE.parent / "K-06" / "resultat.json", encoding="utf-8"))
-PLINT = {f"P{i}": float(b) for i, b in enumerate(R06["platta"]["L300"]["plint"], 1)}
+PLINT = {f"P{i}": float(b) for i, b in enumerate(R06["platta"][IN["sektion"]["utforande"]]["plint"], 1)}
 MANAD = ("januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober",
          "november", "december")
 TYPER = (("falt", "Platta i fält"), ("plint", "Plint"), ("kant", "Kantbalk"))
@@ -103,7 +103,8 @@ def kor(fall, f=1.0, n=None, falt=()):
                  vinter=float(dT[i][A.pa].mean()),
                  n_neg_alla=int(max((dT[j] < 0).sum() for j in ii)))
         if typ == "falt":
-            r["M_folie"], r["M_folie_dygn"] = max(kondens(Tu[j], Tf[j], P["t_eps"] / 2, mu) for j in ii)
+            # plastfolien ligger på det undre cellplastskiktet, lika tjockt som L-elementens fot
+            r["M_folie"], r["M_folie_dygn"] = max(kondens(Tu[j], Tf[j], P["t_fot"], mu) for j in ii)
             r["dT_folie"] = float(min((Tf[j] - Tu[j]).min() for j in ii))
         res[typ] = r
     res["M"] = max(res["falt"]["M"], res["falt"]["M_folie"], res["plint"]["M"], res["kant"]["M"])

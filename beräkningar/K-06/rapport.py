@@ -45,7 +45,13 @@ D["mat"] = dict(K0=f(ind["K0"], 2), KA=f(ind["KA"], 2), fi=f(ind["fi"], 0), gamm
                 e_ut=f(ind["e_topp"] * 1000 - I.T_KARNA / 2, 1), fck=f(I.FCK_V, 0), kryp=f(I.KRYP_V, 1),
                 svinn=f(I.SVINN_V * 1e3, 2), sv_mm=f(I.SVINN_V * I.H_VAGG, 2), gkub=f(I.G_KUB, 2), gsten=f(I.G_STEN, 1),
                 c_in=mm(I.C_IN), c_ut=mm(I.C_UT), gjut1=mm(I.H_GJUT1), skarv=mm(I.SKARV), Ecm=mm(round(M.BV.Ecm, -2)),
-                Ev_l=mm(round(M.BV.Ecm / (1 + I.KRYP_V), -2)))
+                Ev_l=mm(round(M.BV.Ecm / (1 + I.KRYP_V), -2)), start_fot=mm(I.START_FOT), l_mark=mm(I.H_L_MARK),
+                start_ned=mm(I.STARTJARN["ned"]))
+# bottenplattans utförande (indata.UTFORANDEN): höjder och cellplast
+_U = I.UTFORANDEN[I.UTF]
+D["utf"] = dict(namn=I.UTF, H=mm(_U["H"]), t_eps=mm(_U["t_eps"]), h_balk=mm(_U["h_balk"]), t_fot=mm(I.T_FOT),
+                ovre=mm(_U["t_eps"] - I.T_FOT), folie=mm(I.H_PLATTA + _U["t_eps"] - I.T_FOT), b_l=mm(I.B_L),
+                l_ben=mm(I.L_BEN), fas=mm(I.FAS), omlott=mm(I.OMLOTT), element=I.L_ELEMENT)
 arm = R["arm"]
 D["arm"] = dict(txt=jarn(arm), d=str(arm[0]), s=str(arm[1]), As=mm(VG.As(*arm)), dv=mm(VG.d_lodrat(arm[0])),
                 MRd=f(VG.MRd(VG.As(*arm), VG.d_lodrat(arm[0]))), MRd300=f(VG.MRd(VG.As(10, 300), VG.d_lodrat(10))),
@@ -169,6 +175,12 @@ D["bygg"]["d20N"] = D["bygg"]["dygn"][3]["N"]
 D["bygg"]["d10R"] = D["bygg"]["dygn"][1]["R"]
 
 # ------------------------------------------------------------------ bottenplatta
+def jarn_balk(bk, lager):
+    """Balkarnas järn i underkant ("uk") eller överkant ("ok"): det största (antal och diameter) längs balkarna."""
+    a = max((b[lager] for b in bk), key=lambda x: x["As"])
+    return f"{a['n']} Ø{a['dia']}"
+
+
 P = R["platta"]
 D["platta"] = {}
 for u in I.UTFORANDEN:
@@ -195,11 +207,13 @@ for u in I.UTFORANDEN:
                skillnad=f(p["sattning"]["skillnad"], 1)),
         falt=dict(mu=f(p["falt"]["mu_ra"]), mo=f(p["falt"]["mo_ra"]), MRu=f(p["falt"]["MRu"]), MRo=f(p["falt"]["MRo"]),
                   utn=pr(p["falt"]["utn_ra"]), d=mm(p["falt"]["d"]), topp=f(p["falt"]["topp_mu"])),
-        kant=dict(Ms=f(max(b["Msag"] for b in kant)), Mh=f(max(b["Mhog"] for b in kant)), V=f(max(b["V"] for b in kant)),
+        kant=dict(uk_txt=jarn_balk(kant, "uk"), ok_txt=jarn_balk(kant, "ok"),
+                  Ms=f(max(b["Msag"] for b in kant)), Mh=f(max(b["Mhog"] for b in kant)), V=f(max(b["V"] for b in kant)),
                   MRd=f(kant[0]["uk"]["MRd"]), MRo=f(kant[0]["ok"]["MRd"]),
                   utnV=pr(max(b["skjuv"]["utn"] for b in kant)), VRd=f(kant[0]["skjuv"]["VRdc"]),
                   utnM=pr(max(max(b["Msag"] / b["uk"]["MRd"], b["Mhog"] / b["ok"]["MRd"]) for b in kant))),
-        inre=dict(Ms=f(max(b["Msag"] for b in inre)), Mh=f(max(b["Mhog"] for b in inre)), V=f(max(b["V"] for b in inre)),
+        inre=dict(uk_txt=jarn_balk(inre, "uk"), ok_txt=jarn_balk(inre, "ok"),
+                  Ms=f(max(b["Msag"] for b in inre)), Mh=f(max(b["Mhog"] for b in inre)), V=f(max(b["V"] for b in inre)),
                   utnM=pr(max(max(b["Msag"] / b["uk"]["MRd"], b["Mhog"] / b["ok"]["MRd"]) for b in inre)),
                   utnV=pr(max(b["skjuv"]["utn"] for b in inre))),
         plint=dict(stans=pr(max(x["utn_stans"] for x in pl)), namn=max(pl, key=lambda x: x["utn_stans"])["namn"],
@@ -210,11 +224,15 @@ for u in I.UTFORANDEN:
         kant_d=dict(uk=mm(kant[0]["d_uk"]), ok=mm(kant[0]["d_ok"])),
         topp=dict(ok=pr(t["u_ok"]), uk=pr(t["u_uk"]), ok5=pr(t["u5_ok"]), uk5=pr(t["u5_uk"])),
         svinn=f(p["svinn"]["m_max"]),
-        mark=dict(uls=f(p["mark"]["uls"], 0), fdM=f(p["mark"]["fdM"], 0), qp=f(p["mark"]["qp"], 0),
-                  kryp=f(p["mark"]["kryp"], 0), utn=pr(max(p["mark"]["uls"] / p["mark"]["fdM"],
-                                                          p["mark"]["qp"] / p["mark"]["kryp"]))),
+        syll=dict(vaggar=", ".join(p["syll"]["vaggar"]), gk=f(p["syll"]["gk"], 2), sk=f(p["syll"]["sk"], 2),
+                  q=f(p["syll"]["q_uls"], 2), qqp=f(p["syll"]["q_qp"], 2), b=mm(p["syll"]["b"]),
+                  betong=mm(p["syll"]["pa_betong"]), p=f(p["syll"]["p_uls"], 0), pqp=f(p["syll"]["p_qp"], 0),
+                  fdM=f(p["syll"]["fdM"], 0), kryp=f(p["syll"]["kryp"], 0), utn=pr(p["syll"]["utn"])),
+        mark=dict(uls=f(p["mark"]["uls"], 1), medel=f(p["mark"]["uls_medel"], 1), fdM=f(p["mark"]["fdM"], 1),
+                  qp=f(p["mark"]["qp"], 0), kryp=f(p["mark"]["kryp"], 0),
+                  utn=pr(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"]))),
     )
-p3 = P["L300"]
+p3 = P[I.UTF]
 D["plintar"] = [dict(namn=x["namn"], b=mm(x["b"]), N=f(x["N"]), p=f(x["p"], 0), stans=pr(x["utn_stans"]),
                      ute=pr(x["utn_ute"]), boj=pr(x["utn_boj"])) for x in p3["plintar"]]
 ror = p3["ror"]
@@ -251,7 +269,7 @@ D["valid"].update(w_hand=f(e3["qp"] * 1e-3 * I.T_FOT / Ed + 0, 2), w_fe=f(p3["sa
 # hållfasthetstillväxt: β_cc(7) för N-cement (SS-EN 1992-1-1 3.1.2), och mognadsfaktorn vid 10 °C
 D["valid"].update(b7=f(math.exp(0.25 * (1 - math.sqrt(28 / 7))), 3), m10=f(VG.mognad(10.0), 3),
                   f7=f(VG.fck_t(7.0), 1))
-L3 = pickle.load(open(os.path.join(HERE, "res06_L300_lång.pkl"), "rb"))
+L3 = pickle.load(open(os.path.join(HERE, f"res06_{I.UTF}_lång.pkl"), "rb"))
 jv = L3["env"].get("jamvikt", {})
 JNAMN = {"G": "egentyngd", "S_V": "snö V", "S_M": "snö M", "S_H": "snö H", "Qb": "nyttig last i källaren"}
 D["jamvikt"] = [dict(namn=JNAMN.get(k, k), last=f(v["last"], 0), R=f(v["reaktion"], 0)) for k, v in jv.items()]
@@ -270,8 +288,10 @@ poly = M.kallare()
 FG.rita_kallare(os.path.join(HERE, "fig_kallare.svg"), R, poly)
 _, kant, inre, _ = M.balkar(p3["plint"])
 FG.rita_bottenplatta(os.path.join(HERE, "fig_bottenplatta.svg"), R, poly, kant, inre, p3["plint"])
-FG.rita_detalj(os.path.join(HERE, "fig_detalj.svg"), tuple(arm))
-FG.rita_lokala(os.path.join(HERE, "fig_lokala.svg"))
+_pk = D["platta"][I.UTF]
+FG.rita_detalj(os.path.join(HERE, "fig_detalj.svg"), tuple(arm), balk=(_pk["kant"]["uk_txt"], _pk["kant"]["ok_txt"]))
+FG.rita_lokala(os.path.join(HERE, "fig_lokala.svg"), plint=(min(p3["plint"]), max(p3["plint"])),
+               balk=(_pk["inre"]["uk_txt"], _pk["inre"]["ok_txt"]))
 # jordtryck och moment för en vägg med 2,0 m fyllning (V2: störst moment med lasterna över väggen)
 v2 = next(v for v in R["vaggar"] if v["namn"] == vmax["namn"])
 hf = v2["dim"]["hf"]
@@ -287,7 +307,7 @@ FG.rita_jordtryck(os.path.join(HERE, "fig_jordtryck.svg"), dict(
 FG.rita_hardning(os.path.join(HERE, "fig_hardning.svg"), VG.fck_t, VG.mognad, regel["fck"], 5.0)
 tj = __import__("shapely.ops", fromlist=["unary_union"]).unary_union([kant, inre, M.balkar(p3["plint"])[3]])
 import kontroll06 as KO  # noqa: E402
-L3m, K3m = KO.las("L300", "lång"), KO.las("L300", "kort")
+L3m, K3m = KO.las(I.UTF, "lång"), KO.las(I.UTF, "kort")
 pmax = np.maximum(L3m["env"]["p_max"], K3m["env"]["p_max"])
 FG.rita_tryck(os.path.join(HERE, "fig_tryck.svg"), L3["xy_b"], L3["tri_b"], pmax, L3["sls"]["wb_qp"], poly, tj,
               p_max=5 * math.ceil(float(np.percentile(pmax, 99.9)) / 5),

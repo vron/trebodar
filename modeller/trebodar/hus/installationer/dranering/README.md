@@ -29,7 +29,9 @@ källarväggarna och plattan på mark (`../../grund`) och marken vid fasaderna u
 ## Ledningarna
 
 - **Dräneringen** (D1, D2): dränrör Ø110 i en ring `AVSTAND` 300 mm utanför grundens ytterkant, med överkanten i
-  grundens underkant (källaren och plattan på mark, den närmaste) och fall minst 1:200.
+  grundens underkant (källaren och plattan på mark, den närmaste), fall 1:200. Längs källaren begränsas fallet av det
+  befintliga utgående röret: grenarna faller där så brant som det går och når brunnen `UTLOPP_MARGINAL` 20 mm över
+  rörets inmätta vattengång (AR-02 räknar rörets höjd 20 mm högre för mätosäkerheten), minst `FALL_MIN` 1:400.
 - **Dagvattnet** (S1, S2): täta rör Ø110 i en ring 600 mm utanför grunden, minst 300 mm under marken vid den
   närmaste fasaden, fall minst 1:100. Varje stuprör ansluts (A-…) med en stuprörsanslutning med lövsil vid stuprörets
   ände, lodrätt ned och en sticka till ringen.
@@ -48,6 +50,7 @@ under dräneringen där de korsar den.
 
 ## Kontrollen
 
-`./mod dranering kontroll`: fallet i varje sträcka, att grenarna når brunnen över utloppet, brunnarnas djup och
+`./mod dranering kontroll`: fallet i varje sträcka (dräneringen minst 1:400, dagvattnet 1:100), att grenarna når
+brunnen minst 20 mm över utloppet, dräneringens fall längs källaren per gren, brunnarnas djup och
 stickornas täckning, och krockarna ur modellens geometri mot husets delar och de andra installationerna (fel). Krockar
 med marken, fyllningen och berget räknas inte; ledningarna i berget (schakt i berg) redovisas som anmärkning.

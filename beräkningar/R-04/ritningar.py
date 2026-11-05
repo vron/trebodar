@@ -5,9 +5,9 @@ R-04 Konstruktionsritning bottenplatta (F-01), A3 med ../ritningsmall:
     R-04.2  Armering                                          1:50
     R-04.3  Sektioner, detaljer och förteckningar             1:10, 1:20
 
-Bottenplatta L300 (K-06): 100 mm betong C30/37 på 200 mm cellplast S100, kantbalkar i L-element och balkar under
-innerväggarna 450 × 200 och plintar under rören, alla på 100 mm S300. L-elementen har ytterkanten i väggarnas
-ytterliv och betongen börjar 100 mm innanför. Geometrin ur
+Bottenplatta L400 (K-06): 100 mm betong C30/37 på 300 mm cellplast S100 (100 + 200, plastfolien mellan),
+kantbalkar i L-element och balkar under innerväggarna 450 × 300 och plintar under rören, alla på 100 mm S300.
+L-elementen har ytterkanten i väggarnas ytterliv och betongen börjar 100 mm innanför. Geometrin ur
 ../R-05/kallare.py (K-05:s geometri.json, K-06:s indata och resultat). Koordinater som K-05 (mm, origo i
 skärningen mellan mellanbjälklagets kanter x = 0 och y = 0); höjder z från bottenplattans överkant.
 
@@ -43,17 +43,28 @@ UNDERLAG = f"{R4.revision('K-06')}, {R4.revision('K-05')}"
 REVISIONER = [dict(rev=REV, avser="Första utgåvan", datum=DATUM, sign=PROJEKT["signatur"])]
 
 V, VAGG, ROR = K.VAGGAR, K.VAGG, K.ROR
-HP, HB, TF, EPS = K.H_PLATTA, K.UTF["h_balk"], K.T_FOT, K.UTF["t_eps"]          # 100, 200, 100, 200
+HP, HB, TF, EPS = K.H_PLATTA, K.UTF["h_balk"], K.T_FOT, K.UTF["t_eps"]          # 100, 300, 100, 300
 BB = K.B_BALK                                                                    # 450
 C_UK, C_OK = 30.0, 25.0         # täckskikt: mot cellplasten (distanser) och i överkant (K-06)
 NAT = (6, 150)                  # Ø6 s150 i båda lagren (K-06)
-BALK_ARM = dict(uk=(2, 10), ok=(2, 10), bygel=(6, 600))
+def _balkjarn(lager):
+    """Balkarnas längsjärn i underkant ("uk") eller överkant ("ok") enligt K-06: det största längs balkarna."""
+    a = max((b[lager] for b in K.PL06["balkar"]), key=lambda x: x["As"])
+    return (a["n"], a["dia"])
+
+
+BALK_ARM = dict(uk=_balkjarn("uk"), ok=_balkjarn("ok"), bygel=(6, 600))
 PLINT_ARM = (8, 150)            # Ø8 s150 i underkant, båda riktningarna
 DIAG = dict(n=2, d=10, L=1200.0, off=(150.0, 250.0))   # i överkant vid de inåtgående hörnen
 START = K.STARTJARN             # Ø10 s300, 500 i balken, 1 200 upp
-FOT_START = 330.0               # startjärnets fot längs balken, på byglarna: 500 i balken med den lodräta delen
+FOT_START = K.START_FOT         # startjärnets fot längs balken, på byglarna: 500 i balken med den lodräta delen
 UPP_START = 10 * round((START["upp"] - R4.Z_BALK_UK + 5) / 10)   # lodräta benet, till fotens underkant
 VIKT = {6: 0.222, 8: 0.395, 10: 0.617, 12: 0.888}
+
+
+def jarn(a):
+    """(antal, Ø) som text, t.ex. 2 Ø10."""
+    return f"{a[0]} Ø{a[1]}"
 
 
 def lb_rqd(d):
@@ -343,7 +354,8 @@ def lager_armtext(v):
     s = v.s
     with v.lager("armtext"):
         q = (ytterliv("V14") - 60.0, 9500.0)
-        v.hanvisning(q, (12200.0, 9850.0), "kantbalk: 2 Ø10 uk + 2 Ø10 ök,\nU-byglar Ø6 s600",
+        v.hanvisning(q, (12200.0, 9850.0), f"kantbalk: {jarn(BALK_ARM['uk'])} uk + {jarn(BALK_ARM['ok'])} ök,\n"
+                     "U-byglar Ø6 s600",
                      bubbla=POS["balk_uk"], a="rm", sz=6.4)
         r = K.ROR_D["P5"]
         p = PLINTAR["P5"]
@@ -386,14 +398,15 @@ def sektion_a():
         kedja(v, [0.0, K.X_START], -HB + 120, [-HB + 46] * 2, sz=5.4)
     lst = [(f"startjärn Ø{START['d']} s{START['s']}, {sv(START['upp'])} upp, foten {sv(FOT_START)} in i balken",
             (K.X_START, 250), POS["start_ute"]),
-           ("2 Ø10 i överkant", (xj, R4.Z_BALK_OK), POS["balk_ok"]),
+           (f"{jarn(BALK_ARM['ok'])} i överkant", (xj, R4.Z_BALK_OK), POS["balk_ok"]),
            ("U-byglar Ø6 s600", (xu, -110), POS["bygel"]),
-           ("2 Ø10 i underkant", (xj, R4.Z_BALK_UK), POS["balk_uk"]),
+           (f"{jarn(BALK_ARM['uk'])} i underkant", (xj, R4.Z_BALK_UK), POS["balk_uk"]),
            (f"Ø{NAT[0]} s{NAT[1]} i överkant, täckskikt {C_OK:.0f}", (700, -28), POS["ok_x"]),
            (f"Ø{NAT[0]} s{NAT[1]} i underkant, täckskikt {C_UK:.0f}", (700, -HP + C_UK + 3), POS["uk_x"]),
-           (f"L-element S300, höjd 300, bredd {sv(K.B_L)} (t.ex. Finja)", (520, -HB - 70), None),
-           (f"cellplast S100, 2 × 100, det övre skiktet {sv(K.OMLOTT)} in över L-elementets fot", (780, -HP - EPS / 4),
-            None),
+           (f"L-element S300, höjd {sv(HB + TF)}, bredd {sv(K.B_L)} (t.ex. Finja), ryggen avfasad till {sv(K.FAS)}",
+            (520, -HB - 70), None),
+           (f"cellplast S100, {sv(EPS - TF)} + {sv(TF)}, det övre {sv(K.OMLOTT)} in över L-elementets fot",
+            (780, -HP - (EPS - TF) / 2), None),
            ("makadam på sprängt berg", (650, -HP - EPS - 60), None),
            ("plastfolie i hela ytan, ut över foten till ryggen (radon)", (820, -HB), None)]
     etiketter(v, lst, 1000.0, 480.0, 4.4, sz=6.0)       # ordningen ger hänvisningslinjer utan korsningar
@@ -415,7 +428,7 @@ def sektion_b():
     with v.lager("vagg"):
         v.brott((-K.T_VAGG / 2 - 40, 420), (K.T_VAGG / 2 + 40, 420), "tunn")
     with v.lager("armering"):
-        v.linje([(0.0, R4.Z_BALK_UK), (0.0, 400)], "uk")                     # startjärn, foten 330 längs balken
+        v.linje([(0.0, R4.Z_BALK_UK), (0.0, 400)], "uk")                     # startjärn, foten längs balken
         v.cirkel(0.0, R4.Z_BALK_UK, 5, fyll="#2c4a6e", stil=None, modell=True)
     with v.lager("matt"):
         kedja(v, [-BB / 2, BB / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8, bg=True)
@@ -564,8 +577,8 @@ def stalforteckning(mangd=False):
 def cellplastlista():
     """Cellplast under bottenplattan: S100 under plattan i två skikt, S300 under innerbalkarna och plintarna och
     L-element längs kanten, med fot av S300."""
-    rader = [["S100", "100 mm, övre skiktet", f"under plattan, {sv(K.OMLOTT)} in över L-elementens fot"],
-             ["S100", "100 mm, undre skiktet", "plastfolie ovanpå, i hela ytan (radon)"],
+    rader = [["S100", f"{sv(EPS - TF)} mm, övre skiktet", f"under plattan, {sv(K.OMLOTT)} in över L-elementens fot"],
+             ["S100", f"{sv(TF)} mm, undre skiktet", "plastfolie ovanpå, i hela ytan (radon)"],
              ["S300", "100 mm", "under innerbalkarna och plintarna"],
              ["L-element", K.L_ELEMENT.replace("L-element ", ""), "längs hela kanten, ytterkant i väggarnas ytterliv"]]
     return dict(typ="tabell", kolumner=["", "Utförande", "Anm"], bredd=(0, 1, 1), rader=rader,
@@ -603,7 +616,8 @@ def planvy():
 
 def anvisningar():
     return [
-        f"Bottenplatta L300: {sv(HP)} mm betong C30/37 på {sv(EPS)} mm cellplast S100 i två skikt. Kantbalkar {sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, "
+        f"Bottenplatta {K.I06.UTF}: {sv(HP)} mm betong C30/37 på {sv(EPS)} mm cellplast S100 i två skikt, {sv(TF)} och "
+        f"{sv(EPS - TF)}. Kantbalkar {sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, "
         f"med foten av S300; balkar under innerväggarna {sv(BB)} × {sv(HB)} och plintar under rören, lika höga, på "
         "100 mm S300. S100 under plattan och S300 under balkar och plintar.",
         f"Mot radon: åldringsbeständig plastfolie i ett plan över hela ytan, {sv(HB)} mm under överkant: mellan "
@@ -664,8 +678,8 @@ def blad_armering():
             f"Armering B500B. Täckande skikt: {C_UK:.0f} mm mot cellplasten (distanser) och {C_OK:.0f} mm i överkant.",
             f"Nät Ø{NAT[0]} s{NAT[1]} i under- och överkant i hela plattan, också genom balkarna och plintarna. "
             f"Golvvärmeslangarna fästs i underkantsnätet. Skarvlängd Ø6 {SKARV[6]}.",
-            "Kantbalkar och balkar under innerväggarna: 2 Ø10 i underkant på byglarna och 2 Ø10 i överkant under "
-            f"överkantsnätet, U-byglar Ø6 s600. Skarvlängd Ø10 {SKARV[10]}; i hörnen bockas järnen eller skarvas med "
+            f"Kantbalkar och balkar under innerväggarna: {jarn(BALK_ARM['uk'])} i underkant på byglarna och "
+            f"{jarn(BALK_ARM['ok'])} i överkant under överkantsnätet, U-byglar Ø6 s600. Skarvlängd Ø10 {SKARV[10]}; i hörnen bockas järnen eller skarvas med "
             "vinkeljärn. Innerbalkarnas järn förs in i kantbalken och i den korsande balken.",
             f"Plintar: Ø{PLINT_ARM[0]} s{PLINT_ARM[1]} i underkant, båda riktningarna. Fotplåten gjuts in kant i kant "
             "med plintens överkant (R-05.5); näten läggs fritt från svetsbultarna.",

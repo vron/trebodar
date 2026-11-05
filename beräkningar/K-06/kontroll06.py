@@ -261,11 +261,11 @@ def kontroll(utf):
     i = int(np.argmax(np.where(zb, pmax, 0)))
     g = [j for j in trb.query_ball_point(xy[i], 150.0) if zb[j]]
     out["eps"]["balk"]["uls_medel"] = float((pmax[g] * L["a_nod"][g]).sum() / L["a_nod"][g].sum())
-    # plattan på mark på plan 1 (K-05): tryck mot 400 mm cellplast
+    # plattan på mark på plan 1 (K-05): tryck mot cellplasten, I.EPS_MARK mm S100
     from matplotlib.path import Path as MplPath
     from omhyllande import ULS, SNO, falt
     mk = MplPath(np.asarray(I.G05["mark"], float)).contains_points(xt)
-    mark = {}
+    mark, topp_mark = {}, np.zeros(mk.sum())
     for var, R_ in (("lång", L), ("kort", K)):
         km = (I.EPS_KS if var == "lång" else 1.0) * I.EPS["S100"]["Ek"] * 1e-3 / I.EPS_MARK
         w = R_["wt"]
@@ -281,8 +281,34 @@ def kontroll(utf):
                     best = np.maximum(best, p_)
         qp = pk["G"] + 0.481 * (sum(pk[f"Q{j}"] for j in range(nq)) + pk["Qb"]) + 0.1 * (pk["S_V"] + pk["S_M"] + pk["S_H"])
         mark[var] = dict(uls=float(best.max()), qp=float(qp.max()))
+        topp_mark = np.maximum(topp_mark, best)
+    # största trycket ligger i plattans fria hörn under hörnstolparna (en lokal topp i FE-lösningen, där
+    # L-elementens S300 ligger ytterst): medel inom r = 150 mm, ytviktat (interpolerat i en polär grid), som under
+    # balkarna
+    i = int(np.argmax(topp_mark))
+    xm = xt[mk]
+    full = np.zeros(len(xt)); full[mk] = topp_mark
+    ip = LinearTriInterpolator(Triangulation(xt[:, 0], xt[:, 1], tt), full)
+    rr, vv = np.meshgrid(np.linspace(5, 150, 30), np.linspace(0, 2 * np.pi, 72, endpoint=False))
+    px, py = xm[i, 0] + (rr * np.cos(vv)).ravel(), xm[i, 1] + (rr * np.sin(vv)).ravel()
+    inne = MplPath(np.asarray(I.G05["mark"], float)).contains_points(np.column_stack([px, py]))
+    vals = np.ma.filled(ip(px[inne], py[inne]), np.nan)
+    w_ = rr.ravel()[inne]                                          # ytvikt i polära koordinater
+    ok = ~np.isnan(vals)
+    # ytterväggarna vid plattan på marks fria kanter (K-05: qY8–qY10): syllen står I.B_SYLL - I.FAS på fasens betong
+    # och resten på L-elementens rygg. På säker sida går hela väggens linjelast genom ryggens överkant, I.FAS bred.
+    import laster as LA05
+    vm = [v for v in LA05.alla()["vaggar"] if v["L_mark"] > 500.0]      # inte hörnen mot källaren
+    gk, sk = max(v["gk_max"] for v in vm), max(v["sk_max"] for v in vm)
+    q_uls = max(cg * gk + cs * sk for cg, _, cs in ULS.values())
+    q_qp = gk + 0.1 * sk
+    out["syll"] = dict(vaggar=[v["namn"] for v in vm], gk=gk, sk=sk, q_uls=q_uls, q_qp=q_qp, b=I.FAS,
+                       pa_betong=I.B_SYLL - I.FAS, p_uls=q_uls / I.FAS * 1e3, p_qp=q_qp / I.FAS * 1e3,
+                       fdM=eps_fd("S300", "M"), kryp=I.EPS["S300"]["kryp2"],
+                       utn=max(q_uls / I.FAS * 1e3 / eps_fd("S300", "M"), q_qp / I.FAS * 1e3 / I.EPS["S300"]["kryp2"]))
     out["mark"] = dict(uls=max(m["uls"] for m in mark.values()), qp=mark["lång"]["qp"], fdM=eps_fd("S100", "M"),
-                       kryp=I.EPS["S100"]["kryp2"])
+                       kryp=I.EPS["S100"]["kryp2"], uls_xy=xm[i].tolist(),
+                       uls_medel=float((vals[ok] * w_[ok]).sum() / w_[ok].sum()))
     return out
 
 

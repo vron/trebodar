@@ -1,12 +1,13 @@
 """Plana former (shapely) som recept: prismor med hål, och polygonerna i en shapely-geometri."""
 from __future__ import annotations
 
+import math
 from typing import Any, Iterator
 
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 
-from modellering import Form, Placering, Prisma, prisma
+from modellering import Form, Placering, Prisma, polyeder, prisma
 
 _YZX = Placering(((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))   # (y, z, x) → (x, y, z)
 _XZY = Placering(((1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)), (0.0, 0.0, 0.0))  # (x, z, −y) → (x, y, z)
@@ -55,3 +56,17 @@ def prisma_x(kontur_yz: list[tuple[float, float]], x0: float, x1: float) -> Form
 def prisma_y(kontur_xz: list[tuple[float, float]], y0: float, y1: float) -> Form:
     """Profilen i (x, z), extruderad längs y från y0 till y1."""
     return prisma(kontur_xz, y1 - y0, z0=-y1).placerad(_XZY)
+
+
+def stympad(nedre: Polygon, ovre: Polygon, z0: float, z1: float, flytt: float) -> Form:
+    """Kroppen mellan polygonen nedre i z0 och ovre i z1 med plana sidor, t.ex. en fasad kant: ovre är nedre med
+    hörnen flyttade högst flytt i planet (samma hörn i samma ordning, kanterna parallella). Utan hål."""
+    a, b = hornen(nedre), hornen(ovre)
+    j0 = min(range(len(b)), key=lambda j: math.dist(a[0], b[j]))
+    b = b[j0:] + b[:j0]
+    if len(a) != len(b) or any(math.dist(p, q) > flytt + 1e-6 for p, q in zip(a, b)):
+        raise ValueError("stympad: polygonernas hörn motsvarar inte varandra")
+    n = len(a)
+    horn = [(x, y, z0) for x, y in a] + [(x, y, z1) for x, y in b]
+    ytor = [list(range(n)), list(range(n, 2 * n))] + [[i, (i + 1) % n, n + (i + 1) % n, n + i] for i in range(n)]
+    return polyeder(horn, ytor)

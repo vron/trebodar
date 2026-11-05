@@ -78,7 +78,7 @@ def geometri(P):
     n = len(D)
     for a, z0, z1 in ((0.75, -fa / 2, 0.0), (0.25, -fa, -fa / 2)):
         D += [("betong", xv + tb - a * fa, xv + tb, z0, z1), ("betong", xo - tb, xo - tb + a * fa, z0, z1)]
-    g = dict(xv=xv, xo=xo, xiv=xiv, xio=xio, zf=zf, zk=zk, zmin=zmin, zfolie=-(hp + te / 2), B=xo - xv,
+    g = dict(xv=xv, xo=xo, xiv=xiv, xio=xio, zf=zf, zk=zk, zmin=zmin, zfolie=-(hp + te - tf), B=xo - xv,
              gv=(xiv + P["golvvarme_kant"], xio - P["golvvarme_kant"], -P["golvvarme_z"]), fas_n=len(D) - n,
              fas=[[(xv + tb, -fa), (xv + tb, 0.0), (xv + tb - fa, 0.0)], [(xo - tb, -fa), (xo - tb, 0.0), (xo - tb + fa, 0.0)]])
     return D, g

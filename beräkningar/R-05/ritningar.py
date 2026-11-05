@@ -538,7 +538,8 @@ def anvisningar():
         "Gjutning (K-06): pump med reducerat tryck, högst 1 m per timme, ingen vibrator. Först de tre hela skiften i "
         "alla väggar, upp till 1\u00a0800; fogen ruggas och rengörs. Det halva skiftet gjuts med mellanbjälklaget: "
         "fyll skiftet, vänta 30 min och gjut bjälklaget.",
-        "Återfyllning först när betongen nått 20 MPa. V3 och V20 fylls till 1,7 m före mellanbjälklaget. "
+        f"Återfyllning först när betongen nått {K.R06['bygg']['regel']['fck']:.0f} MPa. V3 och V20 fylls till "
+        f"{sv(K.I06.H_FYLL_MARK, 2)} m, överst makadam, före mellanbjälklaget. "
         "Inom 1 m från väggen lager om högst 0,2 m och lätt vibroplatta, högst 100 kg (K-06).",
         "Vid fönster och dörrar ligger den färdiga öppningen 100 mm innanför betongen: Sundolitts smyglist 100 × 350 "
         "med regel 45 × 195 vid sidorna och på bröstningen (R-05.4 E), ingen i överkant. Planen visar betongens mått "
@@ -904,8 +905,8 @@ Z_OK_NAT = H + H_MB - C_OK05 - DO05 - DO05 / 2          # mellanbjälklagets öv
 Z_POS14 = H + (Z_OK_NAT - H) - DO05 / 2 - 5 - 5          # vinkeljärnets vågräta ben under nätet (R-06.4 sektion A)
 POS05 = dict(kant_uk=35, kant_ok=36, bygel=37, start_ute=40, start_inne=41)   # positioner på R-04
 POS03 = 14                                                # vinkeljärn till mellanbjälklaget, R-06
-HB = K.UTF["h_balk"]                                     # bottenplattans balkar och plintar: 200
-EPS_PL = K.UTF["t_eps"]                                  # cellplast under plattan: 200
+HB = K.UTF["h_balk"]                                     # bottenplattans balkar och plintar: 300
+EPS_PL = K.UTF["t_eps"]                                  # cellplast under plattan: 300
 
 
 def etiketter(v, lst, x, z0, dz, sz=6.4):
@@ -959,8 +960,9 @@ Z_NAT_UK = -K.H_PLATTA + 30 + 3         # underkantsnätet, nedre lagret (centru
 
 
 def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
-    """Bottenplattan L300 i sektion mellan xa och xb: platta 100 på 200 cellplast S100 (två skikt, plastfolie), balkar
-    (x0, x1) 200 höga på 100 S300. Näten går genom balkarna. kant: plattans kant vid xa (annars avbrott). balkarm:
+    """Bottenplattan (K-06, L400) i sektion mellan xa och xb: platta 100 på 300 cellplast S100 (100 + 200, plastfolien
+    mellan, i balkarnas underkant), balkar (x0, x1) 300 höga på 100 S300. Näten går genom balkarna. kant: plattans kant
+    vid xa (annars avbrott). balkarm:
     balkens längsjärn och byglar (inte i plintar). fas: betongen fyller L-elementets avfasning vid kanten (xa).
     z = 0 i plattans överkant."""
     hp = K.H_PLATTA
@@ -978,17 +980,18 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
         topp = [(xa - fas, 0.0), (xa, -fas)] if fas else [(xa, 0.0)]
         poly = topp + [(prof[0][0], prof[0][1])] + prof[1:] + [(xb, prof[-1][1]), (xb, 0.0)]
         v.polygon(poly, fyll="betong", stil="normal")
-        # cellplast: S100 under plattan i två skikt med plastfolie, S300 100 mm under balkarna
+        # cellplast: S100 under plattan i två skikt med plastfolie i balkarnas underkant (det undre lika tjockt som
+        # L-elementens fot), S300 100 mm under balkarna
         cur = xa
         for b0, b1 in sorted(balkar):
             if b0 > cur:
-                v.rekt(cur, -hp - EPS_PL, b0, -hp - EPS_PL / 2, fyll="eps", stil="tunn")
-                v.rekt(cur, -hp - EPS_PL / 2, b0, -hp, fyll="eps", stil="tunn")
+                v.rekt(cur, -hp - EPS_PL, b0, -HB, fyll="eps", stil="tunn")
+                v.rekt(cur, -HB, b0, -hp, fyll="eps", stil="tunn")
             v.rekt(max(b0, xa), -HB - K.T_FOT, min(b1, xb), -HB, fyll="eps2", stil="tunn")
             cur = b1
         if cur < xb:
-            v.rekt(cur, -hp - EPS_PL, xb, -hp - EPS_PL / 2, fyll="eps", stil="tunn")
-            v.rekt(cur, -hp - EPS_PL / 2, xb, -hp, fyll="eps", stil="tunn")
+            v.rekt(cur, -hp - EPS_PL, xb, -HB, fyll="eps", stil="tunn")
+            v.rekt(cur, -HB, xb, -hp, fyll="eps", stil="tunn")
         # plastfolien i ett plan över hela ytan: mellan cellplastskikten, under balkarna och ut över L-elementets fot
         v.linje([(xa, -HB), (xb, -HB)], "folie")
     with v.lager("bottenplatta_arm"):
@@ -1048,8 +1051,8 @@ def sektion_a():
                 v.cirkel(x, z, 5, fyll="svart", stil=None, modell=True)
         v.linje([(K.X_LODRAT, 20), (K.X_LODRAT, Z_POS14 + 8)], "ok_tunn")       # lodräta järn, insidan
         v.linje([(xa, Z_POS14 - K.POS14["ben"]), (xa, Z_POS14), (xa + K.POS14["in_"], Z_POS14)], "ok")
-        v.linje([(K.X_START + 330, Z_BALK_UK), (K.X_START, Z_BALK_UK), (K.X_START, st["upp"])], "uk")   # startjärn,
-        # foten 330 in i kantbalken (Sundolitt)
+        v.linje([(K.X_START + K.START_FOT, Z_BALK_UK), (K.X_START, Z_BALK_UK), (K.X_START, st["upp"])], "uk")
+        # startjärnet med foten in i kantbalken (Sundolitt; K-06)
     with v.lager("matt"):
         kedja(v, [0.0, K.T_EPS, K.T_EPS + K.T_KARNA, K.T_VAGG], 1350.0, [1350.0] * 4, sz=5.6)
         zs = [0.0, K.SKIFT, 2 * K.SKIFT, K.H_GJUT1, H, H + H_MB]
@@ -1066,9 +1069,10 @@ def sektion_a():
            ("gips 13", (K.T_VAGG + 6, 1100), None),
            (f"startjärn Ø{st['d']} s{st['s']}, utsidan, foten in i balken (R-04 pos {POS05['start_ute']})",
             (K.X_START, 350), None),
-           (f"L-element S300, höjd 300, bredd {sv(K.B_L)}", (50, -150), None),
+           (f"L-element S300, höjd {sv(HB + K.T_FOT)}, bredd {sv(K.B_L)}", (50, -150), None),
            (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-04)", (300, -100), None),
-           (f"cellplast 2 × 100 S100, övre skiktet {sv(K.OMLOTT)} in över foten", (575, -150), None)]
+           (f"cellplast S100 {sv(EPS_PL - K.T_FOT)} + {sv(K.T_FOT)}, övre skiktet {sv(K.OMLOTT)} in över foten",
+            (575, -HB / 2 - K.H_PLATTA / 2), None)]
     with v.lager("text"):
         v.hanvisning((15, H + 135), (-70, H + 270), "kantisolering 30", a="rm", sz=5.8)
         v.text(-260, 900, "fyllning\n(K-06)", a="cm", sz=5.8, col="gra", i=True, bg=True)

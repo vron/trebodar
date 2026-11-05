@@ -41,16 +41,16 @@
 
 = Syfte
 
-Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och ingen golvvärme på sommaren. Fukt i marken under plattan vandrar mot kallare ställen. När plattan är varmare än marken under cellplasten går ångflödet nedåt, och plattan och cellplasten hålls torra. På våren, när golvvärmen stängs av, är marken under huset varm efter vintern. Då kan flödet vända. Här beräknas temperaturen i plattan och i marken under hela året i en tvådimensionell sektion genom källaren, med antaganden på säker sida, och fuktsäkerheten bedöms. Utförandet är L300 enligt K-06, med L400 som jämförelse.
+Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och ingen golvvärme på sommaren. Fukt i marken under plattan vandrar mot kallare ställen. När plattan är varmare än marken under cellplasten går ångflödet nedåt, och plattan och cellplasten hålls torra. På våren, när golvvärmen stängs av, är marken under huset varm efter vintern. Då kan flödet vända. Här beräknas temperaturen i plattan och i marken under hela året i en tvådimensionell sektion genom källaren, med antaganden på säker sida, och fuktsäkerheten bedöms. Utförandet är L400 enligt K-06, med L300 som jämförelse.
 
 = Sektion och uppbyggnad
 
 #figure(image("fig_sektion.svg", width: 100%), caption: [Sektion A–A med beräkningsmodellens geometri. Koordinater som i K-05. z räknas från bottenplattans överkant.])
 
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
-- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt;
-- åldringsbeständig plastfolie i ett plan över hela ytan, 200 mm under plattans överkant: mellan cellplastskikten och direkt under balkar och plintar, ut över L-elementens fot (R-04);
-- kantbalkar #s.h_balk mm i L-element (höjd 300, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Båda på 100 mm S300;
+- 100 mm platta på #s.t_eps mm cellplast S100 i två skikt, #s.t_ovre mm ovanpå och #s.t_fot mm underst;
+- åldringsbeständig plastfolie i ett plan över hela ytan, #s.h_balk mm under plattans överkant: mellan cellplastskikten och direkt under balkar och plintar, ut över L-elementens fot (R-04);
+- kantbalkar #s.h_balk mm i L-element (höjd #s.h_l, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Båda på 100 mm S300;
 - källarväggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100), gjutna direkt på kantbalken;
 - makadam på berg.
 
@@ -100,7 +100,7 @@ Resultatet gäller det periodiska tillståndet, alltså det tillstånd som marke
 
 = Fuktkriterier
 
-Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det 200 mm cellplast med plastfolien i mitten. Under plintar och kantbalkar är det 100 mm, och folien ligger direkt under betongen; där är betongens underkant alltså också folien. Under L-elementens rygg finns bara cellplast upp till väggen och ingen folie, så där finns ingen yta som fukt kan samlas mot.
+Marken under cellplasten antas ha RF 100 %. Ånga diffunderar från varmt till kallt. Temperaturskillnaden över cellplasten, $Delta T$, räknas mellan betongens underkant och marken (makadamen) direkt under cellplasten. I fält är det #s.t_eps mm cellplast med plastfolien #s.t_fot mm över makadamen. Under plintar och kantbalkar är det 100 mm, och folien ligger direkt under betongen; där är betongens underkant alltså också folien. Under L-elementens rygg finns bara cellplast upp till väggen och ingen folie, så där finns ingen yta som fukt kan samlas mot.
 
 + *Årsmedel:* $Delta T$ > 0 i medel över året, så att fukten i netto går nedåt.
 + *Varje dygn:* $Delta T$ > 0 hela året. Plattan är då alltid varmare än marken.
@@ -145,8 +145,8 @@ Varje fall ändrar ett eller två av grundfallets antaganden. Minsta $Delta T$ �
   - med husets verkliga grund, berg, även med en källare på 16 °C (#mn("Berg under huset, λ = 3,5") K).
 - *Fyllningen:* grundfallet har modellens markyta. Med K-06:s fyllning, som är högre, blir marken under plattan något varmare och lägsta $Delta T$ #mn("Fyllning enligt K-06: 2,0 m mot V21, 1,23 m mot V14") K i fält. Det ändrar inte bedömningen.
 - *Kriterium 3* uppfylls. Under perioden med omvänd gradient samlas som mest #r.sam.M_max g/m² i något av fallen. Det är försumbart mot #r.fukt.M_ref g/m², och fukten torkar ut inom #r.sam.M_dygn dygn, långt före nästa vår. Under plattan finns bara cellplast och betong, som inte tar skada av så lite fukt.
-- *L400* höjer det lägsta värdet i fält från #b.falt.dT till #r.sam.L400 K, men perioden med omvänd gradient finns kvar. Det som avgör är källarens temperatur på sommaren, inte cellplastens tjocklek.
+- *L300* (200 mm cellplast) ger lägsta värdet i fält #r.sam.L300 K mot #b.falt.dT K för L400. Perioden med omvänd gradient finns i båda. Det som avgör är källarens temperatur på sommaren, inte cellplastens tjocklek.
 
-*Slutsats.* Bottenplattan L300 är fuktsäker utan golvvärme på sommaren. Det gäller även med de samlade antagandena på säker sida: tvådimensionellt hus, plintar som balkar, varm mark, högt ställd golvvärme och en sval källare. Med golvvärmens golvgivare på lägst 20 °C även sommartid är plattan dessutom varmare än marken hela året, med minst #mn("Källaren 20 °C på sommaren") K, under samma antaganden. Golvvärmen går då bara när källaren annars skulle bli kallare.
+*Slutsats.* Bottenplattan L400 är fuktsäker utan golvvärme på sommaren. Det gäller även med de samlade antagandena på säker sida: tvådimensionellt hus, plintar som balkar, varm mark, högt ställd golvvärme och en sval källare. Med golvvärmens golvgivare på lägst 20 °C även sommartid är plattan dessutom varmare än marken hela året, med minst #mn("Källaren 20 °C på sommaren") K, under samma antaganden. Golvvärmen går då bara när källaren annars skulle bli kallare.
 
 Byggfukten i plattan torkar bara uppåt, eftersom plastfolien ligger under. Den ingår inte här, och RF i betongen mäts innan golvet läggs.

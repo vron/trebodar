@@ -243,11 +243,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
-- **Bottenplattan**: BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1 plinten under
-  röret P1 osv., BP-L L-elementen, BP-CS cellplast S300 under balkar och plintar, BP-C1 och BP-C2 cellplasten S100
-  (undre och övre lagret).
-- **Plattan på mark**: PM-L L-elementen, PM-C1 och PM-C2 cellplasten (undre och övre lagret), PM-M makadamen, PM-F
-  den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 och FK-V9
+- **Bottenplattan** (K-06, L400): BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1
+  plinten under röret P1 osv., BP-FAS betongen i L-elementens fas, BP-L L-elementen, BP-CS cellplast S300 under balkar
+  och plintar, BP-C1 och BP-C2 cellplasten S100 (undre lagret 100, lika tjockt som L-elementens fot, och övre 200).
+- **Plattan på mark**: PM-L L-elementen, PM-FAS betongen i L-elementens fas, PM-C1 och PM-C2 cellplasten (undre och
+  övre lagret), PM-M makadamen, PM-F den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 och FK-V9
   återfyllningen mot källarväggen; entréavsatsen E-DS (dörrsteget), E-AV (avsatsen), E-S1–E-S3 (trappstegen);
   trätrappan TT-P1–TT-P4 (plansteg), TT-V1, TT-V2 (vangstycken).
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
@@ -257,9 +257,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   järn är raka bitar (bockradierna förenklade bort). Kontrollen prövar inte armering mot betong eller mot annan
   armering, men mot allt annat; mot avloppet är överlapp tillåtna (järnen läggs om runt rören). Installationerna med
   egen kontroll (tappvattnet, golvvärmen) prövas där mot järnen: ingjutna rör ska gå fria från dem.
-  Avvikelser från ritningarna, som inte är uppdaterade (modell-todo): mellanbjälklagets järn klipps vid plattan på
-  marks fria kanter vid L-elementens rygg (AR-02), startjärnen under F3:s bröstning (800) kortas till under
-  bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
+  Avvikelser från ritningarna, som inte är uppdaterade (modell-todo): startjärnen under F3:s bröstning (800) kortas
+  till under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
+  Mellanbjälklagets järn slutar vid plattan på marks fria kanter vid L-elementens rygg (AR-02), som på R-06.
 
 ## Avsiktliga skillnader mot Onshape-modellen
 
@@ -405,8 +405,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
   en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
-  fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, cellplast 100 + 250, makadam 150 och
-  dränerande fyllning i ett schakt i berget 100 mm utanför plattan.
+  fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, och i ryggens fas (20 mm innanför
+  konturen i överkant), cellplast 100 + 250, makadam 150 och dränerande fyllning i ett schakt i berget 100 mm utanför
+  plattan.
 - **Marken** följer Onshape-modellens mark fram till huset (inte K-06:s högre fyllnadshöjder). Där den inte når fram
   ligger återfyllning: framför 2SV upp till markens nivå intill och vid nedgången till källardörren D1 från
   källargolvets nivå (K-06). Två separata avsatser av granit: sovrumsavsatsen (Onshape-modellen) och entréavsatsen vid
@@ -435,4 +436,4 @@ badrummets inredning, köksskåpens beslag (låskrokar, gångjärn) och vattnet,
 hällen (modell-todo), trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
 hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, elinstallationen utanför allrummet och
 köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken och avloppet läses ur Onshape-modellen
-(`modeller/referens/delar/`). L-elementens avfasning (50 mm i ryggens överkant, som betongen fyller) är förenklad bort.
+(`modeller/referens/delar/`).

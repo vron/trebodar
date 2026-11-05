@@ -1,5 +1,5 @@
 """
-K-06: bottenplattan i den samverkande modellen (modell06), utförande L300.
+K-06: bottenplattan i den samverkande modellen (modell06), utförandet i indata.UTFORANDEN (L400).
 
 För varje utförande räknas två styvheter:
   kort  korttidsstyvhet (cellplast E_k, betong utan krypning) – brottgräns
@@ -31,7 +31,7 @@ BAND = 250.0
 
 
 def k_mark(variant):
-    """Plattan på mark på plan 1: 400 mm S100."""
+    """Plattan på mark på plan 1: I.EPS_MARK mm S100."""
     ke = I.EPS_KS if variant == "lång" else 1.0
     return ke * I.EPS["S100"]["Ek"] * 1e-3 / I.EPS_MARK
 
@@ -157,7 +157,7 @@ def spara(S, env, sls, lf, kr, plint, namn):
 
 
 if __name__ == "__main__":
-    # python berakning06.py [L300] [omplint]
+    # python berakning06.py [L400] [omplint]
     #   Plintarnas storlek tas ur en tidigare körning, om den finns och "omplint" inte anges.
     import pickle
     arg = sys.argv[1:]
