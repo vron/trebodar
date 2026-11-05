@@ -1,5 +1,5 @@
 """Husets fönster och fönsterdörrar från VELFAC (VELFAC 200 ENERGY): karm, båge, isolerruta, aluminium, bågprofiler
-och lister efter VELFAC:s systemritningar, i samma system som ytterdörrarna (byggdelar/fonster.py), så att alla
+och lister efter VELFAC:s systemritningar, i samma system som ytterdörrarna (byggdelar/ytterdorrar.py), så att alla
 produkter sätts i öppningarna på samma sätt.
 
 Produktens system: x längs bredden från karmens ytterkant, z uppåt från karmens underkant och y genom väggen med
@@ -28,7 +28,7 @@ from modellering import Del, Form, Material, Montage, Placering, Union, box, pol
 
 from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt
-from trebodar.material import BAGPROFIL, FONSTERTRA, GLAS, TATNINGSLIST
+from trebodar.material import BAGPROFIL, FONSTERTRA, GLAS, GLASLIST, TATNINGSLIST
 
 Profil = tuple[tuple[float, float], ...]          # (d, e)
 
@@ -49,7 +49,8 @@ def _p(*pts: tuple[float, float]) -> Profil:
 
 # ------------------------------------------------------------------ profilerna (d, e)
 # standard (A, B, C): karmträet med spåret i ytterkanten och snedden mot bågen, aluminiumlocket (A, B) och bågen:
-# aluminium utvändigt, bärande profil av glasfiberkomposit över rutan och den inre profilen med glaslisten
+# aluminium utvändigt, bärande profil av glasfiberkomposit över rutan och den inre profilen av furu med glaslisten,
+# som inifrån har den invändiga kulören som karmen
 TRA_A = _p((35, 1.5), (36.5, 0), (105, 0), (105, 8), (115.5, 8), (115.5, 0), (146, 0), (149, 3), (149, 47),
            (146, 50), (80.5, 50), (80.5, 24.5), (79, 22), (37.5, 18), (35, 16))
 LOCK_A = _p((5, -2.1), (56, -2.1), (56, 0), (5, 0))
@@ -97,24 +98,27 @@ POST_M = _p((36, -23), (81, -28.5), (81, -54), (146, -54), (149, -51), (149, 51)
 
 @dataclass(frozen=True)
 class Sida:
-    """En sidas profiler: karmens (trä, aluminium, lister) och bågens (aluminium, profil, lister) delar."""
+    """En sidas profiler: karmens (trä, aluminium, lister) och bågens (aluminium, kompositprofil, inre profil,
+    inre glaslist och de svarta listerna) delar."""
     karm_tra: Profil | None = TRA_A
     karm_alu: Profil | None = LOCK_A
     karm_list: tuple[Profil, ...] = (LIST_KARM_A,)
     bage_alu: Profil = BAGE_ALU_A
-    bage_profil: tuple[Profil, ...] = (KOMPOSIT_A, INRE_A)
-    bage_list: tuple[Profil, ...] = (LIST_UT_A, LIST_IN_A, LIST_BAGE_A)
+    bage_profil: Profil = KOMPOSIT_A
+    bage_inre: Profil = INRE_A
+    glaslist: Profil = LIST_IN_A
+    bage_list: tuple[Profil, ...] = (LIST_UT_A, LIST_BAGE_A)
     kant: float = -2.1                   # karmens yttersta e vid anslutningsprofilen (aluminiumet utanför träet)
 
 
 A = Sida()
 C = Sida(karm_alu=None, kant=0.0)
-A_DORR = Sida(bage_list=(LIST_UT_A, LIST_IN_A))          # dörrbågens underkant: bottenprofilen i stället för listen
-G = Sida(karm_tra=TRA_G, karm_alu=VINKEL_G, karm_list=(), bage_alu=BAGE_ALU_G, bage_profil=(KOMPOSIT_G, INRE_G),
-         bage_list=(LIST_UT_G, LIST_IN_G), kant=0.0)
+A_DORR = Sida(bage_list=(LIST_UT_A,))          # dörrbågens underkant: bottenprofilen i stället för listen
+G = Sida(karm_tra=TRA_G, karm_alu=VINKEL_G, karm_list=(), bage_alu=BAGE_ALU_G, bage_profil=KOMPOSIT_G,
+         bage_inre=INRE_G, glaslist=LIST_IN_G, bage_list=(LIST_UT_G,), kant=0.0)
 J = Sida(karm_alu=SKENA_J, kant=-1.5)
-M = Sida(karm_tra=None, karm_alu=None, karm_list=(), bage_alu=BAGE_ALU_M, bage_profil=(KOMPOSIT_G, INRE_M),
-         bage_list=(LIST_UT_G, LIST_IN_G), kant=0.0)
+M = Sida(karm_tra=None, karm_alu=None, karm_list=(), bage_alu=BAGE_ALU_M, bage_profil=KOMPOSIT_G,
+         bage_inre=INRE_M, glaslist=LIST_IN_G, bage_list=(LIST_UT_G,), kant=0.0)
 
 Ram = tuple[float, float, float, float]          # x0, x1, z0, z1
 GRANNAR = {"u": ("v", "h"), "o": ("v", "h"), "v": ("u", "o"), "h": ("u", "o")}   # vid början och slutet
@@ -188,8 +192,9 @@ def _bage(p: _Delar, r: Ram, sidor: dict[str, Sida], slag: str = "") -> None:
     """Bågen i ramen r: aluminium, profiler, lister och isolerrutan (rutans kant RUTKANT innanför bågens kant)."""
     alla = set(sidor)
     p.lagg("bagealu" + slag, ram(r, {s: x.bage_alu for s, x in sidor.items()}))
-    for i in range(2):
-        p.lagg("bageprofil" + slag, ram(r, {s: x.bage_profil[i] for s, x in sidor.items()}))
+    p.lagg("bageprofil" + slag, ram(r, {s: x.bage_profil for s, x in sidor.items()}))
+    p.lagg("bageinre" + slag, ram(r, {s: x.bage_inre for s, x in sidor.items()}))
+    p.lagg("glaslist" + slag, ram(r, {s: x.glaslist for s, x in sidor.items()}))
     for i in range(max(len(x.bage_list) for x in sidor.values())):
         p.lagg("list" + slag, ram(r, {s: x.bage_list[i] if i < len(x.bage_list) else None for s, x in sidor.items()},
                                   alla))
@@ -205,6 +210,8 @@ def _skriv_bage(p: _Delar, b: float, h: float, slag: str = "", namn: str = "") -
     gb, gh = b - 2 * RUTKANT, h - 2 * RUTKANT
     p.skriv(f"{namn}BAGEALU", "bagealu" + slag, p.alu, f"Bågbeklädnad aluminium {_matt(b, h)}")
     p.skriv(f"{namn}BAGEPROFIL", "bageprofil" + slag, BAGPROFIL, f"Bågprofil komposit {_matt(b, h)}")
+    p.skriv(f"{namn}BAGEINRE", "bageinre" + slag, FONSTERTRA, f"Bågens inre profil furu {_matt(b, h)}")
+    p.skriv(f"{namn}GLASLIST", "glaslist" + slag, GLASLIST, f"Glaslist invändig {_matt(b, h)}")
     p.skriv(f"{namn}GLAS", "glas" + slag, GLAS, f"Isolerruta 4-18-4-18-4 {_matt(gb, gh)}")
 
 
