@@ -179,7 +179,8 @@ def montage() -> Montage:
             f = Diff(f, (h,))    # ett verktyg i taget (inte a - b, som slår ihop): överlappande verktyg gav fel
         m.lagg(Del(f"Återfyllning mot {namn}", f, FYLLNING), Placering(), f"FK-{namn}")
         tidigare.append(band)
-    e = Montage("Entréavsats", beskrivning="Entréavsats av granit vid 1SO-D1: dörrsteg, avsats och trappsteg")
+    e = Montage("Entréavsats", beskrivning="Entréavsats av granit vid 1SO-D1: dörrsteg, avsats och trappsteg",
+                produkt="ENTREAVSATS")
     for kod, namn, f in entre:
         e.lagg(Del(namn, f, NATURSTEN), Placering(), kod)
     m.lagg(e)

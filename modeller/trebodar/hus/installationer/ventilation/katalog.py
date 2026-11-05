@@ -29,7 +29,7 @@ FRANLUFTSDON_125 = Dontyp("FD125", "Frånluftsdon Ø125, vitlackerat (ej valt)",
 # vägghängd köksfläkt med skorstenskåpa: forcerat 400 m³/h, normalt 200 m³/h
 KOKSFLAKT_60 = Koksflakttyp("KF60", "Köksfläkt, vägghängd 60 cm med skorstenskåpa, rostfri (ej vald)", "", "",
                             b=598.0, d=480.0, h=80.0, skorsten=(260.0, 220.0), anslutning=150.0, utlopp=120.0,
-                            flode=111.0, flode_normal=56.0)
+                            flode=111.0, flode_normal=56.0, produkt="KOKSFLAKT")
 
 # badrumsfläkt i röret genom ytterväggen, fuktstyrd, med backspjäll
 VAGGFLAKT_100 = Vaggflakttyp("VF100", "Badrumsfläkt för vägg Ø100, fuktstyrd med backspjäll (ej vald)", "", "",

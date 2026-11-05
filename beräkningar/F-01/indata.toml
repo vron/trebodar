@@ -173,7 +173,8 @@ nr = "AV-01"
 namn = "Avfallshanteringsplan"
 status = "klar"
 
-# Övriga handlingar: egna utredningar (U) som underlag för projekteringen och arbetsritningar (AR) för utförandet.
+# Övriga handlingar: egna utredningar (U) som underlag för projekteringen, arbetsritningar (AR) för utförandet och
+# inköpslistan (IN).
 # Ingår inte i handlingarna till tekniskt samråd. Samma status som ovan.
 [[ovrig]]
 nr = "U-01"
@@ -194,4 +195,8 @@ status = "klar"
 [[ovrig]]
 nr = "AR-02"
 namn = "Arbetsritning utsättning, koordinater och höjder"
+status = "klar"
+[[ovrig]]
+nr = "IN-01"
+namn = "Inköpslista, specialprodukterna"
 status = "klar"

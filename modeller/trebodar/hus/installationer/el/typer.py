@@ -92,6 +92,7 @@ class Armaturtyp:
     symbol: str = "spot"
     huvud: Tubhuvud | None = None               # huvudet under taket; None: infälld
     pendel: Pendel | None = None                # pendelarmatur
+    produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
 
 
 @dataclass(frozen=True)

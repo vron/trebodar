@@ -7,7 +7,7 @@ annat snett virke, P spikplåt, K kloss.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Sequence
 
 from modellering import Del, Form, Kapad, Material, Montage, Placering, box
@@ -39,9 +39,11 @@ class Plan:
     bitar: list[_Bit] = field(default_factory=list)
 
     def lada(self, typ: str, u0: float, u1: float, w0: float, w1: float, z0: float, z1: float, fiber: str,
-             material: Material | None = None, namn: str | None = None) -> Plan:
-        """Rakt virke som fyller lådan, fibrer längs "u", "w" eller "z"."""
+             material: Material | None = None, namn: str | None = None, produkt: str | None = None) -> Plan:
+        """Rakt virke som fyller lådan, fibrer längs "u", "w" eller "z" (produkt: specialprodukt i inköpslistan)."""
         d, p = virke_i_lada(u0, u1, w0, w1, z0, z1, {"u": "x", "w": "y", "z": "z"}[fiber], material or self.material)
+        if produkt:
+            d = replace(d, produkt=produkt)
         self.bitar.append(_Bit(typ, d, p, (min(u0, u1), min(z0, z1)), namn))
         return self
 
@@ -52,8 +54,9 @@ class Plan:
                          self.hojd - 45.0 if z1 is None else z1, "z", namn=namn)
 
     def liggande(self, u0: float, u1: float, z0: float, h: float = 45.0, w0: float = 0.0, w1: float | None = None,
-                 typ: str = "L", material: Material | None = None, namn: str | None = None) -> Plan:
-        return self.lada(typ, u0, u1, w0, self.tjocklek if w1 is None else w1, z0, z0 + h, "u", material, namn)
+                 typ: str = "L", material: Material | None = None, namn: str | None = None,
+                 produkt: str | None = None) -> Plan:
+        return self.lada(typ, u0, u1, w0, self.tjocklek if w1 is None else w1, z0, z0 + h, "u", material, namn, produkt)
 
     def syll(self, u0: float, u1: float, w0: float = 0.0, w1: float | None = None) -> Plan:
         return self.liggande(u0, u1, 0.0, w0=w0, w1=w1, typ="S")

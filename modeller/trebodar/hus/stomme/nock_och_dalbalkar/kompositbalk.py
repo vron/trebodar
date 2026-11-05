@@ -67,7 +67,8 @@ def montage(kod: str) -> Montage:
     L = float(k01["total"])
     assert abs(L - (b.y1 - b.y0)) < 1e-6, f"{kod}: K-01 {L} mm, skelettet {b.y1 - b.y0} mm"
     m = Montage(kod, kod, f"{b.k01}: limträ GL30c 190×180 med stålplåtar 190×10 (K-01)")
-    m.lagg(Del(f"{kod} limträ GL30c 190×180", lada(L, B, h), GL30C, dokument="K-01"), Placering.flytt(z=t),
+    m.lagg(Del(f"{kod} limträ GL30c 190×180", lada(L, B, h), GL30C, dokument="K-01", produkt="LIMTRABALKAR"),
+           Placering.flytt(z=t),
            f"{kod}-LT")
     bitar = halbild(b.k01)
     for nr, (a, c, hal) in sorted(bitar.items()):
@@ -76,7 +77,7 @@ def montage(kod: str) -> Montage:
             form = prisma([(0, 0), (c - a, 0), (c - a, B), (0, B)], t,
                           cirkelhal=[(x - a, yu if lage == "U" else yo, d) for x, yo, yu in hal])
             m.lagg(Del(f"Plåt {namn} 190×10 L={c - a:g}", form, S355, artikel="Laserskuren plåt S355J2+N",
-                       dokument="K-01"), Placering.flytt(a, 0.0, z), namn)
+                       dokument="K-01", produkt="BALKPLATAR"), Placering.flytt(a, 0.0, z), namn)
     # distansreglar där plåt saknas
     x, fria = 0.0, []
     for _, (a, c, _) in sorted(bitar.items()):

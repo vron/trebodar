@@ -82,7 +82,7 @@ def _tubspot(p: Lampa) -> Montage:
     t = p.typ
     d = _delar_tub(t)
     sys = _system(p.lage)
-    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
     m.lagg(d["PLATTA"], sys, f"{p.id}-PLATTA")
     m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
     m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, PLATTA_T), f"{p.id}-STAM")
@@ -224,7 +224,7 @@ def _pendel(p: Lampa) -> Montage:
     """Pendeln: takkoppen på takytan, sladden lodrätt ned från takkoppens mitt och armaturen under den."""
     t, pe = p.typ, p.typ.pendel
     assert pe is not None
-    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
     d, h = pe.takkopp
     m.lagg(Del(f"Takkopp Ø{d:g}", cylinder(d / 2, h), MASSING if pe.takkopp_massing else ARMATUR), _system(p.lage),
            f"{p.id}-TAKKOPP")
@@ -249,7 +249,7 @@ def armatur(p: Lampa) -> Montage:
         return _tubspot(p)
     d = _delar_armatur(t)
     sys = _system(p.lage)
-    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}")
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
     m.lagg(d["RING"], sys, f"{p.id}-RING")
     m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
     # spoten vriden kring linsens mitt (punkter.linsen), med sin axel (z) bakåt mot ljusets riktning

@@ -53,7 +53,7 @@ def _nisch(namn: str) -> Montage:
     xm = (x0 + x1) / 2
     zs = SOCKEL + h
     m.lagg(Del(f"{vitvara} {fmt(VITVARA_B)}×{fmt(DJUP)}×{fmt(h)}",
-               box(xm - VITVARA_B / 2, xm + VITVARA_B / 2, yb, yf, SOCKEL, zs), VITVARA), Placering(), kod)
+               box(xm - VITVARA_B / 2, xm + VITVARA_B / 2, yb, yf, SOCKEL, zs), VITVARA, produkt=kod), Placering(), kod)
     # skåpet ovanför: sidor, botten, tak och hyllor
     skap = [("S1", box(x0, x0 + SKAP_T, yb, yf, zs, Z_TOPP)), ("S2", box(x1 - SKAP_T, x1, yb, yf, zs, Z_TOPP)),
             ("B", box(x0 + SKAP_T, x1 - SKAP_T, yb, yf, zs, zs + SKAP_T)),
@@ -64,7 +64,8 @@ def _nisch(namn: str) -> Montage:
     # fronterna på vitvarans dörr och på skåpet
     for k, (za, zb) in (("1", (SOCKEL + SPEL, zs - SPEL)), ("2", (zs, Z_TOPP - SPEL))):
         d, pl = virke_i_lada(x0 + SPEL, x1 - SPEL, yf, K_YTA, za, zb, "z", ASK)
-        m.lagg(Del(f"Front ask {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}", d.form, ASK), pl, f"{kod}-FRONT{k}")
+        m.lagg(Del(f"Front ask {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}", d.form, ASK, produkt="KOKSFRONTER"), pl,
+               f"{kod}-FRONT{k}")
     return m
 
 
@@ -72,8 +73,8 @@ def _skafferi() -> Montage:
     m = Montage("Skafferi", beskrivning="Dörr av ask som fronterna och hyllor av vit melamin längs L4 och 3NV")
     x0, x1 = fritt("Skafferi")
     d, pl = virke_i_lada(x0, x1 - SPEL, K_YTA - FRONT_T, K_YTA, DORR_Z, Z_TOPP - SPEL, "z", ASK)
-    m.lagg(Del(f"Skafferidörr ask {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}", d.form, ASK), pl,
-           "SKAFFERI-DORR")
+    m.lagg(Del(f"Skafferidörr ask {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}", d.form, ASK,
+               produkt="KOKSFRONTER"), pl, "SKAFFERI-DORR")
     sx0, sx1, sy0, sy1 = SKAFFERI
     for i, z in enumerate(HYLLOR, start=1):
         for k, f in (("L4", box(sx0, sx1, sy0, sy0 + HYLLA_DJUP, z - HYLLA_T, z)),

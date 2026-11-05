@@ -26,7 +26,7 @@ X1, Y1 = S.TRAPPHAL[2]
 
 def montage() -> Montage:
     m = Montage("Trappa", beskrivning="Brant rak trätrappa av furu till källaren, i trapphålet "
-                                      f"{fmt(X1 - X0)} × {fmt(Y1 - Y0)}")
+                                      f"{fmt(X1 - X0)} × {fmt(Y1 - Y0)}", produkt="TRAPPA")
     hojd = -S.Z_BOTTENPLATTA                          # golv till golv
     xb = X0 + FOT                                     # nedersta sättsteget
     h, g = hojd / N_STEG, (X1 - xb) / (N_STEG - 1)    # steghöjd och stegdjup

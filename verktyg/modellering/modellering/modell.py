@@ -52,6 +52,7 @@ class Del:
     beskrivning: str = ""
     artikel: str | None = None       # beställningsbar produkt, t.ex. "Rothoblaas HBS PLATE EVO 10×80"
     dokument: str | None = None      # handling som bestämmer delen, t.ex. "K-01"
+    produkt: str | None = None       # specialprodukt i inköpslistan (dess kod), t.ex. "KYL"; se `inkop.py`
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,7 @@ class Montage:
     kod: str | None = None
     beskrivning: str = ""
     barn: list[Instans] = field(default_factory=list)
+    produkt: str | None = None       # specialprodukt i inköpslistan (dess kod), t.ex. "FONSTER"; se `inkop.py`
 
     def lagg(self, barn: Del | Montage, placering: Placering = IDENTITET, namn: str | None = None) -> Instans:
         """Placera en del eller ett montage i montaget. Namnet blir instansens (standard: barnets namn)."""

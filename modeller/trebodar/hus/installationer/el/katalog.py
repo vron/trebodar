@@ -16,6 +16,7 @@ JUNISTAR_EXCLUSIVE = Armaturtyp(
     "JUNISTAR-EXCL", "Junistar Exclusive In/Outdoor White 730lm 2700K Ra>95 Trailing edge", "SG Armaturen", "903201",
     "https://www.sg-as.com/int/en/products/outdoor/downlight-outdoor/junistar-exclusive/"
     "junistar-exclusive-in-outdoor-white-9w-led-2700k",
+    produkt="ARM-JUNISTAR",
     ljusflode=730.0, effekt=11.0, fargtemperatur=2700.0, ra=95.0, stralvinkel=42.0, vridbar=40.0, ip="IP44/IP20",
     dimring="bakkant", ring_d=94.0, hal_d=83.0, djup=53.0, lysande_d=48.0, brandavstand=10.0,
     drivdon=(101.0, 51.0, 22.0), fotometri="sg-armaturen/junistar-exclusive/903201.ldt",
@@ -29,6 +30,7 @@ JUNISTAR_EXCLUSIVE = Armaturtyp(
 TUBE_MINI_R = Armaturtyp(
     "TUBE-MINI-R", "Tube Mini R White 880lm 2700K Ra 98 Trailing edge", "SG Armaturen", "320696",
     "https://www.sg-as.com/products/tube-mini-r/320696",
+    produkt="ARM-TUBE",
     ljusflode=880.0, effekt=14.0, fargtemperatur=2700.0, ra=98.0, stralvinkel=40.0, vridbar=90.0, ip="IP20",
     dimring="bakkant", ring_d=94.0, hal_d=83.0, djup=51.0, lysande_d=54.0, brandavstand=50.0, drivdon=None,
     fotometri="sg-armaturen/tube-mini-r/320696.ldt",
@@ -47,6 +49,7 @@ TUBE_MINI_R = Armaturtyp(
 PH5 = Armaturtyp(
     "PH5", "PH 5 Monochrome White, E27", "Louis Poulsen", "EAN 5714693431151",
     "https://www.lampmasters.co.uk/p/ph-5-pendant-monochrome-white-louis-poulsen-6090322.html",
+    produkt="ARM-PH5",
     ljusflode=1055.0, effekt=9.5, fargtemperatur=2700.0, ra=90.0, stralvinkel=0.0, vridbar=0.0, ip="IP20",
     dimring="bakkant", ring_d=100.0, hal_d=0.0, djup=0.0, lysande_d=117.0, brandavstand=0.0, drivdon=None,
     fotometri="", fotometri_url="", symbol="pendel",
@@ -62,6 +65,7 @@ def _vl45(d: float, h: float, artikel: str, effekt: float, flode: float, lampa: 
     return Armaturtyp(
         f"VL45-{d:.0f}", f"VL45 Radiohus Ø{d:.0f}, mässing/opal", "Louis Poulsen", artikel,
         "https://www.davidvillagelighting.co.uk/product/Louis-Poulsen-VL-45-Radiohus-Pendant/17235",
+        produkt="ARM-VL45",
         ljusflode=flode, effekt=effekt, fargtemperatur=2700.0, ra=90.0, stralvinkel=0.0, vridbar=0.0, ip="IP20",
         dimring="bakkant", ring_d=90.0, hal_d=0.0, djup=0.0, lysande_d=d, brandavstand=0.0, drivdon=None,
         fotometri="", fotometri_url="", symbol="pendel",
@@ -80,6 +84,7 @@ VL45_370 = _vl45(370.0, 448.0, "ej vald", 10.0, 1055.0, "E27 LED 1 055 lm 2 700 
 STAV = Armaturtyp(
     "STAV", "Stav pendel, råmässing", "Konsthantverk", "Nordic Nest 562066-01",
     "https://www.nordicnest.com/brands/konsthantverk/stav-pendant/",
+    produkt="ARM-STAV",
     ljusflode=470.0, effekt=4.5, fargtemperatur=2700.0, ra=90.0, stralvinkel=40.0, vridbar=0.0, ip="IP20",
     dimring="ingen", ring_d=80.0, hal_d=0.0, djup=0.0, lysande_d=24.0, brandavstand=0.0, drivdon=None,
     fotometri="", fotometri_url="", symbol="pendel",
@@ -90,6 +95,7 @@ STAV = Armaturtyp(
 # Glob av opalglas Ø250 med vitt fäste och vit textilsladd, allmän (ej vald)
 GLOB_250 = Armaturtyp(
     "GLOB-250", "Glob, opalglas Ø250, vitt fäste (ej vald)", "Allmän", "ej vald", "",
+    produkt="ARM-GLOB",
     ljusflode=806.0, effekt=7.5, fargtemperatur=2700.0, ra=90.0, stralvinkel=0.0, vridbar=0.0, ip="IP20",
     dimring="bakkant", ring_d=90.0, hal_d=0.0, djup=0.0, lysande_d=250.0, brandavstand=0.0, drivdon=None,
     fotometri="", fotometri_url="", symbol="pendel",

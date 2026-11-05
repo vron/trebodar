@@ -40,6 +40,7 @@ class Utrustning:
     lage: Montering
     matt: tuple[float, float, float]
     anslutningar: dict[str, Vek]
+    produkt: str = ""                   # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
 
 
 # bergvärmepumpen: baksidan 20 mm från V19:s gips, y 7 400–8 000; anslutningarna på ovansidan
@@ -50,7 +51,8 @@ VARMEPUMP = Utrustning(
     golv((_VP_X0 + _VP_X1) / 2, (_VP_Y0 + _VP_Y1) / 2, plan=0), (_VP_X1 - _VP_X0, _VP_Y1 - _VP_Y0, _VP_H),
     {"KB-in": (_VP_X0 + 150.0, _VP_Y0 + 100.0, _TOPP), "KB-ut": (_VP_X0 + 150.0, _VP_Y0 + 200.0, _TOPP),
      "VS-fram": (_VP_X0 + 100.0, _VP_Y0 + 450.0, _TOPP), "VS-retur": (_VP_X0 + 160.0, _VP_Y0 + 450.0, _TOPP),
-     "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)})
+     "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)},
+    produkt="VARMEPUMP")
 
 # tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, söder om ventilationens kanal FF3 längs V3
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
@@ -99,7 +101,8 @@ def montage() -> Montage:
         if u is FORDELARSKAP:
             m.lagg(_skap(u))
         elif u.lage.yta == "golv":
-            m.lagg(Del(u.namn, box(-b / 2, b / 2, -d / 2, d / 2, 0.0, h), VVS_APPARAT), _placering(u), u.id)
+            m.lagg(Del(u.namn, box(-b / 2, b / 2, -d / 2, d / 2, 0.0, h), VVS_APPARAT, produkt=u.produkt or None),
+                   _placering(u), u.id)
         else:
             m.lagg(Del(u.namn, box(-b / 2, b / 2, 0.0, d, -h / 2, h / 2), VVS_APPARAT), _placering(u), u.id)
     return m

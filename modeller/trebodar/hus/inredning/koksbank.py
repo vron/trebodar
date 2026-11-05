@@ -97,7 +97,7 @@ def _diskho(pl: Placering, bredd: float) -> tuple[Montage, list[tuple[float, flo
     """Diskhon under bänkskivan mitt i skåpet (bredd) och blandaren bakom, och hålet i bänkskivan."""
     b, d, h, t = DISKHO
     x0, y0 = (bredd - b) / 2, (K.DJUP - K.T - d) / 2
-    m = Montage("Diskho", beskrivning="Diskho av rostfritt stål, undermonterad, och blandare")
+    m = Montage("Diskho", beskrivning="Diskho av rostfritt stål, undermonterad, och blandare", produkt="DISKHO")
     ho = box(x0 - t, x0 + b + t, y0 - t, y0 + d + t, K.Z_TOPP - h, K.Z_TOPP) - box(x0, x0 + b, y0, y0 + d,
                                                                                     K.Z_TOPP - h + t, K.Z_TOPP + 1.0)
     m.lagg(Del(f"Diskho {fmt(b)}×{fmt(d)}", ho, ROSTFRITT), pl, "DISKHO")
@@ -115,7 +115,7 @@ def _hall(pl: Placering, bredd: float) -> tuple[Montage, list[tuple[float, float
     kx, ky = (bredd - kb) / 2, y0 + (d - kd) / 2
     hx, hy = (bredd - hb) / 2, y0 + (d - hd) / 2
     z = K.Z_TOPP + BANK_T
-    m = Montage("Häll", beskrivning="Induktionshäll 60, ytmonterad")
+    m = Montage("Häll", beskrivning="Induktionshäll 60, ytmonterad", produkt="HALL")
     m.lagg(Del(f"Induktionshäll {fmt(b)}×{fmt(d)}", box(x0, x0 + b, y0, y0 + d, z, z + HALL_T), HALLGLAS), pl, "HALL")
     m.lagg(Del(f"Hällens kropp {fmt(kb)}×{fmt(kd)}", box(kx, kx + kb, ky, ky + kd, z - kh, z), HALLGLAS), pl,
            "HALL-KROPP")
@@ -161,8 +161,8 @@ def bank() -> Montage:
         m.lagg(Del(f"Sparklist ask {fmt(SPARK_T)}", d.form, ASK), pl, kod)
     kontur = [(xf - UTSTICK, K_YTA), (X_VAGG, K_YTA), (X_VAGG, Y_SYD), (xv - SIDA_T, Y_SYD),
               (xv - SIDA_T, yf - UTSTICK), (xf - UTSTICK, yf - UTSTICK)]
-    m.lagg(Del(f"Bänkskiva Bricmate Jura {fmt(BANK_T)}", prisma(kontur, BANK_T, halen, z0=K.Z_TOPP), BANKSKIVA),
-           Placering(), "B-SKIVA")
+    m.lagg(Del(f"Bänkskiva Bricmate Jura {fmt(BANK_T)}", prisma(kontur, BANK_T, halen, z0=K.Z_TOPP), BANKSKIVA,
+               produkt="BANKSKIVA"), Placering(), "B-SKIVA")
     return m
 
 
@@ -185,6 +185,6 @@ def on() -> Montage:
     d, pl = virke_i_lada(xf - SPARK_IN - SPARK_T, xf - SPARK_IN, y0, y1, 0.0, K.SOCKEL, "y", ASK)
     m.lagg(Del(f"Sparklist ask {fmt(SPARK_T)}", d.form, ASK), pl, "O-SPARK")
     m.lagg(Del(f"Bänkskiva Bricmate Jura {fmt(BANK_T)}",
-               box(xv, xf + UTSTICK, y0 - SIDA_T, y1 + SIDA_T, K.Z_TOPP, K.Z_TOPP + BANK_T), BANKSKIVA), Placering(),
-           "O-SKIVA")
+               box(xv, xf + UTSTICK, y0 - SIDA_T, y1 + SIDA_T, K.Z_TOPP, K.Z_TOPP + BANK_T), BANKSKIVA,
+               produkt="BANKSKIVA"), Placering(), "O-SKIVA")
     return m

@@ -152,8 +152,8 @@ def montage() -> Montage:
     x0, y0, z0 = X_MITT - b / 2, Y_FRONT - d, Z_INSATS
     kropp = box(x0, x0 + b, y0, Y_FRONT, z0, z0 + h) - box(x0 + VAGG_T, x0 + b - VAGG_T, y0 + VAGG_T,
                                                          Y_FRONT - VAGG_T, z0 + VAGG_T, z0 + h - VAGG_T)
-    m.lagg(Del("Kamininsats Rais 600, kropp", kropp, KAMIN, artikel="Rais 600 (frontmodell, glas)"), Placering(),
-           "KM-INSATS")
+    m.lagg(Del("Kamininsats Rais 600, kropp", kropp, KAMIN, artikel="Rais 600 (frontmodell, glas)", produkt="KAMIN"),
+           Placering(), "KM-INSATS")
     rb, rh, rt = RAM
     zm = z0 + h / 2
     gb, gh = GLASET
@@ -201,8 +201,8 @@ def montage() -> Montage:
                    LUFT_FRI), ROSTFRITT), Placering(), "KM-LUFTKRAGE")
     z_topp = _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK
     m.lagg(Del(f"Isolerad skorsten Ø{SKORSTEN_INRE:g}/Ø{SKORSTEN_D:g}",
-               ror((X_SK, Y_SK, c[2]), (X_SK, Y_SK, z_topp), SKORSTEN_D, (SKORSTEN_D - SKORSTEN_INRE) / 2), ROSTFRITT),
-           Placering(), "KM-SKORSTEN")
+               ror((X_SK, Y_SK, c[2]), (X_SK, Y_SK, z_topp), SKORSTEN_D, (SKORSTEN_D - SKORSTEN_INRE) / 2), ROSTFRITT,
+               produkt="SKORSTEN"), Placering(), "KM-SKORSTEN")
     m.lagg(Del("Regnhuv", cylinder(SKORSTEN_D / 2 + FRI, 40.0, (X_SK, Y_SK, z_topp)), ROSTFRITT), Placering(), "KM-HUV")
     # takgenomföringens krage: täcker hålet i taket, från takets nedre sida upp 100 mm över dess övre
     r = SKORSTEN_D / 2 + FRI

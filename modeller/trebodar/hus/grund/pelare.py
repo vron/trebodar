@@ -21,7 +21,8 @@ ANTAL = {"P7": 2}
 
 ROR = Del("VKR 80×80×4 L=2100", prisma([(0, 0), (VKR, 0), (VKR, VKR), (0, VKR)], Z1 - Z0,
                                         [[(T_VKR, T_VKR), (VKR - T_VKR, T_VKR), (VKR - T_VKR, VKR - T_VKR),
-                                          (T_VKR, VKR - T_VKR)]]), S235, artikel="VKR 80×80×4 S235 (SS-EN 10219)")
+                                          (T_VKR, VKR - T_VKR)]]), S235, artikel="VKR 80×80×4 S235 (SS-EN 10219)",
+          produkt="VKR-PELARE")
 TOPP = Del("Topplåt 80×80×8", box(0, VKR, 0, VKR, 0, TOPP_T), S235)
 
 

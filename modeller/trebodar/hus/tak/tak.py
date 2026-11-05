@@ -164,7 +164,7 @@ def takfonster(kod_falt: str, f: Takfonster) -> Montage:
     B = f.y1 - f.y0
     y_start = f.y0 if t.riktning > 0 else f.y1
     p = _takplan(t, f.x_ned, y_start)
-    m = Montage(f.kod, f.kod, f"Takfönster {B:g}×{L_:.0f} (förenklat)")
+    m = Montage(f.kod, f.kod, f"Takfönster {B:g}×{L_:.0f} (förenklat)", produkt="TAKFONSTER")
     karm = lada(L_, B, 330.0, (0.0, 0.0, -170.0)) - lada(L_ - 120, B - 120, 330.0, (60.0, 60.0, -170.0))
     m.lagg(Del(f"Takfönster karm {B:g}×{L_:.0f}", karm, KARM), p, f"{f.kod}-KARM")
     m.lagg(Del(f"Takfönster glas {B - 120:g}×{L_ - 120:.0f}", lada(L_ - 120, B - 120, 24.0, (60.0, 60.0, 106.0)),

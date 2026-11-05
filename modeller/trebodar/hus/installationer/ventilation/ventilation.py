@@ -108,7 +108,7 @@ def overgang(e: Overgang) -> Del:
 
 def _don(e: Don, g: Gren) -> Montage:
     t, m = e.typ, e.lage
-    mm = Montage(e.id, beskrivning=t.namn)
+    mm = Montage(e.id, beskrivning=t.namn, produkt=(t.produkt or None) if isinstance(t, Koksflakttyp) else None)
     if isinstance(t, Koksflakttyp):
         sys = _vagg(m)
         mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g}", box(-t.b / 2, t.b / 2, 0.0, t.h, 0.0, t.d), KOKSFLAKT), sys,

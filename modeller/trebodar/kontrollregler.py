@@ -1,6 +1,9 @@
 """Regler för kontrollerna: materialpar som inte prövas och avsiktliga överlapp (`mod kontroll`), med motivering,
-installationernas vägar (`mod kontroll`, `mod vagar`) och modulernas lagerordning (`mod typ`)."""
+installationernas vägar (`mod kontroll`, `mod vagar`), modulernas lagerordning (`mod typ`) och inköpslistan som
+specialprodukternas koder jämförs med (`mod kontroll`, `mod inkop`)."""
 from __future__ import annotations
+
+from pathlib import Path
 
 from trebodar import skelett as S
 from trebodar.hus.installationer.fria_volymer import fria_volymer
@@ -75,3 +78,7 @@ FRIA_VOLYMER = fria_volymer
 # syns inte); YTSKIKT_UTOM: delträd vars ytor får ha det, med motivering
 YTSKIKT = ("Gips", "Kakel", "Kalciumsilikat målad")
 YTSKIKT_UTOM: dict[str, str] = {}
+
+
+# inköpslistan (IN-01): koderna i modellens `produkt=` kontrolleras mot den (`mod kontroll`, `mod inkop`)
+INKOPSLISTA = Path(__file__).resolve().parents[2] / "beräkningar" / "IN-01" / "indata.toml"

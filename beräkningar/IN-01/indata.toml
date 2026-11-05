@@ -1,0 +1,338 @@
+# ------------------------------------------------------------------
+# Indata – IN-01 Inköpslista
+# Specialprodukterna: det som väljs, beställs eller tillverkas för sig (vitvaror, fönster, kamin, armaturer,
+# specialtillverkat stål och limträ …), inte vanligt material (virke, skivor, isolering, armering, kabel, rör).
+# Modellen märker produkten där den skapas (produkt="KOD" i geometriskriptet), så att antalet och instansernas id
+# kommer ur modellen; här står resten. Ändra status här och kör ./bygg IN-01.
+#
+# [[produkt]]: kod (som i modellen), grupp, namn, status, ansvarig (en roll), skede (när den ska finnas på bygget);
+# vald (produkten eller utförandet, krävs när status inte är "att välja"), leverantor, dokument, arende (GitHub),
+# anm. En produkt som inte är modellerad anger omfattning i stället.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Inköpslista"
+dokument    = "IN-01"
+revision    = "A"
+datum       = "2026-11-05"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+
+# status i ordning
+[status]
+"att välja" = "Produkten är inte vald; modellen anger mått och krav"
+"vald"      = "Produkten eller utförandet är bestämt, inte beställt"
+"offert"    = "Offert begärd eller mottagen"
+"beställd"  = "Beställd"
+"levererad" = "Levererad till bygget"
+"monterad"  = "Monterad"
+
+[roller]
+byggherre = "Byggherren"
+bygg      = "Byggentreprenören"
+el        = "Elektrikern"
+vvs       = "VVS-entreprenören"
+
+# skedena i byggets ordning: produkten ska finnas på bygget senast i skedet
+[skeden]
+grund          = "Grunden"
+mellanbjalklag = "Mellanbjälklaget"
+stomme         = "Stommen"
+tatt           = "Tätt hus"
+installationer = "Installationerna"
+invandigt      = "Invändigt"
+utvandigt      = "Utvändigt"
+
+# ------------------------------------------------------------------ stomme
+
+[[produkt]]
+kod      = "LIMTRABALKAR"
+grupp    = "Stomme"
+namn     = "Nock- och dalbalkar, limträ GL30c 190×180"
+vald     = "Limträ GL30c 190×180 i längderna enligt K-01"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "stomme"
+dokument = "K-01, R-01"
+anm      = "Med stålplåtarna nedan och skruv enligt K-01."
+
+[[produkt]]
+kod      = "BALKPLATAR"
+grupp    = "Stomme"
+namn     = "Stålplåtar till nock- och dalbalkarna"
+vald     = "Laserskuren plåt S355J2+N 190×10 med hålbild (K-01 rev C, DXF i modeller/balkplattor)"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "stomme"
+dokument = "K-01, R-01"
+
+[[produkt]]
+kod      = "STALPLATAR-2SV"
+grupp    = "Stomme"
+namn     = "Stålplåtar över stolparna vid skjutdörren 2SV"
+vald     = "Plåt S235 500×90×16 i urtag i hammarbandet över stolparna LD2_4 och LD4_2"
+status   = "vald"
+ansvarig = "bygg"
+skede    = "stomme"
+
+[[produkt]]
+kod      = "VKR-PELARE"
+grupp    = "Stomme"
+namn     = "Källarpelare, VKR med topp- och fotplåtar"
+vald     = "VKR 80×80×4 S235, L = 2 100, topplåt 80×80×8 och fotplåt 15"
+status   = "vald"
+ansvarig = "bygg"
+skede    = "mellanbjalklag"
+dokument = "K-05, R-05"
+
+# ------------------------------------------------------------------ fönster och dörrar
+
+[[produkt]]
+kod      = "FONSTER"
+grupp    = "Fönster och dörrar"
+namn     = "Fönster, fönsterdörrar och skjutdörr"
+vald     = "VELFAC 200 ENERGY"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "tatt"
+anm      = "Mått, kulörer och glas i modellen (byggdelar/velfac.py)."
+
+[[produkt]]
+kod      = "YTTERDORRAR"
+grupp    = "Fönster och dörrar"
+namn     = "Ytterdörrar med panel, huvudentrén och källarens pardörr"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "tatt"
+anm      = "Karm som Elitfönsters altandörr; blad med panel i den andra kulören än fasaden."
+
+[[produkt]]
+kod      = "INNERDORRAR"
+grupp    = "Fönster och dörrar"
+namn     = "Fickdörrar med kassett"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "stomme"
+anm      = "Kassetterna byggs in i väggarna när stommen reses."
+
+[[produkt]]
+kod      = "TAKFONSTER"
+grupp    = "Fönster och dörrar"
+namn     = "Takfönster 1 200 × 1 200"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "tatt"
+dokument = "U-03"
+anm      = "Omluftning runt fönstren enligt U-03."
+
+# ------------------------------------------------------------------ kök
+
+[[produkt]]
+kod      = "KOKSSKAP"
+grupp    = "Kök"
+namn     = "Köksskåp, stommar av björkplywood 20"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+arende   = [56]
+anm      = "Lådskenor Blum MOVENTO 760H i modellen; gångjärn och låskrokar är inte modellerade."
+
+[[produkt]]
+kod      = "KOKSFRONTER"
+grupp    = "Kök"
+namn     = "Köksfronter av fräst ask, även vitvarornas fronter och skafferidörren"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "BANKSKIVA"
+grupp    = "Kök"
+namn     = "Bänkskivor, bänken och ön"
+vald     = "Bricmate Jura 12"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "DISKHO"
+grupp    = "Kök"
+namn     = "Diskho, undermonterad, och köksblandare"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "HALL"
+grupp    = "Kök"
+namn     = "Induktionshäll 60"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+arende   = [50]
+anm      = "400 V till skåpet B4."
+
+[[produkt]]
+kod      = "DISKMASKIN"
+grupp    = "Kök"
+namn     = "Diskmaskin, helintegrerad 60"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+arende   = [50]
+anm      = "I ön; vatten, avlopp och el gjuts in i mellanbjälklaget."
+
+[[produkt]]
+kod      = "KYL"
+grupp    = "Kök"
+namn     = "Kylskåp, integrerat, för nisch 560 × 1 780"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "FRYS"
+grupp    = "Kök"
+namn     = "Frysskåp, integrerat, för nisch 560 × 880"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "KOKSFLAKT"
+grupp    = "Kök"
+namn     = "Köksfläkt med skorstenskåpa, vägghängd 60 cm"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+dokument = "V-01"
+arende   = [53]
+anm      = "Forcerat 400 m³/h, Ø150 ut genom 3NV. Ersättningsluften behövs."
+
+# ------------------------------------------------------------------ kamin
+
+[[produkt]]
+kod      = "KAMIN"
+grupp    = "Kamin"
+namn     = "Kamininsats med förbränningsluft utifrån"
+vald     = "Rais 600, frontmodell med glas, och Rais AirSystem"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+anm      = "Inbyggd i 2C med Skamotec 225 enligt anvisningen."
+
+[[produkt]]
+kod      = "SKORSTEN"
+grupp    = "Kamin"
+namn     = "Isolerad skorsten Ø150/Ø250 med regnhuv och takgenomföring"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "tatt"
+anm      = "800 mm över nocken (antaget)."
+
+# ------------------------------------------------------------------ belysning
+
+[[produkt]]
+kod      = "ARM-JUNISTAR"
+grupp    = "Belysning"
+namn     = "Infälld spot"
+vald     = "SG Armaturen Junistar Exclusive 903201"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "ARM-TUBE"
+grupp    = "Belysning"
+namn     = "Tubspot på stam"
+vald     = "SG Armaturen Tube Mini R 320696"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "ARM-PH5"
+grupp    = "Belysning"
+namn     = "Pendel"
+vald     = "Louis Poulsen PH 5 Monochrome White"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "ARM-VL45"
+grupp    = "Belysning"
+namn     = "Pendlar i tre storlekar"
+vald     = "Louis Poulsen VL45 Radiohus Ø175, Ø250 och Ø370"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "ARM-STAV"
+grupp    = "Belysning"
+namn     = "Pendlar över köksön"
+vald     = "Konsthantverk Stav, råmässing"
+status   = "vald"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+[[produkt]]
+kod      = "ARM-GLOB"
+grupp    = "Belysning"
+namn     = "Glob av opalglas Ø250"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "invandigt"
+
+# ------------------------------------------------------------------ vvs
+
+[[produkt]]
+kod      = "VARMEPUMP"
+grupp    = "VVS"
+namn     = "Bergvärmepump med inbyggd varmvattenberedare"
+status   = "att välja"
+ansvarig = "vvs"
+skede    = "installationer"
+
+[[produkt]]
+kod        = "BORRHAL"
+grupp      = "VVS"
+namn       = "Borrhål med kollektor för bergvärmen"
+status     = "att välja"
+ansvarig   = "byggherre"
+skede      = "grund"
+omfattning = "1 borrhål"
+anm        = "Vid cirka (3 500, −2 000); köldbärarledningarna går under bottenplattan. Djupet bestäms av borrföretaget."
+
+[[produkt]]
+kod        = "BADRUM"
+grupp      = "VVS"
+namn       = "Badrummets sanitet"
+status     = "att välja"
+ansvarig   = "byggherre"
+skede      = "invandigt"
+omfattning = "4 st"
+arende     = [52]
+anm        = "WC, badkar, tvättställ och duschblandare. Anslutningarna finns i tappvattnet; porslinet är inte modellerat."
+
+# ------------------------------------------------------------------ inredning och mark
+
+[[produkt]]
+kod      = "TRAPPA"
+grupp    = "Inredning och mark"
+namn     = "Trappa till källaren, furu"
+status   = "att välja"
+ansvarig = "bygg"
+skede    = "invandigt"
+arende   = [54]
+anm      = "Räcke och ledstång är inte bestämda."
+
+[[produkt]]
+kod      = "ENTREAVSATS"
+grupp    = "Inredning och mark"
+namn     = "Entréavsats av granit: dörrsteg, avsats och trappsteg"
+status   = "att välja"
+ansvarig = "byggherre"
+skede    = "utvandigt"

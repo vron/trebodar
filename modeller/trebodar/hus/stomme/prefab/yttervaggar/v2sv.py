@@ -30,7 +30,7 @@ def montage() -> Montage:
     platar = [(ld24[0][0], ld24[0][0] + PLAT_L), (ld42[2][1] - PLAT_L, ld42[2][1])]
     hb = [(0.0, DAL), (0.0, DAL - R)]
     for a, b in platar:
-        v.liggande(a, b, uk_plat, h=PLAT_T, w0=0.0, w1=PLAT_B, typ="P", material=S235)
+        v.liggande(a, b, uk_plat, h=PLAT_T, w0=0.0, w1=PLAT_B, typ="P", material=S235, produkt="STALPLATAR-2SV")
         hb += [(a, DAL - R), (a, DAL - R + URTAG), (b, DAL - R + URTAG), (b, DAL - R)]
     v.profil(hb + [(langd, DAL - R), (langd, DAL)], typ="H")
     return v.montage()

@@ -267,6 +267,11 @@ def main(argv: list[str] | None = None) -> None:
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
                          "(markdown); ritning: planen med höjderna (D-01)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
+    pi = sub.add_parser("inkop", help="specialprodukterna i modellen mot inköpslistan (IN-01): kontroll och utdrag")
+    pi.add_argument("atgard", choices=("kontroll", "utdrag"),
+                    help="kontroll: koderna i modellen (produkt=) mot inköpslistan och tvärtom (ingår i kontroll); "
+                         "utdrag: dessutom produkternas instanser i modellen (json) till IN-01")
+    pi.add_argument("--ut", type=Path, default=UT / "inkop.json")
     pv = sub.add_parser("vagar", help="installationernas vägar: rören, kablarna och kanalerna dolda i skikten, inte "
                                       "fritt i rummen eller i fickdörrarnas fickor (kontrollregler, ingår i kontroll)")
     pv.add_argument("--trad", default=None, help="bara delträdet, t.ex. Hus/Installationer/El")
@@ -482,6 +487,22 @@ def main(argv: list[str] | None = None) -> None:
     t1 = time.perf_counter()
     if arg.kommando == "trad":
         trad(rot, arg.djup)
+        return
+    if arg.kommando == "inkop":
+        import json
+        from . import inkop
+        lista = importlib.import_module("trebodar.kontrollregler").INKOPSLISTA
+        inst, fel = inkop.kontroll(rot, lista)
+        print(f"{rot.namn}: {sum(map(len, inst.values()))} instanser av {len(inst)} specialprodukter i modellen, "
+              f"{len(fel)} fel mot inköpslistan ({lista.relative_to(ROT)})")
+        for f in fel:
+            print(f"    FEL {f}")
+        if fel:
+            raise SystemExit(1)
+        if arg.atgard == "utdrag":
+            arg.ut.parent.mkdir(parents=True, exist_ok=True)
+            arg.ut.write_text(json.dumps(inst, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"  -> {arg.ut}")
         return
     karna = Karna()
     karna.forbered(d.form for _, d, _ in rot.platta())
@@ -949,6 +970,13 @@ def main(argv: list[str] | None = None) -> None:
             print(f"  ytskikten: {yt.ytor} synliga ytor, {len(yt.fel)} språng och springor ({yt.sekunder:.1f} s; "
                   f"./mod ytor)")
             for f in yt.fel:
+                print(f"    FEL {f}")
+        if hasattr(regler, "INKOPSLISTA"):
+            from . import inkop
+            inst, fel = inkop.kontroll(rot, regler.INKOPSLISTA)
+            print(f"  inköpslistan: {sum(map(len, inst.values()))} instanser av {len(inst)} specialprodukter, "
+                  f"{len(fel)} fel (./mod inkop)")
+            for f in fel:
                 print(f"    FEL {f}")
     elif arg.kommando == "ytor":
         from . import ytskikt

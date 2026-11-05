@@ -177,7 +177,7 @@ Handlingarna motsvarar det som kallelsen till tekniskt samråd begär.
 
 = Övriga handlingar
 
-Egna utredningar (U) som underlag för projekteringen och arbetsritningar (AR) för utförandet. De ingår inte i handlingarna till tekniskt samråd.
+Egna utredningar (U) som underlag för projekteringen, arbetsritningar (AR) för utförandet och inköpslistan (IN) med specialprodukterna. De ingår inte i handlingarna till tekniskt samråd.
 
 #table(
   columns: (12mm, 1fr, 16mm),

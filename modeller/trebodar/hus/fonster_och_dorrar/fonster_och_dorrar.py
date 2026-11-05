@@ -59,7 +59,7 @@ def _ytterdorr(o: Oppning) -> Montage:
     b, h = o.bredd - 2 * YD.DREV, o.hojd - 2 * YD.DREV
     w_karm = o.w_karm                                    # karmens insida
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)" +
-                (f" ({o.onshape} i Onshape)" if o.onshape else ""))
+                (f" ({o.onshape} i Onshape)" if o.onshape else ""), produkt="YTTERDORRAR")
     plac = Placering.flytt(o.u0 + YD.DREV, w_karm, o.z0 + YD.DREV)
     kropp = int(o.vagg[0])
     panel = DORRPANEL_KALLARE if o.z1 <= 0.0 else DORRPANEL[kropp]
@@ -129,7 +129,7 @@ def enhet_velfac(o: Oppning) -> Montage:
     w_alu = w_karm - V.DJUP
     dorr = o.typ in DORRAR
     m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} VELFAC {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)" +
-                (f" ({o.onshape} i Onshape)" if o.onshape else ""))
+                (f" ({o.onshape} i Onshape)" if o.onshape else ""), produkt="FONSTER")
     plac = Placering.flytt(ku0, w_karm, kz0)
     for i in V.PRODUKTER[o.typ](o.kod, ku1 - ku0, kz1 - kz0, alu).barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)
@@ -233,7 +233,7 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     a, b = d.fickan
     r = DORRSMYG_T
     ba, bb = (d.u0 + r, d.u1 + FICKA_UT + r) if d.mot > 0 else (d.u0 - FICKA_UT - r, d.u1 - r)
-    m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
+    m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
     blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", FURU)
     m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, FURU), pl, f"{d.kod}-BLAD")
     u0, u1 = min(d.u0, a), max(d.u1, b)
@@ -270,7 +270,7 @@ def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     else:
         s0, s1 = max([a - d.bredd] + [g1 + 10.0 for _, g1 in grannar if g1 <= a]), b
     s0, s1 = max(s0, min(a, SKIVOR_T + 10.0)), min(s1, max(b, v.langd - SKIVOR_T - 10.0))     # inte förbi grannväggarna
-    m = Montage(d.kod, d.kod, f"Skjutdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}")
+    m = Montage(d.kod, d.kod, f"Skjutdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
     m.lagg(Del(f"Dörrblad trä {fmt(b - a)}×{fmt(d.hojd + 30)}", box(a, b, wa, wb, 10.0, d.hojd + 40.0), FURU),
            Placering(), f"{d.kod}-BLAD")
     m.lagg(Del(f"Skena {fmt(s1 - s0)}", box(s0, s1, sa, sb, d.hojd + 40.0, d.hojd + 80.0), KARM), Placering(),

@@ -107,6 +107,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och trätrappan till 2SO-D1 |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
+| En specialprodukt i inköpslistan (IN-01) | `produkt="KOD"` på delen eller montaget i geometriskriptet där det skapas (installationernas produkttyper: typens `produkt` i katalogen) och produkten med status i `beräkningar/IN-01/indata.toml`; `./mod kontroll` jämför koderna |
 
 Kör sedan `./mod kontroll` (krockar, glipor, lösa delar) och `./mod typ`. Vid en omstrukturering som inte ska ändra
 geometrin: `./mod avtryck spara` före och `./mod avtryck jamfor` efter.

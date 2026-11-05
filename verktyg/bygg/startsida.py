@@ -119,8 +119,8 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tu
           for b in f01.get("bygglov", [])]),
         ("Tekniskt samråd", "Handlingarna till det tekniska samrådet.",
          [rad(h["nr"], h["namn"], h["status"]) for h in f01.get("handling", [])]),
-        ("Egna underlag", "Utredningar och arbetsritningar för projekteringen och utförandet. Ingår inte i "
-                          "handlingarna till samrådet.",
+        ("Egna underlag", "Utredningar, arbetsritningar och inköpslistan för projekteringen och utförandet. Ingår "
+                          "inte i handlingarna till samrådet.",
          [rad(h["nr"], h["namn"], h["status"]) for h in f01.get("ovrig", [])]),
     ]
     ovrigt = [rad(nr, nfc(p.stem).split(" ", 1)[-1], "klar") for nr, p in list(filer.items())]

@@ -62,6 +62,7 @@ class Koksflakttyp:
     utlopp: float                       # utloppets mitt från väggen
     flode: float                        # forcerat flöde [l/s]
     flode_normal: float                 # normalt flöde [l/s]
+    produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
 
 
 @dataclass(frozen=True)

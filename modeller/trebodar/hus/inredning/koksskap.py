@@ -122,7 +122,8 @@ def _lada(m: Montage, kod: str, nr: int, bredd: float, nl: float, z0: float, z1:
 
 def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
     """Ett skåp av typen, bredd (stommens yttermått) längs x, i skåpets system."""
-    m = Montage(kod, typ.namn, f"{typ.namn} {fmt(bredd)}×{fmt(DJUP)}, stomme av björkplywood 20, fronter av ask")
+    m = Montage(kod, typ.namn, f"{typ.namn} {fmt(bredd)}×{fmt(DJUP)}, stomme av björkplywood 20, fronter av ask",
+                produkt="KOKSSKAP")
     inne = DJUP - T
     assert typ.nl + NL_TILLAGG <= inne, "skåpets invändiga djup (Blum: minst NL + 3)"
     stomme = [("SIDA-V", box(0.0, T, 0.0, DJUP, SOCKEL, Z_TOPP)),
@@ -146,7 +147,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
     x0, x1 = T - OVER_SIDAN, bredd - T + OVER_SIDAN
     for nr, ((f0, f1), (l0, l1), ar_lada) in enumerate(zip(fz, ladornas_z(), typ.lador), start=1):
         m.lagg(Del(f"Front ask fräst {fmt(FRONT_T)} {fmt(x1 - x0)}×{fmt(f1 - f0)}" + ("" if ar_lada else " (fast)"),
-                   front(x0, x1, f0, f1), ASK), Placering(), f"{kod}-FRONT{nr}")
+                   front(x0, x1, f0, f1), ASK, produkt="KOKSFRONTER"), Placering(), f"{kod}-FRONT{nr}")
         if ar_lada:
             _lada(m, kod, nr, bredd, typ.nl, l0, l1)
     return m
@@ -157,9 +158,10 @@ def diskmaskin(kod: str, bredd: float) -> Montage:
     m = Montage(kod, "Diskmaskin", "Integrerad diskmaskin 60 med front av fräst ask")
     b, d = DISKMASKIN
     x0 = (bredd - b) / 2
-    m.lagg(Del(f"Integrerad diskmaskin {fmt(b)}×{fmt(d)}", box(x0, x0 + b, 0.0, d, SOCKEL, Z_TOPP - SPEL), VITVARA),
-           Placering(), kod)
+    m.lagg(Del(f"Integrerad diskmaskin {fmt(b)}×{fmt(d)}", box(x0, x0 + b, 0.0, d, SOCKEL, Z_TOPP - SPEL), VITVARA,
+               produkt="DISKMASKIN"), Placering(), kod)
     f0, f1 = SOCKEL, Z_TOPP - SPEL
     m.lagg(Del(f"Front ask fräst {fmt(FRONT_T)} {fmt(bredd - 2 * (T - OVER_SIDAN))}×{fmt(f1 - f0)}",
-               front(T - OVER_SIDAN, bredd - T + OVER_SIDAN, f0, f1), ASK), Placering(), f"{kod}-FRONT")
+               front(T - OVER_SIDAN, bredd - T + OVER_SIDAN, f0, f1), ASK, produkt="KOKSFRONTER"), Placering(),
+           f"{kod}-FRONT")
     return m
