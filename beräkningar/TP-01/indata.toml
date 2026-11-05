@@ -223,7 +223,7 @@ slut       = "2027-01-29"
 ansvarig   = "byggherre"
 inblandade = ["ka"]
 prel       = true
-anm        = "Kontrollplan och brandskyddsbeskrivning av KA, tidsplanen och konstruktionshandlingarna; in senast 5 arbetsdagar före samrådet."
+anm        = "Kontrollplan och brandskyddsbeskrivning av KA (#64), trästommens ritning och stabilisering (#63); in senast 5 arbetsdagar före samrådet."
 
 [[steg]]
 fas        = "forberedelser"
@@ -287,6 +287,16 @@ anm        = "Fönster, elkablar, uttag och inredning som inte är helt i trä, 
 
 [[steg]]
 fas        = "forberedelser"
+namn       = "Vatten och avlopp stängs och pluggas"
+start      = "2027-08-02"
+slut       = "2027-08-06"
+ansvarig   = "byggherre"
+inblandade = ["kommunen", "mark"]
+prel       = true
+anm        = "Före rivningen (D32): vattnet stängs, ledningarna pluggas; VA-avdelningen stänger kommunens ventil vid behov."
+
+[[steg]]
+fas        = "forberedelser"
 namn       = "Staket runt grönsakslandet"
 start      = "2027-07-26"
 slut       = "2027-08-06"
@@ -320,7 +330,7 @@ slut       = "2027-08-16"
 ansvarig   = "matning"
 inblandade = ["mark"]
 prel       = true
-anm        = "Enligt AR-02; lägeskontroll när grunden är gjuten."
+anm        = "Enligt AR-02; lägeskontroll när grunden är gjuten. Kommunens mättekniker eller extern aktör (#62)."
 
 [[steg]]
 fas        = "rivning"
