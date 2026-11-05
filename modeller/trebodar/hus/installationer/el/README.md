@@ -132,7 +132,8 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
 bordshöjden på plan 1, köksbänkarna och ön, källarens golv; ytor och delområden läggs till där) i renderingen, med
 armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (E-02.n i ritningsmallen, en pdf
 per mätyta) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
-delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita):
+delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita). Ett delområde kan mätas
+i en egen höjd: på planerna över plan 1 mäts köksbänkarna och ön där man arbetar, 10 mm över bänkskivorna (0,91 m):
 
 ```
 ./mod ljusplan plan1-golv kallare-golv              # alla tändgrupper och källarens taklampor tända, mörkt ute

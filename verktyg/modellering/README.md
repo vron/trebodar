@@ -117,7 +117,9 @@ egen modell (t.ex. för beställning). Utdata:
   stämmer inom 1 % med en handräkning ur fotometrifilen). Allt annat lyser, skuggar och reflekterar som i
   renderingen: ljuset studsar i rummen (diffust minst fyra gånger) och tas upp efter materialens färg, utan
   gränser för samplens bidrag. Kaustiken (ljus via blanka ytor och genom glas efter en diffus studs) är avslagen
-  för bruset, så belysningsstyrkan blir något för låg med ytornas blanka andel. Cycles på GPU med
+  för bruset, så belysningsstyrkan blir något för låg med ytornas blanka andel. Delområden i en egen höjd
+  (bänkskivorna på planerna över plan 1) renderas för sig, med ytorna två rutor större så att kanten inte blandas
+  med planet under, och ersätter planet i sina rutor. Cycles på GPU med
   brusreducering (OIDN), färgåtergivning Khronos PBR Neutral.
 - **Ritningarna** (`modellering/planritning.py`, `kameraplan.py`, `elritning.py`, `ljusplan.py`): i den gemensamma
   ritningsmallen ([`beräkningar/ritningsmall`](../../beräkningar/ritningsmall/), A3 med samma ram, ritningshuvud,

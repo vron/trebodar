@@ -461,22 +461,36 @@ def armaturer(lista: list[dict]) -> list[Armatur]:
     return ut
 
 
+def _matplan(sc: bpy.types.Scene, namn: str, ytor: list[tuple[float, ...]],
+             mat: bpy.types.Material) -> bpy.types.Object:
+    """Mätytornas plan (x0, x1, y0, y1, z i m) som ett objekt som bara kameran ser."""
+    me = bpy.data.meshes.new(namn)
+    bm = bmesh.new()
+    for a, b, c, d, h in ytor:
+        bm.faces.new([bm.verts.new((p[0], p[1], h)) for p in ((a, c), (b, c), (b, d), (a, d))])
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(mat)
+    ob = bpy.data.objects.new(namn, me)
+    sc.collection.objects.link(ob)
+    for attr in ("visible_diffuse", "visible_glossy", "visible_transmission", "visible_volume_scatter",
+                 "visible_shadow"):
+        setattr(ob, attr, False)
+    return ob
+
+
 def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
-    """Belysningsstyrkan på en vågrät mätyta (m: omrade (x0, x1, y0, y1) och z i mm, cell i mm, direkt): ett vitt,
-    perfekt diffust plan (Lambert) som bara kameran ser (det kastar inga skuggor och reflekterar inget ljus till
-    scenen), ovanifrån med en ortografisk kamera, en pixel per ruta. Planets luminans är E / π, och ljuset är
-    kalibrerat i lux / 683, så E = π · 683 · L lux. Allt annat är osynligt för kameran men lyser, skuggar och
-    reflekterar som vanligt. Rutnätet (lux, rad 0 vid y0) sparas som <ut>.npy och beskrivningen som <ut>.json."""
+    """Belysningsstyrkan på en vågrät mätyta (m: omrade (x0, x1, y0, y1) och z i mm, cell i mm, direkt, upphojda:
+    delområden [x0, x1, y0, y1, z] som mäts i en egen höjd, t.ex. bänkskivorna): ett vitt, perfekt diffust plan
+    (Lambert) som bara kameran ser (det kastar inga skuggor och reflekterar inget ljus till scenen), ovanifrån med en
+    ortografisk kamera, en pixel per ruta. Planets luminans är E / π, och ljuset är kalibrerat i lux / 683, så
+    E = π · 683 · L lux. Allt annat är osynligt för kameran men lyser, skuggar och reflekterar som vanligt. De
+    upphöjda delområdena renderas för sig, med ytorna två rutor större (så att kanten inte blandas med planet under
+    eller bakgrunden), och ersätter planet i rutorna vars mitt ligger i dem. Rutnätet (lux, rad 0 vid y0) sparas som
+    <ut>.npy och beskrivningen som <ut>.json."""
     x0, x1, y0, y1 = (v / 1000 for v in m["omrade"])
     z = m["z"] / 1000
     nx, ny = max(2, round((x1 - x0) * 1000 / m["cell"])), max(2, round((y1 - y0) * 1000 / m["cell"]))
-    me = bpy.data.meshes.new("Mätyta")
-    bm = bmesh.new()
-    for p in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
-        bm.verts.new((p[0], p[1], z))
-    bm.faces.new(bm.verts)
-    bm.to_mesh(me)
-    bm.free()
     mat = bpy.data.materials.new("Mätyta")
     mat.use_nodes = True
     nt = mat.node_tree
@@ -486,18 +500,16 @@ def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
     diffus.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
     diffus.inputs["Roughness"].default_value = 0.0
     nt.links.new(diffus.outputs[0], nt.nodes.new("ShaderNodeOutputMaterial").inputs["Surface"])
-    me.materials.append(mat)
-    plan = bpy.data.objects.new("Mätyta", me)
-    sc.collection.objects.link(plan)
-    for attr in ("visible_diffuse", "visible_glossy", "visible_transmission", "visible_volume_scatter",
-                 "visible_shadow"):
-        setattr(plan, attr, False)
-    synliga = [o for o in bpy.data.objects if o is not plan and o.visible_camera]
+    upph = [[v / 1000 for v in u] for u in m.get("upphojda", [])]
+    k = 2 * m["cell"] / 1000
+    plan = _matplan(sc, "Mätyta", [(x0, x1, y0, y1, z)], mat)
+    hoga = _matplan(sc, "Mätyta upphöjd", [(a - k, b + k, c - k, d + k, h) for a, b, c, d, h in upph], mat)
+    synliga = [o for o in bpy.data.objects if o not in (plan, hoga) and o.visible_camera]
     for o in synliga:
         o.visible_camera = False
     kam = bpy.data.objects.new("Mätkamera", bpy.data.cameras.new("Mätkamera"))
     sc.collection.objects.link(kam)
-    kam.location = ((x0 + x1) / 2, (y0 + y1) / 2, z + 20.0)
+    kam.location = ((x0 + x1) / 2, (y0 + y1) / 2, max([z, *(u[4] for u in upph)]) + 20.0)
     kam.rotation_euler = (0.0, 0.0, 0.0)
     kam.data.type = "ORTHO"
     kam.data.ortho_scale = max(x1 - x0, y1 - y0)
@@ -511,12 +523,24 @@ def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
     r.image_settings.color_depth = "32"
     if m.get("direkt"):
         sc.cycles.max_bounces = 0
-    r.filepath = ut + ".exr"
-    bpy.ops.render.render(write_still=True)
-    im = bpy.data.images.load(r.filepath)
-    px = np.array(im.pixels[:], dtype=np.float64).reshape(ny, nx, 4)[:, :, :3]
-    bpy.data.images.remove(im)
-    lux = (px @ REC709) * math.pi * LUMEN_PER_WATT
+
+    def rendera(synlig: bpy.types.Object, fil: str) -> np.ndarray:
+        plan.visible_camera, hoga.visible_camera = synlig is plan, synlig is hoga
+        r.filepath = fil
+        bpy.ops.render.render(write_still=True)
+        im = bpy.data.images.load(r.filepath)
+        px = np.array(im.pixels[:], dtype=np.float64).reshape(ny, nx, 4)[:, :, :3]
+        bpy.data.images.remove(im)
+        return (px @ REC709) * math.pi * LUMEN_PER_WATT
+
+    lux = rendera(plan, ut + ".exr")
+    if upph:
+        lux_h = rendera(hoga, ut + "-upphojda.exr")
+        cx = x0 + (np.arange(nx) + 0.5) * (x1 - x0) / nx
+        cy = y0 + (np.arange(ny) + 0.5) * (y1 - y0) / ny
+        for a, b, c, d, _ in upph:
+            i = ((cy >= c) & (cy <= d))[:, None] & ((cx >= a) & (cx <= b))[None, :]
+            lux[i] = lux_h[i]
     np.save(ut + ".npy", lux.astype(np.float32))
     with open(ut + ".json", "w", encoding="utf-8") as f:
         json.dump({**m, "nx": nx, "ny": ny}, f, ensure_ascii=False)
@@ -524,8 +548,8 @@ def matyta(sc: bpy.types.Scene, m: dict, ut: str) -> None:
      r.image_settings.color_depth, sc.cycles.max_bounces) = spara
     for o in synliga:
         o.visible_camera = True
-    bpy.data.objects.remove(plan)
-    bpy.data.objects.remove(kam)
+    for o in (plan, hoga, kam):
+        bpy.data.objects.remove(o)
 
 
 # ------------------------------------------------------------------ natthimlen

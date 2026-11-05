@@ -108,26 +108,35 @@ def raster(lux: np.ndarray, omrade: tuple[float, float, float, float], hus: Poly
     plt.imsave(png, rgba[::-1])
 
 
-def _etikettlage(rum: Any, mitt: Point, b: float, h: float, upptaget: np.ndarray, steg: float) -> tuple[float, float]:
+def _ruta(r: tuple[float, float, float, float]) -> Polygon:
+    """Rutan (x0, x1, y0, y1) som yta."""
+    return Polygon([(r[0], r[2]), (r[1], r[2]), (r[1], r[3]), (r[0], r[3])])
+
+
+def _etikettlage(rum: Any, mitt: Point, b: float, h: float, upptaget: list[tuple[float, float, float, float]],
+                 steg: float) -> tuple[float, float]:
     """Etikettens mitt (rutan b × h, modellens mm) i rummet: närmast mitt bland lägena där rutan ligger i rummet och
-    inte täcker armaturerna och deras id (upptaget: rutor x0, y0, x1, y1); finns inget sådant läge, det som täcker
-    minst."""
+    inte täcker det som är upptaget (armaturerna och deras id, delområdena och etiketterna: rutor x0, y0, x1, y1);
+    finns inget sådant läge, det som täcker minst."""
     rx0, ry0, rx1, ry1 = rum.bounds
     mx, my = np.meshgrid(np.arange(rx0 + b / 2, rx1 - b / 2 + 1.0, steg),
                          np.arange(ry0 + h / 2, ry1 - h / 2 + 1.0, steg))
     gx, gy = mx.ravel(), my.ravel()
-    if not gx.size:
-        return mitt.x, mitt.y
-    i = shapely.contains(rum, shapely.box(gx - b / 2, gy - h / 2, gx + b / 2, gy + h / 2))
-    if not i.any():
-        return mitt.x, mitt.y
-    gx, gy = gx[i], gy[i]
-    u = upptaget[None, :, :]
-    dx = np.minimum(gx[:, None] + b / 2, u[..., 2]) - np.maximum(gx[:, None] - b / 2, u[..., 0])
-    dy = np.minimum(gy[:, None] + h / 2, u[..., 3]) - np.maximum(gy[:, None] - h / 2, u[..., 1])
-    tackt = (np.clip(dx, 0, None) * np.clip(dy, 0, None)).sum(axis=1)
-    k = np.lexsort((np.hypot(gx - mitt.x, gy - mitt.y), tackt))[0]
-    return float(gx[k]), float(gy[k])
+    i = shapely.contains(rum, shapely.box(gx - b / 2, gy - h / 2, gx + b / 2, gy + h / 2)) if gx.size else gx > 0
+    if i.any():
+        gx, gy = gx[i], gy[i]
+        u = np.array(upptaget, dtype=float).reshape(1, -1, 4)
+        dx = np.minimum(gx[:, None] + b / 2, u[..., 2]) - np.maximum(gx[:, None] - b / 2, u[..., 0])
+        dy = np.minimum(gy[:, None] + h / 2, u[..., 3]) - np.maximum(gy[:, None] - h / 2, u[..., 1])
+        tackt = (np.clip(dx, 0, None) * np.clip(dy, 0, None)).sum(axis=1)
+        k = np.lexsort((np.hypot(gx - mitt.x, gy - mitt.y), tackt))[0]
+        return float(gx[k]), float(gy[k])
+    return mitt.x, mitt.y
+
+
+def _och(namn: list[str]) -> str:
+    """Namnen uppräknade: "a, b och c"."""
+    return " och ".join([", ".join(namn[:-1]), namn[-1]] if len(namn) > 1 else namn)
 
 
 def _isolinjer(v: Vy, lux: np.ndarray, cx: np.ndarray, cy: np.ndarray, hus: Polygon) -> None:
@@ -192,7 +201,10 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
     cy = y0 + (np.arange(ny) + 0.5) * (y1 - y0) / ny
     X, Y = np.meshgrid(cx, cy)
     hus = huset(delar)
-    ivagen = hinder.intersection(hus) if hinder is not None else Polygon()
+    # delområdena i en egen höjd (bänkskivorna): ytan där i stället för planet och inredningen under den
+    hoga = [z for z in yta.zoner if z.hojd is not None and z.hojd != yta.hojd]
+    upph = unary_union([_ruta(z.omrade) for z in hoga]) if hoga else Polygon()
+    ivagen = hinder.intersection(hus).difference(upph) if hinder is not None else Polygon()
     if x1 - x0 > 6000.0:                                  # hela planet: huset med marginal
         hx0, hy0, hx1, hy1 = hus.bounds
         omrade = (hx0 - 400.0, hx1 + 400.0, hy0 - 400.0, hy1 + 400.0)
@@ -207,9 +219,9 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
         v.bild(x0, y1, (x1 - x0) / skala, (y1 - y0) / skala, "/" + png.resolve().relative_to(ROT).as_posix())
         rita_ytor(v, ivagen.intersection(matt), None, "tunn")
     with v.lager("isolinjer"):
-        _isolinjer(v, lux, cx, cy, hus.intersection(matt).difference(ivagen))
-    plan(v, delar, ram=Polygon([(omrade[0], omrade[2]), (omrade[1], omrade[2]), (omrade[1], omrade[3]),
-                                (omrade[0], omrade[3])]))
+        _isolinjer(v, lux, cx, cy, hus.intersection(matt).difference(ivagen).difference(upph.buffer(yta.cell / 2)))
+    ram = _ruta(omrade)
+    plan(v, delar, ram=ram)
     # armaturerna och deras id, och taklamporna, som etiketterna inte ska täcka
     rum_plan = {k: r["plan"] for k, r in utdrag["rum"].items()}
     lampor = [(k, p["punkt"][0], p["punkt"][1]) for k, p in utdrag["punkter"].items()
@@ -217,11 +229,12 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
               and omrade[2] <= p["punkt"][1] <= omrade[3]
               and (rum_plan.get(p.get("rum", ""), yta.plan) == 1) == (yta.plan == 1)]
     r = v.m(R_LAMPA + 0.8)
-    upptaget = np.array([(px - r, py - r, px + v.m(2.6 + 1.0 * len(k)), py + v.m(3.4)) for k, px, py in lampor]
-                        + [(px - sd / 2, py - sd / 2, px + sd / 2, py + sd / 2) for px, py, sd in paneler])
-    upptaget = upptaget.reshape(-1, 4)
+    upptaget = ([(px - r, py - r, px + v.m(2.6 + 1.0 * len(k)), py + v.m(3.4)) for k, px, py in lampor]
+                + [(px - sd / 2, py - sd / 2, px + sd / 2, py + sd / 2) for px, py, sd in paneler]
+                + [(z.omrade[0], z.omrade[2], z.omrade[1], z.omrade[3]) for z in yta.zoner])
     # statistik per rum (namnen ur RUMSNAMN) och per delområde
     stat: list[dict[str, Any]] = []
+    vaggar = unary_union(polygoner(delar))
     with v.lager("statistik"):
         for namn, r in rummen(delar, rumsnamn):
             lage = next(lg for n, lg in rumsnamn.values() if n == namn)
@@ -236,22 +249,35 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
             if inre.is_empty or inre.area < 0.25 * storst.area:
                 inre = storst.buffer(-KANTZON / 4)
             inre = max(getattr(inre, "geoms", [inre]), key=lambda g: g.area).intersection(matt)
-            s = _statistik(lux, X, Y, inre.difference(ivagen))
+            s = _statistik(lux, X, Y, inre.difference(ivagen).difference(upph))
             if s is None:
                 continue
             stat.append({"namn": namn, **s})
             rita_ytor(v, inre, None, "matyta")
             rader = [namn, f"medel {sv(s['medel'])} lux", f"min {sv(s['minst'])} / max {sv(s['storst'])}"]
             b_, h_ = v.m(1.05 * max(len(t) for t in rader) + 1.5), v.m(2.45 * len(rader) + 1.0)
-            ex, ey = _etikettlage(storst.intersection(matt).difference(ivagen), inre.representative_point(), b_, h_,
-                                  upptaget, v.m(1.0))
+            ex, ey = _etikettlage(storst.intersection(matt).difference(ivagen).difference(upph),
+                                  inre.representative_point(), b_, h_, upptaget, v.m(1.0))
+            upptaget.append((ex - b_ / 2, ey - h_ / 2, ex + b_ / 2, ey + h_ / 2))
             v.text(ex, ey, "\n".join(rader), a="cm", sz=5.8, bg=True)
-        for namn, (a, b, c_, d_) in yta.zoner:
-            s = _statistik(lux, X, Y, Polygon([(a, c_), (b, c_), (b, d_), (a, d_)]).difference(ivagen))
-            v.rekt(a, c_, b, d_, None, "delomrade")
-            v.ptext((a + b) / 2, d_, 0, 1.0, namn, a="cb", sz=5.8, bg=True)
+        for z in yta.zoner:
+            ruta = _ruta(z.omrade)
+            s = _statistik(lux, X, Y, ruta if z in hoga else ruta.difference(ivagen))
+            rita_ytor(v, ruta, None, "delomrade")
+            # etiketten längs delområdets längre sida, i det eller intill det (inte på väggarna) där den inte täcker
+            # armaturerna
+            text = z.namn + (f": medel {sv(s['medel'])} lux" if s else "")
+            langs_y = z.omrade[3] - z.omrade[2] > z.omrade[1] - z.omrade[0]
+            b_, h_ = v.m(1.05 * len(text) + 1.5), v.m(3.4)
+            if langs_y:
+                b_, h_ = h_, b_
+            egen = (z.omrade[0], z.omrade[2], z.omrade[1], z.omrade[3])
+            ex, ey = _etikettlage(ruta.buffer(max(b_, h_)).intersection(ram).difference(vaggar), ruta.centroid, b_, h_,
+                                  [u for u in upptaget if u != egen], v.m(0.5))
+            upptaget.append((ex - b_ / 2, ey - h_ / 2, ex + b_ / 2, ey + h_ / 2))
+            v.text(ex, ey, text, a="cm", sz=5.8, bg=True, rot=90 if langs_y else 0)
             if s:
-                stat.append({"namn": namn, **s})
+                stat.append({"namn": z.namn + (f" ({sv(z.hojd / 1000, 2)} m)" if z in hoga else ""), **s})
     # armaturerna på planet
     with v.lager("armaturer"):
         for k, px, py in lampor:
@@ -279,7 +305,10 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
             "Belysningsstyrkan " + (f"på en vågrät yta {sv(yta.hojd / 1000, 2)} m över golvet" if yta.hojd > 0
                                     else "på golvet")
             + f", i rutor om {sv(yta.cell)} mm, ur renderingen i Blender (Cycles): armaturernas uppmätta "
-            "ljusfördelning (tillverkarnas fotometrifiler), dagsljuset och reflexerna i rummen.",
+            "ljusfördelning (tillverkarnas fotometrifiler), dagsljuset och reflexerna i rummen."
+            + "".join(f" Delområdena {_och([z.namn for z in hoga if z.hojd == h])} mäts på en vågrät yta "
+                      f"{sv(h / 1000, 2)} m över golvet."
+                      for h in sorted({z.hojd for z in hoga})),
             *scenario,
             "Statistiken per rum utan en kantzon på 0,5 m längs väggarna (SS-EN 12464-1), i små rum mindre, och "
             "utan inredningen på mätytan (skåp, säng och bänkskivor, vita på planen); jämnheten U₀ = minsta / medel. "

@@ -629,7 +629,9 @@ def main(argv: list[str] | None = None) -> None:
         for namn in arg.ytor or ["plan1-golv"]:
             y = ytor[namn]
             vyer[f"ljusplan-{namn}"] = {"matyta": {"namn": y.namn, "omrade": list(y.omrade), "cell": y.cell,
-                                                    "z": golv[y.plan] + max(y.hojd, 2.0), "direkt": arg.direkt},
+                                                    "z": golv[y.plan] + max(y.hojd, 2.0), "direkt": arg.direkt,
+                                                    "upphojda": [[*z.omrade, golv[y.plan] + z.hojd] for z in y.zoner
+                                                                 if z.hojd is not None and z.hojd != y.hojd]},
                                        "ljus": ljus.som_dict(), "tand": tand, "lampor": lampor, "inne": True}
         arg.ut.mkdir(parents=True, exist_ok=True)
         _blender(rot, karna, vyer, arg.kvalitet, None, arg.ut, arg.blender, False)
