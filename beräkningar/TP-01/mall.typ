@@ -64,7 +64,7 @@ Byggherren samordnar entreprenörerna och leverantörerna. Kontrollansvarig föl
 
 = Från byggstart till stommen
 
-#figure(image("fig_bygget.svg", width: 100%), caption: [Rivning, grund, mellanbjälklag och stomme vecka för vecka (veckonummer överst).]) <fig-bygget>
+#figure(image("fig_bygget.svg", width: 100%), caption: [Rivning, grund, mellanbjälklag och stomme vecka för vecka (veckonummer överst); stegen i avsnitt 4.]) <fig-bygget>
 
 = Faserna
 

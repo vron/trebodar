@@ -481,7 +481,7 @@ anm        = "När bjälklaget och översta skiftet nått 21 MPa (K-06)."
 
 [[steg]]
 fas        = "stomme"
-namn       = "Leverans av stommen och balkarna"
+namn       = "Leverans av stommen"
 start      = "2027-11-22"
 slut       = "2027-11-22"
 ansvarig   = "byggherre"

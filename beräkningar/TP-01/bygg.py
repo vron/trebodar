@@ -159,16 +159,21 @@ def figur_oversikt(fil: Path) -> None:
 
 
 def figur_bygget(fil: Path) -> None:
-    """Från byggstart till stommen: ett steg per rad, vecka för vecka."""
+    """Från byggstart till stommen vecka för vecka: en rad per fas, stegen som staplar och milstolparna (byggstarten,
+    gjutningarna och stomleveransen) med namn."""
     a, b = BYGGET
-    steg = sorted((s for s in STEG if s["fas"] in DETALJ and a <= s["start"] <= b),
-                  key=lambda s: (DETALJ.index(s["fas"]), s["start"], s["slut"]))
-    fig, ax = plt.subplots(figsize=(17.4 * CM, (1.0 + 0.42 * len(steg)) * CM))
+    steg = [s for s in STEG if s["fas"] in DETALJ and a <= s["start"] <= b]
+    n = len(DETALJ)
+    fig, ax = plt.subplots(figsize=(17.4 * CM, (1.3 + 0.75 * n) * CM))
     _uppehall(ax, a, b, med_namn=False)
-    for i, s in enumerate(steg):
-        _stapel(ax, i, s, h=0.62)
-    ax.set_yticks(range(len(steg)), [s["namn"] for s in steg])
-    ax.set_ylim(len(steg) - 0.4, -0.6)
+    for s in steg:
+        rad = DETALJ.index(s["fas"])
+        _stapel(ax, rad, s)
+        if s.get("milstolpe"):
+            ax.annotate(s["namn"].split(":")[0], (mdates.date2num(s["start"]), rad), xytext=(0, 6.5),
+                        textcoords="offset points", ha="center", fontsize=5.8, color=INK)
+    ax.set_yticks(range(n), [FASER[k]["namn"] for k in DETALJ])
+    ax.set_ylim(n - 0.4, -0.85)
     ax.set_xlim(mdates.date2num(a), mdates.date2num(b))
     ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: str(mdates.num2date(x).isocalendar().week)))
@@ -176,13 +181,13 @@ def figur_bygget(fil: Path) -> None:
     for m in range(a.month, b.month + 1):
         x = mdates.date2num(dt.date(a.year, m, 1))
         ax.axvline(x, color="#bbbbbb", lw=0.5, zorder=1)
-        ax.text(x, len(steg) - 0.1, f" {MANAD[m - 1]} {a.year}", fontsize=6, va="top", color=GRA)
+        ax.text(x, n - 0.45, f" {MANAD[m - 1]} {a.year}", fontsize=6, va="top", color=GRA)
     ax.grid(axis="x", color="#e2e2e2", lw=0.4, zorder=0)
     ax.tick_params(axis="x", length=2, labelsize=5.8, pad=1.5)
     ax.tick_params(axis="y", length=0, labelsize=6.5)
     for k in ("right", "left", "bottom"):
         ax.spines[k].set_visible(False)
-    fig.subplots_adjust(left=0.27, right=0.995, top=1 - 0.55 / (1.0 + 0.42 * len(steg)), bottom=0.03)
+    fig.subplots_adjust(left=0.16, right=0.995, top=1 - 0.55 / (1.3 + 0.75 * n), bottom=0.1)
     fig.savefig(fil)
     plt.close(fig)
 
