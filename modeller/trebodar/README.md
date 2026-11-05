@@ -208,8 +208,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   **Källarväggar** V1–V21, bröstningarna F1-B–F3-B, **rör** P1–P19 (P7 två rör) (K-05, K-06, R-05).
 - **Fönster och dörrar** i ytterväggarna: väggen och F eller D med nummer längs väggen (1SO-F1, 2SV-D1);
   källarens fönster F1–F3 (R-05); innerdörrar ID1–ID6. Delarna: KARM, KARMALU (aluminiumbeklädnad), LIST
-  (tätningslister), BAGEALU, BAGEPROFIL (kompositprofilen), BAGEINRE (bågens inre profil av furu), GLASLIST
-  (invändig), GLAS, TROSKEL och BOTTEN (fönsterdörrens tröskel och bågens bottenprofil),
+  (tätningslister), BAGEALU, BAGEPROFIL (kompositprofilen), GLASLIST (invändig, plast), GLAS,
+  TROSKEL och BOTTEN (fönsterdörrens tröskel och bågens bottenprofil),
   BLAD (ytterdörrarna); skjutdörrens partier FV och FH (fasta) och de skjutbara bågarna SV och SH med mittposten
   SH-POST och KOPPLING mellan partierna; i öppningen PAF (påföringen), DREV, FOG, PROFIL-O/V/H och PLAT-O/OU/V/H
   (anslutningsprofilen och plåtarna), BLECK, SMYG-V/H/O/U och BANK.

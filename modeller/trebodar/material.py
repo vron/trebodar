@@ -150,12 +150,12 @@ ALU_RAL3009 = Material("Aluminium RAL 3009", "Aluminiumbeklädnad pulverlackerad
 ALU_RAL7012 = Material("Aluminium RAL 7012", "Aluminiumbeklädnad pulverlackerad RAL 7012 basaltgrå (fönster, dörrar)",
                        2700, "#575d5e", 0.4, textur="pulverlack", cad="#5f676a")
 # VELFAC 200 ENERGY (fönstren och fönsterdörrarna, byggdelar/velfac.py): bågens bärande profil av glasfiberkomposit,
-# svart och dold mellan aluminiumet och bågens inre profil av furu (FONSTERTRA), den inre glaslisten i den invändiga
-# kulören, tätnings- och distanslisterna och anslutningsplåtarna runt karmen i fönstrens kulör (en egen sort, som får
-# gå upp bakom läkten: kontrollregler.TILLATNA_OVERLAPP)
+# svart och dold mellan aluminiumet och glaslisten, glaslisten (en hålprofil av plast) och fönsterdörrens bottenprofil i
+# den invändiga kulören, de svarta tätnings- och distanslisterna och anslutningsplåtarna runt karmen i fönstrens kulör
+# (en egen sort, som får gå upp bakom läkten: kontrollregler.TILLATNA_OVERLAPP)
 BAGPROFIL = Material("Bågprofil", "Bågens bärande profil av glasfiberkomposit, svart (VELFAC 200 ENERGY)", 1800,
                      "#1e2022", 0.45, cad="#30353a")
-GLASLIST = Material("Glaslist", "Invändig glaslist, plast, vit som bågen NCS S 0502-Y (VELFAC 200 ENERGY)", 1400,
+GLASLIST = Material("Glaslist", "Invändig glaslist, hålprofil av plast, vit NCS S 0502-Y (VELFAC 200 ENERGY)", 1400,
                     "#efede6", 0.5, cad="#e6dcc4")
 TATNINGSLIST = Material("Tätningslist", "Tätnings-, distans- och anslutningslister, EPDM och plast, svarta", 1200,
                         "#141516", 0.75, cad="#202326")
