@@ -131,11 +131,11 @@ uppgift = "Färdigkapad stomme"
 
 [[part]]
 kod     = "matning"
-kort    = "Mätning"
+kort    = "Kommunens mättekniker"
 roll    = "Utstakning och lägeskontroll"
-namn    = ""
-status  = "ej vald"
-uppgift = "Kommunen eller extern mätningsingenjör (verifieras vid tekniskt samråd)"
+namn    = "Tanums kommun, mättekniker"
+status  = "vald"
+uppgift = "Utstakning före sprängningen och lägeskontroll när grunden är gjuten (D32); bokas hos kommunen"
 
 [[part]]
 kod     = "besiktning"
@@ -330,7 +330,7 @@ slut       = "2027-08-16"
 ansvarig   = "matning"
 inblandade = ["mark"]
 prel       = true
-anm        = "Enligt AR-02; lägeskontroll när grunden är gjuten. Kommunens mättekniker eller extern aktör (#62)."
+anm        = "Enligt AR-02; bokas hos kommunen."
 
 [[steg]]
 fas        = "rivning"
@@ -400,6 +400,16 @@ ansvarig   = "betong"
 inblandade = ["ka"]
 milstolpe  = true
 anm        = "Tre hela skift, 1 800 mm; pump, högst 1 m per timme, ingen vibrator (K-06)."
+
+[[steg]]
+fas        = "grund"
+namn       = "Lägeskontroll"
+start      = "2027-10-05"
+slut       = "2027-10-05"
+ansvarig   = "matning"
+inblandade = ["byggherre"]
+prel       = true
+anm        = "Grundens läge och höjd när källarväggarna är gjutna (D32)."
 
 [[steg]]
 fas        = "grund"
