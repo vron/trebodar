@@ -44,12 +44,12 @@ PLAN = (
 DATUM = datetime.date.today().isoformat()
 
 
-def snitt(ma: Path, step: Path, z: float | str, json_ut: Path) -> list[dict]:
+def snitt(ma: Path, step: Path, z: float | str, json_ut: Path, delar: str | None = None) -> list[dict]:
     """Delarnas snittytor i planet z (mm, vågrätt) eller planet som text ("y=8220": lodrätt, med snittets x och z)
-    ur STEP-filen (via ma-tjänsten, verktyg/modellanalys/tjanst.py)."""
+    ur STEP-filen (via ma-tjänsten, verktyg/modellanalys/tjanst.py); delar: bara de här (ma:s --delar, snabbare)."""
     plan_ = z if isinstance(z, str) else f"z={z:g}"
-    subprocess.run([str(ma), "snitt", plan_, "--fil", str(step), "--json", str(json_ut), "--ingen-bild"], check=True,
-                   capture_output=True)
+    subprocess.run([str(ma), "snitt", plan_, "--fil", str(step), "--json", str(json_ut), "--ingen-bild",
+                    *(["--delar", delar] if delar else [])], check=True, capture_output=True)
     return json.loads(json_ut.read_text(encoding="utf-8"))["delar"]
 
 

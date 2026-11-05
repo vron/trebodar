@@ -129,13 +129,13 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
 ## Ljusplaner
 
 `./mod ljusplan` räknar belysningsstyrkan [lux] på vågräta mätytor ([`matytor.py`](matytor.py): golvet och
-bordshöjden på plan 1, köksbänken, källarens golv; ytor och delområden läggs till där) i renderingen, med
+bordshöjden på plan 1, köksbänkarna och ön, källarens golv; ytor och delområden läggs till där) i renderingen, med
 armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (E-02.n i ritningsmallen, en pdf
 per mätyta) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
-delområde:
+delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita):
 
 ```
-./mod ljusplan plan1-golv kok-bank                  # alla tändgrupper tända, mörkt ute
+./mod ljusplan plan1-golv kallare-golv              # alla tändgrupper och källarens taklampor tända, mörkt ute
 ./mod ljusplan plan1-bord --tand AL-T1 KO-T1=0.5    # bara några, en dimrad till hälften
 ./mod ljusplan plan1-bord --ljus 3 20 12:00 mulet --tand     # bara dagsljuset (inga lampor)
 ```

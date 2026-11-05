@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from trebodar import skelett as S
+from trebodar.hus.inredning import koksbank as KB
+from trebodar.hus.inredning.koksskap import Z_TOPP
 from trebodar.hus.invandigt.lattvaggar import K_YTA
 
 Ruta = tuple[float, float, float, float]       # (x0, x1, y0, y1) [mm]
@@ -26,13 +27,24 @@ class Matyta:
 
 PLAN1: Ruta = (-500.0, 14300.0, -300.0, 16300.0)
 KALLARE: Ruta = (0.0, 14000.0, 0.0, 12800.0)
-_NV = S.YTTERVAGGAR["3NV"].origo[0] - S.T_STOMME - 70.0                    # köksväggens yta (insida)
-BANK: Ruta = (_NV - 700.0, _NV, K_YTA, 12400.0)        # bänken längs köksväggen, 700 djup, från kökets inbyggnad
+# köksbänkens skivor (inredning/koksbank.py): längs 3NV från kökets inbyggnad till 3SV, längs 3SV till den vita sidan
+# och ön
+BANK_NV: Ruta = (KB.X_FRONT - KB.UTSTICK, KB.X_VAGG, K_YTA, KB.Y_SYD)
+BANK_SV: Ruta = (KB.FOGAR_KORT[-1] - KB.FOG / 2 - KB.SIDA_T, KB.X_FRONT - KB.UTSTICK, KB.Y_FRONT - KB.UTSTICK,
+                 KB.Y_SYD)
+ON: Ruta = (KB.ON_X - KB.ON_DJUP / 2, KB.X_ON_FRONT + KB.UTSTICK, KB.FOGAR_ON[0] - KB.FOG / 2 - KB.SIDA_T,
+            KB.FOGAR_ON[-1] + KB.FOG / 2 + KB.SIDA_T)
+KOK: Ruta = (ON[0] - 500.0, KB.X_VAGG, K_YTA, KB.Y_SYD)
+# inredningen på mätytan (skåpen, sängen, bänkskivorna, kaminen) lämnas utanför statistiken: den snittas i de här
+# höjderna över golvet [mm] som ligger på mätytan eller högst INREDNING_OVER över den (bänkskivorna i sin mitt)
+INREDNING_SNITT = (2.0, 100.0, 200.0, 300.0, 450.0, 600.0, 750.0, Z_TOPP + KB.BANK_T / 2)
+INREDNING_OVER = 900.0
 
 MATYTOR = {
     "plan1-golv": Matyta("Plan 1, golvet", 1, 0.0, PLAN1),
-    "plan1-bord": Matyta("Plan 1, bordshöjd 0,75 m", 1, 750.0, PLAN1, zoner=(("Köksbänken (0,75 m)", BANK),)),
-    "kok-bank": Matyta("Köket, bänkhöjd 0,9 m", 1, 900.0, (BANK[0] - 1000.0, BANK[1], BANK[2], BANK[3]), cell=25.0,
-                       zoner=(("Bänken", BANK),)),
+    "plan1-bord": Matyta("Plan 1, bordshöjd 0,75 m", 1, 750.0, PLAN1),
+    # 10 mm över bänkskivorna (900), ovanför hällens glas
+    "kok-bank": Matyta("Köket, bänkskivorna 0,91 m", 1, 910.0, KOK, cell=25.0,
+                       zoner=(("Bänken längs 3NV", BANK_NV), ("Bänken längs 3SV", BANK_SV), ("Ön", ON))),
     "kallare-golv": Matyta("Källaren, golvet", 0, 0.0, KALLARE),
 }

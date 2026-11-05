@@ -219,7 +219,8 @@ def main(argv: list[str] | None = None) -> None:
     pp = sub.add_parser("ljusplan", help="belysningsstyrkan [lux] på mätytorna (el/matytor.py), som planritningar")
     pp.add_argument("ytor", nargs="*", help="mätytorna i MATYTOR (standard: plan1-golv)")
     pp.add_argument("--tand", nargs="*", default=None, metavar="GRUPP[=NIVÅ]",
-                    help="tändgrupperna som är tända (standard: alla), t.ex. AL-T1 KO-T1=0.5")
+                    help="tändgrupperna som är tända (standard: alla, och vyernas taklampor i LAMPOR, t.ex. kallare, "
+                         "som tänds hela), t.ex. AL-T1 KO-T1=0.5")
     pp.add_argument("--ljus", nargs=4, default=["12", "21", "22:00", "mulet"], metavar=("MANAD", "DAG", "KLOCKA", "VADER"),
                     help="dagsljuset (standard: mörkt, 21 dec kl. 22), t.ex. 3 20 12:00 mulet")
     pp.add_argument("--kvalitet", choices=("skiss", "utkast", "normal", "slutlig"), default="utkast",
@@ -604,14 +605,23 @@ def main(argv: list[str] | None = None) -> None:
             sys.path.insert(0, str(MODELLMAPP))
         vy_mod = importlib.import_module("trebodar.vyer")
         skel = importlib.import_module("trebodar.skelett")
-        ytor = importlib.import_module("trebodar.hus.installationer.el.matytor").MATYTOR
+        mat_mod = importlib.import_module("trebodar.hus.installationer.el.matytor")
+        ytor = mat_mod.MATYTOR
         inst = importlib.import_module("trebodar.hus.installationer.el.installation").installation()
         utdrag = inst.utdrag()
         okanda = [y for y in arg.ytor if y not in ytor]
         if okanda:
             raise SystemExit(f"okända mätytor: {', '.join(okanda)} (finns: {', '.join(ytor)})")
+        # tändgrupperna och vyernas taklampor (LAMPOR, källaren), som tänds hela
+        paneler = getattr(vy_mod, "LAMPOR", {})
         tand = ({g: float(n) if n else 1.0 for g, _, n in (x.partition("=") for x in arg.tand)}
-                if arg.tand is not None else {g: 1.0 for g in utdrag["tandgrupper"]})
+                if arg.tand is not None else {g: 1.0 for g in [*utdrag["tandgrupper"], *paneler]})
+        okanda = [g for g in tand if g not in utdrag["tandgrupper"] and g not in paneler]
+        if okanda:
+            raise SystemExit(f"okända tändgrupper: {', '.join(okanda)} (finns: "
+                             f"{', '.join([*utdrag['tandgrupper'], *paneler])})")
+        lampor = [g for g in paneler if tand.get(g, 0.0) > 0]
+        tand = {g: n for g, n in tand.items() if g not in paneler}
         m, d, k, w = arg.ljus
         ljus = dagsljus.dagsljus(int(m), int(d), k, w, skel.PLATS)
         golv = {1: 0.0, 0: skel.Z_BOTTENPLATTA}
@@ -620,7 +630,7 @@ def main(argv: list[str] | None = None) -> None:
             y = ytor[namn]
             vyer[f"ljusplan-{namn}"] = {"matyta": {"namn": y.namn, "omrade": list(y.omrade), "cell": y.cell,
                                                     "z": golv[y.plan] + max(y.hojd, 2.0), "direkt": arg.direkt},
-                                       "ljus": ljus.som_dict(), "tand": tand, "inne": True}
+                                       "ljus": ljus.som_dict(), "tand": tand, "lampor": lampor, "inne": True}
         arg.ut.mkdir(parents=True, exist_ok=True)
         _blender(rot, karna, vyer, arg.kvalitet, None, arg.ut, arg.blender, False)
         step_fil = UT / "trebodar.step"
@@ -628,10 +638,12 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
         ma = ROT / "verktyg" / "modellanalys" / "ma"
         tid = ljus.tid[:16].replace("T", " kl. ")
-        scenario = [("Tända tändgrupper: " + "; ".join(
-                        f"{g} {utdrag['tandgrupper'][g]['namn']}" + (f" ({sv(100 * n)} %)" if n < 1 else "")
-                        for g, n in tand.items() if n > 0) + "." if any(n > 0 for n in tand.values())
-                     else "Inga armaturer tända."),
+        tanda = [f"{g} {utdrag['tandgrupper'][g]['namn']}" + (f" ({sv(100 * n)} %)" if n < 1 else "")
+                 for g, n in tand.items() if n > 0]
+        tanda += [f"taklamporna {g} ({len(paneler[g]['lagen'])} LED-paneler {sv(paneler[g]['sida'])} × "
+                  f"{sv(paneler[g]['sida'])} mm, {sv(paneler[g]['lumen'])} lm och {sv(paneler[g]['kelvin'])} K)"
+                  for g in lampor]
+        scenario = [("Tända: " + "; ".join(tanda) + "." if tanda else "Inga armaturer tända."),
                     (f"Dagsljuset {tid}, {ljus.vader}: {sv(ljus.global_lux / 1000, 1)} klx ute (vågrätt)."
                      if ljus.global_lux > 1.0 else f"Inget dagsljus ({tid}).")
                     + (" Bara det direkta ljuset, utan reflexer." if arg.direkt else "")]
@@ -641,8 +653,13 @@ def main(argv: list[str] | None = None) -> None:
             lux = np.load(str(bas) + ".npy")
             delar = snitt(ma, step_fil, golv[y.plan] + 1200.0, UT / f"ljusplan-{y.plan}.json")
             rum = {k: v for k, v in vy_mod.RUMSNAMN.items() if (len(v[1]) > 2 and v[1][2] == "k") == (y.plan == 0)}
+            hinder = ljusplan.inredningen([snitt(ma, step_fil, golv[y.plan] + h, UT / f"ljusplan-{namn}-{h:g}.json",
+                                                 ",".join(ljusplan.INREDNING)) for h in mat_mod.INREDNING_SNITT
+                                           if max(y.hojd, 2.0) <= h <= y.hojd + mat_mod.INREDNING_OVER])
             stat = ljusplan.rita(lux, y, delar, utdrag, rum, scenario, _norr(), f"E-02.{list(ytor).index(namn) + 1}",
-                                 UT / "ljusplan" / "blad", bas.with_suffix(".pdf"))
+                                 UT / "ljusplan" / "blad", bas.with_suffix(".pdf"),
+                                 [(px, py, g["sida"]) for g in paneler.values() if (g["z"] < 0) == (y.plan == 0)
+                                  for px, py in g["lagen"]], hinder)
             (bas.parent / (bas.name + "-statistik.json")).write_text(json.dumps(stat, ensure_ascii=False, indent=1))
             print(f"  {bas.with_suffix('.pdf')}")
             for s_ in stat:
