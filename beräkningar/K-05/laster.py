@@ -53,7 +53,7 @@ STOLPE = (95.0, 90.0)                      # minsta stolpe 2 × 45×95 [mm]
 STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03), står direkt på plattan
 # Stolparnas lägen (stolpens mitt) [mm], samma som stolparna i K-03. Kontrollerade mot Onshape-modellen 2026-10-10
 # (avvikelse högst 1 mm; LN1_1 saknas i modellen). Karmstolparna LD2_1 och LD2_2 räknas fram vid dörröppningen
-# intill trapphålet (punktlaster()), där modellen inte stämmer (modell-todo.md).
+# intill trapphålet (punktlaster()), där modellen inte stämmer (ärende #41).
 STOLPLAGEN = {
     "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
     "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),

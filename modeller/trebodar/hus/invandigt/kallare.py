@@ -1,8 +1,8 @@
 """Källarväggarnas insida: gips 13 mm direkt på cellplasten (brandskydd: cellplasten får inte vara oskyddad mot
 rummen), från bottenplattan till mellanbjälklagets underkant. Gipsen sitter på ytterväggarnas insida och på båda
 sidor av innerväggarna, runt de fria väggändarna i dörröppningarna D2 och D3, i fönstrens smyg från karmen och på
-bröstningens cellplast mellan smygarna. Källardörren D1 finns inte i modellen: smygens gips går till kärnans
-utsida, där karmen antas sitta i det yttre cellplastlagret.
+bröstningens cellplast mellan smygarna. Källardörren D1 (en pardörr) sitter i det yttre cellplastlagret; smygens
+gips går till kärnans utsida.
 
 En skiva per väggyta och höjdavsnitt. I innerhörn går skivan längs x fram till hörnet och skivan längs y slutar mot
 den; i ytterhörn (väggändar och smyg) går skivan längs x förbi hörnet och täcker den andras kant.

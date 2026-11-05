@@ -257,7 +257,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   järn är raka bitar (bockradierna förenklade bort). Kontrollen prövar inte armering mot betong eller mot annan
   armering, men mot allt annat; mot avloppet är överlapp tillåtna (järnen läggs om runt rören). Installationerna med
   egen kontroll (tappvattnet, golvvärmen) prövas där mot järnen: ingjutna rör ska gå fria från dem.
-  Avvikelser från ritningarna, som inte är uppdaterade (modell-todo): startjärnen under F3:s bröstning (800) kortas
+  Avvikelser från ritningarna, som inte är uppdaterade (ärende #42): startjärnen under F3:s bröstning (800) kortas
   till under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
   Mellanbjälklagets järn slutar vid plattan på marks fria kanter vid L-elementens rygg (AR-02), som på R-06.
 
@@ -396,8 +396,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   syns utifrån; smygen av ask går från golvet.
 - **Källarväggarnas insida**: gips 13 direkt på cellplasten (brandskydd), från bottenplattan till bjälklaget, på
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
-  och på bröstningen. Källardörren D1 finns inte i modellen; smygens gips går till kärnans utsida (karmen antas sitta
-  i det yttre cellplastlagret).
+  och på bröstningen. Källardörren D1 (pardörren) sitter i det yttre cellplastlagret; smygens gips går till kärnans
+  utsida.
 - **Källarens innerväggar KL1–KL10**: lätta väggar 45×95 C24 c/c 600 med gips 13 på båda sidor från bottenplattan
   till bjälklaget, i rörens linjer så att rören står i stommen (KL8 45×120 för avloppsstammen Ø110 bredvid P4), med
   dörrhålen KD1–KD5 för M9×20 och M8×20 (rumshöjden 2 100 rymmer inte M×21). Teknikrummet avgränsas av KL8–KL10 med
@@ -428,12 +428,3 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   Onshape-modellen.
 - **Nytt**: tak- och fasadskikt, takplåten i banor med falsar, isolering, invändiga skikt, källarväggarna V1–V21
   enligt K-05, rören P1–P19 och armeringen ur R-04, R-05 och R-06.
-
-## Inte modellerat ännu
-
-Källardörren D1 (öppningen och smygens gips finns), våtrummets golv (golvet på plan 1 är betongplattan, AR-02),
-badrummets inredning, köksskåpens beslag (låskrokar, gångjärn) och vattnet, avloppet och elen till köksön och
-hällen (modell-todo), trappans räcke och ledstång, fönsterbleck och droppbleck vid fönstren, rännkrokar och fall i
-hängrännorna, lövsilarna i dalarnas rörstosar, nät i takfotens luftintag, elinstallationen utanför allrummet och
-köket och ventilationens tilluft och ersättningsluft (se `modeller/modell-todo.md`). Marken och avloppet läses ur Onshape-modellen
-(`modeller/referens/delar/`).

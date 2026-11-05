@@ -4,7 +4,7 @@ plattan på mark, entréavsatsen vid huvudentrén 1SO-D1 och trätrappan från s
 Schaktet går 100 mm utanför plattan på mark (hus/grund: L-element, cellplast, makadam och dränerande fyllning under
 plattan); mellan L-elementen och schaktets kant ligger makadam upp till markytan, där berget eller uppfyllnaden låg.
 Marken följer Onshape-modellens mark fram till huset; K-06:s fyllnadshöjder mot källarväggarna ligger högre och är
-inte modellerade (modell-todo). Där Onshape-modellens mark inte når fram till källarväggarna ligger dränerande
+inte modellerade (ärende #43). Där Onshape-modellens mark inte når fram till källarväggarna ligger dränerande
 återfyllning upp till markens nivå intill (framför 2SV) och vid nedgången till källardörren D1 upp till K-06:s
 höjder. Sovrumsavsatsen och entréavsatsen är två separata avsatser av granit.
 

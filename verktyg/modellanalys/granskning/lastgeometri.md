@@ -6,7 +6,7 @@ Modell: den kodgenererade modellen (`modeller/trebodar/`), dess senaste bygge. H
 
 ## Sammanfattning
 
-Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av är areorna: F-01 anger byggnadsarea 135 + 30 m² och bruttoarea 270 + 30 m² (bygglovet). Modellen ger 159,2 m² för plan 1, mätt till ytterliv, och 126,9 m² bottenplatta i källaren.
+Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Areorna är inte avstämda mot bygglovet (ärende #47): F-01 anger byggnadsarea 135 + 30 m² och bruttoarea 270 + 30 m² (bygglovet). Modellen ger 159,2 m² för plan 1, mätt till ytterliv, och 126,9 m² bottenplatta i källaren.
 
 Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), så fyllnadshöjderna är en kontroll av storleksordningen.
 

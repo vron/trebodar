@@ -7,7 +7,8 @@ Källor i `lokalt/terrang` (versionshanteras inte):
   över tomten, surroundings (2,5 m) runt omkring. veryfine (0,25 m) används inte: den är fine uppsamplad till närmaste
   punkt (block om 4 × 4 lika höjder), som ger marken trappsteg.
 - `punkter/points.csv`: inmätta punkter (GNSS, SWEREF 99 12 00, RH 2000) med kategori i namnet: berg, gras, tomt och
-  drener ligger på marken; altan, hus, sten, odling, syren och trad på föremål (för senare: stenar, träd, buskar).
+  drener ligger på marken; altan, hus, sten, odling, syren och trad på föremål (träden och stenarna i omgivningen står
+  på trad- och stenpunkterna).
 
 Höjderna: den finaste rutnätet som täcker en punkt, bilinjärt. Mot de inmätta markpunkterna stämmer Lantmäteriets
 höjder väl (berget: median −0,05 m); marken rättas ändå mot dem nära punkterna, med en utjämnad korrektion (Gauss,

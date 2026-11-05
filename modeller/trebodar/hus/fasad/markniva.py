@@ -11,7 +11,7 @@ Z_UK = -S.H_BJALKLAG          # fasadens underkant där marken inte når fasaden
 # marken vid fasaden (u, z) per vägg: panelens underkant, utom där fasadstenen går upp till bjälklaget (STENVAGGAR,
 # där linjen gäller stuprören). Ur den byggda modellen med verktyg/modellanalys/marknivaer.py: det högsta av marken,
 # avsatserna, återfyllningen och grunden i ett band från stommen till 150 mm utanför panelen, 2,1–12,5 mm över det.
-# Körs om när marken ändras (marknivåerna är inte bestämda, modell-todo).
+# Körs om när marken ändras (marknivåerna är inte bestämda, ärende #43).
 MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
     "1NO": ((-65, -1339), (185, -1339), (195, -739), (4425, -739)),
     "1SO": ((-138, -222), (2542, -222), (2552, -223), (3752, -497), (4562, -497), (4572, -306), (4962, -306),

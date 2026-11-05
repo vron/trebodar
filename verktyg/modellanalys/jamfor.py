@@ -2,8 +2,8 @@
 Jämförelse av en beräknings egna geometridata med det som kontrollen läser ur modellen.
 
 Beräkningarna har sina koordinater i sina egna källfiler och läser aldrig modellen. Kontrollerna här läser
-modellen, räknar fram samma data och jämför med källfilen. Avvikelser rättas för hand i källfilen eller läggs i
-modeller/modell-todo.md.
+modellen, räknar fram samma data och jämför med källfilen. Avvikelser rättas för hand i källfilen eller läggs som
+ärenden på GitHub.
 """
 
 
