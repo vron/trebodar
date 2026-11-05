@@ -55,6 +55,10 @@ TILLATNA_OVERLAPP = {
     frozenset(("Kamin",)): "rökrörets delar går in i varandra i böjarna",
     frozenset(("Kamin", "Rostfritt")): "rökröret går in i den isolerade skorstenens anslutning i kassen",
     frozenset(("Spikplåt", "Utegips")): "spikplåt 2 mm på gavelstolens utsida, utegipsen fräses ur",
+    frozenset(("Stålband", "C24")): "stålbanden (K-04) är infällda i reglarna, hammarbanden, syllarna och takbalkarna",
+    frozenset(("Stålband",)): "stålbanden korsar varandra i kryssets mitt",
+    frozenset(("Stålband", "Träfiberisolering")): "isoleringen i facken trycks undan vid de infällda stålbanden",
+    frozenset(("Stålband", "Mineralull")): "isoleringen i facken trycks undan vid de infällda stålbanden",
     # plåtarna runt fönstren och fönsterdörrarna (VELFAC) går från karmen upp och ut bakom läkten (läkten skruvas genom dem)
     frozenset(("Anslutningsplåt RAL 3009", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",
     frozenset(("Anslutningsplåt RAL 7012", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",

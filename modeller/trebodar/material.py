@@ -137,6 +137,8 @@ S235 = Material("S235", "Stål S235", 7850, "#7a7f86", 0.5, 1.0, enhet="kg", cad
 ARMERING = Material("Armering", "Armeringsstål B500B (R-04, R-05, R-06)", 7850, "#5e4a3e", 0.7, 0.6, enhet="kg",
                     cad="#b8462e")
 SPIKPLAT = Material("Spikplåt", "Spikplåt S250GD+Z 2,0 mm", 7850, "#b8bcc2", 0.4, 1.0, enhet="st", cad="#b8c2cf")
+STALBAND = Material("Stålband", "Stålband 40×2,0 mm S350GD+Z275, infällt (K-04)", 7850, "#b8bcc2", 0.4, 1.0,
+                    enhet="st", cad="#3f6fb5")
 
 # ------------------------------------------------------------------ fönster, dörrar och installationer
 GLAS = Material("Glas", "Fönsterglas", 2500, "#cfe3ea", 0.02, textur="glas", opacitet=0.35, cad="#a9d8ec")

@@ -271,6 +271,8 @@ def main(argv: list[str] | None = None) -> None:
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
                          "(markdown); ritning: planen med höjderna (D-01)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
+    pb = sub.add_parser("barverk", help="bärverket ur modellen (stommens delar och lastytorna) för K-04:s balkmodell")
+    pb.add_argument("--ut", type=Path, default=UT / "barverk.json")
     pi = sub.add_parser("inkop", help="specialprodukterna i modellen mot inköpslistan (IN-01): kontroll och utdrag")
     pi.add_argument("atgard", choices=("kontroll", "utdrag"),
                     help="kontroll: koderna i modellen (produkt=) mot inköpslistan och tvärtom (ingår i kontroll); "
@@ -491,6 +493,16 @@ def main(argv: list[str] | None = None) -> None:
     t1 = time.perf_counter()
     if arg.kommando == "trad":
         trad(rot, arg.djup)
+        return
+    if arg.kommando == "barverk":
+        import json
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        utdrag = importlib.import_module("trebodar.hus.stomme.barverk").utdrag(rot)
+        arg.ut.parent.mkdir(parents=True, exist_ok=True)
+        arg.ut.write_text(json.dumps(utdrag, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        print(f"  {len(utdrag['delar'])} delar, {len(utdrag['takytor'])} takfall, {len(utdrag['vaggar'])} väggar "
+              f"-> {arg.ut}")
         return
     if arg.kommando == "inkop":
         import json

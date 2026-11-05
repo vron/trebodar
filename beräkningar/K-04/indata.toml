@@ -1,0 +1,125 @@
+# ------------------------------------------------------------------
+# Indata – K-04 Trästomme och stabilisering
+# Balkmodellen byggs ur modellens bärverk (./mod barverk i verktyg/modellering, modeller/trebodar/ut/barverk.json).
+# Lasterna (takets egentyngd, snö och vind) ur F-01:s indata; här det som är K-04:s eget.
+# Längder i mm, krafter i N om inget annat anges.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Trästomme och stabilisering"
+dokument    = "K-04"
+revision    = "A"
+datum       = "2026-11-06"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "F-01 rev A, modellen (bärverket), K-01, K-03"
+
+[last]
+# takets skikt utöver F-01:s (kg/m² takyta); takbalkarna räknas med sin egen tyngd i modellen
+tak_tillagg = [{ skikt = "Ströläkt 34×45 c/c 200 (modellen; saknas i F-01, #57)", kg = 3.8 }]
+vagg_ytter  = 0.50     # ytterväggarnas skikt utom reglarna [kN/m² vägg]: panel, läkt, utegips, isolering, gips 2×12,5, fönster
+vagg_inner  = 0.30     # innerväggarnas skikt utom reglarna [kN/m² vägg]: gips 2×12,5 på båda sidor, isolering
+mu_dal      = 1.6      # takfall mot en dal: μ2 jämnt över hela takfallet (som K-03; standarden: från nocken)
+mu_takfot   = 1.0      # takfall mot takfot (som K-03; standarden μ1 = 0,8)
+
+[vind]
+# formfaktorer c_pe,10 (SS-EN 1991-1-4 tabell 7.1 och 7.4a–b, sadeltak 30°), varje huskropp för sig
+A = -1.2
+B = -0.8
+C = -0.5
+D = [0.7, 0.8]         # h/d = 0,25 och 1
+E = [-0.3, -0.5]
+cpi = [0.2, -0.3]
+theta90 = { F = -1.1, G = -1.4, H = -0.8, I = -0.5 }
+[vind.theta0.sug]
+F = -0.5
+G = -0.5
+H = -0.2
+I = -0.4
+J = -0.5
+[vind.theta0.tryck]
+F = 0.7
+G = 0.7
+H = 0.4
+I = 0.0
+J = 0.0
+
+[material]
+rho_tra = 500.0        # virkets och limträets tunghet för egentyngden [kg/m³], som F-01
+[material.C24]         # SS-EN 338
+fmk = 24.0
+ft0k = 14.5
+fc0k = 21.0
+fc90k = 2.5
+fvk = 4.0
+E0mean = 11000.0
+E005 = 7400.0
+Gmean = 690.0
+rhok = 350.0
+gamma_M = 1.3
+beta_c = 0.2
+[material.GL30c]       # SS-EN 14080
+fmk = 30.0
+ft0k = 19.5
+fc0k = 24.5
+fc90k = 2.5
+fvk = 3.5
+E0mean = 13000.0
+E005 = 10800.0
+Gmean = 650.0
+rhok = 390.0
+gamma_M = 1.25
+beta_c = 0.1
+[material.GL30h]       # SS-EN 14080
+fmk = 30.0
+ft0k = 24.0
+fc0k = 30.0
+fc90k = 2.5
+fvk = 3.5
+E0mean = 13600.0
+E005 = 11300.0
+Gmean = 650.0
+rhok = 430.0
+gamma_M = 1.25
+beta_c = 0.1
+[material.S355]        # nock- och dalbalkarnas plåtar (K-01)
+E0mean = 210000.0
+Gmean = 81000.0
+[material."Stålband"]  # stålband 40×2,0 S350GD+Z275 (SS-EN 10346)
+E0mean = 210000.0
+Gmean = 81000.0
+fy = 350.0
+fu = 420.0
+
+[kombination]
+gamma_d   = 0.91       # säkerhetsklass 2 (F-01)
+gamma_G   = [1.35, 1.2]  # 6.10a och 6.10b
+gamma_Gfav = 1.0       # gynnsam egentyngd (lyft, förankring)
+gamma_Q   = 1.5
+psi0_sno  = 0.6
+psi2_sno  = 0.1
+psi0_vind = 0.3
+psi2_vind = 0.0
+k_mod     = { G = 0.6, S = 0.8, W = 0.9 }     # klimatklass 1: permanent, medellång (snö) och korttid (vind), som K-03
+k_def     = 0.6        # klimatklass 1, konstruktionsvirke
+
+[kontroll]
+k_m       = 0.7        # rektangulära tvärsnitt (6.1.6)
+k_cr      = 0.67       # sprickor (6.1.7)
+k_c90     = 1.25       # syllar och hammarband på kontinuerligt upplag (6.1.5)
+l_extra   = 30.0       # anliggningslängden ökas med 30 mm på var sida om virket fortsätter (6.1.5)
+nedb_tak  = 300        # w_fin ≤ L/300 för takbalkarna (F-01)
+drift     = 300        # väggarnas överkant: horisontell förskjutning ≤ H/300 i karakteristisk vind (K-04)
+
+[band]
+b = 40.0               # bredd [mm]
+t = 2.0
+d0 = 5.0               # hålen för spiken
+gamma_M0 = 1.0         # EKS (som K-01)
+gamma_M2 = 1.2
+spik = "Ankarspik 4,0×40"
+d = 4.0
+l = 40.0
+fu_spik = 600.0        # tråd [MPa]
+gamma_M_forband = 1.3
