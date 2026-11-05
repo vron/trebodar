@@ -1,13 +1,13 @@
 # IN-01 rev A – Inköpslista
 
-Specialprodukterna: det som väljs, beställs eller tillverkas för sig (vitvaror, fönster och dörrar, kaminen, armaturerna, specialtillverkat stål och limträ …), med vald produkt, status, ansvarig roll och skede. Vanligt material (virke, skivor, isolering, armering, kabel, rör) ingår inte. Eget underlag, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6).
+Specialprodukterna: det som väljs, beställs eller tillverkas för sig (vitvaror, fönster och dörrar, kaminen, armaturerna, specialtillverkat stål och limträ …), med vald produkt, status, ansvarig roll och fas. Faserna och deras datum kommer ur tidsplanen TP-01: produkten ska finnas på bygget när fasen börjar. Vanligt material (virke, skivor, isolering, armering, kabel, rör) ingår inte. Eget underlag, ingår inte i handlingarna till tekniskt samråd (F-01 avsnitt 6).
 
 Listan följer husets modell: varje specialprodukt är märkt där den skapas i modellens geometriskript (`produkt="KOD"` på delen eller montaget, för installationernas produkttyper `produkt` i katalogen), och antalet och instansernas id (fönstret 3NV-F4, armaturen KO-L05, plåten 2SV-P01) kommer ur modellen. Här står det som inte är geometri. En produkt som inte är modellerad (borrhålet, badrummets sanitet) anger sin omfattning i stället.
 
 | Fil | Innehåll |
 |---|---|
-| `indata.toml` | Projektuppgifter, status, roller, skeden och produkterna (`[[produkt]]`: kod, grupp, namn, vald produkt, status, ansvarig, skede, dokument, ärenden, anmärkning) |
-| `bygg.py` | Läser `indata.toml` och modellens utdrag, kontrollerar att de stämmer och bygger PDF |
+| `indata.toml` | Projektuppgifter, status, roller och produkterna (`[[produkt]]`: kod, grupp, namn, vald produkt, status, ansvarig, fas, dokument, ärenden, anmärkning) |
+| `bygg.py` | Läser `indata.toml`, tidsplanens faser (`../TP-01/indata.toml`) och modellens utdrag, kontrollerar att de stämmer och bygger PDF |
 | `mall.typ` | Typst-mall för dokumentet |
 
 ## Ändra

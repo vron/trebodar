@@ -51,17 +51,17 @@ Antalet och id:na kommer ur husets 3D-modell: produkten är märkt där den skap
   ..r.status.map(s => (text(fill: farg.at(s.namn), s.namn), [#s.text])).flatten(),
 )
 
-*Ansvarig* är rollen som ser till att produkten väljs och beställs: #r.roller.join(", ", last: " och "). *Skede* är när produkten ska finnas på bygget senast: #r.skeden.join(", ", last: " och "), i byggets ordning. Ärendena (\#) finns på GitHub.
+*Ansvarig* är rollen som ser till att produkten väljs och beställs: #r.roller.join(", ", last: " och "). *Fas* är fasen i tidsplanen TP-01 då produkten ska finnas på bygget: den behövs när fasen börjar. Ärendena (\#) finns på GitHub.
 
 = Översikt
 
-Produkterna per skede och status.
+Produkterna per fas och status, med datumet då fasen börjar (TP-01).
 
 #table(
   columns: (1fr, ..r.status.map(_ => auto), auto),
   align: (left, ..r.status.map(_ => center), center),
-  [Skede], ..r.status.map(s => text(fill: farg.at(s.namn), s.namn)), [Summa],
-  ..r.oversikt.map(o => ([#o.skede], ..o.antal.map(n => if n > 0 [#n] else [–]), [#o.summa])).flatten(),
+  [Fas], ..r.status.map(s => text(fill: farg.at(s.namn), s.namn)), [Summa],
+  ..r.oversikt.map(o => ([#o.namn #text(size: 8pt, fill: grå)[från #o.fran]], ..o.antal.map(n => if n > 0 [#n] else [–]), [#o.summa])).flatten(),
   [*Summa*], ..r.summa.map(n => [*#n*]), [*#r.produkter*],
 )
 
@@ -75,7 +75,7 @@ Produkterna per skede och status.
   #table(
     columns: (1fr, 1.7cm, 1.5cm, 2.8cm, 2.6cm),
     align: (left, left, left, left, left),
-    table.header([Produkt], [Antal], [Status], [Ansvarig], [Skede]),
+    table.header([Produkt], [Antal], [Status], [Ansvarig], [Fas]),
     ..g.produkter.map(x => (
       [
         #text(size: 7pt, fill: grå, x.kod) \
@@ -85,7 +85,7 @@ Produkterna per skede och status.
           \ #text(size: 7.5pt, fill: grå)[#x.detaljer.join(" · ") #for a in x.arenden [#link(a.url)[\##a.nr] ]]
         ]
       ],
-      [#x.antal], text(fill: farg.at(x.status), x.status), [#x.ansvarig], [#x.skede],
+      [#x.antal], text(fill: farg.at(x.status), x.status), [#x.ansvarig], [#x.fas \ #text(size: 7.5pt, fill: grå)[från #x.fran]],
     )).flatten(),
   )
   ]

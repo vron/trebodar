@@ -3,10 +3,12 @@ IN-01: inköpslistan, specialprodukterna med status.
 
     python bygg.py            -> IN-01_inkopslista.pdf
 
-Läser indata.toml och modellens utdrag (modeller/trebodar/ut/inkop.json, som `./mod inkop utdrag` skriver: de märkta
-produkternas instanser i modellen), kontrollerar att de stämmer och sätter ihop PDF via Typst (mall.typ).
+Läser indata.toml, tidsplanens faser (../TP-01/indata.toml) och modellens utdrag (modeller/trebodar/ut/inkop.json, som
+`./mod inkop utdrag` skriver: de märkta produkternas instanser i modellen), kontrollerar att de stämmer och sätter
+ihop PDF via Typst (mall.typ).
 Kräver: pip install typst
 """
+import datetime as dt
 import json
 import re
 import tomllib
@@ -18,11 +20,28 @@ import typst
 HERE = Path(__file__).parent
 UTDRAG = HERE.parents[1] / "modeller" / "trebodar" / "ut" / "inkop.json"
 ARENDE = "https://github.com/vron/trebodar/issues/"
+MANAD = ("jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec")
 ALLMAN = ("ej vald", "ej valt", "förenklat")       # modellens beskrivning av en produkt som inte är vald
 
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 MODELL = json.loads(UTDRAG.read_text(encoding="utf-8"))
-STATUS, ROLLER, SKEDEN = list(IN["status"]), IN["roller"], IN["skeden"]
+TP = tomllib.loads((HERE.parent / "TP-01" / "indata.toml").read_text(encoding="utf-8"))
+STATUS, ROLLER = list(IN["status"]), IN["roller"]
+
+
+def faser() -> dict[str, dict]:
+    """Tidsplanens faser (TP-01) i ordning, med datumet då fasen börjar."""
+    start: dict[str, str] = {}
+    for s in TP["steg"]:
+        start[s["fas"]] = min(start.get(s["fas"], s["start"]), s["start"])
+    ut = {}
+    for f in TP["fas"]:
+        d = dt.date.fromisoformat(start[f["kod"]])
+        ut[f["kod"]] = {"namn": f["namn"], "fran": f"{d.day} {MANAD[d.month - 1]} {d.year}"}
+    return ut
+
+
+FASER = faser()
 
 
 def typ(t: str) -> str:
@@ -37,7 +56,7 @@ def produkt(p: dict) -> dict:
     allman = p["status"] != STATUS[0] and any(a in t.lower() for t in varianter for a in ALLMAN)
     return {
         "kod": p["kod"], "namn": p["namn"], "vald": p.get("vald", ""), "status": p["status"],
-        "ansvarig": ROLLER[p["ansvarig"]], "skede": SKEDEN[p["skede"]],
+        "ansvarig": ROLLER[p["ansvarig"]], "fas": FASER[p["fas"]]["namn"], "fran": FASER[p["fas"]]["fran"],
         "antal": str(len(inst)) if inst else p["omfattning"],
         "detaljer": [x for x in (p.get("dokument", ""), p.get("anm", ""),
                                  f"Leverantör: {p['leverantor']}" if p.get("leverantor") else "",
@@ -56,7 +75,7 @@ def kontroll() -> list[str]:
     for p in IN["produkt"]:
         k = p["kod"]
         fel += [f"{k}: {f} {p.get(f)!r} finns inte" for f, tillatna in
-                (("status", STATUS), ("ansvarig", ROLLER), ("skede", SKEDEN)) if p.get(f) not in tillatna]
+                (("status", STATUS), ("ansvarig", ROLLER), ("fas", FASER)) if p.get(f) not in tillatna]
         if p.get("status") != STATUS[0] and not p.get("vald"):
             fel.append(f"{k}: status {p.get('status')!r} men ingen vald produkt (vald)")
         if k in MODELL and "omfattning" in p:
@@ -72,13 +91,12 @@ grupper: dict[str, list[dict]] = {}
 for p in IN["produkt"]:
     grupper.setdefault(p["grupp"], []).append(produkt(p))
 alla = [p for ps in grupper.values() for p in ps]
-oversikt = [{"skede": s, "antal": [sum(p["skede"] == s and p["status"] == st for p in alla) for st in STATUS]}
-            for s in SKEDEN.values()]
+oversikt = [f | {"antal": [sum(p["fas"] == f["namn"] and p["status"] == st for p in alla) for st in STATUS]}
+            for f in FASER.values()]
 R = {
     "projekt": IN["projekt"],
     "status": [{"namn": s, "text": t} for s, t in IN["status"].items()],
     "roller": list(ROLLER.values()),
-    "skeden": list(SKEDEN.values()),
     "oversikt": [r | {"summa": sum(r["antal"])} for r in oversikt if sum(r["antal"])],
     "summa": [sum(r["antal"][i] for r in oversikt) for i in range(len(STATUS))],
     "grupper": [{"namn": g, "produkter": ps} for g, ps in grupper.items()],

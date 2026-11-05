@@ -1,0 +1,706 @@
+# ------------------------------------------------------------------
+# Indata – TP-01 Tidsplan och organisation
+# Byggets faser och steg med tider, ansvarig och inblandade, och organisationen. Inköpslistan (IN-01) använder
+# faserna: varje specialprodukt ska finnas på bygget när dess fas börjar.
+# Ändra här och kör ./bygg TP-01 (då byggs även IN-01 om).
+#
+# [[part]]: kod, kort (i tabellerna), roll, namn (tomt: inte vald), status, uppgift. Inga telefonnummer eller adresser.
+# [[fas]]: kod, namn. [[steg]]: fas, namn, start, slut (datum), ansvarig (en part, tomt: inte bestämt), forslag (true:
+# ansvarig är ett förslag), inblandade, anm, milstolpe (true: en tidpunkt), klar, prel (true: preliminärt datum).
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Tidsplan och organisation"
+dokument    = "TP-01"
+revision    = "A"
+datum       = "2026-11-05"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+fastighet   = "Resö 2:66"
+arende      = "BYGG.2025.2278"
+byggstart   = "2027-08-09"
+
+# perioder utan arbete på bygget (i diagrammen)
+[[uppehall]]
+namn  = "Vinteruppehåll"
+start = "2027-12-20"
+slut  = "2028-02-25"
+[[uppehall]]
+namn  = "Industrisemester"
+start = "2028-07-10"
+slut  = "2028-08-04"
+
+# ------------------------------------------------------------------ organisationen
+
+[[part]]
+kod     = "byggherre"
+kort    = "Byggherren"
+roll    = "Byggherre"
+namn    = "Viktor Ogeman"
+status  = ""
+uppgift = "Projektering och konstruktionshandlingar, samordning, beställning av stommen och specialprodukterna (IN-01), tömning och utrivning i förväg"
+
+[[part]]
+kod     = "ka"
+kort    = "KA"
+roll    = "Kontrollansvarig"
+namn    = "Kustprojekt, Calle Johansson"
+status  = "anlitad"
+uppgift = "Kontrollplan (KP-01) och brandskyddsbeskrivning (BR-01), tekniskt samråd, kontroller enligt kontrollplanen, arbetsplatsbesök, slutsamråd och utlåtande"
+
+[[part]]
+kod     = "mark"
+kort    = "CTP"
+roll    = "Mark, rivning och sprängning"
+namn    = "CTP Entreprenad AB, Christian Taflin"
+status  = "i planeringen"
+uppgift = "Rivning, sprängning och schakt, fyllning och återfyllning, dränering och dagvatten, markarbeten, avfallet under rivningen (AV-01)"
+
+[[part]]
+kod     = "bygg"
+kort    = "Lindholm"
+roll    = "Byggentreprenör"
+namn    = "Jörgen Lindholm"
+status  = "i planeringen"
+uppgift = "Stommen och yttertaket, fönster och dörrar, fasaden, isolering och gips, snickerier, avfallet under byggtiden (AV-01)"
+
+[[part]]
+kod     = "betong"
+kort    = "Betong"
+roll    = "Betongentreprenör"
+namn    = ""
+status  = "ej vald"
+uppgift = "Gjutningarna, formen och stämpen till mellanbjälklaget"
+
+[[part]]
+kod     = "murare"
+kort    = "PS Murartjänst"
+roll    = "Murare"
+namn    = "PS Murartjänst, Pontus Sjöström"
+status  = "förfrågan"
+uppgift = "Kaminens inbyggnad och fasadstenen"
+
+[[part]]
+kod     = "vvs"
+kort    = "Åkerbloms"
+roll    = "VVS"
+namn    = "Åkerbloms VVS AB"
+status  = "offert"
+uppgift = "Ingjutna rör (avlopp, tappvatten, golvvärme), köldbärarrören, värmepumpen, sanitet"
+
+[[part]]
+kod     = "el"
+kort    = "LK Elektriska"
+roll    = "Elektriker"
+namn    = "LK Elektriska"
+status  = "att kontakta"
+uppgift = "Ingjutna elrör, elinstallationen och brandlarmet"
+
+[[part]]
+kod     = "plat"
+kort    = "Sämberg"
+roll    = "Plåtslagare"
+namn    = "Sämberg"
+status  = "att kontakta"
+uppgift = "Takplåt, takavvattning och plåtdetaljer, takgenomföringar"
+
+[[part]]
+kod     = "borr"
+kort    = "Brunnsborrning"
+roll    = "Brunnsborrning"
+namn    = "Norra Bohusläns Brunnsborrning HB"
+status  = "avtalad"
+uppgift = "Energibrunnen (1 borrhål, ca 200 m) med kollektor"
+
+[[part]]
+kod     = "kakel"
+kort    = "Kakel-Christer"
+roll    = "Plattsättare"
+namn    = "Kakel-Christer"
+status  = "att kontakta"
+uppgift = "Badrummets tätskikt och kakel"
+
+[[part]]
+kod     = "stomme"
+kort    = "Perssons"
+roll    = "Stomleverantör"
+namn    = "Perssons Träteknik, via Beijer Bygg"
+status  = "offert"
+uppgift = "Färdigkapad stomme"
+
+[[part]]
+kod     = "matning"
+kort    = "Mätning"
+roll    = "Utstakning och lägeskontroll"
+namn    = ""
+status  = "ej vald"
+uppgift = "Kommunen eller extern mätningsingenjör (verifieras vid tekniskt samråd)"
+
+[[part]]
+kod     = "besiktning"
+kort    = "Besiktningsman"
+roll    = "Besiktningsman"
+namn    = ""
+status  = "ej vald"
+uppgift = "Byggherrens egen slutbesiktning"
+
+[[part]]
+kod     = "kommunen"
+kort    = "Kommunen"
+roll    = "Byggnadsnämnden"
+namn    = "Tanums kommun"
+status  = ""
+uppgift = "Tekniskt samråd, startbesked, arbetsplatsbesök och slutbesked; anmälan om bergvärme (miljöavdelningen)"
+
+# ------------------------------------------------------------------ faserna
+
+[[fas]]
+kod  = "forberedelser"
+namn = "Förberedelser"
+
+[[fas]]
+kod  = "rivning"
+namn = "Rivning och sprängning"
+
+[[fas]]
+kod  = "grund"
+namn = "Grund"
+
+[[fas]]
+kod  = "mellanbjalklag"
+namn = "Mellanbjälklag"
+
+[[fas]]
+kod  = "stomme"
+namn = "Stomme"
+
+[[fas]]
+kod  = "tatt"
+namn = "Tätt hus"
+
+[[fas]]
+kod  = "installationer"
+namn = "Installationer"
+
+[[fas]]
+kod  = "invandigt"
+namn = "Invändigt"
+
+[[fas]]
+kod  = "utvandigt"
+namn = "Utvändigt och färdigställande"
+
+# ------------------------------------------------------------------ förberedelser
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Bygglov och rivningslov"
+start      = "2026-02-18"
+slut       = "2026-02-18"
+ansvarig   = "byggherre"
+inblandade = ["kommunen"]
+milstolpe  = true
+klar       = true
+anm        = "Beslut D32."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Beslut om bergvärme"
+start      = "2026-11-02"
+slut       = "2026-11-02"
+ansvarig   = "kommunen"
+inblandade = ["byggherre", "borr"]
+milstolpe  = true
+klar       = true
+anm        = "MSK.2026.2199, med försiktighetsmått; anmält 17 oktober 2026, 1 borrhål ca 200 m."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Handlingar till tekniskt samråd"
+start      = "2026-11-09"
+slut       = "2027-01-29"
+ansvarig   = "byggherre"
+inblandade = ["ka"]
+prel       = true
+anm        = "Kontrollplan och brandskyddsbeskrivning av KA, tidsplanen och konstruktionshandlingarna; in senast 5 arbetsdagar före samrådet."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Tekniskt samråd"
+start      = "2027-02-10"
+slut       = "2027-02-10"
+ansvarig   = "byggherre"
+inblandade = ["ka", "kommunen"]
+milstolpe  = true
+prel       = true
+anm        = "Digitalt; bokas hos byggnadsinspektören."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Startbesked"
+start      = "2027-03-15"
+slut       = "2027-03-15"
+ansvarig   = "kommunen"
+inblandade = ["byggherre"]
+milstolpe  = true
+prel       = true
+anm        = "Inget arbete på tomten före startbeskedet."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Beställningar med lång leveranstid"
+start      = "2027-03-15"
+slut       = "2027-06-18"
+ansvarig   = "byggherre"
+inblandade = ["stomme", "bygg"]
+prel       = true
+anm        = "Stommen och specialprodukterna i IN-01, var och en till sin fas."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Flytt av två äppelträd"
+start      = "2027-03-22"
+slut       = "2027-03-26"
+ansvarig   = "mark"
+forslag    = true
+prel       = true
+anm        = "Flyttas, fälls inte; när träden är i vila. En dag, bokas separat."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Grannar, riskanalys och förbesiktning"
+start      = "2027-06-07"
+slut       = "2027-07-02"
+ansvarig   = ""
+inblandade = ["byggherre", "mark"]
+prel       = true
+anm        = "Före sprängningen: grannhus, brunnar och ledningar; vibrationsmätning under sprängningen."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Tömning och utrivning i förväg"
+start      = "2027-06-14"
+slut       = "2027-08-06"
+ansvarig   = "byggherre"
+anm        = "Fönster, elkablar, uttag och inredning som inte är helt i trä, till återvinningen (AV-01)."
+
+[[steg]]
+fas        = "forberedelser"
+namn       = "Staket runt grönsakslandet"
+start      = "2027-07-26"
+slut       = "2027-08-06"
+ansvarig   = "byggherre"
+prel       = true
+anm        = "Skyddar landet under byggtiden."
+
+# ------------------------------------------------------------------ rivning och sprängning
+
+[[steg]]
+fas        = "rivning"
+namn       = "Byggstart"
+start      = "2027-08-09"
+slut       = "2027-08-09"
+ansvarig   = "byggherre"
+milstolpe  = true
+
+[[steg]]
+fas        = "rivning"
+namn       = "Etapp 1: rivning"
+start      = "2027-08-09"
+slut       = "2027-08-13"
+ansvarig   = "mark"
+anm        = "Rampen upp på gräsmattan först. Rivningen en dag, sedan sortering och borttransport (AV-01)."
+
+[[steg]]
+fas        = "rivning"
+namn       = "Utstakning och höjder"
+start      = "2027-08-16"
+slut       = "2027-08-16"
+ansvarig   = "matning"
+inblandade = ["mark"]
+prel       = true
+anm        = "Enligt AR-02; lägeskontroll när grunden är gjuten."
+
+[[steg]]
+fas        = "rivning"
+namn       = "Etapp 2: sprängning, schakt och fyllning"
+start      = "2027-08-16"
+slut       = "2027-08-27"
+ansvarig   = "mark"
+anm        = "Borrning, laddning och borttransport av sprängmassor; dränerande fyllning och makadam, avjämnat för L-elementen (K-06)."
+
+[[steg]]
+fas        = "rivning"
+namn       = "Borrning av energibrunnen"
+start      = "2027-08-23"
+slut       = "2027-08-27"
+ansvarig   = "borr"
+inblandade = ["mark"]
+prel       = true
+anm        = "När marken ändå är uppgrävd; läget bestäms före köldbärarrören."
+
+# ------------------------------------------------------------------ grund
+
+[[steg]]
+fas        = "grund"
+namn       = "Köldbärarrören under bottenplattan"
+start      = "2027-08-30"
+slut       = "2027-08-31"
+ansvarig   = "vvs"
+forslag    = true
+inblandade = ["mark", "borr"]
+prel       = true
+anm        = "2 × Ø110 till borrhålet, bara 15° böjar, dragtråd, pluggar, tätning mot radon och inmätt ände (VG-01.3)."
+
+[[steg]]
+fas        = "grund"
+namn       = "Etapp 3: förberedelse bottenplattan"
+start      = "2027-08-30"
+slut       = "2027-09-10"
+ansvarig   = ""
+inblandade = ["vvs", "el", "betong", "ka"]
+anm        = "L-element L400 och cellplast, avlopp och inkommande vatten, elrör, golvvärme (VG-01), armering och startjärn (R-04); kontroll före gjutning."
+
+[[steg]]
+fas        = "grund"
+namn       = "Gjutning 1: bottenplattan"
+start      = "2027-09-13"
+slut       = "2027-09-13"
+ansvarig   = "betong"
+inblandade = ["ka"]
+milstolpe  = true
+anm        = "Hela källargolvet (K-06, R-04); orört en vecka."
+
+[[steg]]
+fas        = "grund"
+namn       = "Etapp 5: källarväggarna, Kub och armering"
+start      = "2027-09-21"
+slut       = "2027-10-01"
+ansvarig   = ""
+inblandade = ["betong", "murare", "vvs", "el"]
+anm        = "Sundolitt Kub 350-150 i förband med armering och stag (K-06, R-05); genomföringar för rören."
+
+[[steg]]
+fas        = "grund"
+namn       = "Gjutning 2: källarväggarna"
+start      = "2027-10-04"
+slut       = "2027-10-04"
+ansvarig   = "betong"
+inblandade = ["ka"]
+milstolpe  = true
+anm        = "Tre hela skift, 1 800 mm; pump, högst 1 m per timme, ingen vibrator (K-06)."
+
+[[steg]]
+fas        = "grund"
+namn       = "Återfyllning bakom V3 och V20"
+start      = "2027-10-15"
+slut       = "2027-10-18"
+ansvarig   = "mark"
+anm        = "När väggarna nått 21 MPa, 10–14 dygn vid 5–10 °C (K-06); sedan cellplast 350 under plattan på mark."
+
+# ------------------------------------------------------------------ mellanbjälklag
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Etapp 7: form, stämp, rören och översta skiftet"
+start      = "2027-10-06"
+slut       = "2027-10-19"
+ansvarig   = "betong"
+forslag    = true
+anm        = "Formen och stämpen står för sig själva, inte i Kub-elementen (K-06, R-06); rören P1–P19 (R-05)."
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Dränering och grundmursskiva"
+start      = "2027-10-20"
+slut       = "2027-10-29"
+ansvarig   = "mark"
+prel       = true
+anm        = "Dränledningen och dagvattnet till brunnen B1 (D-01); grundmursskiva mot väggarna (K-06)."
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Etapp 8: förberedelse mellanbjälklaget"
+start      = "2027-10-20"
+slut       = "2027-11-02"
+ansvarig   = ""
+inblandade = ["el", "vvs", "betong", "ka"]
+anm        = "Elrör (E-01), tappvatten (VS-01), golvvärme (VG-01), avloppet, köksön (#50), golvbrunnen (#52), armering i två lager (R-06); kontroll före gjutning."
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Gjutning 3: översta skiftet och bjälklaget"
+start      = "2027-11-03"
+slut       = "2027-11-03"
+ansvarig   = "betong"
+inblandade = ["ka"]
+milstolpe  = true
+anm        = "Skiftet först, sedan bjälklaget (K-06); vinterbetong och isolermattor vid kyla."
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Formrivning"
+start      = "2027-11-17"
+slut       = "2027-11-19"
+ansvarig   = "betong"
+forslag    = true
+prel       = true
+anm        = "Tidigast vid 70 % av hållfastheten, cirka två veckor vid 5 °C (R-06)."
+
+[[steg]]
+fas        = "mellanbjalklag"
+namn       = "Återfyllning mot övriga väggar"
+start      = "2027-11-17"
+slut       = "2027-11-19"
+ansvarig   = "mark"
+prel       = true
+anm        = "När bjälklaget och översta skiftet nått 21 MPa (K-06)."
+
+# ------------------------------------------------------------------ stomme
+
+[[steg]]
+fas        = "stomme"
+namn       = "Leverans av stommen och balkarna"
+start      = "2027-11-22"
+slut       = "2027-11-22"
+ansvarig   = "byggherre"
+inblandade = ["stomme", "mark"]
+milstolpe  = true
+prel       = true
+anm        = "Färdigkapad stomme; nock- och dalbalkar med stålplåtar (K-01, R-01); stålplåtarna över skjutdörren 2SV."
+
+[[steg]]
+fas        = "stomme"
+namn       = "Ställning och lyft"
+start      = "2027-11-22"
+slut       = "2027-11-23"
+ansvarig   = ""
+inblandade = ["bygg", "mark"]
+prel       = true
+anm        = "Balkarna upp med CTP:s maskin eller kran; ställning för taket."
+
+[[steg]]
+fas        = "stomme"
+namn       = "Stomresning"
+start      = "2027-11-22"
+slut       = "2027-12-08"
+ansvarig   = "bygg"
+inblandade = ["mark"]
+prel       = true
+anm        = "Väggar, stolpar, nock- och dalbalkar, takstolar och takbalkar; fickdörrarnas kassetter i väggarna."
+
+[[steg]]
+fas        = "stomme"
+namn       = "Yttertak till underlagspapp"
+start      = "2027-12-06"
+slut       = "2027-12-17"
+ansvarig   = "bygg"
+prel       = true
+anm        = "Hårdboard, ströläkt, råspont och fullvärdig underlagspapp, väderskydd över vintern (U-03)."
+
+# ------------------------------------------------------------------ tätt hus
+
+[[steg]]
+fas        = "tatt"
+namn       = "Fönster och dörrar"
+start      = "2028-02-28"
+slut       = "2028-03-17"
+ansvarig   = "bygg"
+prel       = true
+anm        = "VELFAC 200 ENERGY och ytterdörrarna (IN-01), montage och lufttät anslutning."
+
+[[steg]]
+fas        = "tatt"
+namn       = "Takplåt, takfönster och takavvattning"
+start      = "2028-03-13"
+slut       = "2028-04-21"
+ansvarig   = "plat"
+inblandade = ["bygg"]
+prel       = true
+anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggningstemperaturen avstäms."
+
+[[steg]]
+fas        = "tatt"
+namn       = "Fasad: utegips, läkt och panel"
+start      = "2028-03-20"
+slut       = "2028-05-12"
+ansvarig   = "bygg"
+prel       = true
+anm        = "Panel i specialprofil, grundmålad på alla sidor."
+
+# ------------------------------------------------------------------ installationer
+
+[[steg]]
+fas        = "installationer"
+namn       = "VVS och värmepump"
+start      = "2028-03-20"
+slut       = "2028-05-05"
+ansvarig   = "vvs"
+inblandade = ["borr"]
+prel       = true
+anm        = "Avlopp och tappvatten, fördelarna i teknikrummet och på V5, bergvärmepumpen mot borrhålet."
+
+[[steg]]
+fas        = "installationer"
+namn       = "El och brandlarm"
+start      = "2028-03-20"
+slut       = "2028-05-05"
+ansvarig   = "el"
+prel       = true
+anm        = "Rör och dosor i väggar och installationsskikt, centralen (#51), brandlarmet (B-01)."
+
+[[steg]]
+fas        = "installationer"
+namn       = "Ventilation"
+start      = "2028-04-10"
+slut       = "2028-04-21"
+ansvarig   = ""
+inblandade = ["vvs", "el"]
+prel       = true
+anm        = "Köksfläkten, badrumsfläkten och källarrummet (V-01); ersättningsluften (#53)."
+
+[[steg]]
+fas        = "installationer"
+namn       = "Isolering, ångbroms och installationsskikt"
+start      = "2028-04-24"
+slut       = "2028-05-19"
+ansvarig   = "bygg"
+prel       = true
+anm        = "Träfiber i taket, mineralull i väggarna; ångbromsen helt lufttät (U-03)."
+
+[[steg]]
+fas        = "installationer"
+namn       = "Gips i väggar och tak"
+start      = "2028-05-22"
+slut       = "2028-06-16"
+ansvarig   = "bygg"
+prel       = true
+
+# ------------------------------------------------------------------ invändigt
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Badrum"
+start      = "2028-06-12"
+slut       = "2028-07-07"
+ansvarig   = "kakel"
+inblandade = ["vvs"]
+prel       = true
+anm        = "Tätskikt, kakel och sanitet; golvbrunnen och fallet (#52)."
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Kaminen"
+start      = "2028-06-19"
+slut       = "2028-06-30"
+ansvarig   = "murare"
+forslag    = true
+prel       = true
+anm        = "Rais 600 i 2C, inbyggd med kalciumsilikat enligt anvisningen."
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Spackling och målning"
+start      = "2028-06-19"
+slut       = "2028-08-25"
+ansvarig   = ""
+prel       = true
+anm        = "Byggentreprenören eller målare; ytskiktsnivån bestäms i förväg."
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Snickerier"
+start      = "2028-08-07"
+slut       = "2028-09-01"
+ansvarig   = "bygg"
+prel       = true
+anm        = "Innerdörrar, smygar och fönsterbänkar av ask, trappan till källaren (#54)."
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Kök"
+start      = "2028-08-21"
+slut       = "2028-09-08"
+ansvarig   = ""
+inblandade = ["bygg", "vvs", "el"]
+prel       = true
+anm        = "Skåp, fronter, bänkskivor, vitvaror och köksfläkt (IN-01)."
+
+[[steg]]
+fas        = "invandigt"
+namn       = "Armaturer och slutinstallation"
+start      = "2028-09-04"
+slut       = "2028-09-15"
+ansvarig   = "el"
+inblandade = ["vvs"]
+prel       = true
+
+# ------------------------------------------------------------------ utvändigt och färdigställande
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Fasadsten på källarväggarna"
+start      = "2028-05-08"
+slut       = "2028-06-02"
+ansvarig   = "murare"
+forslag    = true
+inblandade = ["mark"]
+prel       = true
+anm        = "Bohus Grå från Stengrossen, levererad (AR-01)."
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Entréavsats av granit"
+start      = "2028-08-21"
+slut       = "2028-08-25"
+ansvarig   = "mark"
+forslag    = true
+prel       = true
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Trätrappa och altan"
+start      = "2028-08-28"
+slut       = "2028-09-08"
+ansvarig   = "bygg"
+prel       = true
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Markarbeten och återställning"
+start      = "2028-09-11"
+slut       = "2028-09-22"
+ansvarig   = "mark"
+prel       = true
+anm        = "Stuprören till dagvattnet (D-01), marken faller från huset (K-06), grönsakslandet."
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Egen slutbesiktning"
+start      = "2028-09-25"
+slut       = "2028-09-29"
+ansvarig   = "byggherre"
+inblandade = ["besiktning"]
+prel       = true
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Slutsamråd"
+start      = "2028-10-02"
+slut       = "2028-10-06"
+ansvarig   = "byggherre"
+inblandade = ["ka", "kommunen"]
+prel       = true
+anm        = "Med KA:s utlåtande."
+
+[[steg]]
+fas        = "utvandigt"
+namn       = "Slutbesked"
+start      = "2028-10-13"
+slut       = "2028-10-13"
+ansvarig   = "kommunen"
+inblandade = ["byggherre"]
+milstolpe  = true
+prel       = true
+anm        = "Huset får tas i bruk."
