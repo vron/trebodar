@@ -10,6 +10,7 @@ handlingarna (docs/, startsida.py). Se README.md.
     ./bygg --om K-01        bygg om även när steget är aktuellt
     ./bygg --markera U-03   ange att stegets resultat är aktuella utan att köra det (efter en ändring i källorna
                             som inte påverkar resultaten)
+    ./bygg U-04             ett manuellt steg (ljusplanerna): görs bara när det väljs
 
 Stegen körs parallellt (högst --jobb åt gången): ett steg startar när stegen det bygger på är klara. När flera
 steg körs har deras utdata stegets namn först på raden.
@@ -18,6 +19,8 @@ Ett steg är aktuellt när dess kontrollsumma är oförändrad sedan det byggdes
 över stegets källor (alla filer i dess mappar som inte ignoreras av git, utom dess incheckade resultat), dess
 kommandon och summorna för stegen det bygger på. Snabba steg sparar summan i .bygg/ (versionshanteras inte). Tunga
 steg sparar den i <mapp>/räknat.json, som checkas in tillsammans med resultaten som andra steg läser och rapporten.
+Manuella steg är tunga steg som bygger på hela modellen (ljusplanerna, som renderingarna): de görs bara när de väljs,
+och ./bygg --snabb stoppar inte när de är inaktuella.
 """
 import argparse
 import fnmatch
@@ -65,6 +68,7 @@ class Steg:
     incheckat: list[str] = field(default_factory=list)   # genererade filer som checkas in (mönster relativt mappen)
     lokalt: list[str] = field(default_factory=list)      # tunga steg: mellanresultat som tunga steg efter läser
     miljoer: list[str] = field(default_factory=list)     # fler Pythonmiljöer som kommandona behöver
+    manuell: bool = False                                # tungt steg som bara görs när det väljs (./bygg U-04)
 
 
 def ber(nr: str, *kor: str | list[str], **kw) -> Steg:
@@ -111,6 +115,11 @@ STEG = [
         rapport=("U-01_bottenplatta_fukt.pdf", "Bottenplattan - temperatur och fukt under året")),
     ber("U-03", "berakning.py", tung=True,
         rapport=("U-03_takets_luftspalt.pdf", "Takets luftspalt - luftflöde, fukt och mögelrisk")),
+    # ljusplanerna renderas i Blender (med tillverkarnas fotometrifiler i lokalt/el) ur hela modellen: manuellt
+    Steg("U-04", f"{BER}/U-04", [["mod", "ljusplan", "plan1-golv", "plan1-bord", "kok-bank", "kallare-golv",
+                                  "--projekt", f"../../{BER}/U-04/indata.toml", "--ut", f"../../{BER}/U-04"]],
+         kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"], tung=True,
+         manuell=True, rapport=("U-04_ljusplaner.pdf", "Ljusplaner - belysningsstyrka med all belysning tänd")),
     ritning("R-01", "Nock- och dalbalkar", bygger_pa=["K-01", "K-03", "K-05"], kallor=["modeller/balkplattor"]),
     ritning("R-05", "Källarstomme", bygger_pa=["K-05", "K-06"]),
     ritning("R-04", "Bottenplatta", bygger_pa=["R-05", "K-06"]),
@@ -356,7 +365,8 @@ def main() -> None:
         for s in STEG:
             tillstand = "aktuell" if aktuell(s) else "inaktuell" + (f" (saknas: {', '.join(saknas(s))})"
                                                                      if byggd_summa(s) == kontrollsumma(s) else "")
-            print(f"{s.namn:11} {'tung ' if s.tung else '     '} {tillstand}")
+            print(f"{s.namn:11} {'tung ' if s.tung else '     '} {tillstand}"
+                  + (" (manuellt: ./bygg " + s.namn + ")" if s.manuell else ""))
         return
     if arg.markera:
         if not arg.steg:
@@ -369,11 +379,11 @@ def main() -> None:
             print(f"{namn}: markerad som aktuell ({kontrollsumma(s)})")
         return
     if arg.snabb:
-        if inaktuella := [s.namn for s in STEG if s.tung and byggd_summa(s) != kontrollsumma(s)]:
+        if inaktuella := [s.namn for s in STEG if s.tung and not s.manuell and byggd_summa(s) != kontrollsumma(s)]:
             raise SystemExit(f"De tunga stegen {', '.join(inaktuella)} är inte räknade efter ändringarna i deras "
                              f"källor. Kör ./bygg {' '.join(inaktuella)} lokalt och checka in resultaten och "
                              f"räknat.json.")
-    steg = plan(arg.steg or list(STEG_NAMN), arg.om, arg.snabb)
+    steg = plan(arg.steg or [s.namn for s in STEG if not s.manuell], arg.om, arg.snabb)
     t0 = time.perf_counter()
     miljoer(steg)
     tider = kor_alla(steg, arg.jobb)

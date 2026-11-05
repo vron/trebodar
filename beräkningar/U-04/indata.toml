@@ -1,0 +1,15 @@
+# ------------------------------------------------------------------
+# U-04 Ljusplaner – belysningsstyrka med all belysning tänd
+# Ljusplanerna renderas ur modellen med ./mod ljusplan (verktyg/modellering); mätytorna står i modellens
+# hus/installationer/el/matytor.py och armaturerna i elinstallationen. Gör om dem med  ./bygg U-04
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Ljusplaner – belysningsstyrka med all belysning tänd"
+dokument    = "U-04"
+revision    = "A"
+datum       = "2026-11-05"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "Modellen (elinstallationen, mätytorna), rendering i Blender"

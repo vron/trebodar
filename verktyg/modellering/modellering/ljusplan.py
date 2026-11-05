@@ -20,7 +20,7 @@ from shapely.ops import unary_union
 
 from .elritning import R_LAMPA, symbol
 from .karna import ROT
-from .planritning import Vy, blad, figur, kompilera, norrpil, papper, plan, polygoner, rita_ytor, sv, vy
+from .planritning import Blad, Vy, blad, figur, norrpil, papper, plan, polygoner, rita_ytor, sv, vy
 
 NIVAER = [0, 10, 20, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 2000, 5000]
 ISOLINJER = [50, 100, 200, 300, 500]
@@ -188,12 +188,13 @@ def _prov(v: Vy, rita: str) -> None:
 
 
 def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: dict[str, tuple],
-         scenario: list[str], norr: tuple[float, float], nummer: str, arbete: Path, ut: Path,
-         paneler: Sequence[tuple[float, float, float]] = (), hinder: Any = None) -> list[dict[str, Any]]:
-    """Ljusplanen för mätytan (lux: rutnätet, rad 0 vid y0) som pdf (ut), med statistiken per rum och delområde
-    (returneras), elinstallationens armaturer och taklamporna (paneler: x, y och sida i mm) på planet; bladet och
-    rastret i arbetsmappen (under repots rot, för Typst). hinder: inredningen på mätytan (inredningen()), som lämnas
-    vit och utanför statistiken."""
+         scenario: list[str], norr: tuple[float, float], nummer: str, arbete: Path,
+         paneler: Sequence[tuple[float, float, float]] = (), hinder: Any = None,
+         **huvud: str) -> tuple[Blad, list[dict[str, Any]]]:
+    """Ljusplanens blad för mätytan (lux: rutnätet, rad 0 vid y0) och statistiken per rum och delområde, med
+    elinstallationens armaturer och taklamporna (paneler: x, y och sida i mm) på planet; rastret i arbetsmappen
+    (under repots rot, för Typst). hinder: inredningen på mätytan (inredningen()), som lämnas vit och utanför
+    statistiken. huvud: bladets revision, datum och status (planritning.blad)."""
     x0, x1, y0, y1 = yta.omrade
     matt = Polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
     ny, nx = lux.shape
@@ -325,6 +326,5 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
         ]),
     ]
     b = blad(nummer, ["Ljusplan", str(yta.namn)], f"1:{skala:g}", "Modellen, rendering", kol,
-             [v, _fargskala(xb, 20.0)], block)
-    kompilera([(nummer, b)], arbete, ut)
-    return stat
+             [v, _fargskala(xb, 20.0)], block, **huvud)
+    return b, stat

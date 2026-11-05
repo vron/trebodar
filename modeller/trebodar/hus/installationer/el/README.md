@@ -130,8 +130,8 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
 
 `./mod ljusplan` räknar belysningsstyrkan [lux] på vågräta mätytor ([`matytor.py`](matytor.py): golvet och
 bordshöjden på plan 1, köksbänkarna och ön, källarens golv; ytor och delområden läggs till där) i renderingen, med
-armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (E-02.n i ritningsmallen, en pdf
-per mätyta) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
+armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (U-04.n i ritningsmallen, alla
+mätytorna i en pdf) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
 delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita). Ett delområde kan mätas
 i en egen höjd: på planerna över plan 1 mäts köksbänkarna och ön där man arbetar, 10 mm över bänkskivorna (0,91 m):
 
@@ -141,4 +141,6 @@ i en egen höjd: på planerna över plan 1 mäts köksbänkarna och ön där man
 ./mod ljusplan plan1-bord --ljus 3 20 12:00 mulet --tand     # bara dagsljuset (inga lampor)
 ```
 
-Flytta eller byt armaturer i rummens moduler och kör igen för att jämföra.
+Flytta eller byt armaturer i rummens moduler och kör igen för att jämföra. Utredningen
+[U-04](../../../../../beräkningar/U-04/) är ljusplanerna med all belysning tänd, med revision och datum, i
+`rapporter/`; gör om den med `./bygg U-04` (i repots rot) när belysningen har ändrats.

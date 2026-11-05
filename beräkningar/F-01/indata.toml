@@ -189,6 +189,10 @@ nr = "U-03"
 namn = "Takets luftspalt – luftflöde, fukt och mögelrisk"
 status = "klar"
 [[ovrig]]
+nr = "U-04"
+namn = "Ljusplaner – belysningsstyrka med all belysning tänd"
+status = "klar"
+[[ovrig]]
 nr = "AR-01"
 namn = "Arbetsritning fasadsten på källarväggarna"
 status = "klar"

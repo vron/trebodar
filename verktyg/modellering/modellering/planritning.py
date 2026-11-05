@@ -167,10 +167,9 @@ def origo(v: Vy) -> None:
 
 
 def blad(nummer: str, titel: list[str], skala: str, underlag: str, kolumn: list[dict], vyer: list[Vy],
-         block: list[dict] | None = None) -> Blad:
-    """Ett blad ur modellen: preliminärt, utan revision, daterat när det ritas."""
-    return Blad(huvud(nummer, titel, skala, underlag, DATUM, "–", status="PRELIMINÄR"), [], kolumn, vyer,
-                block or [])
+         block: list[dict] | None = None, rev: str = "–", datum: str = DATUM, status: str = "PRELIMINÄR") -> Blad:
+    """Ett blad ur modellen: standard preliminärt, utan revision, daterat när det ritas."""
+    return Blad(huvud(nummer, titel, skala, underlag, datum, rev, status=status), [], kolumn, vyer, block or [])
 
 
 def kompilera(bladen: list[tuple[str, Blad]], mapp: Path, pdf: Path) -> list[Path]:

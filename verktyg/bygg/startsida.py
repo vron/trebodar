@@ -78,7 +78,9 @@ def _blad(rot: Path, nr: str) -> list[dict]:
 
 def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tuple[str, str, list[dict]]], dict]:
     """Handlingsförteckningen: bygglovet (beslutet och handlingarna som tillhör det), F-01:s grupper (de reviderade
-    bygglovsritningarna, handlingarna till tekniskt samråd och de egna underlagen) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till ut.
+    bygglovsritningarna, handlingarna till tekniskt samråd och de egna handlingarna: arbetsritningarna, utredningarna
+    och inköpslistan) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till
+    ut.
     rapporter: rapportens projektuppgifter per nummer (revision, datum). Returnerar grupperna och F-01:s indata."""
     shutil.rmtree(ut, ignore_errors=True)
     f01 = tomllib.loads((rot / "beräkningar" / "F-01" / "indata.toml").read_text(encoding="utf-8"))
@@ -119,10 +121,18 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tu
           for b in f01.get("bygglov", [])]),
         ("Tekniskt samråd", "Handlingarna till det tekniska samrådet.",
          [rad(h["nr"], h["namn"], h["status"]) for h in f01.get("handling", [])]),
-        ("Egna underlag", "Utredningar, arbetsritningar och inköpslistan för projekteringen och utförandet. Ingår "
-                          "inte i handlingarna till samrådet.",
-         [rad(h["nr"], h["namn"], h["status"]) for h in f01.get("ovrig", [])]),
     ]
+    # de egna handlingarna efter slag (numrets början): arbetsritningarna, utredningarna och resten (inköpslistan)
+    ovriga = f01.get("ovrig", [])
+    for rubrik, text, slag in (
+            ("Arbetsritningar", "Ritningar för utförandet. Ingår inte i handlingarna till samrådet.", ("AR-",)),
+            ("Utredningar", "Egna utredningar som underlag för projekteringen. Ingår inte i handlingarna till "
+                            "samrådet.", ("U-",)),
+            ("Inköp", "Specialprodukterna med vald produkt, status, ansvarig roll och fas. Ingår inte i "
+                      "handlingarna till samrådet.", None)):
+        valda = [h for h in ovriga if (h["nr"].startswith(slag) if slag else not h["nr"].startswith(("AR-", "U-")))]
+        if valda:
+            grupper.append((rubrik, text, [rad(h["nr"], h["namn"], h["status"]) for h in valda]))
     ovrigt = [rad(nr, nfc(p.stem).split(" ", 1)[-1], "klar") for nr, p in list(filer.items())]
     if (k := rot / "renderingar" / "kameraplan.pdf").exists():
         ovrigt.append(rad("–", "Kameraplan, renderingarnas kameror", "klar", p=k))

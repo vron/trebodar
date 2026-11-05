@@ -226,6 +226,9 @@ def main(argv: list[str] | None = None) -> None:
     pp.add_argument("--kvalitet", choices=("skiss", "utkast", "normal", "slutlig"), default="utkast",
                     help="antal sampel (utkast räcker oftast)")
     pp.add_argument("--direkt", action="store_true", help="bara det direkta ljuset, utan reflexer i rummet")
+    pp.add_argument("--nummer", default="U-04", help="handlingens nummer (bladen <nummer>.n efter mätytan)")
+    pp.add_argument("--projekt", type=Path, help="indata.toml med [projekt]: bladens revision och datum (standard: "
+                                                 "preliminära, utan revision)")
     pp.add_argument("--ut", type=Path, default=UT / "ljusplan")
     pp.add_argument("--blender", default="/Applications/Blender.app/Contents/MacOS/Blender")
     pe = sub.add_parser("el", help="elinstallationen: kontroll, listor, ritningar och tillverkarnas fotometrifiler")
@@ -600,7 +603,8 @@ def main(argv: list[str] | None = None) -> None:
         import json
         import numpy as np
         from . import dagsljus, ljusplan
-        from .planritning import snitt, sv
+        import tomllib
+        from .planritning import kompilera, snitt, sv
         if str(MODELLMAPP) not in sys.path:
             sys.path.insert(0, str(MODELLMAPP))
         vy_mod = importlib.import_module("trebodar.vyer")
@@ -649,6 +653,11 @@ def main(argv: list[str] | None = None) -> None:
                     (f"Dagsljuset {tid}, {ljus.vader}: {sv(ljus.global_lux / 1000, 1)} klx ute (vågrätt)."
                      if ljus.global_lux > 1.0 else f"Inget dagsljus ({tid}).")
                     + (" Bara det direkta ljuset, utan reflexer." if arg.direkt else "")]
+        huvud = {}
+        if arg.projekt:
+            pr = tomllib.loads(arg.projekt.read_text(encoding="utf-8"))["projekt"]
+            huvud = {"rev": pr["revision"], "datum": pr["datum"], "status": "UTREDNING"}
+        bladen = []
         for namn in arg.ytor or ["plan1-golv"]:
             y = ytor[namn]
             bas = arg.ut / f"ljusplan-{namn}"
@@ -658,15 +667,19 @@ def main(argv: list[str] | None = None) -> None:
             hinder = ljusplan.inredningen([snitt(ma, step_fil, golv[y.plan] + h, UT / f"ljusplan-{namn}-{h:g}.json",
                                                  ",".join(ljusplan.INREDNING)) for h in mat_mod.INREDNING_SNITT
                                            if max(y.hojd, 2.0) <= h <= y.hojd + mat_mod.INREDNING_OVER])
-            stat = ljusplan.rita(lux, y, delar, utdrag, rum, scenario, _norr(), f"E-02.{list(ytor).index(namn) + 1}",
-                                 UT / "ljusplan" / "blad", bas.with_suffix(".pdf"),
-                                 [(px, py, g["sida"]) for g in paneler.values() if (g["z"] < 0) == (y.plan == 0)
-                                  for px, py in g["lagen"]], hinder)
+            nr = f"{arg.nummer}.{list(ytor).index(namn) + 1}"
+            b, stat = ljusplan.rita(lux, y, delar, utdrag, rum, scenario, _norr(), nr, UT / "ljusplan" / "blad",
+                                    [(px, py, g["sida"]) for g in paneler.values() if (g["z"] < 0) == (y.plan == 0)
+                                     for px, py in g["lagen"]], hinder, **huvud)
+            bladen.append((nr, b))
             (bas.parent / (bas.name + "-statistik.json")).write_text(json.dumps(stat, ensure_ascii=False, indent=1))
-            print(f"  {bas.with_suffix('.pdf')}")
+            print(f"  {nr} {y.namn}")
             for s_ in stat:
                 print(f"    {s_['namn']}: medel {s_['medel']:.0f} lux, minst {s_['minst']:.0f}, störst {s_['storst']:.0f}, "
                       f"jämnhet {s_['jamnhet']:.2f}")
+        pdf = arg.ut / f"{arg.nummer}_ljusplaner.pdf"
+        kompilera(bladen, UT / "ljusplan" / "blad", pdf)
+        print(f"  {pdf}")
     elif arg.kommando == "onshape":
         import datetime
         import subprocess
