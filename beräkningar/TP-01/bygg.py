@@ -30,7 +30,7 @@ FARG = {"rivning": "#b5463a", "grund": "#7d6b57", "mellanbjalklag": "#5a6f86",
         "utvandigt": "#4f8a8b"}
 INK, GRA = "#1e1e1e", "#8a8a8a"
 CM = 1 / 2.54
-OVERSIKT = (dt.date(2027, 8, 1), dt.date(2028, 11, 1))      # hela bygget, från rivningen
+OVERSIKT = dt.date(2027, 8, 1)                              # hela bygget, från rivningen till månaden efter slutet
 BYGGET = (dt.date(2027, 8, 2), dt.date(2027, 12, 27))       # från byggstart till stommen, vecka för vecka
 DETALJ = ("rivning", "grund", "mellanbjalklag", "stomme")
 
@@ -125,17 +125,18 @@ def _uppehall(ax, a: dt.date, b: dt.date, med_namn: bool) -> None:
 
 def figur_oversikt(fil: Path) -> None:
     """Hela bygget från rivningen: en rad per fas, stegen som staplar, milstolparna som romber."""
-    a, b = OVERSIKT
+    slut = max(s["slut"] for s in STEG)
+    a, b = OVERSIKT, dt.date(slut.year + slut.month // 12, slut.month % 12 + 1, 1)
     rader = list(FASER)
     fig, ax = plt.subplots(figsize=(17.4 * CM, (1.2 + 0.52 * len(rader)) * CM))
     _uppehall(ax, a, b, med_namn=True)
     for s in STEG:
         if a <= s["start"] <= b:
             _stapel(ax, rader.index(s["fas"]), s)
-    for namn in ("Byggstart", "Slutbesked"):
+    for namn, ha in (("Byggstart", "center"), ("Slutbesked", "right")):     # slutet vid diagrammets högra kant
         s = next(x for x in STEG if x["namn"] == namn)
         ax.annotate(namn, (mdates.date2num(s["start"]), rader.index(s["fas"])), xytext=(0, 6.5),
-                    textcoords="offset points", ha="center", fontsize=5.8, color=INK)
+                    textcoords="offset points", ha=ha, fontsize=5.8, color=INK)
     idag = dt.date.fromisoformat(IN["projekt"]["datum"])
     if a <= idag <= b:                                  # under bygget: dagens läge
         ax.axvline(mdates.date2num(idag), color=INK, lw=0.6, ls=(0, (2, 1.5)), zorder=2)

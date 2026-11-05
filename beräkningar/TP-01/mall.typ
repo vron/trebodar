@@ -44,7 +44,7 @@ Tidsplanen visar byggets faser och steg från rivningens start till slutbesked p
 
 Den ansvariga parten ser till att steget blir gjort i rätt tid och enligt handlingarna; de inblandade utför delar av det eller behöver vara på plats. Faserna används också i inköpslistan IN-01: varje specialprodukt ska finnas på bygget när dess fas börjar (avsnitt 4).
 
-#figure(image("fig_oversikt.svg", width: 100%), caption: [Hela bygget. Fyllda staplar är planerade, streckade preliminära; romberna är milstolpar och det gråa uppehåll.]) <fig-oversikt>
+#figure(image("fig_oversikt.svg", width: 100%), caption: [Hela bygget. Fyllda staplar är planerade, streckade preliminära; romberna är milstolpar#if r.uppehall.len() > 0 [ och det gråa uppehåll].]) <fig-oversikt>
 
 #table(
   columns: (1fr, auto, auto, auto),
@@ -96,6 +96,6 @@ Byggherren samordnar entreprenörerna och leverantörerna. Kontrollansvarig föl
 - *Kedjan till mellanbjälklaget* har ingen marginal: varje etapp förutsätter den föregående, och en försening tidigt flyttar hela kedjan. Två veckors försening flyttar gjutningen av mellanbjälklaget till mitten av november.
 - *Parallellgångar* om tid måste tas igen, tillsammans cirka två veckor: formen kan resas medan väggarna härdar, återfyllningen behöver bara den nedgrävda delen klar och elarbetet i etapp 8 kan börja där formen redan ligger.
 - *Betongen.* Återfyllning och formrivning först vid 70 % av hållfastheten, 10–14 dygn vid 5–10 °C med cement i klass N (K-06, R-06). Ingen gjutning under −5 °C; i november kan vinterbetong och isolermattor behövas.
-- *Vintern.* Stommen står till våren med råspont och fullvärdig underlagspapp (U-03). Takplåten läggs när temperaturen räcker för plåten.
-- *Uppehåll.* #r.uppehall.map(u => u.namn + " " + u.tid).join("; ") ingår i tiderna.
+- *Vintern.* Bygget fortsätter utan vinteruppehåll. Underlagspappen skyddar taket tills plåten ligger (U-03); läggningen av plåten och murningen av fasadstenen avstäms mot temperaturen.
+#if r.uppehall.len() > 0 [- *Uppehåll.* #r.uppehall.map(u => u.namn + " " + u.tid).join("; ") ingår i tiderna.]
 - *Ansvar.* #r.ej_bestamda steg har ännu ingen bestämd ansvarig (ej bestämt i tabellerna).

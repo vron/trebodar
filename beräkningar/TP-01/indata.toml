@@ -21,16 +21,6 @@ fastighet   = "Resö 2:66"
 arende      = "BYGG.2025.2278"
 byggstart   = "2027-08-09"
 
-# perioder utan arbete på bygget (i diagrammen)
-[[uppehall]]
-namn  = "Vinteruppehåll"
-start = "2027-12-20"
-slut  = "2028-02-25"
-[[uppehall]]
-namn  = "Industrisemester"
-start = "2028-07-10"
-slut  = "2028-08-04"
-
 # ------------------------------------------------------------------ organisationen
 
 [[part]]
@@ -410,15 +400,15 @@ start      = "2027-12-06"
 slut       = "2027-12-17"
 ansvarig   = "bygg"
 prel       = true
-anm        = "Hårdboard, ströläkt, råspont och fullvärdig underlagspapp, väderskydd över vintern (U-03)."
+anm        = "Hårdboard, ströläkt, råspont och fullvärdig underlagspapp, väderskydd tills plåten ligger (U-03)."
 
 # ------------------------------------------------------------------ tätt hus
 
 [[steg]]
 fas        = "tatt"
 namn       = "Fönster och dörrar"
-start      = "2028-02-28"
-slut       = "2028-03-17"
+start      = "2027-12-20"
+slut       = "2028-01-14"
 ansvarig   = "bygg"
 prel       = true
 anm        = "VELFAC 200 ENERGY och ytterdörrarna (IN-01), montage och lufttät anslutning."
@@ -426,18 +416,18 @@ anm        = "VELFAC 200 ENERGY och ytterdörrarna (IN-01), montage och lufttät
 [[steg]]
 fas        = "tatt"
 namn       = "Takplåt, takfönster och takavvattning"
-start      = "2028-03-13"
-slut       = "2028-04-21"
+start      = "2028-01-03"
+slut       = "2028-02-11"
 ansvarig   = "plat"
 inblandade = ["bygg"]
 prel       = true
-anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggningstemperaturen avstäms."
+anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggning vintertid avstäms med plåtslagaren."
 
 [[steg]]
 fas        = "tatt"
 namn       = "Fasad: utegips, läkt och panel"
-start      = "2028-03-20"
-slut       = "2028-05-12"
+start      = "2028-01-10"
+slut       = "2028-03-03"
 ansvarig   = "bygg"
 prel       = true
 anm        = "Panel i specialprofil, grundmålad på alla sidor."
@@ -447,8 +437,8 @@ anm        = "Panel i specialprofil, grundmålad på alla sidor."
 [[steg]]
 fas        = "installationer"
 namn       = "VVS och värmepump"
-start      = "2028-03-20"
-slut       = "2028-05-05"
+start      = "2028-01-10"
+slut       = "2028-02-25"
 ansvarig   = "vvs"
 inblandade = ["borr"]
 prel       = true
@@ -457,8 +447,8 @@ anm        = "Avlopp och tappvatten, fördelarna i teknikrummet och på V5, berg
 [[steg]]
 fas        = "installationer"
 namn       = "El och brandlarm"
-start      = "2028-03-20"
-slut       = "2028-05-05"
+start      = "2028-01-10"
+slut       = "2028-02-25"
 ansvarig   = "el"
 prel       = true
 anm        = "Rör och dosor i väggar och installationsskikt, centralen (#51), brandlarmet (B-01)."
@@ -466,8 +456,8 @@ anm        = "Rör och dosor i väggar och installationsskikt, centralen (#51), 
 [[steg]]
 fas        = "installationer"
 namn       = "Ventilation"
-start      = "2028-04-10"
-slut       = "2028-04-21"
+start      = "2028-01-31"
+slut       = "2028-02-11"
 ansvarig   = ""
 inblandade = ["vvs", "el"]
 prel       = true
@@ -476,8 +466,8 @@ anm        = "Köksfläkten, badrumsfläkten och källarrummet (V-01); ersättni
 [[steg]]
 fas        = "installationer"
 namn       = "Isolering, ångbroms och installationsskikt"
-start      = "2028-04-24"
-slut       = "2028-05-19"
+start      = "2028-02-14"
+slut       = "2028-03-10"
 ansvarig   = "bygg"
 prel       = true
 anm        = "Träfiber i taket, mineralull i väggarna; ångbromsen helt lufttät (U-03)."
@@ -485,8 +475,8 @@ anm        = "Träfiber i taket, mineralull i väggarna; ångbromsen helt luftt�
 [[steg]]
 fas        = "installationer"
 namn       = "Gips i väggar och tak"
-start      = "2028-05-22"
-slut       = "2028-06-16"
+start      = "2028-03-13"
+slut       = "2028-04-07"
 ansvarig   = "bygg"
 prel       = true
 
@@ -495,8 +485,8 @@ prel       = true
 [[steg]]
 fas        = "invandigt"
 namn       = "Badrum"
-start      = "2028-06-12"
-slut       = "2028-07-07"
+start      = "2028-04-03"
+slut       = "2028-04-28"
 ansvarig   = "kakel"
 inblandade = ["vvs"]
 prel       = true
@@ -505,8 +495,8 @@ anm        = "Tätskikt, kakel och sanitet; golvbrunnen och fallet (#52)."
 [[steg]]
 fas        = "invandigt"
 namn       = "Kaminen"
-start      = "2028-06-19"
-slut       = "2028-06-30"
+start      = "2028-04-10"
+slut       = "2028-04-21"
 ansvarig   = "murare"
 forslag    = true
 prel       = true
@@ -515,8 +505,8 @@ anm        = "Rais 600 i 2C, inbyggd med kalciumsilikat enligt anvisningen."
 [[steg]]
 fas        = "invandigt"
 namn       = "Spackling och målning"
-start      = "2028-06-19"
-slut       = "2028-08-25"
+start      = "2028-04-10"
+slut       = "2028-05-26"
 ansvarig   = ""
 prel       = true
 anm        = "Byggentreprenören eller målare; ytskiktsnivån bestäms i förväg."
@@ -524,8 +514,8 @@ anm        = "Byggentreprenören eller målare; ytskiktsnivån bestäms i förv�
 [[steg]]
 fas        = "invandigt"
 namn       = "Snickerier"
-start      = "2028-08-07"
-slut       = "2028-09-01"
+start      = "2028-05-02"
+slut       = "2028-05-26"
 ansvarig   = "bygg"
 prel       = true
 anm        = "Innerdörrar, smygar och fönsterbänkar av ask, trappan till källaren (#54)."
@@ -533,8 +523,8 @@ anm        = "Innerdörrar, smygar och fönsterbänkar av ask, trappan till käl
 [[steg]]
 fas        = "invandigt"
 namn       = "Kök"
-start      = "2028-08-21"
-slut       = "2028-09-08"
+start      = "2028-05-15"
+slut       = "2028-06-02"
 ansvarig   = ""
 inblandade = ["bygg", "vvs", "el"]
 prel       = true
@@ -543,8 +533,8 @@ anm        = "Skåp, fronter, bänkskivor, vitvaror och köksfläkt (IN-01)."
 [[steg]]
 fas        = "invandigt"
 namn       = "Armaturer och slutinstallation"
-start      = "2028-09-04"
-slut       = "2028-09-15"
+start      = "2028-05-29"
+slut       = "2028-06-09"
 ansvarig   = "el"
 inblandade = ["vvs"]
 prel       = true
@@ -554,19 +544,19 @@ prel       = true
 [[steg]]
 fas        = "utvandigt"
 namn       = "Fasadsten på källarväggarna"
-start      = "2028-05-08"
-slut       = "2028-06-02"
+start      = "2028-04-03"
+slut       = "2028-04-28"
 ansvarig   = "murare"
 forslag    = true
 inblandade = ["mark"]
 prel       = true
-anm        = "Bohus Grå från Stengrossen, levererad (AR-01)."
+anm        = "Bohus Grå från Stengrossen, levererad (AR-01); när det är varmt nog för murbruket."
 
 [[steg]]
 fas        = "utvandigt"
 namn       = "Entréavsats av granit"
-start      = "2028-08-21"
-slut       = "2028-08-25"
+start      = "2028-05-08"
+slut       = "2028-05-12"
 ansvarig   = "mark"
 forslag    = true
 prel       = true
@@ -574,16 +564,16 @@ prel       = true
 [[steg]]
 fas        = "utvandigt"
 namn       = "Trätrappa och altan"
-start      = "2028-08-28"
-slut       = "2028-09-08"
+start      = "2028-05-15"
+slut       = "2028-05-26"
 ansvarig   = "bygg"
 prel       = true
 
 [[steg]]
 fas        = "utvandigt"
 namn       = "Markarbeten och återställning"
-start      = "2028-09-11"
-slut       = "2028-09-22"
+start      = "2028-05-29"
+slut       = "2028-06-09"
 ansvarig   = "mark"
 prel       = true
 anm        = "Stuprören till dagvattnet (D-01), marken faller från huset (K-06), grönsakslandet."
@@ -591,8 +581,8 @@ anm        = "Stuprören till dagvattnet (D-01), marken faller från huset (K-06
 [[steg]]
 fas        = "utvandigt"
 namn       = "Egen slutbesiktning"
-start      = "2028-09-25"
-slut       = "2028-09-29"
+start      = "2028-06-12"
+slut       = "2028-06-16"
 ansvarig   = "byggherre"
 inblandade = ["besiktning"]
 prel       = true
@@ -600,8 +590,8 @@ prel       = true
 [[steg]]
 fas        = "utvandigt"
 namn       = "Slutsamråd"
-start      = "2028-10-02"
-slut       = "2028-10-06"
+start      = "2028-06-19"
+slut       = "2028-06-22"
 ansvarig   = "byggherre"
 inblandade = ["ka", "kommunen"]
 prel       = true
@@ -610,8 +600,8 @@ anm        = "Med KA:s utlåtande."
 [[steg]]
 fas        = "utvandigt"
 namn       = "Slutbesked"
-start      = "2028-10-13"
-slut       = "2028-10-13"
+start      = "2028-06-30"
+slut       = "2028-06-30"
 ansvarig   = "kommunen"
 inblandade = ["byggherre"]
 milstolpe  = true
