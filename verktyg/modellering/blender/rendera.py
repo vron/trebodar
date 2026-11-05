@@ -65,6 +65,7 @@ def stall_in(namn: str, vy: dict) -> None:
     mane = natt.get("mane") if natt_ute else None
     himmel.stall_in(S.manhimlen(vy["ljus"], mane) if mane else vy["ljus"], SCEN.get("hojd_m", 0.0), vy.get("himmel"))
     omgivning.mark_i_morker(natt_ute)
+    S.klamp(sc, None)                                    # förhandsbilden utan förra vyns gränser (nattbilden ute)
     S.nattkompression(sc, False)
     S.vitbalans(sc, vy.get("vitbalans") or S.dagsljusets_vitbalans(vy["ljus"]))
     if "matyta" not in vy:
