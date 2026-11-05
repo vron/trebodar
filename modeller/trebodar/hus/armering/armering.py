@@ -292,8 +292,8 @@ def _bottenplattans_jarn() -> tuple[Jarn, ...]:
         jarn += [(f"A{pos}", _linje(seg, Z_BP + zz), d_n) for seg in r4.natjarn(rikt)]
     # balkarnas längsjärn: 2 i underkant (35) och 2 i överkant (36), byglar Ø6 s600 (37)
     for pl in r4.balkjarn():
-        for pos, zz in ((r4.POS["balk_uk"], R4.Z_BALK_UK), (r4.POS["balk_ok"], R4.Z_BALK_OK)):
-            jarn.append((f"A{pos}", [(x, y, Z_BP + zz) for x, y in pl], r4.BALK_ARM["uk"][1]))
+        for pos, zz, lager in ((r4.POS["balk_uk"], R4.Z_BALK_UK, "uk"), (r4.POS["balk_ok"], R4.Z_BALK_OK, "ok")):
+            jarn.append((f"A{pos}", [(x, y, Z_BP + zz) for x, y in pl], r4.BALK_ARM[lager][1]))
     d_b, s_b = r4.BALK_ARM["bygel"]
     halv = r4.BB / 2 - K.BYGEL_SIDA
     z0, z1 = Z_BP + R4.Z_BYGEL, Z_BP - 25.0 - d_b / 2

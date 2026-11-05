@@ -47,6 +47,8 @@ HP, HB, TF, EPS = K.H_PLATTA, K.UTF["h_balk"], K.T_FOT, K.UTF["t_eps"]          
 BB = K.B_BALK                                                                    # 450
 C_UK, C_OK = 30.0, 25.0         # täckskikt: mot cellplasten (distanser) och i överkant (K-06)
 NAT = (6, 150)                  # Ø6 s150 i båda lagren (K-06)
+
+
 def _balkjarn(lager):
     """Balkarnas längsjärn i underkant ("uk") eller överkant ("ok") enligt K-06: det största längs balkarna."""
     a = max((b[lager] for b in K.PL06["balkar"]), key=lambda x: x["As"])
@@ -54,6 +56,8 @@ def _balkjarn(lager):
 
 
 BALK_ARM = dict(uk=_balkjarn("uk"), ok=_balkjarn("ok"), bygel=(6, 600))
+# balkjarn() och sektionerna (R-04, R-05) har ett järn vid var sida av balken i varje lager
+assert BALK_ARM["uk"][0] == BALK_ARM["ok"][0] == 2, f"K-06: balkjärnen {BALK_ARM}"
 PLINT_ARM = (8, 150)            # Ø8 s150 i underkant, båda riktningarna
 DIAG = dict(n=2, d=10, L=1200.0, off=(150.0, 250.0))   # i överkant vid de inåtgående hörnen
 START = K.STARTJARN             # Ø10 s300, 500 i balken, 1 200 upp
@@ -73,7 +77,7 @@ def lb_rqd(d):
     return d / 4 * 435 / (2.25 * 1.8 / 1.5)
 
 
-SKARV = {d: int(math.ceil(1.5 * lb_rqd(d) / 50) * 50) for d in (6, 8, 10)}     # 400 / 500 / 650
+SKARV = {d: int(math.ceil(1.5 * lb_rqd(d) / 50) * 50) for d in (6, 8, 10, 12)}  # 400 / 500 / 650 / 750
 POS = dict(uk_x=31, uk_y=32, ok_x=33, ok_y=34, balk_uk=35, balk_ok=36, bygel=37, plint=38, diag=39,
            start_ute=40, start_inne=41)
 
@@ -434,9 +438,9 @@ def sektion_b():
         kedja(v, [-BB / 2, BB / 2], -HB - TF - 4.0 * s, [-HB - TF] * 2, sz=5.8, bg=True)
     lst = [(f"startjärn Ø{START['d']} s{START['s']} i kärnans mitt,\n{sv(START['upp'])} upp, foten {sv(FOT_START)} "
             "längs balken", (0, 250), POS["start_inne"]),
-           ("2 Ø10 i överkant", (165, -41), POS["balk_ok"]),
+           (f"{jarn(BALK_ARM['ok'])} i överkant", (165, -41), POS["balk_ok"]),
            ("U-byglar Ø6 s600", (180, -110), POS["bygel"]),
-           ("2 Ø10 i underkant", (165, -HB + 41), POS["balk_uk"]),
+           (f"{jarn(BALK_ARM['uk'])} i underkant", (165, -HB + 41), POS["balk_uk"]),
            ("cellplast S300, 100 under balken", (100, -HB - 50), None)]
     etiketter(v, lst, 600.0, 800.0, 6.0, sz=6.0)
     with v.lager("rubrik"):
@@ -534,13 +538,11 @@ def stalforteckning(mangd=False):
                            (POS["ok_y"], "y", "ÖK")):
         n, tl = nat(rikt)
         rad(pos, NAT[0], "rak", f"s{NAT[1]}", n, "var.", tl, f"{lag} {rikt}-led, hela plattan")
-    Lb = 0.0
-    for pl in balkjarn():
-        L = sum(math.dist(a, b) for a, b in zip(pl[:-1], pl[1:]))
-        sluten = math.dist(pl[0], pl[-1]) < 1
-        Lb += L + (math.ceil(L / 12000) if sluten else math.floor(L / 12000)) * SKARV[10]   # skarv per 12 m stång
-    rad(POS["balk_uk"], 10, "rak", "–", "2 per balk", "var.", Lb / 1000, "balkar, 2 i underkant")
-    rad(POS["balk_ok"], 10, "rak", "–", "2 per balk", "var.", Lb / 1000, "balkar, 2 i överkant")
+    bj = [(sum(math.dist(a, b) for a, b in zip(pl[:-1], pl[1:])), math.dist(pl[0], pl[-1]) < 1) for pl in balkjarn()]
+    for pos, lager, txt in ((POS["balk_uk"], "uk", "underkant"), (POS["balk_ok"], "ok", "överkant")):
+        n, d = BALK_ARM[lager]                                   # en skarv per 12 m stång
+        Lb = sum(L + (math.ceil(L / 12000) if sluten else math.floor(L / 12000)) * SKARV[d] for L, sluten in bj)
+        rad(pos, d, "rak", "–", f"{n} per balk", "var.", Lb / 1000, f"balkar, {n} i {txt}")
     Lbalk = (KANT.area + INRE.area) / BB
     nb = int(Lbalk / BALK_ARM["bygel"][1]) + 1
     ben = -25 - (R4.Z_BYGEL - 3)                    # byglarnas ben, utvändigt: från botten till överkantens täckskikt
@@ -679,8 +681,10 @@ def blad_armering():
             f"Nät Ø{NAT[0]} s{NAT[1]} i under- och överkant i hela plattan, också genom balkarna och plintarna. "
             f"Golvvärmeslangarna fästs i underkantsnätet. Skarvlängd Ø6 {SKARV[6]}.",
             f"Kantbalkar och balkar under innerväggarna: {jarn(BALK_ARM['uk'])} i underkant på byglarna och "
-            f"{jarn(BALK_ARM['ok'])} i överkant under överkantsnätet, U-byglar Ø6 s600. Skarvlängd Ø10 {SKARV[10]}; i hörnen bockas järnen eller skarvas med "
-            "vinkeljärn. Innerbalkarnas järn förs in i kantbalken och i den korsande balken.",
+            f"{jarn(BALK_ARM['ok'])} i överkant under överkantsnätet, U-byglar Ø6 s600. Skarvlängd "
+            + ", ".join(f"Ø{d} {SKARV[d]}" for d in sorted({BALK_ARM["uk"][1], BALK_ARM["ok"][1]}))
+            + "; i hörnen bockas järnen eller skarvas med vinkeljärn. Innerbalkarnas järn förs in i kantbalken och i "
+            "den korsande balken.",
             f"Plintar: Ø{PLINT_ARM[0]} s{PLINT_ARM[1]} i underkant, båda riktningarna. Fotplåten gjuts in kant i kant "
             "med plintens överkant (R-05.5); näten läggs fritt från svetsbultarna.",
             "Inåtgående hörn: 2 Ø10, L = 1\u00a0200, i överkant diagonalt, 150 och 250 mm från hörnet.",

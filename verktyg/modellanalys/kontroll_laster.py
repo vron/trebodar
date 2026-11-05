@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
 
 HERE = Path(__file__).parent
@@ -188,8 +188,19 @@ rad("Vind", "e = min(b, 2h), vind längs nocken", "12 m (K-01)",
 hal = Polygon(G05["hal"])
 sl = plansnitt(-75, "#" + str(_pl.id))
 hm = Polygon(sl.interiors[0]) if sl.interiors else None
+# vid plattan på marks fria kanter börjar betongen vid L-elementens rygg, L_BEN från väggens ytterliv (K-06), K-05:s
+# platta går till plattkanten
+ytter = Polygon(sl.exterior)
+kant = kontur.difference(ytter)
+_k = kontur.exterior.coords
+_mitt = [Point((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) for p, q in zip(_k, _k[1:])]   # plattkantens raka delar
+bredd = {round(ytter.exterior.distance(c)) for c in _mitt if kant.buffer(1.0).contains(c)}
+_ok = (ytter.difference(kontur).area < 1e3 and kant.difference(Polygon(G05["mark"])).area < 1e3
+       and bredd == {round(K06.L_BEN - K06.KI)})
 rad("Bjälklag", "plattans area utan trapphål", f"{(kontur.area - hal.area) / 1e6:.2f} m² (K-05: 157 m²)",
-    f"{sl.area / 1e6:.2f} m²", "stämmer")
+    f"{sl.area / 1e6:.2f} m²: vid plattan på marks fria kanter börjar betongen "
+    f"{' / '.join(map(str, sorted(bredd)))} mm innanför plattkanten, vid L-elementens rygg ({kant.area / 1e6:.2f} m²)",
+    "stämmer (K-05 räknar plattan till kanten)" if _ok else "AVVIKER")
 rad("Bjälklag", "plattans tjocklek", "150 mm", f"{_pl.storlek[2]:.0f} mm", "stämmer")
 if hm is not None:
     x0, y0, x1, y1 = hm.bounds
@@ -251,7 +262,12 @@ for n, fy in K06.FYLL.items():
                 break
     k = fy["h"]
     if not h:
-        rad("Fyllning", n, f"{k[0]:.2f}–{k[1]:.2f} m (K-06)", "ingen mark modellerad intill väggen", "kan inte kontrolleras")
+        if fy.get("platta"):                      # fyllningen under plattan på mark: egen rad (nedan)
+            rad("Fyllning", n, f"{k[0]:.2f}–{k[1]:.2f} m (K-06)", "plattan på mark intill väggen",
+                "se under plattan på mark")
+        else:
+            rad("Fyllning", n, f"{k[0]:.2f}–{k[1]:.2f} m (K-06)", "ingen mark modellerad intill väggen",
+                "kan inte kontrolleras")
         continue
     hv = [v for v, _, _ in h]
     over = max(v - kk for v, _, kk in h)          # > 0: modellen har högre fyllning än K-06

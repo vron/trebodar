@@ -26,9 +26,8 @@ h_rum       = 2100      # fri höjd i källaren
 utforande   = "L400"    # cellplast och kantbalk enligt K-06, se [utforande]
 
 # Plintarna: sidan läses ur K-06:s resultat.json (bottenplattan L400, också i jämförelsen med L300) och rörens lägen ur
-# K-05:s geometri.json. Plintar
-# som sektionen skär räknas som strimlor längs huset. P7 är två rör tätt intill varandra i x-led (K-05); plintens mitt
-# ligger mitt emellan rören.
+# K-05:s geometri.json. Plintar som sektionen skär räknas som strimlor längs huset. P7 är två rör tätt intill varandra
+# i x-led (K-05); plintens mitt ligger mitt emellan rören.
 [dubbelror]
 P7 = 80                 # det andra röret så långt åt +x [mm]
 

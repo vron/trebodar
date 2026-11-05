@@ -413,6 +413,7 @@ def rita_lokala(path, plint=(600.0, 1200.0), balk=("2 Ø10", "2 Ø10")):
     def grund(ax, x0, x1, a, b):
         R(ax, x0, ybot, x1 - x0, -hp - ybot, EPSF, z=1)
         R(ax, a, ybot, b - a, tf, EPS2, z=1)
+        ax.plot([x0, x1], [yb, yb], color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)   # plastfolien, skiktens gräns
         P(ax, [(x0, -hp), (a, -hp), (a, yb), (b, yb), (b, -hp), (x1, -hp), (x1, 0), (x0, 0)], BETONG)
         ax.plot([x0, x1], [-28, -28], color=INK, lw=0.55, zorder=5)
         ax.plot([x0, x1], [-hp + 33, -hp + 33], color=INK, lw=0.55, zorder=5)

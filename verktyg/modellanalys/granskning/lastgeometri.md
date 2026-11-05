@@ -1,15 +1,12 @@
-# Lastgeometrin i F-01, K-01, K-05 och K-06 mot Onshape-modellen
+# Lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen
 
-Modell: `modeller/trebodar.step`. Handlingar: F-01, K-01, K-02, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, källarväggar) kontrolleras av [`kontroll_r061.py`](../kontroll_r061.py).
+Modell: den kodgenererade modellen (`modeller/trebodar/`), dess senaste bygge. Handlingar: F-01, K-01, K-05 och K-06 med beräkningsfilerna i `beräkningar/`. Tabellerna och figuren tas fram av [`kontroll_laster.py`](../kontroll_laster.py), som läser handlingarnas antaganden direkt ur beräkningsfilerna. Mellanbjälklagets geometri (kontur, trapphål, rör, källarväggar) kontrolleras av [`kontroll_r061.py`](../kontroll_r061.py).
 
 **Omfattning.** Den geometri som bestämmer lasterna: takvinkel, lastbredder, lastytor, höjder, utsprång, lägen för linjelaster och fyllnadshöjder mot källarväggarna. Stödens exakta lägen under nock- och dalbalkarna ingår inte, eftersom trästommen där inte är fullständigt modellerad. Koordinater som i K-05: x, y från skärningen mellan plattkanterna, z från bjälklagets överkant, mm.
 
 ## Sammanfattning
 
-Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av:
-
-- **Bottenplattan i matkällaren:** K-06 räknar med bottenplatta i hela källaren. Modellen har ingen platta innanför V2, V15, V19 och V20, bara en remsa under väggarna.
-- **Areor:** F-01 anger byggnadsarea 135 + 30 m² och bruttoarea 270 + 30 m² (bygglovet). Modellen ger 160,8 m² för plan 1 och 132,1 m² för källaren, mätt till ytterliv.
+Handlingarnas lastgeometri stämmer med modellen eller ligger på säker sida. Mellanbjälklagets geometri i K-05, K-06 och R-06 är modellens, exakt. Ytterväggarna på plan 1 står över källarväggens yttre cellplast, 52,5 mm utanför betongkärnan (figur). Kvar att stämma av är areorna: F-01 anger byggnadsarea 135 + 30 m² och bruttoarea 270 + 30 m² (bygglovet). Modellen ger 159,2 m² för plan 1, mätt till ytterliv, och 126,9 m² bottenplatta i källaren.
 
 Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), så fyllnadshöjderna är en kontroll av storleksordningen.
 
@@ -19,8 +16,8 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|
-| Takvinkel | 30° | 30,00° | stämmer |
-| Takbalkar | 45×170 c/c 600 | 45×170, c/c 600 (108 st, glesare vid öppningar) | stämmer |
+| Takvinkel | 30° | 30° | stämmer |
+| Takbalkar | 45×170 c/c 600 | 45×170, c/c 600 (109 st, glesare vid öppningar) | stämmer |
 | Avstånd mellan nockarna (snöbredd dal) | 4,75 m | 4 750 / 4 750 mm | stämmer |
 | Lastbredd nockbalk | 2,50 m, största | N3 2,500, N1 2,194, N5 2,194 m | stämmer |
 | Lastbredd dalbalk | 2,375 m | 2,375 m | stämmer |
@@ -30,37 +27,36 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 | Takutsprång takfot / gavel | 0,2 / 0,2 m | 0,165 m från plattkanten / 0,03 m | på säker sida |
 | Takfotsväggens lastbredd | 1,28 / 1,40 m | 1,25 / 1,38 m | på säker sida |
 | Takets planarea, snö på hela taket | 171,6 m², 257 kN | 165,5 m², 248 kN | på säker sida |
-| Innertak | 2 × 12,5 gips, 45 reglar | 12 mm gips, 45 mm spalt | på säker sida |
-| Takets skikt i K-02 | isolering 170, installationsspalt 45 | 170 mellan takbalkarna, 45 mm spalt | stämmer |
+| Innertak | 2 × 12,5 mm gips, korslagda reglar 45 mm | 2 × 12,5 mm gips, läkt 45 mm under takbalkarna | stämmer |
 
 ## Vind (F-01, K-01)
 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|
-| Referenshöjd z | 7,0 m | cirka 5,5 m (nock 3,98 m och taktäckning över färdigt golv, mark 1,47 m under) | på säker sida |
-| e = min(b, 2h), vind längs nocken | 12 m | b = 14,1 m, 2h ≈ 11 m, e ≈ 11 m | på säker sida |
+| Referenshöjd z | 7,0 m | cirka 5,6 m (nock 4,05 m och 0,08 m taktäckning över färdigt golv, mark 1,47 m under) | på säker sida |
+| e = min(b, 2h), vind längs nocken | 12 m | b = 14,1 m, 2h ≈ 11,2 m, e ≈ 11,2 m | på säker sida |
 
 ## Bjälklag (K-05, R-06)
 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|
-| Plattans area utan trapphål | 157,22 m² | 157,22 m² | stämmer |
+| Plattans area utan trapphål | 157,22 m² | 156,12 m²: vid plattan på marks fria kanter börjar betongen 70 mm innanför plattkanten, vid L-elementens rygg (1,10 m²) | stämmer (K-05 räknar plattan till kanten) |
 | Kontur | 13 810 × 15 900, 12 hörn | samma | stämmer |
 | Tjocklek | 150 mm | 150 mm | stämmer |
 | Trapphål | 2 070 × 828, hörn (7 348; 5 059,5) | samma | stämmer |
-| Rör P1–P19 | modellens lägen | samma | stämmer |
+| Rör P1–P19 | modellens lägen | samma (två rör i P7) | stämmer |
 | Källarväggar V1–V21 | modellens centrumlinjer och ändar | samma | stämmer |
-| Plattan på mark | 29,3 m² | samma | stämmer |
+| Plattan på mark | 29,3 m² | källarväggarna V3/V20 inom 5 mm från K-05 | stämmer |
 | Trappans bredd | 0,83 m | hålets bredd 0,828 m (trappan inte modellerad) | stämmer |
 
 ## Källare (K-05, K-06)
 
 | Storhet | Handling | Modell | Bedömning |
 |---|---|---|---|
-| Fri höjd, rörens längd | 2 100 mm | 2 100 mm, 19 rör | stämmer |
+| Fri höjd, rörens längd | 2 100 mm | 2 100 mm, 20 rör | stämmer |
 | Källarväggar, Kub 350-150 | cellplast 100 + betongkärna 150 + cellplast 100, ytterliv 30 mm utanför plattkanten | samma (V14) | stämmer |
-| Golvyta för nyttig last | 133 m² (359 kN / 2,7) | 111,8 m² innanför väggarna | på säker sida |
-| Bottenplatta | 100 mm i hela källaren | ingen platta i matkällaren | stäm av |
+| Golvyta för nyttig last | 133 m² (359 kN / 2,7) | 111,7 m² innanför väggarna | på säker sida |
+| Bottenplatta | 100 mm i hela källaren, 126,9 m² (K-06, R-04) | 126,9 m² betong | stämmer |
 
 ## Fyllning mot källarväggarna (K-06), höjd över bottenplattans överkant
 
@@ -68,16 +64,17 @@ Markmodellen är grov (glipor mot berget vid V2/V16 och ingen mark vid V9/V17), 
 |---|---|---|---|
 | V1 | 1,8 m | 1,31–1,56 m fyllning | på säker sida |
 | V2 | 2,0 m | 1,51–1,83 m berg | på säker sida |
-| V3 | 1,75 m fyllning och makadam + 350 mm cellplast | samma (plattan på mark, L-element 500) | stämmer |
-| V7 | 2,0 m | 1,51 m avsats | på säker sida |
+| V3 | 1,75 m | plattan på mark intill väggen | se under plattan på mark |
+| V7 | 2,0 m | 1,50 m avsats | på säker sida |
 | V9 | 0 → 0,8 m | ingen mark modellerad | kan inte kontrolleras |
-| V10–V13 (fasaden med öppningar) | 0,80 m | 0,80 m fyllning | stämmer |
+| V10–V13 (fasaden med öppningar) | 0,80 m | 0,79 m fyllning | stämmer |
 | V14 | 0,8 → 1,8 m | 0,84 → 1,18 m fyllning | på säker sida |
 | V16 | 2,0 m | 1,47 m berg | på säker sida |
 | V18 | 2,0 m | 1,41–1,50 m avsats | på säker sida |
-| V20 | 1,75 m fyllning och makadam + 350 mm cellplast | samma (plattan på mark, L-element 500) | stämmer |
-| V21 | 2,0 m | 0,92–1,40 m fyllning | på säker sida |
+| V20 | 1,75 m | plattan på mark intill väggen | se under plattan på mark |
+| V21 | 2,0 m | 0,92–1,27 m fyllning | på säker sida |
+| Under plattan på mark | 350 mm cellplast på fyllning och makadam upp till 1,75 m | samma | stämmer |
 
 ## Inte granskat
 
-Stödlägen under nock- och dalbalkarna (trästommen är inte fullständigt modellerad där). Modellens rör är 140 × 140 platshållare; handlingarna har VKR 80×80×4. Väggarnas armering och fasadstenens infästning finns inte i modellen.
+Stödlägen under nock- och dalbalkarna (trästommen är inte fullständigt modellerad där). Fasadstenens infästning finns inte i modellen.

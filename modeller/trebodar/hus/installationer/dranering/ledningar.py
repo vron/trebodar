@@ -4,15 +4,15 @@ röret Ø110 mot nordost (mot rampen in på tomten mellan boden och planteringen
 
 Dräneringen: dränrör Ø110 i en ring AVSTAND["dränering"] utanför grundens ytterkant (källarväggarna och plattan på
 mark), med överkanten i grundens underkant (UK: källaren och plattan på mark), så att den dränerar det kapillärbrytande
-skiktet. Längs källaren begränsas fallet av det befintliga utgående röret: grenarna faller så brant som det går och
-når brunnen UTLOPP_MARGINAL över rörets inmätta höjd (AR-02), med minst FALL_MIN. Dagvattnet: täta rör Ø110 i en ring AVSTAND["dagvatten"] utanför grunden, TACKNING under marken vid
-fasaden (markniva.MARKNIVA), och från varje stuprör en anslutning (lövsil vid stuprörets ände, lodrätt ned och en
-sticka till ringen). Ringarna delas i punkten längst från brunnen i två grenar som faller mot den (FALL, minst),
-i raka lutningar mellan brytpunkterna; där grundens eller markens nivå faller fortare faller ledningen med den,
-brantare än 1:1 lodrätt i en spolbrunn (dräneringen mellan plattan på mark och källaren, dagvattnet där marken
-sluttar). Under stenarna i marken (HINDER, entréavsatsen och sovrumsavsatsen) går ledningarna under stenarnas
-underkant, utan spolbrunnar. Spolrör vid grenarnas början. Brunnen: Ø400 med sandfång under utloppet, locket i
-marken.
+skiktet. Dagvattnet: täta rör Ø110 i en ring AVSTAND["dagvatten"] utanför grunden, TACKNING under marken vid fasaden
+(markniva.MARKNIVA), och från varje stuprör en anslutning (lövsil vid stuprörets ände, lodrätt ned och en sticka till
+ringen). Ringarna delas i punkten längst från brunnen i två grenar som faller mot den, minst FALL, i raka lutningar
+mellan brytpunkterna; där grundens eller markens nivå faller fortare faller ledningen med den, brantare än 1:1
+lodrätt i en spolbrunn (dräneringen mellan plattan på mark och källaren, dagvattnet där marken sluttar). Längs
+källaren, grenarnas sista del, begränsas dräneringens fall av det befintliga utgående röret: grenarna faller där så
+brant som det går, högst FALL och minst FALL_MIN, och når brunnen UTLOPP_MARGINAL över rörets inmätta höjd (AR-02).
+Under stenarna i marken (HINDER, entréavsatsen och sovrumsavsatsen) går ledningarna under stenarnas underkant, utan
+spolbrunnar. Spolrör vid grenarnas början. Brunnen: Ø400 med sandfång under utloppet, locket i marken.
 
 Höjderna i modellens z (mm), rörens underkant; på ritningen vattengången (VG, + GODS) i RH 2000 (z / 1000 +
 skelett.PLATS.hojd).
@@ -153,18 +153,16 @@ def _tat(pkt: list[tuple[float, float]]) -> tuple[list[tuple[float, float]], lis
     return ut, horn
 
 
-def fall_kallaren(typ: str, pkt: list[tuple[float, float]]) -> float | None:
-    """Dräneringens fall längs källaren (grenens sista del, till brunnen): så brant som det går, högst FALL, med
-    grenens slut UTLOPP_MARGINAL över utloppets vattengång. None för dagvattnet."""
-    if typ != "dränering":
-        return None
+def fall_kallaren(pkt: list[tuple[float, float]]) -> float:
+    """Dräneringsgrenens fall längs källaren (grenens sista del, till brunnen): så brant som det går, högst FALL, med
+    grenens slut UTLOPP_MARGINAL över utloppets vattengång."""
     tat, _ = _tat(pkt)
     vid = [_vid_kallaren(*p) for p in tat]
     i0 = max((i for i, v in enumerate(vid) if not v), default=-1) + 1      # källarens del: från i0 till slutet
     langd = sum(math.dist(a, b) for a, b in zip(tat[i0:], tat[i0 + 1:]))
     if langd <= 0:
-        return FALL[typ]
-    return min(FALL[typ], (_nedre(typ, *tat[i0]) - (Z_UTLOPP + UTLOPP_MARGINAL)) / langd)
+        return FALL["dränering"]
+    return min(FALL["dränering"], (_nedre("dränering", *tat[i0]) - (Z_UTLOPP + UTLOPP_MARGINAL)) / langd)
 
 
 def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float, float]]:
@@ -178,8 +176,9 @@ def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float
     tak = np.array([_nedre(typ, *p) for p in tat])
     fri = np.array([under_hinder(*p) is not None for p in tat])
     s = np.concatenate([[0.0], np.cumsum([math.dist(a, b) for a, b in zip(tat, tat[1:])])])
-    fk = fall_kallaren(typ, pkt)
-    f = np.array([fk if fk is not None and _vid_kallaren(*p) else FALL[typ] for p in tat])   # fallet fram till punkten
+    f = np.full(len(tat), FALL[typ])                                         # fallet fram till punkten
+    if typ == "dränering":
+        f[np.array([_vid_kallaren(*p) for p in tat])] = fall_kallaren(pkt)
     z = [float(tak[0])]
     for i in range(1, len(tat)):
         z.append(min(z[-1] - f[i] * (s[i] - s[i - 1]), float(tak[i])))
@@ -228,7 +227,7 @@ def _grenar(typ: str) -> tuple[tuple[int, tuple[tuple[float, float], ...]], ...]
 @cache
 def fall_grenar() -> dict[str, float]:
     """Dräneringsgrenarnas fall längs källaren (fall_kallaren), per gren."""
-    return {f"D{nr}": fall_kallaren("dränering", list(pkt)) or FALL["dränering"] for nr, pkt in _grenar("dränering")}
+    return {f"D{nr}": fall_kallaren(list(pkt)) for nr, pkt in _grenar("dränering")}
 
 
 @cache
@@ -298,14 +297,16 @@ def brunnar() -> dict[str, Brunn]:
 
 
 def kontroll() -> tuple[list[str], list[str]]:
-    """(fel, anmärkningar): fallet, att grenarna når brunnen över utloppet, täckningen och längderna."""
+    """(fel, anmärkningar): fallet (minst FALL, dräneringen längs källaren minst FALL_MIN), att grenarna når brunnen
+    över utloppet, täckningen och längderna."""
     fel: list[str] = []
     anm: list[str] = []
     for led in ledningar().values():
         if led.typ in ("dränering", "dagvatten"):
-            minst = FALL_MIN if led.typ == "dränering" else FALL[led.typ]
             for a, b in zip(led.vag, led.vag[1:]):
                 lgd = math.hypot(b[0] - a[0], b[1] - a[1])
+                kallaren = led.typ == "dränering" and _vid_kallaren(b[0], b[1])   # lutningens slut (som _hojder)
+                minst = FALL_MIN if kallaren else FALL[led.typ]
                 if lgd > 1.0 and (a[2] - b[2]) / lgd < minst - 1e-6:
                     fel.append(f"{led.id}: fall 1:{lgd / max(a[2] - b[2], 1e-6):.0f} vid ({a[0]:.0f}, {a[1]:.0f}), "
                                f"minst 1:{1 / minst:.0f}")

@@ -50,7 +50,7 @@ under dräneringen där de korsar den.
 
 ## Kontrollen
 
-`./mod dranering kontroll`: fallet i varje sträcka (dräneringen minst 1:400, dagvattnet 1:100), att grenarna når
-brunnen minst 20 mm över utloppet, dräneringens fall längs källaren per gren, brunnarnas djup och
-stickornas täckning, och krockarna ur modellens geometri mot husets delar och de andra installationerna (fel). Krockar
-med marken, fyllningen och berget räknas inte; ledningarna i berget (schakt i berg) redovisas som anmärkning.
+`./mod dranering kontroll`: fallet i varje sträcka (dräneringen minst 1:200, längs källaren minst 1:400, dagvattnet
+1:100), att grenarna når brunnen minst 20 mm över utloppet, dräneringens fall längs källaren per gren, brunnarnas djup
+och stickornas täckning, och krockarna ur modellens geometri mot husets delar och de andra installationerna (fel).
+Krockar med marken, fyllningen och berget räknas inte; ledningarna i berget (schakt i berg) redovisas som anmärkning.

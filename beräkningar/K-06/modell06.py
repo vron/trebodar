@@ -316,7 +316,7 @@ def svinn(kopp, ndof, eps):
 
 # ------------------------------------------------------------------ system
 class System:
-    """Hela modellen för ett utförande (L300/L400) och en styvhetsvariant."""
+    """Hela modellen för ett utförande (indata.UTFORANDEN) och en styvhetsvariant."""
 
     def __init__(self, utf, plint, eps_falt, eps_balk, variant, hmax=200.0, k_mark=None):
         self.utf = I.UTFORANDEN[utf] if isinstance(utf, str) else utf

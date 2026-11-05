@@ -29,7 +29,7 @@ FOLIE = dict(bredd=2000.0, overlapp=200.0)        # plastfolien i våder längs 
 KALLARE, BETONG = K.KALLARE, K.BETONG
 KANT, INRE, PLINTAR = K.kantbalk(), K.balkar_inre(), K.plintar()
 TJOCK = unary_union([KANT, INRE] + list(PLINTAR.values())).intersection(BETONG)
-KONTUR, HAL, MARK = Polygon(K.G["kontur"]), Polygon(K.G["hal"]), Polygon(K.G["mark"])
+KONTUR, HAL = Polygon(K.G["kontur"]), Polygon(K.G["hal"])
 
 
 def grund(s, kapa=None, folie=None):

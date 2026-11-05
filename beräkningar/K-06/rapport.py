@@ -38,7 +38,7 @@ D = {}
 ind = R["indata"]
 VP = I.VIBROPLATTA
 D["mat"] = dict(K0=f(ind["K0"], 2), KA=f(ind["KA"], 2), fi=f(ind["fi"], 0), gamma=f(ind["gamma"], 0), q=f(ind["q"]),
-                H=mm(ind["H"]), Ls=f(ind["Ls"], 3), hfm=f(ind["h_fyll_mark"]), gmark=f(ind["g_mark"]),
+                H=mm(ind["H"]), Ls=f(ind["Ls"], 3), hfm=f(ind["h_fyll_mark"], 2), gmark=f(ind["g_mark"]),
                 qmark=f(ind["q_mark"]), eps_mark=mm(I.EPS_MARK), komp=f(ind["sig_komp"], 0), P=f(ind["P_platta"], 0),
                 vp_m=mm(VP["massa"]), vp_F=f(VP["F"], 0), vp_b=f(VP["b"], 1), lager=f(I.LAGER_FYLL, 1),
                 gbygg=f(ind["g_bygg"], 2), qbygg=f(ind["q_bygg"], 2), e=mm(ind["e_topp"] * 1000),
