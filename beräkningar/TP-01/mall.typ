@@ -40,11 +40,11 @@
 
 = Omfattning
 
-Tidsplanen visar byggets faser och steg från tekniskt samråd till slutbesked på #p.fastighet (ärende #p.arende), med ansvarig och inblandade för varje steg, och byggets organisation. Byggstart är #r.byggstart. Tiderna fram till gjutningen av mellanbjälklaget följer byggherrens etapplan och byggskedet i K-06; de senare är preliminära och stäms av på byggmötena.
+Tidsplanen visar byggets faser och steg från rivningens start till slutbesked på #p.fastighet (ärende #p.arende), med ansvarig och inblandade för varje steg, och byggets organisation. Byggstart, när rivningen börjar, är #r.byggstart. Tiderna fram till gjutningen av mellanbjälklaget följer byggherrens etapplan och byggskedet i K-06; de senare är preliminära och stäms av på byggmötena.
 
 Den ansvariga parten ser till att steget blir gjort i rätt tid och enligt handlingarna; de inblandade utför delar av det eller behöver vara på plats. Faserna används också i inköpslistan IN-01: varje specialprodukt ska finnas på bygget när dess fas börjar (avsnitt 4).
 
-#figure(image("fig_oversikt.svg", width: 100%), caption: [Hela projektet. Fyllda staplar är planerade, streckade preliminära; romberna är milstolpar och det gråa uppehåll.]) <fig-oversikt>
+#figure(image("fig_oversikt.svg", width: 100%), caption: [Hela bygget. Fyllda staplar är planerade, streckade preliminära; romberna är milstolpar och det gråa uppehåll.]) <fig-oversikt>
 
 #table(
   columns: (1fr, auto, auto, auto),

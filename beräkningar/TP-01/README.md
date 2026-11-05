@@ -1,6 +1,6 @@
 # TP-01 rev A – Tidsplan och organisation
 
-Byggets faser och steg från tekniskt samråd till slutbesked, med tider, ansvarig och inblandade för varje steg, och byggets organisation (parterna med roll, uppgift och status). Handling till tekniskt samråd (dagordningens punkt 1, arbetets planering och organisation). Tiderna fram till gjutningen av mellanbjälklaget följer byggherrens etapplan och byggskedet i K-06; de senare är preliminära.
+Byggets faser och steg från rivningens start (byggstart) till slutbesked, med tider, ansvarig och inblandade för varje steg, och byggets organisation (parterna med roll, uppgift och status). Handling till tekniskt samråd (dagordningens punkt 1, arbetets planering och organisation). Tiderna fram till gjutningen av mellanbjälklaget följer byggherrens etapplan och byggskedet i K-06; de senare är preliminära.
 
 Faserna används också i inköpslistan IN-01: varje specialprodukt anger sin fas och ska finnas på bygget när fasen börjar. TP-01 visar specialprodukterna per fas, och IN-01 visar fasernas datum.
 

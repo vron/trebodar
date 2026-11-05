@@ -25,12 +25,12 @@ FONTS = HERE.parent / ".fonts"
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 INKOP = tomllib.loads((HERE.parent / "IN-01" / "indata.toml").read_text(encoding="utf-8"))
 MANAD = ("jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec")
-FARG = {"forberedelser": "#8a8a8a", "rivning": "#b5463a", "grund": "#7d6b57", "mellanbjalklag": "#5a6f86",
+FARG = {"rivning": "#b5463a", "grund": "#7d6b57", "mellanbjalklag": "#5a6f86",
         "stomme": "#c98b3a", "tatt": "#2c4a6e", "installationer": "#6f8f5a", "invandigt": "#9a6f98",
         "utvandigt": "#4f8a8b"}
 INK, GRA = "#1e1e1e", "#8a8a8a"
 CM = 1 / 2.54
-OVERSIKT = (dt.date(2026, 10, 1), dt.date(2028, 11, 1))     # hela projektet
+OVERSIKT = (dt.date(2027, 8, 1), dt.date(2028, 11, 1))      # hela bygget, från rivningen
 BYGGET = (dt.date(2027, 8, 2), dt.date(2027, 12, 27))       # från byggstart till stommen, vecka för vecka
 DETALJ = ("rivning", "grund", "mellanbjalklag", "stomme")
 
@@ -124,7 +124,7 @@ def _uppehall(ax, a: dt.date, b: dt.date, med_namn: bool) -> None:
 
 
 def figur_oversikt(fil: Path) -> None:
-    """Hela projektet: en rad per fas, stegen som staplar, milstolparna som romber."""
+    """Hela bygget från rivningen: en rad per fas, stegen som staplar, milstolparna som romber."""
     a, b = OVERSIKT
     rader = list(FASER)
     fig, ax = plt.subplots(figsize=(17.4 * CM, (1.2 + 0.52 * len(rader)) * CM))
@@ -132,14 +132,14 @@ def figur_oversikt(fil: Path) -> None:
     for s in STEG:
         if a <= s["start"] <= b:
             _stapel(ax, rader.index(s["fas"]), s)
-    for namn, ha, dx in (("Tekniskt samråd", "right", -3), ("Startbesked", "left", 3), ("Byggstart", "center", 0),
-                         ("Slutbesked", "center", 0)):
+    for namn in ("Byggstart", "Slutbesked"):
         s = next(x for x in STEG if x["namn"] == namn)
-        ax.annotate(namn, (mdates.date2num(s["start"]), rader.index(s["fas"])), xytext=(dx, 6.5),
-                    textcoords="offset points", ha=ha, fontsize=5.8, color=INK)
+        ax.annotate(namn, (mdates.date2num(s["start"]), rader.index(s["fas"])), xytext=(0, 6.5),
+                    textcoords="offset points", ha="center", fontsize=5.8, color=INK)
     idag = dt.date.fromisoformat(IN["projekt"]["datum"])
-    ax.axvline(mdates.date2num(idag), color=INK, lw=0.6, ls=(0, (2, 1.5)), zorder=2)
-    ax.text(mdates.date2num(idag), len(rader) - 0.35, " i dag", fontsize=5.8, va="bottom")
+    if a <= idag <= b:                                  # under bygget: dagens läge
+        ax.axvline(mdates.date2num(idag), color=INK, lw=0.6, ls=(0, (2, 1.5)), zorder=2)
+        ax.text(mdates.date2num(idag), len(rader) - 0.35, " i dag", fontsize=5.8, va="bottom")
     ax.set_yticks(range(len(rader)), [FASER[k]["namn"] for k in rader])
     ax.set_ylim(len(rader) - 0.3, -1.3)
     ax.set_xlim(mdates.date2num(a), mdates.date2num(b))

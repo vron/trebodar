@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------
 # Indata – TP-01 Tidsplan och organisation
-# Byggets faser och steg med tider, ansvarig och inblandade, och organisationen. Inköpslistan (IN-01) använder
+# Byggets faser och steg från rivningens start med tider, ansvarig och inblandade, och organisationen. Inköpslistan (IN-01) använder
 # faserna: varje specialprodukt ska finnas på bygget när dess fas börjar.
 # Ändra här och kör ./bygg TP-01 (då byggs även IN-01 om).
 #
@@ -156,10 +156,6 @@ uppgift = "Tekniskt samråd, startbesked, arbetsplatsbesök och slutbesked; anm�
 # ------------------------------------------------------------------ faserna
 
 [[fas]]
-kod  = "forberedelser"
-namn = "Förberedelser"
-
-[[fas]]
 kod  = "rivning"
 namn = "Rivning och sprängning"
 
@@ -191,119 +187,6 @@ namn = "Invändigt"
 kod  = "utvandigt"
 namn = "Utvändigt och färdigställande"
 
-# ------------------------------------------------------------------ förberedelser
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Bygglov och rivningslov"
-start      = "2026-02-18"
-slut       = "2026-02-18"
-ansvarig   = "byggherre"
-inblandade = ["kommunen"]
-milstolpe  = true
-klar       = true
-anm        = "Beslut D32."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Beslut om bergvärme"
-start      = "2026-11-02"
-slut       = "2026-11-02"
-ansvarig   = "kommunen"
-inblandade = ["byggherre", "borr"]
-milstolpe  = true
-klar       = true
-anm        = "MSK.2026.2199, med försiktighetsmått; anmält 17 oktober 2026, 1 borrhål ca 200 m."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Handlingar till tekniskt samråd"
-start      = "2026-11-09"
-slut       = "2027-01-29"
-ansvarig   = "byggherre"
-inblandade = ["ka"]
-prel       = true
-anm        = "Kontrollplan och brandskyddsbeskrivning av KA (#64), trästommens ritning och stabilisering (#63); in senast 5 arbetsdagar före samrådet."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Tekniskt samråd"
-start      = "2027-02-10"
-slut       = "2027-02-10"
-ansvarig   = "byggherre"
-inblandade = ["ka", "kommunen"]
-milstolpe  = true
-prel       = true
-anm        = "Digitalt; bokas hos byggnadsinspektören."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Startbesked"
-start      = "2027-03-15"
-slut       = "2027-03-15"
-ansvarig   = "kommunen"
-inblandade = ["byggherre"]
-milstolpe  = true
-prel       = true
-anm        = "Inget arbete på tomten före startbeskedet."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Beställningar med lång leveranstid"
-start      = "2027-03-15"
-slut       = "2027-06-18"
-ansvarig   = "byggherre"
-inblandade = ["stomme", "bygg"]
-prel       = true
-anm        = "Stommen och specialprodukterna i IN-01, var och en till sin fas."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Flytt av två äppelträd"
-start      = "2027-03-22"
-slut       = "2027-03-26"
-ansvarig   = "mark"
-forslag    = true
-prel       = true
-anm        = "Flyttas, fälls inte; när träden är i vila. En dag, bokas separat."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Grannar, riskanalys och förbesiktning"
-start      = "2027-06-07"
-slut       = "2027-07-02"
-ansvarig   = ""
-inblandade = ["byggherre", "mark"]
-prel       = true
-anm        = "Före sprängningen: grannhus, brunnar och ledningar; vibrationsmätning under sprängningen."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Tömning och utrivning i förväg"
-start      = "2027-06-14"
-slut       = "2027-08-06"
-ansvarig   = "byggherre"
-anm        = "Fönster, elkablar, uttag och inredning som inte är helt i trä, till återvinningen (AV-01)."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Vatten och avlopp stängs och pluggas"
-start      = "2027-08-02"
-slut       = "2027-08-06"
-ansvarig   = "byggherre"
-inblandade = ["kommunen", "mark"]
-prel       = true
-anm        = "Före rivningen (D32): vattnet stängs, ledningarna pluggas; VA-avdelningen stänger kommunens ventil vid behov."
-
-[[steg]]
-fas        = "forberedelser"
-namn       = "Staket runt grönsakslandet"
-start      = "2027-07-26"
-slut       = "2027-08-06"
-ansvarig   = "byggherre"
-prel       = true
-anm        = "Skyddar landet under byggtiden."
-
 # ------------------------------------------------------------------ rivning och sprängning
 
 [[steg]]
@@ -313,6 +196,16 @@ start      = "2027-08-09"
 slut       = "2027-08-09"
 ansvarig   = "byggherre"
 milstolpe  = true
+
+[[steg]]
+fas        = "rivning"
+namn       = "Vatten och avlopp stängs och pluggas"
+start      = "2027-08-09"
+slut       = "2027-08-09"
+ansvarig   = "byggherre"
+inblandade = ["kommunen", "mark"]
+prel       = true
+anm        = "Innan huset rivs (D32): vattnet stängs, ledningarna pluggas; VA-avdelningen stänger kommunens ventil vid behov."
 
 [[steg]]
 fas        = "rivning"
