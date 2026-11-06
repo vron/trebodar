@@ -231,7 +231,7 @@ slut       = "2027-08-27"
 ansvarig   = "borr"
 inblandade = ["mark"]
 prel       = true
-anm        = "När marken ändå är uppgrävd; läget bestäms före köldbärarrören. Enligt anmälan och beslutet om bergvärme (MSK.2026.2199): maskinerna ställs så att bränsle och olja inte når borrhålet eller marken, absorptionsmedel på platsen, borrkaxet avslammas i container innan vattnet filtreras på mark, inga stora mängder borrvatten till kommunens nät."
+anm        = "När marken ändå är uppgrävd; läget bestäms före köldbärarrören."
 
 # ------------------------------------------------------------------ grund
 
@@ -244,7 +244,7 @@ ansvarig   = "vvs"
 forslag    = true
 inblandade = ["mark", "borr"]
 prel       = true
-anm        = "2 × Ø110 till borrhålet, bara 15° böjar, dragtråd, pluggar, tätning mot radon och inmätt ände (VG-01.3). Kollektorslangen märks ut med plastband i ledningsgraven (MSK.2026.2199)."
+anm        = "2 × Ø110 till borrhålet, bara 15° böjar, dragtråd, pluggar, tätning mot radon och inmätt ände (VG-01.3)."
 
 [[steg]]
 fas        = "grund"
@@ -442,7 +442,7 @@ slut       = "2028-02-25"
 ansvarig   = "vvs"
 inblandade = ["borr"]
 prel       = true
-anm        = "Avlopp och tappvatten, fördelarna i teknikrummet och på V5, bergvärmepumpen mot borrhålet. Bergvärmen enligt MSK.2026.2199: köldbäraren av ren etanol med högst 10 % denatureringsmedel enligt Läkemedelsverket och livsmedelsgodkänt färgämne, lågtrycksvakt som larmar vid läckage, högst 5 l köldbärare kan läcka ut och automatisk avstängning vid läckage från kollektorkretsen; täthetsprovning av kollektorn, drift- och säkerhetsinstruktioner och en karta över kollektorns läge, skarvar och djup."
+anm        = "Avlopp och tappvatten, fördelarna i teknikrummet och på V5, bergvärmepumpen mot borrhålet."
 
 [[steg]]
 fas        = "installationer"
@@ -606,4 +606,4 @@ ansvarig   = "kommunen"
 inblandade = ["byggherre"]
 milstolpe  = true
 prel       = true
-anm        = "Huset får tas i bruk. Miljöavdelningen informeras om skarvar på kollektorslangen utomhus (MSK.2026.2199; också vid läckage och sanering)."
+anm        = "Huset får tas i bruk."
