@@ -29,6 +29,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | F-01, AV-01, K-01, K-02, K-03, U-02 | beräkningen och rapporten (se mappens README) | rapporten i `rapporter/` |
 | TP-01 | `bygg.py` (läser också IN-01:s indata: specialprodukterna per fas) | tidsplanen i `rapporter/` |
 | IN-01 | `./mod inkop utdrag` (modellens specialprodukter) och `bygg.py` (faserna ur TP-01) | inköpslistan i `rapporter/` |
+| K-04 | `./mod barverk` (modellens bärverk) och `berakning.py` (balkmodellen, några sekunder) | rapporten i `rapporter/` |
 | **K-05, K-06, U-01, U-03** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | **U-04** (tungt, manuellt) | `./mod ljusplan` (renderingen i Blender) | ljusplanerna, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | R-01, R-03, R-04, R-05, R-06, AR-01, AR-02 | `ritningar.py` | ritningsserien i `ritningar/` |

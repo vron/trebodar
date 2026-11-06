@@ -80,3 +80,84 @@ def plan(N: Natverk, K: dict[str, Any], fil: Path) -> None:
     fig.tight_layout(pad=0.1)
     fig.savefig(fil)
     plt.close(fig)
+
+
+FARG = {"C24": "#efe3c4", "GL30c": "#dcb878", "GL30h": "#dcb878", "S355": "#aab3bf", "S235": "#aab3bf",
+        "Spikplåt": "#c4ccd6", "Distansregel": "#efe3c4"}
+
+
+def sektion(N: Natverk, delar: list[dict[str, Any]], plan: dict[str, Any], F: np.ndarray, band: np.ndarray,
+            felande: set[int], fil: Path) -> None:
+    """Ett plan genom stommen (en vägg med takstolen på den, eller ett lodrätt snitt längs en takbalk), sett från
+    utsidan: delarna ur modellen (felande delar röda), balkelementen med normalkraften i kombinationen (kN, rött
+    tryck och grönt drag) och banden (blå) med sin kraft."""
+    o, u, w = (np.asarray(plan[k], float) for k in ("o", "u", "w"))
+    u0, u1, w0, w1 = plan["u0"], plan["u1"], plan["w0"], plan["w1"]
+
+    def uz(P: np.ndarray) -> np.ndarray:
+        return np.column_stack([(P[:, :2] - o) @ u, P[:, 2]])
+
+    def ww(P: np.ndarray) -> np.ndarray:
+        return (P[:, :2] - o) @ w
+    nyckel = {(b.grupp, b.element, b.namn): b.nr for b in N.delar}
+    fig, ax = plt.subplots(figsize=(7.2, 3.1))
+    ztop = 0.0
+    from scipy.spatial import ConvexHull
+    from matplotlib.patches import Polygon as Poly
+    for d in delar:
+        if d["material"] == "Stålband":
+            continue
+        R, t = np.array(d["R"]), np.array(d["t"])
+        x0, y0, z0, x1, y1, z1 = d["bb"]
+        if "kontur" in d:
+            k = np.array(d["kontur"])
+            P = np.concatenate([np.column_stack([k, np.full(len(k), z)]) for z in (z0, z1)]) @ R.T + t
+        else:
+            P = np.array([[x, y, z] for x in (x0, x1) for y in (y0, y1) for z in (z0, z1)]) @ R.T + t
+        W = ww(P)
+        if W.max() < w0 or W.min() > w1:
+            continue
+        Q = uz(P)
+        if Q[:, 0].max() < u0 or Q[:, 0].min() > u1:
+            continue
+        try:
+            h = ConvexHull(Q)
+        except Exception:                                                     # noqa: BLE001
+            continue
+        nr = nyckel.get((d["grupp"], d["element"], d["namn"]))
+        fel = nr in felande
+        ax.add_patch(Poly(Q[h.vertices], closed=True, facecolor="#f2b8ad" if fel else FARG.get(d["material"], "#eee"),
+                          edgecolor=ROD if fel else "#7a7a7a", lw=1.0 if fel else 0.35, zorder=2 if fel else 1))
+        ztop = max(ztop, Q[:, 1].max())
+        if fel:
+            c = Q.mean(axis=0)
+            ax.text(c[0], c[1], d["namn"].split("-", 1)[-1], fontsize=6.5, color=ROD, ha="center", va="center",
+                    fontweight="bold", zorder=6)
+    m = N.modell
+    X = uz(m.x)
+    Wn = ww(m.x)
+    inne = (Wn >= w0) & (Wn <= w1) & (X[:, 0] >= u0) & (X[:, 0] <= u1)
+    for e in np.flatnonzero(inne[m.bi] & inne[m.bj]):
+        Ne = F[e, 6] / 1e3
+        q = X[[m.bi[e], m.bj[e]]]
+        ax.plot(q[:, 0], q[:, 1], color="#b5463a" if Ne < -0.5 else "#2e7d32" if Ne > 0.5 else "#888",
+                lw=0.5 + min(abs(Ne), 30) / 12, alpha=0.85, zorder=3)
+        if abs(Ne) >= 3 and np.linalg.norm(q[1] - q[0]) > 250:
+            c = q.mean(axis=0)
+            ax.text(c[0], c[1], f"{Ne:.0f}", fontsize=5.6, color="#333", ha="left", va="bottom", zorder=5,
+                    bbox=dict(boxstyle="square,pad=0.05", fc="white", ec="none", alpha=0.7))
+    for k, (i, j) in enumerate(zip(m.ti, m.tj)):
+        if inne[i] and inne[j]:
+            q = X[[i, j]]
+            ax.plot(q[:, 0], q[:, 1], color=BLA, lw=1.4, alpha=0.6, zorder=3)
+            if band[k] > 500:
+                c = q.mean(axis=0)
+                ax.text(c[0], c[1], f"{band[k] / 1e3:.0f}", fontsize=5.6, color=BLA, ha="right", zorder=5)
+    ax.scatter(X[inne, 0], X[inne, 1], s=2.5, color="k", zorder=4)
+    ax.set_aspect("equal")
+    ax.set_xlim(u0, u1)
+    ax.set_ylim(-150, max(ztop, X[inne, 1].max() if inne.any() else 0) + 150)
+    ax.axis("off")
+    fig.tight_layout(pad=0.1)
+    fig.savefig(fil)
+    plt.close(fig)

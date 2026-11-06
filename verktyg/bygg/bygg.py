@@ -108,6 +108,10 @@ STEG = [
         incheckat=["resultat.json", "konvergens.json", "vaggande.json"], lokalt=["falt.npz", "nedb.npz"]),
     ber("K-03", "berakning.py", bygger_pa=["K-05"],
         rapport=("K-03_takbalkar_takstolar_stolpar.pdf", "Takbalkar, takstolar och stolpar")),
+    # balkmodellen ur modellens bärverk (./mod barverk): följer modellen vid varje bygge
+    Steg("K-04", f"{BER}/K-04", [["mod", "barverk"], ["ber", "berakning.py"]],
+         kallor=[*MODELL, f"{BER}/F-01/indata.toml", f"{BER}/K-05/resultat.json"],
+         rapport=("K-04_trastomme.pdf", "Trästomme och stabilisering")),
     ber("K-06", "berakning06.py", "berakning.py", "validering/natkonvergens.py", "rapport.py", bygger_pa=["K-05"],
         tung=True, rapport=("rapport/K-06_grund.pdf", "Bottenplatta och källarväggar"),
         incheckat=["resultat.json"]),

@@ -175,9 +175,61 @@ alla_ok = all(r["ok"] for r in sammanf) and bruks["tak"]["ok"] and bruks["drift"
 figurer.modell(N, K, HERE / "fig_modell.svg")
 figurer.plan(N, K, HERE / "fig_plan.svg")
 
+# snitt genom delarna som inte klarar lasterna: väggen (med takstolen) som delen står i, annars ett lodrätt snitt
+# längs takbalken eller väggen närmast den fristående stolpen; ett snitt per plan, de högsta utnyttjandena först
+vaggar = {v["kod"]: v for v in N.ytor["vaggar"]}
+felande = {int(N.element_del[e]) for e in np.flatnonzero(K["eta_element"] > 1.0)}
+felande |= {N.band[k] for k in np.flatnonzero(K["eta_band"] > 1.0)}
+planen: dict[str, dict] = {}
+fel_rader = [r for r in K["rader"] if r.eta > 1.0 and "nr" in r.detaljer and r.kontroll != "Spik i bandets ände"]
+if B["drift"]["eta"] > 1.0:
+    fel_rader.append(kontroller.Rad("Väggarnas överkant i vind", "u ≤ H/300", B["drift"]["eta"], B["drift"]["del"],
+                                    B["drift"]["komb"], {"nr": next(b.nr for b in N.delar if b.namn == B["drift"]["del"])}))
+
+
+def planet(b: natverk.Bar) -> tuple[str, dict]:
+    if b.element in vaggar and b.grupp in ("yttervagg", "innervagg", "takstol", "band_vagg"):
+        v = vaggar[b.element]
+        return f"vägg {b.element}", {"o": v["origo"], "u": v["u"], "w": v["w"], "u0": -300.0, "u1": v["langd"] + 300.0,
+                                     "w0": -80.0, "w1": v["tjocklek"] + 220.0, "text": f"Väggen {b.element}"
+                                     + (" med takstolen" if any(d.grupp == "takstol" and d.element == b.element
+                                                                for d in N.delar) else "")}
+    if b.grupp == "stolpe":
+        for v in vaggar.values():
+            o, u, w = (np.array(v[k]) for k in ("origo", "u", "w"))
+            if abs((b.c[:2] - o) @ w - v["tjocklek"] / 2) < 400 and -100 < (b.c[:2] - o) @ u < v["langd"] + 100:
+                return f"vägg {v['kod']}", {"o": v["origo"], "u": v["u"], "w": v["w"], "u0": -300.0,
+                                            "u1": v["langd"] + 300.0, "w0": -400.0, "w1": v["tjocklek"] + 400.0,
+                                            "text": f"Väggen {v['kod']} med stolpen {b.element}"}
+    d = b.b[:2] - b.a[:2]
+    u = d / np.linalg.norm(d) if np.linalg.norm(d) > 1 else np.array([1.0, 0.0])
+    w = np.array([-u[1], u[0]])
+    o = b.a[:2] - 1500 * u
+    return f"snitt {b.namn}", {"o": o.tolist(), "u": u.tolist(), "w": w.tolist(), "u0": 0.0,
+                                "u1": float(np.linalg.norm(d)) + 3000.0, "w0": -260.0, "w1": 260.0,
+                                "text": f"Lodrätt snitt längs {b.namn}"}
+
+
+for r in sorted(fel_rader, key=lambda r: -r.eta):
+    b = N.delar[r.detaljer["nr"]]
+    nyckel, pl = planet(b)
+    if nyckel not in planen:
+        planen[nyckel] = {"plan": pl, "komb": r.komb, "rader": []}
+    planen[nyckel]["rader"].append(r)
+delar_raa = json.loads(BARVERK.read_text(encoding="utf-8"))["delar"]
+sektioner = []
+for i, (nyckel, p_) in enumerate(list(planen.items())[:9]):
+    k = namn_k.index(p_["komb"])
+    fil = f"fig_snitt{i + 1}.svg"
+    figurer.sektion(N, delar_raa, p_["plan"], L.F[k], L.band[k], felande, HERE / fil)
+    fel = "; ".join(f"{r.del_} {pct(r.eta)} ({r.kontroll.lower()})" for r in p_["rader"])
+    sektioner.append({"fil": fil, "text": f"{p_['plan']['text']}, kombination {p_['komb']}: normalkraften i delarna "
+                                          f"(kN, rött tryck och grönt drag) och i banden (blå). Röda delar klarar inte "
+                                          f"lasterna: {fel}."})
+
 R_ut = {"projekt": IN["projekt"], "modell": modell, "last": last, "stolpar": stolptab, "G_tot": fmt(G_tot, 1),
         "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank,
-        "bruks": bruks, "alla_ok": alla_ok, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
+        "bruks": bruks, "alla_ok": alla_ok, "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
                                                             for k, v in IN["kombination"].items()
                                                             if not isinstance(v, (list, dict))},
         "kmod": {k: fmt(v, 1) for k, v in IN["kombination"]["k_mod"].items()},

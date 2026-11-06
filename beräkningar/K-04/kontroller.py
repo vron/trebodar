@@ -36,6 +36,40 @@ class Rad:
     detaljer: dict[str, Any] = field(default_factory=dict)
 
 
+def sammansatta(N: Natverk) -> dict[int, list[int]]:
+    """Stående delar i väggarna som står sida vid sida och är ihopspikade (en stolpe eller dubbla reglar): de
+    ligger an mot varandra längs mer än 0,5 m och delar knutpunkterna i balkmodellen. Delen -> gruppens delar."""
+    st = [b for b in N.delar if b.slag == "balk" and abs(b.ex[2]) > 0.9 and b.grupp in ("yttervagg", "innervagg")]
+    lo = {b.nr: b.c - np.abs(b.E.T) @ b.halv for b in st}
+    hi = {b.nr: b.c + np.abs(b.E.T) @ b.halv for b in st}
+    far = {b.nr: b.nr for b in st}
+
+    def rot(i: int) -> int:
+        while far[i] != i:
+            i = far[i]
+        return i
+    for i, a in enumerate(st):
+        for b in st[i + 1:]:
+            if a.element == b.element and np.all(lo[a.nr] <= hi[b.nr] + 1.0) and np.all(lo[b.nr] <= hi[a.nr] + 1.0) \
+                    and min(a.b[2], b.b[2]) - max(a.a[2], b.a[2]) > 500.0:
+                far[rot(a.nr)] = rot(b.nr)
+    grp: dict[int, list[int]] = defaultdict(list)
+    for b in st:
+        grp[rot(b.nr)].append(b.nr)
+    return {i: sorted(g, key=lambda j: N.delar[j].namn) for g in grp.values() for i in g}
+
+
+def visa(N: Natverk, b: Bar, grupper: dict[int, list[int]]) -> str:
+    """Delens namn i rapporten: takstolens delar märks (väggen och takstolen på den har samma kod), och delar som
+    står ihop med andra visas som en sammansatt del med antal och tvärsnitt."""
+    g = grupper.get(b.nr, [b.nr])
+    if len(g) > 1:
+        dim = f"{min(b.bredd, b.hojd):.0f}×{max(b.bredd, b.hojd):.0f}"
+        namn = b.stolpe or "+".join([N.delar[g[0]].namn] + [N.delar[j].namn.split("-")[-1] for j in g[1:]])
+        return f"{namn} ({len(g)} × {dim})"
+    return f"takstol {b.namn}" if b.grupp == "takstol" else b.namn
+
+
 def grupp_av(b: Bar) -> str:
     if b.slag == "band":
         return "Stålband i väggarna" if b.grupp == "band_vagg" else "Stålband i takfallen"
@@ -123,6 +157,7 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
     Le = np.linalg.norm(m.x[m.bj] - m.x[m.bi], axis=1)
     delar = N.delar
     rader: list[Rad] = []
+    grupper = sammansatta(N)
     # ------------------------------------------------------------ virket per element
     K_ = _krafter_langs(F, q, Le[None, :])
     Ly, Lz = _knacklangd(N)
@@ -174,7 +209,14 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
                    "V": float(np.hypot(K_["Vy"][k, el], K_["Vz"][k, el])), "T": float(K_["T"][k, el]),
                    "b": float(d.bredd), "h": float(d.hojd), "L": float(d.L), "Ly": float(Ly[d.nr]), "Lz": float(Lz[d.nr]),
                    "kmod": float(kmod[k]), "material": d.material, "antal": int(len({eldel[x] for x in e}))}
-            rader.append(Rad(gn, namn_k, float(sub[k, i]), d.namn, kn[k], det))
+            g = grupper.get(d.nr, [d.nr])
+            if len(g) > 1:                               # den sammansatta delens krafter: summan av reglarnas
+                eg = np.flatnonzero(np.isin(eldel, g))
+                for nyckel in ("Nc", "Nt", "My", "Mz"):
+                    det[nyckel] = float(sum(K_[nyckel][k, eg[eldel[eg] == j]].max() for j in g))
+                det["delar"] = len(g)
+            det["nr"] = d.nr
+            rader.append(Rad(gn, namn_k, float(sub[k, i]), visa(N, d, grupper), kn[k], det))
     # ------------------------------------------------------------ fristående stolpar som helhet
     stolpar: dict[str, list[int]] = defaultdict(list)
     for d in delar:
@@ -204,7 +246,7 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
         k = int(np.argmax(eta))
         r = Rad("Fristående stolpar", "Tryck med knäckning", float(eta[k]), kod, kn[k],
                 {"Nc": float(Nc[k]), "M": float(Mm[k]), "X": X, "Y": Y, "L": Ls, "kc": kc, "kmod": float(kmod[k]),
-                 "material": M.namn, "antal": len(stolpar)})
+                 "material": M.namn, "antal": len(stolpar), "nr": ds[0]})
         if best is None or r.eta > best.eta:
             best = r
     if best:
@@ -243,10 +285,10 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
         fc90 = kmod * C24.fc90k / C24.gamma_M
         eta = Nc / (kc90 * A90 * fc90)
         k = int(np.argmax(eta))
-        namn = ", ".join(sorted({delar[d].namn for d, _ in st}))
+        namn = ", ".join(sorted({visa(N, delar[d], grupper) for d, _ in st}))
         r = Rad("Upplag (tryck vinkelrätt fibrerna)", "på syll" if lig_.typ == "S" else "under hammarband",
                 float(eta[k]), f"{namn} på {lig_.namn}", kn[k],
-                {"Nc": float(Nc[k]), "l": l_, "bredd": bredd, "kc90": kc90, "kmod": float(kmod[k])})
+                {"Nc": float(Nc[k]), "l": l_, "bredd": bredd, "kc90": kc90, "kmod": float(kmod[k]), "nr": st[0][0]})
         if best is None or r.eta > best.eta:
             best = r
     if best:
@@ -276,7 +318,7 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
         Ned = float(sub[k, i])
         FvRd = kmod[k] * FvRk / BD["gamma_M_forband"]
         rader.append(Rad(gn, "Drag i nettotvärsnittet", Ned / NtRd, delar[N.band[idx[i]]].namn, kn[k],
-                         {"N": Ned, "NtRd": NtRd, "A": A_b, "An": A_n, "antal": len(idx)}))
+                         {"N": Ned, "NtRd": NtRd, "A": A_b, "An": A_n, "antal": len(idx), "nr": N.band[idx[i]]}))
         nspik = math.ceil(Ned / FvRd)
         rader.append(Rad(gn, "Spik i bandets ände", Ned / (nspik * FvRd), delar[N.band[idx[i]]].namn, kn[k],
                          {"N": Ned, "n": nspik, "FvRd": FvRd, "FvRk": FvRk, "fhk": fhk, "Myk": Myk, "Fax": Fax,

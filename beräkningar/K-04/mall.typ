@@ -52,7 +52,7 @@ Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från
   [Väggarnas överkant i vind], [], [$u <= H slash 300$], [#eta(r.bruks.drift.eta, r.bruks.drift.ok)], liten[#r.bruks.drift.del, #r.bruks.drift.komb],
 )
 
-#if r.alla_ok [Alla delar och stålbanden klarar lasterna.] else [*Rött: delar som inte klarar lasterna* med stommen som den är i modellen; åtgärderna redovisas i avsnitt 7.]
+#if r.alla_ok [Alla delar och stålbanden klarar lasterna.] else [*Rött: delar som inte klarar lasterna* med stommen som den är i modellen. Snitt genom dem finns i avsnitt 5.1.]
 
 = Bärverket och balkmodellen
 
@@ -90,7 +90,7 @@ Lasterna läggs på stommens ytor och förs till de bärande delarna: taket i ru
 
 == Vertikala laster till bjälklaget
 
-Lasterna i lastfallen är lika med reaktionerna i upplagen (jämvikt). Stolparna under nock- och dalbalkarna bär enligt balkmodellen (karakteristiska G och S1 och dimensionerande $N_"Ed"$) jämfört med lasten som K-05 dimensionerar bjälklaget för. Väggar som står under balkarna bär en del av balkarnas last, så stolparna där får mindre än i K-05.
+Lasterna i lastfallen är lika med reaktionerna i upplagen (jämvikt). Stolparna bär enligt balkmodellen: karakteristiska G och S1 och dimensionerande $N_"Ed"$, det största i alla kombinationer, också med vind som huvudlast (stolparna i stålbandens fält får banden vertikala kraft), jämfört med lasten som K-05 dimensionerar bjälklaget för (snö som huvudlast). Väggar som står under balkarna bär en del av balkarnas last. Rött: stolpar där balkmodellen ger mer än K-05.
 
 #table(
   columns: (auto, auto, auto, auto, auto, auto),
@@ -124,6 +124,16 @@ Virket (SS-EN 1995-1-1): normalkraft och böjning (6.17–6.20, med knäckning 6
   [Grupp], [Kontroll], [$eta$], [Del], [Krafter],
   ..r.detalj.filter(d => d.kontroll != "Spik i bandets ände").map(d => ([#d.grupp], [#d.kontroll], [#eta(d.eta, d.ok)], liten[#d.del], liten[#if "Nc" in d [N#sub[c] #d.Nc kN ] #if "My" in d [M#sub[y] #d.My, M#sub[z] #d.Mz kNm ] #if "V" in d [V #d.V kN ] #if "N" in d and not ("Nc" in d) [N #d.N kN]  · #d.komb])).flatten(),
 )
+
+#if r.sektioner.len() > 0 [
+== Delarna som inte klarar lasterna
+
+Snitt genom stommen där delar inte klarar lasterna, sedda från väggens utsida, med delarna ur modellen och krafterna i balkmodellen i den styrande kombinationen.
+
+#for s in r.sektioner [
+  #figure(image(s.fil, width: 100%), caption: [#s.text])
+]
+]
 
 = Stålband och förankring
 
