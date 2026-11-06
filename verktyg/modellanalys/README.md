@@ -76,7 +76,7 @@ Bilder hamnar i `ut/` om inte `--ut` anges.
 
 ## Underlag till beräkningarna
 
-Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser den kodgenererade modellen i dess senaste bygge (se ovan). Där källfilerna har Onshape-modellens namn (K-03:s takbalkstyper, takstolsstavar och stolpdelar) paras delarna på läget och namnen jämförs inte. Kör dem när modellen har ändrats:
+Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna källfiler (t.ex. `beräkningar/K-05/bild/geometri.json` och `beräkningar/K-03/geometri.json`), som uppdateras för hand. Kontrollerna här läser modellen och källfilerna och redovisar avvikelserna, men skriver ingenting. De läser den kodgenererade modellen i dess senaste bygge (se ovan). Där källfilerna har Onshape-modellens namn (K-03:s takbalkstyper och takstolsstavar) paras delarna på läget och namnen jämförs inte. Kör dem när modellen har ändrats:
 
 ```
 ./ma kontroll_geometri05.py   # K-05:s geometri.json: kontur, trapphål, väggar, rör, mark, fria kanter

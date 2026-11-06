@@ -226,9 +226,10 @@ def _fonsterbleck_velfac(o: Oppning) -> tuple[Del, Placering]:
 
 def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     """Fickdörren i väggen: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py), stängt FICKA_UT in i fickan och
-    öppet (d.ute) så långt ut ur den; skenan under överstycket över öppningen och fickan. Öppningen har smyg av oljad ask DORRSMYG_T runt om
-    utom vid golvet, genom hela väggen i liv med skivorna på båda sidor: hel på låssidan, där bladet stängs mot den, och
-    delad vid fickan och i överstycket, med en slits för bladet; sidorna står på golvet och överstycket går över dem."""
+    öppet (d.ute) så långt ut ur den; skenan under överstycket över öppningen och fickan. Öppningen har smyg av
+    oljad ask DORRSMYG_T runt om utom vid golvet, genom hela väggen i liv med skivorna på båda sidor: hel på
+    låssidan, där bladet stängs mot den, och delad vid fickan och i överstycket, med en slits för bladet; sidorna
+    står på golvet och överstycket går över dem."""
     v = vaggdef(d.vagg)
     wm = v.tjocklek / 2
     a, b = d.fickan

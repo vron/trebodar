@@ -1,6 +1,6 @@
 """Poly Havens tillgångar (CC0, polyhaven.com) för omgivningen i renderingen: markens texturer och modellerna av
-träden, stenarna, buskarna och gräset (blender/omgivning.py, TEXTURER och MODELLER) och himlarna (HIMLAR: fotograferade himlar utan
-mark, "pure skies", för det kameran ser, blender/scen.py). `./mod omgivning --hamta` laddar ner det som saknas till
+träden, stenarna, buskarna och gräset (blender/omgivning.py, TEXTURER och MODELLER) och himlarna (HIMLAR:
+fotograferade himlar utan mark, "pure skies", för det kameran ser, blender/scen.py). `./mod omgivning --hamta` laddar ner det som saknas till
 tillgångarnas mapp (vyer.GEODATA["tillgangar"], versionshanteras inte)."""
 from __future__ import annotations
 

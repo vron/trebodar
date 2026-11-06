@@ -1,8 +1,8 @@
 """Rör ingjutna i mellanbjälklaget (betong 150 mm, z −150 … 0): från väggarna på plan 1 (rören går upp genom
 bjälklagets överkant in i regelfacken) till ingjutningsdosor i källarens tak, där matningen från centralen kommer in.
 
-Centralens läge är inte bestämt: rören slutar tills vidare i ingjutningsdosor, och matningen därifrån ritas när
-centralen är placerad.
+Centralen sitter i teknikrummet i källaren, med vattencentralen; matningen därifrån till dosorna ritas i ärende #51,
+och tills dess slutar rören i ingjutningsdosorna.
 """
 from __future__ import annotations
 

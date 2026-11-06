@@ -21,8 +21,8 @@ lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06
   T65.1600.01), därför går framstycket ned under botten; löparens hake i ett hål Ø6 × 10 i sidans bakände, 7 mm från
   utsidan och 11 mm upp.
 
-Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvhålen ritas inte. Skåptyperna: lådskåp
-med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
+Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvhålen ritas inte. Skåptyperna:
+lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
 rören bakom) och hällskåp (den översta fronten fast, öppet tak för hällen); diskmaskinen står i ett skåps ställe.
 """
 from __future__ import annotations

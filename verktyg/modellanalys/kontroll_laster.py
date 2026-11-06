@@ -68,7 +68,7 @@ def lodlinje(x, y, delar, z0=-6000, z1=6000):
 
 
 def mark(x, y):
-    s = lodlinje(x, y, m.valj("Uppfyllnad,Berg,Sovrumsavsats"))
+    s = lodlinje(x, y, m.valj("Uppfyllnad,Berg,Sovrumsavsats,Källartrappa,FK-"))   # också återfyllningen och trappan
     return max(s, key=lambda t: t[1]) if s else None
 
 
@@ -211,8 +211,12 @@ if hm is not None:
 markplatta = Polygon(G05["mark"])
 rad("Bjälklag", "plattan på mark (utan källare under)", f"{markplatta.area / 1e6:.1f} m² (K-05: 29,3 m²)",
     "källarväggarna V3/V20 inom 5 mm från K-05", "stämmer")
-rad("Bjälklag", "trappan", "3,0 m lång, 0,83 m bred (K-05)", f"hålets bredd {(hm.bounds[3] - hm.bounds[1]) / 1000:.3f} m; "
-    "trappan finns inte i modellen", "bredden stämmer")
+tr = m.bbox([d for d in m.delar if d.sokvag.startswith("Hus/Trappa/")])
+tr_l = float(np.hypot(tr[3] - tr[0], tr[5] - tr[2])) / 1000                    # längs lutningen
+tr_b = (tr[4] - tr[1]) / 1000
+rad("Bjälklag", "trappan", "3,0 m lång, 0,83 m bred (K-05)", f"{tr_l:.2f} m längs lutningen, {tr_b:.3f} m bred "
+    f"(hålet {(hm.bounds[3] - hm.bounds[1]) / 1000:.3f} m)", "stämmer" if abs(tr_l - 3.0) < 0.1 and abs(tr_b - 0.83) < 0.01
+    else "AVVIKER")
 pel = [d for d in m.delar if d.namn.startswith("P") and d.namn.endswith("-R")]
 rad("Källare", "fri höjd bottenplatta–bjälklag (rörens längd)", "2 100 mm (K-05, K-06)",
     f"{np.median([d.storlek[2] for d in pel]):.0f} mm ({len(pel)} rör)", "stämmer")

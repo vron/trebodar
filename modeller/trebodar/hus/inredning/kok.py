@@ -38,8 +38,8 @@ Z_TOPP = H_OPPNING - K_SMYG                               # öppningens överkan
 GANGJARN = {"Kyl": -1, "Frys": 1, "Skafferi": -1}          # dörrarnas gångjärn: vid den lägre (−1) eller högre x
 HANDTAG = (20.0, 30.0, 400.0)                             # handtagen: bredd, djup ut från fronten, längd (högst)
 HANDTAG_KANT, HANDTAG_Z = 40.0, 1050.0                    # handtagets kant från dörrens fria kant; dess mitt över golvet
-KOPP = (35.0, 13.0, 22.5)                                 # gångjärnets kopp: Ø, djup, mitten från dörrens kant
-PLATTA = (37.0, 40.0, 40.0, 10.0)                         # monteringsplattan: mitten bakom dörren, längd, höjd, tjocklek
+KOPP = (35.0, 13.0, 22.5)                                 # gångjärnets kopp: Ø, djup, mitten från kanten
+PLATTA = (37.0, 40.0, 40.0, 10.0)                         # monteringsplattan: mitten bakom dörren, längd, höjd, tjock
 ARM = (15.0, 14.0)                                        # armen från den fasta ytan: bredd, höjd
 GANGJARN_KANT = 100.0                                     # de yttersta gångjärnen från dörrens kanter
 

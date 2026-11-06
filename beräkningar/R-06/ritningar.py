@@ -69,7 +69,7 @@ KONTUR = Polygon(G["kontur"])
 HAL = Polygon(G["hal"])
 PLATTA = KONTUR.difference(HAL)
 MARK = Polygon(G["mark"])
-RYGG_MARK = KAL.platta_pa_mark()[2]         # L-elementens rygg vid plattan på marks fria kanter (AR-02), urtagen i hörnen
+RYGG_MARK = KAL.platta_pa_mark()[2]         # L-elementens rygg vid plattan på marks fria kanter, urtagen i hörnen
 BETONG = PLATTA.difference(RYGG_MARK)        # betongen: vid plattan på marks fria kanter fram till ryggen
 NATYTA = PLATTA.difference(KAL.platta_pa_mark(urtag=False)[2])   # näten slutar vid ryggen, också vid hörnens urtag
 XMAX, YMAX = KONTUR.bounds[2], KONTUR.bounds[3]   # 13 810, 15 900
@@ -717,7 +717,8 @@ def sektion_f():
         v.brott((-40, ylo), (U1 + 40, ylo), "tunn")
     with v.lager("betong"):
         v.rekt(kv, 0, U1, H, fyll="betong", stil=None)
-        v.linje([(kv, 0), (U1, 0)], "normal"); v.linje([(kv, H), (U1, H)], "normal"); v.linje([(kv, 0), (kv, H)], "normal")
+        for a_, b_ in (((kv, 0), (U1, 0)), ((kv, H), (U1, H)), ((kv, 0), (kv, H))):
+            v.linje([a_, b_], "normal")
         v.linje([(0, ylo), (0, H)], "normal")
         v.brott((U1, -40), (U1, H + 40), "tunn")
         v.rekt(0, H, KAL.I06.B_SYLL, H + 45, stil="dold")                       # väggens syll

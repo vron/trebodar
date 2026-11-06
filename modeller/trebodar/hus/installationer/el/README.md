@@ -47,8 +47,8 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
 - **Rör** (`Ror`): från en punkt till en annan, genom brytpunkter: i innertakets installationsskikt (`i_tak`), i
   väggens regelfack (`i_vagg`), där röret går från väggen upp i innertaket (`vid_tak`) och ingjutet i ett bjälklag
   (`i_bjalklag`). Rörets ändar är punkternas anslutningar: drivdonet bredvid armaturen och dosans mitt.
-- **Matningen**: gruppcentralen och dess grupper läggs till när centralens läge är bestämt; tills dess slutar
-  rören i ingjutningsdosor i källarens tak.
+- **Matningen**: gruppcentralen sitter i teknikrummet i källaren, med vattencentralen. Den och dess grupper läggs
+  till i ärende #51; tills dess slutar rören i ingjutningsdosor i källarens tak.
 
 Exempel (`rum/vardagsrum.py`): två rader med fyra spotar i snedtaket, mitt emellan läkten och lutade mot närmaste
 långsida, tre VL45 på olika höjd, en tändgrupp per rad och en för VL45, dimrarna på väggen 1D och rören upp i väggen

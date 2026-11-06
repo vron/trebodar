@@ -107,7 +107,7 @@ class Installation:
         for p in self.punkter.values():
             if p.id not in anslutna:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
-        anm.append("matningen: centralen är inte placerad, rören slutar i dosor")
+        anm.append("matningen: centralen i teknikrummet är inte ritad (#51), rören slutar i dosor")
         return fel, anm
 
     def utdrag(self) -> dict[str, object]:

@@ -4,9 +4,9 @@ till källardörren D1.
 
 Schaktet går 100 mm utanför plattan på mark (hus/grund: L-element, cellplast, makadam och dränerande fyllning under
 plattan); mellan L-elementen och schaktets kant ligger makadam upp till markytan, där berget eller uppfyllnaden låg.
-Marken följer Onshape-modellens mark fram till huset; K-06:s fyllnadshöjder mot källarväggarna ligger högre och är
-inte modellerade (ärende #43). Där Onshape-modellens mark inte når fram till källarväggarna ligger dränerande
-återfyllning upp till markens nivå intill (framför 2SV) och vid nedgången till källardörren D1 upp till K-06:s
+Marken följer Onshape-modellens mark fram till huset; K-06:s fyllnadshöjder mot källarväggarna ligger högre, på
+säker sida (verktyg/modellanalys/kontroll_laster.py). Där Onshape-modellens mark inte når fram till källarväggarna
+ligger dränerande återfyllning upp till markens nivå intill (framför 2SV) och vid nedgången till källardörren D1 upp till K-06:s
 höjder; uppfyllnaden tas bort över nedgången. Sovrumsavsatsen och entréavsatsen är två separata avsatser av granit.
 Sovrumsavsatsen är Onshape-modellens, breddad västerut till 1SO:s fasad (AVSATS_BREDARE), så att panelen på 1NO
 slutar på avsatsen ända till hörnet: delen väster om AVSATS_SNITT, med de rundade stegen, flyttas västerut och
@@ -253,8 +253,8 @@ def montage() -> Montage:
         m.lagg(Del("Makadam runt plattan på mark", (ring & berg0) | (ring & upp0), MAKADAM), Placering(), f"MA-{i}")
     # återfyllningen mot källarväggarna, utanför väggarna och fasadstenen, där marken inte når fram
     sten = unary_union([rektangel(x0, y0, x1, y1) for x0, y0, _, x1, y1, _ in lagen.ladar(fasadsten.montage())])
-    hinder = [prisma_ur(kallarvaggar.ytterkontur(), MARK_UK - 10.0, 10.0), berg0, upp0, avsats0, schakt, *plintar, *steg,
-              *(f for _, _, f in kallare)]
+    hinder = [prisma_ur(kallarvaggar.ytterkontur(), MARK_UK - 10.0, 10.0), berg0, upp0, avsats0, schakt, *plintar,
+              *steg, *(f for _, _, f in kallare)]
     # fasadstenens kluvna yta följs inte: fyllningen slutar 5 mm utanför stenarnas omslutande lådor
     hinder += [prisma_ur(g, MARK_UK - 10.0, 10.0) for g in polygoner(sten.buffer(5.0, join_style=2))]
     tidigare: list[Form] = []

@@ -19,14 +19,14 @@ import math
 import os
 import sys
 
-from shapely.geometry import LineString, Point, Polygon, box
+from shapely.geometry import LineString, Point, box
 from shapely.ops import unary_union
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R04 = os.path.join(os.path.dirname(HERE), "R-05")
 sys.path.insert(0, R04)
 import kallare as K  # noqa: E402
-from ritning import Vy, Blad, huvud, sv, svm, PROJEKT  # noqa: E402
+from ritning import Vy, Blad, huvud, sv, PROJEKT  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location("ritningar_r04", os.path.join(R04, "ritningar.py"))
 R4 = importlib.util.module_from_spec(_spec)
