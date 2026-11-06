@@ -50,10 +50,13 @@ UTLOPP_OK = 5.759                                    # utgående rörets överka
 UTLOPP_RIKTNING = (0.064, -0.998)                    # mot nordost (passningen mot SWEREF, vyer.sweref_passning)
 UTLOPP_L = 3000.0                                    # så långt det ritas; röret finns och fortsätter
 STEG = 250.0                                         # ringarnas punkter för höjderna
-# stenarna i marken som ledningarna går under (mark/mark.py: entréavsatsens block E-*, sovrumsavsatsen ur
-# Onshape-modellen): område (x0, y0, x1, y1) och underkant. Under dem inga spolbrunnar och inga lodräta fall; en
-# ändring syns i ./mod dranering kontroll (krockar med Natursten)
+# stenarna i marken som ledningarna går under (mark/mark.py: entréavsatsens block E-*, källartrappans avsats K-AV och
+# trappsteg K-S*, med det lägsta stegets underkant, sovrumsavsatsen ur Onshape-modellen): område (x0, y0, x1, y1) och
+# underkant. Under dem inga spolbrunnar och inga lodräta fall; en ändring syns i ./mod dranering kontroll (krockar
+# med Natursten)
 HINDER = {"entréavsatsen": ((-1595.0, 8355.0, -95.0, 11255.0), -1100.0),
+          "källaravsatsen": ((9340.0, -530.0, 12199.0, 970.0), -2350.0),
+          "källartrappan": ((12150.0, -105.0, 14599.0, 895.0), -2250.0),
           "sovrumsavsatsen": ((-77.0, 62.0, 4400.0, 3490.0), -1844.0)}
 UNDER_HINDER = 50.0                                  # rörens överkant under stenarnas underkant
 HINDER_KANT = 150.0                                  # schaktet utanför stenarnas kant
