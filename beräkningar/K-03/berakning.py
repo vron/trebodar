@@ -311,6 +311,12 @@ def stolpe(namn):
             NRd += k * d["bx"] * d["hy"] * mat.fc0d / 1e3
         kc = NRd * 1e3 / (A * mat.fc0d)
         u = Nd / NRd
+        if e and stag in ("x", "y"):
+            # lasten excentriskt i väggens plan (balken vilar på en del av stolpen): reglarna skruvade ihop till ett
+            # tvärsnitt, böjning i väggens plan med knäckning ut ur planet (SS-EN 1995-1-1 6.24, km 0,7)
+            X = sum(d["bx"] if stag == "x" else d["hy"] for d in delar)
+            Y = max(d["hy"] if stag == "x" else d["bx"] for d in delar)
+            u += 0.7 * Nd * 1e3 * e / (Y * X ** 2 / 6 * mat.kh(X) * mat.fmd)
         knack = {"x": "stagad i x-led (vägg)", "y": "stagad i y-led (vägg)", "xy": "stagad åt båda håll"}[stag]
     # tryck vinkelrätt fibrerna i syll (stolpen står på syll) och hammarband (stolpen slutar under hammarbandet)
     # syll och hammarband: belastad längd längs regeln + 30 mm åt båda hållen (6.1.5), regelns bredd = stolpens djup

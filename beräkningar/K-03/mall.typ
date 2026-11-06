@@ -160,7 +160,7 @@ Stolpe B bär dalbalk 4 vid stöd B och mittakstolens fot, $N_d$ = #r.B.N kN. Da
 
 == Alla stolpar
 
-Knäckning räknas med stolpens hela höjd. En vägg stagar stolpen i väggens plan när gipsskivan ligger tätt intill stolpen i modellen. Fristående stolpar av flera reglar skruvas ihop så att de verkar som ett tvärsnitt. Stolpar som står på syll eller under hammarband kontrolleras för tryck vinkelrätt fibrerna med 30 mm lastspridning åt båda håll (6.1.5), $k_"c,90"$ = 1,25 i syllen och 1,5 i hammarbandet.
+Knäckning räknas med stolpens hela höjd. En vägg stagar stolpen i väggens plan när gipsskivan ligger tätt intill stolpen i modellen. Fristående stolpar av flera reglar skruvas ihop så att de verkar som ett tvärsnitt. LN3_1 och LN5_2 står i väggarnas ände med 83 av 180 mm under nockbalken, så att balken ligger mitt i takets spets: lasten verkar 48,5 mm excentriskt i väggens plan, och stolpen räknas för tryck med knäckning ut ur väggens plan och böjning i den (6.24), med reglarna skruvade ihop så att lasten fördelas på alla fyra. Stolpar som står på syll eller under hammarband kontrolleras för tryck vinkelrätt fibrerna med 30 mm lastspridning åt båda håll (6.1.5), $k_"c,90"$ = 1,25 i syllen och 1,5 i hammarbandet.
 
 #table(
   columns: (auto, 1.3fr, 1.2fr, auto, auto, auto, auto, auto, auto, auto),
@@ -186,4 +186,4 @@ Alla delar klarar brott- och bruksgränstillståndet med utförandet nedan. Dela
 + Takstolar: spikplåt 100×600×2,0 på båda sidor i fötterna och 100×400 i toppen, med ankarspik 4,0×40 enligt tabellen i avsnitt 4. Diagonalerna skruvas till takbalken ovanför innertaket c/c 600. Alla takstolar får toppklossar 45 mm, minst 600 mm långa, på båda sidor om toppen, skruvade enligt tabellen. Fötterna har minst det upplag på hammarbandet som tabellen anger.
 + Huvudstolpen LN1_3: 4 st 45×120 C24 med strävor 45×120 på båda sidor (dubbeltriangel) och en hel topregel över stolpen.
 + Stolpe B (LD4_1): GL30h 140×140. LD4_2: 4 st 45×95 C24 sida vid sida, centrerade under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. Stöd B i nockbalk 1 (LN1_1): ny stolpe 4 st 45×95 C24 i väggen vid y ≈ 2 795. Den sticker ut 25 mm ur den 70 mm tjocka väggen.
-+ Stolpar av flera reglar skruvas ihop. Alla stolpar förankras i topp och fot för lyftkraften i tabellen.
++ Stolpar av flera reglar skruvas ihop, LN3_1 och LN5_2 med helgängade skruvar så att balkens excentriska last fördelas på alla fyra reglarna. Alla stolpar förankras i topp och fot för lyftkraften i tabellen.

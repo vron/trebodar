@@ -201,6 +201,7 @@ gamla = "G"
 namn = "LN3_1"
 sok = [7007, 2200]
 gamla = "H"
+e = 48.5        # nockbalk 3 vilar på 83 av stolpens 180 mm (väggen slutar före balkens mittlinje, #45)
 [[stolpe]]
 namn = "LD4_1"
 sok = [4475, 5843]
@@ -220,6 +221,7 @@ gamla = "E"
 namn = "LN5_2"
 sok = [2075, 11000]
 gamla = "D"
+e = 48.5        # nockbalk 5 vilar på 83 av stolpens 180 mm (#45)
 
 # Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D. Strävor på båda sidor om stolpen
 # (modellen visar bara den ena). Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
