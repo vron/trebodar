@@ -5,19 +5,20 @@ koksbank.py, med skåpen i koksskap.py).
 Kylen (A) och frysen (B) är integrerade vitvaror för nischer 560 breda och 1 780 respektive 880 höga (förenklade som
 lådor, 556 breda och 545 djupa med dörren), på en sockel 100 (två reglar och en bottenskiva) med ett sockelgaller 40
 mm innanför fronten, där luften till vitvarorna tas in. Över kylen ett skåp upp till öppningen och över frysen ett
-högskåp med två hyllor, av vit melamin 16. Fronterna av oljad ask 19 i liv med väggen, 3 mm från smygarna och
-varandra, sitter på vitvarornas dörrar och på skåpen. Bakom vitvarorna och skåpen är spalten mot L4, där luften går
-upp till förrådet. Skafferiet (C) har en dörr av samma slag som fronterna, hängd i smygen mot frysen och öppnas
-utåt, och hyllor av vit melamin 19 längs L4 och 3NV.
+högskåp med två hyllor, av vit melamin 16. Fronterna, vitmålade 19 i liv med väggen, 3 mm från smygarna och
+varandra, sitter på vitvarornas dörrar och på skåpen, med ett handtag av oljad ask vid den fria kanten (ärende #78;
+kylen hängd mot gaveln, frysen mot skafferiet, så att deras handtag sitter intill varandra). Bakom vitvarorna och
+skåpen är spalten mot L4, där luften går upp till förrådet. Skafferiet (C) har en dörr av samma slag som fronterna,
+hängd i smygen mot frysen och öppnas utåt, och hyllor av vit melamin 19 längs L4 och 3NV.
 """
 from __future__ import annotations
 
 from modellering import Del, Montage, Placering, box
 
-from trebodar.byggdelar.virke import fmt, virke_i_lada
+from trebodar.byggdelar.virke import fmt
 from trebodar.hus.invandigt.kokets_inbyggnad import H_OPPNING, SKAFFERI, fritt
 from trebodar.hus.invandigt.lattvaggar import K_SMYG, K_YTA
-from trebodar.material import ASK, C24, SKAPSTOMME, SOCKELGALLER, VITVARA
+from trebodar.material import ASK, C24, SKAPSTOMME, SOCKELGALLER, VIT_FRONT, VITVARA
 
 from . import koksbank
 
@@ -28,6 +29,20 @@ DJUP = 545.0                                              # vitvarornas och skå
 VITVARA_B = 556.0
 SKAP_T, HYLLA_T = 16.0, 19.0
 Z_TOPP = H_OPPNING - K_SMYG                               # öppningens överkant under smygen
+GANGJARN = {"Kyl": -1, "Frys": 1, "Skafferi": -1}          # dörrarnas gångjärn: vid den lägre (−1) eller högre x
+HANDTAG = (20.0, 30.0, 400.0)                             # handtagen: bredd, djup ut från fronten, längd (högst)
+HANDTAG_KANT, HANDTAG_Z = 40.0, 1050.0                    # handtagets kant från dörrens fria kant; dess mitt över golvet
+
+
+def _handtag(namn: str, x0: float, x1: float, za: float, zb: float) -> Del:
+    """Handtaget av oljad ask på fronten x0–x1, za–zb, vid den fria kanten (mitt emot gångjärnen): lodrätt, högst 40 %
+    av frontens höjd, med mitten HANDTAG_Z över golvet eller så nära det som fronten tillåter."""
+    b, d, lmax = HANDTAG
+    lang = min(lmax, 0.4 * (zb - za))
+    zm = min(max(HANDTAG_Z, za + lang / 2 + 100.0), zb - lang / 2 - 100.0)
+    xa = x1 - HANDTAG_KANT - b if GANGJARN[namn] < 0 else x0 + HANDTAG_KANT
+    return Del(f"Handtag ask {fmt(b)}×{fmt(d)}×{fmt(lang)}", box(xa, xa + b, K_YTA, K_YTA + d, zm - lang / 2,
+                                                               zm + lang / 2), ASK, produkt="HANDTAG")
 NISCHER = {"Kyl": ("Integrerat kylskåp", 1769.0, ()),     # (vitvaran, dess höjd, hyllornas överkant i skåpet)
            "Frys": ("Integrerat frysskåp", 873.0, (1360.0, 1730.0))}
 DORR_Z = 10.0                                             # skafferidörrens underkant
@@ -39,7 +54,7 @@ def _nisch(namn: str) -> Montage:
     """Sockeln, vitvaran, skåpet ovanför och fronterna i en nisch."""
     vitvara, h, hyllor = NISCHER[namn]
     kod = namn.upper()
-    m = Montage(namn, beskrivning=f"{vitvara} med sockel, skåp ovanför och fronter av ask")
+    m = Montage(namn, beskrivning=f"{vitvara} med sockel, skåp ovanför och vitmålade fronter")
     x0, x1 = fritt(namn)
     yf = K_YTA - FRONT_T                                  # fronternas baksida, vitvarans och skåpets framsida
     yb, yg = yf - DJUP, K_YTA - SOCKEL_IN - GALLER_T
@@ -63,18 +78,20 @@ def _nisch(namn: str) -> Montage:
         m.lagg(Del(f"Skåpstomme {fmt(SKAP_T)}", f, SKAPSTOMME), Placering(), f"{kod}-SKAP-{k}")
     # fronterna på vitvarans dörr och på skåpet
     for k, (za, zb) in (("1", (SOCKEL + SPEL, zs - SPEL)), ("2", (zs, Z_TOPP - SPEL))):
-        d, pl = virke_i_lada(x0 + SPEL, x1 - SPEL, yf, K_YTA, za, zb, "z", ASK)
-        m.lagg(Del(f"Front ask {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}", d.form, ASK, produkt="KOKSFRONTER"), pl,
+        m.lagg(Del(f"Front vitmålad {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}",
+                   box(x0 + SPEL, x1 - SPEL, yf, K_YTA, za, zb), VIT_FRONT, produkt="INBYGGNADSFRONTER"), Placering(),
                f"{kod}-FRONT{k}")
+        m.lagg(_handtag(namn, x0 + SPEL, x1 - SPEL, za, zb), Placering(), f"{kod}-HANDTAG{k}")
     return m
 
 
 def _skafferi() -> Montage:
-    m = Montage("Skafferi", beskrivning="Dörr av ask som fronterna och hyllor av vit melamin längs L4 och 3NV")
+    m = Montage("Skafferi", beskrivning="Vitmålad dörr som fronterna och hyllor av vit melamin längs L4 och 3NV")
     x0, x1 = fritt("Skafferi")
-    d, pl = virke_i_lada(x0, x1 - SPEL, K_YTA - FRONT_T, K_YTA, DORR_Z, Z_TOPP - SPEL, "z", ASK)
-    m.lagg(Del(f"Skafferidörr ask {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}", d.form, ASK,
-               produkt="KOKSFRONTER"), pl, "SKAFFERI-DORR")
+    m.lagg(Del(f"Skafferidörr vitmålad {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}",
+               box(x0, x1 - SPEL, K_YTA - FRONT_T, K_YTA, DORR_Z, Z_TOPP - SPEL), VIT_FRONT,
+               produkt="INBYGGNADSFRONTER"), Placering(), "SKAFFERI-DORR")
+    m.lagg(_handtag("Skafferi", x0, x1 - SPEL, DORR_Z, Z_TOPP - SPEL), Placering(), "SKAFFERI-HANDTAG")
     sx0, sx1, sy0, sy1 = SKAFFERI
     for i, z in enumerate(HYLLOR, start=1):
         for k, f in (("L4", box(sx0, sx1, sy0, sy0 + HYLLA_DJUP, z - HYLLA_T, z)),

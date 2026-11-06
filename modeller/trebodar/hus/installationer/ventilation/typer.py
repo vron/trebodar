@@ -107,7 +107,8 @@ class Overgangstyp:
 class Avluftstyp:
     """Avluftsdon där luften lämnar huset: galler på fasaden (fronten b × h, djup ut från fasaden), takhuv (huvens
     diameter b och höjd h över taket) eller takfläkt på en sockel i taket (bottenplattans diameter b, husets diameter
-    hus och fläktens höjd h över sockeln, sockelns överkant sockel över taket i fläktens mitt)."""
+    hus och fläktens höjd h över sockeln, sockelns överkant sockel över taket i fläktens mitt och dess diameter
+    sockel_d, bottenplattans om 0)."""
     kod: str
     namn: str
     slag: str                   # "galler", "takhuv" eller "takfläkt"
@@ -118,4 +119,5 @@ class Avluftstyp:
     backspjall: bool = False
     hus: float = 0.0
     sockel: float = 0.0
+    sockel_d: float = 0.0
     produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen

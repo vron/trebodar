@@ -131,10 +131,29 @@ anm      = "Lådskenor Blum MOVENTO 760H i modellen; gångjärn och låskrokar �
 [[produkt]]
 kod      = "KOKSFRONTER"
 grupp    = "Kök"
-namn     = "Köksfronter av fräst ask, även vitvarornas fronter och skafferidörren"
+namn     = "Köksfronter av fräst ask, bänken och ön"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
+
+[[produkt]]
+kod      = "INBYGGNADSFRONTER"
+grupp    = "Kök"
+namn     = "Vitmålade fronter i kökets inbyggnad: kylens, frysens och skåpens fronter och skafferidörren"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [78]
+
+[[produkt]]
+kod      = "HANDTAG"
+grupp    = "Kök"
+namn     = "Handtag av oljad ask till inbyggnadens fronter"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [78]
+anm      = "Lodräta, 20 × 30, högst 400 långa, vid dörrarnas fria kant."
 
 [[produkt]]
 kod      = "BANKSKIVA"
@@ -199,19 +218,19 @@ ansvarig = "byggherre"
 fas      = "invandigt"
 dokument = "V-01"
 arende   = [53, 59]
-anm      = "Bredden 70, den minsta, över hällen 60. Utloppet Ø150 upp i skorstenen och den isolerade kanalen Ø250 genom taket till takfläkten; forcerat 400 m³/h. Ersättningsluften behövs."
+anm      = "Bredden 70, den minsta, över hällen 60. Utloppet Ø150 upp i skorstenen och den isolerade kanalen Ø200 genom taket till takfläkten; forcerat 400 m³/h. Ersättningsluften behövs."
 
 [[produkt]]
 kod      = "TAKFLAKT"
 grupp    = "Kök"
 namn     = "Takfläkt till köksfläkten, på en sockel i taket"
-vald     = "Systemair TFSR 315 Sileo med backspjäll och varvtalsstyrning RTRE 3"
+vald     = "Systemair TFSR 200 EC Sileo med backspjäll och varvtalsstyrning (EC, 0–10 V)"
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "tatt"
 dokument = "V-01"
-arende   = [59]
-anm      = "Tyst takfläkt för köksfläkten, rakt ovanför kåpan; kanalen genom taket görs när taket läggs. Kulören är inte vald."
+arende   = [59, 75]
+anm      = "Tyst takfläkt för köksfläkten, rakt ovanför kåpan: 108 l/s vid 284 Pa, så kåpans 111 l/s på ungefär halvt varvtal. Kanalen genom taket görs när taket läggs. Kulören är inte vald."
 
 # ------------------------------------------------------------------ badrum
 

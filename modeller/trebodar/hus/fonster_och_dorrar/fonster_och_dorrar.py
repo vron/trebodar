@@ -225,8 +225,8 @@ def _fonsterbleck_velfac(o: Oppning) -> tuple[Del, Placering]:
 
 
 def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
-    """Fickdörren i väggen, stängd: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py) går FICKA_UT in i
-    fickan; skenan under överstycket över öppningen och fickan. Öppningen har smyg av oljad ask DORRSMYG_T runt om
+    """Fickdörren i väggen: bladet mitt i väggens stomme (fickan, invandigt/vaggar.py), stängt FICKA_UT in i fickan och
+    öppet (d.ute) så långt ut ur den; skenan under överstycket över öppningen och fickan. Öppningen har smyg av oljad ask DORRSMYG_T runt om
     utom vid golvet, genom hela väggen i liv med skivorna på båda sidor: hel på låssidan, där bladet stängs mot den, och
     delad vid fickan och i överstycket, med en slits för bladet; sidorna står på golvet och överstycket går över dem."""
     v = vaggdef(d.vagg)
@@ -234,6 +234,9 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     a, b = d.fickan
     r = DORRSMYG_T
     ba, bb = (d.u0 + r, d.u1 + FICKA_UT + r) if d.mot > 0 else (d.u0 - FICKA_UT - r, d.u1 - r)
+    if d.ute is not None:                                       # öppen: bladet in i fickan till d.ute från smygen
+        flytt = d.mot * (d.bredd - 2 * r - d.ute)
+        ba, bb = ba + flytt, bb + flytt
     m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
     zb = max(10.0, d.troskel + TROSKEL_SPEL)                    # bladets underkant, fritt över tröskeln
     blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, zb, d.hojd + 10.0, "z", ASK)

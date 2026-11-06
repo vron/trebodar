@@ -191,11 +191,11 @@ def _avluft(e: Avluft) -> Montage:
         # sockeln av takplåt från takets yta till den vågräta överkanten, fläkten på den: bottenplattan, huset och
         # motorn under locket; en plåt runt sockeln i takets plan
         upp = Placering.axlar(m.punkt, (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
-        r = t.b / 2
-        lag = r * math.tan(math.radians(S.TAKVINKEL)) + 50.0
-        ring = cylinder(r, t.sockel + lag, (0.0, 0.0, -lag)) - cylinder(r - 1.0, t.sockel + lag + 2.0,
-                                                                        (0.0, 0.0, -lag - 1.0))
-        mm.lagg(Del(f"{t.namn}, sockel Ø{t.b:g}", ring - _under_ytan(m.normal, 2 * t.b, 2 * lag), TAKPLAT), upp,
+        r, rs = t.b / 2, (t.sockel_d or t.b) / 2
+        lag = rs * math.tan(math.radians(S.TAKVINKEL)) + 50.0
+        ring = cylinder(rs, t.sockel + lag, (0.0, 0.0, -lag)) - cylinder(rs - 1.0, t.sockel + lag + 2.0,
+                                                                         (0.0, 0.0, -lag - 1.0))
+        mm.lagg(Del(f"{t.namn}, sockel Ø{2 * rs:g}", ring - _under_ytan(m.normal, 4 * rs, 2 * lag), TAKPLAT), upp,
                 f"{e.id}-SOCKEL")
         z = t.sockel
         mm.lagg(Del(f"{t.namn}, bottenplatta Ø{t.b:g}", cylinder(r, 10.0, (0.0, 0.0, z)), TAKFLAKT), upp,
@@ -204,8 +204,8 @@ def _avluft(e: Avluft) -> Montage:
         mm.lagg(Del(f"{t.namn}, hus Ø{t.hus:g}", hus, TAKFLAKT), upp, f"{e.id}-HUS")
         lock = cylinder(0.22 * t.hus, 0.22 * t.h, (0.0, 0.0, z + 0.78 * t.h))
         mm.lagg(Del(f"{t.namn}, motorns lock", lock, TAKFLAKT), upp, f"{e.id}-LOCK")
-        a = r + 80.0
-        mm.lagg(Del(f"{t.namn}, plåt i takets plan", box(-a, a, -a, a, 0.0, 2.0) - cylinder(r, 10.0, (0.0, 0.0, -5.0)),
+        a = rs + 80.0
+        mm.lagg(Del(f"{t.namn}, plåt i takets plan", box(-a, a, -a, a, 0.0, 2.0) - cylinder(rs, 10.0, (0.0, 0.0, -5.0)),
                     TAKPLAT), Placering.axlar(m.punkt, (0.0, 1.0, 0.0), m.normal), f"{e.id}-PLAT")
     else:
         # takhuven av plåt: röret lodrätt från takets yta, huven överst och en plåt runt röret i takets plan

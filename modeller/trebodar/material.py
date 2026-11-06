@@ -205,6 +205,8 @@ SANGKLADER = Material("Sängkläder", "Madrass och sängkläder, vitt linne (sä
                       cad="#ebe7dd")
 VIT_SKIVA = Material("Vit skiva", "Skiva, vitmålad (köksbänkens och öns sidor och öns baksida)", 700, "#efede7", 0.6,
                      cad="#f1efe9")
+VIT_FRONT = Material("Vit front", "Front, vitmålad (kökets inbyggnad: kylens, frysens och skåpens fronter och "
+                                  "skafferidörren)", 700, "#f0eee8", 0.5, cad="#f1efe9")
 HALLGLAS = Material("Hällglas", "Induktionshällens glaskeramik, svart", 2500, "#111214", 0.06, cad="#2a2c30")
 
 # badrummet (hus/inredning/badrum.py): sanitetsporslin, badkaret, blandarna och duschens glas, spegeln och tröskeln

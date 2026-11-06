@@ -48,7 +48,7 @@ Elementens id börjar med grenens: D don, K kanal, FL fläkt, O övergång, A av
 
 | Gren | Rum | Flöde | Väg |
 |---|---|---|---|
-| FF1 | Köket | 111 l/s forcerat (400 m³/h), 56 l/s normalt | Kåpan Fjäråskupan Carisma 70, vit, utan egen fläkt, mitt emellan fönstren 3NV-F4 och 3NV-F5, 650 över hällen; utloppet Ø150 upp i skorstenskåpan mot takbalksfackets mitt, genom innertaket och ångbromsen, och isolerad Ø250 lodrätt genom taket till takfläkten Systemair TFSR 315 Sileo på en sockel i takplåten |
+| FF1 | Köket | 111 l/s forcerat (400 m³/h), 56 l/s normalt | Kåpan Fjäråskupan Carisma 70, vit, utan egen fläkt, mitt emellan fönstren 3NV-F4 och 3NV-F5, 650 över hällen; utloppet Ø150 upp i skorstenskåpan mot takbalksfackets mitt, genom innertaket och ångbromsen, och isolerad Ø200 lodrätt genom taket till takfläkten Systemair TFSR 200 EC Sileo på en sockel Ø300 i takplåten |
 | FF2 | Badrummet | 15 l/s forcerat, 10 l/s grund (fuktstyrd) | Väggfläkt i gaveln 1NO mellan fönstret 1NO-F1 och väggen L9, 2 300 över golvet, röret genom väggen och galler |
 | FF3 | Källarrummet (mellan V19/V20, V2, V15 och V4–V6) | 10 l/s | Frånluftsdon i rummets nordvästra hörn; kanalen under källarens tak genom V19 till kanalfläkten i källarens vänstra del; upp genom mellanbjälklaget i den bärande innerväggen 1C (mellan badrummet och hallen) som platt kanal 204 × 60 mellan reglarna 1C-R01 och 1C-R02; över innertaket isolerad mellan takbalkarna och ut genom takhuven på takfallet 1NV, 650 mm nedanför nocken |
 
