@@ -146,9 +146,9 @@ gavel = true
 
 # Toppkloss: en kloss 45 mm (diagonalens höjd, minst 600 mm lång) skruvas på var sida om toppen, så att balken vilar
 # på 135 mm. alla = true: på alla takstolar (en detalj), annars bara där 45 mm inte räcker.
-[toppkloss]
-alla = true
+[toppkloss]              # toppklossarna i modellen (en per takstol), fibrerna vågräta
 t = 45
+kc90 = 1.5               # tryck vinkelrätt fibrerna under balken (6.1.5)
 skruv_d = 6.0
 skruv_L = 90
 skruv_My = 9500.0
@@ -167,12 +167,11 @@ gamma_M_forband = 1.3
 
 # ------------------------------------------------------------------ stolpar
 # namn: K-05:s punktlast. sok: punkt i modellen där stolpen söks (kontroll_k03.py). gamla: beteckning i den äldre
-# beräkningen. krav: utförande som ersätter modellens, när modellen saknar stolpe eller den inte räcker.
-# L: knäcklängd om den inte ska tas ur modellen. e: lastens excentricitet [mm] i x-led.
+# beräkningen. mat: material om inte C24. krav: utförande som ersätter modellens, när modellen saknar stolpe eller den
+# inte räcker. L: knäcklängd om den inte ska tas ur modellen. e: lastens excentricitet [mm] i x-led.
 [[stolpe]]
 namn = "LN1_1"
 sok = [11655, 2795]
-krav = { delar = 4, b = 45, h = 95, mat = "C24", text = "4 st 45×95 C24, ny", z0 = 0, z1 = 3645, stagad = "x" }
 [[stolpe]]
 namn = "LN1_2"
 sok = [11655, 4686]
@@ -207,12 +206,11 @@ namn = "LD4_1"
 sok = [4475, 5843]
 gamla = "B"
 e = 70
-krav = { delar = 1, b = 140, h = 140, mat = "GL30h", text = "GL30h 140×140", z0 = 0, z1 = 2404, stagad = "" }
+mat = "GL30h"
 [[stolpe]]
 namn = "LD4_2"
 sok = [4420, 10992]
 gamla = "G"
-krav = { delar = 5, b = 45, h = 95, mat = "C24", text = "5 st 45×95 C24", z0 = 45, z1 = 2361, stagad = "x" }
 [[stolpe]]
 namn = "LN5_1"
 sok = [2140, 8220]
@@ -223,8 +221,8 @@ sok = [2075, 11000]
 gamla = "D"
 e = 48.5        # nockbalk 5 vilar på 83 av stolpens 180 mm (#45)
 
-# Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D. Strävor på båda sidor om stolpen
-# (modellen visar bara den ena). Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
+# Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D, strävor på båda sidor om stolpen.
+# Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
 [huvudstolpe]
 L = 2900                # golv till strävornas fäste (K-01)
 N_d = 49.3              # K-01, stolpe 4 st 45×120

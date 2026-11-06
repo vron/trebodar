@@ -69,8 +69,11 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
     lbl = ["ÅII nock–dal, mitten", "ÅIY nock–takfot, mitten", "ÅYI nock–dal, sidorna", "ÅYY nock–takfot, sidorna"]
     h += [plt.Line2D([], [], color=STAL, lw=4), plt.Line2D([], [], color=BLA, lw=2.6),
           Rectangle((0, 0), 1, 1, fc="white", ec=INK, hatch="////", lw=0.6),
-          plt.Line2D([], [], marker="s", color=INK, ls="none", ms=4), plt.Line2D([], [], marker="s", color=ROD, ls="none", ms=4)]
-    lbl += ["nock- och dalbalk (K-01)", "takstol", "takfönster", "stolpe (K-05:s last)", "stolpe som inte räcker eller saknas"]
+          plt.Line2D([], [], marker="s", color=INK, ls="none", ms=4)]
+    lbl += ["nock- och dalbalk (K-01)", "takstol", "takfönster", "stolpe (K-05:s last)"]
+    if brister:
+        h.append(plt.Line2D([], [], marker="s", color=ROD, ls="none", ms=4))
+        lbl.append("stolpe som inte räcker eller saknas")
     ax.legend(h, lbl, loc="upper right", fontsize=6.3, frameon=True, framealpha=0.95, edgecolor="none", ncol=2,
               bbox_to_anchor=(1.0, 1.0), handlelength=2.0, columnspacing=1.0)
     ax.set_xlim(-600, 14400); ax.set_ylim(-600, 16500); ax.set_aspect("equal")
@@ -144,7 +147,8 @@ def takstol(path, t, Pd, H, V):
     ax.annotate("", (xt, zt + 120), (xt, zt + 520), arrowprops=dict(arrowstyle="-|>", lw=1.2, color=ROD))
     ax.text(xt + 60, zt + 420, f"$P_d$ = {Pd:.1f} kN".replace(".", ","), color=ROD, fontsize=7, ha="left")
     ax.add_patch(Rectangle((xt - 350, zt - 300), 700, 220, fc="none", ec=ROD, lw=0.8, ls=(0, (3, 2)), zorder=6))
-    ax.annotate("toppklossar 45 mm\npå båda sidor", (xt + 350, zt - 190), (xt + 900, zt + 250), color=ROD, fontsize=6.3, ha="left",
+    ax.annotate("toppkloss 45 mm\npå ena sidan" if t["nk"] == 1 else f"{t['nk']} toppklossar 45 mm", (xt + 350, zt - 190),
+                (xt + 900, zt + 250), color=ROD, fontsize=6.3, ha="left",
                 va="center", arrowprops=dict(arrowstyle="-", lw=0.4, color=ROD))
     xs = [s["x0"] for s in t["staver"] if "diag" in s["namn"]] + [s["x1"] for s in t["staver"] if "diag" in s["namn"]]
     zb = min(s["z0"] for s in t["staver"] if s["z0"] > 2000)
@@ -177,10 +181,9 @@ def huvudstolpe(path, GEO, HS, kc, u):
         w = HS["strava_h"] / 2 * math.sqrt(2)
         pts = [(yA, zA - w), (yB + s * 0, zB - 0), (yB - s * w, zB), (yA, zA + 0)]
         pts = [(yA, zA), (yB, zB), (yB - s * HS["strava_h"] * math.sqrt(2), zB), (yA, zA + HS["strava_h"] * math.sqrt(2))]
-        ax.add_patch(Polygon(pts, closed=True, fc=TRA, ec=INK, lw=0.6, zorder=4, ls="-" if s > 0 else (0, (3, 1.5))))
+        ax.add_patch(Polygon(pts, closed=True, fc=TRA, ec=INK, lw=0.6, zorder=4))
         ax.annotate("", (yB, t["z1"] + 195), (yB, t["z1"] + 480), arrowprops=dict(arrowstyle="-|>", lw=1.0, color=ROD))
     ax.text(yc + e + 40, t["z1"] + 380, f"strävan: högst {HS['F_strava']:.1f} kN".replace(".", ","), color=ROD, fontsize=6.3)
-    ax.text(yc - 1230, zt - 420, "streckad sträva:\nfinns inte i modellen", fontsize=6.0, ha="left", va="center", style="italic", color="#555")
     ax.annotate("", (yc, -10), (yc, -330), arrowprops=dict(arrowstyle="<|-", lw=1.0, color=BLA))
     ax.text(yc + 60, -260, f"$N_d$ = {HS['N_d']:.1f} kN, $M_d$ = {HS['M_d']:.2f} kNm".replace(".", ","), color=BLA, fontsize=6.5)
     ax.annotate("", (yc + 330, 0), (yc + 330, HS["L"]), arrowprops=dict(arrowstyle="<->", lw=0.4))

@@ -252,18 +252,23 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     u_band = H * 1e3 / (45 * hb) / (C24.kh(hb) * C24.ft0d)
     n_spik = math.ceil(H / 2 / Fv_spik_d)
     u_plat = H / 2 / N_plat
-    t_krav = P * 1e3 / (UP["balk_b"] * f_topp)           # erforderlig tjocklek i toppen, säte = balkens bredd
-    kloss = t_krav > 45 or TK.get("alla", False)
-    n_kloss = math.ceil(P * 2 * TK["t"] / (45 + 2 * TK["t"]) / Fv_kloss_d) if kloss else 0
+    # toppen under balken (säte = balkens bredd): diagonalernas ändar, fibrerna 30° (6.16), och toppklossarna med
+    # vågräta fibrer, tryck vinkelrätt fibrerna med l_ef = bredden + 2 × 30 mm och k_c,90 (6.1.5); klossens del av
+    # lasten går genom skruvarna till takstolen
+    nk = len(g["klossar"])
+    R_diag = UP["balk_b"] * 45 * f_topp / 1e3
+    R_kloss = (UP["balk_b"] + 60) * TK["t"] * TK["kc90"] * C24.fc90d / 1e3
+    u_topp = P / (R_diag + nk * R_kloss)
+    n_kloss = math.ceil(P * R_kloss / (R_diag + nk * R_kloss) / Fv_kloss_d) if nk else 0   # per kloss
     l_fot = V * 1e3 / (45 * 1.5 * C24.fc90d)             # erforderlig upplagslängd på hammarbandet
     ST.append(dict(namn=T["namn"], text=T["text"], stod=f"{T['stod'][0]} {T['stod'][1]}", y=yy, P=P, Gk=Gk, Sk=Sk, a=a, hd=hd, hb=hb,
                    bredd=bredd, q=q, V=V, H=H, N=N, M=M, Ld=Ld, kc=kc, u_diag=u_diag, u_band=u_band, n_spik=n_spik, u_plat=u_plat,
-                   t_krav=t_krav, u_topp45=t_krav / 45, u_topp135=t_krav / (45 + 2 * TK["t"]), kloss=kloss, n_kloss=n_kloss,
+                   nk=nk, u_topp=u_topp, n_kloss=n_kloss,
                    l_fot=l_fot, gavel=T["gavel"],
                    x_topp=x_topp, staver=g["staver"], platar=g["platar"]))
     print(f"takstol {T['namn']:9s} {T['stod'][0]} {T['stod'][1]}: P {P:5.1f} kN, a {a:.2f} m, remsa {bredd:.2f} m, diag 45×{hd:.0f} "
           f"N {N:.1f} kN M {M:.2f} kNm kc {kc:.2f} -> {u_diag:.0%}; band 45×{hb:.0f} H {H:.1f} kN -> {u_band:.0%}; "
-          f"spik {n_spik}/plåt och stav, plåt {u_plat:.0%}; topp t_krav {t_krav:.0f} mm, kloss {kloss} ({n_kloss} skruv); fot l {l_fot:.0f} mm")
+          f"spik {n_spik}/plåt och stav, plåt {u_plat:.0%}; topp {nk} kloss -> {u_topp:.0%} ({n_kloss} skruv); fot l {l_fot:.0f} mm")
 
 # ------------------------------------------------------------------ stolpar
 PL = {p["namn"]: p for p in L05.punktlaster()}
@@ -281,7 +286,7 @@ def stolpe(namn):
         delar = [dict(bx=k["b"], hy=k["h"], z0=k["z0"], z1=k["z1"]) for _ in range(k["delar"])]
         stag, utf, kalla = k["stagad"], k["text"], "krav"
     else:
-        mat = GL if any("115" in d["namn"] for d in g["delar"]) else C24
+        mat = Mat(S.get("mat", "C24"))
         delar = [dict(bx=d["x1"] - d["x0"], hy=d["y1"] - d["y0"], z0=d["z0"], z1=d["z1"]) for d in g["delar"]]
         stag, kalla = g["stagad"], "modell"
         utf = beskriv(g["delar"], mat)
@@ -350,16 +355,6 @@ for namn in PL:
         continue
     print(f"stolpe {namn:6s} ({s['gamla']:1s}) {s['utf']:34s} [{s['kalla']}] L {s['L']:.0f} {s['knack']:24s} N_d {s['Nd']:5.1f} "
           f"e {s['e']:.0f} -> {s['u']:.0%}  syll {s['u_syll']:.0%} hammarband {s['u_ham']:.0%}  lyft {s['Wd']:.1f}")
-# stolpe B som i modellen (115×115) för jämförelse
-gB = SG["LD4_1"]
-SI_B = dict(SI["LD4_1"])
-SI_B.pop("krav")
-SI["LD4_1_modell"] = SI_B
-SG["LD4_1_modell"] = gB
-PL["LD4_1_modell"] = PL["LD4_1"]
-B_mod = stolpe("LD4_1_modell")
-print(f"stolpe B som i modellen: {B_mod['utf']} -> {B_mod['u']:.0%}")
-
 # huvudstolpen (LN1_3): K-01:s krafter, knäckning i strävornas plan
 gH = SG["LN1_3"]
 nH = len(gH["delar"])
@@ -379,32 +374,36 @@ print(f"huvudstolpen: {nH} st 45×{hH:.0f}, b {bH:.0f}, L {HS['L']} kc {kcH:.2f}
       f"strävor {Ns:.1f} kN/lager -> {u_strava:.0%}; topregel drag {u_topregel:.0%}, upplag {l_topregel:.0f} mm; spik {n_spik_H}")
 
 # ------------------------------------------------------------------ brister i modellen (det som inte räcker eller saknas)
+# stolpar med krav i indata (modellens utförande räcker inte eller saknas), takfönster utan kortlingar, toppar som inte
+# räcker och huvudstolpen utan strävor på båda sidor
 huvud = dict(p=PL["LN1_3"], namn="LN1_3", gamla="F")
-BRISTER = []
-B_krav = next(s for s in STOLPAR if s["namn"] == "LD4_1")
-BRISTER.append(dict(del_="Stolpe B (LD4_1)", modell=f"{B_mod['utf']}, {SI['LD4_1']['e']:.0f} mm excentrisk", utn=pct(B_mod["u"]),
-                    krav=f"{B_krav['utf']}: {pct(B_krav['u'])}"))
-k42 = next(s for s in STOLPAR if s["namn"] == "LD4_2")
-SI_42 = dict(SI["LD4_2"]); SI_42.pop("krav")
-SI["LD4_2_modell"], SG["LD4_2_modell"], PL["LD4_2_modell"] = SI_42, SG["LD4_2"], PL["LD4_2"]
-m42 = stolpe("LD4_2_modell")
-BRISTER.append(dict(del_="Stolpe LD4_2", modell=f"{m42['utf']} på syll", utn=pct(max(m42["u_syll"], m42["u_ham"])) + " (syll)",
-                    krav=f"{k42['utf']}: {pct(max(k42['u'], k42['u_syll'], k42['u_ham']))}"))
-k11 = next(s for s in STOLPAR if s["namn"] == "LN1_1")
-BRISTER.append(dict(del_="Stolpe LN1_1 (nockbalk 1, stöd B)", modell="saknas", utn="–",
-                    krav=f"{k11['utf'].replace(', ny', '')} i väggen vid y ≈ 2 795: {pct(k11['u'])}"))
-kl = [t for t in ST if t["t_krav"] > 45]
-BRISTER.append(dict(del_="Takstolarnas toppar", modell="45 mm under balken",
-                    utn=", ".join(f"{t['namn'].replace('Stol ', '')} {pct(t['u_topp45'])}" for t in kl),
-                    krav=f"toppklossar 45 mm på båda sidor, alla takstolar: högst {pct(max(t['u_topp135'] for t in ST))}"))
-wmax = max(f["w_rasspont"] for f in FON)
-BRISTER.append(dict(del_="Takfönster TF1–TF3", modell="inga kortlingar, råsponten spänner 1,2 m",
-                    utn=f"{fmt(wmax, 0)} mm mot {fmt(FON[0]['w_krav'], 0)} mm", krav="kortlingar 45×170 c/c 600 ovanför och nedanför"))
-BRISTER.append(dict(del_="Takbalkarnas upplag", modell="regel inuti HEA 200 (äldre balk)", utn="–",
-                    krav=f"upplagsregel 45×45 och hak: högst {pct(max(t['uv'] for t in TYPER))}"))
-BRISTER.append(dict(del_="Huvudstolpen LN1_3", modell="sträva bara på ena sidan", utn="–",
-                    krav=f"strävor på båda sidor (dubbeltriangel enligt K-01): {pct(u_H)}"))
-BRIST_STOLPAR = {"LD4_1", "LD4_2", "LN1_1"}
+BRISTER, BRIST_STOLPAR = [], set()
+for namn, S in SI.items():
+    if "krav" not in S or namn not in SG:
+        continue
+    k = next(s for s in STOLPAR if s["namn"] == namn)
+    SI[namn + "_modell"] = {kk: v for kk, v in S.items() if kk != "krav"}
+    SG[namn + "_modell"], PL[namn + "_modell"] = SG[namn], PL[namn]
+    mo = stolpe(namn + "_modell")
+    BRISTER.append(dict(del_=f"Stolpe {namn}", modell="saknas" if mo["saknas"] else mo["utf"],
+                        utn="–" if mo["saknas"] else pct(max(mo["u"], mo["u_syll"], mo["u_ham"])),
+                        krav=f"{k['utf']}: {pct(max(k['u'], k['u_syll'], k['u_ham']))}"))
+    BRIST_STOLPAR.add(namn)
+if any(f["kortlingar"] == 0 for f in FON):
+    wmax = max(f["w_rasspont"] for f in FON)
+    BRISTER.append(dict(del_="Takfönster", modell="inga kortlingar, råsponten spänner 1,2 m",
+                        utn=f"{fmt(wmax, 0)} mm mot {fmt(FON[0]['w_krav'], 0)} mm",
+                        krav="kortlingar 45×170 c/c 600 ovanför och nedanför"))
+if any(t["u_topp"] > 1 for t in ST):
+    BRISTER.append(dict(del_="Takstolarnas toppar", modell="toppklossar som i modellen",
+                        utn=", ".join(f"{t['namn'].replace('Stol ', '')} {pct(t['u_topp'])}" for t in ST if t["u_topp"] > 1),
+                        krav="fler toppklossar"))
+vert = [d for d in GEO["huvudstolpe"] if d["namn"] == "R L3 VertVert"]
+strava = [d for d in GEO["huvudstolpe"] if d["namn"] == "R L3 VertDiag"]
+y0H, y1H = min(d["y0"] for d in vert), max(d["y1"] for d in vert)
+if not (any(d["y1"] <= y0H + 1 for d in strava) and any(d["y0"] >= y1H - 1 for d in strava)):
+    BRISTER.append(dict(del_="Huvudstolpen LN1_3", modell="sträva bara på ena sidan", utn="–",
+                        krav=f"strävor på båda sidor (dubbeltriangel enligt K-01): {pct(u_H)}"))
 
 # ------------------------------------------------------------------ figurer
 import figurer03 as F  # noqa: E402
@@ -418,6 +417,7 @@ F.huvudstolpe(HERE / "fig_huvudstolpe.svg", GEO, HS, kcH, u_H)
 
 # ------------------------------------------------------------------ resultat till mallen
 grupp = lambda s: ("hörn" if s["namn"].startswith("LA") else "fri" if not s["stag"] else "vägg")
+B = next(s for s in STOLPAR if s["namn"] == "LD4_1")
 
 
 BAR = {"LD2_1": "D2, karm", "LD2_2": "D2, karm + ½ N3 C", "LD2_3": "D2, väggens ände"}
@@ -467,28 +467,28 @@ R = {
     "st": [dict(namn=t["namn"].replace("Stol ", ""), text=t["text"], stod=t["stod"], P=fmt(t["P"], 1), a=fmt(t["a"], 2),
                 bredd=fmt(t["bredd"], 2), diag=f"45×{t['hd']:.0f}", N=fmt(t["N"], 1), M=fmt(t["M"], 2), ud=pct(t["u_diag"]),
                 band=f"45×{t['hb']:.0f}", H=fmt(t["H"], 1), ub=pct(t["u_band"]), spik=str(t["n_spik"]),
-                tkrav=fmt(t["t_krav"], 0), kloss="ja" if t["kloss"] else "–", nk=str(t["n_kloss"]) if t["kloss"] else "–",
-                utopp=pct(t["u_topp135"] if t["kloss"] else t["u_topp45"]),
+                kloss=str(t["nk"]), nk=str(t["n_kloss"]) if t["nk"] else "–", utopp=pct(t["u_topp"]),
                 lfot=fmt(t["l_fot"], 0), dim=t is L2M) for t in ST],
     "L2M": dict(P=fmt(L2M["P"], 1), a=fmt(L2M["a"], 2), q=fmt(L2M["q"], 2), V=fmt(L2M["V"], 1), H=fmt(L2M["H"], 1),
                 N=fmt(L2M["N"], 1), M=fmt(L2M["M"], 2), kc=fmt(L2M["kc"], 2), Ld=fmt(L2M["Ld"], 0), ud=pct(L2M["u_diag"]),
-                ub=pct(L2M["u_band"]), hd=fmt(L2M["hd"], 0), hb=fmt(L2M["hb"], 0), tkrav=fmt(L2M["t_krav"], 0),
-                ut=pct(L2M["u_topp135"]), nk=str(L2M["n_kloss"]), spik=str(L2M["n_spik"]), plat=pct(L2M["u_plat"]),
+                ub=pct(L2M["u_band"]), hd=fmt(L2M["hd"], 0), hb=fmt(L2M["hb"], 0), kloss=str(L2M["nk"]),
+                ut=pct(L2M["u_topp"]), nk=str(L2M["n_kloss"]), spik=str(L2M["n_spik"]), plat=pct(L2M["u_plat"]),
                 lfot=fmt(L2M["l_fot"], 0), bredd=fmt(L2M["bredd"], 2)),
-    "sp": dict(Fv=fmt(Fv_spik_d, 2), Fvk=fmt(Fv_spik, 2), Nplat=fmt(N_plat, 1), ftopp=fmt(f_topp, 2), Fvk_kloss=fmt(Fv_kloss_d, 2)),
+    "sp": dict(Fv=fmt(Fv_spik_d, 2), Fvk=fmt(Fv_spik, 2), Nplat=fmt(N_plat, 1), ftopp=fmt(f_topp, 2), Fvk_kloss=fmt(Fv_kloss_d, 2),
+               fc90=fmt(TK["kc90"] * C24.fc90d, 2), kc90=fmt(TK["kc90"], 1)),
     "hs": dict(N=fmt(HS["N_d"], 1), M=fmt(HS["M_d"], 2), L=fmt(HS["L"], 0), n=str(nH), h=fmt(hH, 0), b=fmt(bH, 0), kc=fmt(kcH, 2),
                lr=fmt(lrH, 2), u=pct(u_H), F=fmt(HS["F_strava"], 1), Fax=fmt(F_strava_ax, 1), Ns=fmt(Ns, 1), us=pct(u_strava),
                ut=pct(u_topregel), lt=fmt(l_topregel, 0), spik=str(n_spik_H), e=fmt(HS["e"], 0),
                lyft=fmt(-PL["LN1_3"]["Wd"], 1)),
     "stolpar": rader, "uS": pct(uS),
-    "B": dict(mod=pct(B_mod["u"]), krav=pct(B_krav["u"]), e=fmt(SI["LD4_1"]["e"], 0), N=fmt(B_krav["Nd"], 1),
-              M=fmt(B_krav["Nd"] * SI["LD4_1"]["e"] / 1000, 2)),
+    "B": dict(u=pct(B["u"]), utf=B["utf"], e=fmt(SI["LD4_1"]["e"], 0), N=fmt(B["Nd"], 1),
+              M=fmt(B["Nd"] * SI["LD4_1"]["e"] / 1000, 2)),
     "brister": BRISTER,
     "sammanf": [
         dict(del_="Takbalkar 45×170 c/c 600", antal=str(len(GEO["takbalkar"])), dim=f"{TB_DIM['namn']}, hak", u=pct(TB_DIM["u"])),
         dict(del_="Takfönster", antal=str(len(FON)), dim="takbalk bredvid öppningen", u=pct(max(max(f["u_trim"]) for f in FON))),
-        dict(del_="Takstolar", antal=str(len(ST)), dim="L2M, diagonal och topp med klossar",
-             u=pct(max(max(t["u_diag"], t["u_band"], t["u_plat"], t["u_topp135"] if t["kloss"] else t["u_topp45"]) for t in ST))),
+        dict(del_="Takstolar", antal=str(len(ST)), dim="L2M, diagonal och topp med kloss",
+             u=pct(max(max(t["u_diag"], t["u_band"], t["u_plat"], t["u_topp"]) for t in ST))),
         dict(del_="Huvudstolpen LN1_3", antal="1", dim="knäckning och moment", u=pct(u_H)),
         dict(del_="Övriga stolpar", antal=str(len(STOLPAR)), dim=max(rader, key=lambda r: r["umax"])["namn"], u=pct(uS)),
     ],

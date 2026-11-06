@@ -119,6 +119,7 @@ def main():
     sok = {p["namn"]: (p["x"], p["y"]) for p in L05.punktlaster()}
     sok.update({S["namn"]: tuple(S["sok"]) for S in IN["stolpe"] if "sok" in S})
     vert = [(d, lada([d])) for d in stomme if d.storlek[2] > 1000 and d.storlek[0] < 200 and d.storlek[1] < 200]
+    vert = [(d, q) for d, q in vert if q["z1"] > 100]     # inte källarväggarnas reglar under bjälklaget
     kalla_st = {s["namn"]: s for s in kalla["stolpar"]}
     for namn, (x, y) in sok.items():
         delar = [q for d, q in vert if abs((q["x0"] + q["x1"]) / 2 - x) <= SOK_STOLPE
@@ -148,7 +149,7 @@ def main():
 
     # ---------------------------------------------------------------- huvudstolpen (LN1_3 med strävor)
     rapport.append("Huvudstolpen")
-    hs = [lada([d]) for d in stomme if d.grupp.endswith("/Stolpe LN1_3") and not re.fullmatch(r"\w+-P\d+", d.namn)]
+    hs = [lada([d]) for d in stomme if d.grupp.endswith("/Stolpe LN1_3") and not re.fullmatch(r"\w+-[PS]\d+", d.namn)]
     par, _ = para(kalla["huvudstolpe"], hs, lambda s: ((s["y0"] + s["y1"]) / 2, (s["z0"] + s["z1"]) / 2))
     if len(kalla["huvudstolpe"]) != len(hs):
         fel.append(f"huvudstolpen: {len(kalla['huvudstolpe'])} delar i källfilen, {len(hs)} i modellen")
