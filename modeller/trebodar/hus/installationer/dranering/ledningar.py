@@ -53,13 +53,13 @@ UTLOPP_RIKTNING = (0.064, -0.998)                    # mot nordost (passningen m
 UTLOPP_L = 3000.0                                    # så långt det ritas; röret finns och fortsätter
 STEG = 250.0                                         # ringarnas punkter för höjderna
 # stenarna i marken som ledningarna går under (mark/mark.py: entréavsatsens block E-*, källartrappans avsats K-AV och
-# trappsteg K-S*, med det lägsta stegets underkant, sovrumsavsatsen ur Onshape-modellen): område (x0, y0, x1, y1) och
-# underkant. Under dem inga spolbrunnar och inga lodräta fall; en ändring syns i ./mod dranering kontroll (krockar
-# med Natursten)
-HINDER = {"entréavsatsen": ((-1595.0, 8355.0, -95.0, 11255.0), -1100.0),
-          "källaravsatsen": ((9340.0, -530.0, 12199.0, 970.0), -2350.0),
-          "källartrappan": ((12150.0, -105.0, 14599.0, 895.0), -2250.0),
-          "sovrumsavsatsen": ((-77.0, 62.0, 4400.0, 3490.0), -1844.0)}
+# trappsteg K-S*, sovrumsavsatsen ur Onshape-modellen, breddad, och dess rundade steg): områden (x0, y0, x1, y1) och
+# den lägsta underkanten. Under dem inga spolbrunnar och inga lodräta fall; en ändring syns i
+# ./mod dranering kontroll (krockar med Natursten)
+HINDER = {"entréavsatsen": (((-1595.0, 8355.0, -95.0, 11255.0),), -1100.0),
+          "källaravsatsen och källartrappan": (((9340.0, -530.0, 12298.0, 970.0), (12149.0, -530.0, 13905.0, 895.0)),
+                                               -2350.0),
+          "sovrumsavsatsen": (((-95.0, 62.0, 4400.0, 3490.0), (-342.0, 62.0, 1000.0, 1470.0)), -1844.0)}
 UNDER_HINDER = 50.0                                  # rörens överkant under stenarnas underkant
 HINDER_KANT = 150.0                                  # schaktet utanför stenarnas kant
 DJUPARE = {"dränering": 50.0, "dagvatten": 200.0}    # så mycket raka lutningar får gå under den högsta vattengången
@@ -120,8 +120,8 @@ def ring(typ: str) -> LineString:
 def under_hinder(x: float, y: float) -> str | None:
     """Stenen (HINDER) som punkten ligger under, med schaktet utanför kanten."""
     k = HINDER_KANT
-    return next((n for n, ((x0, y0, x1, y1), _) in HINDER.items() if x0 - k <= x <= x1 + k and y0 - k <= y <= y1 + k),
-                None)
+    return next((n for n, (omr, _) in HINDER.items()
+                 if any(x0 - k <= x <= x1 + k and y0 - k <= y <= y1 + k for x0, y0, x1, y1 in omr)), None)
 
 
 def _vid_kallaren(x: float, y: float) -> bool:
@@ -366,7 +366,7 @@ def utdrag() -> dict:
             "brunnar": {k: {"punkt": [b.x, b.y], "d": b.d, "botten": b.z_botten, "lock": b.z_lock,
                             "beskrivning": b.beskrivning} for k, b in brunnar().items()},
             "stupror": {n: [x, y, z] for n, x, y, z, _ in takkanter.stupror() + dalar.stupror()},
-            "hinder": {n: [list(omr), uk] for n, (omr, uk) in HINDER.items()},
+            "hinder": {n: [[list(o) for o in omr], uk] for n, (omr, uk) in HINDER.items()},
             "genom_sten": [k for k, v in ledningar().items() if v.typ == "anslutning" and under_hinder(*v.vag[0][:2])],
             "grund": {"källaren": list(grunden()[0].exterior.coords), "plattan": list(grunden()[1].exterior.coords)},
             "uk": UK, "rh0": S.PLATS.hojd * 1000, "d": D, "gods": GODS, "fall": FALL, "avstand": AVSTAND,

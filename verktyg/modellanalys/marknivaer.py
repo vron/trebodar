@@ -9,8 +9,9 @@ upp till bjälklaget (fasad.STENVAGGAR) räknas stenen inte, där gäller linjen
 högsta inom ±10 mm (så att linjen inte skär kanter mellan punkterna) och får 2,5 mm upplägg. Linjen förenklas:
 brytpunkterna är mätpunkter och linjen går mellan dem högst 0,4 mm under och högst 10 mm över mätpunkterna, så att
 panelen slutar 2,1–12,5 mm över marken. Skriver också MARKEN, marken själv i samma band (berg, uppfyllnad,
-återfyllning och makadam; utan grunden, fasadstenen, avsatserna och trapporna), som stuprören och dräneringen
-följer. Skriver tabellerna för hus/fasad/markniva.py; modellen ändras inte.
+återfyllning och makadam; utan grunden, fasadstenen, avsatserna och trapporna, och inte där avsatserna och
+trapporna täcker den), som stuprören och dräneringen följer. Skriver tabellerna för hus/fasad/markniva.py; modellen
+ändras inte.
 
     .venv/bin/python marknivaer.py
 """
@@ -71,10 +72,16 @@ def mark_langs(m, kod, delar):
     return us, zs
 
 
-def tabell(m, namn, delar_per_vagg):
+def tabell(m, namn, delar_per_vagg, tackande=()):
+    """Tabellen för hus/fasad/markniva.py: per vägg linjen över delarna; där tackande delar (stenarna) ligger högre
+    är marken täckt och räknas inte (en vägg utan mark utanför stenarna får ingen rad)."""
     print(f"{namn}: dict[str, tuple[tuple[float, float], ...]] = {{")
     for kod in S.YTTERVAGGAR:
         us, zs = mark_langs(m, kod, delar_per_vagg(kod))
+        if tackande:                                  # täckt, också mätpunkterna intill (stenens kant)
+            zt = mark_langs(m, kod, tackande)[1]
+            t = np.isfinite(zt) & (zt >= zs)
+            zs[t | np.r_[t[1:], False] | np.r_[False, t[:-1]]] = -np.inf
         finns = np.isfinite(zs)
         if not finns.any():
             continue
@@ -88,13 +95,14 @@ def tabell(m, namn, delar_per_vagg):
 
 def main():
     m = Modell()
-    mark = m.valj("Mark", utom="Trätrappa")
+    mark = m.valj("Mark", utom="Bänktrappa")
     grund = m.valj("Hus/Grund", utom="Källarväggar")
     utan_sten = [d for d in grund if "/Fasadsten" not in d.sokvag]
     tabell(m, "MARKNIVA", lambda kod: mark + (utan_sten if kod in F.STENVAGGAR else grund))
     # urvalet "Mark" tar också plattan på marks delar (Hus/Grund/Plattan på mark/PM-…)
-    marken = [d for d in mark if not any(n in d.sokvag for n in ("avsats", "Källartrappa", "Entré", "trappa", "/PM-"))]
-    tabell(m, "MARKEN", lambda kod: marken)
+    sten = [d for d in mark if any(n in d.sokvag for n in ("avsats", "Källartrappa", "Entré", "trappa"))]
+    marken = [d for d in mark if d not in sten and "/PM-" not in d.sokvag]
+    tabell(m, "MARKEN", lambda kod: marken, sten)
 
 
 if __name__ == "__main__":

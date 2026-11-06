@@ -4,9 +4,9 @@ Vid takfoten finns ingen takfotsbräda: takbalkarnas ändar är synliga och fasa
 (fasad.py), så att luftintaget till takets luftspalt (U-03) är öppningen ovanför panelen. Takfotsplåt 0,6 över
 råspontens framkant, 35 mm ned under råsponten och med droppnäsa över hängrännan, och halvrunda hängrännor Ø125
 med gavlar. Stuprör Ø87 vid ändarna av de takfötter som går från gavel till gavel (1SO bara vid 1NO: vid 1SV är det
-berg), från rännan till 150 mm över marken (utanför fasadstenen) längs fasaden; en takfot som slutar vid en dal har inget eget stuprör, utan rännan rinner till dalens ändlåda
-och stupröret i hörnet (ett stuprör per hörn, dalar.py). Vid
-gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag 0,6 vikt runt
+berg), från rännan till 150 mm över marken (utanför fasadstenen) längs fasaden; en takfot som slutar vid en dal har
+inget eget stuprör, utan rännan rinner till dalens ändlåda och stupröret i hörnet (ett stuprör per hörn, dalar.py).
+Vid gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag 0,6 vikt runt
 vindskivan: från 50 mm in på plåten över vindskivans överkant, ned över hela framsidan och 15 mm in under den.
 Råsponten, pappen och plåten går ut till vindskivan (takytor.py). Rännorna ligger vågrätt (fallet mot stuprören är
 inte modellerat) och rännkrokarna (på råsponten) är inte modellerade.

@@ -106,7 +106,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
 | Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg |
 | Armeringen | ritningarna R-04, R-05 och R-06 (`beräkningar/R-0x/ritningar.py`, funktionerna som ritar järnen och räknar stålförteckningarna); `hus/armering/armering.py` läser dem och lägger järnen i höjdled |
-| Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och trätrappan till 2SO-D1 |
+| Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och bänktrappan vid 2SO-D1 |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 | En specialprodukt i inköpslistan (IN-01) | `produkt="KOD"` på delen eller montaget i geometriskriptet där det skapas (installationernas produkttyper: typens `produkt` i katalogen) och produkten med status i `beräkningar/IN-01/indata.toml`; `./mod kontroll` jämför koderna |
@@ -154,7 +154,7 @@ vy, för egna justeringar i Blender; ändringar som ska vara kvar görs i `mater
 ```
 Trebodar
 ├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen), schaktet runt plattan på mark,
-│                               återfyllning, entréavsatsen och trätrappan till 2SO-D1
+│                               återfyllning, entréavsatsen och bänktrappan vid 2SO-D1
 └── Hus
     ├── Grund                   bottenplatta (kantbalk, balkar, plintar, L-element), källarväggar V1–V21, rör P1–P19,
     │                           plattan på mark (L-element 500, AR-02), fasadsten per vägg
@@ -178,7 +178,7 @@ Trebodar
     │                           golvvarme, kollektor, brandlarm och dranering, se deras README)
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
-    │                           från dräneringens och dagvattnets ledningar)
+    │                           från dräneringens och dagvattnets ledningar), lucka och trappsteg
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
@@ -261,7 +261,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Plattan på mark**: PM-L L-elementen, PM-FAS betongen i L-elementens fas, PM-C1 och PM-C2 cellplasten (undre och
   övre lagret), PM-M makadamen, PM-F den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 och FK-V9
   återfyllningen mot källarväggen; entréavsatsen E-DS (dörrsteget), E-AV (avsatsen), E-S1–E-S3 (trappstegen);
-  trätrappan TT-P1–TT-P4 (plansteg), TT-V1, TT-V2 (vangstycken).
+  bänktrappan BT-B1, BT-B2 (bänkens plank), BT-BB1–BT-BB6 (bänkens ben), BT-S1, BT-S2 (stegets plank),
+  BT-SB1–BT-SB4 (stegets ben).
 - **Fasadsten** (en grupp per vägg, efter väggen ovanför): `3NV-ST2-04` är sten 4 längs väggen i skift 2 (räknat
   nedifrån), `3NV-HS2` hörnstenen i skift 2 (i hörnet i väggens slut), FB fogbruk, FM armeringsbruk och fästmassa.
 - **Armering**: `BPA` bottenplattan, `KVA` källarväggarna, `MBA` mellanbjälklaget, sedan ritningens positionsnummer
@@ -364,12 +365,17 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
   mot 2B:s gips och mitt mellan 2A:s och L6:s, för att se hur rummet räcker.
-- **Altanen** (hus/altan/altan.py, ärende #30): trädäck framför skjutpartiet 2SV mellan fasaderna 1NV och 3SO, från
-  2SV ut till gaveln 1SV:s linje, överkanten i golvets höjd. Varje bräda (grånad tryckimpregnerad trall 34 × 135) är
-  en egen del; `LANGS` väljer brädornas riktning (längs 2SV eller tvärs) och `RAM` om en ram av brädor går runt om.
-  Bjälkar 45×145 c/c 600 på bärlinor 2 × 45×145 och betongplintar Ø200 i borrade hål i berget (marken har hålen),
-  sargbräda längs de fria kanterna, hål runt stuprören i de inre hörnen. Delarna heter AL-T (brädorna), AL-RAM,
-  AL-S (sargen), AL-B (bjälkarna), AL-L (bärlinorna) och AL-P (plintarna).
+- **Altanen** (hus/altan/altan.py, ärende #30, #70): trädäck framför skjutpartiet 2SV mellan fasaderna 1NV och 3SO,
+  från 2SV ut 250 mm förbi gaveln 1SV:s linje, överkanten i golvets höjd, med breda trappsteg ned till marken längs
+  framkanten och sidan. Varje bräda (grånad tryckimpregnerad trall 34 × 135) är en egen del; `LANGS` väljer
+  brädornas riktning (längs 2SV eller tvärs, ut från huset) och `RAM` om en ram av brädor går runt om. Bjälkar 45×145
+  c/c 600 på bärlinor 2 × 45×145 och betongplintar Ø200 i borrade hål i berget (marken har hålen), utanför
+  dräneringens schakt, sargbräda längs de fria kanterna, hål runt stuprören i de inre hörnen och en lucka över
+  spolrören och spolbrunnen i det inre hörnet mot 1NV. Trappstegen är en bräda och en sargbräda höga (179) och tre
+  brädor djupa, små däck staplade på varandra och nederst på plintar, så många som berget kräver (ett till tre längs
+  framkanten, där berget faller österut, och tre längs sidan). Delarna heter AL-T (brädorna), AL-LU (luckans
+  brädor), AL-RAM, AL-S (sargen), AL-B (bjälkarna), AL-L (bärlinorna), AL-P (plintarna) och AL-FS1-…, AL-SS1-…
+  (trappstegen längs framkanten och sidan, steg 1 överst: -T brädorna, -B bjälkarna, -S sättsteget, -G gaveln).
 - **Ändbrädorna** (hus/invandigt/andbrador.py, ärende #31): där väggarna 1B, 1D, 2A och 2B slutar fritt i ett rum
   en bräda av oljad ask 22 över änden (stommen och skikten på båda sidorna), från golvet till innertaket, som smygen
   runt fönstren; delarna heter `<vägg>-ANDE`.
@@ -435,9 +441,11 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   plattan.
 - **Marken** följer Onshape-modellens mark fram till huset (inte K-06:s högre fyllnadshöjder). Där den inte når fram
   ligger återfyllning: framför 2SV upp till markens nivå intill och vid nedgången till källardörren D1 från
-  källargolvets nivå (K-06). Två separata avsatser av granit: sovrumsavsatsen (Onshape-modellen) och entréavsatsen vid
-  1SO-D1 (dörrsteg, avsats och tre trappsteg längs fasaden mot NO, sex lika steghöjder till marken), och en trätrappa
-  av lärk från sovrumsavsatsen upp till 2SO-D1.
+  källargolvets nivå (K-06); över nedgången är uppfyllnaden borttagen. Två separata avsatser av granit:
+  sovrumsavsatsen (Onshape-modellen, breddad västerut till 1SO:s fasad) och entréavsatsen vid 1SO-D1 (dörrsteg, avsats
+  och tre trappsteg längs fasaden mot NO, sex lika steghöjder till marken), och en bänktrappa av lärk vid 2SO-D1: bänk
+  längs fasaden ett steg ned från dörren och ett steg framför dörren, tre lika steghöjder till sovrumsavsatsen.
+  Källartrappan går från avsatsen framför D1 upp till husets östra fasad.
 - **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
   (K-05 räknar med en 3,0 m lång trappa).
 - **Kaminen** enligt planritning 201 och Rais måttritning och monteringsanvisning (11-6520): insatsen i öppningen i 2C

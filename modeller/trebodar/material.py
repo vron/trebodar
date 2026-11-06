@@ -25,7 +25,7 @@ TRALL = Material("Trall", "Trall, tryckimpregnerad furu NTR AB, grånad (altanen
 TRYCKIMP = Material("Tryckimpregnerat", "Tryckimpregnerat virke NTR AB (altanens bjälkar och bärlinor)", 550,
                     "#b9b48f", 0.8, textur="virke", rendering=rendering(art="furu", yta="impregnerad", riktning="x",
                                                                         tvars="y"), cad="#a9b58a")
-LARK = Material("Lärk", "Sibirisk lärk, obehandlad (trätrappa ute)", 600, "#d2a872", 0.74, textur="virke",
+LARK = Material("Lärk", "Sibirisk lärk, obehandlad (bänktrappan ute)", 600, "#d2a872", 0.74, textur="virke",
                 rendering=rendering(art="lark", riktning="x", tvars="y"), cad="#d6ad74")
 GL30H = Material("GL30h", "Limträ GL30h", 430, "#e3cfa3", 0.7, textur="virke",
                  rendering=rendering(art="gran", riktning="x", tvars="y", lamell="z", lamelltjocklek=45.0, kvistar=1.2),

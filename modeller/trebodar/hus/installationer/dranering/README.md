@@ -50,8 +50,9 @@ källarväggarna och plattan på mark (`../../grund`) och marken vid fasaderna u
 - **Brunnen** B1: Ø400 med sandfång 300 mm under utloppet och locket i marken; alla fyra grenarna går in över
   utloppet.
 
-Altanens plintar (`../../altan/altan.py`) står fria från ledningarna, och köldbärarledningarna (`../kollektor`) går
-under dräneringen där de korsar den.
+Altanens plintar (`../../altan/altan.py`) står fria från ledningarna: bärlinor som skulle gå längs ett schakt flyttas
+ut ur det, plintarna flyttas längs bärlinorna och trappstegens bjälkar, och en plint som inte går att flytta fri
+slutar över röret. Köldbärarledningarna (`../kollektor`) går under dräneringen där de korsar den.
 
 ## Kontrollen
 

@@ -102,7 +102,7 @@ VYER = {
     "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
                "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
                                          "Fönster och dörrar", "Installationer", "Mark/Sovrumsavsats", "Mark/Entréavsats",
-                                         "Mark/Trätrappa"]},
+                                         "Mark/Bänktrappa"]},
 }
 
 # vyernas bildtexter på webbplatsen (inomhusbilderna får sin ur rummet och vyn); TEKNIK: bilderna av stommen och

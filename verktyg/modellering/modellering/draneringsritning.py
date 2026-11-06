@@ -200,8 +200,10 @@ def _plan(u: dict, delar: list[dict], norr: tuple[float, float]) -> Vy:
     stentexter: list[BaseGeometry] = []
     with v.lager("stenar"):
         # stenarna i marken som ledningarna går under, med namnet i hörnet längst från grunden
-        for namn, ((x0, y0, x1, y1), uk) in u["hinder"].items():
-            v.polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], "#efede8", "fin")
+        for namn, (omr, uk) in u["hinder"].items():
+            yta = unary_union([Polygon([(a, b), (c, b), (c, d), (a, d)]) for a, b, c, d in omr])
+            v.polygon(list(yta.exterior.coords)[:-1], "#efede8", "fin")
+            x0, y0, x1, y1 = yta.bounds
             hx, hy = max(((x, y) for x in (x0, x1) for y in (y0, y1)), key=lambda q: grund.distance(Point(q)))
             sx, sy = (1.0 if hx == x0 else -1.0), (1.0 if hy == y0 else -1.0)
             txt = f"{namn}, underkant {rh(u, uk)}"
