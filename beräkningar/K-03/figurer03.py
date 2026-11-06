@@ -56,9 +56,7 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
         fel = s["namn"] in brister
         ax.add_patch(Rectangle((p["x"] - 90, p["y"] - 90), 180, 180, fc=ROD if fel else INK, ec="none", zorder=7))
         txt = s["namn"] + (f" ({s['gamla']})" if s["gamla"] else "")
-        if s["namn"].startswith("LA"):
-            txt = s["namn"].replace("LA", "A")
-        dy = -230 if p["y"] > 15000 or (p["y"] > 3000 and p["y"] < 3800) or p["y"] > 12000 or p["y"] < 100 else 230
+        dy =-230 if p["y"] > 15000 or (p["y"] > 3000 and p["y"] < 3800) or p["y"] > 12000 or p["y"] < 100 else 230
         dx = -130 if p["x"] > 13000 or (p["x"] > 4400 and p["x"] < 4600 and p["y"] < 3700) else 130
         ax.text(p["x"] + dx, p["y"] + dy, txt, fontsize=6.0, color=ROD if fel else INK, va="center", ha="left" if dx > 0 else "right",
                 zorder=8, bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.8))
