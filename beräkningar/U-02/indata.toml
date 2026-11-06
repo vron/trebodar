@@ -13,7 +13,7 @@ revision    = "A"
 datum       = "2026-10-17"
 upprattad   = "Viktor Ogeman"
 granskad    = ""
-underlag    = "K-01 rev C (nock- och dalbalkar), R-01"
+underlag    = "K-01 rev D (nock- och dalbalkar), R-01"
 
 [lyft]
 dyn         = 2.0       # dynamisk faktor på egentyngden: ryck, inbromsning och ojämn hantering (stort; långsamt kranlyft ger 1,1–1,3)

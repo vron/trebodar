@@ -54,7 +54,7 @@ x    = [9405, 13905]
 y    = [905, 12605]
 
 [uppbyggnad]   # F-01: plåt, underlagstäckning, råspont 20, luftspalt, hård träfiberskiva 3, Nativo 170, ångbroms, installationsskikt 45, gips 2 × 12,5
-spalt       = 30        # luftspaltens fria höjd [mm]
+spalt       = 34        # luftspaltens höjd [mm]: ströläkten 34 × 45 (F-01)
 R_in        = 4.2       # rum → träfiberskivans ovansida [m²K/W]: Rsi, gips, installationsskikt, isolering med takbalkar (K-02)
 R_dack      = 0.165     # plåt, underlagspapp (bitumen, t.ex. T-Roof YEP 2500, ångtät) och råspont 20 mm [m²K/W]
 alfa_sol    = 0.65      # bandtäckning av zink-magnesiumbelagd plåt, silvergrå: solabsorption (blank zink/förzinkat 0,65–0,7)
@@ -224,22 +224,19 @@ fukttillskott_tomt = 2.0
 tomt_manader = [10, 11, 12, 1, 2, 3, 4]
 [[fall]]
 id = "rek"
-namn = "Rekommenderat: spalt 36 mm, omluftning 300 mm"
+namn = "Rekommenderat: spalt 34 mm, omluftning 300 mm"
 omluft = true
-spalt = 36
 omluft_l = 300
 [[fall]]
 id = "rek_vind05"
 namn = "Rekommenderat, vindtryck × 0,5"
 omluft = true
-spalt = 36
 omluft_l = 300
 vind = 0.5
 [[fall]]
 id = "rek_vind025"
 namn = "Rekommenderat, vindtryck × 0,25"
 omluft = true
-spalt = 36
 omluft_l = 300
 vind = 0.25
 [[fall]]
@@ -253,7 +250,6 @@ tomt_manader = [10, 11, 12, 1, 2, 3, 4]
 id = "rek_tomt15"
 namn = "Rekommenderat, huset tomt oktober–april: inne 15 °C"
 omluft = true
-spalt = 36
 omluft_l = 300
 T_tomt = 15.0
 fukttillskott_tomt = 2.0
@@ -262,7 +258,6 @@ tomt_manader = [10, 11, 12, 1, 2, 3, 4]
 id = "rek_tomt"
 namn = "Rekommenderat, huset tomt oktober–april: inne 10 °C"
 omluft = true
-spalt = 36
 omluft_l = 300
 T_tomt = 10.0
 fukttillskott_tomt = 2.0
@@ -273,11 +268,6 @@ namn = "Omluftning, strypta takfötter, vindtryck × 0,25"
 omluft = true
 zeta_takfot = 11.0
 vind = 0.25
-[[fall]]
-id = "omluft300"
-namn = "Omluftning med 300 mm uppehåll"
-omluft = true
-omluft_l = 300
 [[fall]]
 id = "masonit006"
 namn = "Omluftning, vindskiva Sd 0,06 m"

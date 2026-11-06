@@ -1,5 +1,5 @@
 """
-analys.py – statik och partiell samverkan för nock- och dalbalkar (stål–trä-komposit), rev C.
+analys.py – statik och partiell samverkan för nock- och dalbalkar (stål–trä-komposit), rev D.
 
 Kompositbalk   FE för symmetrisk balk plåt–liv–plåt med eftergivlig förbindning. Egenskaperna kan
                variera längs balken: där plåt saknas är balken ett rent limträtvärsnitt.

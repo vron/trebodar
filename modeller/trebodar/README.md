@@ -104,7 +104,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Nock- och dalbalkarna | K-01:s `indata.toml` och hålbilder (modellen läser dem) |
 | Stålbanden (stabiliseringen, K-04) | `hus/stomme/prefab/stalband/stalband.py`: väggarnas fält med kryss (`VAGGAR`, banden går till närmaste hela regel eller stolpe) och takfallens fält längs hela fallet (`FALT_TAK`, utom över takfönstren); bandet i `byggdelar/stalband.py`. Räkna om K-04 (`./bygg K-04`), som läser bärverket ur modellen (`hus/stomme/barverk.py`, `./mod barverk`) |
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
-| Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg |
+| Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg, vid de fria hörnen i ryggens urtag (`hornutkap`, samma regel som R-05:s `kallare.py`, R-06 detalj F) |
 | Armeringen | ritningarna R-04, R-05 och R-06 (`beräkningar/R-0x/ritningar.py`, funktionerna som ritar järnen och räknar stålförteckningarna); `hus/armering/armering.py` läser dem och lägger järnen i höjdled |
 | Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och bänktrappan vid 2SO-D1 |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
@@ -270,9 +270,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   järn är raka bitar (bockradierna förenklade bort). Kontrollen prövar inte armering mot betong eller mot annan
   armering, men mot allt annat; mot avloppet är överlapp tillåtna (järnen läggs om runt rören). Installationerna med
   egen kontroll (tappvattnet, golvvärmen) prövas där mot järnen: ingjutna rör ska gå fria från dem.
-  Avvikelser från ritningarna, som inte är uppdaterade (ärende #42): startjärnen under F3:s bröstning (800) kortas
-  till under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant flyttas ut till 40 mm.
-  Mellanbjälklagets järn slutar vid plattan på marks fria kanter vid L-elementens rygg (AR-02), som på R-06.
+  Startjärnen under F3:s bröstning går upp till under bröstningens järn (R-04 pos 42). Mellanbjälklagets järn slutar
+  vid plattan på marks fria kanter vid L-elementens rygg (AR-02), som på R-06.
 
 ## Avsiktliga skillnader mot Onshape-modellen
 
@@ -437,7 +436,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, och i ryggens fas (20 mm innanför
-  konturen i överkant), cellplast 100 + 250, makadam 150 och dränerande fyllning i ett schakt i berget 100 mm utanför
+  konturen i överkant), vid de fria hörnen ut till konturen i ryggens urtag (R-06 detalj F), cellplast 100 + 250, makadam 150 och dränerande fyllning i ett schakt i berget 100 mm utanför
   plattan.
 - **Marken** följer Onshape-modellens mark fram till huset (inte K-06:s högre fyllnadshöjder). Där den inte når fram
   ligger återfyllning: framför 2SV upp till markens nivå intill och vid nedgången till källardörren D1 från

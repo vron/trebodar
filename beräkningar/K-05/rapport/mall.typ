@@ -109,7 +109,7 @@ Ytterväggarnas stomme har sitt centrum #D.enh.vagg_in mm innanför plattans kan
   columns: (1fr, auto, 1fr),
   align: (left, right, left),
   table.header([Last], [Värde], [Referens]),
-  [Takets egentyngd per m² takyta], [#D.enh.g_tak kN/m²], [F-01 (57 kg/m²)],
+  [Takets egentyngd per m² takyta], [#D.enh.g_tak kN/m²], [F-01 (60,8 kg/m²)],
   [d:o per m² horisontell yta, takvinkel #D.enh.vinkel°], [#D.enh.g_tak_h kN/m²], [],
   [Snö, formfaktor 1,0 (på säker sida mot 0,8)], [#D.enh.s kN/m²], [F-01, K-01],
   [Ytterväggens egentyngd per m² väggyta], [#D.enh.g_vagg kN/m²], [antaget, på säker sida],

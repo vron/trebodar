@@ -5,10 +5,8 @@ räknar stålförteckningarna, så att modellen och ritningarna har samma källa
 
 Höjder: R-04 och R-05 räknar från bottenplattans överkant (z −2 250), R-06 från mellanbjälklagets underkant
 (z −150). Järn i samma lager och riktning ligger i ett plan; där ritningen inte anger ordningen ligger x-led ytterst.
-Där modellen avviker från ritningarna, eftersom de inte är uppdaterade (ärende #42): startjärnen under F3:s
-bröstning (800) kortas till under bröstningens järn och ett startjärn närmare än 40 mm utanför en öppnings kant
-flyttas ut till 40 mm. Mellanbjälklagets järn slutar vid plattan på marks fria kanter vid L-elementens rygg (AR-02),
-som på R-06.
+Startjärnen under F3:s bröstning går upp till under bröstningens järn (R-04 pos 42). Mellanbjälklagets järn slutar
+vid plattan på marks fria kanter vid L-elementens rygg (AR-02), som på R-06.
 Kontrollen prövar inte armering mot betong eller mot annan armering (kontrollregler.IGNORERADE), men mot allt annat,
 t.ex. rör och kanaler genom betongen.
 """
@@ -102,7 +100,8 @@ def _klippt(pos: str, pl: list[Punkt], d: float, yta: Polygon) -> list[Jarn]:
 def mellanbjalklag() -> Montage:
     r6 = ritning("R-06")
     return _montage("Mellanbjälklag", "MBA", f"Mellanbjälklagets armering (R-06): nät Ø{r6.DU} s{r6.SU} i underkant "
-                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn och vinkeljärn",
+                    f"och Ø{r6.DO} s{r6.SO} i överkant, järn över rören, zoner, diagonaljärn, vinkeljärn och "
+                    "hörnjärn",
                     list(_mellanbjalklagets_jarn()))
 
 
@@ -139,7 +138,8 @@ def _betongen() -> Polygon:
 
 def _mellanlagret() -> list[Jarn]:
     """Järnen mellan mellanbjälklagets nät: diagonaljärnen vid trapphålet (pos 13) och vinkeljärnen från
-    ytterväggarnas kärna (pos 14), båda under överkantsnätet."""
+    ytterväggarnas kärna (pos 14), båda under överkantsnätet, och hörnjärnen vid plattan på marks fria hörn (pos 15),
+    på underkantsnätet och under överkantsnätet."""
     r6, r5 = ritning("R-06"), ritning("R-05")
     K = r5.K
     jarn: list[Jarn] = []
@@ -163,6 +163,10 @@ def _mellanlagret() -> list[Jarn]:
             inn = (t, q - w["ute"] * p14["in_"]) if w["ax"] == "h" else (q - w["ute"] * p14["in_"], t)
             jarn.append(("A14", [(ned[0], ned[1], zh - p14["ben"]), (ned[0], ned[1], zh), (inn[0], inn[1], zh)],
                          p14["d"]))
+    # hörnjärn vid plattan på marks fria hörn (pos 15), lika i under- och överkant
+    for _, jj in r6.hornjarn():
+        for y in r6.Y15:
+            jarn += [("A15", [(float(x), float(yy), Z_MB + y) for x, yy in pl], r6.POS15["d"]) for pl in jj]
     return jarn
 
 
@@ -325,20 +329,11 @@ def _bottenplattans_jarn() -> tuple[Jarn, ...]:
     for (x, y), typ, namn in r4.startjarn():
         w = R4.VAGG[namn]
         t = x if w["ax"] == "h" else y
-        for o in R4.OPPN:                                    # inte vid öppningens kant: 40 mm in i kärnan
-            if o["ax"] == w["ax"] and abs(o["c"] - w["c"]) < 1.0:
-                if o["x1"] < t < o["x1"] + 40.0:
-                    t = o["x1"] + 40.0
-                elif o["x0"] - 40.0 < t < o["x0"]:
-                    t = o["x0"] - 40.0
-        x, y = (t, y) if w["ax"] == "h" else (x, t)
         inat = 1.0 if (w["a"] + w["b"]) / 2 > t else -1.0
         fx, fy = (x + inat * r4.FOT_START, y) if w["ax"] == "h" else (x, y + inat * r4.FOT_START)
-        upp = float(r4.START["upp"])
-        for o in R4.OPPN:
-            if 0 < o["z0"] and o["ax"] == w["ax"] and abs(o["c"] - w["c"]) < 1.0 and o["x0"] <= t <= o["x1"]:
-                upp = min(upp, o["z0"] - 40.0 - K.OPP["d"] / 2 - r4.START["d"] / 2 - 10.0)
-        pos = r4.POS["start_ute"] if typ == "ute" else r4.POS["start_inne"]
+        upp = r4.startjarn_upp((x, y), namn)
+        pos = r4.POS["start_brost"] if upp < r4.START["upp"] else r4.POS["start_ute"] if typ == "ute" else \
+            r4.POS["start_inne"]
         jarn.append((f"A{pos}", [(fx, fy, zf), (x, y, zf), (x, y, Z_BP + upp)], r4.START["d"]))
     return tuple(jarn)
 

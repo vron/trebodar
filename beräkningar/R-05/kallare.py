@@ -135,15 +135,51 @@ def kantisolering():
     return k.buffer(KI, join_style=2).difference(k).intersection(KALLARE)
 
 
-def platta_pa_mark():
+def platta_pa_mark(urtag=True):
     """Plattan på mark på plan 1 (bakom V3 och V20) i väggarnas ytterliv, L-elementens ytterkant (AR-02): ytan, de
-    fria kanterna (inte mot källaren) och L-elementens rygg, L_BEN innanför ytterkanten. Mellanbjälklagets betong går
-    fram till ryggen och fyller dess fas, FAS från ytterkanten i överkant."""
+    fria kanterna (inte mot källaren) och L-elementens rygg, L_BEN innanför ytterkanten, i plattans tjocklek utom
+    urtagen vid de fria hörnen (hornutkap; urtag=False: hela ryggen, som under plattan). Mellanbjälklagets betong går
+    fram till ryggen och fyller dess fas, FAS från ytterkanten i överkant, och i urtagen ut till RYGG_KVAR från
+    ytterkanten."""
     p = Polygon(G["mark"]).buffer(KI, join_style=2).difference(KALLARE)
     p = max(getattr(p, "geoms", [p]), key=lambda g: g.area)
     fri = p.exterior.difference(KALLARE)
     rygg = fri.buffer(L_BEN, cap_style="flat", join_style="mitre").intersection(p)
-    return p, fri, rygg
+    return p, fri, rygg.difference(hornutkap(p, fri, rygg)) if urtag else rygg
+
+
+# plattan på marks fria hörn (stolparna LA9 och LA10, ärende #46): L-elementens rygg urtagen HORN_UTKAP längs var kant
+# från hörnet utom RYGG_KVAR närmast ytterkanten (som kantisoleringen ovanpå källarväggarna), och betongen gjuts ut i
+# plattans hela tjocklek; extra L-järn i hörnet (R-06 pos 15). Modellen har samma regel (hus/grund/grund.py).
+HORN_UTKAP, RYGG_KVAR = 400.0, 30.0
+
+
+def fria_horn(p, fri):
+    """Plattan på marks fria hörn: de konvexa hörnen där båda kanterna är fria. [(hörnet, riktning 1, riktning 2)],
+    riktningarna längs kanterna från hörnet."""
+    c = list(p.exterior.coords)[:-1]
+    ccw = p.exterior.is_ccw
+    ut = []
+    for i in range(len(c)):
+        a, b, d = c[i - 1], c[i], c[(i + 1) % len(c)]
+        cr = (b[0] - a[0]) * (d[1] - b[1]) - (b[1] - a[1]) * (d[0] - b[0])
+        kanter = (LineString([a, b]), LineString([b, d]))
+        if (cr > 0) == ccw and all(k.difference(fri.buffer(1.0)).length < 1.0 for k in kanter):
+            e1 = ((a[0] - b[0]) / math.dist(a, b), (a[1] - b[1]) / math.dist(a, b))
+            e2 = ((d[0] - b[0]) / math.dist(b, d), (d[1] - b[1]) / math.dist(b, d))
+            ut.append((b, e1, e2))
+    return ut
+
+
+def hornutkap(p, fri, rygg):
+    """Urtagen i ryggen vid de fria hörnen: ryggen HORN_UTKAP längs var kant från hörnet, utom RYGG_KVAR från
+    ytterkanten."""
+    kvar = fri.buffer(RYGG_KVAR, cap_style="flat", join_style="mitre")
+    hornen = [box(b[0] - HORN_UTKAP, b[1] - HORN_UTKAP, b[0] + HORN_UTKAP, b[1] + HORN_UTKAP) for b, _, _ in
+              fria_horn(p, fri)]
+    return unary_union(hornen).intersection(rygg).difference(kvar)
+
+
 for v in VAGGAR:
     # utsidan: den sida av centrumlinjen som ligger utanför källaren (ytterväggar); för innerväggar None
     if v["typ"] == "yttre":

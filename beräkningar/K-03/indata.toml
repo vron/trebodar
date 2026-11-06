@@ -50,7 +50,7 @@ nedbojning  = 300       # w_fin ≤ L/300 (F-01)
 
 # ------------------------------------------------------------------ laster (F-01)
 [last]
-g_tak       = 0.56      # takets egenvikt per m² takyta [kN/m²]
+g_tak       = 0.60      # takets egenvikt per m² takyta [kN/m²] (F-01: 60,8 kg/m²)
 takvinkel   = 30.0
 s_k         = 1.5
 mu_dal      = 1.6       # takfall mot en dal: μ2 = 1,6 jämnt över hela takfallet (standarden: från 0 vid nocken)
@@ -212,7 +212,7 @@ krav = { delar = 1, b = 140, h = 140, mat = "GL30h", text = "GL30h 140×140", z0
 namn = "LD4_2"
 sok = [4420, 10992]
 gamla = "G"
-krav = { delar = 4, b = 45, h = 95, mat = "C24", text = "4 st 45×95 C24", z0 = 43, z1 = 2361, stagad = "x" }
+krav = { delar = 5, b = 45, h = 95, mat = "C24", text = "5 st 45×95 C24", z0 = 45, z1 = 2361, stagad = "x" }
 [[stolpe]]
 namn = "LN5_1"
 sok = [2140, 8220]

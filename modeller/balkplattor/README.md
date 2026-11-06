@@ -1,6 +1,6 @@
 # Balkplåtar – nock- och dalbalkar
 
-Stålplåtar S355J2+N 190 × 10 mm till nock- och dalbalkarna enligt K-01 rev C. En STEP-fil (3D-solid) och en DXF-fil (2D-kontur) per plåt, för laserskärning. Hål Ø13 mm genomgående, cylindriska, utan försänkning, för skruv Rothoblaas HBS PLATE EVO 10×80 (HBSPLEVO1080).
+Stålplåtar S355J2+N 190 × 10 mm till nock- och dalbalkarna enligt K-01 rev D. En STEP-fil (3D-solid) och en DXF-fil (2D-kontur) per plåt, för laserskärning. Hål Ø13 mm genomgående, cylindriska, utan försänkning, för skruv Rothoblaas HBS PLATE EVO 10×80 (HBSPLEVO1080).
 
 ## Namn och koordinater
 
@@ -28,16 +28,16 @@ Generera om efter ändring i K-01: `pip install cadquery ezdxf` och `python gene
 
 | Fil | Balk | Bit | Läge | Längd (mm) | Läge i balken (mm) | Hål | Vikt (kg) |
 |---|---|---|---|---|---|---|---|
-| `DB2-1-O` | Dalbalk 2 | 1 | överplåt | 3733 | 6337–10070 | 41 | 55,3 |
-| `DB2-1-U` | Dalbalk 2 | 1 | underplåt | 3733 | 6337–10070 | 41 | 55,3 |
-| `DB4-1-O` | Dalbalk 4 | 1 | överplåt | 5540 | 1940–7480 | 92 | 81,7 |
-| `DB4-1-U` | Dalbalk 4 | 1 | underplåt | 5540 | 1940–7480 | 92 | 81,7 |
-| `NB1-1-O` | Nockbalk 1 | 1 | överplåt | 5970 | 5600–11570 | 77 | 88,2 |
-| `NB1-1-U` | Nockbalk 1 | 1 | underplåt | 5970 | 5600–11570 | 77 | 88,2 |
-| `NB3-1-O` | Nockbalk 3 | 1 | överplåt | 5235 | 5835–11070 | 54 | 77,5 |
-| `NB3-1-U` | Nockbalk 3 | 1 | underplåt | 5235 | 5835–11070 | 54 | 77,5 |
-| `NB5-1-O` | Nockbalk 5 | 1 | överplåt | 4825 | 0–4825 | 47 | 71,5 |
-| `NB5-1-U` | Nockbalk 5 | 1 | underplåt | 4825 | 0–4825 | 47 | 71,5 |
-| `NB5-2-O` | Nockbalk 5 | 2 | överplåt | 5145 | 7225–12370 | 52 | 76,2 |
-| `NB5-2-U` | Nockbalk 5 | 2 | underplåt | 5145 | 7225–12370 | 52 | 76,2 |
-| **Summa** | | | | **60896** | | **726** | **901** |
+| `DB2-1-O` | Dalbalk 2 | 1 | överplåt | 3733 | 6337–10070 | 44 | 55,2 |
+| `DB2-1-U` | Dalbalk 2 | 1 | underplåt | 3733 | 6337–10070 | 44 | 55,2 |
+| `DB4-1-O` | Dalbalk 4 | 1 | överplåt | 5540 | 1940–7480 | 91 | 81,7 |
+| `DB4-1-U` | Dalbalk 4 | 1 | underplåt | 5540 | 1940–7480 | 91 | 81,7 |
+| `NB1-1-O` | Nockbalk 1 | 1 | överplåt | 6038 | 5532–11570 | 82 | 89,2 |
+| `NB1-1-U` | Nockbalk 1 | 1 | underplåt | 6038 | 5532–11570 | 82 | 89,2 |
+| `NB3-1-O` | Nockbalk 3 | 1 | överplåt | 5235 | 5835–11070 | 55 | 77,5 |
+| `NB3-1-U` | Nockbalk 3 | 1 | underplåt | 5235 | 5835–11070 | 55 | 77,5 |
+| `NB5-1-O` | Nockbalk 5 | 1 | överplåt | 4825 | 0–4825 | 45 | 71,5 |
+| `NB5-1-U` | Nockbalk 5 | 1 | underplåt | 4825 | 0–4825 | 45 | 71,5 |
+| `NB5-2-O` | Nockbalk 5 | 2 | överplåt | 5145 | 7225–12370 | 58 | 76,1 |
+| `NB5-2-U` | Nockbalk 5 | 2 | underplåt | 5145 | 7225–12370 | 58 | 76,1 |
+| **Summa** | | | | **61032** | | **750** | **902** |

@@ -29,6 +29,8 @@ FONTS = HERE.parent / ".fonts"
 UT = HERE / "resultat"
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 FALL = {f["id"]: f for f in IN["fall"]}
+SPALT = f'{IN["uppbyggnad"]["spalt"]:g}'                     # grundfallets spalt [mm], i texterna
+REK_SPALT = FALL["rek"].get("spalt", IN["uppbyggnad"]["spalt"])   # det rekommenderade utförandets spalt [mm]
 NYCKLAR = {"spalt": "uppbyggnad", "alfa_sol": "uppbyggnad", "celler": "modell", "varv": "modell", "zeta_takfot": "stromning"}
 
 
@@ -199,7 +201,7 @@ def fig_omluft(plt):
             f"minst {FALL['rek']['omluft_l']:g} mm fritt per läktlinje inom 1 m ovanför och\n"
             "under fönstret, högst 200 mm vardera, förskjutna\nmellan linjerna så att råsponten alltid bärs.", fontsize=6.3, va="center")
     ax.text(1700, -200, "Luften i de två facken som fönstret bryter går åt sidan\ngenom uppehållen, förbi fönstret i grannfacken och\n"
-            f"tillbaka ovanför det. Spalten {FALL['rek']['spalt']:g} mm fri höjd.", fontsize=6.3, va="center")
+            f"tillbaka ovanför det. Ströläkten {REK_SPALT:g} mm hög.", fontsize=6.3, va="center")
     ax.text(1700, -1300, "Ljust: takbalk 45, avväxling (dubbel takbalk) och kortling.\nMörkt: ströläkt 45.", fontsize=6.3, va="center")
     ax.set_xlim(-1400, 4600); ax.set_ylim(-L - 250, L + 250); ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(HERE / "fig_omluft.svg", bbox_inches="tight", pad_inches=0.02)
@@ -275,8 +277,9 @@ def fig_plan(plt, S, D):
     import math
     T = IN["tak"]
     linjer = geometri.nock_och_dallinjer(IN["byggnad"])
-    paneler = (("bas", "a) Som ritat, 30 mm"), ("omluft", "b) 30 mm, omluftning vid fönstren"), ("omluft_gavel", "c) b + gavelöppningar"),
-               ("vind025", "d) b, vindtryck × 0,25"), ("rek_vind025", "e) 36 mm, omluftning 300 mm, × 0,25"),
+    paneler = (("bas", f"a) Som ritat, {SPALT} mm"), ("omluft", f"b) {SPALT} mm, omluftning vid fönstren"),
+               ("omluft_gavel", "c) b + gavelöppningar"), ("vind025", "d) b, vindtryck × 0,25"),
+               ("rek_vind025", f"e) {SPALT} mm, omluftning {FALL['rek']['omluft_l']:g} mm, × 0,25"),
                ("malad", "f) b med målad plåt"))
     paneler = tuple(p_ for p_ in paneler if p_[0] in S)
     fig, axs = plt.subplots(2, 3, figsize=(7.0, 5.2))
@@ -326,7 +329,7 @@ def fig_plan(plt, S, D):
     plt.close(fig)
 
 
-TABELL = [("Utförande", ["rek", "bas", "omluft", "omluft300", "omluft_gavel", "omluft_samling", "omluft_samling_gavel", "utan_fonster"]),
+TABELL = [("Utförande", ["rek", "bas", "omluft", "omluft_gavel", "omluft_samling", "omluft_samling_gavel", "utan_fonster"]),
           ("Vind och spalt", ["rek_vind05", "rek_vind025", "vind05", "vind025", "vind0", "gavel_vind05", "s25", "s36", "s45", "s36_vind05",
                               "s25_vind025", "s36_vind025", "s45_vind025", "takfot_strypt", "takfot_strypt_vind025"]),
           ("Plåt", ["zm_ny", "zm_patina", "malad"]),
@@ -334,19 +337,20 @@ TABELL = [("Utförande", ["rek", "bas", "omluft", "omluft300", "omluft_gavel", "
                                         "masonit006", "masonit06"]),
           ("Byggfukt och oventilerat", ["vat", "takfot_strypt_vat", "bas_vat", "oventilerad", "oventilerad_vat"])]
 TABELL_ID = [f for _, ids in TABELL for f in ids]
-KORT = {"rek": "*Rekommenderat: 36 mm, omluftning 300 mm*", "rek_vind05": "Rekommenderat, vindtryck × 0,5",
-        "rek_vind025": "Rekommenderat, vindtryck × 0,25", "tomt15": "Tomt okt–apr: inne 15 °C, 30 mm",
+KORT = {"rek": f"*Rekommenderat: {REK_SPALT:g} mm, omluftning {FALL['rek']['omluft_l']:g} mm*",
+        "rek_vind05": "Rekommenderat, vindtryck × 0,5",
+        "rek_vind025": "Rekommenderat, vindtryck × 0,25", "tomt15": "Tomt okt–apr: inne 15 °C, omluftning 600 mm",
         "rek_tomt15": "Rekommenderat, tomt: inne 15 °C", "rek_tomt": "Rekommenderat, tomt: inne 10 °C",
         "takfot_strypt_vind025": "Strypta takfötter, vindtryck × 0,25",
-        "bas": "Som ritat: fönstren bryter facken (30 mm)", "omluft": "30 mm, omluftning 600 mm",
+        "bas": f"Som ritat: fönstren bryter facken ({SPALT} mm)", "omluft": f"{SPALT} mm, omluftning 600 mm",
         "omluft_gavel": "+ gavelöppningar", "omluft_samling": "+ kanal längs nock och dal",
         "omluft_samling_gavel": "+ kanal och gavelöppningar", "vind05": "Vindtryck × 0,5", "vind025": "Vindtryck × 0,25",
         "vind0": "Ingen vind, bara sol och stigkraft", "gavel_vind05": "Gavelöppningar, vindtryck × 0,5", "s25": "Spalt 25 mm",
         "s45": "Spalt 45 mm", "s36": "Spalt 36 mm", "s25_vind025": "Spalt 25 mm, vindtryck × 0,25",
         "s36_vind025": "Spalt 36 mm, vindtryck × 0,25", "s36_vind05": "Spalt 36 mm, vindtryck × 0,5",
-        "s36_tomt": "Spalt 36 mm, tomt okt–apr", "s45_vind025": "Spalt 45 mm, vindtryck × 0,25", "omluft300": "30 mm, omluftning 300 mm", "masonit006": "Vindskiva Sd 0,06 m", "masonit06": "Vindskiva Sd 0,6 m",
+        "s36_tomt": "Spalt 36 mm, tomt okt–apr", "s45_vind025": "Spalt 45 mm, vindtryck × 0,25", "masonit006": "Vindskiva Sd 0,06 m", "masonit06": "Vindskiva Sd 0,6 m",
         "bad": "Badrummet fuktklass 4, Intello Plus", "bad_sd10": "Badrummet fuktklass 4, Sd 10 m där",
-        "fukt6": "Hela huset fuktklass 3", "tomt_vinter": "Tomt okt–apr: inne 10 °C, 30 mm",
+        "fukt6": "Hela huset fuktklass 3", "tomt_vinter": "Tomt okt–apr: inne 10 °C, omluftning 600 mm",
         "zm_ny": "Ny blank plåt: α 0,55, ε 0,12", "zm_patina": "Åldrad plåt: α 0,8, ε 0,4", "malad": "Målad plåt: α 0,6, ε 0,9",
         "takfot_strypt": "Strypta takfötter (4 × tryckfall)",
         "takfot_strypt_vat": "Strypta takfötter, råspont 20 % vid stängning", "vat": "Råspont 20 % vid stängning",
@@ -389,8 +393,8 @@ def resultat_json(S, D, K, F):
     R = {
         "projekt": IN["projekt"],
         "sam": dict(sol_SO=fmt(sol["SO"], 0), sol_NV=fmt(sol["NV"], 0), rf_SO=fmt(100 * rf["SO"], 0), rf_NV=fmt(100 * rf["NV"], 0)),
-        "rek": dict(spalt=fmt(FALL["rek"]["spalt"], 0), omluft=fmt(FALL["rek"]["omluft_l"], 0),
-                    oppning=fmt(FALL["rek"]["spalt"] * FALL["rek"]["omluft_l"], 0)),
+        "rek": dict(spalt=fmt(REK_SPALT, 0), omluft=fmt(FALL["rek"]["omluft_l"], 0),
+                    oppning=fmt(REK_SPALT * FALL["rek"]["omluft_l"], 0)),
         "g": dict(lutning=fmt(g["lutning"], 0), spalt=fmt(IN["uppbyggnad"]["spalt"], 0), cc=fmt(g["cc"], 0), vag_max="16,3",
                   vagar="5,4, 5,9, 11,1 eller 16,3", remsor=str(len(np.unique(D["omluft"]["remsa"]))), celler=str(IN["modell"]["celler"]),
                   varv=str(IN["modell"]["varv"]), yta=fmt(om["yta"], 0)),

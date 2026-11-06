@@ -1,4 +1,4 @@
-# K-01 rev C – Nock- och dalbalkar
+# K-01 rev D – Nock- och dalbalkar
 
 Dimensionering av de fem nock- och dalbalkarna (nockbalk 1, 3, 5 och dalbalk 2, 4) som stål–trä-komposit enligt EKS 12 och SS-EN 1990/1991/1993/1995.
 

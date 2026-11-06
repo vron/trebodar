@@ -12,7 +12,7 @@ revision    = "A"
 datum       = "2026-10-04"
 upprattad   = "Viktor Ogeman"
 granskad    = ""
-underlag    = "K-01 rev C (nock- och dalbalkar)"
+underlag    = "K-01 rev D (nock- och dalbalkar)"
 
 [geometri]
 takvinkel   = 30        # [°]

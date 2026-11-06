@@ -1,6 +1,6 @@
 # Balkar – kompletta 3D-modeller
 
-En STEP-sammanställning (AP214, enhet mm) per nock- och dalbalk enligt K-01 rev C. Varje del är ett eget underobjekt med namn och färg:
+En STEP-sammanställning (AP214, enhet mm) per nock- och dalbalk enligt K-01 rev D. Varje del är ett eget underobjekt med namn och färg:
 
 | Del | Namn i filen | Färg |
 |---|---|---|
@@ -14,7 +14,7 @@ Koordinater: x längs balken från vänster ände, y = 0 vid balkens framsida, z
 
 | Fil | Balk | Längd (mm) | Plåt (mm) | Distansreglar (mm) |
 |---|---|---|---|---|
-| `NB1.step` | Nockbalk 1 | 11 570 | 5 600–11 570 | 0–5 595 |
+| `NB1.step` | Nockbalk 1 | 11 570 | 5 532–11 570 | 0–5 527 |
 | `DB2.step` | Dalbalk 2 | 10 070 | 6 337–10 070 | 0–6 332 |
 | `NB3.step` | Nockbalk 3 | 11 070 | 5 835–11 070 | 0–5 830 |
 | `DB4.step` | Dalbalk 4 | 7 480 | 1 940–7 480 | 0–1 935 |

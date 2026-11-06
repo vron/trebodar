@@ -29,7 +29,7 @@ Q_NYTTIG = 2.0            # kategori A (EKS tabell C-1)
 Q_VAGG = 0.7              # lätta mellanväggar, läggs till nyttig last (SS-EN 1991-1-1 6.3.1.2(8))
 
 # Tak och väggar på plan 1
-G_TAK = 0.56              # takets egenvikt per m² takyta (F-01: 57 kg/m²)
+G_TAK = 0.60              # takets egenvikt per m² takyta (F-01: 60,8 kg/m², med ströläkt och hårdboard)
 TAKVINKEL = 30.0
 G_TAK_H = G_TAK / math.cos(math.radians(TAKVINKEL))     # per m² horisontell yta
 S_K = 1.5                 # snö, formfaktor 1,0 (på säker sida mot 0,8), som K-01
@@ -48,16 +48,15 @@ G_D2VAGG = G_VAGG * H_VAGG                 # 1,5 kN/m
 KARM = (95.0, 90.0)                        # karmstolpens upplagsyta: väggens tjocklek (x) × 2 × 45 (y) [mm]
 # karmstolpen LD2_1 står vid den norra änden av fickdörren ID2:s ficka i väggen 2B (modellen): dalbalk 2 spänner över
 # dörren och fickan till karmstolpen LD2_2 vid trapphålets södra långsida (K-01)
-Y_LD2_1 = 4048.0
+Y_LD2_1 = 4053.0
 STOLPE = (95.0, 90.0)                      # minsta stolpe 2 × 45×95 [mm]
 STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K-03), står direkt på plattan
-# Stolparnas lägen (stolpens mitt) [mm], samma som stolparna i K-03. Kontrollerade mot Onshape-modellen 2026-10-10
-# (avvikelse högst 1 mm; LN1_1 saknas i modellen). Karmstolparna LD2_1 och LD2_2 räknas fram vid dörröppningen
-# intill trapphålet (punktlaster()), där modellen inte stämmer (ärende #41).
+# Stolparnas lägen (stolpens mitt) [mm], samma som stolparna i K-03 och modellen (kontroll_k03.py). Karmstolparna
+# LD2_1 och LD2_2 räknas fram vid dörröppningen intill trapphålet (punktlaster()).
 STOLPLAGEN = {
     "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
     "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),
-    "LD4_1": (4474, 5844), "LD4_2": (4438, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
+    "LD4_1": (4492, 5822), "LD4_2": (4392, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
     "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
     "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
 }
@@ -68,17 +67,17 @@ TRAPPA = dict(langd=2.07, bredd=0.83, g=1.0, q=2.0)      # horisontell längd [m
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
 # x från balkens vänstra ände; balkens läge i plan enligt geometri.json (balkar)
 K01 = {
-    "N1": dict(typ="nock", stod={"A": (0, 7.4, -3.0), "B": (1900, 19.9, -6.6), "C": (3800, 9.9, -17.3),
-                                  "D": (5700, 49.3, -12.4), "E": (11570, 21.4, -6.3)}),
-    "D2": dict(typ="dal", stod={"B": (10070, 21.2, -4.5)}, vagg_lyft=-18.7, vagg=(0, 6487)),
-    "N3": dict(typ="nock", stod={"A": (85, 8.0, -3.4), "B": (2185, 23.9, -7.1), "C": (5985, 36.7, -9.4),
-                                  "D": (10985, 18.9, -6.2)}),
-    "D4": dict(typ="dal", stod={"A": (90, 14.0, -4.1), "B": (2340, 54.3, -9.0), "C": (7390, 30.9, -6.0)}),
-    "N5": dict(typ="nock", stod={"A": (95, 17.4, -6.1), "B": (4675, 30.9, -7.1), "C": (7375, 32.7, -7.5),
-                                  "D": (12275, 18.6, -6.4)}),
+    "N1": dict(typ="nock", stod={"A": (0, 7.4, -2.8), "B": (1825, 20.2, -6.0), "C": (3716, 9.9, -17.4),
+                                  "D": (5632, 50.8, -11.3), "E": (11570, 22.2, -6.0)}),
+    "D2": dict(typ="dal", stod={"B": (10070, 21.5, -4.3)}, vagg_lyft=-17.2, vagg=(0, 6487)),
+    "N3": dict(typ="nock", stod={"A": (85, 8.2, -3.3), "B": (2185, 24.5, -6.6), "C": (5985, 37.6, -8.6),
+                                  "D": (10985, 19.4, -5.8)}),
+    "D4": dict(typ="dal", stod={"A": (90, 14.2, -4.0), "B": (2340, 55.1, -8.3), "C": (7390, 31.4, -5.6)}),
+    "N5": dict(typ="nock", stod={"A": (95, 17.9, -5.7), "B": (4675, 31.7, -6.5), "C": (7375, 33.4, -6.8),
+                                  "D": (12275, 19.1, -6.0)}),
 }
 # Balkarnas last per meter i K-01 (G och S, kN/m): ger fördelningen G/S av en reaktion
-K01_LAST = {"nock": (2.00, 3.75), "dal": (1.92, 7.13)}
+K01_LAST = {"nock": (2.17, 3.75), "dal": (2.08, 7.13)}
 GD = 0.91
 # Snö per huskropp (för ojämn snö: snö på en eller två huskroppar). Dalbalkarna bär från båda sidor.
 KROPPAR = ("V", "M", "H")               # vänster, mittre, höger huskropp (figur 1)

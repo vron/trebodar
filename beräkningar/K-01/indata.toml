@@ -8,8 +8,8 @@
 namn        = "Fritidshus Trebodar, Resö, Tanum"
 objekt      = "Nock- och dalbalkar – limträ med stålplåtar"
 dokument    = "K-01"
-revision    = "C"
-datum       = "2026-10-04"
+revision    = "D"
+datum       = "2026-11-06"
 upprattad   = "Viktor Ogeman"
 granskad    = ""        # lämnas tomt om ingen granskare anges
 regelverk   = "EKS 12 (BFS 2011:10 med ändringar t.o.m. BFS 2022:4)"
@@ -106,7 +106,7 @@ L_slapp     = 500       # känslighetskontroll: längd närmast varje plåtände
 
 [laster]
 takvinkel   = 30        # [°]
-g_tak       = 0.54      # egenvikt tak per m² takyta [kN/m²] (enl. lastberäkning)
+g_tak       = 0.60      # egenvikt tak per m² takyta [kN/m²] (F-01: 60,8 kg/m² med ströläkt och hårdboard)
 s_k         = 1.5       # grundvärde snölast Tanum enligt EKS [kN/m²]
 psi0        = 0.6       # snö, 1,0 ≤ s_k < 2,0 (EKS)
 psi2        = 0.1
@@ -172,12 +172,12 @@ revB_stal_kg = 1650     # 2 × 52,6 m plåt (rev B:s tvärsnitt)
 namn        = "Nockbalk 1"
 typ         = "nock"
 total       = 11570
-spann       = [1900, 1900, 1900, 5870]
-triangel    = { x = 5700, e = 770 }   # dubbeltriangel: strävor från stolpen D till balken 770 mm åt båda hållen
+spann       = [1825, 1891, 1916, 5938]   # stolparna LN1_1, LN1_2 och huvudstolpen LN1_3 i modellens lägen
+triangel    = { x = 5632, e = 760 }   # dubbeltriangel: strävor från stolpen D till balken 760 mm åt båda hållen
 # Triangeln stolpe–strävor–balk vrider sig bara när stolpen böjs. Strävorna arbetar som en gungbräda.
 # Stolpen (huvudstolpen LN1_3) dimensioneras i K-03; här behövs dess böjstyvhet.
-stolpe      = { b = 180, h = 120, L = 2900, d = 770, E = 11000, fmk = 24, fc0k = 21, E005 = 7400, gamma_M = 1.3, text = "4 st 45×120 C24 sida vid sida, 120 mm i strävans plan" }
-platar      = [[5600, 11570]]
+stolpe      = { b = 180, h = 120, L = 2900, d = 760, E = 11000, fmk = 24, fc0k = 21, E005 = 7400, gamma_M = 1.3, text = "4 st 45×120 C24 sida vid sida, 120 mm i strävans plan" }
+platar      = [[5532, 11570]]
 
 [[balk]]
 namn        = "Dalbalk 2"

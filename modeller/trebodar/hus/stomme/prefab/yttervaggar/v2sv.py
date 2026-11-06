@@ -24,9 +24,8 @@ def montage() -> Montage:
     plattor(v, langd, oppningar=[d1], hammarband=None)
     uk_plat = DAL - R + URTAG - PLAT_T
     ld24 = stolpe(v, "LD2_4", d1.u0 - 3 * R, 3, z1=uk_plat)
-    ld42 = stolpe(v, "LD4_2", d1.u1, 4, toppar=(uk_plat, uk_plat, uk_plat, None))
+    ld42 = stolpe(v, "LD4_2", d1.u1, 5, toppar=(uk_plat, uk_plat, uk_plat, None, None))   # den femte vid väggens ände
     v.regel(0.0)
-    v.regel(ld42[-1][1])                          # ändregeln står intill stolpen
     platar = [(ld24[0][0], ld24[0][0] + PLAT_L), (ld42[2][1] - PLAT_L, ld42[2][1])]
     hb = [(0.0, DAL), (0.0, DAL - R)]
     for a, b in platar:

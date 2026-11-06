@@ -79,7 +79,9 @@ def lb_rqd(d):
 
 SKARV = {d: int(math.ceil(1.5 * lb_rqd(d) / 50) * 50) for d in (6, 8, 10, 12)}  # 400 / 500 / 650 / 750
 POS = dict(uk_x=31, uk_y=32, ok_x=33, ok_y=34, balk_uk=35, balk_ok=36, bygel=37, plint=38, diag=39,
-           start_ute=40, start_inne=41)
+           start_ute=40, start_inne=41, start_brost=42)
+KANT_START = 40.0               # startjärnen minst så långt utanför en öppnings kant, i kärnan
+PLAC_START_BROST = (7000.0, 1000.0)   # texten till startjärnen under bröstningen (slutar här)
 
 KALLARE = K.KALLARE             # väggarnas ytterliv = L-elementens ytterkant (modellens bottenplatta)
 BETONG = K.BETONG               # bottenplattans betong, 100 mm innanför
@@ -318,9 +320,28 @@ def startjarn_rader():
     return rader
 
 
+def _oppningar(namn):
+    """Öppningarna (R-05) i väggens linje."""
+    w = R4.VAGG[namn]
+    return [o for o in R4.OPPN if o["ax"] == w["ax"] and abs(o["c"] - w["c"]) < 1.0]
+
+
+def startjarn_upp(p, namn):
+    """Startjärnets höjd över bottenplattans överkant: START["upp"], under en lägre bröstning bara upp till under
+    bröstningens järn (R-05)."""
+    w = R4.VAGG[namn]
+    t = p[0] if w["ax"] == "h" else p[1]
+    upp = float(START["upp"])
+    for o in _oppningar(namn):
+        if 0 < o["z0"] and o["x0"] <= t <= o["x1"]:
+            upp = min(upp, o["z0"] - 40.0 - K.OPP["d"] / 2 - START["d"] / 2 - 10.0)
+    return upp
+
+
 def startjarn():
     """Startjärn Ø10 högst s300: ytterväggarna vid utsidans järnläge (145 från ytterlivet), innerväggarna i kärnans
-    mitt; också under bröstningarna. [(punkt, "ute"/"inne", första väggen i raden)]."""
+    mitt; också under bröstningarna (startjarn_upp), och inte närmare än KANT_START utanför en öppnings kant: ett
+    sådant flyttas ut till KANT_START, in i kärnan. [(punkt, "ute"/"inne", första väggen i raden)]."""
     ut = []
     for rad in startjarn_rader():
         w0, w1 = rad[0], rad[-1]
@@ -335,6 +356,11 @@ def startjarn():
         lo, hi = grans(w0, w0["mot_a"], w0["a"], 1), grans(w1, w1["mot_b"], w1["b"], -1)
         typ = "ute" if w0["ute"] is not None else "inne"
         for t in R4.fordela(lo, hi, START["s"]):
+            for o in _oppningar(w0["namn"]):
+                if o["x1"] < t < o["x1"] + KANT_START:
+                    t = o["x1"] + KANT_START
+                elif o["x0"] - KANT_START < t < o["x0"]:
+                    t = o["x0"] - KANT_START
             ut.append(((t, q) if w0["ax"] == "h" else (q, t), typ, w0["namn"]))
     return ut
 
@@ -375,6 +401,10 @@ def lager_armtext(v):
         st = [p_ for p_, typ, n in startjarn() if n == "V15"]
         v.hanvisning(st[len(st) // 2], (10200.0, 9330.0), "startjärn Ø10 s300, innerväggarna",
                      bubbla=POS["start_inne"], a="lm", sz=6.4)
+        st = [p_ for p_, typ, n in startjarn() if startjarn_upp(p_, n) < START["upp"]]
+        if st:
+            v.hanvisning(st[len(st) // 2], PLAC_START_BROST, "startjärn Ø10 s300 under bröstningen, kortare",
+                         bubbla=POS["start_brost"], a="rm", sz=6.4)
 
 
 # ---------------------------------------------------------------- sektioner (R-04.3)
@@ -558,14 +588,20 @@ def stalforteckning(mangd=False):
     nd = len(diagonaljarn())
     rad(POS["diag"], DIAG["d"], f"rak {sv(DIAG['L'])}", "–", nd, sv(DIAG["L"]), nd * DIAG["L"] / 1000,
         "inåtgående hörn, 2 per hörn, ÖK")
-    st = startjarn()
+    st = [(p_, t, startjarn_upp(p_, n)) for p_, t, n in startjarn()]
     Ls = UPP_START + FOT_START
-    n_ute = sum(1 for _, t, _ in st if t == "ute")
-    n_in = sum(1 for _, t, _ in st if t == "inne")
+    n_ute = sum(1 for _, t, u in st if t == "ute" and u >= START["upp"])
+    n_in = sum(1 for _, t, u in st if t == "inne" and u >= START["upp"])
     rad(POS["start_ute"], START["d"], f"L {sv(UPP_START)}+{sv(FOT_START)}", f"s{START['s']}", n_ute, sv(Ls),
         n_ute * Ls / 1000, "ytterväggarna, utsidan")
     rad(POS["start_inne"], START["d"], f"L {sv(UPP_START)}+{sv(FOT_START)}", f"s{START['s']}", n_in,
         sv(Ls), n_in * Ls / 1000, "innerväggarna, mitt")
+    kort = sorted({u for _, _, u in st if u < START["upp"]})
+    for u in kort:                                         # under bröstningarna: lodräta benet till under deras järn
+        Lu = 10 * round((u - R4.Z_BALK_UK + 5) / 10)
+        n_k = sum(1 for _, _, uu in st if uu == u)
+        rad(POS["start_brost"], START["d"], f"L {sv(Lu)}+{sv(FOT_START)}", f"s{START['s']}", n_k, sv(Lu + FOT_START),
+            n_k * (Lu + FOT_START) / 1000, "under bröstningen, till under dess järn")
     if mangd:
         rader.append(["", "", "", "", "", "", "Summa", sv(sum(tot.values()), 0),
                       " + ".join(f"Ø{d}: {sv(k, 0)}" for d, k in sorted(tot.items()))])
@@ -689,7 +725,8 @@ def blad_armering():
             "med plintens överkant (R-05.5); näten läggs fritt från svetsbultarna.",
             "Inåtgående hörn: 2 Ø10, L = 1\u00a0200, i överkant diagonalt, 150 och 250 mm från hörnet.",
             f"Startjärn Ø10 s300, {sv(START['upp'])} upp och {sv(START['ned'])} i balken: den lodräta delen och "
-            f"foten, {sv(FOT_START)}, på byglarna."]),
+            f"foten, {sv(FOT_START)}, på byglarna. Under en lägre bröstning går de upp till under bröstningens järn "
+            f"(pos {POS['start_brost']}), och inget står närmare än {sv(KANT_START)} mm utanför en öppnings kant."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="uk", text="armering i underkant / balkjärn"),

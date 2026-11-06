@@ -102,14 +102,17 @@ def kantisolering():
 
 def bjalklag(s, kapa=None):
     """Mellanbjälklaget 150 med trapphålet och kantisoleringen 30, också plattan på mark (plan 1) i L-element 500
-    på 350 mm cellplast (AR-02): betongen går fram till L-elementens rygg vid de fria kanterna (fasen visas inte)."""
+    på 350 mm cellplast (AR-02): betongen går fram till L-elementens rygg vid de fria kanterna, vid de fria hörnen ut i
+    ryggens urtag (R-06 detalj F; fasen visas inte)."""
     pm, fri, rygg = K.platta_pa_mark()
+    hel = K.platta_pa_mark(urtag=False)[2]                  # ryggen under plattan
     p = KONTUR.difference(HAL).difference(rygg)
     s.prisma(p if kapa is None else p.difference(kapa), H, Z1, FARG["betong"])
     ki = kantisolering()
     s.prisma(ki if kapa is None else ki.difference(kapa), H, Z1, FARG["kantisol"])
     fot = fri.buffer(K.B_L, cap_style="flat", join_style="mitre").intersection(pm)
-    s.prisma(rygg, Z1 - K.H_L_MARK, Z1, FARG["s300"])
-    s.prisma(fot.difference(rygg), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
-    s.prisma(pm.difference(rygg).difference(fot), Z1 - K.H_L_MARK, H, FARG["eps"])
-    s.prisma(fot.difference(rygg), Z1 - K.H_L_MARK + TF, H, FARG["eps"])
+    s.prisma(hel, Z1 - K.H_L_MARK, H, FARG["s300"])
+    s.prisma(rygg, H, Z1, FARG["s300"])
+    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
+    s.prisma(pm.difference(hel).difference(fot), Z1 - K.H_L_MARK, H, FARG["eps"])
+    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK + TF, H, FARG["eps"])
