@@ -7,17 +7,21 @@ mellan sidorna och ryggen mellan botten och tak; djupet 600, så att det blir 58
 bänkskivan 700 (frontens 22 och 20 mm utstick). Fyra fronter av fräst ask 22, från toppen 115, 115, 233 och 323 höga
 med 3 mm emellan och under bänkskivan, med ett linsformat grepp fräst nära överkanten; fronterna sitter utanpå
 stommen, 6 mm in över sidorna, och mellan skåpen sitter en lodrät askbräda 22 över fogen, 3 mm från fronterna
-(kok.py). Lådorna av björkplywood 14 (sidor med spår för botten, fram- och bakstycke på botten) med botten 4 mm,
-på löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06.22):
+(kok.py). Lådorna av massiv björk 14 med botten av björkplywood 4 i spår i sidorna och framstycket; bakstycket står
+på botten, som går ut till lådans bakkant (Blums utförande utan urtag i bakstycket). Askfronten skruvas på den färdiga
+lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06.22):
 
 - lådans invändiga bredd SKW = LW − 42 (LW skåpets invändiga bredd), sidorna högst 16 mm (här 14): 7 mm mellan
   lådsidan och skåpsidan, där löparen sitter;
 - lådans längd SKL = NL − 10 (NL löparens nominella längd), skåpets invändiga djup minst NL + 3;
 - bottnens urtag 12–15 mm över sidornas underkant (här 13): löparen under sidan och i urtaget under botten, högst
   28,5 mm in från skåpsidan;
-- minst 7 mm fritt över lådsidan och minst 38 mm från skåpets botten till den nedersta lådans botten.
+- minst 7 mm fritt över lådsidan och minst 38 mm från skåpets botten till den nedersta lådans botten;
+- kopplingarna Blum T51.7601 ligger plant under botten och skruvas med två skruvar 75° in i framstycket (mallen
+  T65.1600.01), därför går framstycket ned under botten; löparens hake i ett hål Ø6 × 10 i sidans bakände, 7 mm från
+  utsidan och 11 mm upp.
 
-Löparna är förenklade (en profil per sida); låskroken, djupjusteringen och borrhålen ritas inte. Skåptyperna: lådskåp
+Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvhålen ritas inte. Skåptyperna: lådskåp
 med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
 rören bakom) och hällskåp (den översta fronten fast, öppet tak för hällen); diskmaskinen står i ett skåps ställe.
 """
@@ -25,14 +29,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from modellering import Del, Form, Montage, Placering, box, prisma
+from modellering import Del, Form, Montage, Placering, box, cylinder, prisma
 
 from trebodar.byggdelar.virke import fmt
-from trebodar.material import ASK, BJORKPLYWOOD, LOPARE, VITVARA
+from trebodar.material import ASK, BJORK, BJORKPLYWOOD, LOPARE, VITVARA
 
 T = 20.0                                   # stommen
 T_LADA, T_BOTTEN, SPAR = 14.0, 4.0, 6.0    # lådans sidor, botten och bottnens spår i sidorna
 URTAG = 13.0                               # bottnens urtag över sidornas underkant (Blum 12–15)
+HAKE = (6.0, 10.0, 7.0, 11.0)              # hålet för löparens hake i sidans bakände: Ø, djup, från utsidan, upp
 LOPARE_H, LOPARE_IN = 10.0, 28.5           # löparens profil under lådsidan och hur långt den når in från skåpsidan
 FRITT_OVER, FRITT_UNDER = 7.0, 38.0        # Blum: fritt över lådsidan, skåpets botten till den nedersta lådans botten
 SKW_AVDRAG, SKL_AVDRAG, NL_TILLAGG = 42.0, 10.0, 3.0
@@ -91,8 +96,14 @@ def front(x0: float, x1: float, z0: float, z1: float, grepp_z: float | None = No
     return box(x0, x1, -FRONT_T, 0.0, z0, z1) - grepp
 
 
+def _hake(x: float, y: float, z: float) -> Form:
+    """Hålet för löparens hake, in i sidans bakände y från bakänden (x, z: hålets mitt)."""
+    d, djup, _, _ = HAKE
+    return cylinder(d / 2, djup + 1.0).placerad(Placering.axlar((x, y + 1.0, z), (1.0, 0.0, 0.0), (0.0, -1.0, 0.0)))
+
+
 def _lada(m: Montage, kod: str, nr: int, bredd: float, nl: float, z0: float, z1: float) -> None:
-    """Låda nr på löpare: sidor med spår, fram- och bakstycke på botten, botten och löparna."""
+    """Låda nr på löpare: sidor och framstycke med spår för botten, bakstycket på botten, botten och löparna."""
     lw = bredd - 2 * T
     skw, skl = lw - SKW_AVDRAG, nl - SKL_AVDRAG
     xs = T + (lw - skw - 2 * T_LADA) / 2                     # lådsidans utsida, 7 mm från skåpsidan
@@ -100,23 +111,26 @@ def _lada(m: Montage, kod: str, nr: int, bredd: float, nl: float, z0: float, z1:
     zb = z0 + URTAG
     spar_v = box(xi0 - SPAR, xi0, -1.0, skl + 1.0, zb, zb + T_BOTTEN)
     spar_h = box(xi1, xi1 + SPAR, -1.0, skl + 1.0, zb, zb + T_BOTTEN)
+    spar_f = box(xi0 - 1.0, xi1 + 1.0, T_LADA - SPAR, T_LADA + 1.0, zb, zb + T_BOTTEN)
+    _, _, ut, upp = HAKE
     p = f"{kod}-LADA{nr}"
     h = f"{fmt(skl)}×{fmt(z1 - z0)}"
     for namn, f, mat in (
-            ("SIDA-V", box(xs, xi0, 0.0, skl, z0, z1) - spar_v, BJORKPLYWOOD),
-            ("SIDA-H", box(xi1, xi1 + T_LADA, 0.0, skl, z0, z1) - spar_h, BJORKPLYWOOD),
-            ("BOTTEN", box(xi0 - SPAR, xi1 + SPAR, 0.0, skl, zb, zb + T_BOTTEN), BJORKPLYWOOD),
-            ("FRAM", box(xi0, xi1, 0.0, T_LADA, zb + T_BOTTEN, z1), BJORKPLYWOOD),
-            ("BAK", box(xi0, xi1, skl - T_LADA, skl, zb + T_BOTTEN, z1), BJORKPLYWOOD)):
-        beskr = {"SIDA-V": f"Lådsida {fmt(T_LADA)} {h}", "SIDA-H": f"Lådsida {fmt(T_LADA)} {h}",
-                 "BOTTEN": f"Lådbotten {fmt(T_BOTTEN)} {fmt(skw + 2 * SPAR)}×{fmt(skl)}",
-                 "FRAM": f"Lådans framstycke {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - zb - T_BOTTEN)}",
-                 "BAK": f"Lådans bakstycke {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - zb - T_BOTTEN)}"}[namn]
+            ("SIDA-V", box(xs, xi0, 0.0, skl, z0, z1) - spar_v - _hake(xs + ut, skl, z0 + upp), BJORK),
+            ("SIDA-H", box(xi1, xi1 + T_LADA, 0.0, skl, z0, z1) - spar_h - _hake(xi1 + T_LADA - ut, skl, z0 + upp),
+             BJORK),
+            ("BOTTEN", box(xi0 - SPAR, xi1 + SPAR, T_LADA - SPAR, skl, zb, zb + T_BOTTEN), BJORKPLYWOOD),
+            ("FRAM", box(xi0, xi1, 0.0, T_LADA, z0, z1) - spar_f, BJORK),
+            ("BAK", box(xi0, xi1, skl - T_LADA, skl, zb + T_BOTTEN, z1), BJORK)):
+        beskr = {"SIDA-V": f"Lådsida björk {fmt(T_LADA)} {h}", "SIDA-H": f"Lådsida björk {fmt(T_LADA)} {h}",
+                 "BOTTEN": f"Lådbotten {fmt(T_BOTTEN)} {fmt(skw + 2 * SPAR)}×{fmt(skl - T_LADA + SPAR)}",
+                 "FRAM": f"Lådans framstycke björk {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - z0)}",
+                 "BAK": f"Lådans bakstycke björk {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - zb - T_BOTTEN)}"}[namn]
         m.lagg(Del(beskr, f, mat), Placering(), f"{p}-{namn}")
-    # löparna: under lådsidan från skåpsidan och in under botten i urtaget
+    # löparna: under lådsidan från skåpsidan och in under botten i urtaget, bakom framstycket (där kopplingen sitter)
     for namn, (a, b, c) in (("V", (T, T + LOPARE_IN, xi0)), ("H", (bredd - T - LOPARE_IN, bredd - T, xi1))):
         under = box(a, b, 0.0, nl, z0 - LOPARE_H, z0)
-        inne = box(c, b, 0.0, nl, z0, zb) if namn == "V" else box(a, c, 0.0, nl, z0, zb)
+        inne = box(c, b, T_LADA, nl, z0, zb) if namn == "V" else box(a, c, T_LADA, nl, z0, zb)
         m.lagg(Del(f"Löpare MOVENTO 760H NL {fmt(nl)}", under | inne, LOPARE), Placering(), f"{p}-SKENA-{namn}")
 
 

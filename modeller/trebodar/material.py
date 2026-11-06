@@ -193,9 +193,13 @@ VITVARA = Material("Vitvara", "Integrerade kyl- och frysskåp (förenklade som l
                    cad="#9fc2dc")
 SOCKELGALLER = Material("Sockelgaller", "Sockelgaller för vitvarornas ventilation, svartlackerad aluminium", 2700,
                         "#1d1d1e", 0.55, cad="#34363a")
-# köksskåpen (hus/inredning/koksskap.py): stommar 20 mm och lådor 14 mm av björkplywood, lådbotten 4 mm
-BJORKPLYWOOD = Material("Björkplywood", "Björkplywood, klarlackad (köksskåpens stommar och lådor)", 680, "#e4d6ba",
+# köksskåpen (hus/inredning/koksskap.py): stommar 20 mm av björkplywood, lådor av massiv björk 14 mm med botten av
+# björkplywood 4 mm
+BJORKPLYWOOD = Material("Björkplywood", "Björkplywood, klarlackad (skåpstommar, lådbottnar)", 680, "#e4d6ba",
                         0.5, cad="#e9cf9c")
+BJORK = Material("Björk", "Björk, massiv, klarlackad (köksskåpens lådor)", 650, "#e6d7b8", 0.5, cad="#e6cf9f")
+BESLAG = Material("Beslag", "Gångjärn Blum CLIP top BLUMOTION 110° med monteringsplatta, förnicklat stål "
+                  "(förenklade)", 7850, "#b9bcbf", 0.4, 0.8, cad="#9aa2aa")
 LOPARE = Material("Löpare", "Lådlöpare Blum MOVENTO 760H, förzinkat stål (förenklade)", 7850, "#a3a7ab", 0.45, 0.8,
                   cad="#8c96a0")
 BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 mm, slipad (honed)", 2400, "#d0c6b5",

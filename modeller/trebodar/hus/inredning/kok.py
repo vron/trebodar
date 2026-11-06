@@ -10,15 +10,21 @@ varandra, sitter på vitvarornas dörrar och på skåpen, med ett handtag av olj
 kylen hängd mot gaveln, frysen mot skafferiet, så att deras handtag sitter intill varandra). Bakom vitvarorna och
 skåpen är spalten mot L4, där luften går upp till förrådet. Skafferiet (C) har en dörr av samma slag som fronterna,
 hängd i smygen mot frysen och öppnas utåt, och hyllor av vit melamin 19 längs L4 och 3NV.
+
+Skåpens dörrar över vitvarorna och skafferidörren hänger på gångjärn Blum CLIP top BLUMOTION 110° (ärende #56): två
+upp till 900 mm dörrhöjd, tre upp till 1 600, fyra upp till 2 000 och fem däröver, de yttersta 100 mm från dörrens
+kanter; koppen Ø35 × 13 i dörren med mitten 22,5 mm från kanten och monteringsplattan på skåpsidan (i skafferiet på
+smygen) 37 mm bakom dörrens baksida. Gångjärnen är förenklade (kopp, arm och platta). Vitvarornas fronter sitter på
+vitvarornas egna gångjärn.
 """
 from __future__ import annotations
 
-from modellering import Del, Montage, Placering, box
+from modellering import Del, Form, Montage, Placering, box, cylinder
 
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.invandigt.kokets_inbyggnad import H_OPPNING, SKAFFERI, fritt
 from trebodar.hus.invandigt.lattvaggar import K_SMYG, K_YTA
-from trebodar.material import ASK, C24, SKAPSTOMME, SOCKELGALLER, VIT_FRONT, VITVARA
+from trebodar.material import ASK, BESLAG, C24, SKAPSTOMME, SOCKELGALLER, VIT_FRONT, VITVARA
 
 from . import koksbank
 
@@ -32,6 +38,33 @@ Z_TOPP = H_OPPNING - K_SMYG                               # öppningens överkan
 GANGJARN = {"Kyl": -1, "Frys": 1, "Skafferi": -1}          # dörrarnas gångjärn: vid den lägre (−1) eller högre x
 HANDTAG = (20.0, 30.0, 400.0)                             # handtagen: bredd, djup ut från fronten, längd (högst)
 HANDTAG_KANT, HANDTAG_Z = 40.0, 1050.0                    # handtagets kant från dörrens fria kant; dess mitt över golvet
+KOPP = (35.0, 13.0, 22.5)                                 # gångjärnets kopp: Ø, djup, mitten från dörrens kant
+PLATTA = (37.0, 40.0, 40.0, 10.0)                         # monteringsplattan: mitten bakom dörren, längd, höjd, tjocklek
+ARM = (15.0, 14.0)                                        # armen från den fasta ytan: bredd, höjd
+GANGJARN_KANT = 100.0                                     # de yttersta gångjärnen från dörrens kanter
+
+
+def _gangjarnen(namn: str, x0: float, x1: float, za: float, zb: float, x_fast: float) -> tuple[list[Form], list[Del]]:
+    """Gångjärnen till dörren x0–x1, za–zb (baksidan i K_YTA − FRONT_T) på sidan GANGJARN[namn], med plattan på den
+    fasta ytan x_fast (skåpsidans eller smygens insida): kopparnas hål i dörren och gångjärnens delar."""
+    h = zb - za
+    n = 2 if h <= 900 else 3 if h <= 1600 else 4 if h <= 2000 else 5
+    a = min(GANGJARN_KANT, h / 4)
+    yf = K_YTA - FRONT_T
+    d, djup, kant = KOPP
+    pd, pl, ph, pt = PLATTA
+    s = GANGJARN[namn]
+    xc = x0 + kant if s < 0 else x1 - kant
+    inat = -s                                               # från den fasta ytan in mot dörrens mitt
+    hal, delar = [], []
+    for i in range(n):
+        zc = za + a + i * (h - 2 * a) / (n - 1)
+        hal.append(cylinder(d / 2, djup).placerad(Placering.axlar((xc, yf, zc), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0))))
+        kopp = cylinder(d / 2, djup).placerad(Placering.axlar((xc, yf, zc), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
+        platta = box(x_fast, x_fast + inat * pt, yf - pd - pl / 2, yf - pd + pl / 2, zc - ph / 2, zc + ph / 2)
+        arm = box(x_fast, x_fast + inat * ARM[0], yf - pd + pl / 2, yf, zc - ARM[1] / 2, zc + ARM[1] / 2)
+        delar.append(Del("Gångjärn Blum CLIP top BLUMOTION 110° med monteringsplatta", kopp | arm | platta, BESLAG))
+    return hal, delar
 
 
 def _handtag(namn: str, x0: float, x1: float, za: float, zb: float) -> Del:
@@ -76,11 +109,19 @@ def _nisch(namn: str) -> Montage:
     skap += [(f"H{i}", box(x0 + SKAP_T, x1 - SKAP_T, yb, yf - 20.0, z - SKAP_T, z)) for i, z in enumerate(hyllor, 1)]
     for k, f in skap:
         m.lagg(Del(f"Skåpstomme {fmt(SKAP_T)}", f, SKAPSTOMME), Placering(), f"{kod}-SKAP-{k}")
-    # fronterna på vitvarans dörr och på skåpet
+    # fronterna på vitvarans dörr och på skåpet; skåpets dörr på gångjärn i skåpsidan
     for k, (za, zb) in (("1", (SOCKEL + SPEL, zs - SPEL)), ("2", (zs, Z_TOPP - SPEL))):
-        m.lagg(Del(f"Front vitmålad {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}",
-                   box(x0 + SPEL, x1 - SPEL, yf, K_YTA, za, zb), VIT_FRONT, produkt="INBYGGNADSFRONTER"), Placering(),
-               f"{kod}-FRONT{k}")
+        hal: list[Form] = []
+        if k == "2":
+            fast = x0 + SKAP_T if GANGJARN[namn] < 0 else x1 - SKAP_T
+            hal, gj = _gangjarnen(namn, x0 + SPEL, x1 - SPEL, za, zb, fast)
+            for i, g in enumerate(gj, start=1):
+                m.lagg(g, Placering(), f"{kod}-GANGJARN{i}")
+        dorr: Form = box(x0 + SPEL, x1 - SPEL, yf, K_YTA, za, zb)
+        for kopp in hal:
+            dorr = dorr - kopp
+        m.lagg(Del(f"Front vitmålad {fmt(x1 - x0 - 2 * SPEL)}×{fmt(zb - za)}", dorr, VIT_FRONT,
+                   produkt="INBYGGNADSFRONTER"), Placering(), f"{kod}-FRONT{k}")
         m.lagg(_handtag(namn, x0 + SPEL, x1 - SPEL, za, zb), Placering(), f"{kod}-HANDTAG{k}")
     return m
 
@@ -88,9 +129,14 @@ def _nisch(namn: str) -> Montage:
 def _skafferi() -> Montage:
     m = Montage("Skafferi", beskrivning="Vitmålad dörr som fronterna och hyllor av vit melamin längs L4 och 3NV")
     x0, x1 = fritt("Skafferi")
-    m.lagg(Del(f"Skafferidörr vitmålad {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}",
-               box(x0, x1 - SPEL, K_YTA - FRONT_T, K_YTA, DORR_Z, Z_TOPP - SPEL), VIT_FRONT,
+    hal, gj = _gangjarnen("Skafferi", x0, x1 - SPEL, DORR_Z, Z_TOPP - SPEL, x0)     # plattorna på smygen mot frysen
+    dorr: Form = box(x0, x1 - SPEL, K_YTA - FRONT_T, K_YTA, DORR_Z, Z_TOPP - SPEL)
+    for f in hal:
+        dorr = dorr - f
+    m.lagg(Del(f"Skafferidörr vitmålad {fmt(x1 - x0 - SPEL)}×{fmt(Z_TOPP - SPEL - DORR_Z)}", dorr, VIT_FRONT,
                produkt="INBYGGNADSFRONTER"), Placering(), "SKAFFERI-DORR")
+    for i, g in enumerate(gj, start=1):
+        m.lagg(g, Placering(), f"SKAFFERI-GANGJARN{i}")
     m.lagg(_handtag("Skafferi", x0, x1 - SPEL, DORR_Z, Z_TOPP - SPEL), Placering(), "SKAFFERI-HANDTAG")
     sx0, sx1, sy0, sy1 = SKAFFERI
     for i, z in enumerate(HYLLOR, start=1):

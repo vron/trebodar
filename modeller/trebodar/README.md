@@ -239,7 +239,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   KYL-, FRYS- och SKAFFERI-SMYG-V, -H, -O smygen,
   LUCKA-SMYG-V, -H, -O, -U och LUCKA-BLAD luckan, KYL- och FRYS-GALLER, förrådets FG-L bärläkt, FG-R reglar och
   FG-OS01 golv, SKAFFERI-TAK; i köket KYL och FRYS vitvarorna med -SOCKEL-R, -B, -G (reglar, bottenskiva, galler),
-  -SKAP- (S sidor, B botten, T tak, H hyllor) och -FRONT1, -FRONT2, SKAFFERI-DORR och SKAFFERI-HYLLA-L4-1 osv.
+  -SKAP- (S sidor, B botten, T tak, H hyllor), -FRONT1, -FRONT2 och -GANGJARN1 osv. (skåpets dörr), SKAFFERI-DORR,
+  SKAFFERI-GANGJARN1–5 och SKAFFERI-HYLLA-L4-1 osv.
   Köksskåpen: B1–B7 längs 3NV norrifrån, B8–B10 längs 3SV österifrån, O1 (diskmaskinen)–O3 i ön norrifrån, med
   -SIDA-V, -SIDA-H, -BOTTEN, -TAK (eller -TAK-F och -TAK-B), -RYGG, -SKIVA, -FRONT1–4 nedifrån och lådorna
   -LADA1-SIDA-V, -SIDA-H, -BOTTEN, -FRAM, -BAK, -SKENA-V, -SKENA-H; B-BRADA, B-FOG1–10, O-FOG1–4 fogbrädorna, B-SIDA,
@@ -395,8 +396,9 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
   användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
   1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (600 djupa, från sparklisten 90 till bänkskivans
-  underkant 888) med fyra lådor av björkplywood 14 och botten 4 på Blum MOVENTO 760H (SKW = LW − 42, SKL = NL − 10,
-  urtag 13, NL 550; under diskhon 350) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
+  underkant 888) med fyra lådor av massiv björk 14 och botten av björkplywood 4 på Blum MOVENTO 760H (SKW = LW − 42,
+  SKL = NL − 10, urtag 13, NL 550; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
+  bakstycket på botten, hålen för löparens hake i sidornas bakände) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
   3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
   mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,4
   breda (fronterna 605,4), B4–B7 och skåpen längs 3SV 599,1 (571,1); hörnet är dött med en fogbräda 22 × 22. Diskhon
