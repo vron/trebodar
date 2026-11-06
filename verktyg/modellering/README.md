@@ -142,7 +142,9 @@ egen modell (t.ex. för beställning). Utdata:
   rundade granitblock), tonade som på platsen; utan dem är allt procedurellt. Hällmarken är mest berg i
   dagen med sprickor av ljung och gräs och tallar i dungar, som i flygbilderna. Det som saknas i OpenStreetMap
   (grannhus, skog), inmätta träd som inte finns och tallar som saknas står i `vyer.GEODATA` (`byggnader`, `skog`,
-  `utan_trad`, `nya_trad`, i modellens mm); byggnadernas mark tas ur Lantmäteriets höjder. Flygbilderna `flyg-tomten`
+  `utan_trad`, `nya_trad`, i modellens mm); byggnadernas mark tas ur Lantmäteriets höjder. Bäddar (`baddar`:
+  upphöjda partier som höjdmodellen inte ser, som bädden framför altanen) höjer marken med en mjuk slänt och har
+  gräs i tuvor och små buskar (Poly Havens), och vid dem står buskar (`buskar`). Flygbilderna `flyg-tomten`
   och `flyg-omgivningen` visar tomten och omgivningen rakt ovanifrån med verklig norr uppåt, för att jämföra med
   flygfoton och kommentera var saker står; tomten i mulet väder, så att trädens skuggor inte ser ut som träd.
 - **Kameror** (`modeller/trebodar/vyer.py`): kameran hålls vågrät med objektivförskjutning, så att lodräta linjer

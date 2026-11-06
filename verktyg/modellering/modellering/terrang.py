@@ -10,6 +10,10 @@ Källor i `lokalt/terrang` (versionshanteras inte):
   drener ligger på marken; altan, hus, sten, odling, syren och trad på föremål (träden och stenarna i omgivningen står
   på trad- och stenpunkterna).
 
+Bäddar (upphöjda partier med låg växtlighet, som inte syns i höjdmodellen) läggs till över tomten: marken höjs inom
+polygonen, med en mjuk slänt och lite bucklig; växtligheten är en mask för marken (nara_lag.png) och punkter för
+växterna (gräs och små buskar, nara_objekt.json).
+
 Höjderna: den finaste rutnätet som täcker en punkt, bilinjärt. Mot de inmätta markpunkterna stämmer Lantmäteriets
 höjder väl (berget: median −0,05 m); marken rättas ändå mot dem nära punkterna, med en utjämnad korrektion (Gauss,
 σ RATT_SIGMA), så att den går genom inmätningarna. Punkter som avviker mer än RATT_MAX räknas inte (troligen på ett
@@ -38,6 +42,7 @@ TACKE_SIGMA = {"berg": 2.0, "gras": 2.0, "trad": 4.0}             # marktäckets
 STEN_AVST = 0.7                                                  # punkter närmare än så hör till samma sten
 TRAD_AVST = 1.0                                                  # och till samma träd (mätt flera gånger)
 HUS_FRI = 1.5                                                    # inga träd eller stenar så nära fasaden [m]
+VAXT_AVST = 0.22                                                 # bäddarnas växter: rutnätet (slumpat i rutorna) [m]
 OMRADE_KAT = ("tomt", "gras", "trad", "hus", "altan")            # tomtens punkter (berget är inmätt längre ut)
 OMRADE_KANT = 3.0                                                # tomtens område, utanför punkternas hölje [m]
 
@@ -125,12 +130,13 @@ def rattning(xs: np.ndarray, ys: np.ndarray, px: np.ndarray, py: np.ndarray, r: 
 
 def bygg(omgivning: str, mapp: str, passning: Passning, z0: float, hus: list[tuple[float, float]] | None = None,
          byggnader: Sequence[dict] = (), skog: Sequence[Sequence[tuple[float, float]]] = (),
-         utan_trad: Sequence[tuple[float, float]] = (), nya_trad: Sequence[tuple[float, float]] = ()) -> dict:
+         utan_trad: Sequence[tuple[float, float]] = (), nya_trad: Sequence[tuple[float, float]] = (),
+         baddar: Sequence[dict] = (), buskar: Sequence[tuple[float, float]] = ()) -> dict:
     """Lägg Lantmäteriets höjder i omgivningens rutnät (omgivning/hojd.f32) och skriv ett fint rutnät över tomten
-    (omgivning/nara.f32, NARA_CELL m) med rättningen mot de inmätta markpunkterna. Det som saknas i OpenStreetMap
-    läggs till (modellens mm): byggnaderna (hörn, höjd [m], valfritt tak och färger) och skogen (polygoner) i
-    marktäcket; de inmätta träden nära punkterna utan_trad finns inte och träden i nya_trad läggs till. Byggnadernas
-    mark tas ur de nya höjderna. Ger statistiken."""
+    (omgivning/nara.f32, NARA_CELL m) med rättningen mot de inmätta markpunkterna och bäddarna (hörn, höjd och slänt
+    [m]). Det som saknas i OpenStreetMap läggs till (modellens mm): byggnaderna (hörn, höjd [m], valfritt tak och
+    färger) och skogen (polygoner) i marktäcket; de inmätta träden nära punkterna utan_trad finns inte och träden i
+    nya_trad och buskarna läggs till. Byggnadernas mark tas ur de nya höjderna. Ger statistiken."""
     besk = json.load(open(os.path.join(omgivning, "omgivning.json"), encoding="utf-8"))
     rut = las(mapp)
     # omgivningens rutnät: Lantmäteriet där det finns, mjukt mot Terrarium vid ytterkanten
@@ -163,13 +169,19 @@ def bygg(omgivning: str, mapp: str, passning: Passning, z0: float, hus: list[tup
     anv = mark & (np.abs(r) <= RATT_MAX)
     korr = rattning(xs, ys, px[anv], py[anv], r[anv])
     zn = zn + korr
+    upp, lag = _baddar(xs, ys, baddar)
+    zn = zn + upp
+    vaxter = _vaxter(xs, ys, zn - z0, baddar)
     j = np.clip(np.round((px - xs[0]) / NARA_CELL).astype(int), 0, len(xs) - 1)
     i = np.clip(np.round((py - ys[0]) / NARA_CELL).astype(int), 0, len(ys) - 1)
     efter = r - korr[i, j]
     (zn - z0).astype(np.float32).tofile(os.path.join(omgivning, "nara.f32"))
     _tacke(omgivning, xs, ys, px, py, p["kategori"])
+    from matplotlib.image import imsave
+    imsave(os.path.join(omgivning, "nara_lag.png"), np.clip(lag, 0, 1)[::-1], cmap="gray", vmin=0.0, vmax=1.0)
     _objekt(omgivning, xs, ys, zn - z0, px, py, p["H"] - z0, p["kategori"], hus,
-            [(x / 1000, y / 1000) for x, y in utan_trad], [(x / 1000, y / 1000) for x, y in nya_trad])
+            [(x / 1000, y / 1000) for x, y in utan_trad], [(x / 1000, y / 1000) for x, y in nya_trad],
+            [(x / 1000, y / 1000) for x, y in buskar], vaxter)
     besk["nara"] = {"x0": float(xs[0]), "y0": float(ys[0]), "cell": NARA_CELL, "nx": len(xs), "ny": len(ys)}
     nya = [[(x / 1000, y / 1000) for x, y in b["horn"]] for b in byggnader]
     besk["byggnader"] += [{"horn": [list(q) for q in h], "hojd": float(b["hojd"]), "typ": "tillagd",
@@ -189,6 +201,46 @@ def bygg(omgivning: str, mapp: str, passning: Passning, z0: float, hus: list[tup
             stat[k] = (int(m.sum()), float(np.median(r[m])), float(np.median(np.abs(r[m]))),
                        float(np.median(np.abs(efter[m]))), k in MARK)
     return {"nara": besk["nara"], "punkter": stat, "uteslutna": int((mark & ~anv).sum())}
+
+
+def _baddar(xs: np.ndarray, ys: np.ndarray, baddar: Sequence[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Bäddarna i det fina rutnätet: höjningen [m] (hojd inom polygonen, en mjuk slänt slant bred innanför kanten och
+    lite bucklig) och den låga växtlighetens mask (bädden och en bit utanför slänten)."""
+    import shapely
+    upp, lag = np.zeros((len(ys), len(xs))), np.zeros((len(ys), len(xs)))
+    for b in baddar:
+        q = shapely.Polygon([(x / 1000, y / 1000) for x, y in b["horn"]])
+        x0, y0, x1, y1 = q.buffer(1.0).bounds
+        j0, j1 = np.searchsorted(xs, [x0, x1])
+        i0, i1 = np.searchsorted(ys, [y0, y1])
+        X, Y = np.meshgrid(xs[j0:j1], ys[i0:i1])
+        pkt = shapely.points(X, Y)
+        d = shapely.distance(pkt, q.exterior) * np.where(shapely.contains(q, pkt), 1.0, -1.0)    # in i bädden
+        t = np.clip(d / b["slant"], 0.0, 1.0)
+        buckla = 1.0 + 0.12 * np.sin(1.7 * X + 0.3) * np.sin(1.3 * Y + 1.1)
+        upp[i0:i1, j0:j1] = np.maximum(upp[i0:i1, j0:j1], b["hojd"] * t * t * (3 - 2 * t) * buckla)
+        v = np.clip((d + 0.4) / 0.6, 0.0, 1.0)
+        lag[i0:i1, j0:j1] = np.maximum(lag[i0:i1, j0:j1], v * v * (3 - 2 * v))
+    return upp, lag
+
+
+def _vaxter(xs: np.ndarray, ys: np.ndarray, zn: np.ndarray, baddar: Sequence[dict]) -> list[list[float]]:
+    """Bäddarnas växter (x, y, z): ett rutnät VAXT_AVST, slumpat inom rutorna, över bädden och slänten."""
+    import shapely
+    rng = np.random.default_rng(17)
+    ut = []
+    for b in baddar:
+        q = shapely.Polygon([(x / 1000, y / 1000) for x, y in b["horn"]]).buffer(0.15)
+        x0, y0, x1, y1 = q.bounds
+        X, Y = np.meshgrid(np.arange(x0, x1, VAXT_AVST), np.arange(y0, y1, VAXT_AVST))
+        X = X + rng.uniform(0, VAXT_AVST, X.shape)
+        Y = Y + rng.uniform(0, VAXT_AVST, Y.shape)
+        inne = shapely.contains(q, shapely.points(X, Y))
+        for x, y in zip(X[inne], Y[inne]):
+            z = _bilinjar(zn, xs[0], ys[0], NARA_CELL, float(x), float(y))
+            if np.isfinite(z):
+                ut.append([round(float(x), 3), round(float(y), 3), round(z, 3)])
+    return ut
 
 
 def _tacke(omgivning: str, xs: np.ndarray, ys: np.ndarray, px: np.ndarray, py: np.ndarray, kat: np.ndarray) -> None:
@@ -258,10 +310,12 @@ def _grupper(x: np.ndarray, y: np.ndarray, z: np.ndarray, avst: float) -> list[l
 
 def _objekt(omgivning: str, xs: np.ndarray, ys: np.ndarray, zn: np.ndarray, px: np.ndarray, py: np.ndarray,
             pz: np.ndarray, kat: np.ndarray, hus: list[tuple[float, float]] | None,
-            utan: Sequence[tuple[float, float]] = (), nya: Sequence[tuple[float, float]] = ()) -> None:
-    """Träden och stenarna över tomten (nara_objekt.json, modellens m): träden i de inmätta trädpunkterna på marken
-    (punkterna närmare än TRAD_AVST är samma träd, mätt flera gånger; utom de inom TRAD_AVST från en punkt i utan,
-    som inte finns) och de tillagda i nya, stenarna som grupper av stenpunkter
+            utan: Sequence[tuple[float, float]] = (), nya: Sequence[tuple[float, float]] = (),
+            buskar: Sequence[tuple[float, float]] = (), vaxter: Sequence[Sequence[float]] = ()) -> None:
+    """Träden, buskarna och stenarna över tomten (nara_objekt.json, modellens m): träden i de inmätta trädpunkterna
+    på marken (punkterna närmare än TRAD_AVST är samma träd, mätt flera gånger; utom de inom TRAD_AVST från en punkt i
+    utan, som inte finns) och de tillagda i nya, buskarna i buskar, bäddarnas växter, stenarna som grupper av
+    stenpunkter
     (STEN_AVST) med läge, storlek och höjd över marken; inget inom HUS_FRI m från husets fasad (hus, mm: det som
     stod där är borta). Området är tomten, där träden är inmätta: det konvexa höljet
     kring punkterna i OMRADE_KAT (OMRADE_KANT m utanför); där står bara de inmätta träden."""
@@ -293,5 +347,6 @@ def _objekt(omgivning: str, xs: np.ndarray, ys: np.ndarray, zn: np.ndarray, px: 
         storlek = float(max(0.5, 2 * np.hypot(a[:, 0] - cx, a[:, 1] - cy).max() + 0.3))
         stenar.append([cx, cy, zm, storlek, float(max(0.15, np.max(a[:, 2]) - zm))])
     json.dump({"trad": [t for t in trad if np.isfinite(t[2])], "stenar": stenar,
+               "buskar": [[x, y, mark(x, y)] for x, y in buskar if np.isfinite(mark(x, y))], "vaxter": list(vaxter),
                "omrade": [[round(x, 2), round(y, 2)] for x, y in omrade.exterior.coords]},
               open(os.path.join(omgivning, "nara_objekt.json"), "w", encoding="utf-8"))

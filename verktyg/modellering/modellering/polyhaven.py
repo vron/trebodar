@@ -1,5 +1,5 @@
 """Poly Havens tillgångar (CC0, polyhaven.com) för omgivningen i renderingen: markens texturer och modellerna av
-träden och stenarna (blender/omgivning.py, TEXTURER och MODELLER) och himlarna (HIMLAR: fotograferade himlar utan
+träden, stenarna, buskarna och gräset (blender/omgivning.py, TEXTURER och MODELLER) och himlarna (HIMLAR: fotograferade himlar utan
 mark, "pure skies", för det kameran ser, blender/scen.py). `./mod omgivning --hamta` laddar ner det som saknas till
 tillgångarnas mapp (vyer.GEODATA["tillgangar"], versionshanteras inte)."""
 from __future__ import annotations
@@ -11,7 +11,8 @@ import urllib.request
 API = "https://api.polyhaven.com/files/"
 TEXTURER = {"rock_01": "2k", "leafy_grass": "2k", "forrest_ground_03": "2k"}
 KARTOR = (("Diffuse", "diff"), ("Rough", "rough"), ("Displacement", "disp"))
-MODELLER = {"pine_tree_01": "1k", "fir_tree_01": "1k", "namaqualand_boulder_04": "2k", "namaqualand_boulder_06": "2k"}
+MODELLER = {"pine_tree_01": "1k", "fir_tree_01": "1k", "namaqualand_boulder_04": "2k", "namaqualand_boulder_06": "2k",
+            "shrub_01": "1k", "shrub_02": "1k", "shrub_03": "1k", "shrub_04": "1k", "grass_medium_02": "1k"}
 # himlarna: vädret och solens höjd i bilden [°] (mätt: den ljusaste punkten), i 8K (22 bildpunkter per grad)
 HIMLAR = {
     "syferfontein_18d_clear_puresky": ("sol", 18.5),

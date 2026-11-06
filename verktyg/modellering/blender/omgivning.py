@@ -39,7 +39,16 @@ MODELLER = {
     "gran": [("fir_tree_01/fir_tree_01_1k.blend", f"fir_tree_01_{v}_LOD2") for v in "abc"],
     "block": [(f"namaqualand_boulder_0{n}/namaqualand_boulder_0{n}_2k.blend", f"namaqualand_boulder_0{n}_LOD1")
               for n in (4, 6)],
+    # buskarna vid bäddarna och bäddarnas låga växter: små buskar och gräs i tuvor
+    "buske": [("shrub_02/shrub_02_1k.blend", f"shrub_02_{v}_LOD1") for v in "abcd"],
+    "smabuske": [(f"shrub_0{n}/shrub_0{n}_1k.blend", f"shrub_0{n}_{v}_LOD1")
+                 for n, varianter in ((1, "abcdefghi"), (3, "abcd"), (4, "abcd")) for v in varianter],
+    "gras": [("grass_medium_02/grass_medium_02_1k.blend", f"grass_medium_02_{v}") for v in "abcde"],
 }
+BUSKE_HOJD = (0.9, 1.4)         # buskarna vid bäddarna [m]
+BUSKE_TATHET = 3                # så många av Poly Havens buskar ihop i varje buske (de är glesa)
+VAXT_SKALA = {"gras": (1.6, 3.0), "smabuske": (1.2, 2.2)}      # bäddarnas växter, gånger modellens storlek
+SMABUSKAR = 0.18                # andelen små buskar bland bäddarnas växter
 SKOGENS = {"tall": ("Tall", 10.0), "gran": ("Gran", 9.0)}    # modellerna i skogen: ersätter sorten, höjd [m]
 # modellernas färgbilder: mättnaden gånger den första, sedan gånger färgen (linjärt), som granit och tallbarr på platsen
 TONING = {"namaqualand_boulder_04": (0.3, (1.15, 1.2, 1.25)), "namaqualand_boulder_06": (0.3, (1.15, 1.2, 1.25)),
@@ -447,6 +456,25 @@ def markmaterial(rut: Rutnat | None, tillgangar: str | None = None) -> bpy.types
                 col = g.blanda(f, col, farg)
                 grov = mix(f, grov, tal(namn, 1, gv))
                 hojd_tx = mix(f, hojd_tx, tal(namn, 2, 0.0))
+            lag = os.path.join(rut.mapp, "nara_lag.png")
+            if os.path.exists(lag):
+                # bäddarnas mark under växterna: grön, halm och rödbrunt ris i fläckar, och tuvig yta
+                tl = g.nod("ShaderNodeTexImage", Vector=uv)
+                tl.image = bpy.data.images.load(lag, check_existing=True)
+                tl.image.colorspace_settings.name = "Non-Color"
+                tl.extension = "CLIP"
+                tl.interpolation = "Cubic"
+                fl = nara(g.sep(tl.outputs["Color"])[0], 0.2)
+                tuva = g.brus(k, 1.4, 3.0, 0.6)                             # tuvor om några decimeter
+                vaxt = g.blanda(g.jamn(fin, 0.4, 0.6), rgba("#3a4522"), rgba("#5b5a31"))
+                vaxt = g.blanda(g.jamn(tuva, 0.5, 0.62), vaxt, rgba("#8f7d4c"))                          # halm
+                vaxt = g.blanda(m("MULTIPLY", g.jamn(g.brus(k, 0.8, 3.0, 0.6), 0.58, 0.66), 0.85), vaxt,
+                                rgba("#5e3a2a"))                                                       # ris
+                vaxt = g.blanda(m("MULTIPLY", g.jamn(korn, 0.6, 0.7), 0.7), vaxt, rgba("#283220"))       # skuggor
+                col = g.blanda(fl, col, vaxt)
+                grov = mix(fl, grov, 0.97)
+                hojd_tx = m("ADD", hojd_tx, m("MULTIPLY", fl, lin((m("SUBTRACT", tuva, 0.5), 0.35),
+                                                                  (m("SUBTRACT", korn, 0.5), 0.15))))
     col = g.ljus(col, lin((m("SUBTRACT", korn, 0.5), 0.25), (m("SUBTRACT", fin, 0.5), 0.2), bas=1.0))
     hojd = lin((m("SUBTRACT", fin, 0.5), 0.08), (m("SUBTRACT", korn, 0.5), 0.02))
     g.yta(col, grov, 0.0, m("ADD", hojd, hojd_tx) if tx else hojd, styrka=0.6, avstand=1.0)
@@ -474,6 +502,8 @@ def bygg(mitt: tuple[float, float], z_bas: float, terrang: str, mapp: str | None
         hav(rut.besk["z_hav"])
         byggnader(rut)
         trad(ob, rut, mitt, tillgangar=tillgangar)
+        if tillgangar:
+            buskar(rut, tillgangar)
         if tillgangar:
             inmatta(rut, tillgangar)
 
@@ -711,6 +741,41 @@ def _modell(tillgangar: str | None, namn: str) -> list[bpy.types.Object]:
             if mat.name in TONING:
                 _tona(mat, *TONING[mat.name])
     return _MODELLER[namn]
+
+
+def buskar(rut: Rutnat, tillgangar: str) -> None:
+    """Buskarna vid bäddarna och bäddarnas låga växter (nara_objekt.json): Poly Havens buskar (MODELLER["buske"],
+    BUSKE_HOJD höga) och på bädden gräs i tuvor och, SMABUSKAR av dem, små buskar, vridna, lite lutade och olika
+    stora; varje växt slumpas ur sitt läge."""
+    obj = _objekt(rut)
+    if not obj.get("buskar") and not obj.get("vaxter"):
+        return
+    kol = bpy.data.collections.new("Buskar")
+    bpy.context.scene.collection.children.link(kol)
+    sorter = {k: [(o.data, _granser(o.data)[1][2]) for o in _modell(tillgangar, k)]
+              for k in ("buske", "smabuske", "gras")}
+    for i, (x, y, z) in enumerate(obj.get("buskar", []) if sorter["buske"] else []):
+        rng = np.random.default_rng([13, round(x * 1000) % 2 ** 32, round(y * 1000) % 2 ** 32])
+        for j in range(BUSKE_TATHET):                                  # några buskar tätt ihop: en tät buske
+            me, h = sorter["buske"][int(rng.integers(len(sorter["buske"])))]
+            s = rng.uniform(*BUSKE_HOJD) / h
+            ob = bpy.data.objects.new(f"Buske {i + 1}.{j + 1}", me)
+            ob.scale = (s, s, s)
+            ob.rotation_euler = (rng.normal(0, 0.06), rng.normal(0, 0.06), rng.uniform(0, 2 * math.pi))
+            ob.location = (x + rng.normal(0, 0.25), y + rng.normal(0, 0.25), z - 0.05)
+            kol.objects.link(ob)
+    for i, (x, y, z) in enumerate(obj.get("vaxter", [])):
+        rng = np.random.default_rng([19, round(x * 1000) % 2 ** 32, round(y * 1000) % 2 ** 32])
+        sort = "smabuske" if rng.random() < SMABUSKAR else "gras"
+        if not sorter[sort]:
+            continue
+        me, _ = sorter[sort][int(rng.integers(len(sorter[sort])))]
+        s = rng.uniform(*VAXT_SKALA[sort])
+        ob = bpy.data.objects.new(f"Växt {i + 1}", me)
+        ob.scale = (s, s, s * rng.uniform(0.8, 1.2))
+        ob.rotation_euler = (rng.normal(0, 0.08), rng.normal(0, 0.08), rng.uniform(0, 2 * math.pi))
+        ob.location = (x, y, z - 0.02)
+        kol.objects.link(ob)
 
 
 def _granser(me: bpy.types.Mesh) -> tuple[np.ndarray, np.ndarray]:

@@ -207,9 +207,10 @@ GEODATA = {
     # byggnader (hörnen, höjden [m], valfritt platt tak och färger), skog (täta träd i olika höjd), inmätta träd som
     # inte finns och tallar som saknas
     "byggnader": [
-        # grannhuset i norr (nybygge): väggen mot tomten inmätt (punkterna hus vid x 21,4–21,9), djupet ur flygfotot
+        # grannhuset i norr (nybygge): väggen mot tomten inmätt (punkterna hus vid x 21,4–21,9), djupet ur flygfotot;
+        # mycket mörkgrått med svartmålat plåttak (ärende #79)
         {"horn": [(21600, -12800), (29000, -12800), (29000, 6200), (21600, 6200)], "hojd": 6.5,
-         "takfarg": "#4a4d50"},
+         "farg": "#2b2c2e", "takfarg": "#151617"},
         # grannhuset i sydost (flygfotot): två delar med platta tak
         {"horn": [(-35300, 11950), (-46600, 5400), (-50100, 11900), (-38700, 18400)], "hojd": 6.0, "tak": "platt",
          "farg": "#e8e4da", "takfarg": "#3a3c3e"},
@@ -224,6 +225,11 @@ GEODATA = {
         [(-10900, 35400), (-19600, 29100), (-29600, 27600), (-38300, 31500), (-43200, 39500), (-43000, 49600),
          (-37900, 59100), (-29200, 65400), (-19200, 66800), (-10500, 63000), (-5600, 55000), (-5800, 44800)],
     ],
+    # bädden framför altanen (ärende #77): i verkligheten 50–70 cm hög, med låg växtlighet och de inmätta stenarna:
+    # hörnen, höjden över marken runt [m] och släntens bredd [m]; buskar bredvid den
+    "baddar": [{"horn": [(11980, 18050), (9980, 18530), (9590, 20300), (12770, 22330), (15060, 22280),
+                         (15300, 20180), (13620, 18670)], "hojd": 0.6, "slant": 0.9}],
+    "buskar": [(8900, 20500), (9400, 18200), (12500, 23050), (15500, 22800), (16000, 20000)],
     # öster om huset; de två väster om huset, vid gaveln mot grannhuset i norr
     "utan_trad": [(800, -6500), (2400, -300), (16950, 12950), (20260, 11680)],
     # öster om huset bortom de inmätta tallarna, i sydost och i sydväst
