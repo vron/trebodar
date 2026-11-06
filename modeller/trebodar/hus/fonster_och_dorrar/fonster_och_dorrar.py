@@ -33,7 +33,7 @@ from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
 from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
 from trebodar.byggdelar import velfac as V
-from trebodar.material import (ALUMINIUM, ANSLUTNINGSPLAT, ASK, C24, DORRPANEL, DORRPANEL_KALLARE, FOGMASSA, FURU, KAKEL,
+from trebodar.material import (ALUMINIUM, ANSLUTNINGSPLAT, ASK, C24, DORRPANEL, DORRPANEL_KALLARE, FOGMASSA, KAKEL,
                                KARM, MINERALULL, TATNINGSLIST)
 
 from .oppningar import (BANK_V, BLECK_NAS_V, BLECK_T, BLECK_UPP_V, BLECK_UT_V, DORRAR, FICKA_UT, FOG_V, INDRAG_V,
@@ -234,8 +234,8 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     r = DORRSMYG_T
     ba, bb = (d.u0 + r, d.u1 + FICKA_UT + r) if d.mot > 0 else (d.u0 - FICKA_UT - r, d.u1 - r)
     m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
-    blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", FURU)
-    m.lagg(Del(f"Dörrblad trä {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, FURU), pl, f"{d.kod}-BLAD")
+    blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", ASK)
+    m.lagg(Del(f"Dörrblad ask {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, ASK), pl, f"{d.kod}-BLAD")
     u0, u1 = min(d.u0, a), max(d.u1, b)
     m.lagg(Del(f"Skena fickdörr {fmt(u1 - u0)}", box(u0, u1, wm - 10.0, wm + 10.0, d.hojd + 10.0, d.hojd + FICKA_SKENA),
                KARM), Placering(), f"{d.kod}-SKENA")
@@ -271,8 +271,8 @@ def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:
         s0, s1 = max([a - d.bredd] + [g1 + 10.0 for _, g1 in grannar if g1 <= a]), b
     s0, s1 = max(s0, min(a, SKIVOR_T + 10.0)), min(s1, max(b, v.langd - SKIVOR_T - 10.0))     # inte förbi grannväggarna
     m = Montage(d.kod, d.kod, f"Skjutdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
-    m.lagg(Del(f"Dörrblad trä {fmt(b - a)}×{fmt(d.hojd + 30)}", box(a, b, wa, wb, 10.0, d.hojd + 40.0), FURU),
-           Placering(), f"{d.kod}-BLAD")
+    blad, pl = virke_i_lada(a, b, wa, wb, 10.0, d.hojd + 40.0, "z", ASK)
+    m.lagg(Del(f"Dörrblad ask {fmt(b - a)}×{fmt(d.hojd + 30)}", blad.form, ASK), pl, f"{d.kod}-BLAD")
     m.lagg(Del(f"Skena {fmt(s1 - s0)}", box(s0, s1, sa, sb, d.hojd + 40.0, d.hojd + 80.0), KARM), Placering(),
            f"{d.kod}-SKENA")
     return m, v.placering()
