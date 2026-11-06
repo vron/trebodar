@@ -139,7 +139,7 @@ fas      = "invandigt"
 [[produkt]]
 kod      = "BANKSKIVA"
 grupp    = "Kök"
-namn     = "Bänkskivor, bänken och ön"
+namn     = "Bänkskivor, bänken och ön, och badrumsbänken"
 vald     = "Bricmate Jura 12"
 status   = "vald"
 ansvarig = "byggherre"
@@ -212,6 +212,119 @@ fas      = "tatt"
 dokument = "V-01"
 arende   = [59]
 anm      = "Tyst takfläkt för köksfläkten, rakt ovanför kåpan; kanalen genom taket görs när taket läggs. Kulören är inte vald."
+
+# ------------------------------------------------------------------ badrum
+
+[[produkt]]
+kod      = "BADRUMSSKAP"
+grupp    = "Badrum"
+namn     = "Badrumsbänkens och det inbyggda skåpets stommar och dörrar av fräst ask"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Som köksskåpen: stommar av björkplywood 20 och dörrar av fräst ask 22 med linsformat grepp. Bänken: tre skåp med fyra lika breda dörrar (en, två och en); skåpet i nischen vid L10: två höga dörrar och fyra hyllor. Gångjärnen är inte modellerade."
+
+[[produkt]]
+kod      = "TVATTSTALL"
+grupp    = "Badrum"
+namn     = "Tvättställ av porslin, undermonterat, och tvättställsblandare"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Insida ca 480 × 300 × 150 under bänkskivan, mitt under fönstret 1NO-F1; blandaren på bänkskivan bakom."
+
+[[produkt]]
+kod      = "BADKAR"
+grupp    = "Badrum"
+namn     = "Badkar, fristående, ca 1 700 × 800"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Avloppet Ø50 genom golvet under karets mitt (AV3)."
+
+[[produkt]]
+kod      = "BADKARSBLANDARE"
+grupp    = "Badrum"
+namn     = "Badkarsblandare, golvstående, med handdusch"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Monteras på tappvattnets golvdosa BA-BK1 vid badkarets ände mot 1A."
+
+[[produkt]]
+kod      = "WC"
+grupp    = "Badrum"
+namn     = "WC, golvstående, med S-lås"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Avloppet Ø110 genom golvet 190 mm från L9 (AV1); vattnet i väggdosan BA-WC1 vid sidan av cisternen."
+
+[[produkt]]
+kod      = "DUSCHDORRAR"
+grupp    = "Badrum"
+namn     = "Duschdörrar, två hängda dörrar av härdat glas 8 mm i nisch, ca 1 070"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Väggprofilerna på 1B och L11 (L11:s regel vid dörren ID1, utanför fickan)."
+
+[[produkt]]
+kod      = "DUSCHSET"
+grupp    = "Badrum"
+namn     = "Duschset: termostatblandare med stång, takdusch Ø250 och handdusch"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Blandaren på väggdosan BA-DU1 (c/c 160) på 1C."
+
+[[produkt]]
+kod      = "GOLVBRUNN"
+grupp    = "Badrum"
+namn     = "Golvbrunn för betongbjälklag, lodrätt utlopp Ø75, med klämring och sil"
+status   = "att välja"
+ansvarig = "vvs"
+fas      = "mellanbjalklag"
+arende   = [52]
+anm      = "Gjuts in i mellanbjälklaget med flänsen i dess överkant, i duschen 272 mm från 1B; väljs med tätskiktet (systemgodkänt) före gjutningen."
+
+[[produkt]]
+kod      = "SPEGEL"
+grupp    = "Badrum"
+namn     = "Spegel ca 520 × 800, limmad på kaklet"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+
+[[produkt]]
+kod      = "HANDDUKSTORK"
+grupp    = "Badrum"
+namn     = "Handdukstork, elektrisk, ca 500 × 1 200, IPX4, fast ansluten"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "På 1A mellan badkaret och duschen (zon 2); dosan BA-D1 bakom den."
+
+[[produkt]]
+kod        = "KAKEL"
+grupp      = "Badrum"
+namn       = "Kakel och klinker i badrummet"
+vald       = "Bricmate J612 Jura Select Classic Honed 60 × 120 (väggar), J66 60 × 60 (golvet)"
+status     = "vald"
+ansvarig   = "byggherre"
+fas        = "invandigt"
+omfattning = "väggar ca 48 m², golv ca 10 m²"
+arende     = [52]
+anm        = "Samma serie som köksbänkarnas skivor. Golvet med fall mot golvbrunnen; väggarnas kakel ingår i väggarnas våtrumsskikt."
 
 # ------------------------------------------------------------------ kamin
 
@@ -289,6 +402,16 @@ status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 
+[[produkt]]
+kod      = "ARM-VAGGLAMPA"
+grupp    = "Belysning"
+namn     = "Vägglampa med glob av opalglas Ø160 på arm av mässing, IP44"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [52]
+anm      = "Över badrummets tvättställ, ovanför fönstret 1NO-F1."
+
 # ------------------------------------------------------------------ vvs
 
 [[produkt]]
@@ -313,17 +436,6 @@ fas        = "grund"
 omfattning = "1 borrhål"
 leverantor = "Norra Bohusläns Brunnsborrning HB"
 anm        = "Beslut med försiktighetsmått 2 november 2026 (MSK.2026.2199). Vid cirka (3 500, −2 000); köldbärarledningarna går under bottenplattan."
-
-[[produkt]]
-kod        = "BADRUM"
-grupp      = "VVS"
-namn       = "Badrummets sanitet"
-status     = "att välja"
-ansvarig   = "byggherre"
-fas        = "invandigt"
-omfattning = "4 st"
-arende     = [52]
-anm        = "WC, badkar, tvättställ och duschblandare. Anslutningarna finns i tappvattnet; porslinet är inte modellerat."
 
 # ------------------------------------------------------------------ inredning och mark
 

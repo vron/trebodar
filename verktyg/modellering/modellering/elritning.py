@@ -39,9 +39,12 @@ def symbol(v: Vy, slag: str, X: float, Y: float, kanaler: int = 1) -> None:
     (dessutom en pil genom cirkeln), uttag (cirkel med streck), kopplingsdosa (kvadrat) och ingjutningsdosa (kvadrat
     med diagonal)."""
     c = np.array([X, Y])
-    if slag in ("spot", "tubspot", "pendel"):
-        if slag == "pendel":
+    if slag in ("spot", "tubspot", "pendel", "vagglampa"):
+        if slag in ("pendel", "vagglampa"):
             v.cirkel(X, Y, R_LAMPA + 0.6, fyll="vit", stil="tunn")
+        if slag == "vagglampa":
+            r, y = v.m(R_LAMPA + 0.6), Y - v.m(R_LAMPA + 1.2)
+            v.linje([(X - r, y), (X + r, y)], "normal")
         v.cirkel(X, Y, R_LAMPA, fyll="vit", stil="normal")
         k = v.m(R_LAMPA) * math.sqrt(0.5)
         v.linje([(X - k, Y - k), (X + k, Y + k)], "tunn")
@@ -180,6 +183,7 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
     "spot": (lambda v: symbol(v, "spot", 0.0, 0.0), "armatur, infälld i taket"),
     "tubspot": (_tubspot, "armatur på stam (spot); pilen: ljusets riktning"),
     "pendel": (lambda v: symbol(v, "pendel", 0.0, 0.0), "pendel (i sladd från en takkopp)"),
+    "vagglampa": (lambda v: symbol(v, "vagglampa", 0.0, 0.0), "vägglampa (på arm från väggen)"),
     "dimmer": (lambda v: symbol(v, "dimmer", -0.6, -0.5, 2), "dimmer; tvärstrecken: kanalerna"),
     "brytare": (lambda v: symbol(v, "brytare", -0.6, -0.5), "strömbrytare"),
     "uttag": (lambda v: symbol(v, "uttag", 0.0, 0.0), "vägguttag"),

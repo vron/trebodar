@@ -50,8 +50,11 @@ from .skikt import (FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, 
 SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
 CC = 600.0
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
-ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L12", "L7", "L6",
-           "L13", "L14")
+ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L19", "L12", "L7",
+           "L6", "L13", "L14")
+# fria ändar i badrummet: skikten går förbi änden så långt som skikten innanför dem, och ändens skikt (andbrador.py) går
+# över dem, så att tätskiktet och kaklet går runt änden
+FRIA_ANDAR_VATRUM = (("L19", 0),)
 
 Hinder = tuple[Polygon, float, float]
 
@@ -142,6 +145,8 @@ def _forbi(kod: str, ande: int, sida: int, inre: float, utanfor: float) -> float
     h = _hornen()
     if (ande, sida) in h[kod]:
         return h[kod][(ande, sida)].forbi - utanfor
+    if (kod, ande) in FRIA_ANDAR_VATRUM:
+        return inre
     mot = {(x.annan, x.ande, x.sida) for hv in h.values() for x in hv.values()}
     return inre if (kod, ande, sida) in mot else _skarvar()[kod].get((ande, sida), 0.0)
 

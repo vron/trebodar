@@ -271,6 +271,12 @@ def main(argv: list[str] | None = None) -> None:
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
                          "(markdown); ritning: planen med höjderna (D-01)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
+    pv = sub.add_parser("avlopp", help="badrummets avlopp: kontroll (med krockar mot huset) och lista")
+    pv.add_argument("atgard", choices=("kontroll", "lista"),
+                    help="kontroll: fallet, att ledningarna går under bjälklaget och ansluter ovanför vattengången, "
+                         "den fria höjden och krockarna mot husets delar och de andra installationerna; lista: "
+                         "ledningarna och golvbrunnen (markdown)")
+    pv.add_argument("--ut", type=Path, default=UT / "avlopp")
     pb = sub.add_parser("barverk", help="bärverket ur modellen (stommens delar och lastytorna) för K-04:s balkmodell")
     pb.add_argument("--ut", type=Path, default=UT / "barverk.json")
     pi = sub.add_parser("inkop", help="specialprodukterna i modellen mot inköpslistan (IN-01): kontroll och utdrag")
@@ -960,6 +966,45 @@ def main(argv: list[str] | None = None) -> None:
             plan1 = snitt(ma, step_fil, 1200.0, UT / "dranering-plan1.json")
             pdf = draneringsritning.ritningar(utdrag, plan1, _norr(), UT / "dranering" / "blad", arg.ut)
             print(f"  {pdf}")
+    elif arg.kommando == "avlopp":
+        import json
+        from . import installationer
+        regler = importlib.import_module("trebodar.kontrollregler")
+        av = importlib.import_module("trebodar.hus.installationer.avlopp.ledningar")
+        utdrag = av.utdrag()
+        fel, anm = av.kontroll()
+        kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Avlopp")
+        # samlingsledningen ansluter till stammen (Onshape-modellens, VVS); järnen läggs om runt hålen i bjälklaget
+        fel += [f"krock med {k}" for k in kr.installationer + kr.stomme if "/VVS/Avlopp" not in k]
+        if kr.armering:
+            anm.append("hål i bjälklaget, järnen läggs om runt dem: "
+                       + ", ".join(sorted({k.split(" mot ")[0] for k in kr.armering})))
+        if arg.atgard == "kontroll":
+            print(f"  {len(utdrag['ledningar'])} ledningar: {len(fel)} fel, {len(anm)} anmärkningar")
+            for f in fel:
+                print(f"    FEL {f}")
+            for x in anm:
+                print(f"    {x}")
+            print("  genomföringar (per rör):")
+            for k in kr.skikt:
+                print(f"    {k}")
+            if fel:
+                raise SystemExit(1)
+        else:
+            arg.ut.mkdir(parents=True, exist_ok=True)
+            rader = ["# Badrummets avlopp", "", "| Ledning | | Ø | Längd | Vattengång från | till |",
+                     "|---|---|---|---|---|---|"]
+            for k, v in utdrag["ledningar"].items():
+                vag = v["vag"]
+                langd = sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
+                rader.append(f"| {k} | {v['namn']} | {v['d']:g} | {langd / 1000:.1f} m | "
+                             f"{vag[1][2] - v['d'] / 2:.0f} | {vag[-1][2] - v['d'] / 2:.0f} |")
+            rader += ["", "## Kontrollen", ""] + [f"- FEL {f}" for f in fel] + [f"- {x}" for x in anm]
+            rader += ["", "## Genomföringar", ""] + [f"- {k}" for k in kr.skikt]
+            fil = arg.ut / "avlopp.md"
+            fil.write_text("\n".join(rader) + "\n", encoding="utf-8")
+            (arg.ut / "avlopp.json").write_text(json.dumps(utdrag, ensure_ascii=False, indent=1))
+            print(f"  {fil}")
     elif arg.kommando == "kollektor":
         from . import installationer
         regler = importlib.import_module("trebodar.kontrollregler")

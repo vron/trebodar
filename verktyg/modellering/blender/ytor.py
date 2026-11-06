@@ -5,7 +5,7 @@ x eller y, golv och tak ligger i xy.
 """
 from __future__ import annotations
 
-from graf import Graf, rgba
+from graf import Graf, Sockel, rgba
 from graf import tal as _f
 
 
@@ -56,28 +56,68 @@ def betong(g: Graf, p: dict) -> None:
     g.yta(col, grov, 0.0, hojd, styrka=1.0, avstand=1.0)
 
 
-def kakel(g: Graf, p: dict) -> None:
-    """Kakel: plattor (storlek mm) med fogar (fog mm, fogfarg), svag skiftning per platta och blank glasyr med lätt
-    rundade kanter; rutnätet i väggens plan (x eller y efter normalen, och z) eller i golvets."""
+def _kalksten(g: Graf, p: dict, k: Sockel) -> tuple[Sockel, Sockel, Sockel]:
+    """Kalksten (Bricmate Jura): molnig ton mellan farg och farg2 i flera skalor, ljusare stråk, korn, fina porer och
+    små fläckar (farg3), slipad och halvmatt; k är punkten (världens koordinater, förskjuten per platta). Ger färgen,
+    grovheten och höjden."""
     m, lin = g.matte, g.linj
-    x, y, z = g.sep(g.nod("ShaderNodeTexCoord").outputs["Object"])
+    c1, c2 = rgba(str(p["farg"])), rgba(str(p.get("farg2", p["farg"])))
+    c3 = rgba(str(p.get("farg3", p.get("farg2", p["farg"]))))
+    s = _f(p, "skala", 3.0)
+    moln = g.brus(k, s, 6.0, 0.66)
+    stor = g.brus(k, s * 0.35, 3.0, 0.5)
+    ton = g.jamn(lin((moln, 0.8), (stor, 0.4), bas=-0.1), 0.44, 0.66)
+    farg = g.blanda(ton, c1, c2)
+    strak = g.jamn(g.brus(g.vmatte("MULTIPLY", k, g.vektor(1.0, 1.0, 4.0)), s * 2.2, 3.0, 0.6), 0.6, 0.72)
+    farg = g.ljus(farg, lin((strak, 0.06), (m("SUBTRACT", g.brus(k, 120.0, 2.0, 0.6), 0.5), 0.1), bas=1.0))
+    por = g.jamn(g.brus(k, 700.0, 1.0, 0.5), 0.68, 0.74)
+    flack = g.jamn(g.brus(k, 90.0, 2.0, 0.55), 0.72, 0.78)
+    farg = g.blanda(m("MAXIMUM", m("MULTIPLY", por, 0.6), m("MULTIPLY", flack, 0.75)), farg, c3)
+    grov = lin((por, 0.15), bas=_f(p, "grovhet", 0.55))
+    hojd = lin((por, -0.00015), (m("SUBTRACT", g.brus(k, 300.0, 2.0), 0.5), 0.00003))
+    return farg, grov, hojd
+
+
+def kalksten(g: Graf, p: dict) -> None:
+    """Skivor av kalkstensimiterande granitkeramik (bänkskivorna): kalkstenen i världens koordinater, utan fogar."""
+    farg, grov, hojd = _kalksten(g, p, g.nod("ShaderNodeNewGeometry").outputs["Position"])
+    g.yta(farg, grov, 0.0, hojd, styrka=1.0, avstand=1.0)
+
+
+def kakel(g: Graf, p: dict) -> None:
+    """Kakel: plattor (storlek mm, och hojd mm uppåt på väggar och längs y på golv om den anges) med fogar (fog mm,
+    fogfarg), svag skiftning per platta (variation) och lätt rundade kanter; rutnätet i världens koordinater, i
+    väggens plan (x eller y efter normalen, och z) eller i golvets, så att fogarna går runt hörnen. Med sten = 1 är
+    plattorna kalksten (_kalksten, olika i varje platta), annars blank glasyr i färgen farg."""
+    m, lin = g.matte, g.linj
+    pos = g.nod("ShaderNodeNewGeometry").outputs["Position"]
+    x, y, z = g.sep(pos)
     n = g.sep(g.nod("ShaderNodeNewGeometry").outputs["Normal"])
     langs_y = m("GREATER_THAN", m("ABSOLUTE", n[0]), m("ABSOLUTE", n[1]))      # väggen går längs y
     plan = m("GREATER_THAN", m("ABSOLUTE", n[2]), 0.7)
     u = lin((m("MULTIPLY", langs_y, y), 1.0), (m("MULTIPLY", m("SUBTRACT", 1.0, langs_y), x), 1.0))
     v = lin((m("MULTIPLY", plan, y), 1.0), (m("MULTIPLY", m("SUBTRACT", 1.0, plan), z), 1.0))
     u = lin((m("MULTIPLY", plan, x), 1.0), (m("MULTIPLY", m("SUBTRACT", 1.0, plan), u), 1.0))
-    s = _f(p, "storlek", 200.0) / 1000
+    su = _f(p, "storlek", 200.0) / 1000
+    sv = _f(p, "hojd", su * 1000) / 1000
     f = _f(p, "fog", 2.0) / 1000
-    iu, iv = m("FLOOR", m("DIVIDE", u, s)), m("FLOOR", m("DIVIDE", v, s))
-    fu = m("MULTIPLY", m("SUBTRACT", m("DIVIDE", u, s), iu), s)
-    fv = m("MULTIPLY", m("SUBTRACT", m("DIVIDE", v, s), iv), s)
-    kant = m("MINIMUM", m("MINIMUM", fu, m("SUBTRACT", s, fu)), m("MINIMUM", fv, m("SUBTRACT", s, fv)))
+    iu, iv = m("FLOOR", m("DIVIDE", u, su)), m("FLOOR", m("DIVIDE", v, sv))
+    fu = m("MULTIPLY", m("SUBTRACT", m("DIVIDE", u, su), iu), su)
+    fv = m("MULTIPLY", m("SUBTRACT", m("DIVIDE", v, sv), iv), sv)
+    kant = m("MINIMUM", m("MINIMUM", fu, m("SUBTRACT", su, fu)), m("MINIMUM", fv, m("SUBTRACT", sv, fv)))
     fog = g.jamn(kant, f / 2, f / 2 - 0.0004)
     rund = g.jamn(kant, f / 2 + 0.0015, f / 2)
     r = g.slump(m("ADD", m("MULTIPLY", iu, 17.13), m("MULTIPLY", iv, 3.71)))
-    platta = g.ljus(rgba(str(p["farg"])), lin((m("SUBTRACT", r, 0.5), 0.04), bas=1.0))
+    skift = lin((m("SUBTRACT", r, 0.5), _f(p, "variation", 0.04)), bas=1.0)
+    if _f(p, "sten", 0.0) > 0.0:
+        # varje platta har sin egen bit av stenen: punkten förskjuten per platta
+        k = g.vmatte("ADD", pos, g.vektor(m("MULTIPLY", r, 37.0), m("MULTIPLY", iu, 11.3), m("MULTIPLY", iv, 7.9)))
+        sten, grov_s, hojd_s = _kalksten(g, p, k)
+        platta = g.ljus(sten, skift)
+    else:
+        platta = g.ljus(rgba(str(p["farg"])), skift)
+        grov_s, hojd_s = _f(p, "grovhet", 0.12), lin((m("SUBTRACT", g.brus(g.koord, 40.0, 2.0), 0.5), 0.00004))
     col = g.blanda(fog, platta, rgba(str(p.get("fogfarg", "#c9c7c2"))))
-    grov = lin((fog, 0.7), bas=_f(p, "grovhet", 0.12))
-    hojd = lin((fog, -0.0012), (rund, -0.0004), (m("SUBTRACT", g.brus(g.koord, 40.0, 2.0), 0.5), 0.00004))
+    grov = lin((fog, 0.7), (grov_s, 1.0))
+    hojd = lin((fog, -0.0012), (rund, -0.0004), (hojd_s, 1.0))
     g.yta(col, grov, 0.0, hojd, styrka=1.0, avstand=1.0)

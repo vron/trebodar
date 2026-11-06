@@ -102,6 +102,18 @@ GLOB_250 = Armaturtyp(
     pendel=Pendel("glob", 250.0, 285.0, kalla=160.0, kalla_d=60.0, ljuskalla="E27 LED 806 lm 2 700 K Ra 90 (ej vald)",
                   lysande_yta=math.pi * 250.0 ** 2, lysande_andel=1.0, transmission=0.7))
 
+# Vägglampa: glob av opalglas Ø160 under en kåpa av mässing, på en arm från en väggplatta, IP44, allmän (ej vald);
+# över badrummets tvättställ (rum/badrum.py)
+VAGGLAMPA = Armaturtyp(
+    "VAGG-GLOB-160", "Vägglampa, glob av opalglas Ø160 på arm av mässing, IP44 (ej vald)", "Allmän", "ej vald", "",
+    produkt="ARM-VAGGLAMPA",
+    ljusflode=470.0, effekt=4.5, fargtemperatur=2700.0, ra=90.0, stralvinkel=0.0, vridbar=0.0, ip="IP44",
+    dimring="bakkant", ring_d=100.0, hal_d=0.0, djup=0.0, lysande_d=160.0, brandavstand=0.0, drivdon=None,
+    fotometri="", fotometri_url="", symbol="vagglampa",
+    pendel=Pendel("glob", 160.0, 195.0, kalla=110.0, kalla_d=40.0, ljuskalla="E14 LED 470 lm 2 700 K Ra 90 (ej vald)",
+                  lysande_yta=math.pi * 160.0 ** 2, lysande_andel=1.0, transmission=0.7, takkopp=(100.0, 20.0),
+                  takkopp_massing=True, arm=170.0))
+
 # ------------------------------------------------------------------ dosor (allmänna)
 
 APPARATDOSA = Dosatyp("APPARATDOSA", "Apparatdosa för skiva, Ø68 (ej vald)", "apparatdosa", 68.0, 45.0)
@@ -120,6 +132,8 @@ BRYTARE_1 = Apparattyp("BRYTARE-1", "Strömbrytare, en pol (ej vald)", "brytare"
                        "brytare")
 UTTAG_2 = Apparattyp("UTTAG-2", "Vägguttag, dubbelt, jordat (ej valt)", "uttag", 2, (151.0, 80.0), APPARATDOSA, "uttag")
 UTTAG_1 = Apparattyp("UTTAG-1", "Vägguttag, enkelt, jordat (ej valt)", "uttag", 1, (80.0, 80.0), APPARATDOSA, "uttag")
+UTTAG_2_IP44 = Apparattyp("UTTAG-2-IP44", "Vägguttag, dubbelt, jordat, IP44 med lock (våtrum, ej valt)", "uttag", 2,
+                          (151.0, 80.0), APPARATDOSA, "uttag")
 
 # ------------------------------------------------------------------ rör
 

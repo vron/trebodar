@@ -44,10 +44,11 @@ class Tubhuvud:
 
 @dataclass(frozen=True)
 class Pendel:
-    """Pendelarmatur: armaturen hänger i en sladd från en takkopp på innertaket. Formen ger geometrin ur måtten
-    (el.py); ljuskällan (en lampa i armaturens sockel) sitter mitt i armaturen kalla under dess överkant. I
-    renderingen formas ljuset av armaturens delar: skärmarna skuggar och reflekterar, glaset skuggar inte men lyser
-    med sin luminans (flödet genom glaset fördelat på dess yta)."""
+    """Pendelarmatur: armaturen hänger i en sladd från en takkopp på innertaket, eller (vägglampa, arm > 0) under
+    änden av en arm från en väggplatta. Formen ger geometrin ur måtten (el.py); ljuskällan (en lampa i armaturens
+    sockel) sitter mitt i armaturen kalla under dess överkant. I renderingen formas ljuset av armaturens delar:
+    skärmarna skuggar och reflekterar, glaset skuggar inte men lyser med sin luminans (flödet genom glaset fördelat
+    på dess yta)."""
     form: str                   # "ph5", "vl45", "glob" eller "stav" (el.py)
     diameter: float             # armaturens största diameter [mm]
     hojd: float                 # från överkanten (där sladden går in) till underkanten [mm]
@@ -59,7 +60,8 @@ class Pendel:
     transmission: float = 1.0   # glasets transmission, för glas som omsluter ljuskällan (globerna)
     sladd: str = "vit"          # textilsladdens färg: "vit" eller "svart"
     takkopp: tuple[float, float] = (90.0, 25.0)       # takkoppens diameter och höjd [mm]
-    takkopp_massing: bool = False                       # takkoppen i mässing (annars vit)
+    takkopp_massing: bool = False                       # takkoppen (och globens kåpa) i mässing (annars vit)
+    arm: float = 0.0            # vägglampa: armen från väggplattan (takkoppen på väggen) till armaturens överkant [mm]
 
 
 @dataclass(frozen=True)

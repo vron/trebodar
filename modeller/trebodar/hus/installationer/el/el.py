@@ -13,6 +13,8 @@ import math
 
 from modellering import Del, Form, Montage, Placering, box, cylinder, varv
 
+from trebodar.byggdelar.ror import stang
+
 from trebodar.material import (APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR, FROSTAT_GLAS,
                                MASSING, OPALGLAS, RAMASSING, SLADD_SVART, SLADD_VIT)
 
@@ -201,7 +203,8 @@ def _glob(t: Armaturtyp, pe: Pendel) -> list[tuple[str, Del]]:
     r = pe.diameter / 2
     kurva = [(r * math.sin(math.pi * i / 32), -f - r + r * math.cos(math.pi * i / 32)) for i in range(33)]
     namn = f"{t.tillverkare} {t.namn}"
-    return [("KAPA", Del(f"{namn} kåpa", cylinder(38.0, f + 5.0, (0.0, 0.0, -f - 5.0)), ARMATUR)),
+    return [("KAPA", Del(f"{namn} kåpa", cylinder(38.0, f + 5.0, (0.0, 0.0, -f - 5.0)),
+                         MASSING if pe.takkopp_massing else ARMATUR)),
             ("LINS", Del(f"{namn} opalglas Ø{pe.diameter:.0f}",
                          varv(("kurva", kurva), ("linje", [kurva[-1], kurva[0]])), OPALGLAS))]
 
@@ -229,9 +232,12 @@ def _pendel(p: Lampa) -> Montage:
     m.lagg(Del(f"Takkopp Ø{d:g}", cylinder(d / 2, h), MASSING if pe.takkopp_massing else ARMATUR), _system(p.lage),
            f"{p.id}-TAKKOPP")
     kopp, topp = pendeln(p)
-    sladd = kopp[2] - topp[2]
-    m.lagg(Del(f"Textilsladd Ø6 L={sladd:.0f}", cylinder(3.0, sladd),
-               SLADD_SVART if pe.sladd == "svart" else SLADD_VIT), Placering.flytt(*topp), f"{p.id}-SLADD")
+    if pe.arm:
+        m.lagg(Del(f"Arm mässing Ø10 L={pe.arm:.0f}", stang(kopp, topp, 10.0), MASSING), Placering(), f"{p.id}-ARM")
+    else:
+        sladd = kopp[2] - topp[2]
+        m.lagg(Del(f"Textilsladd Ø6 L={sladd:.0f}", cylinder(3.0, sladd),
+                   SLADD_SVART if pe.sladd == "svart" else SLADD_VIT), Placering.flytt(*topp), f"{p.id}-SLADD")
     sys = Placering.flytt(*topp)
     for namn, del_ in _FORMER[pe.form](t, pe):
         pl = _ph5_stag(int(namn[-1]) - 1, pe.hojd / _PH5_HOJD) if namn.startswith("STAG") else Placering()

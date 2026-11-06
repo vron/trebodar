@@ -1,4 +1,5 @@
-"""Innertaket (F-01): ångbroms, installationsskikt och gips 2 × 12,5 under takbalkarna.
+"""Innertaket (F-01): ångbroms, installationsskikt och gips 2 × 12,5 under takbalkarna; i badrummet (BADRUM) är den
+yttre skivan en spontad panel av gran, vitmålad, med brädorna längs takfallet (ärende #52).
 
 Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
 slutar vid en dalbalk, med uppehåll vid mittstolen och öppningar för takfönstren. Under taket: korslagd läkt 45
@@ -11,7 +12,7 @@ from __future__ import annotations
 
 from functools import cache
 
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Polygon
 
 from modellering import Montage
 
@@ -20,7 +21,8 @@ from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.stomme import lagen
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, balkens_sida
-from trebodar.material import ANGBROMS, C24_LAKT, GIPS
+from trebodar.hus.rum import BADRUM
+from trebodar.material import ANGBROMS, C24_LAKT, GIPS, TAKPANEL
 
 from .skikt import GIPS_INRE_W, GIPS_YTTRE_W, INSIDA_T, LAKT, LAKT_W, TAK_W
 from .vagginsida import badrumsremsor, insidans_plan
@@ -99,7 +101,8 @@ def _strackor(kod: str) -> list[list[float]]:
     t = S.TAKFALL[kod]
     band = sorted([(y, y + S.TAKBALK_B) for y in FALT[kod].y] +
                   [(v.origo[1], v.origo[1] + v.tjocklek) for k, v in S.INNERVAGGAR.items()
-                   if int(k[0]) == t.kropp and abs(v.u[0]) > 0.5 and k not in lagen.TAKSTOLSVAGGAR])
+                   if int(k[0]) == t.kropp and abs(v.u[0]) > 0.5 and k not in lagen.TAKSTOLSVAGGAR
+                   and lagen.under_takfallet(k, kod)])
     tackt: list[list[float]] = []
     for a, b in band:
         if tackt and a <= tackt[-1][1] + 1e-6:
@@ -120,18 +123,44 @@ def _strackor(kod: str) -> list[list[float]]:
     return ut
 
 
+def _badrummet(s0: float, s1: float, k0: L.Kant, k1: L.Kant) -> list[tuple[float, float, L.Kant, L.Kant, bool]]:
+    """Bitens delar i och utanför badrummet: (y0, y1, kant, kant, i badrummet), delad längs y vid badrummets hörn och
+    lodrätt vid dess kanter (väggarnas mitt, BADRUM)."""
+    kl, kh = sorted((k0, k1), key=lambda k: k.x)
+    ys = sorted({s0, s1} | {y for _, y in BADRUM.exterior.coords if s0 < y < s1})
+    ut = []
+    for a, b in zip(ys, ys[1:]):
+        g = BADRUM.intersection(LineString([(kl.x - 1.0, (a + b) / 2), (kh.x + 1.0, (a + b) / 2)]))
+        inne = sorted((max(min(xs), kl.x), min(max(xs), kh.x)) for q in getattr(g, "geoms", [g]) if not q.is_empty
+                      for xs in ([x for x, _ in q.coords],))
+        x, kant = kl.x, kl
+        for xa, xb in inne:
+            if xb - xa < 1.0:
+                continue
+            if xa > x + 1.0:
+                ut.append((a, b, kant, L.Kant("lodratt", xa), False))
+                kant = L.Kant("lodratt", xa)
+            slut = kh if xb >= kh.x - 1.0 else L.Kant("lodratt", xb)
+            ut.append((a, b, kant, slut, True))
+            x, kant = xb, slut
+        if x < kh.x - 1.0:
+            ut.append((a, b, kant, kh, False))
+    return ut
+
+
 Profil = tuple[tuple[tuple[float, float], ...], float, float, str]
-MATERIAL = {"folie": ANGBROMS, "gips": GIPS, "lakt": C24_LAKT}
+MATERIAL = {"folie": ANGBROMS, "gips": GIPS, "lakt": C24_LAKT, "panel": TAKPANEL}
 
 
 @cache
 def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
     """Innertakets skikt under takfallet som profiler, utan delar: (profilens punkter (x, z), y0, y1, typ) per bit,
     för ångbromsen ("folie"), gipsen ("gips") och installationsskiktets läkt ("lakt"), i byggordning. Delarna byggs
-    av takfall; elinstallationen läser läkten härifrån (armaturerna mellan läkten)."""
+    av takfall; elinstallationen läser läkten härifrån (armaturerna mellan läkten). I badrummet är den yttre skivan
+    panel ("panel")."""
     t = S.TAKFALL[kod]
     f = FALT[kod]
-    ut: dict[str, list[Profil]] = {"folie": [], "gips": [], "lakt": []}
+    ut: dict[str, list[Profil]] = {"folie": [], "gips": [], "lakt": [], "panel": []}
 
     def lagg(skikt: str, q: list[tuple[float, float]], a: float, b: float, typ: str) -> None:
         ut[skikt].append((tuple((float(x), float(z)) for x, z in q), float(a), float(b), typ))
@@ -175,9 +204,11 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
                         lagg("folie", q, sa, sb, "AB")
                 for (ga0, ga1), w, typ in (((k0, k1), GIPS_INRE_W, "GI"), ((g0, g1), GIPS_YTTRE_W, "GY")):
                     for sa, sb, ga, gb in _utan_hinder(ga0, ga1, s0, s1, hinder_g):
-                        q = L.profil(t, *w, ga, gb)
-                        if q:
-                            lagg("gips", q, sa, sb, typ)
+                        i_bad = _badrummet(sa, sb, ga, gb) if typ == "GY" else [(sa, sb, ga, gb, False)]
+                        for ya, yb, ka, kb, bad in i_bad:
+                            q = L.profil(t, *w, ka, kb)
+                            if q:
+                                lagg("panel" if bad else "gips", q, ya, yb, "PA" if bad else typ)
                 # installationsskiktets läkt längs y, c/c 400 längs takfallet, avbruten vid hindren
                 q = L.profil(t, *LAKT_W, k0, k1)
                 if not q:
@@ -218,10 +249,12 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
 
 
 def takfall(kod: str) -> Montage:
-    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna")
+    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna "
+                                                "(i badrummet gips och panel)")
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
              "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
-             "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS)}
+             "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS),
+             "panel": Plan(kod, f"Panel tak {kod}", 1.0, material=TAKPANEL)}
     for skikt, bitar in skikten(kod).items():
         for q, a, b, typ in bitar:
             lager[skikt].profil(q, a, b, typ=typ, material=MATERIAL[skikt])

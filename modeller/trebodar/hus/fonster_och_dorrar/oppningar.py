@@ -193,7 +193,8 @@ class Innerdorr:
     öppningen u0–u1 längs väggen och skjutdörren utanpå väggen på sidan w < 0 (sida −1) eller w > tjockleken (+1),
     som öppnas åt växande (mot +1) eller minskande u. Bladet går fore och efter förbi öppningen. En fickdörr (ficka)
     går in i en ficka i väggen åt det håll den öppnas: bladet är FICKA_UT bredare än öppningen (så långt in i fickan
-    står det i stängt läge) och fickan FICKA_SPEL längre än bladet."""
+    står det i stängt läge) och fickan FICKA_SPEL längre än bladet. En dörr med tröskel (troskel > 0) har en tröskel av
+    sten i öppningen och bladet kortare, så att det går fritt över den."""
     kod: str
     vagg: str
     u0: float
@@ -205,6 +206,7 @@ class Innerdorr:
     fore: float = 30.0
     efter: float = 30.0
     ficka: bool = False
+    troskel: float = 0.0     # tröskelns överkant över bjälklaget (badrummet, hus/badrum.py); bladet går fritt över den
 
     @property
     def bredd(self) -> float:
@@ -220,6 +222,7 @@ class Innerdorr:
 # fickdörrarna som i Onshape-modellen: blad 925 i ficka 980, bladet 75 in i fickan i stängt läge
 FICKA_UT = 75.0              # bladet är så mycket bredare än öppningen
 FICKA_SPEL = 55.0            # fickan är så mycket längre än bladet
+DORRSMYG_T = 22.0            # fickdörrarnas smyg, ask (fonster_och_dorrar.py; väggbiten L19 i badrummet följer den)
 
 
 # innerdörrarna som i Onshape-modellen (fickdörrarnas fickor där), alla fickdörrar; öppningarna mellan de färdiga
@@ -229,7 +232,9 @@ FICKA_SPEL = 55.0            # fickan är så mycket längre än bladet
 # öppningen 725). ID6 stängs mot L11:s gips och fickan går från L12 in i 2C, söder om stolpen LD4_1 (som står 12 mm
 # norr om fickan)
 INNERDORRAR = (
-    Innerdorr("ID1", "L11", 1010.0, 1860.0, -1, rum="badrummet", ficka=True),
+    # ID1:s ficka går mot söder i L11, bakom badrummets inbyggda skåp, inte i duschens vägg (hus/badrum.py), med
+    # tröskel mot badrummets golv
+    Innerdorr("ID1", "L11", 1025.0, 1875.0, -1, rum="badrummet", mot=-1, ficka=True, troskel=26.0),
     Innerdorr("ID2", "2B", 3994.5, 4826.0, -1, 2200.0, "trappan till källaren, mellan karmstolparna LD2_1 och LD2_2",
               mot=-1, ficka=True),
     # ID3 stängs mot L1:s gips, fickan slutar vid L3; ID4 börjar efter L3, fickan slutar vid L4

@@ -11,10 +11,10 @@ import math
 from dataclasses import dataclass
 
 from trebodar import skelett as S
-from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, Innerdorr
+from trebodar.hus.fonster_och_dorrar.oppningar import DORRSMYG_T, INNERDORRAR, Innerdorr
 from trebodar.hus.stomme.prefab.stolpar import ln1_3
 
-from .skikt import FOLIE, LAKT, SKIVOR, SKIVOR_T
+from .skikt import FOLIE, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM_T
 
 T = 70.0                        # de lätta väggarnas stomme
 H_VIRKE = 45.0                  # syll, hammarband och överstycke
@@ -72,6 +72,11 @@ _K_DORR_OST = 12970.0                    # skafferidörrens östra sida i stomme
 K_OPPNINGAR = {"Kyl": (0.0, _K_OPP), "Frys": (_K_OPP + _K_MELLAN, 2 * _K_OPP + _K_MELLAN),
                "Skafferi": (2 * (_K_OPP + _K_MELLAN), _K_DORR_OST - K_X_OPP)}
 K_LUCKA = (45.0, 545.0, 2167.0, 2767.0)   # luckans öppning i gavelns stomme: u0, u1, z0, z1
+# badrummets väggbit L19 (ärende #52, hus/badrum.py): från L11 till L9:s stomme, så att den fria änden med skikten
+# runt om är i L9:s yta, och sidan mot dörren i liv med ID1:s smyg; mellan den och L10 står det inbyggda skåpet
+_L11 = (3345.0, 5195.0)
+_ID1 = next(d for d in INNERDORRAR if d.kod == "ID1")
+_L19_Y = _L11[1] + _ID1.u0 + DORRSMYG_T - SKIVOR_VATRUM_T - T
 LATTA = (
     Lattvagg("L1", (9440.0, 2760.0), _PX, X_3NV - 9440.0, "mellan sovrummet och kontoret i höger huskropp"),
     Lattvagg("L2", (11050.0, 2830.0), _PY, 6612.0 - 2830.0, "korridoren i höger huskropp"),
@@ -80,7 +85,8 @@ LATTA = (
              syll=False),
     Lattvagg("L9", (2595.0, Y_1NO), _PY, 5265.0 - Y_1NO, "badrummet mot sovrummet i mittre huskroppen"),
     Lattvagg("L10", (2595.0, 5195.0), _PX, 3275.0 - 2595.0, "badrummets hörn"),
-    Lattvagg("L11", (3345.0, 5195.0), _PY, 8185.0 - 5195.0, "badrummet mot allrummet"),
+    Lattvagg("L11", _L11, _PY, 8185.0 - _L11[1], "badrummet mot allrummet"),
+    Lattvagg("L19", (2595.0 - T, _L19_Y), _PX, _L11[0] - T - (2595.0 - T), "badrummets väggbit vid skåpet, fri ände"),
     Lattvagg("L12", (3345.0, 5925.0), _PX, 4405.0 - 3345.0, "över fickdörren mellan allrummet och sovrummet",
              syll=False),
     Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),

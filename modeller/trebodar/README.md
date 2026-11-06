@@ -65,6 +65,7 @@ Det som flera system behöver står i en egen modul, så att systemen inte beror
 | [`hus/tak/takytor.py`](hus/tak/takytor.py) | Takfallens regioner, takfotens kant, takytan och dalarnas ändar | tak, takkanter, dalar, stommens balkar, fasad, invändigt |
 | [`hus/fonster_och_dorrar/oppningar.py`](hus/fonster_och_dorrar/oppningar.py) | Öppningarna i ytterväggarna och innerdörrarna | fönster och dörrar, fasad, isolering, invändigt, mark |
 | [`hus/rum.py`](hus/rum.py) | Badrummet och kaminkåpan | invändigt, kamin |
+| [`hus/badrum.py`](hus/badrum.py) | Badrummets planering: väggarnas färdiga ytor, inredningens lägen och golvets fall mot golvbrunnen | inredning, invändigt (golvet), installationer (vatten, avlopp, el) |
 | [`hus/fasad/markniva.py`](hus/fasad/markniva.py) | Marken vid fasaderna (genererad tabell) | fasad, takkanter, dalar |
 | [`hus/invandigt/skikt.py`](hus/invandigt/skikt.py) | De invändiga skiktens uppbyggnad och innertakets underkant | invändigt, fönster och dörrar, kamin |
 | [`hus/grund/kallarvaggar.py`](hus/grund/kallarvaggar.py) | Källarväggarna i plan, deras öppningar och kontur | grund, öppningar, fasad, invändigt, mark |
@@ -90,7 +91,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Köksbänken och ön | skåpen (stomme, lådor på Blum MOVENTO, fronter; varje skåp i sitt eget system för ritningar) i `hus/inredning/koksskap.py`, uppställningen (antal skåp, bänkens djup, ön, diskho, häll) i `hus/inredning/koksbank.py` |
 | Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
 | En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
-| Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt |
+| Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt och innertaket panel; `hus/badrum.py`: inredningens lägen (bänken, tvättstället, badkaret, WC:n, duschen, skåpet, spegeln, handdukstorken) och golvets fall; inredningen, golvet, tappvattnet, avloppet och elen följer med |
 | Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
@@ -171,24 +172,26 @@ Trebodar
     │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      VELFAC:s fönster och fönsterdörrar (även källarens), ytterdörrar, innerdörrar
-    ├── Installationer          avlopp (ur Onshape-modellen), el, ventilation, tappvatten, golvvärme, köldbärare,
-    │                           brandlarm, dränering och dagvatten och teknikrummets utrustning
-    │                           (hus/installationer/el, ventilation, vatten, golvvarme, kollektor, brandlarm och
-    │                           dranering, se deras README)
+    ├── Installationer          avlopp (stammen och grundledningarna ur Onshape-modellen, badrummets avlopp), el,
+    │                           ventilation, tappvatten, golvvärme, köldbärare, brandlarm, dränering och dagvatten och
+    │                           teknikrummets utrustning (hus/installationer/avlopp, el, ventilation, vatten,
+    │                           golvvarme, kollektor, brandlarm och dranering, se deras README)
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
     │                           från dräneringens och dagvattnets ledningar)
     ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
-    │                           innerväggarna: lätta väggar L1–L14 och skikten på alla innerväggar, kökets
+    │                           innerväggarna: lätta väggar L1–L14 och L19 och skikten på alla innerväggar, kökets
     │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler), ändbrädor av ask
-    │                           där väggarna slutar fritt, källarväggarnas gips, källarens innerväggar KL1–KL10
-    │                           (stomme och gips per vägg)
+    │                           där väggarna slutar fritt, badrummets golv (fallavjämning, tätskikt och klinker),
+    │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
     └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
                                 dubbelsängen där (160 × 200, huvudgaveln mot 2B),
                                 köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor, bänken längs 3NV
-                                och 3SV och ön med lådskåp, bänkskiva, diskho, häll och diskmaskin)
+                                och 3SV och ön med lådskåp, bänkskiva, diskho, häll och diskmaskin), badrummet
+                                (bänken med tvättstället, badkaret, WC:n, duschens dörrar och duschset, skåpet,
+                                spegeln och handdukstorken)
 ```
 
 `./mod bygg --del "Hus/Stomme/Stomme prefab"` exporterar prefabstommen som en egen modell, och på samma sätt nock- och
@@ -242,6 +245,13 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   -LADA1-SIDA-V, -SIDA-H, -BOTTEN, -FRAM, -BAK, -SKENA-V, -SKENA-H; B-BRADA, B-FOG1–10, O-FOG1–4 fogbrädorna, B-SIDA,
   O-SIDA1–2 och O-RYGG de vita sidorna, B-SPARK1–2 och O-SPARK sparklisterna, B-SKIVA och O-SKIVA bänkskivorna,
   DISKHO, BLANDARE, HALL och HALL-KROPP.
+- **Badrummet**: inredningen BA-BANK1–BANK3 (skåpen som köksskåpen, -DORR1 och -DORR2), BA-BANK-SKIVA, BA-BANK-SPARK,
+  BA-TVATTSTALL och -BLANDARE, BA-BADKAR och -BLANDARE, BA-WC- (FOT, SKAL, SITS, LOCK, CISTERN), BA-DUSCH- (DORR-V,
+  DORR-O, HANDTAG, PROFIL, BLANDARE, STANG, TAKDUSCH, HANDDUSCH), BA-SKAP (stommen, HYLLA1–4, DORR1–2), BA-SKAP-SPARK,
+  BA-SPEGEL och BA-HANDDUKSTORK-; golvet BA-FB fallavjämningen, BA-TS tätskiktet och fixet och BA-KL klinkern, en per
+  plan del av fallet; väggbiten L19 med ändens skikt L19-ANDE-PW, -GI, -TS och -KA; innertakets panel PA (i
+  takfallets innertak); avloppet AV1–AV4 (ledningarnas rör), AV-GB golvbrunnen (-RING, -SIL) och AV-VL-TS, AV-VL-BK
+  vattenlåsen; ID1-TROSKEL tröskeln.
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
   KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
@@ -317,7 +327,8 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Innerväggar** enligt planritning 201 rev 02 med modellens bärande väggar: lätta väggar 45×70 med OSB och gips
   (i badrummet plywood, gips, tätskikt och kakel) och skikt på de bärande innerväggarna. 2B är sluten söder om
   trappan och 2C vid väggens början. Väggen mellan kontoret och köket går rakt genom huvudstolpen.
-- **Innerdörrarna** är fickdörrar: ID1 (badrummet), ID2 (källartrappan, fickan mot norr i 2B till karmstolpen
+- **Innerdörrarna** är fickdörrar: ID1 (badrummet, fickan mot söder bakom badrummets skåp, med tröskel), ID2
+  (källartrappan, fickan mot norr i 2B till karmstolpen
   LD2_1), ID3 och ID4 (korridoren i höger huskropp), ID5 (sovrummet i höger huskropp, blad 800 med fickan mot öster,
   före stolpen LN1_1, och 500 mm vägg väster om öppningen) och ID6 (sovrummet i mittre huskroppen, fickan från L12 in
   i 2C söder om stolpen LD4_1), blad 75 mm bredare än öppningen i en ficka 55 mm längre än bladet. Fickan är hela
@@ -326,6 +337,18 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   vid L4; ID6 stängs mot L11:s gips och ID2:s öppning börjar vid trapphålets vägg L6. Öppningarna har smyg av oljad
   ask 22 mm upptill och på sidorna, genom hela väggen i liv med skivorna: hel på låssidan, där bladet stängs mot den,
   och delad vid fickan och i överstycket med en slits för bladet.
+- **Badrummet** (ärende #52, hus/badrum.py, hus/inredning/badrum.py, hus/invandigt/badrumsgolv.py): efter
+  användarens skiss duschen i nischen mellan 1B, 1C och L11 med två glasdörrar mot rummet, badkaret fristående längs
+  1SO under takfönstret TF1, WC:n mot L9, en bred badrumsbänk av ask (som köket) längs 1NO med tvättstället under
+  fönstret 1NO-F1, spegeln till höger om fönstret och en vägglampa över det, och väggbiten L19 med ett inbyggt skåp i
+  nischen vid L10; kakel och klinker Bricmate Jura som köksbänkarna. Golvet: klinker på tätskikt och fix på en
+  fallavjämning på bjälklaget (som inte ändras: röret P4 står under duschen), med fall enligt GVK Säkra Våtrum 2026
+  (6.4): i duschen ett kuvert mot golvbrunnen (10–29 mm/m), på övrig yta 2,5 mm/m mot duschen och inget bakfall;
+  golvbrunnens fläns i bjälklagets överkant, minst 20 mm under tröskeln (26 mm av granit, fasad mot allrummet, med
+  bladet kortare). Fickdörren ID1:s ficka går mot söder, bakom skåpet, inte i duschens vägg, och öppningen 15 mm
+  längre norrut. Innertaket: panel av gran, vitmålad, på den inre gipsskivan; inget tätskikt i taket (GVK), men
+  ångbromsen hel med tejpade skarvar och spotarna i installationsskiktet. Avloppet, tappvattnet och elen på
+  inredningens lägen (hus/installationer/avlopp, vatten och el).
 - **Skiktens hörn och överkant**: där en innervägg slutar mot en annan möts skikten på hörnets utsida var för sig:
   väggens skikt går förbi änden fram till den andra väggens skikt på samma djup och den andra väggens skikt förbi sin
   ände över skikten innanför, så att gipsen (i badrummet tätskiktet och kaklet) går runt hörnet och OSB:n inte syns;

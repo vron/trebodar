@@ -3,14 +3,14 @@
 Skiktens uppbyggnad och innertakets ytor står i skikt.py, innertaket i innertak.py, ytterväggarnas insida i
 vagginsida.py, innerväggarna (de lätta väggarna och skikten på alla innerväggar) i vaggar.py, kökets inbyggnad (kyl,
 frys och skafferi bakom en vägg till innertaket, förrådet ovanför) i kokets_inbyggnad.py, ändbrädorna där väggarna
-slutar fritt i andbrador.py, källarväggarnas gips i kallare.py och källarens lätta innerväggar i
-kallarens_innervaggar.py.
+slutar fritt i andbrador.py, badrummets golv (fallavjämning, tätskikt och klinker) i badrumsgolv.py, källarväggarnas
+gips i kallare.py och källarens lätta innerväggar i kallarens_innervaggar.py.
 """
 from __future__ import annotations
 
 from modellering import Montage
 
-from . import andbrador, innertak, kallare, kallarens_innervaggar, kokets_inbyggnad, vagginsida, vaggar
+from . import andbrador, badrumsgolv, innertak, kallare, kallarens_innervaggar, kokets_inbyggnad, vagginsida, vaggar
 
 
 def montage() -> Montage:
@@ -20,6 +20,7 @@ def montage() -> Montage:
     m.lagg(vaggar.montage())
     m.lagg(kokets_inbyggnad.montage())
     m.lagg(andbrador.montage())
+    m.lagg(badrumsgolv.montage())
     m.lagg(kallare.montage())
     m.lagg(kallarens_innervaggar.montage())
     return m

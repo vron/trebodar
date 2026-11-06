@@ -27,9 +27,11 @@ def lakt(kod: str) -> tuple[Ruta, ...]:
 
 @cache
 def gips(kod: str) -> tuple[Ruta, ...]:
-    """Den yttre gipsskivan (takytan) under takfallet som lådor i planet, ur innertakets profiler."""
+    """Den yttre gipsskivan och badrummets panel (takytan) under takfallet som lådor i planet, ur innertakets
+    profiler."""
+    sk = innertak.skikten(kod)
     return tuple((min(x for x, _ in q), max(x for x, _ in q), y0, y1)
-                 for q, y0, y1, typ in innertak.skikten(kod)["gips"] if typ == "GY")
+                 for q, y0, y1, typ in (*sk["gips"], *sk["panel"]) if typ in ("GY", "PA"))
 
 
 def i_gipsen(kod: str, x: float, y: float, r: float) -> bool:

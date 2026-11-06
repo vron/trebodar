@@ -22,7 +22,7 @@ granitsockeln har panel i järnvitriol (material.DORRPANEL_KALLARE).
 """
 from __future__ import annotations
 
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 from modellering import Del, Material, Montage, Placering, box, prisma
 
@@ -31,21 +31,22 @@ from trebodar.byggdelar import ytterdorrar as YD
 from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
 from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
+from trebodar.hus.rum import BADRUM
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
 from trebodar.byggdelar import velfac as V
 from trebodar.material import (ALUMINIUM, ANSLUTNINGSPLAT, ASK, C24, DORRPANEL, DORRPANEL_KALLARE, FOGMASSA, KAKEL,
-                               KARM, MINERALULL, TATNINGSLIST)
+                               KARM, MINERALULL, TATNINGSLIST, TROSKEL)
 
-from .oppningar import (BANK_V, BLECK_NAS_V, BLECK_T, BLECK_UPP_V, BLECK_UT_V, DORRAR, FICKA_UT, FOG_V, INDRAG_V,
-                        INNERDORRAR, KLADD_V, OPPNINGAR, PAFORING_V, SMYGLIST, W_TRA_V, Innerdorr, Oppning,
+from .oppningar import (BANK_V, BLECK_NAS_V, BLECK_T, BLECK_UPP_V, BLECK_UT_V, DORRAR, DORRSMYG_T, FICKA_UT, FOG_V,
+                        INDRAG_V, INNERDORRAR, KLADD_V, OPPNINGAR, PAFORING_V, SMYGLIST, W_TRA_V, Innerdorr, Oppning,
                         velfac_bleck_z)
 
 SMYG_T = 20.0                        # smygen, ask
 BANK_UT, BANK_ORA = 20.0, 30.0       # fönsterbänkens utstick från väggen och öron förbi öppningen
 KAKEL_T = 12.0                       # badrummets smyg (kakel på skiva, förenklat)
 SKJUT_T, SKJUT_GLAPP = 40.0, 10.0   # skjutdörrens blad och dess avstånd till väggens skikt
-DORRSMYG_T = 22.0                    # fickdörrarnas smyg, ask
 SLITS = SKJUT_T / 2 + 3.0            # halva slitsen för bladet i fickdörrarnas delade smyg
+TROSKEL_SPEL, TROSKEL_FAS = 6.0, 3.0  # bladet över tröskeln; tröskelns fasade kant över golvet utanför
 
 
 def enhet(o: Oppning) -> Montage:
@@ -234,8 +235,9 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     r = DORRSMYG_T
     ba, bb = (d.u0 + r, d.u1 + FICKA_UT + r) if d.mot > 0 else (d.u0 - FICKA_UT - r, d.u1 - r)
     m = Montage(d.kod, d.kod, f"Fickdörr {fmt(d.bredd)}×{fmt(d.hojd)}, {d.rum}", produkt="INNERDORRAR")
-    blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, 10.0, d.hojd + 10.0, "z", ASK)
-    m.lagg(Del(f"Dörrblad ask {fmt(bb - ba)}×{fmt(d.hojd)}", blad.form, ASK), pl, f"{d.kod}-BLAD")
+    zb = max(10.0, d.troskel + TROSKEL_SPEL)                    # bladets underkant, fritt över tröskeln
+    blad, pl = virke_i_lada(ba, bb, wm - SKJUT_T / 2, wm + SKJUT_T / 2, zb, d.hojd + 10.0, "z", ASK)
+    m.lagg(Del(f"Dörrblad ask {fmt(bb - ba)}×{fmt(d.hojd + 10.0 - zb)}", blad.form, ASK), pl, f"{d.kod}-BLAD")
     u0, u1 = min(d.u0, a), max(d.u1, b)
     m.lagg(Del(f"Skena fickdörr {fmt(u1 - u0)}", box(u0, u1, wm - 10.0, wm + 10.0, d.hojd + 10.0, d.hojd + FICKA_SKENA),
                KARM), Placering(), f"{d.kod}-SKENA")
@@ -249,7 +251,24 @@ def fickdorr(d: Innerdorr) -> tuple[Montage, Placering]:
     for namn, x0, x1, w0, w1, z0, z1, fiber in bitar:
         smyg, pl = virke_i_lada(x0, x1, w0, w1, z0, z1, fiber, ASK)
         m.lagg(smyg, pl, f"{d.kod}-SMYG-{namn}")
+    if d.troskel > 0.0:
+        m.lagg(_troskel(d, wa, wb), Placering(), f"{d.kod}-TROSKEL")
     return m, v.placering()
+
+
+def _troskel(d: Innerdorr, wa: float, wb: float) -> Del:
+    """Tröskel av slipad granit mellan smygarna, genom väggen: överkanten d.troskel på badrummets sida, plan över dess
+    halva och fasad ned mot den andra sidan (TROSKEL_FAS över golvet), där golvet är bjälklagets överkant. Badrummets
+    tätskikt viks upp mot tröskeln (hus/badrum.py)."""
+    v = vaggdef(d.vagg)
+    pl = v.placering()
+    mitt = pl.punkt(((d.u0 + d.u1) / 2, wb + 30.0, 0.0))
+    bad_plus = BADRUM.contains(Point(mitt[0], mitt[1]))          # badrummet på väggens sida w > tjockleken
+    wm = (wa + wb) / 2
+    hog, lag = (wb, wa) if bad_plus else (wa, wb)
+    profil = [(lag, 0.0), (hog, 0.0), (hog, d.troskel), (wm, d.troskel), (lag, TROSKEL_FAS)]
+    u0, u1 = d.u0 + DORRSMYG_T, d.u1 - DORRSMYG_T                # mellan smygarna, som står på golvet
+    return Del(f"Tröskel granit {fmt(u1 - u0)}×{fmt(abs(wb - wa))}", prisma_x(profil, u0, u1), TROSKEL)
 
 
 def skjutdorr(d: Innerdorr) -> tuple[Montage, Placering]:

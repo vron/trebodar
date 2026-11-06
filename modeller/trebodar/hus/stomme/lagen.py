@@ -141,6 +141,15 @@ def _med_takstol(kod: str) -> tuple[float, float]:
     return min(ys), max(ys)
 
 
+def under_takfallet(vagg: str, takfall: str) -> bool:
+    """Om väggen står under takfallet: väggens utbredning i x når in mellan takfotsväggens insida och nocken (1A och 1D
+    står bara under 1SO, 1C under både 1SO och 1NV)."""
+    v, t = S.VAGGAR[vagg], S.TAKFALL[takfall]
+    a, b = sorted((v.origo[0], v.origo[0] + v.u[0] * v.langd))
+    c, d = sorted((t.x_insida, S.BALKAR[takbalkar.FALT[takfall].nock].x))
+    return a < d - 1.0 and c + 1.0 < b
+
+
 def _gavel_insida(kod: str) -> float:
     """Gavelns insida (y) mot takets fack: gavelväggens eller gavelstolens, den som når längst in."""
     y0, y1 = _med_takstol(kod)
@@ -160,7 +169,7 @@ def fack(kod: str) -> list[tuple[float, float]]:
             ut.append((y0, b))
     # facken delas där en bärande innervägg (med takstol) står, och vid dalbalkarnas ändar
     hinder = [_med_takstol(kod_v) for kod_v, v in S.INNERVAGGAR.items()
-              if int(kod_v[0]) == t.kropp and abs(v.u[0]) > 0.5]
+              if int(kod_v[0]) == t.kropp and abs(v.u[0]) > 0.5 and under_takfallet(kod_v, kod)]
     for y0, y1 in hinder:
         ut = [d for a, b in ut for d in ((a, min(b, y0)), (max(a, y1), b)) if d[1] - d[0] > 30]
     f = takbalkar.FALT[kod]

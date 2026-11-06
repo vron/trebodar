@@ -31,12 +31,11 @@ LJUSSERIER = {
     "A": {"namn": "Bildens eget ljus"},
     "B": {"namn": "April, kväll, mest sol", "ljus": (4, 28, "18:30", "halvklart")},
     "C": {"namn": "Oktober, förmiddag, mulet", "ljus": (10, 6, "10:00", "mulet")},
-    # D på julafton kl. 22 med fullmånen 43° upp i östsydost, som lyser upp landskapet; utan badrummet, som ännu inte
-    # har någon belysning i elinstallationen, närbilderna av fasaderna och taket, som är svarta i mörker, och stommen,
-    # som är byggskedet
+    # D på julafton kl. 22 med fullmånen 43° upp i östsydost, som lyser upp landskapet; utan närbilderna av fasaderna
+    # och taket, som är svarta i mörker, och stommen, som är byggskedet
     "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "22:00", "klart"), "tand": "alla",
-          "utan": ("I16", "I17", "detalj-falu", "detalj-fasad", "detalj-takflakt", "detalj-sten", "detalj-tak",
-                   "detalj-takhuv", "stomme")},
+          "utan": ("detalj-falu", "detalj-fasad", "detalj-takflakt", "detalj-sten", "detalj-tak", "detalj-takhuv",
+                   "stomme")},
 }
 Z_KALLARE = S.Z_BOTTENPLATTA
 
@@ -143,7 +142,7 @@ _INNE = [
     ("I13", "vardagsrum", "mot-golvfonster", "öga", (3700, 12300), (1900, 15835, 1100)),
     ("I14", "hall", "fran-entre", "vid", (650, 10250), (6500, 9000, 1350)),
     ("I15", "hall", "mot-entre", "vid", (3700, 9800), (-30, 10255, 1150)),
-    ("I16", "badrum", "fran-dorr", "vid", (3000, 6700), (700, 4400, 1200)),
+    ("I16", "badrum", "fran-dorr", "vid", (2350, 6950), (1100, 3800, 1100)),    # innanför dörren, förbi L19
     ("I17", "badrum", "mot-dorr", "vid", (450, 3950), (2900, 7300, 1300)),
     ("I18", "sovrum", "fran-dorr", "vid", (4150, 5650), (8600, 3000, 1300)),
     ("I19", "sovrum", "mot-fonster", "öga", (6100, 4800), (6300, 135, 1500)),       # framför garderoben

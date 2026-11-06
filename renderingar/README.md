@@ -33,8 +33,8 @@ ett galleri, med bildtexterna ur `TEXTER` i `vyer.py`.
 
 Varje vy renderas i fyra ljus (`LJUSSERIER` i `vyer.py`), inne och ute: A är vyns eget ljus, B slutet av april
 kl. 18.30 med mest sol, C början av oktober kl. 10 mulet och D julafton kl. 22 med klar himmel och fullmåne, mörkt ute och hela
-elinstallationen tänd. Serien D har inte badrummet, som ännu saknar belysning i elinstallationen, närbilderna av
-fasaderna och taket, som är svarta i mörker, eller stommen (`utan` i serien). I startsidans bildvisare väljs serien
+elinstallationen tänd. Serien D har inte närbilderna av fasaderna och taket, som är svarta i mörker, eller stommen
+(`utan` i serien). I startsidans bildvisare väljs serien
 med växeln i hörnet, och rutnätet följer med; en bild som saknas i serien visas i sitt eget ljus.
 
 Himlen som syns (genom kameran, i reflexerna och genom glas) är en fotograferad himmel utan mark från Poly Haven

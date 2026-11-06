@@ -20,10 +20,10 @@ cd verktyg/modellering
 | Fil | Innehåll |
 |---|---|
 | [`typer.py`](typer.py) | Produkttyperna: `Armaturtyp` (tillverkarens data, mått, fotometrifil; `Tubhuvud` för spotar på stam, `Pendel` för pendlar), `Apparattyp` (brytare, dimrar, uttag), `Dosatyp`, `Rortyp` |
-| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas) och tills vidare allmänna dosor, apparater och rör |
+| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas; en vägglampa med glob på arm) och tills vidare allmänna dosor, apparater och rör |
 | [`punkter.py`](punkter.py) | Beståndsdelarna (`Lampa`, `Apparat`, `Dosa`, `Tandgrupp`, `Ror`, `Rum`), riktningarna (`mot` en punkt, `lutad` mot en vägg), uttag ovanför fönster (`ovan_fonstret`) och pendelns sladd (`pendeln`); lägena på husets ytor (`tak`, `kallartak`, `vagg` och rörens brytpunkter `i_tak`, `i_vagg`, `vid_tak`, `i_bjalklag`) i installationernas gemensamma [`../montering.py`](../montering.py) |
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
-| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum |
+| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52) |
 | `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag och dess ingjutningsdosor |
 | [`matytor.py`](matytor.py) | Mätytorna för ljusplanerna (`./mod ljusplan`): vågräta ytor med höjd, område, rutnät och delområden |
 | [`installation.py`](installation.py) | Allt ur modulerna (`MODULER`), kontrollen och utdraget för ritningarna och renderingen |
@@ -95,6 +95,9 @@ linsen i botten. Ljuskällan (lampan i sockeln, `ljuskalla`; utom i Stav inte va
 överkant och lyser lika åt alla håll (Stav: en stråle nedåt): i renderingen formar skärmarna ljuset (de skuggar och
 reflekterar), medan glaset inte skuggar men lyser med flödet genom det fördelat på dess yta (`lysande_yta`,
 `lysande_andel`; opalglasets `transmission` är en uppskattning). Ljusflödet i tabellerna är ljuskällans.
+
+En vägglampa är en pendel på en vägg (`Pendel.arm`): väggplattan i takkoppens ställe på väggens yta och en arm av
+mässing längs väggens normal, med armaturen under armens ände (badrummets glob över tvättstället).
 
 ## Kontrollen
 

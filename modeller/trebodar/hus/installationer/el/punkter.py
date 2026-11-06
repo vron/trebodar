@@ -100,12 +100,16 @@ def tuben(p: Lampa) -> tuple[Vek, Vek, Vek]:
 
 def pendeln(p: Lampa) -> tuple[Vek, Vek]:
     """Pendelns sladd: från takkoppens front (takkoppens höjd ut från takytan längs normalen) lodrätt ned till
-    armaturens överkant, så att armaturens underkant hamnar på underkant över golvet."""
+    armaturens överkant, så att armaturens underkant hamnar på underkant över golvet. Vägglampan (arm): från
+    väggplattans front längs väggens normal ut till armens ände, där armaturen hänger."""
     pe = p.typ.pendel
-    if pe is None or p.underkant is None:
+    if pe is None or (p.underkant is None and not pe.arm):
         raise ValueError(f"{p.id}: inte en pendel med underkant")
     m = p.lage
     kopp = flytt(m.punkt, m.normal, pe.takkopp[1])
+    if pe.arm:
+        return kopp, flytt(kopp, m.normal, pe.arm)
+    assert p.underkant is not None
     return kopp, (kopp[0], kopp[1], PLAN[1] + p.underkant + pe.hojd)
 
 

@@ -78,11 +78,11 @@ def ladornas_z() -> list[tuple[float, float]]:
     return list(zip(z0, topp))
 
 
-def front(x0: float, x1: float, z0: float, z1: float) -> Form:
-    """Front av ask (y −22..0) med det frästa greppet: en lins nära överkanten, i (u, v) = (x, −z) utdragen längs y
-    från framsidan."""
+def front(x0: float, x1: float, z0: float, z1: float, grepp_z: float | None = None) -> Form:
+    """Front av ask (y −22..0) med det frästa greppet: en lins nära överkanten (eller med mitten i grepp_z, höga
+    dörrar), i (u, v) = (x, −z) utdragen längs y från framsidan."""
     L, h, d, under = GREPP
-    xm, zm = (x0 + x1) / 2, z1 - under
+    xm, zm = (x0 + x1) / 2, z1 - under if grepp_z is None else grepp_z
     n = 24
     ovre = [(xm - L / 2 + L * i / n, zm + h / 2 * (1.0 - (2.0 * i / n - 1.0) ** 2)) for i in range(n + 1)]
     lins = ovre + [(x, 2 * zm - z) for x, z in reversed(ovre[1:-1])]

@@ -21,11 +21,11 @@ from . import lakt
 from .bjalklag import mellanbjalklag
 from ..montering import PLAN, TAKSKIVOR, Vek, flytt, langs_taket
 from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
-from .rum import (allrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
+from .rum import (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
 
-MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, sovrum, kontor, sovrum_litet, kontor_litet,
-                                   gastrum, mellanbjalklag)
+MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, badrum, sovrum, kontor, sovrum_litet,
+                                   kontor_litet, gastrum, mellanbjalklag)
 SLADD_MINST = 50.0                             # pendelns sladd under takkoppen, minst [mm]
 
 
@@ -56,6 +56,8 @@ class Installation:
                 if p.tand not in self.tandgrupper:
                     fel.append(f"{p.id}: tändgruppen {p.tand} finns inte")
                 if p.typ.pendel is not None:
+                    if p.typ.pendel.arm:
+                        continue
                     if p.underkant is None:
                         fel.append(f"{p.id}: pendeln har ingen underkant")
                     elif (sladd := pendeln(p)[0][2] - pendeln(p)[1][2]) < SLADD_MINST:

@@ -79,8 +79,25 @@ GIPS = Material("Gips", "Gipsskiva, målad", 720, "#eceae4", 0.88, textur="gips"
 OSB = Material("OSB", "OSB/3", 620, "#c8a46c", 0.8, enhet="m2", cad="#c59a5f")
 PLYWOOD = Material("Plywood", "Plywood (våtrum)", 520, "#d2b383", 0.7, enhet="m2", cad="#d8a679")
 TATSKIKT = Material("Tätskikt", "Tätskikt och fix (våtrum)", 1400, "#4f6d8a", 0.6, enhet="m2", cad="#4f7fc0")
-KAKEL = Material("Kakel", "Kakel och klinker", 2000, "#e9ebe8", 0.12, textur="kakel", enhet="m2",
-                 rendering=rendering(storlek=200.0, fog=2.0, fogfarg="#cdcbc6"), cad="#8cc7c2")
+# badrummets kakel och klinker (ärende #52): Bricmate Jura Select Classic Honed, samma som köksbänkarnas skivor;
+# väggarna 60 × 120 stående, golvet 60 × 60, ljus kalksten med svag skiftning per platta och ljusgrå fog
+_JURA: dict[str, float | str] = dict(farg2="#afa390", farg3="#84796a", skala=3.5, sten=1.0)
+KAKEL = Material("Kakel", "Kakel Bricmate J612 Jura Select Classic Honed 60 × 120 (badrummets väggar)", 2300, "#ccc2b1",
+                 0.55, textur="kakel", enhet="m2",
+                 rendering=rendering(storlek=600.0, hojd=1200.0, fog=2.0, fogfarg="#d2cbbe", variation=0.05, **_JURA),
+                 cad="#8cc7c2")
+KLINKER = Material("Klinker", "Klinker Bricmate J66 Jura Select Classic Honed 60 × 60, 9 mm (badrummets golv)", 2300,
+                   "#c7bdac", 0.55, textur="kakel", enhet="m2",
+                   rendering=rendering(storlek=600.0, fog=2.0, fogfarg="#cac3b6", variation=0.05, **_JURA),
+                   cad="#6fb6b0")
+FALLBRUK = Material("Fallbruk", "Fallavjämning, cementbaserad (badrummets golv)", 1900, "#b7b3ab", 0.95, textur="bruk",
+                    enhet="m2", rendering=rendering(farg2="#a39f97"), cad="#d9cfbd")
+# badrummets innertak (ärende #52): spontad panel av gran, slät och vitmålad på alla sidor, brädorna längs takfallet
+TAKPANEL = Material("Takpanel", "Innertakspanel, spontad gran 12 mm, vitmålad (badrummet)", 450, "#f1efe9", 0.6,
+                    textur="bradpanel", enhet="m2",
+                    rendering=rendering(riktning="x", tvars="z", bredd=120.0, fog=3.0, behandling="tackfarg",
+                                        farg2="#e8e5de", genomslag=0.04, strimmor=0.0, relief=0.35, kvistar=0.6,
+                                        skarvar=0.0, grovhet=0.6, variation=0.02), cad="#efe3c6")
 KALCIUMSILIKAT = Material("Kalciumsilikat", "Kalciumsilikatskiva (brandskydd kring kaminen)", 450, "#ece6dc", 0.9,
                           enhet="m2", cad="#e3c7b0")
 KALCIUMSILIKAT_MALAD = Material("Kalciumsilikat målad", "Kalciumsilikatskiva, målad i väggarnas vita färg (kaminens front)",
@@ -181,13 +198,25 @@ BJORKPLYWOOD = Material("Björkplywood", "Björkplywood, klarlackad (köksskåpe
                         0.5, cad="#e9cf9c")
 LOPARE = Material("Löpare", "Lådlöpare Blum MOVENTO 760H, förzinkat stål (förenklade)", 7850, "#a3a7ab", 0.45, 0.8,
                   cad="#8c96a0")
-BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 mm, slipad (honed)", 2400, "#d9d1c2",
-                     0.55, cad="#cfc4ae")
+BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 mm, slipad (honed)", 2400, "#d0c6b5",
+                     0.5, textur="kalksten", rendering=rendering(farg2="#b9ad9a", farg3="#8b8070", skala=3.0),
+                     cad="#cfc4ae")
 SANGKLADER = Material("Sängkläder", "Madrass och sängkläder, vitt linne (sängen i sovrummet)", 250, "#ebe9e3", 0.95,
                       cad="#ebe7dd")
 VIT_SKIVA = Material("Vit skiva", "Skiva, vitmålad (köksbänkens och öns sidor och öns baksida)", 700, "#efede7", 0.6,
                      cad="#f1efe9")
 HALLGLAS = Material("Hällglas", "Induktionshällens glaskeramik, svart", 2500, "#111214", 0.06, cad="#2a2c30")
+
+# badrummet (hus/inredning/badrum.py): sanitetsporslin, badkaret, blandarna och duschens glas, spegeln och tröskeln
+PORSLIN = Material("Porslin", "Sanitetsporslin, vitt (WC och tvättställ)", 2300, "#f6f6f3", 0.08, cad="#dfe9f0")
+BADKARSMATERIAL = Material("Badkar", "Mineralkomposit, vit matt (badkaret)", 1700, "#f3f2ee", 0.3, cad="#d6e4ee")
+KROM = Material("Krom", "Förkromad mässing (blandare, duschset, handdukstork)", 8500, "#d6d9dc", 0.1, 1.0,
+                cad="#a9b6c2")
+DUSCHGLAS = Material("Duschglas", "Härdat klarglas 8 mm (duschdörrarna)", 2500, "#dde9eb", 0.02, textur="glas",
+                     opacitet=0.25, cad="#b7e0ec")
+SPEGEL = Material("Spegel", "Spegelglas 5 mm", 2500, "#d0d5d8", 0.02, 1.0, cad="#c9d6de")
+TROSKEL = Material("Tröskel", "Tröskel av slipad granit (badrummets dörr)", 2650, "#8f8a84", 0.35, textur="granit",
+                   rendering=_GRANIT, cad="#a9a196")
 
 # ------------------------------------------------------------------ el (hus/installationer/el)
 # armaturens lins lyser i renderingen när armaturen är tänd (typen lins); CAD-färgerna lyser fram i webbvisaren
@@ -232,6 +261,9 @@ VENTILATIONSDON = Material("Ventilationsdon", "Frånluftsdon och väggfläktens 
                            0.4, cad="#5aa9e6")
 FLAKT = Material("Fläkt", "Kanalfläkt, lackerad stålplåt", 400, "#dcdedf", 0.45, cad="#3d8fd6")
 TAKFLAKT = Material("Takfläkt", "Takfläkt, svart pulverlackerad stålplåt", 400, "#2c2d2f", 0.5, cad="#3d8fd6")
+
+# ------------------------------------------------------------------ avloppet (hus/installationer/avlopp)
+AVLOPPSROR = Material("Avloppsrör", "Avloppsrör PP, grått (inomhusavlopp)", 950, "#8a8f94", 0.5, cad="#f08a24")
 
 # ------------------------------------------------------------------ tappvatten och teknikrum (hus/installationer)
 # rören är massiva cylindrar med skyddsrörets ytterdiameter: densiteten är PEX-rörets och skyddsrörets massa fördelad

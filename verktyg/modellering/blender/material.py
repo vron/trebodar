@@ -14,7 +14,8 @@ fibrer eller brädor löper ("x", "y" eller "z"), `tvars` axeln längs vilken br
 | bradpanel | se nedan: sågade brädor |
 | gips | farg, grovhet: målad gipsskiva (ytor.py) |
 | betong | farg, farg2, golv_grovhet: slipat golv på ytor uppåt, annars gjuten yta (ytor.py) |
-| kakel | farg, storlek, fog, fogfarg, grovhet: plattor med fogar i väggens eller golvets plan (ytor.py) |
+| kakel | farg, storlek, hojd, fog, fogfarg, variation, grovhet; sten, farg2, farg3, skala: plattor med fogar i väggens eller golvets plan, med sten = 1 av kalksten (ytor.py) |
+| kalksten | farg, farg2, farg3, skala, grovhet: kalkstensimiterande skivor utan fogar (bänkskivorna) |
 | plat | farg, metall, grovhet, variation, grovhet_variation, buckla, avstand, riktning, tvars: plåt i banor |
 | granit | farg, farg2, farg3, rosa, andelar, korn, variation, varm, varmfarg, rost, rostfarg: kluven granit |
 | pulverlack | farg, grovhet, skala: pulverlackerad metall med fin apelsinyta |
@@ -187,7 +188,8 @@ def folie(g: Graf, p: dict) -> None:
 
 
 TYPER = {"farg": farg, "tra": tra.tra, "limtra": tra.limtra, "virke": tra.virke, "bradpanel": tra.bradpanel,
-         "gips": ytor.gips, "betong": ytor.betong, "kakel": ytor.kakel, "plat": plat, "granit": granit,
+         "gips": ytor.gips, "betong": ytor.betong, "kakel": ytor.kakel, "kalksten": ytor.kalksten, "plat": plat,
+         "granit": granit,
          "glas": glas, "folie": folie, "pulverlack": pulverlack, "lins": lins, "patina": patina,
          "bruk": lambda g, p: brusig(g, p, 40.0, 4.0, 0.4),
          "berg": lambda g, p: brusig(g, p, 0.8, 8.0, 0.6),
