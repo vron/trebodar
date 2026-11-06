@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from trebodar.hus.badrum import FALLYTOR
 from trebodar.hus.inredning import koksbank as KB
 from trebodar.hus.inredning.koksskap import Z_TOPP
 from trebodar.hus.invandigt.lattvaggar import K_YTA
@@ -51,9 +52,12 @@ BANKAR = (Zon("Bänken längs 3NV", BANK_NV, BANK_Z), Zon("Bänken längs 3SV", 
 INREDNING_SNITT = (2.0, 100.0, 200.0, 300.0, 450.0, 600.0, 750.0, Z_TOPP + KB.BANK_T / 2)
 INREDNING_OVER = 900.0
 
+# plan 1:s golv mäts strax över badrummets klinker, som ligger över bjälklaget (golvets fall, hus/badrum.py)
+GOLV_Z = max(f.z(x, y) for f in FALLYTOR for x, y in f.yta.exterior.coords) + 5.0
+
 MATYTOR = {
     # köket med bänkskivorna och ön i sin höjd: belysningsstyrkan där man arbetar
-    "plan1-golv": Matyta("Plan 1, golvet", 1, 0.0, PLAN1, zoner=BANKAR),
+    "plan1-golv": Matyta("Plan 1, golvet", 1, GOLV_Z, PLAN1, zoner=BANKAR),
     "plan1-bord": Matyta("Plan 1, bordshöjd 0,75 m", 1, 750.0, PLAN1, zoner=BANKAR),
     "kok-bank": Matyta("Köket, bänkskivorna 0,91 m", 1, BANK_Z, KOK, cell=25.0, zoner=BANKAR),
     "kallare-golv": Matyta("Källaren, golvet", 0, 0.0, KALLARE),
