@@ -35,7 +35,7 @@ LJUSSERIER = {
     # har någon belysning i elinstallationen, närbilderna av fasaderna och taket, som är svarta i mörker, och stommen,
     # som är byggskedet
     "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "22:00", "klart"), "tand": "alla",
-          "utan": ("I16", "I17", "detalj-falu", "detalj-fasad", "detalj-koksgaller", "detalj-sten", "detalj-tak",
+          "utan": ("I16", "I17", "detalj-falu", "detalj-fasad", "detalj-takflakt", "detalj-sten", "detalj-tak",
                    "detalj-takhuv", "stomme")},
 }
 Z_KALLARE = S.Z_BOTTENPLATTA
@@ -94,8 +94,8 @@ VYER = {
                          "ljus": (9, 15, "12:00", "mulet"), "inne": True},
     "detalj-takhuv": {"kamera": [7800, 9800, 6600], "mal": [2810, 8220, 3700], "lins": 50,
                       "ljus": (6, 21, "10:00", "sol"), "lodrat": False},
-    "detalj-koksgaller": {"kamera": [17800, 8300, 1700], "mal": [13905, 9609, 2150], "lins": 50,
-                          "ljus": (9, 15, "12:00", "mulet")},
+    "detalj-takflakt": {"kamera": [17800, 7200, 5200], "mal": [13555, 9664, 3050], "lins": 50,
+                        "ljus": (9, 15, "12:00", "mulet")},
     # tappvattnet (hus/installationer/vatten): fördelarskåpet på V19 med rören upp till källarens tak, värmepumpen och
     # matarledningarna i teknikrummet
     "detalj-teknikrum": {"kamera": [2250, 8050, Z_KALLARE + 1350], "mal": [4300, 8450, -750], "lins": 20,
@@ -118,13 +118,13 @@ TEXTER = {
     "detalj-tubspot": "Spotlights i köket", "detalj-ph5": "PH 5 över matbordet", "detalj-stav": "Pendlarna över köksön",
     "detalj-vl45": "VL45 i vardagsrummet", "detalj-glob": "Glob i sovrummet",
     "detalj-kallarkanal": "Ventilationen i källaren", "detalj-1c": "Ventilationskanalen i väggen 1C",
-    "detalj-takhuv": "Takhuven", "detalj-koksgaller": "Köksfläktens galler i fasaden",
+    "detalj-takhuv": "Takhuven", "detalj-takflakt": "Köksfläktens takfläkt",
     "detalj-teknikrum": "Teknikrummet", "stomme": "Stommen",
     "detalj-inbyggnad": "Kyl, frys och skafferi i köket, förråd ovanför",
     "detalj-koket": "Köket: lådor av fräst ask och bänkskiva av granitkeramik",
 }
 TEKNIK = {"stomme", "detalj-spot", "detalj-tubspot", "detalj-kallarkanal", "detalj-1c", "detalj-takhuv",
-          "detalj-koksgaller", "detalj-teknikrum"}
+          "detalj-takflakt", "detalj-teknikrum"}
 
 # Inomhusbilderna: (nummer, rum, vy, objektiv, kamerans läge (x, y) [, golvets z], målet (x, y, z))
 _INNE = [

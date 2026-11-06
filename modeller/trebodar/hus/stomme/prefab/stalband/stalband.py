@@ -6,7 +6,8 @@ takfallen för dem i takets plan till väggarna.
   närmaste hela regeln eller stolpen), från syllens mitt vid den ena till hammarbandets mitt vid den andra, infällda
   i stommens yta w 0.
 - Takfallen: fältet mellan två lägen y (takbalkarnas eller gavelstolarnas mitt), från takfoten (ytterväggens mitt)
-  eller dalbalkens sida till nockbalkens sida, infällda i takbalkarnas överkant.
+  eller dalbalkens sida till nockbalkens sida, infällda i takbalkarnas överkant; inte över takfönstren och
+  ventilationens kanaler genom taket (takhuvar och takfläktar).
 
 Fälten är valda i K-04, som räknar stommen med banden: ändras ett fält, räknas K-04 om med ./bygg K-04.
 """
@@ -18,6 +19,8 @@ from modellering import Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar.stalband import band
+from trebodar.hus.installationer.ventilation.delar import Avluft, Kanal
+from trebodar.hus.installationer.ventilation.system import MODULER
 from trebodar.hus.stomme import lagen
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, balkens_sida
 
@@ -41,8 +44,10 @@ VAGGAR: dict[str, tuple[tuple[float, float], ...]] = {
 }
 
 # takfallens fält med kryss: längs hela takfallet mellan gavlarna, fält om högst FALT_TAK mellan takbalkarnas eller
-# gavelstolarnas mitt, inte över takfönstren och delade där dalbalken slutar
+# gavelstolarnas mitt, inte över takfönstren och kanalerna genom taket (KANAL_MARGINAL från kanalens yta) och delade där
+# dalbalken slutar
 FALT_TAK = 2400.0
+KANAL_MARGINAL = 50.0
 
 
 def staende(kod: str) -> list[tuple[float, float]]:
@@ -73,9 +78,20 @@ def vaggens_band(kod: str) -> Montage:
     return m
 
 
+def _kanaler_genom_taket(kod: str) -> list[tuple[float, float]]:
+    """Ventilationens kanaler genom takfallet (till takhuvarna och takfläktarna): (y0, y1) med marginalen."""
+    ut = []
+    for mod in MODULER:
+        a, k = mod.GREN.kedja[-1], mod.GREN.kedja[-2]
+        if isinstance(a, Avluft) and isinstance(k, Kanal) and a.lage.yta == "yttertak" and a.lage.ref == kod:
+            r = k.typ.yttre[0] / 2 + KANAL_MARGINAL
+            ut.append((a.lage.punkt[1] - r, a.lage.punkt[1] + r))
+    return ut
+
+
 def takfallets_falt(kod: str) -> list[tuple[float, float]]:
     """Takfallets fält med kryss: (y, y) mellan de bärande delarnas mitt (takbalkarna och gavelstolarnas
-    ytterbalkar), högst FALT_TAK breda och inte över takfönstren."""
+    ytterbalkar), högst FALT_TAK breda och inte över takfönstren och kanalerna genom taket."""
     t, f = S.TAKFALL[kod], FALT[kod]
     gavlar = []
     for g in lagen.GAVELVAGGAR[t.kropp]:
@@ -84,7 +100,7 @@ def takfallets_falt(kod: str) -> list[tuple[float, float]]:
             topp = max(d.lada[5] for d in x)
             gavlar.append(next(0.5 * (d.lada[1] + d.lada[4]) for d in x if d.lada[5] == topp))
     ys = sorted({round(y + R / 2, 3) for y in f.y} | {round(y, 3) for y in gavlar})
-    hinder = [(fo.y0, fo.y1) for fo in f.fonster]
+    hinder = [(fo.y0, fo.y1) for fo in f.fonster] + _kanaler_genom_taket(kod)
     ut, a = [], ys[0]
     while a < ys[-1] - 1.0:
         mojliga = [y for y in ys if a + 300.0 < y <= a + FALT_TAK + 1.0

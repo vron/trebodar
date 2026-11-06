@@ -48,8 +48,9 @@ class Dontyp:
 
 @dataclass(frozen=True)
 class Koksflakttyp:
-    """Köksfläkt med egen fläkt, på väggen: kåpan (bredd längs väggen, djup ut från väggen, höjd), skorstenskåpan
-    från kåpan upp till innertaket och utloppet i kåpans överkant."""
+    """Köksfläkt på väggen, med egen fläkt eller för en extern fläkt: kåpan (bredd längs väggen, djup ut från väggen,
+    höjd; sluttande: från ramen i underkanten upp mot skorstenen), skorstenskåpan från kåpan upp till innertaket och
+    utloppet i kåpans överkant."""
     kod: str
     namn: str
     tillverkare: str            # "" tills produkten är vald
@@ -63,6 +64,7 @@ class Koksflakttyp:
     flode: float                        # forcerat flöde [l/s]
     flode_normal: float                 # normalt flöde [l/s]
     produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
+    sluttande: bool = False     # kåpan sluttar från ramen i underkanten upp mot skorstenen
 
 
 @dataclass(frozen=True)
@@ -103,13 +105,17 @@ class Overgangstyp:
 
 @dataclass(frozen=True)
 class Avluftstyp:
-    """Avluftsdon där luften lämnar huset: galler på fasaden (fronten b × h, djup ut från fasaden) eller takhuv
-    (huvens diameter b och höjd h över taket)."""
+    """Avluftsdon där luften lämnar huset: galler på fasaden (fronten b × h, djup ut från fasaden), takhuv (huvens
+    diameter b och höjd h över taket) eller takfläkt på en sockel i taket (bottenplattans diameter b, husets diameter
+    hus och fläktens höjd h över sockeln, sockelns överkant sockel över taket i fläktens mitt)."""
     kod: str
     namn: str
-    slag: str                   # "galler" eller "takhuv"
+    slag: str                   # "galler", "takhuv" eller "takfläkt"
     anslutning: float
     b: float
     h: float
     djup: float = 0.0
     backspjall: bool = False
+    hus: float = 0.0
+    sockel: float = 0.0
+    produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen

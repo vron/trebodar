@@ -147,11 +147,12 @@ class Ventilation:
                         and min(abs(u - o.u0), abs(u - o.u1), 0.0 if o.u0 <= u <= o.u1 else 1e9) < 1000.0]
                 if nara:
                     anm.append(f"{a.id}: avluften går ut inom 1 m från de öppningsbara fönstren {', '.join(nara)}")
-            if a.typ.slag == "takhuv":
+            if a.typ.slag in ("takhuv", "takfläkt"):
                 x = a.lage.punkt[0]
+                namn = "takhuven" if a.typ.slag == "takhuv" else "takfläkten"
                 for balk in S.BALKAR.values():
                     if balk.y0 <= a.lage.punkt[1] <= balk.y1 and abs(x - balk.x) < 500.0:
-                        anm.append(f"{a.id}: takhuven {abs(x - balk.x):.0f} mm (i plan) från {balk.kod} ({balk.typ})")
+                        anm.append(f"{a.id}: {namn} {abs(x - balk.x):.0f} mm (i plan) från {balk.kod} ({balk.typ})")
         return sorted(set(fel), key=fel.index), anm
 
     def utdrag(self) -> dict[str, object]:
@@ -208,7 +209,8 @@ def _typdata(t: object) -> dict[str, object]:
         return {"slag": "väggfläkt", "anslutning": t.anslutning, "front": list(t.front), "flode": t.flode}
     if isinstance(t, Dontyp):
         return {"slag": "frånluftsdon", "anslutning": t.anslutning, "front_d": t.front_d, "flode": t.flode}
-    d = {k: getattr(t, k) for k in ("slag", "anslutning", "b", "h", "d", "langd", "flode") if hasattr(t, k)}
+    d = {k: getattr(t, k) for k in ("slag", "anslutning", "b", "h", "d", "langd", "flode", "hus", "sockel")
+         if hasattr(t, k)}
     return {k: (v if isinstance(v, (int, float, str)) else str(v)) for k, v in d.items()}
 
 

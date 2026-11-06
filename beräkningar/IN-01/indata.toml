@@ -192,13 +192,26 @@ fas      = "invandigt"
 [[produkt]]
 kod      = "KOKSFLAKT"
 grupp    = "Kök"
-namn     = "Köksfläkt med skorstenskåpa, vägghängd 60 cm"
-status   = "att välja"
+namn     = "Köksfläkt, vägghängd kåpa med skorsten, utan egen fläkt"
+vald     = "Fjäråskupan Carisma 70, vit, för extern fläkt"
+status   = "vald"
 ansvarig = "byggherre"
 fas      = "invandigt"
 dokument = "V-01"
-arende   = [53]
-anm      = "Forcerat 400 m³/h, Ø150 ut genom 3NV. Ersättningsluften behövs."
+arende   = [53, 59]
+anm      = "Bredden 70, den minsta, över hällen 60. Utloppet Ø150 upp i skorstenen och den isolerade kanalen Ø250 genom taket till takfläkten; forcerat 400 m³/h. Ersättningsluften behövs."
+
+[[produkt]]
+kod      = "TAKFLAKT"
+grupp    = "Kök"
+namn     = "Takfläkt till köksfläkten, på en sockel i taket"
+vald     = "Systemair TFSR 315 Sileo med backspjäll och varvtalsstyrning RTRE 3"
+status   = "vald"
+ansvarig = "byggherre"
+fas      = "tatt"
+dokument = "V-01"
+arende   = [59]
+anm      = "Tyst takfläkt för köksfläkten, rakt ovanför kåpan; kanalen genom taket görs när taket läggs. Kulören är inte vald."
 
 # ------------------------------------------------------------------ kamin
 

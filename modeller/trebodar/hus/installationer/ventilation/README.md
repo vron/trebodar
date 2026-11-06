@@ -11,14 +11,14 @@ cd verktyg/modellering
 ./mod ventilation kontroll     # kedjorna, flödena, genomföringarna och krockarna mot husets delar
 ./mod ventilation lista        # grenar, element, kanaler, genomföringar och krockar (ut/ventilation/)
 ./mod ventilation ritning      # ritningarna V-01 (ut/ventilation/V-01 Ventilation.pdf, kräver STEP-filen: ./mod bygg)
-./mod rendera detalj-kallarkanal detalj-1c detalj-takhuv detalj-koksgaller   # ventilationen i bild
+./mod rendera detalj-kallarkanal detalj-1c detalj-takhuv detalj-takflakt detalj-koket   # ventilationen i bild
 ```
 
 ## Filerna
 
 | Fil | Innehåll |
 |---|---|
-| [`typer.py`](typer.py) | Produkttyperna: `Kanaltyp` (rund eller platt, med isolering), `Dontyp` (frånluftsdon), `Koksflakttyp`, `Vaggflakttyp`, `Kanalflakttyp`, `Overgangstyp` (rund–platt) och `Avluftstyp` (galler, takhuv) |
+| [`typer.py`](typer.py) | Produkttyperna: `Kanaltyp` (rund eller platt, med isolering), `Dontyp` (frånluftsdon), `Koksflakttyp` (med egen fläkt eller för en extern), `Vaggflakttyp`, `Kanalflakttyp`, `Overgangstyp` (rund–platt, rund–rund) och `Avluftstyp` (galler, takhuv, takfläkt) |
 | [`katalog.py`](katalog.py) | Produkterna, tills vidare allmänna typer med vanliga mått och flöden (ej valda) |
 | [`delar.py`](delar.py) | Grenen (`Gren`) och dess element i luftens riktning: `Don`, `Kanal`, `Flakt`, `Overgang`, `Avluft`; hur kanalernas vägar följer av kedjan |
 | `grenar/<gren>.py` | En gren: dess element, lägen och flöden |
@@ -39,7 +39,8 @@ ny gren läggs till i `MODULER` i `system.py`.
   bredd längs `bredd_langs`. Två kanaler i följd möts i den förstas sista brytpunkt (t.ex. kanalen i köksfläktens
   skorstenskåpa och genomföringen i väggen).
 - **Kanalfläkt** (`Flakt`) och **övergång** (`Overgang`): med läge och luftens riktning.
-- **Avluftsdon** (`Avluft`): galler på fasaden (`utsida`) eller takhuv på taket (`pa_tak`).
+- **Avluftsdon** (`Avluft`): galler på fasaden (`utsida`), takhuv på taket (`pa_tak`) eller takfläkt på en sockel i
+  taket (`pa_tak`). Takfallens stålband (K-04) går inte över kanalerna till takhuvarna och takfläktarna.
 
 Elementens id börjar med grenens: D don, K kanal, FL fläkt, O övergång, A avluftsdon (t.ex. `FF3-K2`).
 
@@ -47,7 +48,7 @@ Elementens id börjar med grenens: D don, K kanal, FL fläkt, O övergång, A av
 
 | Gren | Rum | Flöde | Väg |
 |---|---|---|---|
-| FF1 | Köket | 111 l/s forcerat (400 m³/h), 56 l/s normalt | Köksfläkten mitt emellan fönstren 3NV-F4 och 3NV-F5, kåpan 650 över hällen; utloppet upp i skorstenskåpan och rakt ut genom ytterväggen 2 250 över golvet, galler med backspjäll |
+| FF1 | Köket | 111 l/s forcerat (400 m³/h), 56 l/s normalt | Kåpan Fjäråskupan Carisma 70, vit, utan egen fläkt, mitt emellan fönstren 3NV-F4 och 3NV-F5, 650 över hällen; utloppet Ø150 upp i skorstenskåpan mot takbalksfackets mitt, genom innertaket och ångbromsen, och isolerad Ø250 lodrätt genom taket till takfläkten Systemair TFSR 315 Sileo på en sockel i takplåten |
 | FF2 | Badrummet | 15 l/s forcerat, 10 l/s grund (fuktstyrd) | Väggfläkt i gaveln 1NO mellan fönstret 1NO-F1 och väggen L9, 2 300 över golvet, röret genom väggen och galler |
 | FF3 | Källarrummet (mellan V19/V20, V2, V15 och V4–V6) | 10 l/s | Frånluftsdon i rummets nordvästra hörn; kanalen under källarens tak genom V19 till kanalfläkten i källarens vänstra del; upp genom mellanbjälklaget i den bärande innerväggen 1C (mellan badrummet och hallen) som platt kanal 204 × 60 mellan reglarna 1C-R01 och 1C-R02; över innertaket isolerad mellan takbalkarna och ut genom takhuven på takfallet 1NV, 650 mm nedanför nocken |
 

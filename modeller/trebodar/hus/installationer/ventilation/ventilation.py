@@ -4,7 +4,8 @@ delar; ventilationen har en egen kontroll (`./mod ventilation kontroll`) och red
 
 Kanalerna är raka bitar längs mittlinjen, i böjarna förlängda så att hörnen fylls; platta kanaler med bredden längs
 kanalens bredd_langs. Donen och avluftsdonen i ytans system: origo på ytan, z ut ur ytan, x vågrätt längs ytan och y
-uppåt (väggar och fasader). Köksfläktens skorstenskåpa går upp till innertaket och följer dess lutning.
+uppåt (väggar och fasader). Köksfläktens skorstenskåpa går upp till innertaket och följer dess lutning. Takfläkten
+står på en sockel av takplåt, med underkanten i takets yta och en vågrät överkant.
 """
 from __future__ import annotations
 
@@ -12,9 +13,10 @@ import math
 
 from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, prisma
 
+from trebodar import skelett as S
 from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.material import (ALUMINIUM, FETTFILTER, FLAKT, KANALISOLERING, KOKSFLAKT, PLATTKANAL, SPIROKANAL,
-                               TAKPLAT, VENTILATIONSDON)
+                               TAKFLAKT, TAKPLAT, VENTILATIONSDON)
 
 from ..montering import Montering, Vek, flytt
 from .delar import Avluft, Don, Flakt, Gren, Kanal, Overgang, kanalernas_vagar
@@ -22,6 +24,7 @@ from .system import ventilation
 from .typer import Dontyp, Kanaltyp, Koksflakttyp, Vaggflakttyp
 
 N_RUND = 24                     # hörn i övergångarnas runda ände
+KAPA_RAM = 15.0                 # den sluttande kåpans ram i underkanten
 
 
 def _enhet(v: Vek) -> Vek:
@@ -92,6 +95,29 @@ def _profil(typ: Kanaltyp) -> list[tuple[float, float]]:
     return _profil_rund(B / 2) if typ.form == "rund" else _profil_platt(B, H)
 
 
+def _stympad_kon(r0: float, r1: float, z0: float, z1: float) -> Form:
+    """Stympad kon längs z, radien r0 i z0 och r1 i z1."""
+    v = [2 * math.pi * i / N_RUND for i in range(N_RUND)]
+    horn = [(r0 * math.cos(a), r0 * math.sin(a), z0) for a in v] + [(r1 * math.cos(a), r1 * math.sin(a), z1) for a in v]
+    n = N_RUND
+    ytor = [tuple(range(n)), tuple(range(n, 2 * n))]
+    for i in range(n):
+        j = (i + 1) % n
+        ytor += [(i, j, n + j), (i, n + j, n + i)]
+    return polyeder(horn, ytor)
+
+
+def _under_ytan(normal: Vek, a: float, djup: float) -> Form:
+    """Ett block under ytan genom origo med normalen (a åt alla håll längs ytan, djup under den)."""
+    e1 = _enhet(_vinkelratt(normal))
+    e2 = (normal[1] * e1[2] - normal[2] * e1[1], normal[2] * e1[0] - normal[0] * e1[2],
+          normal[0] * e1[1] - normal[1] * e1[0])
+    horn = [tuple(u * e1[k] + v * e2[k] + w * normal[k] for k in range(3))
+            for w in (-djup, 0.0) for u, v in ((-a, -a), (a, -a), (a, a), (-a, a))]
+    ytor = [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+    return polyeder(horn, ytor)
+
+
 def overgang(e: Overgang) -> Del:
     """Övergången som en kropp mellan den ena kanaltypens tvärsnitt och den andras (trianglar mellan profilerna)."""
     a, b = _profil(e.typ.fran), _profil(e.typ.till)
@@ -111,12 +137,22 @@ def _don(e: Don, g: Gren) -> Montage:
     mm = Montage(e.id, beskrivning=t.namn, produkt=(t.produkt or None) if isinstance(t, Koksflakttyp) else None)
     if isinstance(t, Koksflakttyp):
         sys = _vagg(m)
-        mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g}", box(-t.b / 2, t.b / 2, 0.0, t.h, 0.0, t.d), KOKSFLAKT), sys,
-                f"{e.id}-KAPA")
+        sb, sd = t.skorsten
+        if t.sluttande:
+            # ramen i underkanten och kåpan som sluttar upp mot skorstenen (x längs väggen, y uppåt, z ut från väggen)
+            r = KAPA_RAM
+            mm.lagg(Del(f"{t.namn}, ram {t.b:g} × {t.d:g}", box(-t.b / 2, t.b / 2, 0.0, r, 0.0, t.d), KOKSFLAKT), sys,
+                    f"{e.id}-RAM")
+            horn = [(-t.b / 2, r, 0.0), (t.b / 2, r, 0.0), (t.b / 2, r, t.d), (-t.b / 2, r, t.d),
+                    (-sb / 2, t.h, 0.0), (sb / 2, t.h, 0.0), (sb / 2, t.h, sd), (-sb / 2, t.h, sd)]
+            ytor = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+            mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g}", polyeder(horn, ytor), KOKSFLAKT), sys, f"{e.id}-KAPA")
+        else:
+            mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g}", box(-t.b / 2, t.b / 2, 0.0, t.h, 0.0, t.d), KOKSFLAKT),
+                    sys, f"{e.id}-KAPA")
         mm.lagg(Del(f"{t.namn}, fettfilter", box(-t.b / 2 + 25.0, t.b / 2 - 25.0, -1.0, 2.0, 25.0, t.d - 25.0),
                     FETTFILTER), sys, f"{e.id}-FILTER")
         # skorstenskåpan: från kåpan upp till innertaket, överkanten i takets lutning (profil i ut-ur-väggen, upp)
-        sb, sd = t.skorsten
         n = m.normal
         z0 = m.punkt[2]
         fram = flytt(m.punkt, n, sd)
@@ -143,7 +179,7 @@ def _don(e: Don, g: Gren) -> Montage:
 
 def _avluft(e: Avluft) -> Montage:
     t, m = e.typ, e.lage
-    mm = Montage(e.id, beskrivning=t.namn)
+    mm = Montage(e.id, beskrivning=t.namn, produkt=t.produkt or None)
     if t.slag == "galler":
         alu = ALUMINIUM[int(m.ref[0])]                  # fönstrens aluminium på huskroppen
         sys = _vagg(m)
@@ -151,6 +187,26 @@ def _avluft(e: Avluft) -> Montage:
                 sys, f"{e.id}-RAM")
         mm.lagg(Del(f"{t.namn}, huv", box(-t.b / 2 + 15.0, t.b / 2 - 15.0, -t.h / 2 + 15.0, t.h / 2 - 15.0, 4.0,
                                           t.djup), alu), sys, f"{e.id}-HUV")
+    elif t.slag == "takfläkt":
+        # sockeln av takplåt från takets yta till den vågräta överkanten, fläkten på den: bottenplattan, huset och
+        # motorn under locket; en plåt runt sockeln i takets plan
+        upp = Placering.axlar(m.punkt, (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+        r = t.b / 2
+        lag = r * math.tan(math.radians(S.TAKVINKEL)) + 50.0
+        ring = cylinder(r, t.sockel + lag, (0.0, 0.0, -lag)) - cylinder(r - 1.0, t.sockel + lag + 2.0,
+                                                                        (0.0, 0.0, -lag - 1.0))
+        mm.lagg(Del(f"{t.namn}, sockel Ø{t.b:g}", ring - _under_ytan(m.normal, 2 * t.b, 2 * lag), TAKPLAT), upp,
+                f"{e.id}-SOCKEL")
+        z = t.sockel
+        mm.lagg(Del(f"{t.namn}, bottenplatta Ø{t.b:g}", cylinder(r, 10.0, (0.0, 0.0, z)), TAKFLAKT), upp,
+                f"{e.id}-PLATTA")
+        hus = _stympad_kon(t.hus / 2, 0.3 * t.hus, z + 10.0, z + 0.78 * t.h)
+        mm.lagg(Del(f"{t.namn}, hus Ø{t.hus:g}", hus, TAKFLAKT), upp, f"{e.id}-HUS")
+        lock = cylinder(0.22 * t.hus, 0.22 * t.h, (0.0, 0.0, z + 0.78 * t.h))
+        mm.lagg(Del(f"{t.namn}, motorns lock", lock, TAKFLAKT), upp, f"{e.id}-LOCK")
+        a = r + 80.0
+        mm.lagg(Del(f"{t.namn}, plåt i takets plan", box(-a, a, -a, a, 0.0, 2.0) - cylinder(r, 10.0, (0.0, 0.0, -5.0)),
+                    TAKPLAT), Placering.axlar(m.punkt, (0.0, 1.0, 0.0), m.normal), f"{e.id}-PLAT")
     else:
         # takhuven av plåt: röret lodrätt från takets yta, huven överst och en plåt runt röret i takets plan
         r, t_ = t.anslutning / 2 + 3.0, 1.0

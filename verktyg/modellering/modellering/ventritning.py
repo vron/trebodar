@@ -123,7 +123,7 @@ TECKEN: list[tuple[Callable[[Vy], None] | str | dict, str]] = [
     (lambda w: stigare(w, 0.0, 0.0, 2.2, 2.2, (1.0, 0.0), True), "lodrät kanal (stigarledning)"),
     (lambda w: flakt(w, 0.0, 0.0), "fläkt (triangeln i luftens riktning)"),
     (lambda w: frandon(w, 0.0, 0.0, 2.6), "frånluftsdon"),
-    (lambda w: avluft(w, -3.0, 0.0, (1.0, 0.0)), "avluft genom fasaden (galler) eller taket (takhuv)"),
+    (lambda w: avluft(w, -3.0, 0.0, (1.0, 0.0)), "avluft genom fasaden (galler) eller taket (takhuv, takfläkt)"),
     ("dold", "över snittet: köksfläktens kåpa, takhuven"),
 ]
 
@@ -217,9 +217,9 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
                 q = np.array(p[:2]) + n * v.m(5.0)
                 v.text(q[0], q[1] - v.m(1.2), f"{k} galler", a="lt" if n[0] >= 0 else "rt", sz=5.2, bg=True)
                 visade.add(k)
-            elif e["slag"] == "avluft" and typ["slag"] == "takhuv" and vaning[0] >= -1.0:
+            elif e["slag"] == "avluft" and typ["slag"] in ("takhuv", "takfläkt") and vaning[0] >= -1.0:
                 v.cirkel(p[0], p[1], typ["b"] / 2, None, "dold", modell=True)
-                v.ptext(p[0], p[1], 2.6, 2.0, f"{k} takhuv", a="lb", sz=5.4, bg=True)
+                v.ptext(p[0], p[1], 2.6, 2.0, f"{k} {typ['slag']}", a="lb", sz=5.4, bg=True)
                 visade.add(k)
     if norr:
         norrpil(v, 7300.0, 14600.0, norr)
@@ -321,6 +321,15 @@ def _sektion(utdrag: dict, delar: list[dict], gren: str, y: float, nummer: str, 
                 v.rekt(p[0] - typ["b"] / 2, p[2] + typ["h"] - 60.0, p[0] + typ["b"] / 2, p[2] + typ["h"] - 10.0,
                        fyll="#bdbdbd", stil="tunn")
                 v.ptext(p[0], p[2] + typ["h"], 0.0, 1.0, f"{k} takhuv", a="cb", sz=5.4, bg=True)
+            elif e["slag"] == "avluft" and typ["slag"] == "takfläkt":
+                # sockeln från taket till den vågräta överkanten, fläktens bottenplatta och huset ovanpå
+                p = e["punkt"]
+                r, zs = typ["b"] / 2, p[2] + typ["sockel"]
+                v.rekt(p[0] - r, p[2] - r * 0.6, p[0] + r, zs, fyll="#bdbdbd", stil="tunn")
+                v.rekt(p[0] - r, zs, p[0] + r, zs + 10.0, fyll="#555555", stil="tunn")
+                v.rekt(p[0] - typ["hus"] / 2, zs + 10.0, p[0] + typ["hus"] / 2, zs + typ["h"], fyll="#555555",
+                       stil="tunn")
+                v.ptext(p[0], zs + typ["h"], 0.0, 1.0, f"{k} takfläkt", a="cb", sz=5.4, bg=True)
     # genomföringarna: hänvisningar till en kolumn till höger om kanalen, i höjdordning
     gf = sorted((x for x in utdrag["genomforingar"] if x["element"] in mina), key=lambda x: -x["punkt"][2])
     x_kol = max(p[0] for k in mina if el[k]["slag"] == "kanal" for p in el[k]["vag"]) + v.m(14.0)

@@ -238,7 +238,7 @@ def genomforingar(stycken: list[Stycke]) -> tuple[list[Genomforing], list[str]]:
                                       (a[0], a[1], zi), _hal(st), eid))
             if z0 < zt <= z1 + 1.0:
                 ut.append(Genomforing(f"Taket ({tf.kod})", "genomföring i hårdboard, ströläkt, råspont, papp och plåt "
-                                                         "(takhuv)", (a[0], a[1], zt), _hal(st), eid))
+                                                         "(takhuv eller takfläkt)", (a[0], a[1], zt), _hal(st), eid))
             if z1 > zab + 1.0:
                 if st.isolering <= 0.0:
                     fel.append(f"{eid}: oisolerad i takets isolering (kondens)")
