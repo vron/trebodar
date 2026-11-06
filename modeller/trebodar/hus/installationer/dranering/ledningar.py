@@ -5,14 +5,16 @@ röret Ø110 mot nordost (mot rampen in på tomten mellan boden och planteringen
 Dräneringen: dränrör Ø110 i en ring AVSTAND["dränering"] utanför grundens ytterkant (källarväggarna och plattan på
 mark), med överkanten i grundens underkant (UK: källaren och plattan på mark), så att den dränerar det kapillärbrytande
 skiktet. Dagvattnet: täta rör Ø110 i en ring AVSTAND["dagvatten"] utanför grunden, TACKNING under marken vid fasaden
-(markniva.MARKNIVA), och från varje stuprör en anslutning (lövsil vid stuprörets ände, lodrätt ned och en sticka till
-ringen). Ringarna delas i punkten längst från brunnen i två grenar som faller mot den, minst FALL, i raka lutningar
-mellan brytpunkterna; där grundens eller markens nivå faller fortare faller ledningen med den, brantare än 1:1
-lodrätt i en spolbrunn (dräneringen mellan plattan på mark och källaren, dagvattnet där marken sluttar). Längs
-källaren, grenarnas sista del, begränsas dräneringens fall av det befintliga utgående röret: grenarna faller där så
-brant som det går, högst FALL och minst FALL_MIN, och når brunnen UTLOPP_MARGINAL över rörets inmätta höjd (AR-02).
-Under stenarna i marken (HINDER, entréavsatsen och sovrumsavsatsen) går ledningarna under stenarnas underkant, utan
-spolbrunnar. Spolrör vid grenarnas början. Brunnen: Ø400 med sandfång under utloppet, locket i marken.
+(markniva.MARKEN, marken själv utanför fasadstenen), och från varje stuprör en anslutning (lövsil vid stuprörets
+ände, lodrätt ned och en sticka till ringen). Ringarna delas under altanen (SPOLROR, där spolrören går att nå) i två
+grenar som faller mot brunnen, minst FALL, i raka lutningar mellan brytpunkterna; där grundens eller markens nivå
+faller fortare faller ledningen med den, brantare än 1:1 lodrätt i en spolbrunn (dräneringen mellan plattan på mark
+och källaren, dagvattnet där marken sluttar). I berget i dagen (BERG) får ledningarna inga spolbrunnar: där faller de
+högst 1:1, med böjar 45°, och spolas från spolrören. Längs källaren, grenarnas sista del, begränsas dräneringens fall
+av det befintliga utgående röret: grenarna faller där så brant som det går, högst FALL och minst FALL_MIN, och når
+brunnen UTLOPP_MARGINAL över rörets inmätta höjd (AR-02). Under stenarna i marken (HINDER, entréavsatsen och
+sovrumsavsatsen) går ledningarna under stenarnas underkant, utan spolbrunnar. Brunnen: Ø400 med sandfång under
+utloppet, locket i marken.
 
 Höjderna i modellens z (mm), rörens underkant; på ritningen vattengången (VG, + GODS) i RH 2000 (z / 1000 +
 skelett.PLATS.hojd).
@@ -28,7 +30,7 @@ from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import substring, unary_union
 
 from trebodar import skelett as S
-from trebodar.hus.fasad.markniva import mark_vid
+from trebodar.hus.fasad.markniva import mark_vid, marken_vid
 from trebodar.hus.grund import grund as G
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.tak import dalar, takkanter
@@ -61,6 +63,14 @@ HINDER = {"entréavsatsen": ((-1595.0, 8355.0, -95.0, 11255.0), -1100.0),
 UNDER_HINDER = 50.0                                  # rörens överkant under stenarnas underkant
 HINDER_KANT = 150.0                                  # schaktet utanför stenarnas kant
 DJUPARE = {"dränering": 50.0, "dagvatten": 200.0}    # så mycket raka lutningar får gå under den högsta vattengången
+# spolrören, där ringarna delas och grenarna börjar: ringens punkt närmast SPOLROR, under altanen i det inre hörnet
+# mellan 1NV och 2SV, där berget är sprängt och spolrören och spolbrunnen där dräneringen faller till källaren nås
+# genom altanen (ärende #71)
+SPOLROR = (4700.0, 12000.0)
+# berget i dagen utanför altanen (Onshape-modellens berg, mark/berg.bbrep): kropp 1:s södra del, från entréavsatsen
+# runt gaveln 1SV till altanen (altan.py: X0, Y1), områden (x0, y0, x1, y1). Där inga spolbrunnar eller spolrör
+# (ärende #73): ledningarna faller högst 1:1 och spolas från spolrören
+BERG = ((-3000.0, 8355.0, 4415.0, 19000.0), (-3000.0, 15995.0, 9395.0, 19000.0))
 
 
 def rh(z: float) -> float:
@@ -121,20 +131,31 @@ def _vid_kallaren(x: float, y: float) -> bool:
     return not platta.distance(p) < kallare.exterior.distance(p)
 
 
+def i_berget(x: float, y: float) -> bool:
+    """Punkten ligger i berget i dagen (BERG), där ledningarna inte får spolbrunnar eller spolrör."""
+    return any(x0 <= x <= x1 and y0 <= y <= y1 for x0, y0, x1, y1 in BERG)
+
+
+def _mark(x: float, y: float) -> float:
+    """Marken vid den närmaste fasaden: marken själv (MARKEN), på en sten (HINDER, som brunnen B1:s lock i
+    källaravsatsen) stenens överkant (MARKNIVA)."""
+    p = Point(x, y)
+    kod = min(S.YTTERVAGGAR, key=lambda k: LineString([S.YTTERVAGGAR[k].placering().punkt((0.0, 0.0, 0.0))[:2],
+                                                        S.YTTERVAGGAR[k].placering().punkt(
+                                                            (S.YTTERVAGGAR[k].langd, 0.0, 0.0))[:2]]).distance(p))
+    u = S.YTTERVAGGAR[kod].placering().invers().punkt((x, y, 0.0))[0]
+    return (mark_vid if under_hinder(x, y) else marken_vid)(kod, u)
+
+
 def _nedre(typ: str, x: float, y: float) -> float:
     """Den högsta vattengången i punkten: dräneringens överkant i grundens underkant (källaren eller plattan på
     mark, den närmaste), dagvattnets överkant TACKNING under marken vid den närmaste fasaden; under en sten
     (HINDER) UNDER_HINDER under dess underkant."""
     h = under_hinder(x, y)
     z_h = HINDER[h][1] - UNDER_HINDER - D if h else math.inf
-    p = Point(x, y)
     if typ == "dränering":
         return min(z_h, UK["källaren" if _vid_kallaren(x, y) else "plattan"] - D)
-    kod = min(S.YTTERVAGGAR, key=lambda k: LineString([S.YTTERVAGGAR[k].placering().punkt((0.0, 0.0, 0.0))[:2],
-                                                        S.YTTERVAGGAR[k].placering().punkt(
-                                                            (S.YTTERVAGGAR[k].langd, 0.0, 0.0))[:2]]).distance(p))
-    u = S.YTTERVAGGAR[kod].placering().invers().punkt((x, y, 0.0))[0]
-    return min(z_h, mark_vid(kod, u) - TACKNING - D)
+    return min(z_h, _mark(x, y) - TACKNING - D)
 
 
 def _bit(r: LineString, s0: float, langd: float, fram: bool) -> list[tuple[float, float]]:
@@ -170,14 +191,15 @@ def fall_kallaren(pkt: list[tuple[float, float]]) -> float:
 
 def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float, float]]:
     """Vattengången nedströms i brytpunkterna. Först så högt som möjligt: i början i _nedre, sedan minst fallet och
-    aldrig över _nedre. Fallet är FALL, för dräneringen längs källaren fall_kallaren. Sedan i raka lutningar, så
-    långa som möjligt mellan hörnen (rören läggs i raka längder), under _nedre och högst DJUPARE under den första
-    (schaktet bredvid grunden blir inte djupare än det behöver; under stenarna fritt). En lutning brantare än 1:1
-    faller i stället lodrätt i sin början (i en spolbrunn) och sedan med fallet, utom under stenarna, där spolbrunnen
-    inte går att nå."""
+    aldrig över _nedre; i berget (BERG) börjar ett brantare fall än 1:1 tidigare, så att det blir 1:1. Fallet är
+    FALL, för dräneringen längs källaren fall_kallaren. Sedan i raka lutningar, så långa som möjligt mellan hörnen
+    (rören läggs i raka längder), under _nedre och högst DJUPARE under den första (schaktet bredvid grunden blir inte
+    djupare än det behöver; under stenarna fritt). En lutning brantare än 1:1 faller i stället lodrätt i sin början
+    (i en spolbrunn) och sedan med fallet, utom under stenarna, där spolbrunnen inte går att nå."""
     tat, horn = _tat(pkt)
     tak = np.array([_nedre(typ, *p) for p in tat])
     fri = np.array([under_hinder(*p) is not None for p in tat])
+    berg = [i_berget(*p) for p in tat]
     s = np.concatenate([[0.0], np.cumsum([math.dist(a, b) for a, b in zip(tat, tat[1:])])])
     f = np.full(len(tat), FALL[typ])                                         # fallet fram till punkten
     if typ == "dränering":
@@ -185,6 +207,9 @@ def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float
     z = [float(tak[0])]
     for i in range(1, len(tat)):
         z.append(min(z[-1] - f[i] * (s[i] - s[i - 1]), float(tak[i])))
+    for i in range(len(tat) - 2, -1, -1):                                   # i berget högst 1:1 (böjar 45°)
+        if berg[i]:
+            z[i] = min(z[i], z[i + 1] + float(s[i + 1] - s[i]))
     golv = np.where(fri, -math.inf, np.array(z) - DJUPARE[typ])
     vag: list[tuple[float, float, float]] = [(*tat[0], z[0])]
     a, za = 0, z[0]
@@ -194,7 +219,7 @@ def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float
                  if z[k] <= za - f[a + 1:k + 1].min() * (s[k] - s[a]) + 1e-6
                  and np.all((zk := za + (z[k] - za) * (s[a + 1:k] - s[a]) / (s[k] - s[a])) <= tak[a + 1:k] + 1.0)
                  and np.all(zk >= golv[a + 1:k]))
-        if za - z[j] > s[j] - s[a] and not fri[a]:                  # brantare än 1:1: lodrätt, i en spolbrunn,
+        if za - z[j] > s[j] - s[a] + 1.0 and not fri[a]:            # brantare än 1:1: lodrätt, i en spolbrunn,
             za = z[j] + f[a + 1:j + 1].min() * float(s[j] - s[a])   # och vidare därifrån
             vag.append((*tat[a], za))
             continue
@@ -216,13 +241,13 @@ def _hojder(typ: str, pkt: list[tuple[float, float]]) -> list[tuple[float, float
 
 @cache
 def _grenar(typ: str) -> tuple[tuple[int, tuple[tuple[float, float], ...]], ...]:
-    """Ringens två grenar, från punkten längst från brunnen till brunnen: (nummer, punkterna)."""
+    """Ringens två grenar, från spolrören (ringens punkt närmast SPOLROR) till brunnen: (nummer, punkterna)."""
     r = ring(typ)
     L = r.length
     sw = r.project(Point(BRUNN))
     avst = r.interpolate(sw).distance(Point(BRUNN))
     halv = math.sqrt(max((BRUNN_D / 2) ** 2 - avst ** 2, 0.0))            # där ringen går in i brunnen
-    sf = (sw + L / 2) % L                                                   # längst från brunnen
+    sf = r.project(Point(SPOLROR))
     return tuple((nr, tuple(_bit(r, sf, langd, fram)))
                  for nr, fram, langd in ((1, True, (sw - halv - sf) % L), (2, False, (sf - sw - halv) % L)))
 
@@ -260,11 +285,6 @@ def ledningar() -> dict[str, Ledning]:
     b = (a[0] + ux * UTLOPP_L, a[1] + uy * UTLOPP_L, Z_UTLOPP - FALL["dagvatten"] * UTLOPP_L)
     ut["U"] = Ledning("U", "utlopp", (a, b), "befintligt utgående rör Ø110 mot nordost (fortsätter)")
     return ut
-
-
-def _mark(x: float, y: float) -> float:
-    """Marken vid den närmaste fasaden."""
-    return _nedre("dagvatten", x, y) + TACKNING + D
 
 
 def _hojd_vid(ut: dict[str, Ledning], pre: str, x: float, y: float) -> tuple[str, float]:
@@ -331,6 +351,11 @@ def kontroll() -> tuple[list[str], list[str]]:
     for br in brunnar().values():
         if br.z_lock - br.z_botten < 300.0:
             fel.append(f"{br.id}: brunnen är bara {br.z_lock - br.z_botten:.0f} mm djup")
+        if i_berget(br.x, br.y):
+            fel.append(f"{br.id}: brunnen står i berget i dagen (BERG)")
+    for led in ledningar().values():
+        if led.typ == "spolrör" and i_berget(*led.vag[0][:2]):
+            fel.append(f"{led.id}: spolröret står i berget i dagen (BERG)")
     return fel, anm
 
 

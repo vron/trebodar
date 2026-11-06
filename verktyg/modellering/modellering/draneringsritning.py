@@ -105,7 +105,8 @@ def _teckenforklaring() -> dict:
 
 class Texter:
     """Texterna med hänvisningslinje, utan att gå över varandra, ledningarna eller väggarna: varje text prövas i
-    några lägen bort från huset och tar det första som är fritt."""
+    några lägen bort från huset och tar det första som är fritt, annars det med minst krockar (en annan text väger
+    tyngst)."""
 
     def __init__(self, v: Vy, hinder: list[BaseGeometry], texter: list[BaseGeometry], ram: Polygon):
         self.v = v
@@ -148,7 +149,7 @@ class Texter:
                 r, a, xt = self.ruta(q, d, b, h)
                 linje = LineString([fran or p, tuple(q)])
                 krockar = (0 if self.ram.contains(r) else 100) + sum(r.intersects(u) for u in self.upptaget) + \
-                    sum(linje.intersects(u) for u in self.texter)
+                    sum(linje.intersects(u) for u in self.texter) + 10 * sum(r.intersects(u) for u in self.texter)
                 if val is None or krockar < val[0]:
                     val = (krockar, q, r, a, xt)
                 if krockar == 0:
@@ -376,9 +377,11 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
             f"{u['tackning']:.0f} mm under marken; fall minst 1:{1 / u['fall']['dagvatten']:.0f}. Stuprören ansluts "
             "med en stuprörsanslutning med lövsil vid marken, lodrätt ned och en sticka till ledningen. Dräneringen "
             "och dagvattnet är skilda ända till brunnen.",
-            "Ledningarna delas längst från brunnen i två grenar som faller åt var sitt håll mot brunnen, med spolrör "
-            "(D0, S0) där de börjar. Där grunden eller marken faller brantare än 1:1 faller ledningen lodrätt i en "
-            "spolbrunn Ø200 (SB) med lock i marken.",
+            "Ledningarna delas under altanen, i det inre hörnet mellan 1NV och 2SV, i två grenar som faller åt var "
+            "sitt håll mot brunnen, med spolrör (D0, S0) där de börjar; spolrören och spolbrunnen SB1 nås genom "
+            "altanen. Där grunden eller marken faller brantare än 1:1 faller ledningen lodrätt i en spolbrunn Ø200 "
+            "(SB) med lock i marken, utom i berget i dagen runt kropp 1:s södra del (entrén och gaveln 1SV), där "
+            "den faller högst 1:1 med böjar 45° och spolas från spolrören.",
             "Under entréavsatsen och sovrumsavsatsen går ledningarna under stenarnas underkant, utan spolbrunnar; "
             "stenarna sätts efter ledningarna. Stupröret DB4-ST1 på sovrumsavsatsen ansluts lodrätt genom stenen. "
             "Ledningarna går till stor del i berget (schakt i berg, som grunden).",

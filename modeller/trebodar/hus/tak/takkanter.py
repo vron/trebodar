@@ -3,8 +3,8 @@
 Vid takfoten finns ingen takfotsbräda: takbalkarnas ändar är synliga och fasadens panel går upp mellan dem
 (fasad.py), så att luftintaget till takets luftspalt (U-03) är öppningen ovanför panelen. Takfotsplåt 0,6 över
 råspontens framkant, 35 mm ned under råsponten och med droppnäsa över hängrännan, och halvrunda hängrännor Ø125
-med gavlar. Stuprör Ø87 vid ändarna av de takfötter som går från gavel till gavel, från rännan till 150 mm över
-marken längs fasaden; en takfot som slutar vid en dal har inget eget stuprör, utan rännan rinner till dalens ändlåda
+med gavlar. Stuprör Ø87 vid ändarna av de takfötter som går från gavel till gavel (1SO bara vid 1NO: vid 1SV är det
+berg), från rännan till 150 mm över marken (utanför fasadstenen) längs fasaden; en takfot som slutar vid en dal har inget eget stuprör, utan rännan rinner till dalens ändlåda
 och stupröret i hörnet (ett stuprör per hörn, dalar.py). Vid
 gavlarna: vindskiva 22×145 ytterst i utsticket, med överkanten i plåtens överkant, och vindskivebeslag 0,6 vikt runt
 vindskivan: från 50 mm in på plåten över vindskivans överkant, ned över hela framsidan och 15 mm in under den.
@@ -24,7 +24,7 @@ from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.ror import ror
 from trebodar.byggdelar.virke import fmt
-from trebodar.hus.fasad.markniva import mark_vid
+from trebodar.hus.fasad.markniva import marken_vid
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 from trebodar.material import PANEL, TAKPLAT
 
@@ -111,22 +111,28 @@ def _vindskivor(kod: str) -> Montage:
     return p.montage()
 
 
+# takfötter med stupröret bara i den ena änden (0: vid y0, 1: vid y1): 1SO bara vid 1NO, vid 1SV är det berg (#73)
+ETT_STUPROR = {"1SO": 0}
+
+
 def _stupror_lagen() -> list[tuple[str, float]]:
-    """Rännornas stuprör: vid båda ändarna av takfötter som går från gavel till gavel. En takfot som slutar vid en dal
-    rinner till dalens ändlåda, med stupröret i hörnet (dalar.py)."""
+    """Rännornas stuprör: vid båda ändarna av takfötter som går från gavel till gavel (eller bara den ena,
+    ETT_STUPROR). En takfot som slutar vid en dal rinner till dalens ändlåda, med stupröret i hörnet (dalar.py)."""
     ut = []
     for kod in REGIONER:
         for r, gavel0, gavel1 in _takfoter(kod):
             if gavel0 and gavel1:
-                ut += [(kod, r.y0 + STUPROR_KANT), (kod, r.y1 - STUPROR_KANT)]
+                andar = [(kod, r.y0 + STUPROR_KANT), (kod, r.y1 - STUPROR_KANT)]
+                ut += [andar[ETT_STUPROR[kod]]] if kod in ETT_STUPROR else andar
     return ut
 
 
 def _fot(kod: str, y: float) -> tuple[float, float]:
-    """Stuprörets x och dess ände (z): STUPROR_FRI från panelen och STUPROR_MARK över marken vid fasaden."""
+    """Stuprörets x och dess ände (z): STUPROR_FRI från panelen och STUPROR_MARK över marken vid fasaden (marken
+    själv, utanför en fasadsten)."""
     t = S.TAKFALL[kod]
     xs = t.x_utsida - t.riktning * (S.T_FASAD + STUPROR_FRI + STUPROR_D / 2)
-    return xs, mark_vid(kod, S.YTTERVAGGAR[kod].placering().invers().punkt((xs, y, 0.0))[0]) + STUPROR_MARK
+    return xs, marken_vid(kod, S.YTTERVAGGAR[kod].placering().invers().punkt((xs, y, 0.0))[0]) + STUPROR_MARK
 
 
 def stupror() -> list[tuple[str, float, float, float, float]]:

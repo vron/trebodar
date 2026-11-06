@@ -1,4 +1,5 @@
-"""Marken vid fasaderna: panelens underkant per vägg (u, z i väggens system), också stuprörens ände.
+"""Marken vid fasaderna: panelens underkant per vägg (u, z i väggens system), och marken själv, som stuprörens ände
+och dräneringen följer.
 
 Tabellen skrivs av verktyg/modellanalys/marknivaer.py ur den byggda modellen och körs om när marken ändras (ersätt
 MARKNIVA med utskriften).
@@ -34,10 +35,37 @@ MARKNIVA: dict[str, tuple[tuple[float, float], ...]] = {
 }
 
 
-def mark_vid(kod: str, u: float) -> float:
-    """Marken vid fasaden i u (MARKNIVA; Z_UK där marken inte når fasaden)."""
-    m = MARKNIVA.get(kod, ((0.0, Z_UK), (1.0, Z_UK)))
+# marken själv vid fasaden (u, z) per vägg, utan grunden, fasadstenen, avsatserna och trapporna: där stenen går upp
+# över marken ligger den lägre än MARKNIVA. Stuprörens ände och dräneringen och dagvattnet (täckningen, brunnarnas
+# lock) följer den. Ur samma körning av verktyg/modellanalys/marknivaer.py
+MARKEN: dict[str, tuple[tuple[float, float], ...]] = {
+    "1NO": ((-65, -1339), (205, -1339), (215, -1740), (4425, -1740)),
+    "1SO": ((-138, -222), (2542, -222), (2552, -223), (4582, -686), (4592, -1097), (7462, -1097), (7472, -925),
+            (7492, -925), (11472, -1312), (12312, -1338)),
+    "1SV": ((-65, -398), (2275, -223), (4435, -222)),
+    "1NV": ((10, -409), (250, -409), (260, -394), (4930, -394)),
+    "2NO": ((-65, -1449), (4875, -1449)),
+    "2SV": ((105, -679), (1195, -694), (5005, -409), (5185, -409)),
+    "2SO": ((80, -1740), (3360, -1840), (3370, -1716), (3380, -1441), (3400, -1441), (3630, -1448)),
+    "3NO": ((2905, -2243), (4385, -1750), (4395, -1419), (4655, -1419)),
+    "3NV": ((-138, -1417), (11472, -1062), (11482, -960), (11512, -960)),
+    "3SV": ((-65, -959), (4385, -662), (4405, -662), (4415, -774), (4435, -773)),
+    "3SO": ((-138, -762), (992, -762), (1002, -679), (1402, -679)),
+}
+
+
+def _langs(m: tuple[tuple[float, float], ...], u: float) -> float:
     for (ua, za), (ub, zb) in zip(m, m[1:]):
         if ua <= u <= ub:
             return za if ub == ua else za + (zb - za) * (u - ua) / (ub - ua)
     return float(m[0][1] if u < m[0][0] else m[-1][1])
+
+
+def mark_vid(kod: str, u: float) -> float:
+    """Marken vid fasaden i u (MARKNIVA, panelens underkant; Z_UK där marken inte når fasaden)."""
+    return _langs(MARKNIVA.get(kod, ((0.0, Z_UK), (1.0, Z_UK))), u)
+
+
+def marken_vid(kod: str, u: float) -> float:
+    """Marken själv vid fasaden i u (MARKEN), utanför fasadstenen; MARKNIVA där marken inte finns i tabellen."""
+    return _langs(MARKEN[kod], u) if kod in MARKEN else mark_vid(kod, u)

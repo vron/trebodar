@@ -221,7 +221,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Delar**: `<montage>-<typ><nr>`, numrerade längs väggen eller takfallet. Väggar och takstolar: S syll, H
   hammarband, R regel, L liggande (överstycke, bröstning, topregel), D diagonal, U underram, X sned del under taket
   (takstolens ytterbalk), K kloss, P plåt. Takbalkar: T takbalk, A avväxling, K kortling, UR upplagsregel. Tak: HD
-  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TF takfotsplåt, HR hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, rännornas stuprör ST1–ST4, i dalarna DB2-KIL och DB2-RD
+  hårdboard, SL ströläkt, RP råspont, UP underlagspapp, TP takplåt; takkanterna: TF takfotsplåt, HR hängränna, RG rännans gavel, VS vindskiva, VB vindskivebeslag, rännornas stuprör ST1–ST3, i dalarna DB2-KIL och DB2-RD
   (kilar och rändal) och vid ändarna DB2-LA1, -RS1 och -ST1 (ändlåda, rörstos och stuprör; 2 vid den södra änden).
   Fasad: UG utegips, SR ströläkt, SP
   spikläkt, PA panel. Invändigt: AB ångbroms, IL installationsläkt, GI gips (i innertaket den inre skivan), GY
