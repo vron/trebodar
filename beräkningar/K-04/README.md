@@ -8,8 +8,8 @@ kontrolleras i K-01, takets anslutningar i K-03 och bjälklaget i K-05.
 | Fil | Innehåll |
 |---|---|
 | `indata.toml` | Projektuppgifter, takets och väggarnas skikt utöver F-01, formfaktorer för vinden, material, kombinationer och kontrollernas faktorer, stålbanden och spiken |
-| `natverk.py` | Balkmodellen ur modellens bärverk: delarna som balkar längs sina axlar, knutpunkterna där delarna ligger an mot varandra, leder och upplag |
-| `fem.py` | 3D-ramanalys: Timoshenkobalkar med leder, band som bara tar drag, fasta upplag |
+| `natverk.py` | Balkmodellen ur modellens bärverk: delarna som balkar längs sina systemlinjer (delar som ligger an mot varandra längs en sträcka på en gemensam linje), knutpunkterna där linjerna möts, leder, upplag, takstolarnas ståndare och spikreglar utanför och gavlarnas bindningar i sidled |
+| `fem.py` | 3D-ramanalys: Timoshenkobalkar med leder, band som bara tar drag, bindningar mellan nodernas förskjutningar, fasta upplag |
 | `laster.py` | Lastfallen: egentyngd, snö och vind (F-01) fördelade från takens och väggarnas ytor till delarna |
 | `analys.py` | Lastkombinationerna och lösningarna |
 | `kontroller.py` | Kontrollerna per grupp av delar (SS-EN 1995-1-1, 1993-1-3) och bruksgränstillståndet |

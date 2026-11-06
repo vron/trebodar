@@ -65,7 +65,7 @@ for b in N.delar:
     grupper[g]["antal"] += 1
     grupper[g]["dim"].add(f"{fmt(min(b.bredd, b.hojd), 0)}×{fmt(max(b.bredd, b.hojd), 0)}")
     grupper[g]["mat"].add({"Stålband": "S350GD"}.get(b.material, b.material))
-modell = {"delar": sum(1 for b in N.delar if b.slag != "kontakt"),
+modell = {"delar": sum(1 for b in N.delar if b.slag not in ("kontakt", "utgar")), "sekundara": len(N.sekundara),
           "kontakter": sum(1 for b in N.delar if b.slag == "kontakt"), "noder": len(m.x), "element": len(m.bi),
           "band_vagg": sum(1 for d in N.band if N.delar[d].grupp == "band_vagg"),
           "band_tak": sum(1 for d in N.band if N.delar[d].grupp == "band_tak"),
@@ -97,16 +97,57 @@ for d in set(N.element_del):
     e = el[np.argmax(N.element_s[el, 1] - N.element_s[el, 0])]
     stolpar[b.stolpe] += -0.5 * (-L.F[:, e, 0] + L.F[:, e, 6])
 k05 = {s["namn"]: s["Rd"] for s in K05["stolpar"]}
+sno = [Fk[n] for n in ("G", "G+S1", "G+S2", "G+S3")]              # snö som huvudlast, som K-05
 stolptab = []
 for s in sorted(set(stolpar) | set(k05), key=lambda n: (n[:2], n)):
     if s not in stolpar:
         continue
-    Ned = stolpar[s][str_].max()
+    Ned = stolpar[s][sno].max()
     stolptab.append({"namn": s, "G": fmt(stolpar[s][Fk["G (k)"]] / 1e3, 1),
                      "S": fmt(stolpar[s][Fk["S1 (k)"]] / 1e3, 1), "Ned": fmt(Ned / 1e3, 1),
+                     "Nmax": fmt(stolpar[s][str_].max() / 1e3, 1),
                      "K05": fmt(k05[s] / 1e3, 1) if s in k05 else "–",
                      "kvot": pct(Ned / k05[s]) if s in k05 else "–",
                      "over": bool(s in k05 and Ned > 1.05 * k05[s])})
+
+# takstolarna mot K-03: diagonalens tryck och dragbandets drag mitt på (summan av delarna på systemlinjen), snö som
+# huvudlast
+K03 = json.loads((HERE.parent / "K-03" / "resultat.json").read_text(encoding="utf-8"))
+k03 = {s["namn"]: s for s in K03["st"]}
+pa_linje = defaultdict(list)
+for d, k in N.linjer.items():
+    pa_linje[k].append(d)
+
+
+def linjekraft(b, P):
+    """Normalkraften (drag +) i elementen på delens systemlinje närmast punkten P, summerad över delarna."""
+    ut = np.zeros(len(komb))
+    for d in (b.nr, *pa_linje.get(b.nr, [])):
+        el = np.flatnonzero(N.element_del == d)
+        if len(el):
+            mitt = 0.5 * (m.x[m.bi[el]] + m.x[m.bj[el]])
+            ut += L.F[:, el[np.argmin(np.linalg.norm(mitt - P, axis=1))], 6]
+    return ut
+
+
+takstolar = []
+for el in sorted({b.element for b in N.delar if b.grupp == "takstol" and b.typ == "U" and b.slag == "balk"}):
+    U = next(b for b in N.delar if b.grupp == "takstol" and b.element == el and b.typ == "U")
+    D = [b for b in N.delar if b.grupp == "takstol" and b.element == el and b.typ == "D" and b.slag == "balk"]
+    st = k03.get({"2C": "L2M"}.get(el, el))
+    if not st or len(D) != 2:
+        continue
+    Nd = max((-linjekraft(d, 0.5 * (d.a0 + d.b0)))[sno].max() for d in D)
+    Hd = linjekraft(U, 0.5 * (U.a + U.b))[sno].max()
+    takstolar.append({"namn": el + (" (L2M)" if el == "2C" else ""), "N": fmt(Nd / 1e3, 1), "N03": st["N"],
+                      "H": fmt(Hd / 1e3, 1), "H03": st["H"]})
+
+# gavlarna: skivornas kraft där de håller gavelns överkant och takstolens överram i sidled
+Bk = np.abs(L.bindning[str_]) if L.bindning.size else np.zeros((len(str_), 0))
+gavel = {"max": "–", "gavel": "–", "komb": "–", "antal": len(N.bindningar)}
+if Bk.size:
+    k, c = np.unravel_index(np.argmax(Bk), Bk.shape)
+    gavel.update({"max": fmt(Bk[k, c] / 1e3, 1), "gavel": N.bindningar[c], "komb": komb[str_[k]].namn})
 
 # jämvikt: lasterna mot reaktionerna i lastfallen
 jamvikt = []
@@ -201,10 +242,10 @@ def planet(b: natverk.Bar) -> tuple[str, dict]:
                 return f"vägg {v['kod']}", {"o": v["origo"], "u": v["u"], "w": v["w"], "u0": -300.0,
                                             "u1": v["langd"] + 300.0, "w0": -400.0, "w1": v["tjocklek"] + 400.0,
                                             "text": f"Väggen {v['kod']} med stolpen {b.element}"}
-    d = b.b[:2] - b.a[:2]
+    d = b.b0[:2] - b.a0[:2]
     u = d / np.linalg.norm(d) if np.linalg.norm(d) > 1 else np.array([1.0, 0.0])
     w = np.array([-u[1], u[0]])
-    o = b.a[:2] - 1500 * u
+    o = b.a0[:2] - 1500 * u
     return f"snitt {b.namn}", {"o": o.tolist(), "u": u.tolist(), "w": w.tolist(), "u0": 0.0,
                                 "u1": float(np.linalg.norm(d)) + 3000.0, "w0": -260.0, "w1": 260.0,
                                 "text": f"Lodrätt snitt längs {b.namn}"}
@@ -228,6 +269,7 @@ for i, (nyckel, p_) in enumerate(list(planen.items())[:9]):
                                           f"lasterna: {fel}."})
 
 R_ut = {"projekt": IN["projekt"], "modell": modell, "last": last, "stolpar": stolptab, "G_tot": fmt(G_tot, 1),
+        "takstolar": takstolar, "gavel": gavel,
         "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank,
         "bruks": bruks, "alla_ok": alla_ok, "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
                                                             for k, v in IN["kombination"].items()

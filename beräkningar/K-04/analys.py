@@ -57,6 +57,7 @@ class Losning:
     band: np.ndarray            # (k, s) bandens normalkraft
     R: np.ndarray               # (k, upplag, 3) upplagsreaktionerna
     u: np.ndarray               # (k, 6n) förskjutningarna
+    bindning: np.ndarray        # (k, c) bindningarnas kraft
     iter: np.ndarray            # (k,) iterationer för banden
 
 
@@ -64,7 +65,7 @@ def los(a: fem.Analys, fall: list[Lastfall], komb: list[Kombination]) -> Losning
     namn = [f.namn for f in fall]
     fv = np.array([a.nodlaster(f.q) for f in fall])
     qv = np.array([f.q for f in fall])
-    F, Q, B, R, U, It = [], [], [], [], [], []
+    F, Q, B, R, U, It, Fj = [], [], [], [], [], [], []
     for k in komb:
         c = np.array([k.faktorer.get(n, 0.0) for n in namn])
         f = c @ fv
@@ -76,4 +77,5 @@ def los(a: fem.Analys, fall: list[Lastfall], komb: list[Kombination]) -> Losning
         R.append(a.reaktioner(u, f, aktiv))
         U.append(u)
         It.append(it)
-    return Losning(komb, np.array(F), np.array(Q), np.array(B), np.array(R), np.array(U), np.array(It))
+        Fj.append(a.bindningskrafter(u))
+    return Losning(komb, np.array(F), np.array(Q), np.array(B), np.array(R), np.array(U), np.array(Fj), np.array(It))

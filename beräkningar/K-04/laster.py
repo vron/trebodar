@@ -56,8 +56,10 @@ class Fordelning:
 
     def till_element(self, P3: np.ndarray, F: np.ndarray, delar: np.ndarray) -> np.ndarray:
         """Rutornas krafter F (p, 3) [N] i punkterna P3 (p, 3), förda till delarna `delar` (p,), som jämnt
-        utbredda laster per element (m, 3) [N/mm]."""
+        utbredda laster per element (m, 3) [N/mm]. En del som ligger an mot en större längs en gemensam systemlinje
+        (ytterbalken på diagonalen, hammarbandet under underramen) för lasten till den större."""
         q = np.zeros((self.ne, 3))
+        delar = np.array([self.N.linjer.get(int(d), int(d)) for d in delar], int)
         for d in np.unique(delar):
             k = delar == d
             b = self.N.delar[d]
@@ -122,19 +124,19 @@ def takrutor(N: Natverk) -> list[Takruta]:
             if b.slag != "balk":
                 continue
             if b.grupp == "balk":
-                if min(abs(b.a[0] - x) for x in (P2[:, 0].min(), P2[:, 0].max())) < 300.0 and \
+                if min(abs(b.a0[0] - x) for x in (P2[:, 0].min(), P2[:, 0].max())) < 300.0 and \
                         P2[:, 1].min() - 100 < b.c[1] < P2[:, 1].max() + 100:
                     kand.append(b.nr)
                 continue
             if abs(b.ex @ ner) < 0.95:
                 continue
             h_n = abs(n @ b.ez) * b.hojd + abs(n @ np.cross(b.ex, b.ez)) * b.bredd
-            d = n @ (b.a - np.array([t["x_ref"], 0.0, t["z_ref"]]))
+            d = n @ (b.a0 - np.array([t["x_ref"], 0.0, t["z_ref"]]))
             if abs(abs(d) - h_n / 2) < 25.0 and P2[:, 1].min() - 50 < b.c[1] < P2[:, 1].max() + 50:
                 kand.append(b.nr)
         kand = np.array(kand)
-        A = np.array([N.delar[k].a[:2] for k in kand])
-        B = np.array([N.delar[k].b[:2] for k in kand])
+        A = np.array([N.delar[k].a0[:2] for k in kand])
+        B = np.array([N.delar[k].b0[:2] for k in kand])
         delar = kand[np.argmin(_segavstand(P2, A, B), axis=1)]
         ut.append(Takruta(P3, np.concatenate(dA), n, t["kod"], t["kropp"], r, np.concatenate(dal), delar))
     return ut
@@ -192,7 +194,7 @@ def vaggrutor(N: Natverk) -> list[Vaggruta]:
         # väggens överkant: takets överkant ovanför gavlarna, annars den högsta delen i väggen
         us = (np.arange(max(1, round(v["langd"] / RUTA))) + 0.5) * v["langd"] / max(1, round(v["langd"] / RUTA))
         xy = o[None] + us[:, None] * u[None]
-        topp = max(max(N.delar[k].a[2], N.delar[k].b[2]) for k in kand) + 22.5
+        topp = max(max(N.delar[k].a0[2], N.delar[k].b0[2]) for k in kand) + 22.5
         ztop = np.full(len(us), topp)
         if v["yttervagg"] and abs(u[0]) > 0.5:
             kropp = int(v["kod"][0])
@@ -207,13 +209,16 @@ def vaggrutor(N: Natverk) -> list[Vaggruta]:
             P.append(np.column_stack([np.full(nz, xy[i, 0]), np.full(nz, xy[i, 1]), zs]))
             dA.append(np.full(nz, v["langd"] / len(us) * ztop[i] / nz))
         P3 = np.concatenate(P)
-        # närmaste del i väggens plan (u, z)
+        dA = np.concatenate(dA)
+        # närmaste del i väggens plan (u, z); rutor närmast bjälklaget (dörrar och glaspartier ner till golvet) går
+        # direkt till bjälklaget
         def planet(X: np.ndarray) -> np.ndarray:
             return np.column_stack([(X[:, :2] - o) @ u, X[:, 2]])
-        A = planet(np.array([N.delar[k].a for k in kand]))
-        B = planet(np.array([N.delar[k].b for k in kand]))
-        delar = kand[np.argmin(_segavstand(planet(P3), A, B), axis=1)]
-        ut.append(Vaggruta(P3, np.concatenate(dA), -np.array([*w, 0.0]), v["kod"], v["yttervagg"], delar))
+        A = np.vstack([planet(np.array([N.delar[k].a0 for k in kand])), [[0.0, N.ytor["z_bjalklag"]]]])
+        B = np.vstack([planet(np.array([N.delar[k].b0 for k in kand])), [[v["langd"], N.ytor["z_bjalklag"]]]])
+        narm = np.argmin(_segavstand(planet(P3), A, B), axis=1)
+        ok = narm < len(kand)
+        ut.append(Vaggruta(P3[ok], dA[ok], -np.array([*w, 0.0]), v["kod"], v["yttervagg"], kand[narm[ok]]))
     return ut
 
 

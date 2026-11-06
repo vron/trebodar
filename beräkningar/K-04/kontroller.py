@@ -51,7 +51,7 @@ def sammansatta(N: Natverk) -> dict[int, list[int]]:
     for i, a in enumerate(st):
         for b in st[i + 1:]:
             if a.element == b.element and np.all(lo[a.nr] <= hi[b.nr] + 1.0) and np.all(lo[b.nr] <= hi[a.nr] + 1.0) \
-                    and min(a.b[2], b.b[2]) - max(a.a[2], b.a[2]) > 500.0:
+                    and min(a.b0[2], b.b0[2]) - max(a.a0[2], b.a0[2]) > 500.0:
                 far[rot(a.nr)] = rot(b.nr)
     grp: dict[int, list[int]] = defaultdict(list)
     for b in st:
@@ -115,11 +115,11 @@ def _knacklangd(N: Natverk) -> tuple[np.ndarray, np.ndarray]:
         if b.slag != "balk" or b.grupp == "balk":
             continue
         if b.grupp == "stolpe":
-            Ly[b.nr] = Lz[b.nr] = b.L                   # fristående: båda hållen (stolparna kontrolleras som helhet)
+            Ly[b.nr] = Lz[b.nr] = b.langd                   # fristående: båda hållen (stolparna kontrolleras som helhet)
         elif b.grupp in ("yttervagg", "innervagg") and b.typ in ("R", "") or b.stolpe:
-            Ly[b.nr] = b.L                              # reglar och stolpar i väggen: ut ur väggens plan
+            Ly[b.nr] = b.langd                          # reglar och stolpar i väggen: ut ur väggens plan
         elif b.grupp == "takstol" or b.grupp == "takbalk" and b.typ == "T":
-            Ly[b.nr] = b.L                              # takbalkarna och takstolarnas delar i sitt plan
+            Ly[b.nr] = b.langd                          # takbalkarna och takstolarnas delar i sitt plan
     return Ly, Lz
 
 
@@ -207,7 +207,7 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
             det = {"N": float(F[k, el, 6]), "Nc": float(K_["Nc"][k, el]), "Nt": float(K_["Nt"][k, el]),
                    "My": float(K_["My"][k, el]), "Mz": float(K_["Mz"][k, el]),
                    "V": float(np.hypot(K_["Vy"][k, el], K_["Vz"][k, el])), "T": float(K_["T"][k, el]),
-                   "b": float(d.bredd), "h": float(d.hojd), "L": float(d.L), "Ly": float(Ly[d.nr]), "Lz": float(Lz[d.nr]),
+                   "b": float(d.bredd), "h": float(d.hojd), "L": float(d.langd), "Ly": float(Ly[d.nr]), "Lz": float(Lz[d.nr]),
                    "kmod": float(kmod[k]), "material": d.material, "antal": int(len({eldel[x] for x in e}))}
             g = grupper.get(d.nr, [d.nr])
             if len(g) > 1:                               # den sammansatta delens krafter: summan av reglarnas
@@ -237,7 +237,7 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
         Y = max(max(delar[d].bredd, delar[d].hojd) for d in ds)
         if len(ds) == 1:
             X, Y = sorted((delar[ds[0]].bredd, delar[ds[0]].hojd))
-        Ls = max(delar[d].L for d in ds)
+        Ls = max(delar[d].langd for d in ds)
         As = X * Y
         kc = float(min(M.kc(np.array(Ls), np.array(X)), M.kc(np.array(Ls), np.array(Y))))
         fc = kmod * M.fc0k / M.gamma_M

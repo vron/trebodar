@@ -1,6 +1,7 @@
 """Linjär 3D-ramanalys: balkelement (Timoshenko, 12 frihetsgrader), dragstänger som bara tar drag (stålbanden),
 stela förskjutningar mellan knutpunkternas noder (huvudnod och följare, med följarens rotationer fria eller låsta),
-fasta upplag och utbredda laster per element. Enheter N och mm.
+bindningar mellan nodernas förskjutningar i en riktning (med straff), fasta upplag och utbredda laster per element.
+Enheter N och mm.
 
 Följarnas förskjutningar uttrycks i huvudnodens (u_f = u_h + θ_h × r), så att excentriciteterna i knutpunkterna
 ingår utan styva element. En följare är en led för böjning: rotationerna vinkelrätt mot följarens del är fria,
@@ -43,6 +44,13 @@ class Modell:
     last_rot: np.ndarray = field(default_factory=lambda: np.zeros(0, bool))
     axel: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
     upplag: np.ndarray = field(default_factory=lambda: np.zeros(0, int))     # fasta noder
+    # bindningar (straff): g_c = Σ vikt · (u_nod · e_c) = 0, med termerna (bindning, nod, vikt), riktningen e_c och
+    # styvheten k_c [N/mm] per bindning; kraften i bindningen är k_c · g_c
+    b_c: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
+    b_nod: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
+    b_vikt: np.ndarray = field(default_factory=lambda: np.zeros(0))
+    b_e: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
+    b_k: np.ndarray = field(default_factory=lambda: np.zeros(0))
 
 
 def _lokala_axlar(dx: np.ndarray, z: np.ndarray) -> np.ndarray:
@@ -170,6 +178,12 @@ class Analys:
         if r_:
             K = K + sp.coo_matrix((np.concatenate(v_), (np.concatenate(r_), np.concatenate(c_))),
                                   shape=(6 * n, 6 * n)).tocsr()
+        # bindningarna
+        self.G = sp.coo_matrix((np.concatenate([m.b_vikt * m.b_e[m.b_c, a] for a in range(3)]),
+                                (np.tile(m.b_c, 3), np.concatenate([6 * m.b_nod + a for a in range(3)]))),
+                               shape=(len(m.b_k), 6 * n)).tocsr()
+        if len(m.b_k):
+            K = K + self.G.T @ sp.diags(m.b_k) @ self.G
         # transformation till de oberoende frihetsgraderna: följarnas förskjutningar ur huvudnodernas
         self.Tr = self._transformation()
         # dragstängerna (i de oberoende frihetsgraderna)
@@ -320,6 +334,11 @@ class Analys:
         """Normalkraften i dragstängerna (drag positivt; noll för borttagna)."""
         d = self.Bf.T @ u
         return np.where(aktiv, self.kt * d, 0.0)
+
+    def bindningskrafter(self, u: np.ndarray) -> np.ndarray:
+        """Kraften i bindningarna: den som verkar på noden med vikten 1, mot riktningen e_c (positiv: noden hålls
+        tillbaka åt −e_c)."""
+        return self.m.b_k * (self.G @ u)
 
     def reaktioner(self, u: np.ndarray, f: np.ndarray, aktiv: np.ndarray) -> np.ndarray:
         """Upplagsreaktionerna (antal upplag, 3): krafterna från upplaget på stommen [N]."""
