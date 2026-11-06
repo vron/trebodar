@@ -1,7 +1,7 @@
 """Lasterna på balkmodellen (natverk.py), som utbredda laster per balkelement:
 
 - egentyngden: delarnas egen tyngd (virket med F-01:s 500 kg/m³), takets skikt per m² takyta (F-01 utan takbalkarna,
-  som är delar i modellen, och med ströläkten) och väggarnas skikt per m² vägg;
+  som är delar i modellen) och väggarnas skikt per m² vägg;
 - snö på takfallen (per m² horisontell yta) och vind på takfallen och väggarna (per m² yta, vinkelrätt mot ytan,
   med invändig vindlast), med formfaktorerna efter SS-EN 1991-1-3 och -1-4 för var och en av huskropparna;
 - ytorna delas i rutor om RUTA × RUTA mm; varje rutas last förs till den närmaste bärande delen i ytan (takbalkar,
@@ -250,8 +250,8 @@ def lastfall(N: Natverk, IN: dict[str, Any], f01: dict[str, Any]) -> tuple[list[
     L = IN["last"]
     tak = takrutor(N)
     vagg = vaggrutor(N)
-    # takets egentyngd: F-01:s skikt utom takbalkarna, med ströläkten
-    kg = sum(s["kg"] for s in f01["tak"] if "Takbalkar" not in s["skikt"]) + sum(s["kg"] for s in L["tak_tillagg"])
+    # takets egentyngd: F-01:s skikt utom takbalkarna
+    kg = sum(s["kg"] for s in f01["tak"] if "Takbalkar" not in s["skikt"])
     g_tak = kg * G_ACC / 1e3                                  # kN/m² takyta
     sk = f01["sno"]["sk"] * f01["sno"]["Ce"] * f01["sno"]["Ct"]
     v = f01["vind"]

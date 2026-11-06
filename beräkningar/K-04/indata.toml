@@ -13,11 +13,8 @@ revision    = "A"
 datum       = "2026-11-06"
 upprattad   = "Viktor Ogeman"
 granskad    = ""
-underlag    = "F-01 rev A, modellen (bärverket), K-01, K-03"
 
 [last]
-# takets skikt utöver F-01:s (kg/m² takyta); takbalkarna räknas med sin egen tyngd i modellen
-tak_tillagg = [{ skikt = "Ströläkt 34×45 c/c 200 (modellen; saknas i F-01, #57)", kg = 3.8 }]
 vagg_ytter  = 0.50     # ytterväggarnas skikt utom reglarna [kN/m² vägg]: panel, läkt, utegips, isolering, gips 2×12,5, fönster
 vagg_inner  = 0.30     # innerväggarnas skikt utom reglarna [kN/m² vägg]: gips 2×12,5 på båda sidor, isolering
 mu_dal      = 1.6      # takfall mot en dal: μ2 jämnt över hela takfallet (som K-03; standarden: från nocken)

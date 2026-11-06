@@ -35,10 +35,10 @@ kg = 3.0
 skikt = "Råspont 20 mm, 500 kg/m³"
 kg = 10.0
 [[tak]]
-skikt = "Luftspalt"
-kg = 0.0
+skikt = "Ströläkt 34×45 c/c 200, 500 kg/m³ (luftspalt 34 mm)"
+kg = 3.8
 [[tak]]
-skikt = "Hård träfiberskiva 3 mm"
+skikt = "Hårdboard (masonit) 3 mm, 950 kg/m³"
 kg = 2.9
 [[tak]]
 skikt = "Takbalkar 45×170 c/c 600, 500 kg/m³"

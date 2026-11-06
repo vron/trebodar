@@ -76,13 +76,11 @@ modell = {"delar": sum(1 for b in N.delar if b.slag not in ("kontakt", "utgar"))
 
 # ------------------------------------------------------------------ lasterna
 Le = np.linalg.norm(m.x[m.bj] - m.x[m.bi], axis=1)
-lastfall = [{"namn": f.namn, "text": f.text, "slag": f.slag,
-             "F": [fmt(v / 1e3, 1) for v in (f.q * Le[:, None]).sum(axis=0)]} for f in fall]
 last = {"g_tak": fmt(LD["g_tak"], 2), "kg_tak": fmt(LD["kg_tak"], 1), "sk": fmt(LD["sk"], 1),
         "mu_dal": fmt(IN["last"]["mu_dal"], 1), "mu_takfot": fmt(IN["last"]["mu_takfot"], 1),
         "qp": fmt(LD["qp"], 2), "h": fmt(LD["h"] / 1000, 1), "vagg_ytter": fmt(IN["last"]["vagg_ytter"], 2),
-        "vagg_inner": fmt(IN["last"]["vagg_inner"], 2), "tillagg": IN["last"]["tak_tillagg"],
-        "rho": fmt(IN["material"]["rho_tra"], 0), "fall": lastfall,
+        "vagg_inner": fmt(IN["last"]["vagg_inner"], 2),
+        "rho": fmt(IN["material"]["rho_tra"], 0),
         "antal_komb": sum(1 for k in komb if k.slag == "STR"), "antal_bruks": sum(1 for k in komb if k.slag != "STR")}
 
 # ------------------------------------------------------------------ lastvägarna: stolparna mot K-05
