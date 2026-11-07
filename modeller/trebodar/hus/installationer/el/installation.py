@@ -20,14 +20,16 @@ from trebodar.hus.invandigt.skikt import LAKT
 from . import kedjor, lakt
 from .grupper import GRUPP, GRUPPER, HUVUDBRYTARE, OVERSPANNINGSSKYDD
 from .bjalklag import mellanbjalklag
-from ..montering import PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
+from shapely.geometry import LineString, Point
+
+from ..montering import KALLARTAK, PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
 from .punkter import Apparat, Dosa, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
-from .rum import (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, teknikrum,
-                  vardagsrum)
+from .rum import (allrum, badrum, gang, gastrum, hall, kallare, kok, kontor, kontor_litet, sovrum, sovrum_litet,
+                  teknikrum, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
 
 MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, badrum, sovrum, kontor, sovrum_litet,
-                                   kontor_litet, gastrum, teknikrum, mellanbjalklag, kedjor)
+                                   kontor_litet, gastrum, teknikrum, kallare, mellanbjalklag, kedjor)
 SLADD_MINST = 50.0                             # pendelns sladd under takkoppen, minst [mm]
 
 
@@ -119,7 +121,36 @@ class Installation:
             if p.id not in anslutna:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
         g_fel, g_anm = self._grupperna()
-        return fel + g_fel, anm + g_anm
+        return fel + g_fel + self._i_bjalklaget(), anm + g_anm
+
+    def _i_bjalklaget(self) -> list[str]:
+        """Rören i mellanbjälklaget som går i varandra (mittlinjerna närmare än radierna, utom där två rör möts i
+        samma punkt) eller genom en annan spots ingjutningshus."""
+        bitar = [(r.id, r.fran, r.till, a, b, r.typ.ytterdiameter / 2) for r in self.ror.values()
+                 for a, b in zip(self.vag(r), self.vag(r)[1:])
+                 if max(a[2], b[2]) > KALLARTAK + 1.0 and min(a[2], b[2]) < PLAN[1] - 1.0]
+        hus = [(p.id, p.lage.punkt, p.typ.ingjutningshus[0] / 2) for p in self.punkter.values()
+               if isinstance(p, Lampa) and p.typ.ingjutningshus]
+        ut: set[str] = set()
+        for i, (ra, fa, ta, a0, a1, rad_a) in enumerate(bitar):
+            for rb, fb, tb, b0, b1, rad_b in bitar[i + 1:]:
+                if ra == rb or (max(a0[0], a1[0]) + 60.0 < min(b0[0], b1[0]) or max(b0[0], b1[0]) + 60.0 < min(a0[0], a1[0])
+                                or max(a0[1], a1[1]) + 60.0 < min(b0[1], b1[1])
+                                or max(b0[1], b1[1]) + 60.0 < min(a0[1], a1[1])):
+                    continue
+                d, q = avstand(a0, a1, b0, b1)
+                gemensam = {fa, ta} & {fb, tb}
+                if d < rad_a + rad_b - 0.5 and not any(math.dist(q[:2], anslutning(self.punkter[g])[:2]) < 150.0
+                                                       for g in gemensam):
+                    ut.add(f"{ra} och {rb} går i varandra i bjälklaget ({d:.0f} mm mellan mittlinjerna)")
+            for pid, c, r in hus:
+                if pid in (fa, ta):
+                    continue
+                d = Point(c[0], c[1]).distance(LineString([a0[:2], a1[:2]]) if math.dist(a0[:2], a1[:2]) > 0.5
+                                               else Point(a0[0], a0[1]))
+                if d < r + rad_a:
+                    ut.add(f"{ra} går genom {pid}:s ingjutningshus ({d:.0f} mm från spotens mitt)")
+        return sorted(ut)
 
     def _grupperna(self) -> tuple[list[str], list[str]]:
         """Grupperna (grupper.py): varje apparat och dosa utom lamporna och centralen i en grupp, gruppens punkter
@@ -262,7 +293,8 @@ def haltagningar() -> list[tuple[Form, Lada]]:
     verktygen och deras lådor, som skärs ur de invändiga skikten (hus.py), så att ljuset kommer ut ur taket."""
     ut = []
     for p in installation().punkter.values():
-        if isinstance(p, Lampa) and p.typ.pendel is None and p.typ.hal_d > 0 and p.typ.djup > 0:
+        if (isinstance(p, Lampa) and p.typ.pendel is None and p.typ.hal_d > 0 and p.typ.djup > 0
+                and p.typ.ingjutningshus is None):
             m, r = p.lage, p.typ.hal_d / 2
             a, b = flytt(m.punkt, m.normal, 1.0), flytt(m.punkt, m.normal, -p.typ.djup)
             lada = (min(a[0], b[0]) - r, min(a[1], b[1]) - r, min(a[2], b[2]) - r,
@@ -276,3 +308,19 @@ def stralar() -> list[tuple[str, Vek, Vek, float]]:
     husets ytor i ./mod kontroll): armaturen, den lysande ytans mitt, ljusets riktning och typens avstånd."""
     return [(p.id, linsen(p), enhet(p.riktning), p.typ.brandavstand) for p in installation().punkter.values()
             if isinstance(p, Lampa) and p.typ.brandavstand > 0]
+
+
+def avstand(a0: Vek, a1: Vek, b0: Vek, b1: Vek) -> tuple[float, Vek]:
+    """Kortaste avståndet mellan två sträckor i rummet och punkten på den första där det är."""
+    u = [a1[i] - a0[i] for i in range(3)]
+    v = [b1[i] - b0[i] for i in range(3)]
+    w = [a0[i] - b0[i] for i in range(3)]
+    a, b, c = sum(x * x for x in u), sum(x * y for x, y in zip(u, v)), sum(y * y for y in v)
+    d, e = sum(x * y for x, y in zip(u, w)), sum(x * y for x, y in zip(v, w))
+    nam = a * c - b * b
+    s = 0.0 if nam < 1e-9 else min(1.0, max(0.0, (b * e - c * d) / nam))
+    t = min(1.0, max(0.0, (b * s + e) / c)) if c > 1e-9 else 0.0
+    s = min(1.0, max(0.0, (b * t - d) / a)) if a > 1e-9 else 0.0
+    p = (a0[0] + s * u[0], a0[1] + s * u[1], a0[2] + s * u[2])
+    q = (b0[0] + t * v[0], b0[1] + t * v[1], b0[2] + t * v[2])
+    return math.dist(p, q), p

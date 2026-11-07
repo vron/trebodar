@@ -126,6 +126,8 @@ def _hinder(plan: int) -> Polygon:
         delar += [Point(a[0], a[1]).buffer(FRITT + r.typ.ytterdiameter / 2) for r in el.ror.values()
                   for a, b in zip(el.vag(r), el.vag(r)[1:])
                   if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < z < max(a[2], b[2])]
+        delar += [Point(p.lage.punkt[0], p.lage.punkt[1]).buffer(FRITT + p.typ.ingjutningshus[2] - p.typ.ingjutningshus[0] / 2)
+                  for p in el.punkter.values() if getattr(p.typ, "ingjutningshus", None)]   # spotarnas ingjutningshus
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < 0.0 and max(a[2], b[2]) > -S.H_BJALKLAG]

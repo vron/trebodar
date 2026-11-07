@@ -253,6 +253,8 @@ def armatur(p: Lampa) -> Montage:
         return _pendel(p)
     if t.huvud is not None:
         return _tubspot(p)
+    if t.panel is not None:
+        return _panelen(p)
     d = _delar_armatur(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
@@ -267,9 +269,29 @@ def armatur(p: Lampa) -> Montage:
     m.lagg(d["LINS"], sys @ spot, f"{p.id}-LINS")
     if "DRIVDON" in d and t.drivdon:
         m.lagg(d["DRIVDON"], sys @ Placering.flytt(drivdonet(p), 0.0, -TAKSKIVOR - t.drivdon[2]), f"{p.id}-DRIVDON")
+    if t.ingjutningshus:
+        dk, h, lgd = t.ingjutningshus
+        krage = 20.0                                # kragen runt hålet under kammaren
+        hus = (cylinder(dk / 2, h - krage, (0.0, 0.0, -h)) | cylinder(t.hal_d / 2 + 3.0, krage, (0.0, 0.0, -krage))
+               | box(0.0, lgd - dk / 2, -GJUTHUS_B / 2, GJUTHUS_B / 2, -h, -krage))
+        m.lagg(Del(f"Ingjutningshus Ø{dk:g} × {h:g} (SG Concrete Box)", hus, ELDOSA), sys, f"{p.id}-HUS")
     return m
 
 
+def _panelen(p: Lampa) -> Montage:
+    """Utanpåliggande panel: ramen under taket och den lysande ytan i undersidan."""
+    t = p.typ
+    assert t.panel is not None
+    lgd, b, h = t.panel
+    sys = _system(p.lage)
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
+    m.lagg(Del(f"{t.namn} med ram", box(-lgd / 2, lgd / 2, -b / 2, b / 2, 0.0, h - 2.0), ARMATUR), sys, f"{p.id}-RAM")
+    ly = t.lysande_d / 2
+    m.lagg(Del(f"{t.namn}, lysande yta", box(-ly, ly, -ly, ly, h - 2.0, h), ARMATURLINS), sys, f"{p.id}-LINS")
+    return m
+
+
+GJUTHUS_B = 111.0                            # ingjutningshusets bredd vid drivdonets del
 UTAN_GEOMETRI = ("central", "brandlarm")     # punkter vars geometri finns i ett annat montage (teknikrummet, brandlarmet)
 
 

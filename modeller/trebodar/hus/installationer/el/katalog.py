@@ -25,6 +25,35 @@ JUNISTAR_EXCLUSIVE = Armaturtyp(
     fotometri_url="https://www.sg-as.com/int/en/file/techfile/1QA9/7021989032014_Junistar%20Exclusive%20InOutdoor"
                   "%20White%20730lm%202700K%20Ra%2098-33026.ldt")
 
+# SG Armaturen Junistar Tube Round White 3000K (902701), källarens trevliga rum (#51): ljuskällan djupt försänkt i en
+# reflektor (UGR < 19), 500 lm, 7,5 W, 36°, Ra > 90, bakkant; Ø94 × 56, håltagning Ø83, lysande yta Ø34
+# (fotometrifilen). Gjuts in i betongtaket i SG:s ingjutningshus Concrete Box (900118, monteringsanvisningen
+# rev. 16.04.2020): kammaren Ø185 och 111 hög, 262,5 lång med drivdonets del, kragen Ø89 för hålet Ø83, för bjälklag
+# minst 150, rörinföringar 16, 20 och 25; står på formen, järnen läggs runt det
+JUNISTAR_TUBE_ROUND = Armaturtyp(
+    "JUNISTAR-TUBE-R", "Junistar Tube Round White 500lm 3000K Ra>90 Trailing edge", "SG Armaturen", "902701",
+    "https://www.sg-as.com/int/en/products/indoor/downlight/recessed/junistar-tube-round/junistar-tube-round-white-3000k",
+    produkt="ARM-JUNISTAR-TUBE",
+    ljusflode=500.0, effekt=7.5, fargtemperatur=3000.0, ra=90.0, stralvinkel=36.0, vridbar=0.0, ip="IP20",
+    dimring="bakkant", ring_d=94.0, hal_d=83.0, djup=56.0, lysande_d=34.0, brandavstand=0.0, drivdon=None,
+    fotometri="sg-armaturen/junistar-tube-round/902701.ldt",
+    fotometri_url="https://www.sg-as.com/int/en/file/techfile/WNMM/7021989027010_Junistar%20Tube%20Round%20White"
+                  "%20500lm%203000K%20Ra90%20Trailing%20edge.ldt",
+    ingjutningshus=(185.0, 111.0, 262.5))
+
+# LEDVANCE PANEL COMPACT 600 V 26W 830 UGR19 (EAN 4099854734465, Ahlsell 7029488), källarens arbetsrum (#51): 3 640 lm,
+# 26 W, 3000 K, Ra > 80, UGR < 19, 595 × 595 × 34 med separat drivdon, utanpåliggande med tillverkarens ram för
+# ytmontage (PANEL 600 SURFACE MOUNT KIT; ramens höjd antagen 75)
+PANEL_600 = Armaturtyp(
+    "PANEL-600", "PANEL COMPACT 600 V 26W 830 U19", "LEDVANCE", "4099854734465",
+    "https://www.ledvance.com/sv-se/shortlink/4099854734465", produkt="ARM-PANEL",
+    ljusflode=3640.0, effekt=26.0, fargtemperatur=3000.0, ra=80.0, stralvinkel=90.0, vridbar=0.0, ip="IP50/IP20",
+    dimring="ingen", ring_d=0.0, hal_d=0.0, djup=0.0, lysande_d=575.0, brandavstand=0.0, drivdon=None,
+    fotometri="ledvance/panel-compact-600/4099854734465.ldt",
+    fotometri_url="https://www.ledvance.com/00_Free_To_Use/asset-13340714_LDT_file_Eulumdat_COMP_600_V_26W_830_U19"
+                  "_3640lm.ldt",
+    symbol="panel", panel=(595.0, 595.0, 75.0))
+
 # SG Armaturen Tube Mini R, infälld dosa med frontplatta och en tub på en stam, vridbar 350° kring stammen och lutbar
 # 90°: databladet för 320696 och fotometrifilen (880 lm ur fördelningen, största ljusstyrka 1 824 cd, lysande yta
 # Ø54). Frontplatta Ø94, håltagning Ø83, 51 mm över takytan, 50 mm till brännbart i ljusets riktning (databladets

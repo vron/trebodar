@@ -121,6 +121,8 @@ def linsen(p: Lampa) -> Vek:
         return (topp[0], topp[1], topp[2] - p.typ.pendel.kalla)
     if p.typ.huvud is not None:
         return flytt(tuben(p)[2], enhet(p.riktning), -p.typ.huvud.indrag)
+    if p.typ.panel is not None:                     # utanpåliggande panel: dess undersida
+        return flytt(p.lage.punkt, p.lage.normal, p.typ.panel[2])
     return flytt(p.lage.punkt, p.lage.normal, -LINS_INDRAG)
 
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from ...montering import Montering, kallarvagg
 from ...teknikrum import GC_MATT, GRUPPCENTRAL, Z_GC_TOPP
-from ..katalog import ANSLUTNING_3FAS, CENTRAL, FXP20
+from ..katalog import ANSLUTNING_3FAS, CENTRAL, FXP16, FXP20
 from ..punkter import Apparat, Dosa, Ror, Rum
 
 RUM = Rum("TK", "Teknikrum", plan=0)
@@ -27,7 +27,14 @@ PUNKTER = [
 
 _X_UT = _TOPP[0] + GC_MATT[0] / 2 - 20.0     # röret ur centralens ovansida i dess östra ände, mot väggen
 _Z = Z_GC_TOPP + 20.0                        # i väggarna strax över centralens överkant, under kanalen FF3-K2
+_Z2 = Z_GC_TOPP - 30.0                       # belysningens rör i väggarna under värmepumpens
+_X_UT2 = _X_UT - 40.0
+_KL3 = 4531.0                                # KL3:s regelfack, till tvättstugans brytare (rum/kallare.py)
 ROR = [
+    Ror("G17-M", FXP16, "GC", "KA-B2",
+        via=((_X_UT2, _TOPP[1] + 40.0, Z_GC_TOPP), (_X_UT2, _TOPP[1] + 40.0, _Z2 + 15.0), (_X_UT2, _TOPP[1] + 75.0, _Z2 + 15.0),
+             (_X_UT2, _TOPP[1] + 75.0, _Z2), (_X_UT2, _V3_EPS, _Z2),
+             (_V19_EPS, _V3_EPS, _Z2), (_V19_EPS, 7400.0, _Z2), (_KL3, 7400.0, _Z2), (_KL3, 6100.0, _Z2))),
     Ror("G16-R1", FXP20, "GC", "TK-D1",
         via=((_X_UT, _TOPP[1] + 40.0, Z_GC_TOPP), (_X_UT, _TOPP[1] + 40.0, _Z), (_X_UT, _V3_EPS, _Z),
              (_V19_EPS, _V3_EPS, _Z), (_V19_EPS, Y_VARMEPUMP, _Z), (_V19_EPS, Y_VARMEPUMP, _VP.punkt[2]))),
