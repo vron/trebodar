@@ -390,4 +390,5 @@ def utdrag() -> dict:
             "tvatthon": {k: list(p) for k, p in tvatthon().items()},
             "diskmaskin": list(ON_AVLOPP),
             "utlopp": {"punkt": list(UTLOPP), "z": gl.langs(gl.inne)[2], "d": GRUND},
-            "fall": FALL, "fall_min": FALL_MIN}
+            "fall": FALL, "fall_min": FALL_MIN, "gods": GODS, "rh0": S.PLATS.hojd * 1000.0,
+            "bottenplattan": S.Z_BOTTENPLATTA, "kallartak": -S.H_BJALKLAG}

@@ -13,6 +13,8 @@ cd verktyg/modellering
                           # ansluter ovanför vattengången, den fria höjden i källaren, hålen i bjälklaget nära rören
                           # och krockarna mot husets delar och de andra installationerna
 ./mod avlopp lista        # ledningarna (ut/avlopp/)
+./mod avlopp ritning      # VS-02: källarens plan med ledningarna och höjderna, stammen och luftningen i sektion
+                          # (kräver STEP-filen: ./mod bygg)
 ```
 
 ## Filerna

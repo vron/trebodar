@@ -272,11 +272,12 @@ def main(argv: list[str] | None = None) -> None:
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
                          "(markdown); ritning: planen med höjderna (D-01)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
-    pv = sub.add_parser("avlopp", help="avloppet (badrummet och köket): kontroll (med krockar mot huset) och lista")
-    pv.add_argument("atgard", choices=("kontroll", "lista"),
+    pv = sub.add_parser("avlopp", help="avloppet: kontroll (med krockar mot huset), lista och ritning")
+    pv.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: fallet, att ledningarna går under bjälklaget och ansluter ovanför vattengången, "
                          "den fria höjden, hålen i bjälklaget nära rören och krockarna mot husets delar (lådorna och "
-                         "stommen är fel) och de andra installationerna; lista: ledningarna och golvbrunnen (markdown)")
+                         "stommen är fel) och de andra installationerna; lista: ledningarna (markdown); ritning: "
+                         "källarens plan med ledningarna och höjderna (VS-02)")
     pv.add_argument("--ut", type=Path, default=UT / "avlopp")
     pb = sub.add_parser("barverk", help="bärverket ur modellen (stommens delar och lastytorna) för K-04:s balkmodell")
     pb.add_argument("--ut", type=Path, default=UT / "barverk.json")
@@ -986,7 +987,17 @@ def main(argv: list[str] | None = None) -> None:
         if kr.armering:
             anm.append("hål i bjälklagen, järnen läggs om runt dem: "
                        + ", ".join(sorted({k.split(" mot ")[0] for k in kr.armering})))
-        if arg.atgard == "kontroll":
+        if arg.atgard == "ritning":
+            from . import avloppsritning
+            from .planritning import snitt
+            step_fil = UT / "trebodar.step"
+            if not step_fil.exists():
+                raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+            kallaren = snitt(ROT / "verktyg" / "modellanalys" / "ma", step_fil, -1000.0, UT / "avlopp-kallare.json")
+            arg.ut.mkdir(parents=True, exist_ok=True)
+            pdf = avloppsritning.ritningar(utdrag, kallaren, _norr(), UT / "avlopp" / "blad", arg.ut)
+            print(f"  {pdf}")
+        elif arg.atgard == "kontroll":
             print(f"  {len(utdrag['ledningar'])} ledningar: {len(fel)} fel, {len(anm)} anmärkningar")
             for f in fel:
                 print(f"    FEL {f}")
