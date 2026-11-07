@@ -1,13 +1,13 @@
 """Avloppet i modellen (Hus/Installationer/Avlopp): ledningarna (ledningar.py) som rör längs sina punkter, badrummets
-golvbrunn med kropp, klämring och sil, källarens golvbrunnar med kropp och sil, stammens rensningslock och vattenlåsen
-under tvättstället, badkaret och diskhon och diskmaskinens i sockeln under öns skåp O2. Avloppet går genom skikten och
-bjälklagen utan håltagning i modellen och ingår inte i modellens krockkontroll; dess egen kontroll
-(./mod avlopp kontroll) prövar det mot husets delar och de andra installationerna."""
+golvbrunn med kropp, klämring och sil, källarens golvbrunnar med kropp och sil, stammens rensning, luftningshuven på
+taket och vattenlåsen under tvättstället, badkaret och diskhon och diskmaskinens i sockeln under öns skåp O2.
+Avloppet går genom skikten och bjälklagen utan håltagning i modellen och ingår inte i modellens krockkontroll; dess
+egen kontroll (./mod avlopp kontroll) prövar det mot husets delar och de andra installationerna."""
 from __future__ import annotations
 
 import math
 
-from modellering import Del, Montage, Placering, cylinder
+from modellering import Del, Montage, Placering, box, cylinder
 
 from trebodar import skelett as S
 from trebodar.byggdelar.ror import ror
@@ -15,16 +15,20 @@ from trebodar.byggdelar.virke import fmt
 from trebodar.hus import badrum as B
 from trebodar.hus.inredning import koksbank as KB
 from trebodar.hus.inredning import koksskap as K
-from trebodar.material import AVLOPPSROR, ROSTFRITT
+from trebodar.hus.invandigt.kallarens_innervaggar import T_KL8 as KL_T
+from trebodar.material import AVLOPPSROR, ROSTFRITT, TAKPLAT
 
+from ..montering import pa_tak
 from .ledningar import (BADKAR_AVLOPP, BADKAR_BOTTEN, BRUNN, BRUNN_KALLARE, BRUNN_SIL, DISKHO, GODS,
-                        GOLVBRUNNAR_KALLARE, ON_AVLOPP, STAM, TVATTSTALL_AVLOPP, Z_STAM, ledningar)
+                        GOLVBRUNNAR_KALLARE, HUV, LUFT_DY, LUFTNING, ON_AVLOPP, RENSNING, STAM, TVATTSTALL_AVLOPP,
+                        ledningar)
 
 VATTENLAS = 32.0                    # tvättställets och badkarets vattenlås (förenklade som raka rör)
 VATTENLAS_KOK = 40.0                # diskhons och diskmaskinens
 Z_DM_VATTENLAS = 80.0               # diskmaskinens vattenlås i sockeln under skåpet O2
 SIL_KALLARE = (190.0, 5.0)          # källarens golvbrunnar: silen i kroppens överkant (diameter, tjocklek)
-LOCK = 20.0                         # stammens rensningslock
+LOCK = 20.0                         # rensningens lock
+RENS_UT = 30.0                      # rensningens lock utanför KL8:s gips
 
 
 def montage() -> Montage:
@@ -64,9 +68,27 @@ def montage() -> Montage:
         m.lagg(Del(f"Golvbrunnens sil Ø{fmt(SIL_KALLARE[0])}",
                    cylinder(SIL_KALLARE[0] / 2, SIL_KALLARE[1], (x, y, S.Z_BOTTENPLATTA - SIL_KALLARE[1])), ROSTFRITT),
                Placering(), f"AV-{kod}-SIL")
-    # stammens rensningslock
-    m.lagg(Del(f"Rensningslock Ø{fmt(STAM[2])}", cylinder(STAM[2] / 2, LOCK, (STAM[0], STAM[1], Z_STAM)), AVLOPPSROR),
-           Placering(), "AV-RENS")
+    # stammens rensning: en stos mot teknikrummet genom KL8:s gips, med lock
+    sx, sy, sd = STAM
+    z, sida = RENSNING
+    lang = KL_T / 2 + RENS_UT
+    stos = Placering.axlar((sx, sy, z), (1.0, 0.0, 0.0), (0.0, sida, 0.0))
+    m.lagg(Del(f"Rensning Ø{fmt(sd)}", ror((0.0, 0.0, 0.0), (0.0, 0.0, lang), sd, GODS[sd]), AVLOPPSROR), stos,
+           "AV-RENS")
+    m.lagg(Del(f"Rensningens lock Ø{fmt(sd)}", cylinder(sd / 2, LOCK, (0.0, 0.0, lang)), AVLOPPSROR), stos,
+           "AV-RENS-LOCK")
+    # luftningshuven av plåt: röret lodrätt från takets yta, huven överst och en plåt runt röret i takets plan
+    mt = pa_tak(sx, sy + LUFT_DY)
+    upp = Placering.axlar(mt.punkt, (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+    r = LUFTNING[1] / 2 + 3.0
+    m.lagg(Del(f"Luftningshuv, rör Ø{fmt(2 * r)}", cylinder(r, HUV[1] - 50.0, (0.0, 0.0, -40.0))
+               - cylinder(r - 1.0, HUV[1], (0.0, 0.0, -50.0)), TAKPLAT), upp, "AV-HUV-ROR")
+    m.lagg(Del(f"Luftningshuv Ø{fmt(HUV[0])}", cylinder(HUV[0] / 2, 50.0, (0.0, 0.0, HUV[1] - 60.0))
+               - cylinder(HUV[0] / 2 - 1.0, 50.0, (0.0, 0.0, HUV[1] - 61.0)), TAKPLAT), upp, "AV-HUV")
+    kant = HUV[0] / 2 + 80.0
+    m.lagg(Del("Luftningshuv, plåt i takets plan", box(-kant, kant, -kant, kant, 0.0, 2.0)
+               - cylinder(r, 10.0, (0.0, 0.0, -5.0)),
+               TAKPLAT), Placering.axlar(mt.punkt, (0.0, 1.0, 0.0), mt.normal), "AV-HUV-PLAT")
     # köket: diskhons vattenlås från hons botten ned till golvet bakom lådorna, diskmaskinens i sockeln under O2
     for kod, (xp, yp), z_topp in (("DB", DISKHO, K.Z_TOPP - KB.DISKHO[2]), ("DM", ON_AVLOPP, Z_DM_VATTENLAS)):
         las = ror((xp, yp, 0.0), (xp, yp, z_topp), VATTENLAS_KOK, GODS[VATTENLAS_KOK])

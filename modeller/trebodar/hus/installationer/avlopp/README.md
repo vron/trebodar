@@ -20,7 +20,7 @@ cd verktyg/modellering
 | Fil | Innehåll |
 |---|---|
 | [`ledningar.py`](ledningar.py) | Avloppspunkterna, ledningarna (rörets mitt längs vägen, dimension, vilken ledning de ansluter till), grundledningen, fallet, kontrollen och utdraget |
-| [`avlopp.py`](avlopp.py) | Geometrin under `Hus/Installationer/Avlopp`: rören, golvbrunnarna (kropp, sil och i badrummet klämring), stammens rensningslock och vattenlåsen |
+| [`avlopp.py`](avlopp.py) | Geometrin under `Hus/Installationer/Avlopp`: rören, golvbrunnarna (kropp, sil och i badrummet klämring), stammens rensning, luftningshuven och vattenlåsen |
 
 ## Badrummet
 
@@ -47,8 +47,9 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 
 ## Stammen och grundledningen
 
-- **Stammen** Ø110 står i källarväggen KL8 (AV7), från rensningslocket i toppen (`Z_STAM`) ned genom bottenplattan,
-  och går med en böj och en kort sträcka söderut till grundledningen.
+- **Stammen** Ø110 står i källarväggen KL8 (AV7) under badrummets vägg L11, från toppen (`Z_STAM`) ned genom
+  bottenplattan, och går med en böj och en kort sträcka söderut till grundledningen. Rensningen sitter `RENSNING` över
+  källargolvet, med locket genom KL8:s gips mot teknikrummet.
 - **Grundledningen** Ø110 (AV8) under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i
   teknikrummet, söder om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under
   källarväggen V9 (`UTLOPP`). Direkt utanför väggen faller den brant under dräneringen runt grunden (`UTLOPP_FALL`) och
@@ -56,6 +57,16 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 - Överkanten ligger `UNDER_CELLPLAST` under bottenplattans cellplast där den börjar. Grenarna går vinkelrätt mot den,
   de nära varandra något förskjutna (minst `GREN_AVSTAND` isär), och ansluter med vattengången `ANSLUTNING_OVER` över
   dess.
+
+## Luftningen
+
+Luftningen går rakt upp från stammens topp, dold i väggarna: i KL8, genom mellanbjälklaget och upp i badrummets vägg
+L11 (Ø50, LU1, eftersom de lätta väggarnas stomme 70 mm inte rymmer Ø75), och från innertakets installationsskikt en
+dimension större (Ø75, LU2, mot frost), isolerad genom takets isolering, ut genom taket till en luftningshuv av plåt
+(`HUV`). Den står `LUFT_DY` från stammens mitt (excentrisk övergång), mellan takets ströläkt och fri från L11:s regel.
+Hålet i mellanbjälklaget ligger 0,44 m från röret P4, inom dess genomstansningszon, som golvbrunnens; K-05 ska pröva
+båda. `./mod avlopp kontroll` prövar luftningens väg med installationernas genomföringar (regelfacket, takbalkarna och
+isoleringen); syll och hammarband urtas.
 
 ## Källaren
 

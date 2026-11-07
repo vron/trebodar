@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import math
+import re
 import sys
 import time
 from pathlib import Path
@@ -927,7 +928,6 @@ def main(argv: list[str] | None = None) -> None:
             print(f"  {pdf}")
     elif arg.kommando == "dranering":
         import json
-        import re
         from . import draneringsritning, installationer
         from .planritning import snitt
         regler = importlib.import_module("trebodar.kontrollregler")
@@ -976,8 +976,13 @@ def main(argv: list[str] | None = None) -> None:
         fel, anm = av.kontroll()
         kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Avlopp")
         # samlingsledningen ansluter till stammen (Onshape-modellens, VVS); järnen läggs om runt hålen i bjälklaget
-        fel += [f"krock med {k}" for k in kr.installationer + kr.stomme if "/VVS/Avlopp" not in k]
+        # luftningen går lodrätt genom väggens syll och hammarband (urtas); allt annat i stommen är fel
+        urtag = [k for k in kr.stomme if k.startswith("LU") and re.search(r"-[SH]\d+ \(", k)]
+        fel += [f"krock med {k}" for k in kr.installationer + kr.stomme if k not in urtag]
         fel += [f"krock med {k}" for k in kr.inredning if "-LADA" in k]        # vattenlåsen går fria från lådorna
+        if urtag:
+            anm.append("syll och hammarband urtas för luftningen: " + ", ".join(sorted(
+                {k.split(" mot ")[1].split("/")[-1].split(" ")[0] for k in urtag})))
         if kr.armering:
             anm.append("hål i bjälklagen, järnen läggs om runt dem: "
                        + ", ".join(sorted({k.split(" mot ")[0] for k in kr.armering})))

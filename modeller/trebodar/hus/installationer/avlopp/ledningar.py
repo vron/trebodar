@@ -18,8 +18,13 @@ källaren längs källarväggen V14 och bottenplattan, och med en böj till en g
 i ön har sitt vattenlås i sockeln under skåpet O2 (ON_AVLOPP); hur det ansluter till diskhons avlopp är en öppen fråga
 i #49 (ingjutet med självfall ryms inte i bjälklaget).
 
-Stammen Ø110 står i källarväggen KL8 (kallarens_innervaggar.AVLOPPSSTAM), från toppen Z_STAM med ett rensningslock
-ned genom bottenplattan, och går med en böj och en kort sträcka till grundledningen.
+Stammen Ø110 står i källarväggen KL8 (kallarens_innervaggar.AVLOPPSSTAM) under badrummets vägg L11, från toppen
+Z_STAM ned genom bottenplattan, med rensningen RENSNING över källargolvet mot teknikrummet, och går med en böj och en
+kort sträcka till grundledningen.
+
+Luftningen (avluftningen) går rakt upp från stammens topp, dold i väggarna: i KL8, genom mellanbjälklaget och upp i
+L11:s regelfack (Ø50, LU1; väggens stomme 70 mm rymmer inte Ø75), och från innertakets installationsskikt en dimension
+större (Ø75, LU2, mot frost) isolerad genom takets isolering och ut genom taket till luftningshuven (HUV).
 
 Källaren: fem golvbrunnar (GOLVBRUNNAR_KALLARE, efter användarens skiss) med kroppen ingjuten i bottenplattans
 betong och lodrätt utlopp Ø110; tvättmaskinen töms i golvbrunnen GB1 bredvid den. Tvätthona (tappvattnets
@@ -54,6 +59,8 @@ from trebodar.hus.invandigt.kallarens_innervaggar import B as KL_VIRKE
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as KL
 
 from ..dranering.ledningar import UTLOPP_RIKTNING
+from ..genomforingar import Stycke, genomforingar
+from ..montering import angbromsen, pa_tak
 from ..vatten.rum import kallare as vattnet_i_kallaren
 
 Vek = tuple[float, float, float]
@@ -65,7 +72,14 @@ FRI_HOJD = 1900.0                           # minsta fria höjd under rören i k
 GENOMSTANSNING = 720.0                      # rörens genomstansningszon i bjälklaget, 6d (anmärkning för hål inom den)
 GODS = {110.0: 3.4, 75.0: 3.0, 50.0: 1.8, 40.0: 1.8, 32.0: 1.8}
 STAM = AVLOPPSSTAM                          # stammens läge och Ø (i KL8)
-Z_STAM = -190.0                             # stammens topp med rensningslocket, under bjälklaget
+Z_STAM = -200.0                             # stammens topp, där luftningen börjar (under KL8:s hammarband)
+RENSNING = (S.Z_BOTTENPLATTA + 500.0, 1.0)  # stammens rensning: höjden och riktningen i y (mot teknikrummet)
+LUFTNING = (50.0, 75.0)                     # luftningens Ø i väggen och genom taket
+LUFT_ISOLERING = 30.0                       # luftningens isolering genom takets isolering
+HUV = (160.0, 350.0)                        # luftningshuven av plåt på taket: huvens Ø och höjd över taket
+# luftningen ligger så långt från stammens mitt i y (excentrisk övergång i stammens topp), mitt emellan takets
+# ströläkt 1NV-SL45 och -SL46, inom KL8:s stomme och fri från L11:s regel
+LUFT_DY = 25.0
 X_SAMLING = B.X_L9 - B.WC_AVLOPP            # samlingsledningen norrut i WC:ns linje
 Y_KL8 = KL["KL8"].c - KL["KL8"].h - GIPS_T - 10.0 - 55.0      # österut längs KL8, 10 mm från dess gips
 # samlingsledningen går under KL1:s hammarband (FRI under det där den går genom väggen) och faller därifrån
@@ -271,7 +285,13 @@ def ledningar() -> dict[str, Ledning]:
         gren, z_bojen = _gren(x, y, anslutning(x, y, s_min, gl.inne - GREN_AVSTAND), True)
         ut[i_lodratt] = Ledning(i_lodratt, f"{namn}, rakt ned", 50.0, ((x, y, z_topp), (x, y, z_bojen)), i_gren)
         ut[i_gren] = Ledning(i_gren, f"{namn}, grenen under bottenplattan", GRUND, gren, "AV8")
-    return dict(sorted(ut.items(), key=lambda kv: int(kv[0][2:])))
+    # luftningen: rakt upp från stammens topp i L11 och från ångbromsen en dimension större ut genom taket
+    lx, ly = sx, sy + LUFT_DY
+    z_okning = angbromsen(lx, ly) - 10.0
+    z_tak = pa_tak(lx, ly).punkt[2]
+    ut["LU1"] = Ledning("LU1", "Luftningen i KL8 och L11", LUFTNING[0], ((lx, ly, Z_STAM), (lx, ly, z_okning)), "AV7")
+    ut["LU2"] = Ledning("LU2", "Luftningen genom taket", LUFTNING[1], ((lx, ly, z_okning), (lx, ly, z_tak)), "LU1")
+    return dict(sorted(ut.items(), key=lambda kv: (kv[0][:2] != "AV", int(kv[0][2:]))))
 
 
 def golvbrunnar() -> dict[str, tuple[float, float, float, float]]:
@@ -284,16 +304,24 @@ def golvbrunnar() -> dict[str, tuple[float, float, float, float]]:
 def kontroll() -> tuple[list[str], list[str]]:
     """(fel, anmärkningar): fallet på de vågräta styckena, att de ligger under mellanbjälklaget (i källarens tak) och
     under bottenplattans cellplast (grundledningarna), att de ansluter ovanför vattengången i ledningen de går till,
-    den fria höjden under dem i källaren och hålen i mellanbjälklaget inom rörens genomstansningszon."""
+    den fria höjden under dem i källaren, hålen i mellanbjälklaget inom rörens genomstansningszon och luftningens väg
+    genom väggen, innertaket och taket (genomforingar: regelfacket, takbalkarna och isoleringen)."""
     fel: list[str] = []
     anm: list[str] = []
     led = ledningar()
     for ld in led.values():
-        x0, y0, z0 = ld.vag[0]
-        if z0 > -S.H_BJALKLAG:                                      # börjar i eller på bjälklaget: hål genom det
-            pel, avst = min(((p, math.hypot(x0 - px, y0 - py)) for p, (px, py) in PELARE.items()), key=lambda q: q[1])
-            if avst < GENOMSTANSNING:
-                anm.append(f"{ld.id}: hålet i bjälklaget {avst:.0f} mm från röret {pel}, inom genomstansningszonen")
+        for (x0, y0, za), (_, _, zb) in ((a, b) for a, b in zip(ld.vag, ld.vag[1:]) if math.dist(a[:2], b[:2]) < 1.0):
+            if min(za, zb) < 0.0 and max(za, zb) > -S.H_BJALKLAG:   # lodrätt genom mellanbjälklaget: hål
+                pel, avst = min(((p, math.hypot(x0 - px, y0 - py)) for p, (px, py) in PELARE.items()),
+                                key=lambda q: q[1])
+                if avst < GENOMSTANSNING:
+                    anm.append(f"{ld.id}: hålet i bjälklaget {avst:.0f} mm från röret {pel}, inom "
+                               "genomstansningszonen")
+    _, luftfel = genomforingar([Stycke(k, a, b, d, d, True, LUFT_ISOLERING if k == "LU2" else 0.0, matt=f"Ø{d:g}")
+                                for k, d in (("LU1", LUFTNING[0]), ("LU2", LUFTNING[1]))
+                                for a, b in zip(led[k].vag, led[k].vag[1:])])
+    fel += luftfel
+    for ld in led.values():
         lagst = math.inf
         for a, b in zip(ld.vag, ld.vag[1:]):
             lg = math.hypot(b[0] - a[0], b[1] - a[1])
@@ -350,12 +378,15 @@ def _narmast(led: Ledning, x: float, y: float) -> float:
 
 def utdrag() -> dict:
     """För listan och ritningen: ledningarna med punkter, dimension och vattengång, golvbrunnarna, stammen, tvätthonas
-    anslutningar, diskmaskinens vattenlås och utloppet."""
+    anslutningar, diskmaskinens vattenlås, luftningen och utloppet."""
     gl = grundledningen()
+    led = ledningar()
     return {"ledningar": {k: {"namn": v.namn, "d": v.d, "vag": [list(p) for p in v.vag], "till": v.till,
                               "vattengang": vattengang(v)} for k, v in ledningar().items()},
             "golvbrunnar": {k: {"punkt": [x, y], "d": d, "golv": z} for k, (x, y, d, z) in golvbrunnar().items()},
-            "stam": {"punkt": list(STAM[:2]), "d": STAM[2], "topp": Z_STAM},
+            "stam": {"punkt": list(STAM[:2]), "d": STAM[2], "topp": Z_STAM, "rensning": RENSNING[0]},
+            "luftning": {"punkt": list(led["LU1"].vag[0][:2]), "d": list(LUFTNING), "okning": led["LU2"].vag[0][2],
+                         "tak": led["LU2"].vag[-1][2], "huv": list(HUV)},
             "tvatthon": {k: list(p) for k, p in tvatthon().items()},
             "diskmaskin": list(ON_AVLOPP),
             "utlopp": {"punkt": list(UTLOPP), "z": gl.langs(gl.inne)[2], "d": GRUND},
