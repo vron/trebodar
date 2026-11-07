@@ -19,7 +19,7 @@ from trebodar.hus.invandigt.skikt import LAKT
 
 from . import lakt
 from .bjalklag import mellanbjalklag
-from ..montering import PLAN, TAKSKIVOR, Vek, flytt, langs_taket
+from ..montering import PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
 from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
 from .rum import (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
@@ -68,17 +68,24 @@ class Installation:
                     fel.append(f"{p.id}: ljuset ska vridas {vinkel:.0f}°, armaturen tillåter {p.typ.vridbar:.0f}°")
                 if p.lage.yta == "tak" and p.lage.ref != "MB":
                     plats = TAKSKIVOR + LAKT
-                    if p.typ.djup + p.typ.brandavstand > plats + 1e-6:
-                        fel.append(f"{p.id}: {p.typ.djup:g} mm djup + {p.typ.brandavstand:g} mm till brännbart, "
-                                   f"innertaket har {plats:g} mm")
                     x, y, _ = p.lage.punkt
+                    if p.typ.djup > plats + 1e-6:
+                        fel.append(f"{p.id}: {p.typ.djup:g} mm djup, innertaket har {plats:g} mm")
+                    if not p.typ.isoleras and p.typ.min_djup > plats + 1e-6:
+                        fel.append(f"{p.id}: får inte täckas med isolering och behöver {p.typ.min_djup:g} mm fritt "
+                                   f"från takytan, innertaket har {plats:g} mm")
+                    if not p.typ.isoleras and p.typ.min_volym > 0:
+                        f = lakt.facket(p.lage.ref, x, y)
+                        v = lakt.volym(f) if f else 0.0
+                        if v < p.typ.min_volym:
+                            fel.append(f"{p.id}: får inte täckas med isolering och behöver {p.typ.min_volym:g} l luft "
+                                       f"runt sig, läktens fack har {v:.1f} l")
                     if not lakt.i_gipsen(p.lage.ref, x, y, p.typ.hal_d / 2):
                         fel.append(f"{p.id}: hålet Ø{p.typ.hal_d:g} ligger inte i innertakets gips (ett takfönsters "
                                    f"öppning eller innertakets kant)")
-                    rad = p.typ.hal_d / 2 + p.typ.brandavstand
+                    rad = p.typ.hal_d / 2
                     for q in lakt.krockar(p.lage.ref, x, y, lakt.i_planet(rad), rad):
-                        fel.append(f"{p.id}: hålet Ø{p.typ.hal_d:g} (med {p.typ.brandavstand:g} mm till brännbart) "
-                                   f"tar i läkten x {q[0]:.0f}–{q[1]:.0f}")
+                        fel.append(f"{p.id}: hålet Ø{p.typ.hal_d:g} tar i läkten x {q[0]:.0f}–{q[1]:.0f}")
                     if p.typ.drivdon:
                         lg, br, _ = p.typ.drivdon
                         for q in lakt.krockar(p.lage.ref, x, y + drivdonet(p), lakt.i_planet(br / 2), lg / 2):
@@ -209,3 +216,10 @@ def haltagningar() -> list[tuple[Form, Lada]]:
                     max(a[0], b[0]) + r, max(a[1], b[1]) + r, max(a[2], b[2]) + r)
             ut.append((stang(a, b, p.typ.hal_d), lada))
     return ut
+
+
+def stralar() -> list[tuple[str, Vek, Vek, float]]:
+    """Armaturernas ljus, för avståndet till brännbart material i ljusets riktning (kontrollregler.STRALAR, prövas mot
+    husets ytor i ./mod kontroll): armaturen, den lysande ytans mitt, ljusets riktning och typens avstånd."""
+    return [(p.id, linsen(p), enhet(p.riktning), p.typ.brandavstand) for p in installation().punkter.values()
+            if isinstance(p, Lampa) and p.typ.brandavstand > 0]

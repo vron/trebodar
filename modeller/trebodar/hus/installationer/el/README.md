@@ -70,11 +70,12 @@ ROR = [Ror("VR-R01", FXP16, "VR-B1", "VR-L01", via=vid_tak("1D", U_B, sida=1)), 
 
 Varje armaturtyp har tillverkarens data ur databladet (ljusflöde, effekt, färgtemperatur, färgåtergivning,
 strålvinkel, vridbarhet, IP, dimring), måtten (frontring, håltagning, inbyggnadsdjup, lysande yta, separat
-drivdon, avstånd till brännbart) och tillverkarens fotometrifil (EULUMDAT), som `./mod el hamta` hämtar till
-`lokalt/el/` (filerna är tillverkarens och versionshanteras inte). Renderingen läser fotometrifilen
-(`verktyg/modellering/modellering/fotometri.py`: ljusflödet och strålvinkeln kontrolleras, IES till Blender) och
-ger varje armatur ett ljus med den uppmätta ljusfördelningen, flödet och färgtemperaturen; linsen lyser för kameran.
-Utan fotometrifilen blir ljuset en stråle med databladets strålvinkel.
+drivdon, avstånd till brännbart material i ljusets riktning), monteringsanvisningens krav (om den infällda armaturen
+får täckas med isolering, annars den fria höjden ovanför takytan och luften runt den) och tillverkarens fotometrifil
+(EULUMDAT), som `./mod el hamta` hämtar till `lokalt/el/` (filerna är tillverkarens och versionshanteras inte).
+Renderingen läser fotometrifilen (`verktyg/modellering/modellering/fotometri.py`: ljusflödet och strålvinkeln
+kontrolleras, IES till Blender) och ger varje armatur ett ljus med den uppmätta ljusfördelningen, flödet och
+färgtemperaturen; linsen lyser för kameran. Utan fotometrifilen blir ljuset en stråle med databladets strålvinkel.
 
 Armaturerna är infällda (ljuset ut genom takets hål, som Junistar Exclusive), har ett huvud under taket
 (`Tubhuvud`: en tub på en stam från frontplattan, som Tube Mini R, vridbar kring stammen och lutbar i leden) eller är
@@ -106,9 +107,13 @@ mässing längs väggens normal, med armaturen under armens ände (badrummets gl
 - referenserna: tändgrupper, styrda tändgrupper och rörens ändar finns, en brytare styr högst sina kanaler;
 - styrningen: varje tändgrupp styrs av minst en brytare eller dimmer, och har lampor;
 - armaturerna: vinkeln som ljuset ska vridas mot armaturens axel ryms i armaturens vridbarhet; inbyggnadsdjupet
-  och avståndet till brännbart ryms i innertaket (gips och installationsskikt); hålet och drivdonet ligger inte på
-  installationsskiktets läkt; pendlarna når ned (sladden minst 50 mm under takkoppen);
+  ryms i innertaket (gips och installationsskikt), och en armatur som inte får täckas med isolering har sin fria
+  höjd och sin luft i läktens fack; hålet och drivdonet ligger inte på installationsskiktets läkt; pendlarna når ned
+  (sladden minst 50 mm under takkoppen);
 - rören: summan av böjarna mellan dosorna (mer än 270° är svårt att dra) och att varje punkt har ett rör.
+
+Avståndet till brännbart material i ljusets riktning prövas mot husets ytor i `./mod kontroll` (installationernas
+vägar, `kontrollregler.STRALAR`): inom det får ingen yta ligga framför den lysande ytan.
 
 Elinstallationens delar ingår inte i modellens krockkontroll (`kontrollregler.UTOM_KONTROLL`): rören och dosorna går
 genom skikten utan att andra delar får hål. De infällda armaturerna har sin håltagning (typens hål, så djupt som

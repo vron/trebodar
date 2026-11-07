@@ -87,7 +87,8 @@ class Armaturtyp:
     hal_d: float                # håltagningen [mm]
     djup: float                 # inbyggnadsdjupet ovanför takytan [mm]
     lysande_d: float            # den lysande ytans diameter [mm]
-    brandavstand: float         # minsta avstånd till brännbart material [mm]
+    brandavstand: float         # minsta avstånd från den lysande ytan till brännbart material i ljusets riktning
+                                # (databladets "distance to flammable materials", märkningen enligt EN 60598-1) [mm]
     drivdon: tuple[float, float, float] | None     # separat drivdon (längd, bredd, höjd) [mm]
     fotometri: str              # fotometrifilen (EULUMDAT) under lokalt/el/ (versionshanteras inte)
     fotometri_url: str          # var den hämtas (`./mod el hamta`)
@@ -95,6 +96,9 @@ class Armaturtyp:
     huvud: Tubhuvud | None = None               # huvudet under taket; None: infälld
     pendel: Pendel | None = None                # pendelarmatur
     produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
+    isoleras: bool = False      # infälld: får täckas med värmeisolering (monteringsanvisningen; SG: IsoSafe)
+    min_djup: float = 0.0       # infälld som inte får täckas: minsta fria höjd från takytan ovanför den [mm]
+    min_volym: float = 0.0      # infälld som inte får täckas: minsta luftvolym i hålrummet runt den [l]
 
 
 @dataclass(frozen=True)

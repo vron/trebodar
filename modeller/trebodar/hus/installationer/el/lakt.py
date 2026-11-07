@@ -1,6 +1,6 @@
 """Innertakets läkt (installationsskiktet, c/c 400 längs takfallet) och gips ur innertakets geometri: armaturernas hål
-och drivdon ska ligga mellan läkten (med armaturens avstånd till brännbart material) och hålen i gipsen, inte i
-takfönstrens öppningar eller utanför innertakets kanter.
+och drivdon ska ligga mellan läkten och hålen i gipsen, inte i takfönstrens öppningar eller utanför innertakets
+kanter, och armaturer som inte får täckas med isolering behöver luft runt sig i läktens fack.
 """
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from functools import cache
 
 from trebodar import skelett as S
 from trebodar.hus.invandigt import innertak
+from trebodar.hus.invandigt.skikt import LAKT
 
 Ruta = tuple[float, float, float, float]       # (x0, x1, y0, y1) i planet
 
@@ -46,6 +47,22 @@ def mellan_lakten(kod: str, x: float, y: float) -> float:
     kanter = sorted(r[:2] for r in lakt(kod) if r[2] <= y <= r[3])
     mellan = [(a[1] + b[0]) / 2 for a, b in zip(kanter, kanter[1:])]
     return min(mellan, key=lambda m: abs(m - x)) if mellan else x
+
+
+def facket(kod: str, x: float, y: float) -> Ruta | None:
+    """Installationsskiktets fack runt punkten (x, y) under takfallet: mellan läkten på var sida, så långt längs y som
+    båda går; None om punkten inte ligger mellan två läkt."""
+    pa = [r for r in lakt(kod) if r[2] <= y <= r[3]]
+    vanster = max((r for r in pa if r[1] <= x), key=lambda r: r[1], default=None)
+    hoger = min((r for r in pa if r[0] >= x), key=lambda r: r[0], default=None)
+    if vanster is None or hoger is None:
+        return None
+    return (vanster[1], hoger[0], max(vanster[2], hoger[2]), min(vanster[3], hoger[3]))
+
+
+def volym(f: Ruta) -> float:
+    """Luften i ett fack: bredden längs takfallet, längden och installationsskiktets höjd [l]."""
+    return (f[1] - f[0]) / math.cos(math.radians(S.TAKVINKEL)) * (f[3] - f[2]) * LAKT / 1e6
 
 
 def krockar(kod: str, x: float, y: float, halvbredd_x: float, halvbredd_y: float) -> list[Ruta]:

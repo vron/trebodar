@@ -10,6 +10,10 @@ delas i kuber om STEG mm. Från punkternas mitt i varje kub mäts det fria mått
 diagonalerna (strålar åt båda hållen, summan per riktning). Är det större än FRITT i alla riktningar står ledningen
 fritt i ett rum, inte i ett skikt, ett hålrum eller en betongdel. I en UTANPA-zon är det tillåtet om ledningen går högst så långt från en yta
 (utanpåliggande, en anmärkning); annars är det fel. Punkter i FRIA_VOLYMER är fel.
+
+Armaturernas ljus (STRALAR: armaturen, den lysande ytans mitt, ljusets riktning och avståndet) prövas mot samma nät:
+inom armaturens avstånd till brännbart material i ljusets riktning får ingen av husets ytor ligga (armaturens egna
+delar räknas inte).
 """
 from __future__ import annotations
 
@@ -45,6 +49,7 @@ class Vagar:
     anm: list[str] = field(default_factory=list)            # utanpåliggande, per del
     delar: int = 0
     kuber: int = 0
+    stralar: int = 0                                        # armaturernas ljus som prövats
     sekunder: float = 0.0
 
 
@@ -53,11 +58,13 @@ class Huset:
 
     def __init__(self, rot: Montage, karna: Karna, ledningar: set[str]) -> None:
         V, F, self.namn, n = [], [], [], 0
+        self.vag: list[str] = []
         slut = [0]
         for vag, d, p in rot.platta():
             rel = vag.split("/", 1)[1]
             if d.material.namn in ledningar or rel.startswith(UTOM):
                 continue
+            self.vag.append(rel)
             nat = karna.nat(d.form)
             V.append(nat.V.astype(np.float64) @ np.array(p.R).T + np.array(p.t))
             F.append(nat.F.astype(np.int64) + n)
@@ -93,6 +100,21 @@ class Huset:
             else:
                 summa += STRALE
         return summa
+
+    def forsta(self, c: np.ndarray, r: np.ndarray, langd: float, utom: str) -> tuple[float, str] | None:
+        """Den första ytan längs strålen från c i riktningen r, högst langd bort, som (avståndet, delen); delar i
+        delträdet utom (armaturens egna) räknas inte."""
+        s = 0.0
+        while s < langd:
+            if not self.sok.IntersectWithLine((c + s * r).tolist(), (c + langd * r).tolist(), 0.001, self._t,
+                                              self._x, self._pc, self._sub, self._cell, self._gc):
+                return None
+            d = s + self._t.get() * (langd - s)
+            i = int(np.searchsorted(self.slut, self._cell.get(), side="right")) - 1
+            if utom not in self.vag[i].split("/"):
+                return d, self.namn[i]
+            s = d + 0.1
+        return None
 
     def fritt(self, c: np.ndarray) -> bool:
         """Om det fria måttet genom punkten är större än FRITT i alla RIKTNINGAR: axlarna först, diagonalerna bara om
@@ -163,5 +185,12 @@ def kontrollera(rot: Montage, karna: Karna, regler: ModuleType, trad: str | None
                           f"{c[2]:.0f}) {avst:.0f} mm från närmaste yta ({yta_})")
         if utanpa_max > 0.0:
             ut.anm.append(f"{namn}: utanpåliggande, högst {utanpa_max:.0f} mm från ytan")
+    if trad is None:
+        for namn, c, r, langd in getattr(regler, "STRALAR", list)():
+            ut.stralar += 1
+            traff = huset.forsta(np.array(c, float), np.array(r, float), langd, namn)
+            if traff is not None:
+                ut.fel.append(f"{namn}: {traff[1]} {traff[0]:.0f} mm från den lysande ytan i ljusets riktning, "
+                              f"armaturen ska ha {langd:g} mm till brännbart material")
     ut.sekunder = time.perf_counter() - t0
     return ut

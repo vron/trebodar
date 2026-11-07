@@ -6,6 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from trebodar import skelett as S
+from trebodar.hus.installationer.el.installation import stralar
 from trebodar.hus.installationer.fria_volymer import fria_volymer
 
 # moduler (prefix) och vad de inte får importera ur paketet: beroendena går från skelettet och materialen via
@@ -79,6 +80,9 @@ VAGAR_UTOM = {
 UTANPA = (("källaren", -S.H_BJALKLAG, 300.0),)     # på konsoler eller i pendlar under taket
 SYNLIGA: dict[str, str] = {}                         # delträd: motivering
 FRIA_VOLYMER = fria_volymer
+# armaturernas avstånd till brännbart material i ljusets riktning (vagar.py): inom det får ingen av husets ytor ligga
+# framför den lysande ytan
+STRALAR = stralar
 
 # ytskiktens språng och springor (verktyg/modellering/modellering/ytskikt.py, ärende #36): där två skivor av
 # YTSKIKT möts i samma plan ska ytan vara jämn, utan språng eller öppna springor (kaminkåpans omålade kalciumsilikat

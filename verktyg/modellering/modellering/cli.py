@@ -287,7 +287,8 @@ def main(argv: list[str] | None = None) -> None:
                          "utdrag: dessutom produkternas instanser i modellen (json) till IN-01")
     pi.add_argument("--ut", type=Path, default=UT / "inkop.json")
     pv = sub.add_parser("vagar", help="installationernas vägar: rören, kablarna och kanalerna dolda i skikten, inte "
-                                      "fritt i rummen eller i fickdörrarnas fickor (kontrollregler, ingår i kontroll)")
+                                      "fritt i rummen eller i fickdörrarnas fickor, och armaturernas avstånd till "
+                                      "brännbart i ljusets riktning (kontrollregler, ingår i kontroll)")
     pv.add_argument("--trad", default=None, help="bara delträdet, t.ex. Hus/Installationer/El")
     sub.add_parser("ytor", help="ytskiktens språng och springor: gipsen och kaklet jämna där skivorna möts i samma plan "
                                 "(kontrollregler, ingår i kontroll)")
@@ -1067,8 +1068,8 @@ def main(argv: list[str] | None = None) -> None:
         if hasattr(regler, "LEDNINGAR"):
             from . import vagar
             vg = vagar.kontrollera(rot, karna, regler)
-            print(f"  installationernas vägar: {vg.delar} ledningsdelar, {len(vg.fel)} fel, {len(vg.anm)} "
-                  f"utanpåliggande ({vg.sekunder:.1f} s; alla: ./mod vagar)")
+            print(f"  installationernas vägar: {vg.delar} ledningsdelar och {vg.stralar} armaturers ljus, "
+                  f"{len(vg.fel)} fel, {len(vg.anm)} utanpåliggande ({vg.sekunder:.1f} s; alla: ./mod vagar)")
             for f in vg.fel:
                 print(f"    FEL {f}")
         if hasattr(regler, "YTSKIKT"):
@@ -1099,8 +1100,8 @@ def main(argv: list[str] | None = None) -> None:
         from . import vagar
         regler = importlib.import_module("trebodar.kontrollregler")
         vg = vagar.kontrollera(rot, karna, regler, arg.trad)
-        print(f"  {vg.delar} ledningsdelar, {vg.kuber} kuber à {vagar.STEG:g} mm: {len(vg.fel)} fel, {len(vg.anm)} "
-              f"utanpåliggande ({vg.sekunder:.1f} s)")
+        print(f"  {vg.delar} ledningsdelar, {vg.kuber} kuber à {vagar.STEG:g} mm, {vg.stralar} armaturers ljus: "
+              f"{len(vg.fel)} fel, {len(vg.anm)} utanpåliggande ({vg.sekunder:.1f} s)")
         for f in vg.fel:
             print(f"    FEL {f}")
         for x in vg.anm:
