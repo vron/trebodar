@@ -17,12 +17,16 @@ lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06
 - bottnens urtag 12–15 mm över sidornas underkant (här 13): löparen under sidan och i urtaget under botten, högst
   28,5 mm in från skåpsidan;
 - minst 7 mm fritt över lådsidan och minst 38 mm från skåpets botten till den nedersta lådans botten;
-- kopplingarna Blum T51.7601 ligger plant under botten och skruvas med två skruvar 75° in i framstycket (mallen
-  T65.1600.01), därför går framstycket ned under botten; löparens hake i ett hål Ø6 × 10 i sidans bakände, 7 mm från
-  utsidan och 11 mm upp.
+- kopplingarna Blum T51.7601 (vänster och höger) ligger plant under botten vid framstyckets hörn. Fyrsidiga lådor
+  har i TD-132 kopplingen skruvad lodrätt i en tjock botten (s. 19, bild 1a); med botten 4 mm skruvas den i stället
+  med två skruvar 75° in i framstycket, som för tresidiga lådor (bild 1b) och i Blums monteringsanvisning för lådor
+  med botten i spår, med borrmallen T65.1000.02 (Ø2,5 × 10). Därför går framstycket ned under botten;
+- löparens hake i ett hål Ø6 × 10 i sidans bakände, 7 mm från utsidan och 11 mm upp (s. 5);
+- löparen skruvas i skåpsidan (s. 13, montage på sidan) med spånskiveskruv Ø3,5 × 15 (609.1500) eller
+  systemskruv Ø6 × 14,5 (661.1450.HG) i hålen LOPARENS_SKRUVAR från stommens framkant (löparen i liv med den).
 
-Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvhålen ritas inte. Skåptyperna:
-lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
+Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvarna ritas inte, och skruvhålen
+står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
 rören bakom) och hällskåp (den översta fronten fast, öppet tak för hällen); diskmaskinen står i ett skåps ställe.
 """
 from __future__ import annotations
@@ -38,6 +42,9 @@ T = 20.0                                   # stommen
 T_LADA, T_BOTTEN, SPAR = 14.0, 4.0, 6.0    # lådans sidor, botten och bottnens spår i sidorna
 URTAG = 13.0                               # bottnens urtag över sidornas underkant (Blum 12–15)
 HAKE = (6.0, 10.0, 7.0, 11.0)              # hålet för löparens hake i sidans bakände: Ø, djup, från utsidan, upp
+# löparens skruvar i skåpsidan (TD-132 s. 13, 760H): avstånd från stommens framkant per NL; det första (19) kan bytas
+# mot en spånskiveskruv Ø4 × 15, och vid NL 550 ger en skruv längst bak dessutom bäst stabilitet
+LOPARENS_SKRUVAR = {550.0: (19.0, 37.0, 69.0, 243.0, 261.0, 293.0), 350.0: (19.0, 37.0, 69.0, 261.0)}
 LOPARE_H, LOPARE_IN = 10.0, 28.5           # löparens profil under lådsidan och hur långt den når in från skåpsidan
 FRITT_OVER, FRITT_UNDER = 7.0, 38.0        # Blum: fritt över lådsidan, skåpets botten till den nedersta lådans botten
 SKW_AVDRAG, SKL_AVDRAG, NL_TILLAGG = 42.0, 10.0, 3.0
@@ -140,6 +147,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
                 produkt="KOKSSKAP")
     inne = DJUP - T
     assert typ.nl + NL_TILLAGG <= inne, "skåpets invändiga djup (Blum: minst NL + 3)"
+    assert typ.nl in LOPARENS_SKRUVAR, "löparens skruvhål (TD-132 s. 13) för NL"
     stomme = [("SIDA-V", box(0.0, T, 0.0, DJUP, SOCKEL, Z_TOPP)),
               ("SIDA-H", box(bredd - T, bredd, 0.0, DJUP, SOCKEL, Z_TOPP)),
               ("BOTTEN", box(T, bredd - T, 0.0, DJUP, SOCKEL, SOCKEL + T)),
