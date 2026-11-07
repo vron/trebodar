@@ -4,17 +4,19 @@ till sina tappställen. De sitter åtkomliga i ett rum med golvbrunn, utan förd
 läckage syns och rinner till golvbrunnen.
 
 - UF1 i det stora rummet i högra huskroppen, på källarväggen V14 under köket intill diskhons avlopp, som går ned längs
-  väggen (../avlopp): kallt och varmt till diskbänken KO-DB1 och kallt till diskmaskinen KO-DM1 i ön. Matningen kommer
-  i stråket O norr om diskbänken och ned till stammarnas norra ände.
+  väggen (../avlopp): kallt och varmt till diskbänken KO-DB1 och kallt till diskmaskinen KO-DM1 i ön, med kopparrör
+  under taket och genom hylsor i bjälklaget (rum/kok.py, #83), utan stråk. Matningen kommer i stråket O och ned till
+  stammarnas början.
 - UF2 i rummet öster om KL2 under badrummet, på KL1: kallt till WC:n BA-WC1 och till tvättmaskinen BA-TM1 i skåpet i
   badrummet, var sin utgång. Huvudfördelarnas filer räcker inte till ett rör till: det sjuttonde krockar med
   ventilationens kanal FF3-K2 (#50).
 
 Stammarna som i fördelarskåpet: varmvattnet bakom och högre, kallvattnet framför, utgångarna uppåt c/c FIL i rörens
 filer, och rören rakt upp i mellanbjälklaget mellan underkantsnätets järn: underfördelaren flyttas längs väggen så
-lite som behövs för att alla rören, matningen och utgångarna, ska gå fria. Matningen kommer rakt ned ur bjälklaget
-till stammarnas början (utgång 0). Rören till tappställena går i ett eget stråk från väggen in i rummet, en fil per
-rör som i huvudfördelarnas stråk.
+lite som behövs för att alla rören upp i bjälklaget, matningen och utgångarna till stråket, ska gå fria. Matningen
+kommer rakt ned ur bjälklaget till stammarnas början (utgång 0). Rören till tappställena går i ett eget stråk från
+väggen in i rummet, en fil per rör som i huvudfördelarnas stråk; tappställen med hylsor (stråket None i ordningen)
+får sina utgångar efter stråkets, varmvattnet före kallvattnet, och kopparrör under taket (punkter.ror_hylsa).
 
 Dimensionerande flöde för matningen: det största normflödet och hälften av de andras.
 
@@ -42,8 +44,8 @@ TVARS = 40.0                                 # stammarna flyttas högst så lån
 class Underfordelare:
     """En underfördelare: stammarnas början (inloppet) vid onskat längs väggens yta (normalen ut i rummet), utgångarna
     i riktning längs väggen, stammarna per media, matningens rör och dimensionerande flöde per media, rummet (montaget
-    i modellen) och tappställenas ordning i dess stråk (tappställe: stråk och ben, som teknikrum.ORDNING), stråket
-    langd ut från väggen."""
+    i modellen) och tappställenas ordning i dess stråk (tappställe: stråk och ben, som teknikrum.ORDNING; stråket None:
+    kopparrör till hylsor), stråket langd ut från väggen (None: inget stråk)."""
     id: str
     namn: str
     rum: str
@@ -53,9 +55,9 @@ class Underfordelare:
     typer: tuple[tuple[str, Fordelartyp], ...]
     ror: Rortyp
     flode: tuple[tuple[str, float], ...]
-    ordning: tuple[tuple[str, tuple[str, int | None]], ...]
-    strak_id: str
-    langd: float
+    ordning: tuple[tuple[str, tuple[str | None, int | None]], ...]
+    strak_id: str | None = None
+    langd: float = 0.0
 
     @property
     def medier(self) -> tuple[str, ...]:
@@ -91,7 +93,10 @@ class Underfordelare:
         return p[0], p[1]
 
     def strak(self, mitt: dict[str, float]) -> dict[str, Strak]:
-        """Stråket från väggen rakt ut i rummet genom filernas mitt (mitt: läget längs riktning)."""
+        """Stråket från väggen rakt ut i rummet genom filernas mitt (mitt: läget längs riktning); inget utan
+        strak_id."""
+        if self.strak_id is None:
+            return {}
         r, n, s = self.riktning, self.normal, self.start
         d = mitt[self.strak_id] - (s[0] * r[0] + s[1] * r[1])
         p0 = (s[0] + r[0] * d, s[1] + r[1] * d)
@@ -102,14 +107,13 @@ class Underfordelare:
 def _start(u: Underfordelare) -> Vek:
     """Inloppet flyttat längs väggen (och högst TVARS från den) så att alla rör upp ur stammarna och ned till dem går
     fria från underkantsnätets järn."""
-    n_filer = len(u.ordning) * len(u.medier)                   # högst: ett rör per tappställe och media
-    punkter = [u._stam(m, k, u.onskat)[:2] for m in u.medier for k in range(-1, n_filer)]
+    n_filer = sum(s is not None for _, (s, _) in u.ordning) * len(u.medier)    # högst: ett rör per tappställe och
+    punkter = [u._stam(m, k, u.onskat)[:2] for m in u.medier for k in range(-1, n_filer)]   # media i stråket
     dx, dy = mellan_jarnen(punkter, KALLARTAK, Z_ROR, R_ROR, langs=(u.riktning[0], u.riktning[1]), tvars=TVARS)
     return (u.onskat[0] + dx, u.onskat[1] + dy, u.onskat[2])
 
 
-_V14 = kallarvagg("V14", 8800.0, 0.0, -1)                     # under köket, inloppet i norra änden: stammarna söderut
-#                                                               mot diskhons avlopp (y 8 359), fria från det
+_V14 = kallarvagg("V14", 8800.0, 0.0, -1)                     # under köket, stammarna mot diskhons avlopp (y 8 359)
 _KL1 = KL["KL1"]
 _KL1_YTA = _KL1.c - _KL1.t / 2 - GIPS_T                       # KL1:s yta mot rummet öster om KL2
 _KL2_YTA = KL["KL2"].c + KL["KL2"].t / 2 + GIPS_T
@@ -117,7 +121,7 @@ _KL2_YTA = KL["KL2"].c + KL["KL2"].t / 2 + GIPS_T
 UNDERFORDELARE = [
     Underfordelare("UF1", "Underfördelare under köket", "Källare", _V14.punkt, _V14.normal, (0.0, -1.0, 0.0),
                    (("KV", UNDERFORDELARE_KV), ("VV", UNDERFORDELARE_VV)), ROR_I_ROR_18,
-                   (("KV", 0.3), ("VV", 0.2)), (("KO-DM1", ("K", None)), ("KO-DB1", ("K", None))), "K", 2300.0),
+                   (("KV", 0.3), ("VV", 0.2)), (("KO-DM1", (None, None)), ("KO-DB1", (None, None)))),
     Underfordelare("UF2", "Underfördelare under badrummet", "Källare", (_KL2_YTA + 40.0, _KL1_YTA, 0.0),
                    (0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (("KV", UNDERFORDELARE_KV),), ROR_I_ROR_18,
                    (("KV", 0.25),), (("BA-TM1", ("B", None)), ("BA-WC1", ("B", None))), "B", 1000.0),

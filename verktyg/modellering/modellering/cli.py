@@ -805,6 +805,7 @@ def main(argv: list[str] | None = None) -> None:
         if arg.atgard in ("kontroll", "lista"):
             kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Vatten")
             fel += [f"krock med {k}" for k in kr.installationer + kr.armering]
+            fel += [f"krock med {k}" for k in kr.inredning if "-LADA" in k or "-SKENA" in k]   # fria från lådorna
             krockar = kr.stomme + kr.skikt
         if arg.atgard == "kontroll":
             n_gf = len(utdrag["genomforingar"])  # type: ignore[arg-type]

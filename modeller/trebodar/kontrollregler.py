@@ -72,13 +72,17 @@ TILLATNA_OVERLAPP = {
 # av LEDNINGAR) ska gå dolda i skikten, ingjutna eller i marken, inte fritt genom rummens luft (eller fönstrens och
 # takfönstrens öppningar). I UTANPA-zonerna (under z) får de gå utanpå väggarna och taket, högst så långt från ytan
 # (på konsoler); SYNLIGA får synas; in i FRIA_VOLYMER (fickdörrarnas fickor) får de inte gå
-LEDNINGAR = ("Elrör", "Brandlarmskabel", "Tappvatten KV", "Tappvatten VV", "Spirokanal", "Plattkanal", "Golvvärmerör")
+LEDNINGAR = ("Elrör", "Brandlarmskabel", "Tappvatten KV", "Tappvatten VV", "Kopparrör", "Spirokanal", "Plattkanal",
+             "Golvvärmerör")
 VAGAR_UTOM = {
     "Hus/Installationer/Dränering": "dräneringen och dagvattnet går i marken",
     "Hus/Installationer/Köldbärare": "köldbärarledningarna går i marken och under bottenplattan",
 }
 UTANPA = (("källaren", -S.H_BJALKLAG, 300.0),)     # på konsoler eller i pendlar under taket
-SYNLIGA: dict[str, str] = {}                         # delträd: motivering
+SYNLIGA = {                                          # delträd: motivering
+    "Hus/Installationer/Vatten/Kök/KO-DB1-": "kopparrören upp till blandaren i diskbänksskåpet, bakom lådorna (#83)",
+    "Hus/Installationer/Vatten/Kök/KO-DM1-": "kopparrörets ände under diskmaskinen, maskinens anslutning (#83)",
+}
 FRIA_VOLYMER = fria_volymer
 # armaturernas avstånd till brännbart material i ljusets riktning (vagar.py): inom det får ingen av husets ytor ligga
 # framför den lysande ytan

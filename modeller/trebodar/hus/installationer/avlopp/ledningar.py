@@ -20,8 +20,8 @@ källaren längs källarväggen V14 och bottenplattan, och med en böj till en g
 i ön (#50) har ett pumpat avlopp (AV20): maskinens egen pump trycker vattnet genom ett rör PEX 25 utan fall, ingjutet
 i mellanbjälklaget på tappvattnets nivå, från anslutningen under maskinen till diskbänksskåpet bakom lådorna, där
 slangen går upp till diskhons vattenlås (dess anslutning för diskmaskin, med en ögla under bänkskivan). Ett avlopp med
-självfall ryms inte mellan armeringsnäten (#49). Röret går väster om diskmaskinens vattenrör och söder om rören till
-diskbänken, så att det inte korsar dem; maskinen ska tillåta så lång slang (DM_SLANG).
+självfall ryms inte mellan armeringsnäten (#49). Röret går förbi tappvattnets matning till underfördelaren UF1, så att
+det inte korsar den; maskinen ska tillåta så lång slang (DM_SLANG).
 
 Stammen Ø110 står i källarväggen KL8 (kallarens_innervaggar.AVLOPPSSTAM) under badrummets vägg L11, från toppen
 Z_STAM ned genom bottenplattan, med rensningen RENSNING över källargolvet mot teknikrummet, och går med en böj och en
@@ -99,11 +99,11 @@ BADKAR_BOTTEN = B.Z_BADKAR + B.BADKAR_KAR                        # karets botten
 BRUNN = (200.0, 100.0)                      # golvbrunnens kropp: diameter, djup under flänsen
 BRUNN_SIL = (220.0, 230.0)                  # silen och klämringen (hålet i golvets skikt, badrumsgolv.BRUNN_HAL)
 DISKHO = KB.diskhons_avlopp()               # diskhons avlopp i plan
-# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen söderut väster om dess vattenrör och snett till
-# diskbänksskåpet bakom lådorna, söder om diskhons avlopp och rören till diskbänken
+# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen till DM_SODER och snett till diskbänksskåpet
+# bakom lådorna, förbi tappvattnets matning till UF1 (som kommer ned till underfördelaren vid y 8 825)
 DM_ROR = 25.0                               # PEX 25 × 2,3
 DM_ANSLUTNING = KB.diskmaskinens_anslutningar()[1]
-DM_SODER = 8700.0                           # söderut till hit, söder om diskmaskinens vattenrör (y 8 775)
+DM_SODER = 8700.0                           # längs ön till hit, förbi matningen till UF1 (y 8 825)
 DM_DISKBANK = (13500.0, 8200.0)             # upp i diskbänksskåpet bakom lådorna
 DM_STOS = 100.0                             # rörets ände i diskbänksskåpet över golvet, där slangen ansluter (under
 #                                             maskinen slutar det i golvet)

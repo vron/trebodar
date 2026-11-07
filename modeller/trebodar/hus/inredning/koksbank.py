@@ -8,8 +8,8 @@ in på plats), sju lådskåp och fogbrädor 22 mitt över fogarna. Hällen (indu
 mitt mellan fönstren 3NV-F4 och 3NV-F5 och under köksfläkten FF1 (som sitter mitt emellan dem); de tre skåpen
 söder om den och skåpen längs 3SV är lika breda (599,1, fronterna 571,1) och de tre norr om den, mot inbyggnaden,
 bredare (633,4, fronterna 605,4), så att sträckan går jämnt upp. Diskhon (undermonterad, 500 × 400) står i det andra
-skåpet, över golvdosan KO-DB1 (hus/installationer/vatten/rum/kok.py). Längs 3SV tre lådskåp och en vit sida mot
-rummet. Under skåpen en sparklist 90 hög, 60 mm innanför fronterna.
+skåpet, med vattnets kopparrör upp genom hylsorna bakom lådorna (KO-DB1, hus/installationer/vatten/rum/kok.py).
+Längs 3SV tre lådskåp och en vit sida mot rummet. Under skåpen en sparklist 90 hög, 60 mm innanför fronterna.
 
 Ön: tre skåp med fronterna mot bänken längs 3NV och vita sidor utanför fogbrädorna, 1 000 djup, 1 100 fritt mellan
 bänkskivorna och mitt för hällen (och mellan fönstren); på andra sidan är ön öppen för benen (ryggen vit). Det
@@ -71,17 +71,19 @@ _Y_DISKHO_AVLOPP = (K.DJUP - K.T - DISKHO[1]) / 2 + DISKHO[1] - DISKHO_AVLOPP
 assert _Y_DISKHO_AVLOPP - 20.0 - K.DISKBANKSSKAP.nl >= 40.0, "diskhons avlopp bakom lådorna"
 
 
-# diskmaskinen i öns skåp O1: vattnets golvdosa och avloppets anslutning (det pumpade avloppsröret upp ur golvet) under
-# maskinens bakre del, var sin sida om maskinens mitt (nås när maskinen dras ut); avloppet närmare nischens bakkant
-DISKMASKIN_BAK = (100.0, 50.0)  # golvdosan och avloppet från nischens bakkant
-DISKMASKIN_ISAR = 120.0         # golvdosan och avloppet från maskinens mitt
+# diskmaskinen i öns skåp O1: kallvattnets kopparrör (upp ur sin hylsa, #83) och avloppets anslutning (det pumpade
+# avloppsröret upp ur golvet) vid maskinens bakre del, var sin sida om maskinens mitt (nås när maskinen dras ut):
+# kopparröret bakom maskinen i nischens ände längst från röret P3 under ön, så att hylsan ligger utanför rörets
+# genomstansningszon (6d), avloppet under maskinen närmare nischens mitt
+DISKMASKIN_BAK = (40.0, 50.0)   # kopparröret och avloppet från nischens bakkant
+DISKMASKIN_ISAR = (275.0, -120.0)   # kopparröret och avloppet från maskinens mitt längs ön
 
 
 def diskmaskinens_anslutningar() -> tuple[tuple[float, float], tuple[float, float]]:
-    """Diskmaskinens golvdosa för kallvattnet och avloppets anslutning i plan."""
+    """Diskmaskinens kallvatten (kopparröret upp ur hylsan) och avloppets anslutning i plan."""
     x = X_ON_FRONT - K.FRONT_T - K.DJUP
     y = (FOGAR_ON[0] + FOGAR_ON[1]) / 2
-    return (x + DISKMASKIN_BAK[0], y + DISKMASKIN_ISAR), (x + DISKMASKIN_BAK[1], y - DISKMASKIN_ISAR)
+    return ((x + DISKMASKIN_BAK[0], y + DISKMASKIN_ISAR[0]), (x + DISKMASKIN_BAK[1], y + DISKMASKIN_ISAR[1]))
 
 
 def diskhons_avlopp() -> tuple[float, float]:

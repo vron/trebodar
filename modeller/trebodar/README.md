@@ -402,7 +402,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
   mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,4
   breda (fronterna 605,4), B4–B7 och skåpen längs 3SV 599,1 (571,1); hörnet är dött med en fogbräda 22 × 22. Diskhon
-  i B2 över golvdosan KO-DB1. Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
+  i B2, med kopparrören från underfördelaren UF1 genom två hylsor bakom lådorna (KO-DB1, #83). Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
   och två lådskåp, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
   Bricmate Jura 12.
 - **Fönster och fönsterdörrar** från VELFAC (VELFAC 200 ENERGY) efter systemritningarna (utgåva 15, 07.26), med

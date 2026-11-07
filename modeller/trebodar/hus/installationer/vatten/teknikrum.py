@@ -47,8 +47,8 @@ ORDNING: dict[str, tuple[str, int | None]] = {
 }
 
 X_O = 13450.0                                   # O österut till underfördelaren UF1 på V14
-X_O_NORR, Y_O_KOK = 10000.0, 9300.0             # O norrut före köket, så att den når UF1 norr om diskhons avlopp
-#                                                 och diskbänkens golvdosa (rören därifrån korsar den inte)
+X_O_NORR, Y_O_KOK = 10000.0, 9450.0             # O till y Y_O_KOK före köket, förbi diskmaskinens hylsa i ön och
+#                                                 diskmaskinens pumpade avlopp, och till UF1:s början från det hållet
 X_S, X_V = 1500.0, 450.0                        # S söderut under badrummet, V längs V21
 Y_V7 = i_vaggen(kallarvagg("V7", 0.0, 0.0, 1), (0.0, 0.0, 0.0))[1] + 150.0      # S längs V7, rören viker av
 #                                                                               till dess cellplast

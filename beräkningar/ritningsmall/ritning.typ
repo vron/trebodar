@@ -66,9 +66,12 @@
   // elritningarna: rör i vägg och innertak, rör ingjutna i bjälklag
   ror: (thickness: 0.3mm, paint: GRA, cap: "round"),
   ror_ingjutet: (thickness: 0.6mm, paint: OK, cap: "round"),
-  // tappvattenritningarna: kallvatten och varmvatten bredvid varandra; golvvärmeritningarna
+  // tappvattenritningarna: kallvatten och varmvatten bredvid varandra (streckade: kopparrör under källarens tak);
+  // golvvärmeritningarna
   kv: (thickness: 0.3mm, paint: KV, cap: "round", join: "round"),
   vv: (thickness: 0.35mm, paint: VV, cap: "round", join: "round"),
+  kv_tak: (thickness: 0.3mm, paint: KV, dash: (1.6mm, 0.7mm), cap: "butt", join: "round"),
+  vv_tak: (thickness: 0.35mm, paint: VV, dash: (1.6mm, 0.7mm), cap: "butt", join: "round"),
   gv: (thickness: 0.25mm, paint: GV, cap: "round", join: "round"),
   gv0: (thickness: 0.25mm, paint: GV, dash: (1.2mm, 0.6mm), cap: "butt", join: "round"),
   // dräneringsritningen: dagvattnets täta rör, stuprörens anslutningar och dränrören

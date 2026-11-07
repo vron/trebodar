@@ -15,6 +15,10 @@
   källarväggens cellplast bakom gipsen till väggdosan i källaren.
 - Där rören går upp eller ned genom bjälklaget går de mellan armeringsjärnen: golvdosan flyttas så lite som behövs,
   och rören i väggen flyttas längs väggen och går därifrån vågrätt till väggdosan (`forskjutning`).
+- Tappställen med hylsor (dosans slag "hylsa", ärende #83) har inga rör i bjälklaget: kopparrören går från
+  underfördelarens utgångar rakt upp till under källarens tak (Z_TAKET), där först tvärs och sedan längs till under
+  sin hylsa och rakt upp genom den till anslutningen ovanför golvet. Hylsan (en per rör) står mellan
+  armeringsjärnen, flyttad längs `kallt` (eller åt alla håll) så lite som behövs (`hylsa`).
 
 Koordinater i mm (K-05), z från plan 1:s golv.
 """
@@ -36,6 +40,8 @@ from .typer import Dosatyp, Fordelartyp, Rortyp, Tappstalletyp
 R_ROR = 14.0                            # största skyddsrörets radie (rör-i-rör 18/28)
 FIL = 50.0                              # rörens avstånd i stråken (c/c), som armeringsnätens maskor (s150)
 Z_ROR = I_BETONGEN["vatten"]            # i mellanbjälklaget, närmast underkantsnätet
+Z_TAKET = {"VV": KALLARTAK - 40.0, "KV": KALLARTAK - 80.0}     # kopparrören under källarens tak, varmvattnet överst
+HYLSA_TVARS = 10.0                      # hylsan flyttas högst så långt tvärs `kallt`
 
 Via = tuple[float | None, float | None]
 
@@ -52,7 +58,8 @@ class Tappstalle:
     """Ett tappställe: dosans mitt på ytan (normalen ut i rummet), rörtypen från fördelarna, för golvdosor riktningen
     från varmvattnet till kallvattnet (standard x) och punkter i plan som rören går förbi efter stråket (via, per
     media eller för båda; None i en koordinat: anslutningens). En underfördelares inlopp (underfordelare.py) har
-    rörens ändar i anslutningar: stammarnas början per media, rakt under där rören kommer ned ur bjälklaget."""
+    rörens ändar i anslutningar: stammarnas början per media, rakt under där rören kommer ned ur bjälklaget; ett
+    tappställe med hylsor kopparrörens ändar ovanför golvet (hylsorna rakt under dem, flyttade längs kallt)."""
     id: str
     typ: Tappstalletyp
     dosa: Dosatyp
@@ -140,12 +147,31 @@ def _forskjutning(t: Tappstalle) -> tuple[float, float]:
 
 def anslutning(t: Tappstalle, media: str) -> Vek:
     """Rörets ände vid tappstället: dosans mitt bakom ytan (väggdosa) eller på ytan (golvdosan förskjuten mellan
-    järnen); kallvattnet till höger och varmvattnet till vänster sett mot dosan, cc isär."""
+    järnen); kallvattnet till höger och varmvattnet till vänster sett mot dosan, cc isär. Med hylsor: kopparrörets
+    ände rakt över sin hylsa."""
     a = _anslutning(t, media)
+    if t.dosa.slag == "hylsa":
+        x, y = hylsa(t, media)
+        return (x, y, a[2])
     if t.dosa.slag != "golv":
         return a
     dx, dy = forskjutning(t)
     return (a[0] + dx, a[1] + dy, a[2])
+
+
+def hylsa(t: Tappstalle, media: str) -> tuple[float, float]:
+    """Hylsans mitt i plan för mediets rör: under rörets ände, flyttad längs `kallt` (högst HYLSA_TVARS tvärs) eller
+    åt alla håll så lite som behövs för att gå fri från järnen genom hela bjälklaget."""
+    if (t.id, media) not in _HYLSOR:
+        a = _anslutning(t, media)
+        k = t.kallt
+        dx, dy = mellan_jarnen([a[:2]], KALLARTAK, PLAN[1], t.dosa.b / 2, langs=(k[0], k[1]) if k else None,
+                               tvars=HYLSA_TVARS if k else 0.0)
+        _HYLSOR[(t.id, media)] = (a[0] + dx, a[1] + dy)
+    return _HYLSOR[(t.id, media)]
+
+
+_HYLSOR: dict[tuple[str, str], tuple[float, float]] = {}
 
 
 def till_tappstallet(t: Tappstalle, media: str) -> tuple[tuple[tuple[float, float], ...], tuple[Vek, ...]]:
@@ -169,6 +195,22 @@ def till_tappstallet(t: Tappstalle, media: str) -> tuple[tuple[tuple[float, floa
     if via:
         genom = ((a[0] if via[0] is None else via[0], a[1] if via[1] is None else via[1]), *genom)
     return genom, slut
+
+
+def ror_hylsa(t: Tappstalle, utgang: dict[str, int], fordelare: dict[str, Fordelare]) -> list[Ror]:
+    """Kopparrören till ett tappställe med hylsor från underfördelarens utgångar (per media): rakt upp till under
+    källarens tak (Z_TAKET), där först i x och sedan i y till under hylsan, och rakt upp genom den till änden."""
+    ut = []
+    for media in ("VV", "KV"):
+        if media in utgang:
+            fd = fordelare[media]
+            u, a, z = fd.utgang(utgang[media]), anslutning(t, media), Z_TAKET[media]
+            via: list[Vek] = []
+            for q in ((u[0], u[1], z), (a[0], u[1], z), (a[0], a[1], z)):
+                if not via or math.dist(q, via[-1]) > 0.5:
+                    via.append(q)
+            ut.append(Ror(f"{t.id}-{media}", t.ror, media, f"{fd.id}:{utgang[media]}", t.id, tuple(via)))
+    return ut
 
 
 def ror(t: Tappstalle, utgang: dict[str, int], strak: Strak, fordelare: dict[str, Fordelare],

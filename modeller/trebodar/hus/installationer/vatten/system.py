@@ -21,7 +21,7 @@ from ..teknikrum import UTRUSTNING
 from . import teknikrum
 from .katalog import FORDELARE_KV, FORDELARE_VV
 from ..strak import Strak, filer
-from .punkter import FIL, Z_ROR, Fordelare, Ror, Rum, Tappstalle, anslutning, ror, till_tappstallet
+from .punkter import FIL, Z_ROR, Fordelare, Ror, Rum, Tappstalle, anslutning, hylsa, ror, ror_hylsa, till_tappstallet
 from .rum import badrum, kallare, kok
 from .underfordelare import ROR_MATNING, UNDERFORDELARE, Underfordelare
 
@@ -62,7 +62,18 @@ class Vatten:
                 for r in self.ror.values() for a, b in zip(self.vag(r), self.vag(r)[1:]) if math.dist(a, b) > 1e-6]
 
     def genomforingar(self) -> tuple[list[Genomforing], list[str]]:
-        return genomforingar(self.stycken())
+        """Genomföringarna (..genomforingar); kopparrören genom bjälklaget går i sina ingjutna hylsor."""
+        ut, fel = genomforingar(self.stycken())
+        hylsor = {f"{t.id}-{m}": t.dosa for t in self.tappstallen.values() if t.dosa.slag == "hylsa"
+                  for m in ("KV", "VV")}
+        return [replace(g, atgard=f"hylsa Ø{g_d.b:g} ingjuten mellan armeringsjärnen (PP-avloppsrör), kopparröret "
+                                  f"rakt upp genom den", matt=f"Ø{g_d.b:g}")
+                if (g_d := hylsor.get(g.element)) and g.del_ == "Mellanbjälklaget" else g for g in ut], fel
+
+    def hylsor(self) -> list[tuple[str, str, tuple[float, float], float]]:
+        """De ingjutna hylsorna i mellanbjälklaget: rörets id, tappstället, mitten i plan och diametern."""
+        return [(f"{t.id}-{m}", t.id, hylsa(t, m), t.dosa.b) for t in self.tappstallen.values()
+                if t.dosa.slag == "hylsa" for m, q in (("KV", t.typ.kv), ("VV", t.typ.vv)) if q > 0]
 
     def vv_volym(self, tid: str) -> float:
         """Varmvattnets volym från beredaren till tappstället [l]: röret från fördelaren och rören uppströms till den
@@ -86,8 +97,9 @@ class Vatten:
         genomföringarna."""
         fel: list[str] = []
         anm: list[str] = []
-        ordningar = {"teknikrum.ORDNING": teknikrum.ORDNING,
-                     **{f"{u.id}:s ordning": dict(u.ordning) for u in self.underfordelare.values()}}
+        ordningar: dict[str, dict[str, tuple[str | None, int | None]]] = {
+            "teknikrum.ORDNING": dict(teknikrum.ORDNING),
+            **{f"{u.id}:s ordning": dict(u.ordning) for u in self.underfordelare.values()}}
         fel += [f"{t}: i {n} tappställenas ordningar" for t in self.tappstallen
                 if (n := sum(t in o for o in ordningar.values())) != 1]
         fel += [f"{t}: i {k} men finns inte" for k, o in ordningar.items() for t in o
@@ -133,7 +145,7 @@ class Vatten:
             if fd.utgangar > fd.typ.utgangar:
                 fel.append(f"{fd.id}: {fd.utgangar} utgångar men fördelaren har {fd.typ.utgangar}")
         for tid, (_, utg) in self.utgangar.items():
-            if len(utg) == 2:
+            if len(utg) == 2 and (tid not in self.tappstallen or self.tappstallen[tid].dosa.slag != "hylsa"):
                 avvik = [_avvik(self.vag(self.ror[f"{tid}-{m}"])) for m in ("KV", "VV")]
                 if math.dist(avvik[0], avvik[1]) < FIL - 1.0:
                     fel.append(f"{tid}: kallt och varmt lämnar stråket på samma ställe (vänd golvdosan eller ange "
@@ -167,6 +179,7 @@ class Vatten:
         for r in self.ror.values():
             v = self.vag(r)
             ror_[r.id] = {"typ": r.typ.namn, "matt": r.typ.matt, "yttre": r.typ.yttre, "media": r.media,
+                          "koppar": r.typ.kod.startswith("CU"),
                           "fran": r.fran, "till": r.till, "modul": self.modul[r.id], "vag": [list(p) for p in v],
                           "langd": langd(v), "volym": langd(v) / 1000 * r.typ.liter_per_m}
         ordning = {**teknikrum.ORDNING, **{t: s for u in self.underfordelare.values() for t, s in u.ordning}}
@@ -201,7 +214,8 @@ class Vatten:
                            "källarens golv": PLAN[0]},
                 "ror": ror_,
                 "genomforingar": [{"del": x.del_, "atgard": x.atgard, "punkt": list(x.punkt), "matt": x.matt,
-                                   "element": x.element} for x in self.genomforingar()[0]]}
+                                   "element": x.element} for x in self.genomforingar()[0]],
+                "hylsor": [{"ror": r, "tappstalle": t, "punkt": list(p), "d": d} for r, t, p, d in self.hylsor()]}
 
 
 def langd(vag: list[Vek]) -> float:
@@ -289,7 +303,14 @@ def vatten() -> Vatten:
     fordelare = {f.id: f for f in fd.values()}
     for u in uf.values():
         ordning = dict(u.ordning)
-        filer_u, mitt_u = _filer(tapp, ordning, u.strak, u.borjan, (u.riktning[0], u.riktning[1]))
+        i_strak = {t: (s, b) for t, (s, b) in ordning.items() if s is not None}
+        filer_u, mitt_u = (_filer(tapp, i_strak, u.strak, u.borjan, (u.riktning[0], u.riktning[1])) if i_strak
+                           else ({}, {}))
+        for t_id, (u_s, _) in ordning.items():           # kopparrören till hylsorna: filerna efter stråkets
+            if u_s is None and t_id in tapp:
+                for m, q in (("VV", tapp[t_id].typ.vv), ("KV", tapp[t_id].typ.kv)):
+                    if q > 0:
+                        filer_u[(t_id, m)] = len(filer_u)
         fd_u = {m: u.fordelare(m, tuple(sorted(n for (_, mm), n in filer_u.items() if mm == m))) for m in u.medier}
         for (t_id, m), n in filer_u.items():
             utgangar.setdefault(t_id, (u.id, {}))[1][m] = fd_u[m].filer.index(n) + 1
@@ -297,8 +318,10 @@ def vatten() -> Vatten:
         strak.update(strak_u)
         for t_id in ordning:
             if t_id in tapp:
-                s_id, ben = ordning[t_id]
-                for r in ror(tapp[t_id], utgangar[t_id][1], strak_u[s_id], fd_u, ben):
+                u_s, u_ben = ordning[t_id]
+                rr = (ror(tapp[t_id], utgangar[t_id][1], strak_u[u_s], fd_u, u_ben) if u_s is not None
+                      else ror_hylsa(tapp[t_id], utgangar[t_id][1], fd_u))
+                for r in rr:
                     ror_[r.id] = r
                     modul[r.id] = modul[t_id]
         fordelare.update({f.id: f for f in fd_u.values()})

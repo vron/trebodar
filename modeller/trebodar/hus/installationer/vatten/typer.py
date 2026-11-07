@@ -21,11 +21,13 @@ class Tappstalletyp:
 @dataclass(frozen=True)
 class Dosatyp:
     """Anslutningen vid tappstället: väggdosa i väggen (rören upp i regelfacket), golvdosa (rören upp genom golvet i
-    skåpet under tappstället) eller väggfäste utanpå källarens vägg; cc: avståndet mellan kallt och varmt. En
-    underfördelares inlopp ("fördelare") är rören rakt ned ur bjälklaget till stammarnas början."""
+    skåpet under tappstället), väggfäste utanpå källarens vägg eller hylsor ("hylsa": en ingjuten hylsa i bjälklaget
+    per rör, b dess diameter, och kopparrören från underfördelaren under taket i källaren och rakt upp genom dem, med
+    kopplingarna och avstängningarna i källaren); cc: avståndet mellan kallt och varmt. En underfördelares inlopp
+    ("fördelare") är rören rakt ned ur bjälklaget till stammarnas början."""
     kod: str
     namn: str
-    slag: str                   # "vägg", "golv", "utanpå" eller "fördelare"
+    slag: str                   # "vägg", "golv", "utanpå", "hylsa" eller "fördelare"
     b: float
     h: float
     djup: float
@@ -34,7 +36,8 @@ class Dosatyp:
 
 @dataclass(frozen=True)
 class Rortyp:
-    """Rör: PEX med ytterdiametern d och godstjockleken t, i skyddsrör med ytterdiametern skydd (rör-i-rör; 0: utan)."""
+    """Rör: PEX eller koppar (koden CU) med ytterdiametern d och godstjockleken t, i skyddsrör med ytterdiametern
+    skydd (rör-i-rör; 0: utan)."""
     kod: str
     namn: str
     d: float

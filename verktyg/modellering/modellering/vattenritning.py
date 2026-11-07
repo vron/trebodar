@@ -6,7 +6,7 @@ fördelarna, matarledningarna, värmepumpen och ventilationens kanal). Planerna 
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 import numpy as np
@@ -24,6 +24,7 @@ X_VY = 3600.0                                        # vyn mot V19 (österut) fr
 Z_VY = (-2450.0, 50.0)                               # vyns höjd
 R_TAPP = 1.8                                         # tappställets symbol [pappersmm]
 R_STIG = 0.55                                        # lodrätt rör (ut ur bjälklaget, i väggen) [pappersmm]
+R_HYLSA = 1.0                                        # hylsan runt röret, minst [pappersmm]
 Z_UK, Z_OK = -150.0, 0.0                             # mellanbjälklagets under- och överkant
 
 Pkt = tuple[float, float]
@@ -43,6 +44,16 @@ def stigare(v: Vy, X: float, Y: float, media: str, ned: bool = False) -> None:
     v.cirkel(X, Y, R_STIG + (0.1 if ned else 0.0), fyll=media.lower(), stil=None)
     if ned:
         v.cirkel(X, Y, R_STIG * 0.5, fyll="vit", stil=None)
+
+
+def hylsa(v: Vy, X: float, Y: float, d: float) -> None:
+    """Ingjuten hylsa i bjälklaget: ring med hylsans diameter (minst R_HYLSA) runt röret upp genom den."""
+    v.cirkel(X, Y, max(d / 2 / v.s, R_HYLSA), fyll=None, stil="normal")
+
+
+def _hylsa_med_ror(v: Vy) -> None:
+    hylsa(v, 0.0, 0.0, 0.0)
+    stigare(v, 0.0, 0.0, "KV")
 
 
 def _lodratt(a: list[float], b: list[float]) -> bool:
@@ -73,9 +84,11 @@ def _teckenforklaring(rader: list[Rad]) -> dict:
 TECKEN: list[Rad] = [
     ("vv", "varmvatten (VV), rör-i-rör ingjutet i mellanbjälklaget"),
     ("kv", "kallvatten (KV), rör-i-rör ingjutet i mellanbjälklaget"),
-    (lambda w: stigare(w, 0.0, 0.0, "VV"), "upp ur bjälklaget (i väggen eller golvdosan), varmvatten"),
+    (lambda w: stigare(w, 0.0, 0.0, "VV"), "upp ur bjälklaget (i väggen, golvdosan eller hylsan), varmvatten"),
     (lambda w: stigare(w, 0.0, 0.0, "KV"), "upp ur bjälklaget, kallvatten"),
     (lambda w: stigare(w, 0.0, 0.0, "VV", ned=True), "ned ur bjälklaget (i källarväggen eller till fördelarskåpet)"),
+    ("vv_tak", "kopparrör under källarens tak, från underfördelaren UF1"),
+    (lambda w: _hylsa_med_ror(w), "hylsa Ø50 ingjuten i bjälklaget, kopparröret rakt upp genom den"),
     (lambda w: tappstalle(w, 0.0, 0.0, "TS"), "tappställe (TS tvättställ, DU dusch, BK badkar, WC, DB diskbänk, "
                                                "TM tvättmaskin, TH tvättho)"),
 ]
@@ -90,9 +103,11 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
             "teknikrummet till varje tappställe (stjärnsystem, läckor syns i skåpet). Ritningen ritas med ./mod "
             "vatten ritning.",
             "Underfördelarna UF1 (under köket, på V14) och UF2 (under badrummet, på KL1) sitter öppet på väggen i "
-            "rum med golvbrunn, matade med ett rör per media från fördelarskåpet; rören från dem går i egna stråk "
-            "(K, B) till sina tappställen: " + "; ".join(
-                f"{k} {', '.join(u['tappstallen'])}" for k, u in utdrag.get("underfordelare", {}).items()) + ".",
+            "rum med golvbrunn, matade med ett rör per media från fördelarskåpet: " + "; ".join(
+                f"{k} {', '.join(u['tappstallen'])}" for k, u in utdrag.get("underfordelare", {}).items()) + ". "
+            "Från UF2 går rören i stråket B. Från UF1 går kopparrör under källarens tak och rakt upp genom var sin "
+            "hylsa Ø50 (PP-avloppsrör), ingjuten mellan armeringsjärnen, till diskbänken (bakom lådorna) och "
+            "diskmaskinen (bakom maskinen); alla kopplingar och avstängningar sitter vid UF1.",
             f"Rören gjuts in i mellanbjälklaget (R-06) i stråk, c/c 50 som nätens maskor, i en nivå närmast "
             f"underkantsnätet (z {svm(niv['rören i bjälklaget'])}); golvvärmen går ovanför. Rören läggs före "
             f"gjutningen och kommer ut ur bjälklaget mellan armeringsjärnen (golvdosorna och rören i väggarna "
@@ -116,17 +131,18 @@ def _uf_ytor(utdrag: dict) -> list[Polygon]:
     return ut
 
 
-def _tappstallen(v: Vy, tapp: dict, plan1: list[dict], kallare: list[dict], hinder: list[Polygon] = ()) -> None:
+def _tappstallen(v: Vy, tapp: dict, plan1: list[dict], kallare: list[dict], hinder: Sequence[Polygon] = ()) -> None:
     """Tappställenas symboler med id, en bit från dosan i första riktningen där symbolen inte hamnar på en vägg på
     tappställets våning eller på hindren (underfördelarna): väggdosor ut från väggen, golvdosor norr, söder, öster
-    eller väster."""
+    eller väster (även tappställen med hylsor)."""
     vaggar = {True: unary_union([*polygoner(plan1, bara=VAGGAR), *hinder]),
               False: unary_union([*polygoner(kallare, bara=VAGGAR + ("Hus/Grund",)), *hinder])}
     L = v.m(R_TAPP + 3.0)
     with v.lager("tappstallen"):
         for k, t in tapp.items():
             p, n = np.array(t["punkt"][:2]), np.array(t["normal"][:2])
-            kandidater = [n] if t["slag"] != "golv" else [np.array(d) for d in ((0, 1), (0, -1), (1, 0), (-1, 0))]
+            kandidater = ([n] if t["slag"] not in ("golv", "hylsa")
+                          else [np.array(d) for d in ((0, 1), (0, -1), (1, 0), (-1, 0))])
             d = next((d for d in kandidater if not LineString([tuple(p + d * v.m(1.0)), tuple(p + d * L)]).buffer(
                 v.m(R_TAPP)).intersects(vaggar[t["punkt"][2] > -1.0])), kandidater[0])
             c = p + d * L
@@ -155,6 +171,18 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
             for a, b in zip(r["vag"], r["vag"][1:]):
                 if _vagratt(a, b) and Z_UK < a[2] < Z_OK:
                     v.linje([(a[0], a[1]), (b[0], b[1])], r["media"].lower())
+                elif _vagratt(a, b) and r.get("koppar"):            # kopparrören under källarens tak
+                    v.linje([(a[0], a[1]), (b[0], b[1])], r["media"].lower() + "_tak")
+    with v.lager("hylsor"):
+        for h in utdrag.get("hylsor", []):
+            hylsa(v, h["punkt"][0], h["punkt"][1], h["d"])
+        for t_id in sorted({h["tappstalle"] for h in utdrag.get("hylsor", [])}):
+            hs = [h["punkt"] for h in utdrag["hylsor"] if h["tappstalle"] == t_id]
+            c = (sum(q[0] for q in hs) / len(hs), sum(q[1] for q in hs) / len(hs))
+            n = len(hs)
+            v.hanvisning(c, (c[0] - v.m(9.0), c[1] - v.m(9.0)),
+                         f"{'hylsor' if n > 1 else 'hylsa'} Ø{utdrag['hylsor'][0]['d']:g} till {t_id}", a="rm",
+                         sz=5.4)
     with v.lager("ut ur bjälklaget"):
         for _, r in _i_ordning(ror):
             for a, b in zip(r["vag"], r["vag"][1:]):

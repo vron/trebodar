@@ -48,7 +48,7 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
   mellanbjälklaget, källaren (längs källarväggen V14:s gips) och bottenplattan till en gren Ø110 (AV5, AV6).
 - **Diskmaskinen i ön** (#50): pumpat avlopp (AV20). Maskinens egen pump trycker vattnet genom ett rör PEX 25 utan
   fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen
-  (`koksbank.diskmaskinens_anslutningar`) väster om dess vattenrör och snett söder om rören till diskbänken, upp i
+  (`koksbank.diskmaskinens_anslutningar`) förbi tappvattnets matning till underfördelaren UF1, upp i
   diskbänksskåpet bakom lådorna (`DM_DISKBANK`), där slangen går till diskhons vattenlås (anslutning för diskmaskin,
   med en ögla under bänkskivan). Ett avlopp med självfall ryms inte mellan armeringsnäten (#49). Diskmaskinen ska
   tillåta `DM_SLANG` m avloppsslang.
