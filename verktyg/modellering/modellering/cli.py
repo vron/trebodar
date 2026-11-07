@@ -243,7 +243,7 @@ def main(argv: list[str] | None = None) -> None:
                     help="kontroll: kedjorna, flödena, genomföringarna och krockarna mot husets delar; lista: grenar, "
                          "element, kanaler och genomföringar (markdown); ritning: planerna och sektionen (V-01)")
     pv.add_argument("--ut", type=Path, default=UT / "ventilation")
-    pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av mellanbjälklaget (AR-03, #86)")
+    pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av plattorna (AR-03, AR-04, #86)")
     pg.add_argument("atgard", choices=("ritning",))
     pg.add_argument("--ut", type=Path, default=ROT / "ritningar")
     pw = sub.add_parser("vatten", help="tappvattnet: kontroll (med krockar mot huset), lista och ritningar")
@@ -823,31 +823,39 @@ def main(argv: list[str] | None = None) -> None:
         gv = imp("trebodar.hus.installationer.golvvarme.system").golvvarme()
         vent = imp("trebodar.hus.installationer.ventilation.system").ventilation()
         bl = imp("trebodar.hus.installationer.brandlarm.larm")
-        hal = [{"punkt": list(g.punkt), "atgard": g.atgard, "matt": g.matt, "element": g.element}
-               for g in [*vat.genomforingar()[0], *gv.genomforingar()[0], *vent.genomforingar()[0],
-                         *bl.genomforingarna()[0]]
-               if g.del_ == "Mellanbjälklaget" and not g.atgard.startswith("ingjutet")]
+        kol = imp("trebodar.hus.installationer.kollektor.ledningar")
+        genomf = [*vat.genomforingar()[0], *gv.genomforingar()[0], *vent.genomforingar()[0],
+                  *bl.genomforingarna()[0], *kol.genomforingarna()[0]]
+        hal: dict[str, list[dict]] = {
+            k: [{"punkt": list(g.punkt), "atgard": g.atgard, "matt": g.matt, "element": g.element}
+                for g in genomf if g.del_ == del_ and not g.atgard.startswith("ingjutet, ut ur")]
+            for k, del_ in (("MB", "Mellanbjälklaget"), ("BP", "Bottenplattan"))}
         avu = av.utdrag()
-        for k, led in avu["ledningar"].items():             # avloppets rör lodrätt genom bjälklaget
-            for a, b in zip(led["vag"], led["vag"][1:]):
-                if (abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < -1.0
-                        and max(a[2], b[2]) > -skel.H_BJALKLAG + 1.0 and max(a[2], b[2]) > 0.0):
-                    hal.append({"punkt": [a[0], a[1], 0.0], "atgard": f"{led['namn']}: hål eller hylsa för röret",
-                                "matt": f"Ø{led['d']:g}", "element": k})
-                    break
-        hal += [{"punkt": [*g["punkt"], 0.0], "atgard": "golvbrunnens kropp gjuts in, flänsen i överkant",
-                 "matt": f"Ø{g['d']:g}", "element": k} for k, g in avu["golvbrunnar"].items()
-                if g["golv"] > -skel.H_BJALKLAG]
+        for nyckel, (z_uk, z_ok) in (("MB", gjutning.MB), ("BP", gjutning.BP)):
+            for k, led in avu["ledningar"].items():         # avloppets rör lodrätt genom plattan
+                for a, b in zip(led["vag"], led["vag"][1:]):
+                    if (abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < z_ok - 1.0
+                            and max(a[2], b[2]) > z_uk + 1.0 and max(a[2], b[2]) > z_ok - 1.0):
+                        hal[nyckel].append({"punkt": [a[0], a[1], z_ok], "matt": f"Ø{led['d']:g}", "element": k,
+                                            "atgard": f"{led['namn']}: " + ("röret läggs före gjutningen och gjuts in"
+                                                                            if nyckel == "BP" else
+                                                                            "hål eller hylsa för röret")})
+                        break
+            hal[nyckel] += [{"punkt": [*g["punkt"], z_ok], "atgard": "golvbrunnens kropp gjuts in, flänsen i överkant",
+                             "matt": f"Ø{g['d']:g}", "element": k} for k, g in avu["golvbrunnar"].items()
+                            if z_uk - 1.0 < g["golv"] < z_ok + 1.0]
         step_fil = UT / "trebodar.step"
         if not step_fil.exists():
             raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
         ma = ROT / "verktyg" / "modellanalys" / "ma"
-        plan1 = snitt(ma, step_fil, 1200.0, UT / "gjutning-plan1.json")
-        kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "gjutning-kallare.json")
-        mb = snitt(ma, step_fil, -75.0, UT / "gjutning-mellanbjalklag.json")
+        snitt_ = {"plan1": snitt(ma, step_fil, 1200.0, UT / "gjutning-plan1.json"),
+                  "kallare": snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "gjutning-kallare.json"),
+                  "mb": snitt(ma, step_fil, -75.0, UT / "gjutning-mellanbjalklag.json"),
+                  "bp": snitt(ma, step_fil, skel.Z_BOTTENPLATTA - 50.0, UT / "gjutning-bottenplattan.json")}
         arg.ut.mkdir(parents=True, exist_ok=True)
         tk = imp("trebodar.hus.installationer.teknikrum")
         arm = imp("trebodar.hus.armering.armering")
+        pel = imp("trebodar.hus.grund.pelare")
         x0, x1, y0, y1 = gjutning.DETALJ
         jarn = [{"linje": [list(g.coords[0])] if g.geom_type == "Point" else [list(c) for c in g.coords], "d": d}
                 for g, d in arm.jarnen_i_nivan(-150.0, -51.0)
@@ -855,10 +863,28 @@ def main(argv: list[str] | None = None) -> None:
         gc = tk.GRUPPCENTRAL
         central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1],
                    "kanal": [2810.0 - 62.5, 8936.0 - 62.5, 4950.0, 8936.0 + 62.5]}
-        pdf = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
-                                 [list(p) for p in skel.TRAPPHAL], mb, plan1, kallare, _norr(), UT / "gjutning" / "blad",
-                                 arg.ut, jarn, central)
-        print(f"  {pdf}")
+        plattor: dict[str, list[dict]] = {"MB": [], "BP": []}
+        fot = pel.fotplat_mitt()
+        for k, (x, y) in pel.PELARE.items():
+            n = pel.ANTAL.get(k, 1)
+            for i in range(n):
+                plattor["MB"].append({"namn": f"topplåt {k}" + (f"-{i + 1}" if n > 1 else ""),
+                                      "mitt": [x + i * pel.VKR, y], "matt": [pel.VKR, pel.VKR],
+                                      "text": f"{pel.VKR:g}×{pel.VKR:g}×{pel.TOPP_T:g}"})
+            b, d = pel.plater(n)
+            plattor["BP"].append({"namn": f"fotplåt {k}", "mitt": list(fot[k]), "matt": [b, d],
+                                  "text": f"{b:g}×{d:g}×{pel.FOT_T:g}"})
+        pdf, fel, anm = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
+                                           [list(p) for p in skel.TRAPPHAL], plattor, snitt_, _norr(),
+                                           UT / "gjutning", arg.ut, jarn, central)
+        for p in pdf:
+            print(f"  {p.relative_to(ROT)}")
+        for t in anm:
+            print(f"  anmärkning: {t}")
+        for t in fel:
+            print(f"  fel: {t}")
+        if fel:
+            raise SystemExit(f"{len(fel)} fel i arbetsritningarnas punkter mot modellen")
     elif arg.kommando == "vatten":
         import json
         from . import installationer, vattenritning

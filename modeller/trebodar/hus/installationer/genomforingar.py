@@ -135,9 +135,10 @@ def _wkomp(kod: str, riktning: Vek) -> float:
 
 
 def _genom_platta(st: Stycke, z_ok: float, tjocklek: float, yta: Polygon, namn: str, ritning: str,
-                  ut: list[Genomforing]) -> None:
+                  ut: list[Genomforing], fore: bool = False) -> None:
     """Ett stycke genom en vågrät platta (överkant z_ok) inom ytan: hylsa för små rör, annars ursparing. Ett rör som
-    slutar inne i plattan är ingjutet och kommer ut ur dess över- eller underkant (läggs före gjutningen)."""
+    slutar inne i plattan är ingjutet och kommer ut ur dess över- eller underkant (läggs före gjutningen). fore: rören
+    genom plattan läggs före gjutningen och gjuts in (bottenplattan: de kommer underifrån, ur marken)."""
     a, b = st.a, st.b
     z_uk = z_ok - tjocklek
     z0, z1 = sorted((a[2], b[2]))
@@ -153,6 +154,9 @@ def _genom_platta(st: Stycke, z_ok: float, tjocklek: float, yta: Polygon, namn: 
     if any(inne):
         ut.append(Genomforing(namn, f"ingjutet, ut ur {'överkanten' if upp else 'underkanten'} mellan "
                               f"armeringsjärnen ({ritning})", p, st.matt, st.element))
+    elif fore:
+        ut.append(Genomforing(namn, f"ingjutet, genom plattan mellan armeringsjärnen; läggs före gjutningen "
+                              f"({ritning})", p, st.matt, st.element))
     else:
         atgard = (f"hylsa ingjuten ({ritning}) eller kärnborrning mellan armeringsjärnen" if max(st.yttre) <= HYLSA
                   else f"ursparing före gjutningen, armeringen läggs om ({ritning})")
@@ -171,7 +175,7 @@ def genomforingar(stycken: list[Stycke]) -> tuple[list[Genomforing], list[str]]:
         lodratt = math.hypot(b[0] - a[0], b[1] - a[1]) < 1.0
         z0, z1 = sorted((a[2], b[2]))
         _genom_platta(st, 0.0, S.H_BJALKLAG, bjalklaget(), "Mellanbjälklaget", "R-06", ut)
-        _genom_platta(st, S.Z_BOTTENPLATTA, H_PLATTA, bottenplattan(), "Bottenplattan", "R-04", ut)
+        _genom_platta(st, S.Z_BOTTENPLATTA, H_PLATTA, bottenplattan(), "Bottenplattan", "R-04", ut, fore=True)
         # källarväggarna: genom kärnan (kärnborrning) eller lodrätt i cellplasten bakom gipsen
         if lodratt and z0 < KALLARTAK - 1.0 and z1 > S.Z_BOTTENPLATTA + 1.0:
             lo, hi = max(z0, S.Z_BOTTENPLATTA), min(z1, KALLARTAK)

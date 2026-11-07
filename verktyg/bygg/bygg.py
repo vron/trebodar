@@ -132,8 +132,9 @@ STEG = [
     ritning("AR-01", "Fasadsten på källarväggarna", "berakning.py", "ritningar.py"),
     ritning("AR-02", "Utsättning", bygger_pa=["R-05", "K-05"]),
     # arbetsritningen för gjutningen av mellanbjälklaget ur installationernas data och modellens snitt (#86)
-    Steg("AR-03", "verktyg/modellering", [["mod", "gjutning", "ritning"]], kallor=[*MODELL, MALL, "verktyg/modellanalys"],
-         bygger_pa=["modell"], miljoer=["ma"], utdata=["ritningar/AR-03 Gjutning av mellanbjälklaget.pdf"]),
+    Steg("gjutning", "verktyg/modellering", [["mod", "gjutning", "ritning"]],
+         kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"],
+         utdata=["ritningar/AR-03 Gjutning av mellanbjälklaget.pdf", "ritningar/AR-04 Gjutning av bottenplattan.pdf"]),
 ]
 STEG_NAMN = {s.namn: s for s in STEG}
 

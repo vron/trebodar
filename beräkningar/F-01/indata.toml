@@ -202,7 +202,11 @@ namn = "Arbetsritning utsättning, koordinater och höjder"
 status = "klar"
 [[ovrig]]
 nr = "AR-03"
-namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål"
+namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål, ingjutningsgods"
+status = "upprättas"
+[[ovrig]]
+nr = "AR-04"
+namn = "Arbetsritning gjutning av bottenplattan: golvvärme, avlopp, hål, ingjutningsgods"
 status = "upprättas"
 [[ovrig]]
 nr = "IN-01"
