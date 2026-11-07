@@ -190,6 +190,7 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
     "uttag": (lambda v: symbol(v, "uttag", 0.0, 0.0), "vägguttag"),
     "kopplingsdosa": (lambda v: symbol(v, "kopplingsdosa", 0.0, 0.0), "kopplingsdosa"),
     "panel": (lambda v: symbol(v, "panel", 0.0, 0.0), "LED-panel utanpå taket (ansluten i en ingjuten dosa ovanför)"),
+    "central": (lambda v: symbol(v, "central", 0.0, 0.0), "gruppcentralen"),
     "ingjutningsdosa": (lambda v: symbol(v, "ingjutningsdosa", 0.0, 0.0), "ingjuten dosa i källarens tak"),
 }
 
@@ -209,18 +210,28 @@ class _Etiketter:
         rader = txt.split("\n")
         w = self.v.m(max(len(r) for r in rader) * SZ_ETIKETT * 0.19)
         h = self.v.m(len(rader) * SZ_ETIKETT * 0.43)
-        val = lagen[0]
-        for du, dv, a in lagen:
-            x0 = X + self.v.m(du) - {"l": 0.0, "c": w / 2, "r": w}[a[0]]
-            y0 = Y + self.v.m(dv) - (h if a[1] == "t" else 0.0)
-            lada = (x0, y0, x0 + w, y0 + h)
-            if not any(lada[0] < b[2] and b[0] < lada[2] and lada[1] < b[3] and b[1] < lada[3] for b in self.lador):
-                val = (du, dv, a)
+        val = (*lagen[0], 1.0)
+        for k in (1.0, 2.0, 3.0):                         # längre ut, med hänvisningslinje, om inget läge är fritt
+            hittat = False
+            for du, dv, a in lagen:
+                x0 = X + self.v.m(du * k) - {"l": 0.0, "c": w / 2, "r": w}[a[0]]
+                y0 = Y + self.v.m(dv * k) - (h if a[1] == "t" else 0.0)
+                lada = (x0, y0, x0 + w, y0 + h)
+                if not any(lada[0] < b[2] and b[0] < lada[2] and lada[1] < b[3] and b[1] < lada[3]
+                           for b in self.lador):
+                    val, hittat = (du, dv, a, k), True
+                    break
+            if hittat:
                 break
-        du, dv, a = val
+        du, dv, a, k = val
+        du, dv = du * k, dv * k
         x0 = X + self.v.m(du) - {"l": 0.0, "c": w / 2, "r": w}[a[0]]
         y0 = Y + self.v.m(dv) - (h if a[1] == "t" else 0.0)
         self.lador.append((x0, y0, x0 + w, y0 + h))
+        if k > 1.0:
+            n = math.hypot(du, dv)
+            self.v.linje([(X + self.v.m(du / n * 1.2), Y + self.v.m(dv / n * 1.2)), (X + self.v.m(du), Y + self.v.m(dv))],
+                         "tunn")
         self.v.ptext(X, Y, du, dv, txt, a=a, sz=SZ_ETIKETT, **kw)
 
 
@@ -282,6 +293,8 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
     grupper = _grupper(punkter)
     rit = _ritlagen(v, punkter, grupper)
     extra: dict[str, list[str]] = {k: [] for k in punkter}          # rör ned i bjälklaget vid punkten
+    gc = utdrag["punkter"].get("GC") if kallare else None              # gruppcentralen, ritas i källaren
+    vid_centralen: list[str] = []
     rortexter: list[tuple[Punkt, Punkt, str]] = []                  # ritas efter etiketterna, där de får plats
     with v.lager("ror"):
         for k, r in utdrag["ror"].items():
@@ -298,6 +311,9 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             riktning = "upp" if kallare else "ned"
             for a, b in [(a, b) for p, q in zip(vag, vag[1:]) for a, b in ((p, q), (q, p))]:
                 if pa_planet(a) and not pa_planet(b):     # in i bjälklaget vid a
+                    if gc is not None and math.dist(gc["punkt"][:2], a[:2]) < 400.0:
+                        vid_centralen.append(f"{k} upp i bjälklaget")      # ur centralens ovansida
+                        continue
                     nara = [q for q, p in punkter.items() if math.dist(p["punkt"][:2], a[:2]) < v.m(3)]
                     if nara:
                         extra[nara[0]].append(f"{k} {riktning} i bjälklaget")
@@ -323,6 +339,10 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             else:
                 symbol(v, t["symbol"], X, Y, t.get("kanaler", 1))
                 etiketter.symbol(X, Y, R_APPARAT + 0.6)
+        if gc is not None:                                    # centralen: symbolen nu, etiketten sist (där det är fritt)
+            gx, gy = float(gc["punkt"][0]), float(gc["punkt"][1])
+            symbol(v, "central", gx, gy)
+            etiketter.symbol(gx, gy, R_APPARAT + 0.6)
         for k, p in punkter.items():
             if p["slag"] == "lampa":
                 etiketter.satt(*rit[k], f"{k}\n{p['tand']}", LAGEN_LAMPA, col=f"tand{_grupp(utdrag, p['tand'])}")
@@ -333,6 +353,8 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             X = float(np.mean([rit[q][0] for q in g]))
             Y = float(np.mean([rit[q][1] for q in g]))
             etiketter.satt(X, Y, "\n".join(text), LAGEN_APPARAT, bg=True)
+        if gc is not None:
+            etiketter.satt(gx, gy, "\n".join(["GC central", *sorted(set(vid_centralen))]), LAGEN_APPARAT, bg=True)
     with v.lager("rortext"):
         for a, b, txt in rortexter:
             lada = _langs_lada(v, a, b, txt)
@@ -363,7 +385,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
                       f"{'dimbar' if utdrag['tandgrupper'][g]['dimbar'] else 'ej dimbar'}, från "
                       f"{', '.join(utdrag['tandgrupper'][g]['styrs_av'])}") for g in tandgrupper]),
     ])]
-    slag = {typer[p["typ"]]["symbol"] for p in punkter.values()}
+    slag = {typer[p["typ"]]["symbol"] for p in punkter.values()} | ({"central"} if gc is not None else set())
     legend: list[Rad] = [(_LEGEND[s][0], _LEGEND[s][1]) for s in _LEGEND if s in slag]
     legend += [("styr0", "styrning: brytaren eller dimmern och tändgruppens armaturer (färg per tändgrupp)"),
                ("ror", "rör i väggarna" if kallare else "rör i vägg och innertak")]

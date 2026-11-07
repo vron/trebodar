@@ -71,6 +71,11 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   kommer från den bakre raden över centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och röret till
   brytaren korsar stråket E, tappvattnet till UF1 och avloppet AV20 i den övre nivån vid x 13 090 (under köksbänken).
   De små rummens grupp (G18) kommer i stråket S och går ned i KL1.
+- **Källarens uttag** ([`rum/kallare.py`](rum/kallare.py), [`rum/teknikrum.py`](rum/teknikrum.py), #51): i alla
+  rum, tvättmaskinen och torktumlaren i tvättstugan och fläkten FF3:s anslutning. Rören går i källarväggarnas cellplast
+  bakom gipsen och i KL-väggarnas regelfack, vågrätt i golvzonen (250 mm över golvet, under tappställenas rör) och upp
+  eller ned till uttagen; de flesta grupperna kommer ur centralens baksida (`teknikrum.bakifran`), det stora rummets
+  och fläktens (G24) genom bjälklaget till V20.
 
 Exempel (`rum/vardagsrum.py`): två rader med fyra spotar i snedtaket, mitt emellan läkten och lutade mot närmaste
 långsida, tre VL45 på olika höjd, en tändgrupp per rad och en för VL45, dimrarna på väggen 1D och rören upp i väggen

@@ -1,21 +1,33 @@
-"""Källaren (#51): arbetsrummens belysning efter användarens indelning av rummen, 3000 K.
+"""Källaren (#51): arbetsrummens belysning, uttagen i alla rum, tvättstugans maskiner och fläkten FF3:s anslutning,
+efter användarens indelning av rummen, 3000 K.
 
-- Arbetsrummen (kostnaden styr): tunna utanpåliggande LED-paneler LEDVANCE PANEL COMPACT 600 (../katalog.py), var
-  och en ansluten i en ingjuten dosa ovanför sig, mellan underkantsnätets järn och fri från rören i bjälklaget: sex i
-  det stora rummet i högra huskroppen (öster om KL5 och KL7) och en i vart och ett av de två små rummen söder om KL1
-  (väster och öster om KL2). Rummen och hur de motsvarar användarens (antaget, ärende #51): det stora rummet på
-  nordvästra sidan är det stora rummet, det lilla rummet i sydostliga änden de två små rummen.
+Belysningen:
+- Arbetsrummen (kostnaden styr): tunna utanpåliggande LED-paneler LEDVANCE PANEL COMPACT 600 (../katalog.py), var och
+  en ansluten i en ingjuten dosa ovanför sig, mellan underkantsnätets järn och fri från rören i bjälklaget och pelarnas
+  genomstansningszoner: sex i det stora rummet i högra huskroppen (öster om KL5 och KL7) och en i vart och ett av de
+  två små rummen söder om KL1 (väster och öster om KL2). Rummen och hur de motsvarar användarens (antaget, ärende
+  #51): det stora rummet på nordvästra sidan är det stora rummet, det lilla rummet i sydostliga änden de två små
+  rummen.
 - De trevliga rummen (rummet vid trappan, tvättstugan, de två små rummen vid V2 och rummet söder om KL4) får sin
   belysning när spotarnas ingjutning är bestämd (#51); teknikrummet får ingen belysning nu.
+- Brytarna sitter vid dörrarna, 1 050 mm över golvet; rören går rakt upp ur deras dosor, sida vid sida, i
+  KL-väggarnas regelfack in i bjälklaget och ingjutna där (i_bjalklaget: elrörens undre nivå där den är fri, annars
+  den övre; nivån byts bara där golvvärmen inte går). Det stora rummet (G17): gruppens rör från den bakre raden över
+  centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och därifrån till brytaren på KL7 (tvärs stråket E
+  vid X_OVER) och till panelerna. De små rummen (G18): gruppens rör i stråket S och ned i KL1 till det västra rummets
+  brytare, därifrån till rummets panel och genom bjälklaget till det östra rummets brytare och panel.
 
-Brytarna sitter vid dörrarna, 1 050 mm över golvet. Rören går ingjutna i bjälklaget, i elrörens undre nivå där den är
-fri från tappvattnet och annars i den övre, och mellan brytarna i KL-väggarnas regelfack strax under taket:
-
-- det stora rummet (G17): gruppens rör från centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och
-  därifrån till brytaren på KL7 och till panelerna;
-- de små rummen (G18): gruppens rör från centralen i stråket S, ned i KL1 och i dess regelfack till det västra rummets
-  brytare; därifrån till rummets panel och genom bjälklaget till det östra rummets brytare och dess panel. Rören går
-  rakt upp ur brytarnas dosor, sida vid sida.
+Uttagen (dubbla, i arbetsrummen, tvättstugan och teknikrummet 1 100 mm över golvet, i de trevliga rummen 250 mm) och
+anslutningarna sitter på källarväggarna och KL-väggarna; rören går i källarväggarnas cellplast bakom gipsen och i
+KL-väggarnas regelfack, vågrätt i golvzonen (Z_GOLVZON, under tappställenas rör) och upp eller ned till uttagen:
+- tvättstugan (G20: två IP44 på V3; G21 och G22: tvättmaskinens och torktumlarens på V21 vid KA-TM1) ur centralens
+  baksida i V3:s cellplast (teknikrummets uttag G19 i rum/teknikrum.py);
+- de små rummen söder om KL1, rummet söder om trapphallen och trapphallen (G23): ur centralens baksida västerut i V3:s,
+  söderut i V21:s och österut i V7:s cellplast, runt hörnet in i V18:s, och upp i V7:s och in i KL3:s och KL4:s
+  regelfack, över dörren KD3;
+- det stora rummet, rummen vid V2 och fläkten FF3 (G24): gruppens rör genom bjälklaget till fläktens anslutning på
+  V20, därifrån genom bjälklaget till V15 och i V15:s, V16:s, V1:s och V14:s cellplast mellan det stora rummets uttag
+  (under stråket E i bjälklaget), och i V20:s och V2:s till rummen vid V2.
 
 Koordinater i mm (K-05), z från plan 1:s golv (källarens golv z −2 250).
 """
@@ -285,8 +297,20 @@ Y_KL1_N = KL["KL1"].c + 180.0     # de små rummens grupprör västerut ur strå
 Y_OSTER = 5700.0                  # från det västra till det östra rummets brytare, under stråket S och söder om
 #                                   tappvattnet från UF2
 
-_V3_EPS = kallarvagg("V3", 0.0, 0.0, -1).punkt[1] + 63.0      # mitt i V3:s och V21:s cellplast bakom gipsen
-_V21_EPS = kallarvagg("V21", 0.0, 0.0, 1).punkt[0] - 63.0
+def _eps(v: str) -> float:
+    """Källarväggens cellplast mot rummet: mittens läge tvärs väggen (x för väggar längs y, y för väggar längs x)."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    sida = {"V15": 1, "V16": 1, "V20": 1, "V18": 1, "V21": 1, "V7": 1, "V1": -1, "V14": -1, "V2": -1, "V3": -1}[v]
+    return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
+
+
+def _i_cellplasten(v: str, s_: float) -> tuple[float, float]:
+    """Punkten i plan mitt i källarväggens cellplast (mot rummet) vid s_ längs väggen."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    return (s_, _eps(v)) if w.riktning == "h" else (_eps(v), s_)
+
+
+_V3_EPS, _V21_EPS, _V7_EPS = _eps("V3"), _eps("V21"), _eps("V7")      # mitt i cellplasten bakom gipsen
 _ZU = teknikrum.Z_UTTAG + PLAN[0]
 _X_UT = X_GC - GC_MATT[0] / 2                            # centralens västra ände
 
@@ -298,13 +322,7 @@ def _tvatten(n: int, x0: float, dz: float) -> tuple[Vek, ...]:
     return (*teknikrum.bakifran(x0, _ZU - dz), (_V21_EPS, _V3_EPS, _ZU - dz), (_V21_EPS, y, _ZU - dz), (_V21_EPS, y, _ZU))
 
 
-_V7_EPS = kallarvagg("V7", 0.0, 0.0, 1).punkt[1] - 63.0
 _ZG = PLAN[0] + Z_GOLVZON
-
-
-def _i_cellplasten(v: str, s_: float) -> tuple[float, float]:
-    """Punkten i plan mitt i källarväggens cellplast (mot rummet) vid s_ längs väggen (V21 längs y, V7 längs x)."""
-    return (_V21_EPS, s_) if v == "V21" else (s_, _V7_EPS)
 
 
 def _sma_uttagen() -> list[Ror]:
@@ -340,13 +358,6 @@ def _sma_uttagen() -> list[Ror]:
     ut.append(_ror("G23-R7", "KA-U18", "KA-U17", ((kl3, Y_UTTAG_KL3 - 30.0, _ZG), (kl3, Y_UTTAG_KL3 - 30.0, zl),
                                                   (kl3, kl4, zl), (X_UTTAG_KL4, kl4, zl), (X_UTTAG_KL4, kl4, _ZG))))
     return ut
-
-
-def _eps(v: str) -> float:
-    """Källarväggens cellplast mot rummet: mittens läge tvärs väggen (x för väggar längs y, y för väggar längs x)."""
-    w = next(q for q in K.VAGGAR if q.namn == v)
-    sida = {"V15": 1, "V16": 1, "V20": 1, "V18": 1, "V1": -1, "V14": -1, "V2": -1}[v]
-    return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
 
 
 def ned_i_kallarvaggen(v: str, s_: float, z: float) -> tuple[Vek, Vek]:
