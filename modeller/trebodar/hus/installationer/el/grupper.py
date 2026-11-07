@@ -62,5 +62,9 @@ GRUPPER = [
     Grupp("G16", "Värmepump", 16, 3, 2.5, ("TK-D1",), JORDFEL_VP),
     Grupp("G17", "Belysning källaren, det stora rummet", 10, 1, 1.5, ("KA-D1", "KA-B5")),
     Grupp("G18", "Belysning källaren, de små rummen", 10, 1, 1.5, ("KA-B6", "KA-B7")),
+    Grupp("G19", "Uttag teknikrummet", 10, 1, 1.5, ("TK-U1", "TK-U2", "TK-U3")),
+    Grupp("G20", "Uttag tvättstugan", 10, 1, 1.5, ("KA-U1", "KA-U2")),
+    Grupp("G21", "Tvättmaskin, tvättstugan", 10, 1, 1.5, ("KA-U3",)),
+    Grupp("G22", "Torktumlare, tvättstugan", 10, 1, 1.5, ("KA-U4",)),
 ]
 GRUPP = {g.id: g for g in GRUPPER}
