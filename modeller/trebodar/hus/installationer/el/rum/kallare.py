@@ -174,6 +174,12 @@ UTTAG_STORA = [("V15", 9830.0, 1), ("V1", 11600.0, -1), ("V14", 10000.0, -1), ("
 UTTAG += [Apparat("KA-D2", ANSLUTNING, kallarvagg("V20", Y_FF3, Z_FF3, 1))]
 UTTAG += [Apparat(f"KA-U{i + 9}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
           for i, (v, s_, sida) in enumerate(UTTAG_STORA)]
+# rummet söder om trapphallen (på V18, G23) och rummen vid V2 (på V2, G24): två dubbla uttag i vardera, 250 mm över
+# golvet, i golvzonen där rören går
+UTTAG_KS = [("V18", 2800.0, 1), ("V18", 1200.0, 1)]
+UTTAG_V2 = [("V2", 5800.0, -1), ("V2", 8400.0, -1)]
+UTTAG += [Apparat(f"KA-U{i + 13}", UTTAG_2, kallarvagg(v, s_, Z_GOLVZON, sida))
+          for i, (v, s_, sida) in enumerate([*UTTAG_KS, *UTTAG_V2])]
 PUNKTER = [*PANELER, Dosa("KA-D1", INGJUTNINGSDOSA, kallartak(*D_STORA)), *BRYTARE.values(), *UTTAG]
 _P = BRYTARE
 
@@ -312,13 +318,20 @@ def _sma_uttagen() -> list[Ror]:
         horn = [(_V21_EPS, _V7_EPS, _ZG)] if va != vb else []
         ut.append(_ror(f"G23-R{i + 1}", f"KA-U{i + 5}", f"KA-U{i + 6}",
                        ((a[0], a[1], _ZU), (a[0], a[1], _ZG), *horn, (b[0], b[1], _ZG), (b[0], b[1], _ZU))))
+    # vidare österut i V7:s cellplast förbi KL3:s ände och runt hörnet söderut i V18:s, till rummet söder om
+    # trapphallen (uttagen i golvzonen)
+    a = _i_cellplasten("V7", UTTAG_SMA[-1][1] + 30.0)
+    v18 = _eps("V18")
+    ut.append(_ror("G23-R4", "KA-U8", "KA-U13", ((a[0], a[1], _ZU), (a[0], a[1], _ZG), (v18, _V7_EPS, _ZG),
+                                                 (v18, UTTAG_KS[0][1], _ZG))))
+    ut.append(_ror("G23-R5", "KA-U13", "KA-U14", ((v18, UTTAG_KS[0][1], _ZG), (v18, UTTAG_KS[1][1], _ZG))))
     return ut
 
 
 def _eps(v: str) -> float:
     """Källarväggens cellplast mot rummet: mittens läge tvärs väggen (x för väggar längs y, y för väggar längs x)."""
     w = next(q for q in K.VAGGAR if q.namn == v)
-    sida = {"V15": 1, "V16": 1, "V20": 1, "V1": -1, "V14": -1}[v]
+    sida = {"V15": 1, "V16": 1, "V20": 1, "V18": 1, "V1": -1, "V14": -1, "V2": -1}[v]
     return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
 
 
@@ -357,6 +370,12 @@ def _stora_uttagen() -> list[Ror]:
         horn = [(*hornen[(va, vb)], _ZG)] if (va, vb) in hornen else []
         ut.append(_ror(f"G24-R{i + 2}", f"KA-U{i + 9}", f"KA-U{i + 10}",
                        ((a[0], a[1], _ZU), (a[0], a[1], _ZG), *horn, (b[0], b[1], _ZG), (b[0], b[1], _ZU))))
+    # rummen vid V2: från fläktens anslutning ned i V20:s cellplast till golvzonen, norrut och runt hörnet österut i
+    # V2:s till uttagen (i golvzonen)
+    v20, v2 = _eps("V20"), _eps("V2")
+    ut.append(_ror("G24-R5", "KA-D2", "KA-U15", ((v20, Y_FF3 - 30.0, PLAN[0] + Z_FF3), (v20, Y_FF3 - 30.0, _ZG),
+                                                 (v20, v2, _ZG), (UTTAG_V2[0][1], v2, _ZG))))
+    ut.append(_ror("G24-R6", "KA-U15", "KA-U16", ((UTTAG_V2[0][1], v2, _ZG), (UTTAG_V2[1][1], v2, _ZG))))
     return ut
 
 
