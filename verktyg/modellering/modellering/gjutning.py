@@ -132,6 +132,18 @@ def kontroll(platta: object, hal: list[dict], plattor: list[dict], punkter: dict
     return fel, anm
 
 
+def _fordelarna(vt: dict) -> dict[str, list[tuple[str, list[float], list[float]]]]:
+    """Tappvattnets fördelare och underfördelare under plattan som stänger (media, start och slut i plan) per
+    fördelare: FD (huvudfördelarna i teknikrummet), UF1, UF2."""
+    ut: dict[str, list[tuple[str, list[float], list[float]]]] = {}
+    for f in vt.get("fordelare", {}).values():
+        ut.setdefault("FD", []).append((f["media"], f["start"][:2], f["slut"][:2]))
+    for k, uf in vt.get("underfordelare", {}).items():
+        for st in uf.get("stammar", {}).values():
+            ut.setdefault(k, []).append((st["media"], st["start"][:2], st["slut"][:2]))
+    return ut
+
+
 # ------------------------------------------------------------------ teman: (ritar, punkterna)
 
 def _el(v: Vy, el: dict, z: Z) -> list[Punkt]:
@@ -168,6 +180,11 @@ def _vatten(v: Vy, vt: dict, z: Z) -> list[Punkt]:
             x, y = h["punkt"]
             v.cirkel(x, y, max(h["d"] / 2 / v.s, 1.0), fyll=None, stil="normal")
             punkter.append(("", f"hylsa till {h['tappstalle']} ({h['ror']})", x, y, f"Ø{h['d']:g}"))
+    with v.lager("fordelare"):
+        for namn, stanger in _fordelarna(vt).items():
+            for _, a, b in stanger:
+                v.polygon([tuple(q) for q in LineString([a, b]).buffer(25.0, cap_style=2).exterior.coords], None,
+                          "dold")
     return punkter
 
 
@@ -508,16 +525,22 @@ def _detalj(titel: str, o: Omrade, plats: tuple[float, float], vaggar: object, j
         under = [f"x: måtten från {'väggens liv' if lod else forsta}", f"y: måtten från {'väggens liv' if vag else forsta}"]
         if not (lod and vag):
             under.append(f"{forsta} är måttsatt på planen")
+        if fd := sorted({e["etikett"] for e in element if "etikett" in e}):
+            under.append(f"streckat: {', '.join(fd)} under plattan")
         v, ram = _ram(o, plats, titel, under)
         with v.lager("detalj"):
             rita_ytor(v, vaggar.intersection(box(x0, y0, x1, y1)), "#e4e4df", None)  # type: ignore[attr-defined]
+            for e in element:
+                if "linje" in e and e.get("under"):
+                    rita_ytor(v, LineString(e["linje"]).buffer(e["r"], cap_style=2), e["fyll"], e.get("stil", "tunn"))
             _jarnen(v, jarn)
             for e in element:
-                if "linje" in e:
-                    rita_ytor(v, LineString(e["linje"]).buffer(e["r"], cap_style=2), e["fyll"], "tunn")
+                if "linje" in e and not e.get("under"):
+                    rita_ytor(v, LineString(e["linje"]).buffer(e["r"], cap_style=2), e["fyll"], e.get("stil", "tunn"))
             for e in element:
                 if "punkt" in e:
                     v.cirkel(*e["punkt"], e["r"], fyll=e["fyll"], stil=e.get("stil", "tunn"), modell=True)
+
         s = SKALA_DETALJ
         xs = sorted({q[0] for q in pts})
         ys = sorted({q[1] for q in pts})
@@ -562,6 +585,11 @@ def _vatten_element(vt: dict, z: Z, o: Omrade) -> list[Element]:
     for h in vt.get("hylsor", []):
         if _i(o, *h["punkt"]):
             ut.append({"punkt": tuple(h["punkt"]), "r": h["d"] / 2, "fyll": None, "stil": "normal"})
+    for namn, stanger in _fordelarna(vt).items():
+        for media, a, b in stanger:
+            if LineString([a, b]).intersects(omr):
+                ut.append({"linje": [tuple(a), tuple(b)], "r": 25.0, "fyll": None, "stil": "dold", "under": True,
+                           "etikett": f"{namn}-{media}"})
     return ut
 
 
@@ -714,7 +742,8 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "mellan armeringsjärnen; ur gruppcentralen i två rader enligt detaljen (måtten från centralens västra "
             "kant).", norr, [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central))]),
         gor(nr[1], m, "tappvatten", "V", mb, *m_vagg, lambda v: _vatten(v, vatten, MB),
-            [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet")],
+            [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet"),
+             ("dold", "fördelarna under plattan (" + ", ".join(_fordelarna(vatten)) + ")")],
             "Rör-i-rör läggs i stråken närmast underkantsnätet, c/c 50, och går upp och ned mellan armeringsjärnen. "
             "Hylsorna (PP-avloppsrör) gjuts in mellan järnen; kopparrören dras senare. Där det är tätt: se "
             "detaljerna.", norr,
