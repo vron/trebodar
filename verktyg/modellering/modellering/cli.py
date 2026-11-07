@@ -856,10 +856,10 @@ def main(argv: list[str] | None = None) -> None:
         tk = imp("trebodar.hus.installationer.teknikrum")
         arm = imp("trebodar.hus.armering.armering")
         pel = imp("trebodar.hus.grund.pelare")
-        x0, x1, y0, y1 = gjutning.DETALJ
+        box_ = imp("shapely.geometry").box
+        omr = [box_(o[0], o[2], o[1], o[3]) for o in gjutning.DETALJER]
         jarn = [{"linje": [list(g.coords[0])] if g.geom_type == "Point" else [list(c) for c in g.coords], "d": d}
-                for g, d in arm.jarnen_i_nivan(-150.0, -51.0)
-                if g.intersects(imp("shapely.geometry").box(x0, y0, x1, y1))]
+                for g, d in arm.jarnen_i_nivan(-150.0, -51.0) if any(g.intersects(o) for o in omr)]
         gc = tk.GRUPPCENTRAL
         central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1],
                    "kanal": [2810.0 - 62.5, 8936.0 - 62.5, 4950.0, 8936.0 + 62.5]}

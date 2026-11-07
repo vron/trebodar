@@ -6,9 +6,11 @@ får borra eller skruva), alla hål och ursparingar och ingjutningsgodset (pelar
 egen konstruktion och armering står på R-03–R-06.
 
 Varje blad har plattans snitt, väggarna på plattan streckade (och källarens tunna under mellanbjälklaget),
-punkterna numrerade med en tabell över deras lägen x, y i mm från mellanbjälklagets kanter (K-05:s origo, som på
-R-04, R-05 och R-06) och vad de är, och en teckenförklaring. Ritas med `./mod gjutning ritning` (i ritningar/, i
-./bygg).
+punkterna numrerade och måttsatta från närmaste fasta referens (plattans kant, hålets kant, källarväggens liv; i rad
+som måttkedjor), detaljer 1:10 där det är tätt (centralens rör, tappvattnets stigare vid V19, köket vid V14), en
+tabell över punkternas lägen x, y i mm från mellanbjälklagets kanter (K-05:s origo, som på R-04, R-05 och R-06) och
+vad de är, och en teckenförklaring. Punkterna kontrolleras mot modellen (kontroll). Ritas med
+`./mod gjutning ritning` (i ritningar/, i ./bygg).
 """
 from __future__ import annotations
 
@@ -223,6 +225,133 @@ def _hal(v: Vy, hal: list[dict], trapphal: list[list[float]]) -> list[Punkt]:
 
 # ------------------------------------------------------------------ bladen
 
+Ruta = tuple[float, float, float, float]               # (u0, v0, u1, v1) i pappersmm, v uppåt
+Kant = tuple[float, float, float]                     # (läge, från, till): en lodrät (x, y0, y1) eller vågrät kant
+SZ_MATT = 4.6                                         # måttens text [pt]
+AVSTAND_MATT = 1.3                                    # måttlinjen från punkten [pappersmm]
+
+
+def _kanter(*geom: object) -> tuple[list[Kant], list[Kant]]:
+    """Ytornas axelparallella kanter (ytterkant och hål) längre än 100 mm: de lodräta (x, y0, y1) och vågräta."""
+    lod: list[Kant] = []
+    vag: list[Kant] = []
+    for g in geom:
+        for p in getattr(g, "geoms", [g]):
+            if not isinstance(p, Polygon) or p.area < 0.2e6:          # inte pelarna
+                continue
+            for ring in (p.exterior, *p.interiors):
+                c = list(ring.coords)
+                for (x0, y0), (x1, y1) in zip(c, c[1:]):
+                    if abs(x1 - x0) < 0.5 and abs(y1 - y0) > 100.0:
+                        lod.append((x0, min(y0, y1), max(y0, y1)))
+                    elif abs(y1 - y0) < 0.5 and abs(x1 - x0) > 100.0:
+                        vag.append((y0, min(x0, x1), max(x0, x1)))
+    return lod, vag
+
+
+def _narmast(a: float, b: float, kanter: list[Kant], lodratt: bool, betong: object) -> float | None:
+    """Närmaste kant från läget a längs axeln (x, eller y om lodratt), vid b tvärs den (kanten ska täcka b), utom
+    kanter genom a; måttet ska gå i betongen (inte över ett hål)."""
+    kand = sorted((abs(k - a), k) for k, k0, k1 in kanter if k0 - 1.0 <= b <= k1 + 1.0 and abs(k - a) > 1.0)
+    for _, k in kand:
+        m = (b, (a + k) / 2) if lodratt else ((a + k) / 2, b)
+        if betong.contains(Point(*m)):  # type: ignore[attr-defined]
+            return k
+    return None
+
+
+def _textruta(v: Vy, x: float, y: float, txt: str, lodratt: bool, sida: int = 1) -> Ruta:
+    """Måttextens ruta i pappersmm: ankare cb (sida 1: över en vågrät linje, till vänster om en lodrät, där texten är
+    vriden 90°) eller ct (sida -1: under, till höger)."""
+    b, h = len(txt) * 0.19 * SZ_MATT + 0.8, SZ_MATT * _PT + 0.4
+    u, w = x / v.s, y / v.s
+    if lodratt:
+        return (u - h, w - b / 2, u, w + b / 2) if sida == 1 else (u, w - b / 2, u + h, w + b / 2)
+    return (u - b / 2, w, u + b / 2, w + h) if sida == 1 else (u - b / 2, w - h, u + b / 2, w)
+
+
+def _ledig(q: Ruta, upptaget: list[Ruta]) -> bool:
+    return all(min(q[2], a[2]) <= max(q[0], a[0]) or min(q[3], a[3]) <= max(q[1], a[1]) for a in upptaget)
+
+
+def _matt_linje(v: Vy, lagen: list[tuple[float, float]], lodratt: bool, upptaget: list[Ruta]) -> None:
+    """Måttkedja längs en axel genom lagen (a, b): a längs axeln, b tvärs (kanten först, sedan punkterna i ordning),
+    förskjuten AVSTAND_MATT ovanför (vågrät) eller till vänster om (lodrät) punkterna, med hjälplinjer från punkterna
+    och snedstreck. Varje text hamnar mitt på sitt mått, på linjens andra sida eller utanför änden, där den inte
+    täcker en annan text."""
+    s = v.s
+    xy = (lambda a, b: (b, a)) if lodratt else (lambda a, b: (a, b))
+    sg = -1.0 if lodratt else 1.0                              # åt vänster (lodrät) eller uppåt (vågrät)
+    bs = [b for _, b in lagen[1:]]
+    r = (min(bs) if lodratt else max(bs)) + sg * AVSTAND_MATT * s
+    aa: list[float] = []
+    for a, _ in lagen:
+        if not aa or abs(a - aa[-1]) > 1.0:
+            aa.append(a)
+    with v.lager("matt"):
+        for i, (a, b) in enumerate(lagen):
+            if i > 0:
+                v.linje([xy(a, b + sg * 0.9 * s), xy(a, r + sg * 0.5 * s)], "matt")
+        for a in aa:
+            sl = 0.75 * s
+            v.linje([xy(a - sl, r - sl), xy(a + sl, r + sl)], "tunn")
+        v.linje([xy(min(aa) - 1.0 * s, r), xy(max(aa) + 1.0 * s, r)], "matt")
+        for a, b in zip(aa, aa[1:]):
+            txt = svm(round(abs(b - a)))
+            bredd = len(txt) * 0.19 * SZ_MATT + 0.8
+            ute = math.copysign((bredd / 2 + 1.2) * s, b - a)
+            kand = ([((a + b) / 2, 1), ((a + b) / 2, -1)] if abs(b - a) / s > bredd + 0.6 else []) + \
+                [(a - ute, 1), (b + ute, 1), (a - ute, -1), (b + ute, -1)]
+            val = None
+            for m, sida in kand:
+                x, y = xy(m, r + sida * sg * 0.5 * s)
+                q = _textruta(v, x, y, txt, lodratt, sida)
+                if val is None:
+                    val = (x, y, sida, q)
+                if _ledig(q, upptaget):
+                    val = (x, y, sida, q)
+                    break
+            assert val is not None
+            x, y, sida, q = val
+            v.text(x, y, txt, a="cb" if sida == 1 else "ct", sz=SZ_MATT, rot=90 if lodratt else 0)
+            upptaget.append(q)
+
+
+def _lagesmatt(v: Vy, punkter: list[Punkt], kanter: tuple[list[Kant], list[Kant]], betong: object,
+               samla: Sequence[Omrade] = ()) -> list[Ruta]:
+    """Punkternas lägen måttsatta från närmaste fasta referens (plattans kant, hålets kant, källarväggens liv) i x och
+    y. Punkter i rad mot samma kant (inom 0,8 pappersmm) blir en måttkedja. Ett samlat område (en detalj) måttsätts
+    här bara med sin första punkt; resten står i detaljen. Ger måttextens rutor (för numren)."""
+    lod, vag = kanter
+    ordnade = _ordna(punkter, samla)
+    unika: dict[tuple[int, int], None] = {}
+    sett: set[int] = set()
+    for _, _, x, y, _ in ordnade:
+        i = next((i for i, o in enumerate(samla) if _i(o, x, y)), None)
+        if i is None or i not in sett:
+            unika[(round(x), round(y))] = None
+            if i is not None:
+                sett.add(i)
+    grupper: dict[tuple[bool, float, int], list[tuple[float, float]]] = {}
+    for x, y in unika:
+        for lodratt, a, b, ks in ((False, x, y, lod), (True, y, x, vag)):
+            k = _narmast(a, b, ks, lodratt, betong)
+            if k is not None:
+                grupper.setdefault((lodratt, k, 1 if a > k else -1), []).append((a, b))
+    upptaget: list[Ruta] = []
+    tol = 0.8 * v.s
+    for (lodratt, k, _), ab in sorted(grupper.items()):
+        rad: list[tuple[float, float]] = []
+        for pa, pb in sorted(ab, key=lambda q: q[1]):
+            if rad and pb - rad[-1][1] > tol:
+                _matt_linje(v, [(k, rad[0][1]), *sorted(rad, key=lambda q: abs(q[0] - k))], lodratt, upptaget)
+                rad = []
+            rad.append((pa, pb))
+        if rad:
+            _matt_linje(v, [(k, rad[0][1]), *sorted(rad, key=lambda q: abs(q[0] - k))], lodratt, upptaget)
+    return upptaget
+
+
 _PT = 25.4 / 72.0                                     # en punkt i mm
 # etikettens lägen kring punkten: förskjutning (pappersmm, uppåt positiv) och textens ankare, närmast först
 _LAGEN = [(1.2, 1.0, "lb"), (-1.2, 1.0, "rb"), (1.2, -1.0, "lt"), (-1.2, -1.0, "rt"), (1.6, 0.0, "lm"),
@@ -236,51 +365,39 @@ def _ruta(u: float, v: float, a: str, b: float, h: float) -> tuple[float, float,
     return u0, v0, u0 + b, v0 + h
 
 
-def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: tuple[float, float, float, float] | None = None,
-             sz: float = 5.2, r: float = 1.4) -> list[list[str]]:
-    """Punkterna numrerade (prefix + löpnummer i y och x) med sitt nummer vid sidan, och tabellens rader. Numret
-    hamnar i det första läget runt punkten där det inte täcker ett annat nummer eller en annan punkts symbol (radien
-    r pappersmm); går inget läge, längre ut med en hänvisningslinje. Punkterna i området samla (x0, x1, y0, y1),
-    som en detalj visar, numreras i följd och får ett gemensamt nummer ("E12–E26")."""
-    def i_samla(p: Punkt) -> bool:
-        return samla is not None and samla[0] <= p[2] <= samla[1] and samla[2] <= p[3] <= samla[3]
-    samlade = [p for p in punkter if i_samla(p)]
-    forst = min(((round(p[3] / 50.0), p[2]) for p in samlade), default=(0, 0.0))
-    ordnade = sorted(punkter, key=lambda p: (*forst, round(p[3] / 50.0), p[2]) if i_samla(p)
-                     else (round(p[3] / 50.0), p[2], 0, 0.0))
-    pts = [(x / v.s, y / v.s) for _, _, x, y, _ in ordnade]
-    upptaget: list[tuple[float, float, float, float]] = []
+Omrade = tuple[float, float, float, float]            # (x0, x1, y0, y1) [mm]
+Nummer = dict[tuple[int, int], list[str]]             # punktens läge (avrundat) -> dess nummer
 
-    def krock(q: tuple[float, float, float, float], egen: int) -> float:
+
+def _i(o: Omrade, x: float, y: float) -> bool:
+    return o[0] <= x <= o[1] and o[2] <= y <= o[3]
+
+
+def _placera(v: Vy, lappar: list[tuple[str, float, float]], hinder: list[tuple[float, float]], upptaget: list[Ruta],
+             sz: float = 5.2, r: float = 1.4) -> None:
+    """Numren (text, x, y) i det första läget runt sin punkt där de inte täcker en upptagen ruta eller en punkt i
+    hinder (radien r pappersmm, utom den egna); går inget läge, längre ut med en hänvisningslinje."""
+    pts = [(x / v.s, y / v.s) for x, y in hinder]
+
+    def krock(q: Ruta, u: float, w: float) -> float:
         u0, v0, u1, v1 = q
         yta = sum(max(0.0, min(u1, a1) - max(u0, a0)) * max(0.0, min(v1, b1) - max(v0, b0))
                   for a0, b0, a1, b1 in upptaget)
-        for j, (pu, pv) in enumerate(pts):
-            if j != egen and not (samla is not None and i_samla(ordnade[egen]) and i_samla(ordnade[j])):
+        for pu, pv in pts:
+            if abs(pu - u) > 1e-6 or abs(pv - w) > 1e-6:
                 du, dv = max(u0 - pu, 0.0, pu - u1), max(v0 - pv, 0.0, pv - v1)
                 if du * du + dv * dv < r * r:
                     yta += (r - math.hypot(du, dv)) * r
         return yta
 
-    rader = []
-    nummer = [f"{prefix}{i + 1}" for i in range(len(ordnade))]
-    lappar: list[tuple[int, str, float, float]] = []        # (punktens index, numret, x, y)
-    for i, p in enumerate(ordnade):
-        rader.append([nummer[i], p[1], svm(round(p[2])), svm(round(p[3])), p[4]])
-        if not i_samla(p):
-            lappar.append((i, nummer[i], p[2], p[3]))
-    if samlade:
-        idx = [i for i, p in enumerate(ordnade) if i_samla(p)]
-        xs, ys = [ordnade[i][2] for i in idx], [ordnade[i][3] for i in idx]
-        lappar.append((idx[0], f"{nummer[idx[0]]}–{nummer[idx[-1]]}", max(xs), max(ys)))
-    for i, nr, x, y in lappar:
+    for nr, x, y in lappar:
         b, h = (0.55 * sz * len(nr) + 1.0) * _PT, (1.25 * sz + 2.0) * _PT
         u, w = x / v.s, y / v.s
-        bast: tuple[float, float, float, str, tuple[float, float, float, float]] | None = None
+        bast: tuple[float, float, float, str, Ruta] | None = None
         for k in (1.0, 2.2, 3.4):
             for du, dv, a in _LAGEN:
                 q = _ruta(u + du * k, w + dv * k, a, b, h)
-                c = krock(q, i)
+                c = krock(q, u, w)
                 if bast is None or c < bast[0] - 1e-9:
                     bast = (c, du * k, dv * k, a, q)
                 if c == 0.0:
@@ -295,48 +412,205 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: tuple[float, float
                 v.linje([(x + du / math.hypot(du, dv) * 0.9 * v.s, y + dv / math.hypot(du, dv) * 0.9 * v.s),
                          (x + du * v.s, y + dv * v.s)], "tunn")
             v.ptext(x, y, du, dv, nr, a=a, sz=sz, b=True, bg=True)
-    return rader
 
 
-DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # centralens rör: området (x0, x1, y0, y1)
+def _ordna(punkter: list[Punkt], samla: Sequence[Omrade]) -> list[Punkt]:
+    """Punkterna i numreringens ordning: i y och x, men varje samlat område (en detalj) i följd, där dess första
+    punkt hade kommit."""
+    def omr(p: Punkt) -> int | None:
+        return next((i for i, o in enumerate(samla) if _i(o, p[2], p[3])), None)
+    forst: dict[int, tuple[int, float]] = {}
+    for p in punkter:
+        if (i := omr(p)) is not None:
+            k = (round(p[3] / 50.0), p[2])
+            forst[i] = min(forst.get(i, k), k)
+
+    def nyckel(p: Punkt) -> tuple[int, float, int, float]:
+        i = omr(p)
+        return (*forst[i], round(p[3] / 50.0), p[2]) if i is not None else (round(p[3] / 50.0), p[2], 0, 0.0)
+    return sorted(punkter, key=nyckel)
+
+
+def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: Sequence[Omrade] = (),
+             upptaget: list[Ruta] | None = None) -> tuple[list[list[str]], Nummer]:
+    """Punkterna numrerade (prefix + löpnummer i y och x) med sitt nummer vid sidan (_placera), tabellens rader och
+    numren per läge. Punkterna i ett område i samla, som en detalj visar, numreras i följd och får på planen ett
+    gemensamt nummer ("E12–E26")."""
+    ordnade = _ordna(punkter, samla)
+    nummer = [f"{prefix}{i + 1}" for i in range(len(ordnade))]
+    rader = [[nummer[i], p[1], svm(round(p[2])), svm(round(p[3])), p[4]] for i, p in enumerate(ordnade)]
+    per_lage: Nummer = {}
+    for i, p in enumerate(ordnade):
+        per_lage.setdefault((round(p[2]), round(p[3])), []).append(nummer[i])
+    lappar: list[tuple[str, float, float]] = []
+    for (x, y), nr in per_lage.items():
+        if not any(_i(o, x, y) for o in samla):
+            lappar.append(("/".join(nr), x, y))
+    for o in samla:
+        idx = [i for i, p in enumerate(ordnade) if _i(o, p[2], p[3])]
+        if idx:
+            xs, ys = [ordnade[i][2] for i in idx], [ordnade[i][3] for i in idx]
+            lappar.append((f"{nummer[idx[0]]}–{nummer[idx[-1]]}", max(xs), max(ys)))
+    _placera(v, lappar, [(float(x), float(y)) for x, y in per_lage], list(upptaget or []))
+    return rader, per_lage
+
+
+DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # el: rören ur gruppcentralen (x0, x1, y0, y1)
+DETALJ_VATTEN = (4150.0, 4500.0, 7980.0, 9080.0)     # tappvatten: stigarna ur källaren vid V19
+DETALJ_KOK = (13280.0, 13520.0, 8300.0, 8900.0)      # köket vid V14: hylsorna, diskbänkens avlopp, UF1
+DETALJER = (DETALJ, DETALJ_VATTEN, DETALJ_KOK)
 SKALA_DETALJ = 10.0
+Element = dict                                        # detaljens innehåll: {"linje", "r", "fyll"} eller {"punkt", ...}
+Detalj = Callable[[Nummer], list[Vy]]
 
 
-def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Vy:
-    """Detalj 1:10 ovanför gruppcentralen: rörens stigare i de två raderna (den bakre i V3:s cellplast) mellan
-    underkantsnätets järn och V3:s vinkeljärn, kanalen FF3-K2 och måtten från centralens västra kant."""
-    x0, x1, y0, y1 = DETALJ
-    v = Vy(222.0, 150.0, (x1 - x0) / SKALA_DETALJ, (y1 - y0) / SKALA_DETALJ, SKALA_DETALJ, x0, y1, klipp=True)
-    (cx, cy, _), (b, d) = central["topp"], central["matt"]
-    with v.lager("detalj"):
-        v.rekt(cx - b / 2, cy - d / 2, cx + b / 2, cy + d / 2, "#efefec", "normal")
-        v.linje([(x0, central["vagg"]), (x1, central["vagg"])], "normal")
-        for j in jarn:
-            pts = [tuple(q) for q in j["linje"]]
-            if len(pts) == 1:
-                v.cirkel(pts[0][0], pts[0][1], j["d"] / 2, fyll="#8a8f94", stil=None, modell=True)
+def _ram(o: Omrade, plats: tuple[float, float], titel: str, under: Sequence[str] = (), topp: float = 0.0
+         ) -> tuple[Vy, Vy]:
+    """En detalj 1:10: vyn (klippt till området) och en oklippt, större vy runt den med ram, rubrik och undertexter
+    (topp pappersmm över ramen, där det ska ritas något annat); måtten och numren ritas i den oklippta, utanför eller
+    över ramen."""
+    x0, x1, y0, y1 = o
+    s = SKALA_DETALJ
+    w, h, m = (x1 - x0) / s, (y1 - y0) / s, 16.0 + topp
+    v = Vy(plats[0], plats[1], w, h, s, x0, y1, klipp=True)
+    ram = Vy(plats[0] - m, plats[1] - m, w + 2 * m + 50.0, h + 2 * m, s, x0 - m * s, y1 + m * s)
+    with ram.lager("ram"):
+        ram.rekt(x0, y0, x1, y1, None, "tunn")
+        rader = [f"Skala 1:{s:g}", *under]
+        ram.text(x0, y1 + (topp + 2.0 + 2.6 * len(rader)) * s, titel, a="lb", sz=8, b=True)
+        for i, t in enumerate(rader):
+            ram.text(x0, y1 + (topp + 1.6 + 2.6 * (len(rader) - 1 - i)) * s, t, a="lb", sz=6.0, col="gra")
+    return v, ram
+
+
+def _jarnen(v: Vy, jarn: list[dict]) -> None:
+    for j in jarn:
+        pts = [tuple(q) for q in j["linje"]]
+        if len(pts) == 1:
+            v.cirkel(pts[0][0], pts[0][1], j["d"] / 2, fyll="#8a8f94", stil=None, modell=True)
+        else:
+            v.linje(pts, "stal")
+
+
+def _detalj(titel: str, o: Omrade, plats: tuple[float, float], vaggar: object, jarn: list[dict],
+            element: list[Element], kanter: tuple[list[Kant], list[Kant]]) -> Detalj:
+    """Detalj 1:10 av ett tätt område: källarväggarna (grått), armeringsjärnen, rören och hålen i skala och
+    punkternas nummer från planen, med måttkedjor utanför ramen från väggarnas liv inom området (annars från den
+    första punkten, som är måttsatt på planen)."""
+    x0, x1, y0, y1 = o
+    pts = sorted({(round(e["punkt"][0]), round(e["punkt"][1])) for e in element if "punkt" in e},
+                 key=lambda q: (q[1], q[0]))
+    lod = [k for k, k0, k1 in kanter[0] if x0 < k < x1 and k0 <= min(q[1] for q in pts) and k1 >= max(q[1] for q in pts)]
+    vag = [k for k, k0, k1 in kanter[1] if y0 < k < y1 and k0 <= min(q[0] for q in pts) and k1 >= max(q[0] for q in pts)]
+
+    def rita(nummer: Nummer) -> list[Vy]:
+        forsta = "/".join(nummer.get(pts[0], ["?"]))
+        under = [f"x: måtten från {'väggens liv' if lod else forsta}", f"y: måtten från {'väggens liv' if vag else forsta}"]
+        if not (lod and vag):
+            under.append(f"{forsta} är måttsatt på planen")
+        v, ram = _ram(o, plats, titel, under)
+        with v.lager("detalj"):
+            rita_ytor(v, vaggar.intersection(box(x0, y0, x1, y1)), "#e4e4df", None)  # type: ignore[attr-defined]
+            _jarnen(v, jarn)
+            for e in element:
+                if "linje" in e:
+                    rita_ytor(v, LineString(e["linje"]).buffer(e["r"], cap_style=2), e["fyll"], "tunn")
+            for e in element:
+                if "punkt" in e:
+                    v.cirkel(*e["punkt"], e["r"], fyll=e["fyll"], stil=e.get("stil", "tunn"), modell=True)
+        s = SKALA_DETALJ
+        xs = sorted({q[0] for q in pts})
+        ys = sorted({q[1] for q in pts})
+        with ram.lager("matt"):
+            if lod:
+                k = min(lod, key=lambda k: min(abs(k - x) for x in xs))
+                kedja = sorted([k, *xs], key=lambda x: abs(x - k))[::-1]
             else:
-                v.linje(pts, "stal")
-        k = central["kanal"]
-        v.rekt(k[0], k[1], k[2], k[3], None, "dold")
-    rader: dict[float, list[float]] = {}
-    with v.lager("stigare"):
-        for nr, r in el["ror"].items():
-            if r["fran"] != "GC" or len(r["vag"]) < 3:
-                continue
-            for a, b_ in zip(r["vag"], r["vag"][1:]):
-                if _genom(a, b_, MB) == "ned" or (abs(a[0] - b_[0]) < 1.0 and abs(a[1] - b_[1]) < 1.0
-                                                   and min(a[2], b_[2]) < MB[0] < max(a[2], b_[2])):
-                    v.cirkel(a[0], a[1], r["diameter"] / 2, fyll="#c8661c", stil="tunn", modell=True)
-                    v.ptext(a[0], a[1], 0.0, -1.6, nr.split("-")[0][1:], a="ct", sz=4.2, b=True)
-                    rader.setdefault(round(a[1]), []).append(a[0])
-                    break
-    for i, (y, xs) in enumerate(sorted(rader.items())):
-        xx = [cx - b / 2, *sorted(xs)]
-        v.mattx(xx, y - 60.0 - 40.0 * i, [y] * len(xx), sz=5.0)
-    v.rubrik(x0 + 5.0 * SKALA_DETALJ, y1 + 12.0 * SKALA_DETALJ, "Detalj: rören ur gruppcentralen", round(SKALA_DETALJ),
-             sz=8)
-    return v
+                kedja = xs
+            if len(kedja) > 1:
+                fr = [min(q[1] for q in pts if q[0] == x) if x in xs else y0 for x in sorted(kedja)]
+                ram.mattx(sorted(kedja), y0 - 6.0 * s, fr, sz=5.0)
+            if vag:
+                k = min(vag, key=lambda k: min(abs(k - y) for y in ys))
+                kedja = sorted([k, *ys])
+            else:
+                kedja = ys
+            if len(kedja) > 1:
+                fr = [min(q[0] for q in pts if q[1] == y) if y in ys else x0 for y in kedja]
+                ram.matty(kedja, x0 - 6.0 * s, fr, sz=5.0)
+        _placera(ram, [("/".join(nummer.get(q, ["?"])), float(q[0]), float(q[1])) for q in pts],
+                 [(float(x), float(y)) for x, y in pts], [], sz=5.0, r=0.9)
+        return [v, ram]
+    return rita
+
+
+def _vatten_element(vt: dict, z: Z, o: Omrade) -> list[Element]:
+    """Tappvattnets rör i plattan inom området i skala: de vågräta som band, stigarna (fyllda upp, vita ned) och
+    hylsorna."""
+    ut: list[Element] = []
+    omr = box(o[0], o[2], o[1], o[3])
+    for r in vt["ror"].values():
+        ytter = float(re.findall(r"\d+(?:\.\d+)?", r["matt"])[-1])
+        f = r["media"].lower()
+        for led in _vagratt(r["vag"], z):
+            if LineString(led).intersects(omr):
+                ut.append({"linje": led, "r": ytter / 2, "fyll": f})
+        for a, b in zip(r["vag"], r["vag"][1:]):
+            g = _genom(a, b, z)
+            if g and _i(o, a[0], a[1]):
+                ut.append({"punkt": (a[0], a[1]), "r": ytter / 2, "fyll": f if g == "upp" else "vit", "stil": "tunn"})
+    for h in vt.get("hylsor", []):
+        if _i(o, *h["punkt"]):
+            ut.append({"punkt": tuple(h["punkt"]), "r": h["d"] / 2, "fyll": None, "stil": "normal"})
+    return ut
+
+
+def _hal_element(hal: list[dict], o: Omrade) -> list[Element]:
+    """Hålen inom området i skala."""
+    ut: list[Element] = []
+    for h in hal:
+        x, y = h["punkt"][:2]
+        if _i(o, x, y):
+            b, _ = _matt(h["matt"])
+            ut.append({"punkt": (x, y), "r": b / 2, "fyll": "vit", "stil": "normal"})
+    return ut
+
+
+def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Detalj:
+    """Detalj 1:10 ovanför gruppcentralen: rörens stigare i de två raderna (den bakre i V3:s cellplast) mellan
+    underkantsnätets järn och V3:s vinkeljärn, kanalen FF3-K2 och måtten från centralens västra kant (den främre
+    raden under ramen, den bakre över)."""
+    x0, x1, y0, y1 = DETALJ
+    s = SKALA_DETALJ
+
+    def rita(_: Nummer) -> list[Vy]:
+        v, ram = _ram(DETALJ, (226.0, 180.0), "Detalj: rören ur gruppcentralen",
+                      ["gruppernas nummer", "måtten från centralens västra kant"], topp=6.0)
+        (cx, cy, _z), (b, d) = central["topp"], central["matt"]
+        with v.lager("detalj"):
+            v.rekt(cx - b / 2, cy - d / 2, cx + b / 2, cy + d / 2, "#efefec", "normal")
+            v.linje([(x0, central["vagg"]), (x1, central["vagg"])], "normal")
+            _jarnen(v, jarn)
+            k = central["kanal"]
+            v.rekt(k[0], k[1], k[2], k[3], None, "dold")
+        rader: dict[float, list[float]] = {}
+        with v.lager("stigare"):
+            for nr, r in el["ror"].items():
+                if r["fran"] != "GC" or len(r["vag"]) < 3:
+                    continue
+                for a, b_ in zip(r["vag"], r["vag"][1:]):
+                    if _genom(a, b_, MB) == "ned" or (abs(a[0] - b_[0]) < 1.0 and abs(a[1] - b_[1]) < 1.0
+                                                       and min(a[2], b_[2]) < MB[0] < max(a[2], b_[2])):
+                        v.cirkel(a[0], a[1], r["diameter"] / 2, fyll="#c8661c", stil="tunn", modell=True)
+                        v.ptext(a[0], a[1], 0.0, -1.3, nr.split("-")[0][1:], a="ct", sz=4.2, b=True, bg=True)
+                        rader.setdefault(round(a[1]), []).append(a[0])
+                        break
+        with ram.lager("matt"):
+            for i, (y, xs) in enumerate(sorted(rader.items())):
+                xx = [cx - b / 2, *sorted(xs)]
+                ram.mattx(xx, y0 - 5.0 * s if i == 0 else y1 + 4.0 * s, [y] * len(xx), sz=5.0)
+        return [v, ram]
+    return rita
 
 
 def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
@@ -351,11 +625,12 @@ def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
 
 
 def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], ovan: object, under: object,
-          vaggarna: str, rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
-          norr: tuple[float, float], extra: Sequence[Vy] = (),
-          samla: tuple[float, float, float, float] | None = None) -> tuple[Blad, list[Punkt]]:
-    """Ett blad: plattans snitt, väggarna på plattan (streckade) och under den (tunna), temats rör och punkter,
-    tabellen och anvisningarna. ovan, under: väggarnas ytor (shapely) eller None."""
+          vaggarna: str, referenser: tuple[str, tuple[list[Kant], list[Kant]], object],
+          rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
+          norr: tuple[float, float], detaljer: Sequence[tuple[Omrade, Detalj]] = ()) -> tuple[Blad, list[Punkt]]:
+    """Ett blad: plattans snitt, väggarna på plattan (streckade) och under den (tunna), temats rör och punkter med
+    lägesmått och nummer, detaljerna över täta områden, tabellen och anvisningarna. ovan, under: väggarnas ytor
+    (shapely) eller None; referenser: (vad måtten utgår från, kanterna, plattans betong)."""
     v = vy(SKALA, OMRADE, 24.0, 20.0)
     plan(v, snitt_)
     with v.lager("vaggar"):
@@ -364,7 +639,9 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
         if ovan is not None:
             rita_ytor(v, ovan, None, "dold", MINSTA_HAL)
     punkter = rita(v)
-    rader = _numrera(v, punkter, prefix, samla)
+    samla = [o for o, _ in detaljer]
+    rader, nummer_ = _numrera(v, punkter, prefix, samla, _lagesmatt(v, punkter, referenser[1], referenser[2], samla))
+    extra = [w for _, d in detaljer for w in d(nummer_)]
     origo(v)
     norrpil(v, *NORR, norr)
     v.rubrik(*papper(v, 24.0, 14.0), f"{platta}: {tema}", round(SKALA))
@@ -372,8 +649,9 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
             anvisning,
-            "Lägen x, y i mm från mellanbjälklagets kanter x = 0 och y = 0 (K-05:s origo, som på R-04, R-05 och "
-            "R-06), i rörets, hålets eller plåtens mitt. Mät från plattkanten; kontrollera mot tabellen.",
+            f"Måtten går från närmaste fasta referens ({referenser[0]}) till rörets, hålets eller plåtens mitt; "
+            "punkter i rad mot samma referens i en kedja. Tabellen ger lägena x, y i mm från mellanbjälklagets kanter "
+            "x = 0 och y = 0 (K-05:s origo, som på R-04, R-05 och R-06), för kontroll.",
             f"{vaggarna} Plattans konstruktion och armering: R-03–R-06.",
             "Ritas ur modellen med ./mod gjutning ritning; lägena är installationernas egna (E-01, VS-01, VS-02, VG-01).",
         ]),
@@ -400,8 +678,21 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
     fritt_1 = vaggar_1.difference(_ror_zon(el, vatten, avlopp, golvvarme, MB, 1))
     fritt_0 = vaggar_0.difference(_ror_zon(el, vatten, avlopp, golvvarme, BP, 0))
     grund = unary_union(polygoner(kallare, bara=("Hus/Grund",)))
-    m_vagg = (vaggar_1, grund, "Plan 1:s väggar är streckade och källarens tunna.")
-    b_vagg = (vaggar_0, None, "Källarens väggar på plattan är streckade.")
+    betong_mb = unary_union(polygoner(mb, bara=("Hus/Mellanbjälklag/MB-B",)))
+    betong_bp = unary_union(polygoner(bp, bara=("Hus/Grund/Bottenplatta/BP-B",)))
+    kant_mb = _kanter(betong_mb, grund)
+    m_vagg = (vaggar_1, grund, "Plan 1:s väggar är streckade och källarens tunna.",
+              ("plattans kant, trapphålets kant eller källarväggens liv", kant_mb, betong_mb))
+    b_vagg = (vaggar_0, None, "Källarens väggar på plattan är streckade.",
+              ("plattans kant", _kanter(betong_bp), betong_bp))
+
+    def jarn_i(o: Omrade) -> list[dict]:
+        omr = box(o[0], o[2], o[1], o[3])
+        return [j for j in jarn if (Point(*j["linje"][0]) if len(j["linje"]) == 1 else LineString(j["linje"]))
+                .intersects(omr)]
+
+    def detalj(titel: str, o: Omrade, plats: tuple[float, float], element: list[Element]) -> tuple[Omrade, Detalj]:
+        return o, _detalj(titel, o, plats, grund, jarn_i(o), element, kant_mb)
     borra = (f"Borra och skruva i plattan bara i det gröna: under {{}} väggar och minst {FRIZON:g} mm från alla rör "
              "i plattan (alla installationernas).")
     punkter: dict[str, list[Punkt]] = {}
@@ -421,11 +712,15 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "Elrören gjuts in före gjutningen, i sina nivåer: de klena över tappvattnet och golvvärmen, de grova i "
             "tappvattnets nivå utan att korsa det. ● röret går upp i väggen ovanför, ○ ned i källaren. Rören går upp "
             "mellan armeringsjärnen; ur gruppcentralen i två rader enligt detaljen (måtten från centralens västra "
-            "kant).", norr, [_detalj_centralen(el, jarn, central)], DETALJ),
+            "kant).", norr, [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central))]),
         gor(nr[1], m, "tappvatten", "V", mb, *m_vagg, lambda v: _vatten(v, vatten, MB),
             [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet")],
             "Rör-i-rör läggs i stråken närmast underkantsnätet, c/c 50, och går upp och ned mellan armeringsjärnen. "
-            "Hylsorna (PP-avloppsrör) gjuts in mellan järnen; kopparrören dras senare.", norr),
+            "Hylsorna (PP-avloppsrör) gjuts in mellan järnen; kopparrören dras senare. Där det är tätt: se "
+            "detaljerna.", norr,
+            [detalj("Detalj: stigarna ur källaren vid V19", DETALJ_VATTEN, (238.0, 44.0),
+                    _vatten_element(vatten, MB, DETALJ_VATTEN)),
+             detalj("Detalj: köket vid V14", DETALJ_KOK, (290.0, 44.0), _vatten_element(vatten, MB, DETALJ_KOK))]),
         gor(nr[2], m, "avlopp", "A", mb, *m_vagg, lambda v: _avlopp(v, avlopp, MB),
             [("av_tunn", "avloppsrör genom eller i plattan"), ("av", "golvbrunn, kroppen ingjuten")],
             "Avloppets rör genom plattan gjuts in eller sparas ur (järnen läggs om runt hålen); golvbrunnens kropp "
@@ -437,14 +732,15 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
         gor(nr[4], m, "hål och ursparingar", "H", mb, *m_vagg, lambda v: _hal(v, hal["MB"], trapphal),
             [("normal", "hål eller ursparing")],
             "Alla genomföringar i plattan: hål som sparas ur eller hylsor som gjuts in, med måttet (håltagningen), "
-            "och trapphålet. Järnen läggs om runt hålen enligt R-06.", norr),
+            "och trapphålet. Järnen läggs om runt hålen enligt R-06.", norr,
+            [detalj("Detalj: köket vid V14", DETALJ_KOK, (240.0, 44.0), _hal_element(hal["MB"], DETALJ_KOK))]),
         gor(nr[5], m, "ingjutningsgods", "Ö", mb, *m_vagg, lambda v: _ovrigt(v, plattor["MB"]),
             [("normal", "stålplåt ingjuten i plattans underkant")],
             "Källarpelarnas topplåtar gjuts in i plattans underkant, mitt över pelarna (K-05, R-05).", norr),
     ]
     pdf.append(ut / f"{SERIE}.pdf")
     kompilera(bladen, arbete / "AR-03", pdf[-1])
-    fel, anm = kontroll(unary_union(polygoner(mb, bara=("Hus/Mellanbjälklag",))), hal["MB"], plattor["MB"],
+    fel, anm = kontroll(betong_mb, hal["MB"], plattor["MB"],
                         {k: v for k, v in punkter.items() if k.startswith("AR-03")})
     nr = [f"{SERIE_BP.split()[0]}.{i}" for i in range(1, 5)]
     b = "Bottenplattan"
@@ -468,6 +764,6 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
     ]
     pdf.append(ut / f"{SERIE_BP}.pdf")
     kompilera(bladen, arbete / "AR-04", pdf[-1])
-    f, a = kontroll(unary_union(polygoner(bp, bara=("Hus/Grund/Bottenplatta",))), hal["BP"], plattor["BP"],
+    f, a = kontroll(betong_bp, hal["BP"], plattor["BP"],
                     {k: v for k, v in punkter.items() if k.startswith("AR-04")})
     return pdf, fel + f, anm + a
