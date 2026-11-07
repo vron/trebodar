@@ -18,7 +18,8 @@ utom golvbrunnens, som K-05 ska pröva (kontrollen redovisar hålen inom GENOMST
 Köket: diskhons avlopp (i hons bakre del, bakom diskbänksskåpets lådor) går rakt ned, Ø50 genom mellanbjälklaget,
 källaren längs källarväggen V14 och bottenplattan, och med en böj till en gren Ø110 till grundledningen. Diskmaskinen
 i ön (#50) har ett pumpat avlopp (AV20): maskinens egen pump trycker vattnet genom ett rör PEX 25 utan fall, ingjutet
-i mellanbjälklaget på tappvattnets nivå, från anslutningen under maskinen till diskbänksskåpet bakom lådorna, där
+i mellanbjälklaget på tappvattnets nivå, från anslutningen under maskinen i räta vinklar till diskbänksskåpet bakom
+lådorna, där
 slangen går upp till diskhons vattenlås (dess anslutning för diskmaskin, med en ögla under bänkskivan). Ett avlopp med
 självfall ryms inte mellan armeringsnäten (#49). Röret går förbi tappvattnets matning till underfördelaren UF1, så att
 det inte korsar den; maskinen ska tillåta så lång slang (DM_SLANG).
@@ -99,8 +100,9 @@ BADKAR_BOTTEN = B.Z_BADKAR + B.BADKAR_KAR                        # karets botten
 BRUNN = (200.0, 100.0)                      # golvbrunnens kropp: diameter, djup under flänsen
 BRUNN_SIL = (220.0, 230.0)                  # silen och klämringen (hålet i golvets skikt, badrumsgolv.BRUNN_HAL)
 DISKHO = KB.diskhons_avlopp()               # diskhons avlopp i plan
-# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen till DM_SODER och snett till diskbänksskåpet
-# bakom lådorna, förbi tappvattnets matning till UF1 (som kommer ned till underfördelaren vid y 8 825)
+# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen längs ön till DM_SODER, österut och söderut
+# till diskbänksskåpet bakom lådorna, söder om tappvattnets matning till UF1 (som kommer ned till underfördelaren vid
+# y 8 825)
 DM_ROR = 25.0                               # PEX 25 × 2,3
 DM_ANSLUTNING = KB.diskmaskinens_anslutningar()[1]
 DM_SODER = 8700.0                           # längs ön till hit, förbi matningen till UF1 (y 8 825)
@@ -313,7 +315,8 @@ def ledningar() -> dict[str, Ledning]:
     ax, ay = _mellan_jarnen(DM_ANSLUTNING)
     bx, by = _mellan_jarnen(DM_DISKBANK)
     ut["AV20"] = Ledning("AV20", "Diskmaskinen i ön, pumpat till diskhons vattenlås", DM_ROR,
-                         ((ax, ay, 0.0), (ax, ay, z), (ax, DM_SODER, z), (bx, by, z), (bx, by, DM_STOS)), "AV5",
+                         ((ax, ay, 0.0), (ax, ay, z), (ax, DM_SODER, z), (bx, DM_SODER, z), (bx, by, z),
+                          (bx, by, DM_STOS)), "AV5",
                          pumpad=True)
     # luftningen: rakt upp från stammens topp i L11 och från ångbromsen en dimension större ut genom taket
     lx, ly = sx, sy + LUFT_DY
