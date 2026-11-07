@@ -456,6 +456,17 @@ arende   = [51]
 anm      = "Vanlig grossistprodukt enligt #51; ansluts i en ingjuten dosa ovanför."
 
 [[produkt]]
+kod      = "ARM-TUBE-S"
+grupp    = "Belysning"
+namn     = "Utanpåliggande tubspot med låg bländning, 3000 K, i källarens trevliga rum"
+vald     = "SG Armaturen Tube Mini S White 900lm 3000K Ra 98 (320692), förslag"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [51]
+anm      = "Ansluts i en ingjuten dosa ovanför; SG:s ingjutningshus för infällda spotar ryms inte i bjälklaget."
+
+[[produkt]]
 kod      = "ARM-VAGGLAMPA"
 grupp    = "Belysning"
 namn     = "Vägglampa med glob av opalglas Ø160 på arm av mässing, IP44"

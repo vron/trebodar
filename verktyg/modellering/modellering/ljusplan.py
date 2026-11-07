@@ -29,7 +29,8 @@ KANTZON = 500.0                  # utan kantzonen längs väggarna i rummens sta
 SKALOR = (20.0, 50.0, 75.0, 100.0)
 PLATS = (205.0, 240.0)           # planens största bredd och höjd på bladet [mm]
 FORSTORING = 4                   # rastrets bildpunkter per mätruta och led (bilinjärt mellan rutorna)
-INREDNING = ("Hus/Inredning", "Hus/Kamin")      # inredningen på mätytan, som lämnas utanför statistiken
+INREDNING = ("Hus/Inredning", "Hus/Kamin", "Hus/Trappa")   # inredningen på mätytan (och källartrappan, där man
+#                                                             inte går), som lämnas utanför statistiken
 FARGER = ["#{:02x}{:02x}{:02x}".format(*(round(255 * c) for c in f[:3]))
           for f in plt.get_cmap("inferno")(np.linspace(0.08, 0.98, len(NIVAER) - 1))]
 
@@ -312,7 +313,8 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
                       for h in sorted({z.hojd for z in hoga})),
             *scenario,
             "Statistiken per rum utan en kantzon på 0,5 m längs väggarna (SS-EN 12464-1), i små rum mindre, och "
-            "utan inredningen på mätytan (skåp, säng och bänkskivor, vita på planen); jämnheten U₀ = minsta / medel. "
+            "utan inredningen på mätytan (skåp, säng, bänkskivor och källartrappan, vita på planen); jämnheten U₀ = "
+            "minsta / medel. "
             "Rummen är de slutna ytorna mellan väggarna; en öppen planlösning delas mellan rummens namn.",
             "Ritningen ritas med ./mod ljusplan (verktyg/modellering); mätytorna står i modellens el/matytor.py.",
         ]),

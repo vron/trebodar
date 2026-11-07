@@ -1,5 +1,5 @@
-"""Källaren (#51): arbetsrummens belysning, uttagen i alla rum, tvättstugans maskiner och fläkten FF3:s anslutning,
-efter användarens indelning av rummen, 3000 K.
+"""Källaren (#51): belysningen, uttagen i alla rum, tvättstugans maskiner och fläkten FF3:s anslutning, efter
+användarens indelning av rummen, 3000 K.
 
 Belysningen:
 - Arbetsrummen (kostnaden styr): tunna utanpåliggande LED-paneler LEDVANCE PANEL COMPACT 600 (../katalog.py), var och
@@ -8,14 +8,20 @@ Belysningen:
   två små rummen söder om KL1 (väster och öster om KL2). Rummen och hur de motsvarar användarens (antaget, ärende
   #51): det stora rummet på nordvästra sidan är det stora rummet, det lilla rummet i sydostliga änden de två små
   rummen.
-- De trevliga rummen (rummet vid trappan, tvättstugan, de två små rummen vid V2 och rummet söder om KL4) får sin
-  belysning när spotarnas ingjutning är bestämd (#51); teknikrummet får ingen belysning nu.
-- Brytarna sitter vid dörrarna, 1 050 mm över golvet; rören går rakt upp ur deras dosor, sida vid sida, i
-  KL-väggarnas regelfack in i bjälklaget och ingjutna där (i_bjalklaget: elrörens undre nivå där den är fri, annars
+- De trevliga rummen (trapphallen, tvättstugan, de två små rummen norr om V4–V6 och rummet söder om trapphallen):
+  utanpåliggande tubspotar med låg bländning, SG Armaturen Tube Mini S (../katalog.py), var och en ansluten i en
+  ingjuten dosa ovanför sig. Ingjutna spotar ryms inte: ingjutningshusen för infällda spotar är 110–165 mm höga och
+  tar hela bjälklaget med golvvärmen och armeringen (#51). Spotarna står jämnt i rummen (SPOTAR), fria från rören i
+  bjälklaget, pelarnas genomstansningszoner och det som sitter under taket, och dimras vid ingångarna (DIMRAR); de två
+  små rummen har ingen vägg emellan i modellen och är två tändgrupper på en dimmer med två kanaler.
+- Teknikrummet får ingen belysning nu.
+- Brytarna och dimrarna sitter vid dörrarna, 1 050 mm över golvet; rören går rakt upp ur deras dosor, sida vid sida,
+  i KL-väggarnas regelfack in i bjälklaget och ingjutna där (i_bjalklaget: elrörens undre nivå där den är fri, annars
   den övre; nivån byts bara där golvvärmen inte går). Det stora rummet (G17): gruppens rör från den bakre raden över
   centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och därifrån till brytaren på KL7 (tvärs stråket E
-  vid X_OVER) och till panelerna. De små rummen (G18): gruppens rör i stråket S och ned i KL1 till det västra rummets
-  brytare, därifrån till rummets panel och genom bjälklaget till det östra rummets brytare och panel.
+  vid X_OVER) och till panelerna. De andra rummen (G18): gruppens rör i stråket S och ned i KL1 till det västra lilla
+  rummets brytare, därifrån till rummets panel och genom bjälklaget till det östra rummets brytare och panel, och
+  vidare till dimrarna i tur och ordning (söder om pelarna i KL4 och KL1).
 
 Uttagen (dubbla, i arbetsrummen, tvättstugan och teknikrummet 1 100 mm över golvet, i de trevliga rummen 250 mm) och
 anslutningarna sitter på källarväggarna och KL-väggarna; rören går i källarväggarnas cellplast bakom gipsen och i
@@ -50,7 +56,8 @@ from ...strak import fri, mellan_jarnen
 from ...vatten.system import vatten
 from .. import kedjor
 from ..bjalklag import mellanbjalklag as MB
-from ..katalog import ANSLUTNING, BRYTARE_1, FXP16, INGJUTNINGSDOSA, PANEL_600, UTTAG_1_IP44, UTTAG_2, UTTAG_2_IP44
+from ..katalog import (ANSLUTNING, BRYTARE_1, DIMMER_1, DIMMER_2, FXP16, INGJUTNINGSDOSA, PANEL_600, TUBE_MINI_S,
+                       UTTAG_1_IP44, UTTAG_2, UTTAG_2_IP44)
 from ...montering import kallarvagg
 from ...teknikrum import GC_MATT, X_GC
 from . import teknikrum
@@ -101,21 +108,22 @@ def _hinder() -> Polygon:
     return unary_union(delar)
 
 
-def dosans_lage(x: float, y: float, rum: Polygon) -> tuple[float, float]:
-    """Den ingjutna dosans läge närmast (x, y) i rummet: fri från rören i bjälklaget och genomstansningszonerna, och
-    mellan underkantsnätets järn."""
+def dosans_lage(x: float, y: float, rum: Polygon, hinder: Polygon | None = None) -> tuple[float, float]:
+    """Den ingjutna dosans läge närmast (x, y) i rummet: fri från rören i bjälklaget och genomstansningszonerna (eller
+    hinder, där dosans mitt inte får stå), och mellan underkantsnätets järn."""
     r = INGJUTNINGSDOSA.diameter / 2
     inne = rum.buffer(-300.0)
+    stopp = _hinder() if hinder is None else hinder
     for steg in range(0, 1201, 50):
         for dx, dy in sorted({(sx * steg, sy * j) for sx in (-1, 1) for sy in (-1, 1) for j in range(0, steg + 1, 50)}
                              | {(sx * j, sy * steg) for sx in (-1, 1) for sy in (-1, 1) for j in range(0, steg + 1, 50)},
                              key=lambda d: math.hypot(*d)):
             q = Point(x + dx, y + dy)
-            if not inne.contains(q) or _hinder().contains(q):
+            if not inne.contains(q) or stopp.contains(q):
                 continue
             jx, jy = mellan_jarnen([(q.x, q.y)], KALLARTAK, KALLARTAK + INGJUTNINGSDOSA.djup, r, spel=5.0)
             p = Point(q.x + jx, q.y + jy)
-            if inne.contains(p) and not _hinder().contains(p):
+            if inne.contains(p) and not stopp.contains(p):
                 return p.x, p.y
     raise ValueError(f"ingen plats för en ingjuten dosa nära ({x:.0f}, {y:.0f})")
 
@@ -225,22 +233,30 @@ def _hindren() -> list[tuple[LineString | Point, float, float, float]]:
             if max(a[2], b[2]) > KALLARTAK - 1.0 and min(a[2], b[2]) < PLAN[1] + 1.0]
 
 
-def _fritt(pts: Sequence[tuple[float, float]], z: float) -> bool:
-    """Om rören (Ø16) genom punkterna i nivån z går fria från hindren och armeringsjärnen."""
+Bit = tuple[LineString | Point, float, float, float]       # ett rörs raka bit: linjen i plan, radien, lägsta och högsta z
+
+
+def _fritt(pts: Sequence[tuple[float, float]], z: float, andra: Sequence[Bit] = ()) -> bool:
+    """Om rören (Ø16) genom punkterna i nivån z går fria från hindren (och andra) och armeringsjärnen."""
     r = FXP16.ytterdiameter / 2
     linje = LineString(pts)
-    for g, rr, z0, z1 in _hindren():
+    for g, rr, z0, z1 in (*_hindren(), *andra):
         if z1 >= z - r - rr - 5.0 and z0 <= z + r + rr + 5.0 and linje.distance(g) < r + rr + 5.0:
             return False
     return fri(linje, r, z - r, z + r, 5.0)
 
 
-def i_bjalklaget(pts: Sequence[tuple[float, float]]) -> tuple[Vek, ...]:
-    """Röret i bjälklaget genom punkterna (i plan): varje sträcka i elrörens undre nivå om den är fri, annars i den
-    övre (lodrätt emellan där nivån byts)."""
+def i_bjalklaget(pts: Sequence[tuple[float, float]], andra: Sequence[Bit] = (),
+                 dosor: Sequence[tuple[float, float]] = ()) -> tuple[Vek, ...]:
+    """Röret i bjälklaget genom punkterna (i plan): varje sträcka i elrörens undre nivå om den är fri (från hindren
+    och andra, och inte går genom någon av de ingjutna dosorna), annars i den övre (lodrätt emellan där nivån byts)."""
     ut: list[Vek] = []
     for a, b in zip(pts, pts[1:]):
-        z = next((z for z in (BJALKLAG["MB-UK"], BJALKLAG["MB"]) if _fritt([a, b], z)), BJALKLAG["MB-UK"])
+        linje = LineString([a, b])
+        genom = any(linje.distance(Point(c)) < INGJUTNINGSDOSA.diameter / 2 + FXP16.ytterdiameter / 2 + 5.0
+                    for c in dosor)
+        nivaer = (BJALKLAG["MB"],) if genom else (BJALKLAG["MB-UK"], BJALKLAG["MB"])
+        z = next((z for z in nivaer if _fritt([a, b], z, andra)), nivaer[0])
         if ut and abs(ut[-1][2] - z) > 0.5:
             ut.append((a[0], a[1], z))
         elif not ut:
@@ -300,7 +316,8 @@ Y_OSTER = 5700.0                  # från det västra till det östra rummets br
 def _eps(v: str) -> float:
     """Källarväggens cellplast mot rummet: mittens läge tvärs väggen (x för väggar längs y, y för väggar längs x)."""
     w = next(q for q in K.VAGGAR if q.namn == v)
-    sida = {"V15": 1, "V16": 1, "V20": 1, "V18": 1, "V21": 1, "V7": 1, "V1": -1, "V14": -1, "V2": -1, "V3": -1}[v]
+    sida = {"V15": 1, "V16": 1, "V20": 1, "V18": 1, "V21": 1, "V7": 1, "V4": 1, "V1": -1, "V14": -1, "V2": -1,
+            "V3": -1}[v]
     return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
 
 
@@ -440,4 +457,244 @@ ROR: list[Ror] = [
                                                                       (_xy(_U7[1])[0], Y_OSTER), _xy(_U7[1])]),
                                       *_till(_U7[1]))),
     _ror("KA-R8-1", "KA-B7", "KA-P08", (*_fran(_U7[0])[:1], *i_bjalklaget([_xy(_U7[0]), (_P08[0], _xy(_U7[0])[1]), _P08]))),
+]
+
+
+# ------------------------------------------------------------------ de trevliga rummen: spotarna och dimrarna
+
+# rummen (golvets yta innanför väggarnas gips): trapphallen öster om KL3 (utan trappan mellan KL4 och KL6),
+# tvättstugan (hallen mellan KL1 och KL8 och rummet vid V3 väster om KL8), rummen norr om V4–V6 (en yta utan vägg
+# emellan, belyst som två delar) och rummet söder om trapphallen (söder om KL4)
+TRAPPHALL = box(KL["KL3"].c + _KL, KL["KL4"].c + _KL, KL["KL7"].c - _KL, _c("V5") - _V).difference(
+    box(KL["KL6"].a - 60.0, KL["KL4"].c, KL["KL7"].c, KL["KL6"].c + _KL))
+TVATTSTUGA = unary_union([box(_c("V21") + _V, KL["KL1"].c + _KL, KL["KL8"].a, _c("V3") - _V),
+                          box(KL["KL8"].a, KL["KL1"].c + _KL, KL["KL3"].c - _KL, KL["KL10"].c - _KL)])
+RUMMEN_V2 = box(_c("V19") + _V, _c("V5") + _V, _c("V15") - _V, _c("V2") - _V)
+RUMMET_KS = unary_union([box(_c("V18") + _V, _c("V10") + _V, KL["KL5"].c - _KL, KL["KL4"].c - _KL),
+                         box(KL["KL3"].c + _KL, _c("V7") + _V, _c("V18") + _V, KL["KL4"].c - _KL)])
+
+# spotarnas lägen per tändgrupp, i rörens ordning från dimmern: jämnt i rummen (c/c 1,0–1,5 m), fria från rören i
+# bjälklaget och pelarnas genomstansningszoner (dosans_lage) och från det som sitter under taket: ventilationens
+# kanaler, avloppet (tvättstugans AV1 och AV3) och brandlarmets varnare (minst 500 mm), dosor och kablar
+# (installation.py prövar dem). Rummen norr om V4–V6 delas av två band i bjälklaget: tappvattnet till UF1 och KA-TH2
+# (y 8 285–8 435) med plan 1:s stråk (y 8 522–8 652) och plan 1:s och källarens grupprör längs y 9 645–9 830, som tar
+# båda nivåerna; spotarna står i de tre remsorna emellan, och rören till de två norra går i väggarnas cellplast.
+SPOTAR: dict[str, tuple[Polygon, tuple[tuple[float, float], ...]]] = {
+    # en rad längs trapphallen och två i dess västra del, vid dörren KD4 och mot trappans fot (söder om brandvarnaren
+    # BV-KT, pelarnas genomstansningszoner runt den)
+    "KA-T1": (TRAPPHALL, ((6100.0, 5850.0), (5300.0, 5600.0), (5000.0, 6700.0), (6200.0, 6700.0), (7400.0, 6700.0),
+                          (8600.0, 6700.0))),
+    "KA-T2": (TVATTSTUGA, ((4050.0, 6800.0), (3000.0, 6800.0), (1900.0, 6800.0), (1900.0, 7850.0), (800.0, 8300.0),
+                           (800.0, 6800.0))),
+    # den västra och den östra delen: två spotar i den södra remsan, en i den mellersta och två i den norra
+    "KA-T3": (RUMMEN_V2, ((5400.0, 8100.0), (6450.0, 8100.0), (5500.0, 9100.0), (5500.0, 10150.0), (6600.0, 10150.0))),
+    "KA-T4": (RUMMEN_V2, ((7740.0, 8100.0), (8790.0, 8100.0), (8690.0, 9100.0), (8690.0, 10150.0), (7590.0, 10150.0))),
+    # ett rutnät c/c 1,5 m, med två spotar på var sida om brandvarnaren BV-KN i mitten
+    "KA-T5": (RUMMET_KS, ((5300.0, 4100.0), (6800.0, 4100.0), (8300.0, 4100.0), (8300.0, 2500.0), (8300.0, 1100.0),
+                          (6800.0, 1100.0), (5300.0, 1100.0), (5300.0, 2600.0), (6050.0, 2600.0), (7550.0, 2900.0))),
+}
+
+
+def _bitar(ror: Sequence[Ror]) -> list[Bit]:
+    """Rörens raka bitar i bjälklaget."""
+    ut: list[Bit] = []
+    for r in ror:
+        for a, b in zip(r.via, r.via[1:]):
+            if max(a[2], b[2]) > KALLARTAK - 1.0 and min(a[2], b[2]) < PLAN[1] + 1.0:
+                ut.append((LineString([a[:2], b[:2]]) if math.dist(a[:2], b[:2]) > 0.5 else Point(a[:2]),
+                           r.typ.ytterdiameter / 2, min(a[2], b[2]), max(a[2], b[2])))
+    return ut
+
+
+_KALLARENS_ROR = list(ROR)                   # källarens rör till arbetsrummens paneler och till uttagen
+_KALLARENS = _bitar(_KALLARENS_ROR)
+
+
+@cache
+def _spotarnas_hinder() -> Polygon:
+    """Där en spots ingjutna dosa inte får stå: som de andra dosorna, och nära elens rör i bjälklagets undre del
+    (plan 1:s stråk och kedjor och källarens rör)."""
+    r = INGJUTNINGSDOSA.diameter / 2
+    topp = KALLARTAK + INGJUTNINGSDOSA.djup
+    return unary_union([_hinder(), *(g.buffer(r + rr + SPEL) for g, rr, z0, _ in (*_hindren(), *_KALLARENS)
+                                      if z0 < topp + rr)])
+
+
+def _spotarna() -> dict[str, list[Lampa]]:
+    ut: dict[str, list[Lampa]] = {}
+    n = 0
+    for tand, (rum, lagen) in SPOTAR.items():
+        for x, y in lagen:
+            n += 1
+            ut.setdefault(tand, []).append(Lampa(f"KA-L{n:02d}", TUBE_MINI_S,
+                                                 kallartak(*dosans_lage(x, y, rum, _spotarnas_hinder())), tand))
+    return ut
+
+
+_T = _spotarna()
+SPOTARNA = [p for lampor in _T.values() for p in lampor]
+_DOSORNA = [(p.lage.punkt[0], p.lage.punkt[1]) for p in (*SPOTARNA, *PANELER)]
+
+TANDGRUPPER += [
+    Tandgrupp("KA-T1", "Källaren, trapphallen"),
+    Tandgrupp("KA-T2", "Källaren, tvättstugan"),
+    Tandgrupp("KA-T3", "Källaren, rummen norr om V4–V6, västra delen"),
+    Tandgrupp("KA-T4", "Källaren, rummen norr om V4–V6, östra delen"),
+    Tandgrupp("KA-T5", "Källaren, rummet söder om trapphallen"),
+]
+
+# dimrarna vid ingångarna, 1 050 mm över golvet: trapphallens vid trappans fot (på KL4 mellan pelarna P12 och P13),
+# tvättstugans vid KD2, de två delarnas (två kanaler) på V4 vid öppningen mellan V4 och V5, och rummet söder om
+# trapphallen vid KD4 (väster om pelaren P11 i KL4)
+DIMRAR = {
+    "KA-B1": Apparat("KA-B1", DIMMER_1, _pa_kl("KL4", 7150.0, 1), styr=("KA-T1",)),
+    "KA-B2": Apparat("KA-B2", DIMMER_1, _pa_kl("KL3", 6100.0, -1), styr=("KA-T2",)),
+    "KA-B3": Apparat("KA-B3", DIMMER_2, kallarvagg("V4", 5150.0, Z_BRYTARE - PLAN[0], 1), styr=("KA-T3", "KA-T4")),
+    "KA-B4": Apparat("KA-B4", DIMMER_1, _pa_kl("KL4", 5500.0, -1), styr=("KA-T5",)),
+}
+PUNKTER += [*SPOTARNA, *DIMRAR.values()]
+
+
+def _cellplasten(v: str, sida: int) -> float:
+    """Mitt i källarväggens cellplast på sidan sida (+1 mot växande y eller x, −1 mot avtagande)."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
+
+
+def _ur_cellplasten(v: str, sida: int, s_: Sequence[float], z: float) -> list[tuple[Vek, Vek]]:
+    """Lodräta rör mellan bjälklaget (elrörens undre nivå) och höjden z i källarväggens cellplast, sida vid sida vid
+    s_ längs väggen, förskjutna lika mycket längs väggen (och högst 30 mm tvärs) så att de går mellan
+    underkantsnätets järn: per rör (punkten i bjälklaget, punkten i väggen)."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    c = _cellplasten(v, sida)
+    langs = (1.0, 0.0) if w.riktning == "h" else (0.0, 1.0)
+    pts = [(s, c) if w.riktning == "h" else (c, s) for s in s_]
+    dx, dy = mellan_jarnen(pts, KALLARTAK, BJALKLAG["MB-UK"], FXP16.ytterdiameter / 2, langs=langs, tvars=30.0)
+    return [((x + dx, y + dy, BJALKLAG["MB-UK"]), (x + dx, y + dy, z)) for x, y in pts]
+
+
+# rören upp ur dimrarnas dosor in i bjälklaget: in (matningen), ut (till nästa dimmer) och till spotarna
+_D = DIMRAR
+_U1 = upp_ur_vaggen(_D["KA-B1"], (-40.0, 0.0, 40.0))         # till KA-B2, från KA-B4, till spotarna
+_U2 = upp_ur_vaggen(_D["KA-B2"], (0.0, 40.0, 80.0))          # från KA-B1, till spotarna, till KA-B3: norr om
+#                                                              golvvärmens matarledningar VS1 under taket (y 6 000–6 050)
+_U4 = upp_ur_vaggen(_D["KA-B4"], (-40.0, 0.0, 40.0))         # från KA-B7, till spotarna, till KA-B1
+_U7B = upp_ur_vaggen(_B7, (60.0,))[0]                        # från KA-B7 till KA-B4
+_X3 = _D["KA-B3"].lage.punkt[0]
+_U3 = _ur_cellplasten("V4", 1, (_X3, _X3 + 40.0), _D["KA-B3"].lage.punkt[2])   # från KA-B2, till den södra remsan
+
+_NYA: list[Ror] = []                     # de trevliga rummens rör hittills (de senare går fria från dem)
+
+
+def _andra(fran: str, till: str) -> list[Bit]:
+    """Källarens rör i bjälklaget som ett nytt rör mellan fran och till ska gå fritt från: alla utom de som går till
+    samma punkter (de möts i dosorna)."""
+    return _bitar([r for r in (*_KALLARENS_ROR, *_NYA) if not {r.fran, r.till} & {fran, till}])
+
+
+def _dra(id_: str, fran: str, till: str, fore: Sequence[Vek], pts: Sequence[tuple[float, float]],
+         efter: Sequence[Vek] = ()) -> Ror:
+    """Röret från fran till till: fore (i väggen), i bjälklaget genom punkterna pts (fritt från källarens andra rör och
+    över de andra dosorna) och efter (ned i väggen)."""
+    plan = [q for i, q in enumerate(pts) if i == 0 or math.dist(q, pts[i - 1]) > 0.5]
+    egna = [q for q in _DOSORNA if min(math.dist(q, plan[0]), math.dist(q, plan[-1])) > 1.0]
+    r = _ror(id_, fran, till, (*fore, *i_bjalklaget(plan, _andra(fran, till), egna), *efter))
+    _NYA.append(r)
+    return r
+
+
+def _hornet(a: tuple[float, float], b: tuple[float, float], forst: str = "") -> list[tuple[float, float]]:
+    """Vägen i plan från a till b i en vinkel: först i x eller först i y (forst), annars den som går längst från de
+    andra dosorna; forst "yxy": halvvägs i y, sedan i x och resten i y (in i b från samma håll som a)."""
+    hornen = {"x": (b[0], a[1]), "y": (a[0], b[1])}
+    if forst == "yxy":
+        y = (a[1] + b[1]) / 2
+        return [a, (a[0], y), (b[0], y), b]
+    if forst:
+        return [a, hornen[forst], b]
+    andra = [Point(q) for q in _DOSORNA if min(math.dist(q, a), math.dist(q, b)) > 1.0]
+
+    def marginal(h: tuple[float, float]) -> float:
+        linje = LineString([a, h, b])
+        return min((linje.distance(q) for q in andra), default=1e9)
+    return [a, max(hornen.values(), key=marginal), b]
+
+
+def _xy_p(p: Lampa) -> tuple[float, float]:
+    return p.lage.punkt[0], p.lage.punkt[1]
+
+
+def _kedja(namn: str, fran: str, fore: Sequence[Vek], start: tuple[float, float], lampor: Sequence[Lampa],
+           forst: Sequence[str] = (), nr: int = 1) -> list[Ror]:
+    """Rören från punkten fran (fore: i väggen, start: där röret kommer in i bjälklaget) till lamporna i tur och
+    ordning, i vinklar i bjälklaget (forst: per rör "x", "y" eller "" för vilket håll vinkeln går först), numrerade
+    från nr."""
+    ut: list[Ror] = []
+    a, f, via = start, fran, tuple(fore)
+    for i, p in enumerate(lampor):
+        h = forst[i] if i < len(forst) else ""
+        ut.append(_dra(f"{namn}{nr + i}", f, p.id, via, _hornet(a, _xy_p(p), h)))
+        a, f, via = _xy_p(p), p.id, ()
+    return ut
+
+
+_Y_SODER_P11 = 4600.0       # matningen från KA-B4 till KA-B1: söder om pelarna P11 och P12 i KL4
+_Y_LANDNING = 5500.0        # matningen från KA-B1 till KA-B2: över trapphallens västra del, söder om pelaren P6
+_X_KL3_OST = 4800.0         # och norrut öster om pelaren P10 (KL1, KL3) till tvättstugans dimmer
+_X_TILL_V4 = 4850.0         # matningen från KA-B2 till KA-B3: norrut längs KL3 till V4
+
+# rummen norr om V4–V6: den södra remsan ur dimmern genom bjälklaget; den mellersta och den norra genom väggarnas
+# cellplast strax under taket (Z_TAKET): från dimmern västerut i V4:s och norrut i V19:s till den mellersta remsan,
+# och från den mellersta remsans östra spot ned i V15:s (norr om KA-TH2:s rör) och norrut till den norra
+Z_TAKET = KALLARTAK - 60.0
+_T3, _T4 = _T["KA-T3"], _T["KA-T4"]
+_Y_RUNT_P2 = 8800.0         # den mellersta remsan: från den västra spoten till den östra söder om pelaren P2
+_V19_UPP = _ur_cellplasten("V19", 1, (_xy_p(_T3[2])[1],), Z_TAKET)[0]
+_V15_NED = _ur_cellplasten("V15", -1, (_xy_p(_T4[2])[1],), Z_TAKET)[0]
+_V15_UPP = _ur_cellplasten("V15", -1, (_xy_p(_T4[3])[1],), Z_TAKET)[0]
+
+
+def _genom_vaggen(id_: str, fran: str, a: tuple[float, float], i_vaggen: Sequence[Vek], till: Lampa,
+                  ut_ur: tuple[Vek, Vek]) -> Ror:
+    """Röret från punkten fran (a: där det går in i bjälklaget, eller None) genom källarväggarnas cellplast
+    (i_vaggen) och upp i bjälklaget (ut_ur: punkten i bjälklaget och i väggen) till spoten till."""
+    egna = [q for q in _DOSORNA if min(math.dist(q, a), math.dist(q, _xy_p(till))) > 1.0]
+    b = ut_ur[0][:2]
+    r = _ror(id_, fran, till.id, (*i_vaggen, ut_ur[1],
+                                   *i_bjalklaget([b, (_xy_p(till)[0], b[1]), _xy_p(till)], _andra(fran, till.id),
+                                                 egna)))
+    _NYA.append(r)
+    return r
+
+
+_B3_UT = (_X3 - 40.0, _cellplasten("V4", 1))            # röret ur dimmerns dosa västerut i V4:s cellplast
+_I_V4_V19 = ((*_B3_UT, _D["KA-B3"].lage.punkt[2]), (*_B3_UT, Z_TAKET), (_V19_UPP[1][0], _B3_UT[1], Z_TAKET))
+_A = _xy_p(_T4[2])
+_I_V15 = [*i_bjalklaget([_A, (_V15_NED[0][0], _A[1]), _V15_NED[0][:2]], _andra(_T4[2].id, _T4[3].id)), _V15_NED[1],
+          (_V15_NED[1][0], _V15_UPP[1][1], Z_TAKET)]
+
+ROR += [
+    # matningen (G18) från det östra lilla rummets brytare vidare till dimrarna i tur och ordning
+    _dra("G18-R2", "KA-B7", "KA-B4", _fran(_U7B)[:1], [_xy(_U7B), (_xy(_U7B)[0], _xy(_U4[0])[1]), _xy(_U4[0])],
+         _till(_U4[0])[1:]),
+    _dra("G18-R3", "KA-B4", "KA-B1", _fran(_U4[2])[:1],
+         [_xy(_U4[2]), (_xy(_U4[2])[0], _Y_SODER_P11), (_xy(_U1[1])[0], _Y_SODER_P11), _xy(_U1[1])],
+         _till(_U1[1])[1:]),
+    _dra("G18-R4", "KA-B1", "KA-B2", _fran(_U1[0])[:1],
+         [_xy(_U1[0]), (_xy(_U1[0])[0], _Y_LANDNING), (_X_KL3_OST, _Y_LANDNING), (_X_KL3_OST, _xy(_U2[0])[1]),
+          _xy(_U2[0])], _till(_U2[0])[1:]),
+    _dra("G18-R5", "KA-B2", "KA-B3", _fran(_U2[2])[:1],
+         [_xy(_U2[2]), (_X_TILL_V4, _xy(_U2[2])[1]), (_X_TILL_V4, _U3[0][0][1]), _U3[0][0][:2]], (_U3[0][1],)),
+    # dimrarna till spotarna
+    *_kedja("KA-R5-", "KA-B4", _fran(_U4[1])[:1], _xy(_U4[1]), _T["KA-T5"], ("yxy",)),
+    *_kedja("KA-R1-", "KA-B1", _fran(_U1[2])[:1], _xy(_U1[2]), _T["KA-T1"], ("y",)),
+    *_kedja("KA-R2-", "KA-B2", _fran(_U2[1])[:1], _xy(_U2[1]), _T["KA-T2"], ("", "", "", "", "y", "")),
+    # rummen norr om V4–V6: den södra remsan (den västra och den östra delens spot), den mellersta genom V4:s och
+    # V19:s cellplast och från dess västra spot till den östra, och den norra genom V15:s
+    *_kedja("KA-R3-", "KA-B3", (_U3[1][1],), _U3[1][0][:2], [_T3[0], _T3[1], _T4[0], _T4[1]]),
+    _genom_vaggen("KA-R3-5", "KA-B3", _B3_UT, _I_V4_V19, _T3[2], _V19_UPP),
+    _dra("KA-R3-6", _T3[2].id, _T4[2].id, (),
+         [_xy_p(_T3[2]), (_xy_p(_T3[2])[0], _Y_RUNT_P2), (_xy_p(_T4[2])[0], _Y_RUNT_P2), _xy_p(_T4[2])]),
+    _genom_vaggen("KA-R4-1", _T4[2].id, _A, _I_V15, _T4[3], _V15_UPP),
+    *_kedja("KA-R4-", _T4[3].id, (), _xy_p(_T4[3]), [_T4[4], _T3[4], _T3[3]], nr=2),
 ]

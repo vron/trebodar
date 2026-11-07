@@ -23,6 +23,9 @@ from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 
 ROT = Path(__file__).resolve().parents[2]
 OBJEKTIV = {"öga": {"lins": 40.0, "hojd": 1600.0}, "vid": {"lins": 20.0, "hojd": 1450.0}}
+# källarens tändgrupper (hus/installationer/el/rum/kallare.py), tända i bilderna av källaren: källaren är mörk med
+# sina små fönster
+KALLAREN = {f"KA-T{i}": 1.0 for i in range(1, 9)}
 INNE_LJUS = (4, 20, "14:00", "sol")       # standardljuset för inomhusbilderna: april, eftermiddag, sol från SSV
 # ljusserierna (webbplatsens växel i bildvisaren): A är varje vys eget ljus, de andra samma tid och väder för alla
 # vyer, ute och inne (rendera.sh --ljusserie B, bilderna i renderingar/B/); "tand": "alla" tänder hela
@@ -82,7 +85,7 @@ VYER = {
     # ventilationen (hus/installationer/ventilation): källarrummets kanal och fläkt under källarens tak, kanalen upp
     # i väggen 1C (skikten dolda), takhuven och köksfläktens galler
     "detalj-kallarkanal": {"kamera": [1500, 9000, Z_KALLARE + 1400], "mal": [3700, 8220, -330], "lins": 24,
-                           "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "lampor": ["kallare"]},
+                           "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": KALLAREN},
     "detalj-1c": {"kamera": [2600, 9700, 1300], "mal": [2810, 8220, 1700], "lins": 24, "ljus": (9, 15, "12:00", "mulet"),
                   "lodrat": False, "inne": True, "dolj": ["Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C"]},
     # köket (ärende #21): bänken längs 3NV med lådskåpen, hällen och diskhon, och ön
@@ -98,7 +101,7 @@ VYER = {
     # tappvattnet (hus/installationer/vatten): fördelarskåpet på V19 med rören upp till källarens tak, värmepumpen och
     # matarledningarna i teknikrummet
     "detalj-teknikrum": {"kamera": [2250, 8050, Z_KALLARE + 1350], "mal": [4300, 8450, -750], "lins": 20,
-                         "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "lampor": ["kallare"]},
+                         "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": KALLAREN},
     "stomme": {"kamera": [-8000, -9000, 9000], "mal": [6500, 6500, 1800], "lins": 30, "ljus": (6, 21, "10:00", "sol"),
                "lodrat": False, "dolj": ["Hus/Tak/", "Hus/Fasad", "Hus/Isolering", "Hus/Invändigt",
                                          "Fönster och dörrar", "Installationer", "Mark/Sovrumsavsats", "Mark/Entréavsats",
@@ -160,9 +163,9 @@ _INNE = [
 ]
 
 # inomhusbilder med egna inställningar: trappan ned med lutande kamera (lodräta linjer konvergerar), källarens
-# taklampor tända
-_INNE_EXTRA: dict[str, dict[str, object]] = {"I28": {"lodrat": False, "lampor": ["kallare"]},
-                                             "I29": {"lampor": ["kallare"]}, "I30": {"lampor": ["kallare"]}}
+# belysning tänd
+_INNE_EXTRA: dict[str, dict[str, object]] = {"I28": {"lodrat": False, "tand": KALLAREN},
+                                             "I29": {"tand": KALLAREN}, "I30": {"tand": KALLAREN}}
 
 
 def _inne() -> dict[str, dict[str, object]]:
@@ -186,24 +189,18 @@ RUMSNAMN = {
     "kontor-litet": ("Kontor, litet", (12400, 3750)), "gastrum": ("Gästrum", (12400, 5650)),
     "gang": ("Gång", (10250, 4600)), "trappa": ("Trappa", (8350, 5470)), "kallare": ("Källare", (7000, 7800, "k")),
 }
-# fler rum för ljusplanernas statistik (som RUMSNAMN; ljusplanerna delar en öppen planlösning mellan namnen): källarens
-# rum, med samma namn som golvvärmens zoner
+# fler rum för ljusplanernas statistik (som RUMSNAMN; ljusplanerna delar en öppen planlösning mellan namnen efter
+# närmaste namn, så namnen står så att gränserna hamnar vid väggarna): källarens rum, med samma namn som golvvärmens
+# zoner; tvättstugan (hallen och rummet vid V3 väster om KL8) och teknikrummet är en öppen yta, liksom trapphallen och
+# rummen norr om V4–V6 (källarrummet i RUMSNAMN)
 LJUSPLANENS_RUM = {
-    "kallare-hall": ("Hall", (1300, 7300, "k")), "kallare-teknik": ("Teknikrum", (3300, 8500, "k")),
+    "kallare-hall": ("Tvättstugan, hallen", (3000, 6550, "k")),
+    "kallare-tvatt": ("Tvättstugan vid V3", (1150, 8350, "k")), "kallare-teknik": ("Teknikrum", (3000, 8750, "k")),
     "kallare-ksv": ("Rum söder om hallen", (1500, 4800, "k")), "kallare-ksm": ("Rum öster om KL2", (3650, 4800, "k")),
-    "kallare-trapphall": ("Trapphall", (6000, 6600, "k")), "kallare-ks": ("Rum söder om trapphallen", (6800, 2700, "k")),
-    "kallare-ko": ("Stora rummet", (11600, 7000, "k")),
+    "kallare-trapphall": ("Trapphall", (7000, 6400, "k")), "kallare": ("Rummen norr om V4–V6", (7000, 8630, "k")),
+    "kallare-ks": ("Rum söder om trapphallen", (6800, 2700, "k")), "kallare-ko": ("Stora rummet", (11600, 7000, "k")),
 }
 
-# taklampor (LED-paneler, fyrkantiga och nedåtlysande) som tänds i bilderna som anger dem: källaren är mörk med
-# sina små fönster. Arbetsrummen (det stora rummet och de två små rummen söder om KL1) har elinstallationens paneler
-# (hus/installationer/el/rum/kallare.py); de här lyser i de andra rummen tills deras belysning är bestämd (#51). Lägena
-# (x, y), höjden z under bjälklaget, sidan [mm], ljusflödet per panel [lm] och färgtemperaturen [K]
-LAMPOR = {
-    "kallare": {"lagen": [(1500, 6750), (3300, 6750), (1500, 8400), (5800, 1800), (8200, 1800), (5800, 4200),
-                          (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300)],
-                "z": -S.H_BJALKLAG - 20.0, "sida": 600.0, "lumen": 2500.0, "kelvin": 3000.0},
-}
 
 # marken runt modellens terräng (renderingen): från terrängens kant till omgivningens höjder (geodata, annars z_bas)
 OMGIVNING = {"mitt": [7000.0, 8000.0], "z_bas": -1600.0, "terrang": "Mark/"}

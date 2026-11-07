@@ -33,14 +33,15 @@ class Apparattyp:
 
 @dataclass(frozen=True)
 class Tubhuvud:
-    """Spotens huvud under taket: en tub på en stam från frontplattan, vridbar kring stammen och lutbar i leden där
-    stammen fäster i tubens sida (mått i mm)."""
+    """Spotens huvud under taket: en tub på en stam från frontplattan (infälld) eller takkoppen (utanpåliggande),
+    vridbar kring stammen och lutbar i leden där stammen fäster i tubens sida (mått i mm)."""
     diameter: float             # tubens diameter
     langd: float                # tubens längd
-    stam: float                 # stammens längd från frontplattan till leden
+    stam: float                 # stammens längd från frontplattan (takkoppen) till leden
     stam_d: float               # stammens diameter
     led: float                  # ledens läge längs tuben, från den bakre änden
     indrag: float               # reflektorn (den lysande ytan) så långt in från tubens front
+    kopp: float = 0.0           # utanpåliggande: takkoppens höjd (frontplattans diameter är takkoppens); 0: infälld
 
 
 @dataclass(frozen=True)

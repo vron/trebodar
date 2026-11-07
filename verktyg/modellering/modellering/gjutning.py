@@ -160,7 +160,8 @@ def _el(v: Vy, el: dict, z: Z) -> list[Punkt]:
             x, y = p["punkt"][:2]
             s = max(dosa["diameter"] / 2, v.s * 0.7)
             v.rekt(x - s, y - s, x + s, y + s, "vit", "normal")
-            vad = f"ingjuten dosa för {k} (panel)" if p["slag"] == "lampa" else f"ingjuten kopplingsdosa {k}"
+            vad = (f"dosa för {k} ({'panel' if t.get('symbol') == 'panel' else 'spot'})" if p["slag"] == "lampa"
+                   else f"kopplingsdosa {k}")
             punkter.append(("", vad, x, y, f"Ø{dosa['diameter']:g} × {dosa['djup']:g}"))
     with v.lager("el"):
         for k, r in el["ror"].items():
@@ -484,6 +485,7 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: Sequence[Omrade] =
     return rader, per_lage
 
 
+TABELL_EL = (226.0, 14.0, 48.0)       # AR-03.1:s punkttabell i två spalter till höger på ritytan, över detaljen
 DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # el: rören ur gruppcentralen (x0, x1, y0, y1)
 DETALJ_VATTEN = (4150.0, 4500.0, 7980.0, 9080.0)     # tappvatten: stigarna ur källaren vid V19
 DETALJ_KOK = (13280.0, 13520.0, 8300.0, 8900.0)      # köket vid V14: hylsorna, diskbänkens avlopp, UF1
@@ -667,10 +669,12 @@ def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
 def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], ovan: object, under: object,
           vaggarna: str, referenser: tuple[str, tuple[list[Kant], list[Kant]], object],
           rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
-          norr: tuple[float, float], detaljer: Sequence[tuple[Omrade, Detalj]] = ()) -> tuple[Blad, list[Punkt]]:
+          norr: tuple[float, float], detaljer: Sequence[tuple[Omrade, Detalj]] = (),
+          tabellen: tuple[float, float, float] | None = None) -> tuple[Blad, list[Punkt]]:
     """Ett blad: plattans snitt, väggarna på plattan (streckade) och under den (tunna), temats rör och punkter med
     lägesmått och nummer, detaljerna över täta områden, tabellen och anvisningarna. ovan, under: väggarnas ytor
-    (shapely) eller None; referenser: (vad måtten utgår från, kanterna, plattans betong)."""
+    (shapely) eller None; referenser: (vad måtten utgår från, kanterna, plattans betong); tabellen: en lång tabell i
+    två spalter på ritytan (vänsterkant och överkant på papperet och spaltens bredd, mm) i stället för i kolumnen."""
     v = vy(SKALA, OMRADE, 24.0, 20.0)
     plan(v, snitt_)
     with v.lager("vaggar"):
@@ -697,12 +701,22 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[dict(form="linje", stil=st, text=t) for st, t in tecken]),
-        dict(typ="rubrik", text="Punkterna"),
-        dict(typ="tabell", kolumner=["Nr", "Vad", "x", "y", "Mått"], bredd=(0.35, 2.4, 0.45, 0.45, 0.6),
-             just=["l", "l", "r", "r", "l"], sz=5.2 if len(rader) <= 40 else 4.4, rader=rader),
     ]
+
+    def tabell(rad: list[list[str]], sz: float, matt: float = 0.6) -> dict:
+        return dict(typ="tabell", kolumner=["Nr", "Vad", "x", "y", "Mått"], bredd=(0.35, 2.4, 0.45, 0.45, matt),
+                    just=["l", "l", "r", "r", "l"], sz=sz, rader=rad)
+    block: list[dict] = []
+    if tabellen is not None and len(rader) > 40:
+        x0, y0, w = tabellen
+        n = -(-len(rader) // 2)
+        block = [dict(x=x0 + i * (w + 3.0), y=y0, w=w, innehall=[
+            dict(typ="rubrik", text="Punkterna" + (" forts." if i else "")), tabell(rader[i * n:(i + 1) * n], 4.6, 0.8)])
+            for i in range(2)]
+    else:
+        kol += [dict(typ="rubrik", text="Punkterna"), tabell(rader, 5.2 if len(rader) <= 40 else 4.4)]
     return blad(nummer, [f"Gjutning av {platta.lower()}", tema], f"1:{SKALA:g}", "Modellen", kol,
-                [v, *extra]), punkter
+                [v, *extra], block), punkter
 
 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[str, list[dict]],
@@ -752,7 +766,7 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "Elrören gjuts in före gjutningen, i sina nivåer: de klena över tappvattnet och golvvärmen, de grova i "
             "tappvattnets nivå utan att korsa det. ● röret går upp i väggen ovanför, ○ ned i källaren. Rören går upp "
             "mellan armeringsjärnen; ur gruppcentralen i två rader enligt detaljen (måtten från centralens västra "
-            "kant).", norr, [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central))]),
+            "kant).", norr, [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central))], TABELL_EL),
         gor(nr[1], m, "tappvatten", "V", mb, *m_vagg, lambda v: _vatten(v, vatten, MB),
             [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet"),
              ("dold", "fördelarna under plattan (" + ", ".join(_fordelarna(vatten)) + ")")],

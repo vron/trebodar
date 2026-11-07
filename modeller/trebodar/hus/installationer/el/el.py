@@ -68,26 +68,33 @@ def _delar_tub(t: Armaturtyp) -> dict[str, Del]:
     tub = cylinder(r, h.langd) - cylinder(ri, h.indrag + 40.0, (0.0, 0.0, h.langd - h.indrag - 40.0 + 1.0))
     baffel = (cylinder(ri, BAFFEL, (0.0, 0.0, h.langd - BAFFEL)) -
               cylinder(rl, BAFFEL + 2.0, (0.0, 0.0, h.langd - BAFFEL - 1.0)))
-    return {"PLATTA": Del(f"{namn} frontplatta Ø{t.ring_d:g}", cylinder(t.ring_d / 2, PLATTA_T), ARMATUR),
-            "KROPP": Del(f"{namn} dosa Ø{t.hal_d:g}", cylinder(t.hal_d / 2, t.djup, (0.0, 0.0, -t.djup)), ARMATUR),
-            "STAM": Del(f"{namn} stam Ø{h.stam_d:g}", cylinder(h.stam_d / 2, h.stam), ARMATUR),
-            "LED": Del(f"{namn} led", cylinder(h.stam_d / 2 + 3.0, h.stam_d + 6.0, (0.0, 0.0, -h.stam_d / 2 - 3.0)),
-                       ARMATUR),
-            "TUB": Del(f"{namn} tub Ø{h.diameter:g}×{h.langd:g}", tub, ARMATUR),
-            "BAFFEL": Del(f"{namn} bländskydd", baffel, ARMATUR_SVART),
-            "LINS": Del(f"{namn} reflektor Ø{2 * rl:g}", cylinder(rl, 1.0), ARMATURLINS)}
+    ut = {"PLATTA": (Del(f"{namn} takkopp Ø{t.ring_d:g} × {h.kopp:g}", cylinder(t.ring_d / 2, h.kopp), ARMATUR)
+                     if h.kopp else Del(f"{namn} frontplatta Ø{t.ring_d:g}", cylinder(t.ring_d / 2, PLATTA_T), ARMATUR))}
+    if t.hal_d > 0:
+        ut["KROPP"] = Del(f"{namn} dosa Ø{t.hal_d:g}", cylinder(t.hal_d / 2, t.djup, (0.0, 0.0, -t.djup)), ARMATUR)
+    return ut | {"STAM": Del(f"{namn} stam Ø{h.stam_d:g}", cylinder(h.stam_d / 2, h.stam), ARMATUR),
+                 "LED": Del(f"{namn} led", cylinder(h.stam_d / 2 + 3.0, h.stam_d + 6.0,
+                                                   (0.0, 0.0, -h.stam_d / 2 - 3.0)), ARMATUR),
+                 "TUB": Del(f"{namn} tub Ø{h.diameter:g}×{h.langd:g}", tub, ARMATUR),
+                 "BAFFEL": Del(f"{namn} bländskydd", baffel, ARMATUR_SVART),
+                 "LINS": Del(f"{namn} reflektor Ø{2 * rl:g}", cylinder(rl, 1.0), ARMATURLINS)}
 
 
 def _tubspot(p: Lampa) -> Montage:
-    """Tubspoten: frontplattan på takytan och dosan i håltagningen, stammen längs takets normal, leden och tuben
-    riktad i ljusets riktning (punkter.tuben), bländskyddet och reflektorn i tubens front."""
+    """Tubspoten: frontplattan på takytan och dosan i håltagningen (utanpåliggande: takkoppen under taket och den
+    ingjutna dosan ovanför), stammen längs takets normal, leden och tuben riktad i ljusets riktning (punkter.tuben),
+    bländskyddet och reflektorn i tubens front."""
     t = p.typ
+    assert t.huvud is not None
     d = _delar_tub(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
-    m.lagg(d["PLATTA"], sys, f"{p.id}-PLATTA")
-    m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
-    m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, PLATTA_T), f"{p.id}-STAM")
+    m.lagg(d["PLATTA"], sys, f"{p.id}-{'KOPP' if t.huvud.kopp else 'PLATTA'}")
+    if "KROPP" in d:
+        m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
+    if t.dosa is not None:
+        m.lagg(_ingjuten(t.dosa), sys, f"{p.id}-DOSA")
+    m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, t.huvud.kopp or PLATTA_T), f"{p.id}-STAM")
     led, bak, _ = tuben(p)
     r = p.riktning
     tubsys = Placering.axlar(bak, _vinkelratt(r), r)
@@ -285,10 +292,13 @@ def _panelen(p: Lampa) -> Montage:
     m.lagg(Del(f"{t.namn} med ram", ram, ARMATUR), sys, f"{p.id}-RAM")
     m.lagg(Del(f"{t.namn}, lysande yta", box(-ly, ly, -ly, ly, h - 2.0, h), ARMATURLINS), sys, f"{p.id}-LINS")
     if t.dosa is not None:
-        d = t.dosa
-        m.lagg(Del(f"{d.namn} Ø{d.diameter:g} × {d.djup:g}", cylinder(d.diameter / 2, d.djup, (0.0, 0.0, -d.djup)),
-                   ELDOSA), sys, f"{p.id}-DOSA")
+        m.lagg(_ingjuten(t.dosa), sys, f"{p.id}-DOSA")
     return m
+
+
+def _ingjuten(d: Dosatyp) -> Del:
+    """Den ingjutna dosan ovanför en utanpåliggande armatur på betong, där armaturen ansluts."""
+    return Del(f"{d.namn} Ø{d.diameter:g} × {d.djup:g}", cylinder(d.diameter / 2, d.djup, (0.0, 0.0, -d.djup)), ELDOSA)
 
 
 UTAN_GEOMETRI = ("central", "brandlarm")     # punkter vars geometri finns i ett annat montage (teknikrummet, brandlarmet)

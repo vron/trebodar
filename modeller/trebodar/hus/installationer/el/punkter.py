@@ -82,12 +82,12 @@ PLATTA_T = 2.0                 # frontplattans och frontringens tjocklek
 
 def tuben(p: Lampa) -> tuple[Vek, Vek, Vek]:
     """Tubspotens läge: leden (stammens ände), tubens bakre och främre ände (mittpunkterna). Stammen går från
-    frontplattan längs takets normal; leden sitter på tubens sida huvud.led från den bakre änden, och tubens axel
+    frontplattan (takkoppen) längs takets normal; leden sitter på tubens sida huvud.led från den bakre änden, och tubens axel
     går i ljusets riktning, en radie från leden bort från stammen."""
     h = p.typ.huvud
     assert h is not None
     n, d = p.lage.normal, enhet(p.riktning)
-    led = flytt(p.lage.punkt, n, PLATTA_T + h.stam)
+    led = flytt(p.lage.punkt, n, (h.kopp or PLATTA_T) + h.stam)
     # från leden in mot tubens axel: stammens riktning vinkelrätt mot axeln (rakt ned: tubens sida åt takets x)
     k = sum(a * b for a, b in zip(n, d))
     u = (n[0] - k * d[0], n[1] - k * d[1], n[2] - k * d[2])

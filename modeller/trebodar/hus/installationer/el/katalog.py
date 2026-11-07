@@ -138,6 +138,24 @@ PANEL_600 = Armaturtyp(
     fotometri_url="https://www.ledvance.com/00_Free_To_Use/asset-13340714_LDT_file_Eulumdat_COMP_600_V_26W_830_U19"
                   "_3640lm.ldt",
     symbol="panel", panel=(595.0, 595.0, 75.0), dosa=INGJUTNINGSDOSA)
+# SG Armaturen Tube Mini S, utanpåliggande, källarens trevliga rum (#51): databladet för 320692 och fotometrifilen
+# (900 lm, 40°, UGR < 19, lysande yta Ø54). Takkopp Ø102 × 25 med drivdonet och kopplingsplinten (genomgående
+# ledare, högst 16 A), monteringsplattan skruvad på dosan (hålen c/c 70, monteringsanvisningen rev. 04.03.2022);
+# tuben Ø59 × 160 som Tube Mini R:s, på en stam från takkoppen, vridbar 350° och lutbar 90°; stammen och leden mätta
+# ur linjeritningen. Databladet anger inget avstånd till brännbart material: samma tub som Tube Mini R. Ansluten i en
+# ingjuten dosa ovanför sig.
+TUBE_MINI_S = Armaturtyp(
+    "TUBE-MINI-S", "Tube Mini S White 900lm 3000K Ra 98 Trailing edge", "SG Armaturen", "320692",
+    "https://www.sg-as.com/products/tube-mini-s/320692",
+    produkt="ARM-TUBE-S",
+    ljusflode=900.0, effekt=14.0, fargtemperatur=3000.0, ra=98.0, stralvinkel=40.0, vridbar=90.0, ip="IP20",
+    dimring="bakkant", ring_d=102.0, hal_d=0.0, djup=0.0, lysande_d=54.0, brandavstand=50.0, drivdon=None,
+    fotometri="sg-armaturen/tube-mini-s/320692.ldt",
+    fotometri_url="https://www.sg-as.com/int/en/file/techfile/5PO9/7021983206923_Tube%20Mini%20S%20White%20900lm"
+                  "%203000K%20Ra%2098%20Trailing%20edge%20dimming.ldt",
+    symbol="tubspot", huvud=Tubhuvud(diameter=59.0, langd=160.0, stam=50.0, stam_d=12.0, led=46.0, indrag=18.0,
+                                     kopp=25.0),
+    dosa=INGJUTNINGSDOSA)
 CENTRAL = Dosatyp("CENTRAL", "Gruppcentralen i teknikrummet (rörens början på dess ovansida)", "central", 0.0, 0.0,
                   symbol="central")
 BRANDLARM_MATNING = Dosatyp("BL-MATNING", "Brandlarmets matningsdosa i källarens tak (brandlarm/larm.py, D01)",

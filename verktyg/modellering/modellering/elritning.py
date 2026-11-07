@@ -210,18 +210,19 @@ class _Etiketter:
         rader = txt.split("\n")
         w = self.v.m(max(len(r) for r in rader) * SZ_ETIKETT * 0.19)
         h = self.v.m(len(rader) * SZ_ETIKETT * 0.43)
-        val = (*lagen[0], 1.0)
-        for k in (1.0, 2.0, 3.0):                         # längre ut, med hänvisningslinje, om inget läge är fritt
-            hittat = False
+        val, minst = (*lagen[0], 1.0), math.inf
+        for k in (1.0, 2.0, 3.0, 4.0):                    # längre ut, med hänvisningslinje, om inget läge är fritt
             for du, dv, a in lagen:
                 x0 = X + self.v.m(du * k) - {"l": 0.0, "c": w / 2, "r": w}[a[0]]
                 y0 = Y + self.v.m(dv * k) - (h if a[1] == "t" else 0.0)
                 lada = (x0, y0, x0 + w, y0 + h)
-                if not any(lada[0] < b[2] and b[0] < lada[2] and lada[1] < b[3] and b[1] < lada[3]
-                           for b in self.lador):
-                    val, hittat = (du, dv, a, k), True
+                tackt = sum(max(0.0, min(lada[2], b[2]) - max(lada[0], b[0])) * max(0.0, min(lada[3], b[3]) - max(lada[1], b[1]))
+                            for b in self.lador)
+                if tackt < minst:                         # det första fria läget, annars det som täcker minst
+                    val, minst = (du, dv, a, k), tackt
+                if tackt == 0.0:
                     break
-            if hittat:
+            if minst == 0.0:
                 break
         du, dv, a, k = val
         du, dv = du * k, dv * k
@@ -233,6 +234,13 @@ class _Etiketter:
             self.v.linje([(X + self.v.m(du / n * 1.2), Y + self.v.m(dv / n * 1.2)), (X + self.v.m(du), Y + self.v.m(dv))],
                          "tunn")
         self.v.ptext(X, Y, du, dv, txt, a=a, sz=SZ_ETIKETT, **kw)
+
+
+def _i_bjalklaget(ror: list[str], riktning: str) -> list[str]:
+    """Etikettens rader för rören som går upp (ned) i bjälklaget vid punkten: ett rör på en rad, flera två per rad."""
+    if len(ror) < 2:
+        return [f"{r} {riktning} i bjälklaget" for r in ror]
+    return [f"{riktning} i bjälklaget:"] + [", ".join(ror[i:i + 2]) for i in range(0, len(ror), 2)]
 
 
 def _grupper(punkter: dict[str, dict]) -> list[list[str]]:
@@ -292,7 +300,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
     typer = utdrag["typer"]
     grupper = _grupper(punkter)
     rit = _ritlagen(v, punkter, grupper)
-    extra: dict[str, list[str]] = {k: [] for k in punkter}          # rör ned i bjälklaget vid punkten
+    extra: dict[str, list[str]] = {k: [] for k in punkter}          # rören ned (upp) i bjälklaget vid punkten
     gc = utdrag["punkter"].get("GC") if kallare else None              # gruppcentralen, ritas i källaren
     vid_centralen: list[str] = []
     rortexter: list[tuple[Punkt, Punkt, str]] = []                  # ritas efter etiketterna, där de får plats
@@ -312,11 +320,11 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             for a, b in [(a, b) for p, q in zip(vag, vag[1:]) for a, b in ((p, q), (q, p))]:
                 if pa_planet(a) and not pa_planet(b):     # in i bjälklaget vid a
                     if gc is not None and math.dist(gc["punkt"][:2], a[:2]) < 400.0:
-                        vid_centralen.append(f"{k} upp i bjälklaget")      # ur centralens ovansida
+                        vid_centralen.append(k)                            # ur centralens ovansida
                         continue
                     nara = [q for q, p in punkter.items() if math.dist(p["punkt"][:2], a[:2]) < v.m(3)]
                     if nara:
-                        extra[nara[0]].append(f"{k} {riktning} i bjälklaget")
+                        extra[nara[0]].append(k)
                     else:
                         _genomforing(v, a[0], a[1])
                         v.ptext(a[0], a[1], 1.2, -1.2, f"{k} {riktning}", a="lt", sz=5.0, col="gra")
@@ -349,12 +357,14 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         for g in grupper:
             p = punkter[g[0]]
             hojd = {round(punkter[q]["over_golv"]) for q in g if punkter[q]["yta"] == "vagg"}
-            text = [", ".join(g)] + [f"{svm(z)} över golv" for z in sorted(hojd)] + [e for q in g for e in extra[q]]
+            text = ([", ".join(g)] + [f"{svm(z)} över golv" for z in sorted(hojd)]
+                    + _i_bjalklaget([e for q in g for e in extra[q]], riktning))
             X = float(np.mean([rit[q][0] for q in g]))
             Y = float(np.mean([rit[q][1] for q in g]))
             etiketter.satt(X, Y, "\n".join(text), LAGEN_APPARAT, bg=True)
         if gc is not None:
-            etiketter.satt(gx, gy, "\n".join(["GC central", *sorted(set(vid_centralen))]), LAGEN_APPARAT, bg=True)
+            etiketter.satt(gx, gy, "\n".join(["GC central", *_i_bjalklaget(sorted(set(vid_centralen)), "upp")]),
+                           LAGEN_APPARAT, bg=True)
     with v.lager("rortext"):
         for a, b, txt in rortexter:
             lada = _langs_lada(v, a, b, txt)
@@ -393,13 +403,15 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         "Elinstallationen i källaren ur modellen (modeller/trebodar/hus/installationer/el, rum/kallare.py och "
         "rum/teknikrum.py): armaturer, apparater, dosor, tändgrupper och rör. Lägena följer husets geometri; "
         "ritningen ritas med ./mod el ritning.",
-        "Panelerna sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. Rören till dem och mellan "
-        "rummen är ingjutna i mellanbjälklaget (" + bjalklaget + "): ur brytarnas dosor går de rakt upp i väggen in i "
-        "bjälklaget. Rören som ritas här går i KL-väggarnas regelfack och i källarväggarnas cellplast bakom gipsen.",
+        "Panelerna och spotarna sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. Rören till dem "
+        "och mellan rummen är ingjutna i mellanbjälklaget (" + bjalklaget + "): ur brytarnas och dimrarnas dosor går "
+        "de rakt upp i väggen in i bjälklaget. Rören som ritas här går i KL-väggarnas regelfack och i källarväggarnas "
+        "cellplast bakom gipsen, i rummen norr om V4–V6 strax under taket till den mellersta och den norra raden "
+        "spotar.",
         "Apparaternas höjd är centrum över färdigt golv. Gruppcentralen sitter på V3 i teknikrummet; grupperna och "
         f"deras rör: {grupperna}. Uttagen i teknikrummet och tvättstugan matas ur centralens baksida.",
-        "De trevliga rummens belysning (trapphallen, tvättstugan, rummen vid V2 och rummet söder om trapphallen) "
-        "bestäms i ärende #51. Fläkten FF3 ansluts vid fläkten på V20 (KA-D2).",
+        "Dimrarna sitter vid ingångarna och styr spotarna i trapphallen, tvättstugan, rummen norr om V4–V6 (den västra "
+        "och den östra delen) och rummet söder om trapphallen. Fläkten FF3 ansluts vid fläkten på V20 (KA-D2).",
     ] if kallare else None)
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),

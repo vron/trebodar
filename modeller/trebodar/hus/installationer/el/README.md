@@ -23,7 +23,7 @@ cd verktyg/modellering
 | [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas; en vägglampa med glob på arm; LEDVANCE PANEL COMPACT 600, utanpåliggande panel på betong med en ingjuten dosa ovanför) och tills vidare allmänna dosor, apparater och rör |
 | [`punkter.py`](punkter.py) | Beståndsdelarna (`Lampa`, `Apparat`, `Dosa`, `Tandgrupp`, `Ror`, `Rum`), riktningarna (`mot` en punkt, `lutad` mot en vägg), uttag ovanför fönster (`ovan_fonstret`) och pendelns sladd (`pendeln`); lägena på husets ytor (`tak`, `kallartak`, `vagg` och rörens brytpunkter `i_tak`, `i_vagg`, `vid_tak`, `i_bjalklag`) i installationernas gemensamma [`../montering.py`](../montering.py) |
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
-| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52); i källaren teknikrummet (centralen och värmepumpen) och källarens arbetsrum ([`rum/kallare.py`](rum/kallare.py), #51: panelerna, brytarna och deras rör och grupprör, ingjutna i bjälklaget) |
+| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52); i källaren teknikrummet (centralen och värmepumpen) och källarens övriga rum ([`rum/kallare.py`](rum/kallare.py), #51: panelerna, spotarna, brytarna, dimrarna, uttagen och deras rör och grupprör, ingjutna i bjälklaget) |
 | `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag: gruppernas rör från centralen (mellanbjälklaget) och brandlarmets matningsdosa |
 | [`grupper.py`](grupper.py) | Gruppcentralen och grupperna: säkring, faser, ledarnas area, jordfelsskydd och punkterna i rörens ordning |
 | [`kedjor.py`](kedjor.py) | Rören mellan gruppernas punkter: genom innertaket, längs väggarna och genom bjälklaget |
@@ -70,7 +70,14 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   där golvvärmen inte går, eftersom slingorna bara undviker lodräta elrör vid väggarna. Det stora rummets grupp (G17)
   kommer från den bakre raden över centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och röret till
   brytaren korsar stråket E, tappvattnet till UF1 och avloppet AV20 i den övre nivån vid x 13 090 (under köksbänken).
-  De små rummens grupp (G18) kommer i stråket S och går ned i KL1.
+  De små rummens grupp (G18) kommer i stråket S och går ned i KL1, och fortsätter till dimrarna i de trevliga rummen.
+- **Källarens trevliga rum** ([`rum/kallare.py`](rum/kallare.py), #51): trapphallen, tvättstugan, de två små rummen
+  norr om V4–V6 och rummet söder om trapphallen har utanpåliggande tubspotar med låg bländning (SG Armaturen Tube
+  Mini S, 3000 K) på ingjutna dosor, eftersom ingjutningshusen för infällda spotar inte ryms i bjälklaget med
+  golvvärmen och armeringen. Dosorna står som panelernas och dessutom fria från elens rör i bjälklagets undre nivå;
+  rören mellan dem väljer nivå per sträcka och går över de andra dosorna och fritt från källarens andra rör. I rummen
+  norr om V4–V6 tar tappvattnets och plan 1:s stråk och grupprören längs y 9 645–9 830 båda nivåerna, så rören till
+  den mellersta och den norra raden går i V4:s, V19:s och V15:s cellplast strax under taket.
 - **Källarens uttag** ([`rum/kallare.py`](rum/kallare.py), [`rum/teknikrum.py`](rum/teknikrum.py), #51): i alla
   rum, tvättmaskinen och torktumlaren i tvättstugan och fläkten FF3:s anslutning. Rören går i källarväggarnas cellplast
   bakom gipsen och i KL-väggarnas regelfack, vågrätt i golvzonen (250 mm över golvet, under tappställenas rör) och upp
@@ -175,12 +182,12 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
 bordshöjden på plan 1, köksbänkarna och ön, källarens golv; ytor och delområden läggs till där) i renderingen, med
 armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (U-04.n i ritningsmallen, alla
 mätytorna i en pdf) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
-delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita; rummens namn ur
+delområde (utan inredningen på mätytan: skåpen, sängen, bänkskivorna och källartrappan, som lämnas vita; rummens namn ur
 `RUMSNAMN` och `LJUSPLANENS_RUM` i `modeller/trebodar/vyer.py`, där källarens rum står). Ett delområde kan mätas
 i en egen höjd: på planerna över plan 1 mäts köksbänkarna och ön där man arbetar, 10 mm över bänkskivorna (0,91 m):
 
 ```
-./mod ljusplan plan1-golv kallare-golv              # alla tändgrupper och källarens taklampor tända, mörkt ute
+./mod ljusplan plan1-golv kallare-golv              # alla tändgrupper tända, mörkt ute
 ./mod ljusplan plan1-bord --tand AL-T1 KO-T1=0.5    # bara några, en dimrad till hälften
 ./mod ljusplan plan1-bord --ljus 3 20 12:00 mulet --tand     # bara dagsljuset (inga lampor)
 ```
