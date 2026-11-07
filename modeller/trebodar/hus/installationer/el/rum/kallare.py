@@ -180,6 +180,10 @@ UTTAG_KS = [("V18", 2800.0, 1), ("V18", 1200.0, 1)]
 UTTAG_V2 = [("V2", 5800.0, -1), ("V2", 8400.0, -1)]
 UTTAG += [Apparat(f"KA-U{i + 13}", UTTAG_2, kallarvagg(v, s_, Z_GOLVZON, sida))
           for i, (v, s_, sida) in enumerate([*UTTAG_KS, *UTTAG_V2])]
+# trapphallen: två dubbla uttag, på KL3 (söder om dörren KD2) och KL4 (väster om dörren KD4), 250 mm över golvet (G23)
+Y_UTTAG_KL3, X_UTTAG_KL4 = 5600.0, 5300.0
+UTTAG += [Apparat("KA-U17", UTTAG_2, _pa_kl("KL4", X_UTTAG_KL4, 1, PLAN[0] + Z_GOLVZON)),
+          Apparat("KA-U18", UTTAG_2, _pa_kl("KL3", Y_UTTAG_KL3, 1, PLAN[0] + Z_GOLVZON))]
 PUNKTER = [*PANELER, Dosa("KA-D1", INGJUTNINGSDOSA, kallartak(*D_STORA)), *BRYTARE.values(), *UTTAG]
 _P = BRYTARE
 
@@ -325,6 +329,16 @@ def _sma_uttagen() -> list[Ror]:
     ut.append(_ror("G23-R4", "KA-U8", "KA-U13", ((a[0], a[1], _ZU), (a[0], a[1], _ZG), (v18, _V7_EPS, _ZG),
                                                  (v18, UTTAG_KS[0][1], _ZG))))
     ut.append(_ror("G23-R5", "KA-U13", "KA-U14", ((v18, UTTAG_KS[0][1], _ZG), (v18, UTTAG_KS[1][1], _ZG))))
+    # trapphallen: från det östra lilla rummets andra uttag upp i V7:s cellplast till strax under taket, österut till
+    # KL3 och i dess regelfack norrut över dörren KD3 till uttaget på KL3; därifrån lägre (där inga dörrar är)
+    # söderut till KL4 och österut i dess regelfack till uttaget där
+    kl3, kl4 = KL["KL3"].c, KL["KL4"].c
+    zh, zl = KALLARTAK - 60.0, KALLARTAK - 110.0
+    a = _i_cellplasten("V7", UTTAG_SMA[-1][1] - 30.0)
+    ut.append(_ror("G23-R6", "KA-U8", "KA-U18", ((a[0], a[1], _ZU), (a[0], a[1], zh), (kl3, _V7_EPS, zh),
+                                                 (kl3, Y_UTTAG_KL3, zh), (kl3, Y_UTTAG_KL3, _ZG))))
+    ut.append(_ror("G23-R7", "KA-U18", "KA-U17", ((kl3, Y_UTTAG_KL3 - 30.0, _ZG), (kl3, Y_UTTAG_KL3 - 30.0, zl),
+                                                  (kl3, kl4, zl), (X_UTTAG_KL4, kl4, zl), (X_UTTAG_KL4, kl4, _ZG))))
     return ut
 
 
