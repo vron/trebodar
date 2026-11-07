@@ -18,6 +18,7 @@ from .planritning import (MINSTA_HAL, VAGGAR, Blad, Vy, blad, figur, kompilera, 
 
 SKALA = 75.0
 PLAN1 = (-500.0, 14300.0, -300.0, 16300.0)        # planens område (x0, x1, y0, y1) [mm]
+KALLARTAK = -150.0                                 # källarens tak: mellanbjälklagets underkant [mm]
 SERIE = "E-01 Elinstallation"
 R_LAMPA, R_APPARAT = 1.5, 0.9                     # symbolernas radie på papperet [mm]
 TABELLER = dict(x=226.0, y=14.0, w=98.0)          # tabellerna till höger om planen [pappersmm]
@@ -188,6 +189,8 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
     "brytare": (lambda v: symbol(v, "brytare", -0.6, -0.5), "strömbrytare"),
     "uttag": (lambda v: symbol(v, "uttag", 0.0, 0.0), "vägguttag"),
     "kopplingsdosa": (lambda v: symbol(v, "kopplingsdosa", 0.0, 0.0), "kopplingsdosa"),
+    "panel": (lambda v: symbol(v, "panel", 0.0, 0.0), "LED-panel utanpå taket (ansluten i en ingjuten dosa ovanför)"),
+    "ingjutningsdosa": (lambda v: symbol(v, "ingjutningsdosa", 0.0, 0.0), "ingjuten dosa i källarens tak"),
 }
 
 
@@ -256,19 +259,25 @@ def _typnamn(t: dict) -> str:
     return f"{t['tillverkare']} {t['namn']}, art. {t['artikel']}{lampa}"
 
 
-def _plan1(utdrag: dict) -> dict[str, dict]:
-    """Plan 1:s punkter."""
-    rummen = {k for k, r in utdrag["rum"].items() if r["plan"] == 1}
+def _plan1(utdrag: dict, plan_: int = 1) -> dict[str, dict]:
+    """Planets punkter (plan 1, eller 0: källaren)."""
+    rummen = {k for k, r in utdrag["rum"].items() if r["plan"] == plan_}
     return {k: p for k, p in utdrag["punkter"].items() if p.get("rum") in rummen}
 
 
 def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: str, bjalklaget: str,
-           forteckningen: str, grupperna: str) -> Blad:
-    """Elplanen för plan 1: punkterna, styrningen och rören i väggar och innertak (rören i bjälklaget på
-    bjälklagets ritning, bjalklaget; apparaterna, dosorna och rören i förteckningen, forteckningen)."""
+           forteckningen: str, grupperna: str, plan_: int = 1) -> Blad:
+    """Elplanen för plan 1 (eller källaren, plan_ 0): punkterna, styrningen och rören i väggar och innertak (i
+    källaren i väggarna; rören i bjälklaget på bjälklagets ritning, bjalklaget; plan 1:s apparater, dosor och rör i
+    förteckningen, forteckningen)."""
     v = vy(SKALA, PLAN1, 24.0, 27.0)
     plan(v, delar)
-    punkter = _plan1(utdrag)
+    punkter = _plan1(utdrag, plan_)
+    kallare = plan_ == 0
+
+    def pa_planet(p: list[float]) -> bool:
+        """Rörets punkt i planets väggar och innertak (inte i bjälklaget)."""
+        return p[2] < KALLARTAK - 1.0 if kallare else p[2] > -1.0
     typer = utdrag["typer"]
     grupper = _grupper(punkter)
     rit = _ritlagen(v, punkter, grupper)
@@ -279,21 +288,22 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             if r["fran"] not in punkter and r["till"] not in punkter:
                 continue
             vag = r["vag"]
-            for i0, i1 in _foljder(vag, lambda p: p[2] > -1.0):
+            for i0, i1 in _foljder(vag, pa_planet):
                 d = _xy(vag[i0:i1 + 1])
                 if len(d) > 1:
                     v.linje(d, "ror")
                     a, b = max(zip(d, d[1:]), key=lambda s: math.dist(*s))
                     if _ryms(v, a, b, f"{k} {r['typ']}", 5.0):
                         rortexter.append((a, b, f"{k} {r['typ']}"))
+            riktning = "upp" if kallare else "ned"
             for a, b in [(a, b) for p, q in zip(vag, vag[1:]) for a, b in ((p, q), (q, p))]:
-                if a[2] > -1.0 >= b[2]:                  # ned i bjälklaget vid a
+                if pa_planet(a) and not pa_planet(b):     # in i bjälklaget vid a
                     nara = [q for q, p in punkter.items() if math.dist(p["punkt"][:2], a[:2]) < v.m(3)]
                     if nara:
-                        extra[nara[0]].append(f"{k} ned i bjälklaget")
+                        extra[nara[0]].append(f"{k} {riktning} i bjälklaget")
                     else:
                         _genomforing(v, a[0], a[1])
-                        v.ptext(a[0], a[1], 1.2, -1.2, f"{k} ned", a="lt", sz=5.0, col="gra")
+                        v.ptext(a[0], a[1], 1.2, -1.2, f"{k} {riktning}", a="lt", sz=5.0, col="gra")
     with v.lager("styrning"):
         for k, p in punkter.items():
             for g in p.get("styr", []):
@@ -331,7 +341,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
                 _langs(v, a, b, txt)
                 etiketter.lador.append(lada)
     norrpil(v, 7300.0, 14600.0, norr)
-    _rubrik(v, "Plan 1, elplan")
+    _rubrik(v, "Källaren, elplan" if kallare else "Plan 1, elplan")
     # tabellerna
     antal: dict[str, int] = {}
     for p in punkter.values():
@@ -356,10 +366,22 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
     slag = {typer[p["typ"]]["symbol"] for p in punkter.values()}
     legend: list[Rad] = [(_LEGEND[s][0], _LEGEND[s][1]) for s in _LEGEND if s in slag]
     legend += [("styr0", "styrning: brytaren eller dimmern och tändgruppens armaturer (färg per tändgrupp)"),
-               ("ror", "rör i vägg och innertak")]
+               ("ror", "rör i väggarna" if kallare else "rör i vägg och innertak")]
+    anv = ([
+        "Elinstallationen i källaren ur modellen (modeller/trebodar/hus/installationer/el, rum/kallare.py och "
+        "rum/teknikrum.py): armaturer, apparater, dosor, tändgrupper och rör. Lägena följer husets geometri; "
+        "ritningen ritas med ./mod el ritning.",
+        "Panelerna sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. Rören till dem och mellan "
+        "rummen är ingjutna i mellanbjälklaget (" + bjalklaget + "): ur brytarnas dosor går de rakt upp i väggen in i "
+        "bjälklaget. Rören som ritas här går i KL-väggarnas regelfack och i källarväggarnas cellplast bakom gipsen.",
+        "Apparaternas höjd är centrum över färdigt golv. Gruppcentralen sitter på V3 i teknikrummet; grupperna och "
+        f"deras rör: {grupperna}. Uttagen i teknikrummet och tvättstugan matas ur centralens baksida.",
+        "De trevliga rummens belysning (trapphallen, tvättstugan, rummen vid V2 och rummet söder om trapphallen) och "
+        "uttagen där bestäms i ärende #51.",
+    ] if kallare else None)
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
-        dict(typ="lista", sz=7.0, rader=[
+        dict(typ="lista", sz=7.0, rader=anv or [
             "Elinstallationen ur modellen (modeller/trebodar/hus/installationer/el): armaturer, apparater, dosor, "
             "tändgrupper och rör. Lägena följer husets geometri; ritningen ritas med ./mod el ritning.",
             "Armaturerna i innertaket sitter mellan läkten (c 400) i installationsskiktet, med drivdonet bredvid. "
@@ -375,7 +397,8 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(legend),
     ]
-    return blad(nummer, ["Elinstallation", "Elplan plan 1"], f"1:{SKALA:g}", "Modellen", kol, [v], block)
+    return blad(nummer, ["Elinstallation", "Elplan källaren" if kallare else "Elplan plan 1"], f"1:{SKALA:g}",
+                "Modellen", kol, [v], block)
 
 
 def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, float], nummer: str,
@@ -551,18 +574,19 @@ def gruppforteckning(utdrag: dict, nummer: str, bjalklaget: str) -> Blad:
     return blad(nummer, ["Elinstallation", "Gruppförteckning"], "–", "Modellen", kol, [], block)
 
 
-def ritningar(utdrag: dict, plan1: list[dict], mb: list[dict], norr: tuple[float, float], arbete: Path,
-              ut: Path) -> Path:
+def ritningar(utdrag: dict, plan1: list[dict], mb: list[dict], kallare: list[dict], norr: tuple[float, float],
+              arbete: Path, ut: Path) -> Path:
     """Elritningarna (serien SERIE): elplanen för plan 1, rören i mellanbjälklaget, förteckningen över plan 1:s
-    apparater, dosor och rör, gruppförteckningen och rörens punkter i bjälklaget, som pdf i mappen ut (bladen för sig
-    i arbetsmappen, under repots rot)."""
-    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3, 4, 5)]
+    apparater, dosor och rör, gruppförteckningen, rörens punkter i bjälklaget och källarens elplan, som pdf i mappen
+    ut (bladen för sig i arbetsmappen, under repots rot)."""
+    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3, 4, 5, 6)]
     mb_blad, mb_punkter = bjalklag(utdrag, mb, plan1, (-150.0, 0.0), nr[1], nr[0], nr[4])
     bladen = [(nr[0], elplan(utdrag, plan1, norr, nr[0], nr[1], nr[2], nr[3])),
               (nr[1], mb_blad),
               (nr[2], forteckning(utdrag, nr[2], nr[0])),
               (nr[3], gruppforteckning(utdrag, nr[3], nr[1])),
-              (nr[4], punktforteckning(mb_punkter, nr[4], nr[1]))]
+              (nr[4], punktforteckning(mb_punkter, nr[4], nr[1])),
+              (nr[5], elplan(utdrag, kallare, norr, nr[5], nr[1], nr[2], nr[3], plan_=0))]
     pdf = ut / f"{SERIE}.pdf"
     kompilera(bladen, arbete, pdf)
     return pdf

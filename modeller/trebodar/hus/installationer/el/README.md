@@ -9,7 +9,7 @@ ljusfördelning), kontrollerna och elritningarna.
 cd verktyg/modellering
 ./mod el kontroll     # referenser, styrning, armaturerna, rörens böjar och anslutningar, grupperna och krockarna
 ./mod el lista        # punkter, tändgrupper och rör (ut/el/elinstallation.md och .json)
-./mod el ritning      # elritningarna E-01.1–E-01.5 (ut/el/E-01 Elinstallation.pdf, kräver STEP-filen: ./mod bygg)
+./mod el ritning      # elritningarna E-01.1–E-01.6 (ut/el/E-01 Elinstallation.pdf, kräver STEP-filen: ./mod bygg)
 ./mod el hamta        # tillverkarnas fotometrifiler som saknas (till lokalt/el/, versionshanteras inte)
 ./mod rendera I02 --ljus 12 21 18:00 sol --tand AL-T1 AL-T2=0.5     # kväll, tändgrupperna tända (dimrad)
 ./mod rendera detalj-ph5 detalj-stav detalj-vl45 detalj-glob         # pendlarna på nära håll, kväll och tända
@@ -158,7 +158,9 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
   och ingjutningsdosorna, med plan 1:s väggar streckade;
 - **E-01.3 förteckningen** över plan 1:s apparater och dosor och rören i väggar och innertak;
 - **E-01.4 gruppförteckningen**: centralen och grupperna med säkring, faser, area, jordfelsskydd, punkter och rör;
-- **E-01.5 rörens punkter** i mellanbjälklaget, numrerade som på E-01.2, med koordinaterna (K-05).
+- **E-01.5 rörens punkter** i mellanbjälklaget, numrerade som på E-01.2, med koordinaterna (K-05);
+- **E-01.6 källarens elplan**: armaturerna, apparaterna och dosorna, tändgruppernas styrning och rören i väggarna
+  (rören i bjälklaget på E-01.2).
 
 `./mod el lista` skriver punktlistan, tändgrupperna och rörlistan med kontrollen (markdown och JSON).
 

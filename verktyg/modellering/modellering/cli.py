@@ -405,7 +405,9 @@ def main(argv: list[str] | None = None) -> None:
             ma = ROT / "verktyg" / "modellanalys" / "ma"
             plan1 = snitt(ma, step_fil, 1200.0, UT / "el-plan1.json")
             mb = snitt(ma, step_fil, -75.0, UT / "el-mellanbjalklag.json")
-            print(f"  {elritning.ritningar(utdrag, plan1, mb, _norr(), UT / 'el' / 'blad', arg.ut)}")
+            kallare = snitt(ma, step_fil, importlib.import_module("trebodar.skelett").Z_BOTTENPLATTA + 1200.0,
+                            UT / "el-kallare.json")
+            print(f"  {elritning.ritningar(utdrag, plan1, mb, kallare, _norr(), UT / 'el' / 'blad', arg.ut)}")
         else:
             for t in {v["typ"]: utdrag["typer"][v["typ"]] for v in utdrag["punkter"].values()
                       if v["slag"] == "lampa"}.values():
