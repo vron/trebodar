@@ -166,9 +166,50 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str) -> list[list[str]]:
     return rader
 
 
+DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # centralens rör: området (x0, x1, y0, y1)
+SKALA_DETALJ = 10.0
+
+
+def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Vy:
+    """Detalj 1:10 ovanför gruppcentralen: rörens stigare i de två raderna (den bakre i V3:s cellplast) mellan
+    underkantsnätets järn och V3:s vinkeljärn, kanalen FF3-K2 och måtten från centralens västra kant."""
+    x0, x1, y0, y1 = DETALJ
+    v = Vy(222.0, 150.0, (x1 - x0) / SKALA_DETALJ, (y1 - y0) / SKALA_DETALJ, SKALA_DETALJ, x0, y1, klipp=True)
+    (cx, cy, _), (b, d) = central["topp"], central["matt"]
+    with v.lager("detalj"):
+        v.rekt(cx - b / 2, cy - d / 2, cx + b / 2, cy + d / 2, "#efefec", "normal")
+        v.linje([(x0, central["vagg"]), (x1, central["vagg"])], "normal")
+        for j in jarn:
+            pts = [tuple(q) for q in j["linje"]]
+            if len(pts) == 1:
+                v.cirkel(pts[0][0], pts[0][1], j["d"] / 2, fyll="#8a8f94", stil=None, modell=True)
+            else:
+                v.linje(pts, "stal")
+        k = central["kanal"]
+        v.rekt(k[0], k[1], k[2], k[3], None, "dold")
+    rader: dict[float, list[float]] = {}
+    with v.lager("stigare"):
+        for nr, r in el["ror"].items():
+            if r["fran"] != "GC" or len(r["vag"]) < 3:
+                continue
+            for a, b_ in zip(r["vag"], r["vag"][1:]):
+                if _genom(a, b_) == "ned" or (abs(a[0] - b_[0]) < 1.0 and abs(a[1] - b_[1]) < 1.0
+                                               and min(a[2], b_[2]) < Z_UK < max(a[2], b_[2])):
+                    v.cirkel(a[0], a[1], r["diameter"] / 2, fyll="#c8661c", stil="tunn", modell=True)
+                    v.ptext(a[0], a[1], 0.0, -1.6, nr.split("-")[0][1:], a="ct", sz=4.2, b=True)
+                    rader.setdefault(round(a[1]), []).append(a[0])
+                    break
+    for i, (y, xs) in enumerate(sorted(rader.items())):
+        xx = [cx - b / 2, *sorted(xs)]
+        v.mattx(xx, y - 60.0 - 40.0 * i, [y] * len(xx), sz=5.0)
+    v.rubrik(x0 + 5.0 * SKALA_DETALJ, y1 + 12.0 * SKALA_DETALJ, "Detalj: rören ur gruppcentralen", round(SKALA_DETALJ),
+             sz=8)
+    return v
+
+
 def _blad(nummer: str, tema: str, prefix: str, mb: list[dict], plan1: list[dict], kallare: list[dict],
           rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
-          norr: tuple[float, float]) -> Blad:
+          norr: tuple[float, float], extra: list[Vy] = ()) -> Blad:
     x0, x1, y0, y1 = OMRADE
     v = vy(SKALA, OMRADE, 24.0, 20.0)
     plan(v, mb)
@@ -195,12 +236,12 @@ def _blad(nummer: str, tema: str, prefix: str, mb: list[dict], plan1: list[dict]
         dict(typ="tabell", kolumner=["Nr", "Vad", "x", "y", "Mått"], bredd=(0.35, 2.4, 0.45, 0.45, 0.6),
              just=["l", "l", "r", "r", "l"], sz=5.2, rader=rader),
     ]
-    return blad(nummer, ["Gjutning av mellanbjälklaget", tema], f"1:{SKALA:g}", "Modellen", kol, [v])
+    return blad(nummer, ["Gjutning av mellanbjälklaget", tema], f"1:{SKALA:g}", "Modellen", kol, [v, *extra])
 
 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: list[dict], trapphal: list[list[float]],
               mb: list[dict], plan1: list[dict], kallare: list[dict], norr: tuple[float, float], arbete: Path,
-              ut: Path) -> Path:
+              ut: Path, jarn: list[dict], central: dict) -> Path:
     """AR-03.1–AR-03.5: elen, tappvattnet, avloppet, golvvärmen och hålen i mellanbjälklaget."""
     nr = [f"{SERIE.split()[0]}.{i}" for i in range(1, 6)]
     vaggar = unary_union(polygoner(plan1, bara=VAGGAR))
@@ -210,7 +251,8 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: list[d
                        ("ror_ingjutet_uk", "elrör ingjutet, undre nivån (Ø20 och källarens rör, z −100)")],
                       "Elrören gjuts in före gjutningen, i sina nivåer: de klena över tappvattnet och golvvärmen, de "
                       "grova i tappvattnets nivå utan att korsa det. ● röret går upp i väggen ovanför, ○ ned i "
-                      "källaren. Rören går upp mellan armeringsjärnen.", norr)),
+                      "källaren. Rören går upp mellan armeringsjärnen; ur gruppcentralen i två rader enligt detaljen "
+                      "(måtten från centralens västra kant).", norr, [_detalj_centralen(el, jarn, central)])),
         (nr[1], _blad(nr[1], "tappvatten", "V", mb, plan1, kallare, lambda v: _vatten(v, vatten),
                       [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet")],
                       "Rör-i-rör läggs i stråken närmast underkantsnätet, c/c 50, och går upp och ned mellan "

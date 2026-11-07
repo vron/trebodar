@@ -846,9 +846,18 @@ def main(argv: list[str] | None = None) -> None:
         kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "gjutning-kallare.json")
         mb = snitt(ma, step_fil, -75.0, UT / "gjutning-mellanbjalklag.json")
         arg.ut.mkdir(parents=True, exist_ok=True)
+        tk = imp("trebodar.hus.installationer.teknikrum")
+        arm = imp("trebodar.hus.armering.armering")
+        x0, x1, y0, y1 = gjutning.DETALJ
+        jarn = [{"linje": [list(g.coords[0])] if g.geom_type == "Point" else [list(c) for c in g.coords], "d": d}
+                for g, d in arm.jarnen_i_nivan(-150.0, -51.0)
+                if g.intersects(imp("shapely.geometry").box(x0, y0, x1, y1))]
+        gc = tk.GRUPPCENTRAL
+        central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1],
+                   "kanal": [2810.0 - 62.5, 8936.0 - 62.5, 4950.0, 8936.0 + 62.5]}
         pdf = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
                                  [list(p) for p in skel.TRAPPHAL], mb, plan1, kallare, _norr(), UT / "gjutning" / "blad",
-                                 arg.ut)
+                                 arg.ut, jarn, central)
         print(f"  {pdf}")
     elif arg.kommando == "vatten":
         import json
