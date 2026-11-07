@@ -243,6 +243,9 @@ def main(argv: list[str] | None = None) -> None:
                     help="kontroll: kedjorna, flödena, genomföringarna och krockarna mot husets delar; lista: grenar, "
                          "element, kanaler och genomföringar (markdown); ritning: planerna och sektionen (V-01)")
     pv.add_argument("--ut", type=Path, default=UT / "ventilation")
+    pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av mellanbjälklaget (AR-03, #86)")
+    pg.add_argument("atgard", choices=("ritning",))
+    pg.add_argument("--ut", type=Path, default=ROT / "ritningar")
     pw = sub.add_parser("vatten", help="tappvattnet: kontroll (med krockar mot huset), lista och ritningar")
     pw.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: utgångarna, anslutningarna, tiden till varmvatten, hastigheterna, rören som går i "
@@ -809,6 +812,44 @@ def main(argv: list[str] | None = None) -> None:
                          for g, y in ventritning.sektioner(utdrag)}
             pdf = ventritning.ritningar(utdrag, plan1, kallare, sektioner, _norr(), UT / "ventilation" / "blad", arg.ut)
             print(f"  {pdf}")
+    elif arg.kommando == "gjutning":
+        from . import gjutning
+        from .planritning import snitt
+        imp = importlib.import_module
+        skel = imp("trebodar.skelett")
+        el = imp("trebodar.hus.installationer.el.installation").installation()
+        vat = imp("trebodar.hus.installationer.vatten.system").vatten()
+        av = imp("trebodar.hus.installationer.avlopp.ledningar")
+        gv = imp("trebodar.hus.installationer.golvvarme.system").golvvarme()
+        vent = imp("trebodar.hus.installationer.ventilation.system").ventilation()
+        bl = imp("trebodar.hus.installationer.brandlarm.larm")
+        hal = [{"punkt": list(g.punkt), "atgard": g.atgard, "matt": g.matt, "element": g.element}
+               for g in [*vat.genomforingar()[0], *gv.genomforingar()[0], *vent.genomforingar()[0],
+                         *bl.genomforingarna()[0]]
+               if g.del_ == "Mellanbjälklaget" and not g.atgard.startswith("ingjutet")]
+        avu = av.utdrag()
+        for k, led in avu["ledningar"].items():             # avloppets rör lodrätt genom bjälklaget
+            for a, b in zip(led["vag"], led["vag"][1:]):
+                if (abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < -1.0
+                        and max(a[2], b[2]) > -skel.H_BJALKLAG + 1.0 and max(a[2], b[2]) > 0.0):
+                    hal.append({"punkt": [a[0], a[1], 0.0], "atgard": f"{led['namn']}: hål eller hylsa för röret",
+                                "matt": f"Ø{led['d']:g}", "element": k})
+                    break
+        hal += [{"punkt": [*g["punkt"], 0.0], "atgard": "golvbrunnens kropp gjuts in, flänsen i överkant",
+                 "matt": f"Ø{g['d']:g}", "element": k} for k, g in avu["golvbrunnar"].items()
+                if g["golv"] > -skel.H_BJALKLAG]
+        step_fil = UT / "trebodar.step"
+        if not step_fil.exists():
+            raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
+        ma = ROT / "verktyg" / "modellanalys" / "ma"
+        plan1 = snitt(ma, step_fil, 1200.0, UT / "gjutning-plan1.json")
+        kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "gjutning-kallare.json")
+        mb = snitt(ma, step_fil, -75.0, UT / "gjutning-mellanbjalklag.json")
+        arg.ut.mkdir(parents=True, exist_ok=True)
+        pdf = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
+                                 [list(p) for p in skel.TRAPPHAL], mb, plan1, kallare, _norr(), UT / "gjutning" / "blad",
+                                 arg.ut)
+        print(f"  {pdf}")
     elif arg.kommando == "vatten":
         import json
         from . import installationer, vattenritning

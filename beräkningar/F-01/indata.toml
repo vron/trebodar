@@ -201,6 +201,10 @@ nr = "AR-02"
 namn = "Arbetsritning utsättning, koordinater och höjder"
 status = "klar"
 [[ovrig]]
+nr = "AR-03"
+namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål"
+status = "upprättas"
+[[ovrig]]
 nr = "IN-01"
 namn = "Inköpslista, specialprodukterna"
 status = "klar"
