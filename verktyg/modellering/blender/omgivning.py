@@ -20,7 +20,6 @@ from graf import Graf, rgba
 STRALAR = 1440
 RINGAR = 120
 NARA_STEG = 0.3                 # ringarnas avstånd över tomten (det fina rutnätet)
-INNANFOR = 0.15                 # marknätets inre ring innanför terrängens kant: nätet går in under den [m]
 OVERGANG = 5.0                  # från modellens mark till höjdmodellen [m] (med det fina rutnätet)
 LUMA = (0.2126, 0.7152, 0.0722)
 # Poly Havens texturer (CC0) i tillgångarna (lokalt/polyhaven/texturer): sida [m]; kroma, hur mycket av texturens egna
@@ -49,10 +48,6 @@ MODELLER = {
                  for n, varianter in ((1, "abcdefghi"), (3, "abcd"), (4, "abcd")) for v in varianter],
     "gras": [("grass_medium_02/grass_medium_02_1k.blend", f"grass_medium_02_{v}") for v in "abcde"],
 }
-# gräsmattan i 3D nära huset (grasmatta): tuvor per m² inom radien [m] från huset, tuvornas varianter, strån per tuva,
-# stråets höjd och bredd vid roten och tuvans radie [m]
-GRAS = {"tathet": 300.0, "radie": 45.0, "varianter": 4, "stran": 22, "hojd": (0.045, 0.09), "bredd": 0.0035,
-        "tuva": 0.04}
 BUSKE_HOJD = (0.9, 1.4)         # buskarna vid bäddarna [m]
 BUSKE_TATHET = 3                # så många av Poly Havens buskar ihop i varje buske (de är glesa)
 VAXT_SKALA = {"gras": (1.6, 3.0), "smabuske": (1.2, 2.2)}      # bäddarnas växter, gånger modellens storlek
@@ -161,7 +156,7 @@ def inre_ring(mitt: tuple[float, float], z_bas: float, terrang: str, vinklar: in
         for _ in range(7):
             m_ = (a + b) / 2
             a, b = (m_, b) if traff(cx + m_ * dx, cy + m_ * dy) is not None else (a, m_)
-        r0 = a - INNANFOR
+        r0 = a - 0.15
         z = traff(cx + r0 * dx, cy + r0 * dy)
         ut.append((th, r0, (z if z is not None else z_bas) - 0.02))
     return ut
@@ -203,9 +198,6 @@ def mark(mitt: tuple[float, float], inre: list[tuple[float, float, float]], rut:
     me.from_pydata(verts.tolist(), [], faces.tolist())
     me.update()
     me.shade_smooth()
-    # den inre ringen (under terrängens kant, INNANFOR): där får gräsmattan bara terrängens strån (grasmatta)
-    me.attributes.new("inre", "FLOAT", "POINT").data.foreach_set("value", (np.arange(n * kk) % kk == 0).astype(
-        np.float32))
     ob = bpy.data.objects.new("Omgivning", me)
     bpy.context.scene.collection.objects.link(ob)
     return ob
@@ -568,174 +560,10 @@ def bygg(mitt: tuple[float, float], z_bas: float, terrang: str, mapp: str | None
         hav(rut.besk["z_hav"])
         byggnader(rut)
         trad(ob, rut, mitt, tillgangar=tillgangar)
-        grasmatta([ob] + [o for o in bpy.context.scene.objects if o.type == "MESH" and o is not ob
-                          and any(s.material == mm for s in o.material_slots)], mm, rut, mitt)
         if tillgangar:
             buskar(rut, tillgangar)
         if tillgangar:
             inmatta(rut, tillgangar)
-
-
-# ------------------------------------------------------------------ gräsmattan
-
-def _grasmaterial() -> bpy.types.Material:
-    """Grässtråna: grönt med olika ljusa strån (attributet slump och tuvans slumptal), torrare toppar och mörkare nere
-    i gräset (attributet h, 0 vid roten och 1 i toppen), och genomlysning."""
-    mat = bpy.data.materials.new("Gräs")
-    g = Graf(mat)
-    m = g.matte
-    slump = g.nod("ShaderNodeAttribute", {"attribute_name": "slump"}).outputs["Fac"]
-    h = g.nod("ShaderNodeAttribute", {"attribute_name": "h"}).outputs["Fac"]
-    farg = g.blanda(g.linj((slump, 0.6), (g.objslump(), 0.4)), rgba("#3a4d26"), rgba("#6c7c3e"))
-    farg = g.blanda(m("MULTIPLY", g.jamn(h, 0.6, 1.0), 0.5), farg, rgba("#8a8c4e"))
-    farg = g.ljus(farg, g.linj((h, 0.5), bas=0.5))
-    g.yta(farg, 0.55)
-    nt = g.nt
-    genom = g.nod("ShaderNodeBsdfTranslucent", Color=g.ljus(farg, 0.8))
-    blanda = g.nod("ShaderNodeMixShader", Fac=0.3)
-    nt.links.new(g.bsdf.outputs["BSDF"], blanda.inputs[1])
-    nt.links.new(genom.outputs["BSDF"], blanda.inputs[2])
-    nt.links.new(blanda.outputs["Shader"], g.ut.inputs["Surface"])
-    return mat
-
-
-def _grastuvor() -> bpy.types.Collection:
-    """Gräsmattans tuvor (GRAS): varianterna, var och en med strån som smala, lite böjda blad, olika höga och lutade
-    åt olika håll, med attributen slump per strå och h längs strået; samlingen är inte med i scenen."""
-    kol = bpy.data.collections.get("Grästuvor") or bpy.data.collections.new("Grästuvor")
-    if kol.objects:
-        return kol
-    mat = _grasmaterial()
-    for v in range(int(GRAS["varianter"])):
-        rng = np.random.default_rng(100 + v)
-        verts: list[tuple[float, float, float]] = []
-        faces: list[tuple[int, ...]] = []
-        slump: list[float] = []
-        hh: list[float] = []
-        for _ in range(int(GRAS["stran"])):
-            r, t = GRAS["tuva"] * math.sqrt(rng.random()), rng.uniform(0.0, 2 * math.pi)
-            bx, by = r * math.cos(t), r * math.sin(t)
-            h = rng.uniform(*GRAS["hojd"])
-            a, luta = rng.uniform(0.0, 2 * math.pi), rng.uniform(0.05, 0.45)
-            w = GRAS["bredd"] * rng.uniform(0.7, 1.3)
-            nx, ny = math.cos(a), math.sin(a)                       # strået lutar åt (nx, ny), bredden tvärs
-            px, py = -ny * w / 2, nx * w / 2
-            mx, my = bx + nx * luta * h * 0.3, by + ny * luta * h * 0.3
-            i = len(verts)
-            verts += [(bx - px, by - py, 0.0), (bx + px, by + py, 0.0), (mx + px * 0.7, my + py * 0.7, h * 0.55),
-                      (mx - px * 0.7, my - py * 0.7, h * 0.55), (bx + nx * luta * h, by + ny * luta * h, h)]
-            faces += [(i, i + 1, i + 2, i + 3), (i + 3, i + 2, i + 4)]
-            s = float(rng.random())
-            slump += [s, s]
-            hh += [0.0, 0.0, 0.55, 0.55, 1.0]
-        me = bpy.data.meshes.new(f"Grästuva {v + 1}")
-        me.from_pydata(verts, [], faces)
-        me.update()
-        me.attributes.new("slump", "FLOAT", "FACE").data.foreach_set("value", slump)
-        me.attributes.new("h", "FLOAT", "POINT").data.foreach_set("value", hh)
-        me.materials.append(mat)
-        kol.objects.link(bpy.data.objects.new(f"Grästuva {v + 1}", me))
-    return kol
-
-
-def grasmatta(objekt: list[bpy.types.Object], mm: bpy.types.Material, rut: Rutnat, mitt: tuple[float, float]
-              ) -> None:
-    """Gräsmattan i 3D nära huset (GRAS): tuvor av strån på objektens ytor med markens material mm (omgivningens
-    mark och modellens terräng), inom GRAS["radie"] från huset och där tomtens marktäcke är gräsmatta (nara_tacke.png,
-    grön kanal) med samma brusiga kant som i markmaterialet; läget i världen ur objektets transform."""
-    tacke = os.path.join(rut.mapp, "nara_tacke.png")
-    if not rut.nara or not os.path.exists(tacke):
-        return
-    na = rut.nara
-    bild = bpy.data.images.load(tacke, check_existing=True)
-    bild.colorspace_settings.name = "Non-Color"
-    ng = bpy.data.node_groups.new("Gräsmatta", "GeometryNodeTree")
-    ng.interface.new_socket("Geometri", in_out="INPUT", socket_type="NodeSocketGeometry")
-    ng.interface.new_socket("Geometri", in_out="OUTPUT", socket_type="NodeSocketGeometry")
-    N, L = ng.nodes, ng.links
-
-    def nod(typ: str, typen: str | None = None, **ing: object) -> bpy.types.Node:
-        """Ny nod med datatypen typen (sätts före ingångarna, som beror på den) och ingångarna."""
-        n = N.new(typ)
-        if typen:
-            n.data_type = typen
-        for k, v in ing.items():
-            if isinstance(v, bpy.types.NodeSocket):
-                L.new(v, n.inputs[k])
-            else:
-                n.inputs[k].default_value = v
-        return n
-
-    def matte(op: str, a: object, b: object = 0.0) -> bpy.types.NodeSocket:
-        n = N.new("ShaderNodeMath")
-        n.operation = op
-        for i, v in enumerate((a, b)):
-            if isinstance(v, bpy.types.NodeSocket):
-                L.new(v, n.inputs[i])
-            else:
-                n.inputs[i].default_value = v
-        return n.outputs[0]
-
-    def varlden() -> tuple[bpy.types.NodeSocket, ...]:
-        """Läget i världen (x, y, z) och som vektor."""
-        info = N.new("GeometryNodeObjectInfo")
-        info.transform_space = "ORIGINAL"
-        L.new(N.new("GeometryNodeSelfObject").outputs[0], info.inputs["Object"])
-        tp = nod("FunctionNodeTransformPoint", Vector=N.new("GeometryNodeInputPosition").outputs[0],
-                 Transform=info.outputs["Transform"])
-        sep = nod("ShaderNodeSeparateXYZ", Vector=tp.outputs[0])
-        return sep.outputs[0], sep.outputs[1], sep.outputs[2], tp.outputs[0]
-
-    inn, ut = N.new("NodeGroupInput"), N.new("NodeGroupOutput")
-    x, y, _, _ = varlden()
-    dx, dy = matte("SUBTRACT", x, mitt[0]), matte("SUBTRACT", y, mitt[1])
-    r2 = matte("ADD", matte("MULTIPLY", dx, dx), matte("MULTIPLY", dy, dy))
-    nara = matte("LESS_THAN", r2, GRAS["radie"] ** 2)
-    msel = N.new("GeometryNodeMaterialSelection")
-    msel.inputs["Material"].default_value = mm
-    val = nod("FunctionNodeBooleanMath", Boolean=msel.outputs[0])
-    val.operation = "AND"
-    L.new(nara, val.inputs[1])
-    ford = nod("GeometryNodeDistributePointsOnFaces", Mesh=inn.outputs[0], Selection=val.outputs[0],
-               Density=GRAS["tathet"])
-    ford.distribute_method = "RANDOM"
-    # gräsmattans mask i punkterna: den gröna kanalen med markmaterialets brusiga kant (nara(v, 0.15))
-    px, py, _, pv = varlden()
-    uv = nod("ShaderNodeCombineXYZ",
-             X=matte("DIVIDE", matte("SUBTRACT", px, na["x0"] - na["cell"] / 2), na["cell"] * na["nx"]),
-             Y=matte("DIVIDE", matte("SUBTRACT", py, na["y0"] - na["cell"] / 2), na["cell"] * na["ny"]))
-    tx = nod("GeometryNodeImageTexture", Image=bild, Vector=uv.outputs[0])
-    tx.extension = "CLIP"
-    gron = nod("FunctionNodeSeparateColor", Color=tx.outputs["Color"]).outputs[1]
-    brus = nod("ShaderNodeTexNoise", Vector=pv, Scale=0.25, Detail=4.0, Roughness=0.6)
-    kant = matte("SUBTRACT", brus.outputs.get("Fac") or brus.outputs["Factor"], 0.5)
-    mr = nod("ShaderNodeMapRange", Value=matte("ADD", gron, matte("MULTIPLY", kant, 0.15)))
-    mr.interpolation_type = "SMOOTHSTEP"
-    mr.inputs[1].default_value, mr.inputs[2].default_value = 0.3, 0.55
-    slump = nod("FunctionNodeRandomValue", "FLOAT", Seed=11)
-    # marknätets inre ring går in under terrängens kant: där bara terrängens strån (annars dubbelt så tätt)
-    inre = nod("GeometryNodeInputNamedAttribute", "FLOAT", Name="inre")
-    under = nod("FunctionNodeBooleanMath", Boolean=matte("GREATER_THAN", slump.outputs[0], mr.outputs[0]))
-    under.operation = "OR"
-    L.new(matte("GREATER_THAN", inre.outputs["Attribute"], 1.0 - INNANFOR / NARA_STEG), under.inputs[1])
-    bort = nod("GeometryNodeDeleteGeometry", Geometry=ford.outputs["Points"], Selection=under.outputs[0])
-    bort.domain = "POINT"
-    samling = nod("GeometryNodeCollectionInfo", Collection=_grastuvor(), **{"Separate Children": True,
-                                                                           "Reset Children": True})
-    sort = nod("FunctionNodeRandomValue", "INT", Min=0, Max=int(GRAS["varianter"]) - 1, Seed=12)
-    vrid = nod("FunctionNodeRandomValue", "FLOAT_VECTOR", Min=(0.0, 0.0, 0.0), Max=(0.0, 0.0, 2 * math.pi), Seed=13)
-    stl = nod("FunctionNodeRandomValue", "FLOAT", Min=0.8, Max=1.25, Seed=14)
-    inst = nod("GeometryNodeInstanceOnPoints", Points=bort.outputs[0], Instance=samling.outputs[0],
-               **{"Pick Instance": True})
-    L.new(sort.outputs[0], inst.inputs["Instance Index"])
-    L.new(vrid.outputs[0], inst.inputs["Rotation"])
-    L.new(stl.outputs[0], inst.inputs["Scale"])
-    forena = N.new("GeometryNodeJoinGeometry")
-    L.new(inn.outputs[0], forena.inputs[0])
-    L.new(inst.outputs["Instances"], forena.inputs[0])
-    L.new(forena.outputs[0], ut.inputs[0])
-    for o in objekt:
-        o.modifiers.new("Gräsmatta", "NODES").node_group = ng
 
 
 # ------------------------------------------------------------------ träd
