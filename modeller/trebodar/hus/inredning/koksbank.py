@@ -23,7 +23,6 @@ from modellering import Del, Montage, Placering, box, prisma, svep
 from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
-from trebodar.hus.grund.pelare import PELARE
 from trebodar.hus.invandigt.lattvaggar import K_X1, K_YTA
 from trebodar.hus.invandigt.skikt import INSIDA_T
 from trebodar.material import ASK, BANKSKIVA, HALLGLAS, ROSTFRITT, VIT_SKIVA
@@ -70,9 +69,6 @@ assert P_ON + FOG / 2 >= 600.0, "diskmaskinens nisch är minst 600"
 # diskhons avlopp i skåpets djup (från stommens framkant), med vattenlåset Ø40 minst 40 mm bakom lådornas löpare
 _Y_DISKHO_AVLOPP = (K.DJUP - K.T - DISKHO[1]) / 2 + DISKHO[1] - DISKHO_AVLOPP
 assert _Y_DISKHO_AVLOPP - 20.0 - K.DISKBANKSSKAP.nl >= 40.0, "diskhons avlopp bakom lådorna"
-assert FOGAR_ON[1] + 50.0 <= (PELARE["P3"][1] + PELARE["P1"][1]) / 2 <= FOGAR_ON[2] - 50.0, "öns avlopp under O2"
-assert X_ON_FRONT - K.FRONT_T - K.DJUP + 50.0 <= PELARE["P3"][0] <= X_ON_FRONT - SPARK_IN - SPARK_T - 50.0, \
-    "öns avlopp under O2, bakom sockeln"
 
 
 def diskhons_avlopp() -> tuple[float, float]:
@@ -81,14 +77,6 @@ def diskhons_avlopp() -> tuple[float, float]:
     k = TYPER_LANG.index(K.DISKBANKSSKAP)
     x, y, _ = _lang(k).punkt((BREDDER_LANG[k] / 2, _Y_DISKHO_AVLOPP, 0.0))
     return x, y
-
-
-def ons_avlopp() -> tuple[float, float]:
-    """Avloppet för diskmaskinen i ön: vattenlåset i sockeln under skåpet O2, dit slangen går, i linje med rören P1,
-    P3 och P5 och mitt emellan P3 och P1, så att röret står i deras linje i källaren och hålet i bjälklaget ligger
-    utanför deras genomstansningszon."""
-    (x, y3), (_, y1) = PELARE["P3"], PELARE["P1"]
-    return x, (y3 + y1) / 2
 
 
 def _lang(k: int) -> Placering:

@@ -19,10 +19,9 @@ from trebodar.hus.armering.armering import jarnen_i_nivan
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as INNERVAGGAR
-from trebodar.hus.badrum import GOLVBRUNN
 from trebodar.hus.rum import KAMINKAPA
 
-from ..avlopp.ledningar import BRUNN
+from ..avlopp.ledningar import golvbrunnar
 from ..avlopp.ledningar import ledningar as avloppets
 from ..genomforingar import Genomforing, Stycke, genomforingar, kallarvaggarna, vaggarna
 from ..montering import KALLARTAK, PLAN as GOLV, Vek
@@ -126,13 +125,16 @@ def _hinder(plan: int) -> Polygon:
         delar += [LineString([a[:2], b[:2]]).buffer(FRITT) for r in el.ror.values()
                   for a, b in zip(el.vag(r), el.vag(r)[1:]) if KALLARTAK < min(a[2], b[2]) and max(a[2], b[2]) < 0.0]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
-                  for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0]
-        delar.append(Point(*GOLVBRUNN).buffer(FRITT + BRUNN[0] / 2))
+                  for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
+                  and min(a[2], b[2]) < 0.0 and max(a[2], b[2]) > -S.H_BJALKLAG]
+        delar += [Point(x, y).buffer(FRITT + d / 2) for x, y, d, z in golvbrunnar().values() if z > -S.H_BJALKLAG]
     else:
         delar += [Point(k.vag[0][0], k.vag[0][1]).buffer(FRITT + KB_D / 2) for k in kollektorns().values()]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < S.Z_BOTTENPLATTA < max(a[2], b[2])]
+        delar += [Point(x, y).buffer(FRITT + d / 2) for x, y, d, z in golvbrunnar().values()
+                  if z < -S.H_BJALKLAG]
         for u in UTRUSTNING.values():
             if u.lage.yta != "golv":
                 continue

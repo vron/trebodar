@@ -979,7 +979,7 @@ def main(argv: list[str] | None = None) -> None:
         fel += [f"krock med {k}" for k in kr.installationer + kr.stomme if "/VVS/Avlopp" not in k]
         fel += [f"krock med {k}" for k in kr.inredning if "-LADA" in k]        # vattenlåsen går fria från lådorna
         if kr.armering:
-            anm.append("hål i bjälklaget, järnen läggs om runt dem: "
+            anm.append("hål i bjälklagen, järnen läggs om runt dem: "
                        + ", ".join(sorted({k.split(" mot ")[0] for k in kr.armering})))
         if arg.atgard == "kontroll":
             print(f"  {len(utdrag['ledningar'])} ledningar: {len(fel)} fel, {len(anm)} anmärkningar")

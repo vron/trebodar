@@ -316,6 +316,16 @@ arende   = [52]
 anm      = "Gjuts in i mellanbjälklaget med flänsen i dess överkant, i duschen 272 mm från 1B; väljs med tätskiktet (systemgodkänt) före gjutningen."
 
 [[produkt]]
+kod      = "GOLVBRUNN_KALLARE"
+grupp    = "VVS"
+namn     = "Golvbrunn för betongplatta, lodrätt utlopp Ø110, med sil"
+status   = "att välja"
+ansvarig = "vvs"
+fas      = "grund"
+arende   = [49]
+anm      = "Fem i bottenplattan (GB1–GB5), gjuts in med flänsen i dess överkant; GB1 vid tvätten (tvättmaskinen töms i den), GB2 i teknikrummet (fördelarskåpets läckageindikering)."
+
+[[produkt]]
 kod      = "SPEGEL"
 grupp    = "Badrum"
 namn     = "Spegel ca 520 × 800, limmad på kaklet"

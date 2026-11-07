@@ -1,26 +1,26 @@
 # Avloppet
 
-Badrummets och kökets avlopp som data i modellen (ärendena #52 och #49): avloppspunkterna på inredningens lägen
-([`hus/badrum.py`](../../badrum.py), [`hus/inredning/koksbank.py`](../../inredning/koksbank.py)), badrummets
-ledningar under mellanbjälklaget till stammen och kökets rakt ned till grundledningen under bottenplattan. Stammen
-Ø110 i källarväggen KL8 öster om röret P4 och grundledningarna under bottenplattan är tills vidare Onshape-modellens
-(referensdelen `avloppssystem.bbrep` i [`../installationer.py`](../installationer.py), kapad under bjälklaget i
-`Z_STAM`), och resten av husets avlopp (källaren, grundledningarna och luftningen) läggs till i ärende #49.
+Husets avlopp som en egen installation (ärendena #52 och #49): avloppspunkterna på inredningens och installationernas
+lägen ([`hus/badrum.py`](../../badrum.py), [`hus/inredning/koksbank.py`](../../inredning/koksbank.py), tappvattnets
+tvätthon i källaren), ledningarna från dem till stammen och grundledningen, och grundledningen under bottenplattan ut
+ur huset mot förbindelsepunkten. Allt går med självfall: förbindelsepunkten ligger längre ned åt nordost, med marken
+på cirka +4,5. Inget annat i modellen bygger på ledningarnas lägen utom det som ska gå runt dem: golvvärmens slingor
+går runt hålen och golvbrunnarna, och källarväggen KL8:s reglar runt stammen (`kallarens_innervaggar.AVLOPPSSTAM`).
 
 ```
 cd verktyg/modellering
-./mod avlopp kontroll     # fallet, att ledningarna går under bjälklaget och ansluter ovanför vattengången, den fria
-                          # höjden i källaren, hålen i bjälklaget nära rören och krockarna mot husets delar och de
-                          # andra installationerna
-./mod avlopp lista        # ledningarna och golvbrunnen (ut/avlopp/)
+./mod avlopp kontroll     # fallet, att ledningarna går under mellanbjälklaget och under bottenplattans cellplast och
+                          # ansluter ovanför vattengången, den fria höjden i källaren, hålen i bjälklaget nära rören
+                          # och krockarna mot husets delar och de andra installationerna
+./mod avlopp lista        # ledningarna (ut/avlopp/)
 ```
 
 ## Filerna
 
 | Fil | Innehåll |
 |---|---|
-| [`ledningar.py`](ledningar.py) | Ledningarna (rörets mitt längs vägen, dimension, vilken ledning de ansluter till), fallet, golvbrunnen, kontrollen och utdraget |
-| [`avlopp.py`](avlopp.py) | Geometrin under `Hus/Installationer/Avlopp`: rören, golvbrunnen (kropp, klämring och sil) och vattenlåsen |
+| [`ledningar.py`](ledningar.py) | Avloppspunkterna, ledningarna (rörets mitt längs vägen, dimension, vilken ledning de ansluter till), grundledningen, fallet, kontrollen och utdraget |
+| [`avlopp.py`](avlopp.py) | Geometrin under `Hus/Installationer/Avlopp`: rören, golvbrunnarna (kropp, sil och i badrummet klämring), stammens rensningslock och vattenlåsen |
 
 ## Badrummet
 
@@ -34,25 +34,43 @@ cd verktyg/modellering
   genom väggen, och österut längs KL8 till stammen; tvättställets ledning längs V7 till WC:ns lodräta rör, badkarets
   och golvbrunnens till samlingsledningen.
 
+Hålen genom bjälklaget ligger utanför rörens genomstansningszon (6d, `GENOMSTANSNING`) utom golvbrunnens, ca 0,5 m från
+P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
+
 ## Köket
 
 - **Diskhon**: avloppet i hons bakre del, `DISKHO_AVLOPP` från bakkanten (`hus/inredning/koksbank.py`), bakom
   diskbänksskåpets korta lådor (NL 350). Vattenlåset Ø40 står mellan hon och golvet, och röret Ø50 går rakt ned genom
-  mellanbjälklaget, källaren (längs källarväggen V14:s gips) och bottenplattan (AV5).
-- **Diskmaskinen i ön**: vattenlåset Ø40 i sockeln under skåpet O2, dit slangen går, och röret Ø50 rakt ned (AV7). Det
-  står i källaren i linje med rören P1, P3 och P5, mitt emellan P3 och P1.
-- **Under bottenplattan** går de med en böj till var sin gren Ø110 (AV6, AV8), vinkelrätt mot grundledningen och med
-  fallet 10 ‰ till den. Grundledningen är tills vidare Onshape-modellens (`GRUNDLEDNING`, utan fall); grenarna ansluter
-  med vattengången `ANSLUTNING_OVER` över dess och går därför med överkanten upp till ca 20 mm i cellplasten under
-  bottenplattan.
-- Kökets luftning hör till luftningen i ärende #49.
+  mellanbjälklaget, källaren (längs källarväggen V14:s gips) och bottenplattan till en gren Ø110 (AV5, AV6).
+- **Diskmaskinen i ön**: vattenlåset Ø40 i sockeln under skåpet O2 (`ON_AVLOPP`). Hur det ansluter till diskhons
+  avlopp är en öppen fråga i #49: ingjutet i bjälklaget med självfall ryms det inte mellan armeringsnäten.
 
-Golvvärmens slingor i mellanbjälklaget och bottenplattan går runt rören (`golvvarme/system.py`).
+## Stammen och grundledningen
 
-Fallet: Ø110 minst 10 ‰ och de mindre minst 17 ‰ (tillverkarnas anvisningar för avlopp i byggnad), lagt med `FALL`.
-Hålen genom bjälklaget ligger utanför rörens genomstansningszon (6d, `GENOMSTANSNING`) utom golvbrunnens, ca 0,5 m från
-P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
+- **Stammen** Ø110 står i källarväggen KL8 (AV7), från rensningslocket i toppen (`Z_STAM`) ned genom bottenplattan,
+  och går med en böj och en kort sträcka söderut till grundledningen.
+- **Grundledningen** Ø110 (AV8) under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i
+  teknikrummet, söder om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under
+  källarväggen V9 (`UTLOPP`). Direkt utanför väggen faller den brant under dräneringen runt grunden (`UTLOPP_FALL`) och
+  fortsätter åt nordost, längs dagvattnets utgående rör, mot förbindelsepunkten; `UTLOPP_L` av den ritas.
+- Överkanten ligger `UNDER_CELLPLAST` under bottenplattans cellplast där den börjar. Grenarna går vinkelrätt mot den,
+  de nära varandra något förskjutna (minst `GREN_AVSTAND` isär), och ansluter med vattengången `ANSLUTNING_OVER` över
+  dess.
 
-Avloppet ingår inte i modellens krockkontroll (`kontrollregler.UTOM_KONTROLL`): rören går genom golvets skikt,
+## Källaren
+
+- **Golvbrunnarna** GB1–GB5 (`GOLVBRUNNAR_KALLARE`, efter skissen): kroppen ingjuten i bottenplattans betong med
+  flänsen i dess överkant och lodrätt utlopp Ø110, GB1 och GB2 rakt ned i grundledningen och de andra med var sin
+  gren. Tvättmaskinen töms i GB1 bredvid den; GB2 tar fördelarskåpets läckageindikering i teknikrummet. GB4 står vid
+  tvätthoet KA-TH3 på V7, så att golvvärmens slinga ryms i rummet öster om KL2.
+- **Tvätthona** (tappvattnets KA-TH1–KA-TH3, som inte är modellerade): var sin anslutning Ø50 i golvet framför
+  väggdosan (`TVATTHO_AVSTAND`), rakt ned till en gren.
+
+## Fall och nivåer
+
+Fallet: Ø110 minst 10 ‰ och de klenare minst 17 ‰ (tillverkarnas anvisningar för avlopp i byggnad, t.ex. Pipelife),
+lagt med `FALL`. Höjderna är rörets mitt i modellens z (plan 1:s golv är z 0, +8,50 i RH 2000).
+
+Avloppet ingår inte i modellens krockkontroll (`kontrollregler.UTOM_KONTROLL`): rören går genom golvens skikt,
 bjälklagen, skåpens botten och källarväggarnas gips utan håltagning i modellen. `./mod avlopp kontroll` prövar dem
 mot husets delar: stommen, skåpens lådor och de andra installationerna är fel, järnen och skikten redovisas.

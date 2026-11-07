@@ -172,7 +172,7 @@ Trebodar
     │                           takkanter (takfotsplåt, rännor, stuprör, vindskivor), dalar, takfönster TF1–TF3
     ├── Fasad                   per vägg: Utsida 1NO … = utegips, ströläkt, spikläkt, panel
     ├── Fönster och dörrar      VELFAC:s fönster och fönsterdörrar (även källarens), ytterdörrar, innerdörrar
-    ├── Installationer          avlopp (stammen och grundledningarna ur Onshape-modellen, badrummets avlopp), el,
+    ├── Installationer          avlopp (badrummet, köket, källaren, stammen och grundledningen), el,
     │                           ventilation, tappvatten, golvvärme, köldbärare, brandlarm, dränering och dagvatten och
     │                           teknikrummets utrustning (hus/installationer/avlopp, el, ventilation, vatten,
     │                           golvvarme, kollektor, brandlarm och dranering, se deras README)
