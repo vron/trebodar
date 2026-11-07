@@ -11,7 +11,7 @@ teckenförklaring. Ritas med `./mod gjutning ritning` (AR-03 i ritningar/, i ./b
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from shapely.geometry import Polygon
@@ -209,7 +209,7 @@ def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Vy:
 
 def _blad(nummer: str, tema: str, prefix: str, mb: list[dict], plan1: list[dict], kallare: list[dict],
           rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
-          norr: tuple[float, float], extra: list[Vy] = ()) -> Blad:
+          norr: tuple[float, float], extra: Sequence[Vy] = ()) -> Blad:
     x0, x1, y0, y1 = OMRADE
     v = vy(SKALA, OMRADE, 24.0, 20.0)
     plan(v, mb)
