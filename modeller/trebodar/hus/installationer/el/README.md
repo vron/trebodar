@@ -9,7 +9,7 @@ ljusfördelning), kontrollerna och elritningarna.
 cd verktyg/modellering
 ./mod el kontroll     # referenser, styrning, armaturerna, rörens böjar och anslutningar, grupperna och krockarna
 ./mod el lista        # punkter, tändgrupper och rör (ut/el/elinstallation.md och .json)
-./mod el ritning      # elritningarna E-01.1–E-01.4 (ut/el/E-01 Elinstallation.pdf, kräver STEP-filen: ./mod bygg)
+./mod el ritning      # elritningarna E-01.1–E-01.5 (ut/el/E-01 Elinstallation.pdf, kräver STEP-filen: ./mod bygg)
 ./mod el hamta        # tillverkarnas fotometrifiler som saknas (till lokalt/el/, versionshanteras inte)
 ./mod rendera I02 --ljus 12 21 18:00 sol --tand AL-T1 AL-T2=0.5     # kväll, tändgrupperna tända (dimrad)
 ./mod rendera detalj-ph5 detalj-stav detalj-vl45 detalj-glob         # pendlarna på nära håll, kväll och tända
@@ -20,10 +20,10 @@ cd verktyg/modellering
 | Fil | Innehåll |
 |---|---|
 | [`typer.py`](typer.py) | Produkttyperna: `Armaturtyp` (tillverkarens data, mått, fotometrifil; `Tubhuvud` för spotar på stam, `Pendel` för pendlar), `Apparattyp` (brytare, dimrar, uttag), `Dosatyp`, `Rortyp` |
-| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas; en vägglampa med glob på arm) och tills vidare allmänna dosor, apparater och rör |
+| [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas; en vägglampa med glob på arm; LEDVANCE PANEL COMPACT 600, utanpåliggande panel på betong med en ingjuten dosa ovanför) och tills vidare allmänna dosor, apparater och rör |
 | [`punkter.py`](punkter.py) | Beståndsdelarna (`Lampa`, `Apparat`, `Dosa`, `Tandgrupp`, `Ror`, `Rum`), riktningarna (`mot` en punkt, `lutad` mot en vägg), uttag ovanför fönster (`ovan_fonstret`) och pendelns sladd (`pendeln`); lägena på husets ytor (`tak`, `kallartak`, `vagg` och rörens brytpunkter `i_tak`, `i_vagg`, `vid_tak`, `i_bjalklag`) i installationernas gemensamma [`../montering.py`](../montering.py) |
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
-| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52) |
+| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52); i källaren teknikrummet (centralen och värmepumpen) och källarens arbetsrum ([`rum/kallare.py`](rum/kallare.py), #51: panelerna, brytarna och deras rör och grupprör, ingjutna i bjälklaget) |
 | `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag: gruppernas rör från centralen (mellanbjälklaget) och brandlarmets matningsdosa |
 | [`grupper.py`](grupper.py) | Gruppcentralen och grupperna: säkring, faser, ledarnas area, jordfelsskydd och punkterna i rörens ordning |
 | [`kedjor.py`](kedjor.py) | Rören mellan gruppernas punkter: genom innertaket, längs väggarna och genom bjälklaget |
@@ -63,6 +63,14 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   norrut över V3 till hallen, ön och hällen. Rören håller sig utanför ytterväggarnas vinkeljärn (R-06 pos 14), som
   går in i bjälklaget vinkelrätt mot väggarna, och korsar dem bara vinkelrätt; de går upp i väggarnas regelfack eller
   ytterväggarnas installationsskikt mellan överkantsnätets järn ([`dragning.py`](dragning.py)).
+- **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
+  (mellan underkantsnätets järn, fria från rören i bjälklaget och pelarnas genomstansningszoner). Rören från brytarna
+  går rakt upp ur dosorna i KL-väggarnas regelfack och i bjälklagets undre nivå där den är fri, annars den övre
+  (`i_bjalklaget` väljer per sträcka och prövar mot plan 1:s elrör, tappvattnet, avloppet och järnen). Nivån byts bara
+  där golvvärmen inte går, eftersom slingorna bara undviker lodräta elrör vid väggarna. Det stora rummets grupp (G17)
+  kommer från den bakre raden över centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och röret till
+  brytaren korsar stråket E, tappvattnet till UF1 och avloppet AV20 i den övre nivån vid x 13 090 (under köksbänken).
+  De små rummens grupp (G18) kommer i stråket S och går ned i KL1.
 
 Exempel (`rum/vardagsrum.py`): två rader med fyra spotar i snedtaket, mitt emellan läkten och lutade mot närmaste
 långsida, tre VL45 på olika höjd, en tändgrupp per rad och en för VL45, dimrarna på väggen 1D och rören upp i väggen
@@ -146,10 +154,11 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
   (apparater intill varandra på samma vägg bredvid varandra med en gemensam etikett), tändgruppernas styrning
   (streckade bågar från brytaren till lamporna, färg per tändgrupp), rören i väggar och innertak, och tabeller över
   armaturerna och tändgrupperna;
-- **E-01.2 rören i mellanbjälklaget**: de ingjutna rören med numrerade punkter och deras koordinater (K-05), var
-  rören går upp i väggarna ovanför och ingjutningsdosorna, med plan 1:s väggar streckade;
+- **E-01.2 rören i mellanbjälklaget**: de ingjutna rören med numrerade punkter, var rören går upp i väggarna ovanför
+  och ingjutningsdosorna, med plan 1:s väggar streckade;
 - **E-01.3 förteckningen** över plan 1:s apparater och dosor och rören i väggar och innertak;
-- **E-01.4 gruppförteckningen**: centralen och grupperna med säkring, faser, area, jordfelsskydd, punkter och rör.
+- **E-01.4 gruppförteckningen**: centralen och grupperna med säkring, faser, area, jordfelsskydd, punkter och rör;
+- **E-01.5 rörens punkter** i mellanbjälklaget, numrerade som på E-01.2, med koordinaterna (K-05).
 
 `./mod el lista` skriver punktlistan, tändgrupperna och rörlistan med kontrollen (markdown och JSON).
 
@@ -159,7 +168,8 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
 bordshöjden på plan 1, köksbänkarna och ön, källarens golv; ytor och delområden läggs till där) i renderingen, med
 armaturernas uppmätta ljusfördelning och reflexerna i rummen, och ritar ljusplaner (U-04.n i ritningsmallen, alla
 mätytorna i en pdf) med belysningsstyrkan i färg, isolinjer och medel-, minsta och största värde och jämnhet per rum och
-delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita). Ett delområde kan mätas
+delområde (utan inredningen på mätytan: skåpen, sängen och bänkskivorna, som lämnas vita; rummens namn ur
+`RUMSNAMN` och `LJUSPLANENS_RUM` i `modeller/trebodar/vyer.py`, där källarens rum står). Ett delområde kan mätas
 i en egen höjd: på planerna över plan 1 mäts köksbänkarna och ön där man arbetar, 10 mm över bänkskivorna (0,91 m):
 
 ```

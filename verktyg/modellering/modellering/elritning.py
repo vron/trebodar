@@ -379,9 +379,10 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
 
 
 def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, float], nummer: str,
-             elplanen: str) -> Blad:
-    """Rören ingjutna i mellanbjälklaget (z0–z1): rören, punkterna med koordinater, var rören går upp ur bjälklaget
-    (in i väggarna ovanför) och dosorna, med plan 1:s väggar streckade."""
+             elplanen: str, punktbladet: str) -> tuple[Blad, list[list[str]]]:
+    """Rören ingjutna i mellanbjälklaget (z0–z1): rören med punkterna numrerade, var rören går upp ur bjälklaget
+    (in i väggarna ovanför) och dosorna, med plan 1:s väggar streckade; och punkternas rader (koordinaterna, till
+    bladet punktbladet)."""
     v = vy(SKALA, PLAN1, 24.0, 27.0)
     plan(v, delar)
     with v.lager("vaggar_ovan"):
@@ -439,15 +440,13 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
         dict(typ="rubrik", text="Rör"),
         dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "Längd (m)", "Böjar"],
              bredd=(0.8, 0.6, 0.6, 0.6, 0.7, 0.6), just=["l", "l", "l", "l", "r", "r"], sz=6.4, rader=ror),
-        dict(typ="rubrik", text="Rörens punkter (mitt i röret)"),
-        dict(typ="tabell", kolumner=["Rör", "Punkt", "x", "y", "Anmärkning"], bredd=(0.8, 0.5, 0.6, 0.6, 2.0),
-             just=["l", "r", "r", "r", "l"], sz=6.4, rader=punkter),
     ])]
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
-            "Elrören gjuts in i mellanbjälklaget (R-06), mitt i betongen. Lägen x, y i mm (K-05) i rörens punkter: "
-            "origo i skärningen mellan mellanbjälklagets kanter x = 0 och y = 0, som på R-05 och R-06.",
+            "Elrören gjuts in i mellanbjälklaget (R-06), mitt i betongen. Rörens punkter är numrerade längs varje "
+            f"rör; deras lägen x, y i mm (K-05) står på {punktbladet}, med origo i skärningen mellan "
+            "mellanbjälklagets kanter x = 0 och y = 0, som på R-05 och R-06.",
             f"Röret går upp i väggen ovanför (●) eller slutar i en ingjutningsdosa i källarens tak. Plan 1: "
             f"{elplanen}.",
             "Plan 1:s väggar är streckade. Ritningen ritas ur modellen med ./mod el ritning.",
@@ -461,7 +460,27 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
             ("dold", "väggarna på plan 1"),
         ]),
     ]
-    return blad(nummer, ["Elinstallation", "Rör i mellanbjälklaget"], f"1:{SKALA:g}", "Modellen", kol, [v], block)
+    return (blad(nummer, ["Elinstallation", "Rör i mellanbjälklaget"], f"1:{SKALA:g}", "Modellen", kol, [v], block),
+            punkter)
+
+
+def punktforteckning(punkter: list[list[str]], nummer: str, bjalklaget: str) -> Blad:
+    """Rörens punkter i mellanbjälklaget (bladet bjalklaget) med koordinaterna, i tre spalter."""
+    n = -(-len(punkter) // 3)
+    block = [dict(x=24.0 + i * 101.0, y=14.0, w=97.0, innehall=[
+        dict(typ="rubrik", text="Rörens punkter (mitt i röret)" + (" forts." if i else "")),
+        dict(typ="tabell", kolumner=["Rör", "Punkt", "x", "y", "Anmärkning"], bredd=(0.8, 0.45, 0.55, 0.55, 2.0),
+             just=["l", "r", "r", "r", "l"], sz=5.6, rader=punkter[i * n:(i + 1) * n])]) for i in range(3)]
+    kol: list[dict] = [
+        dict(typ="rubrik", text="Anvisningar"),
+        dict(typ="lista", sz=7.0, rader=[
+            f"Punkterna längs elrören i mellanbjälklaget, numrerade som på {bjalklaget}: lägen x, y i mm (K-05) i "
+            "rörets mitt, med origo i skärningen mellan mellanbjälklagets kanter x = 0 och y = 0, som på R-05 och "
+            "R-06. Anmärkning: punkten där röret går upp i väggen ovanför, eller dess ände.",
+            "Förteckningen ritas ur modellen med ./mod el ritning.",
+        ]),
+    ]
+    return blad(nummer, ["Elinstallation", "Rör i mellanbjälklaget, punkterna"], "–", "Modellen", kol, [], block)
 
 
 def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
@@ -534,13 +553,16 @@ def gruppforteckning(utdrag: dict, nummer: str, bjalklaget: str) -> Blad:
 
 def ritningar(utdrag: dict, plan1: list[dict], mb: list[dict], norr: tuple[float, float], arbete: Path,
               ut: Path) -> Path:
-    """Elritningarna (serien SERIE): elplanen för plan 1, rören i mellanbjälklaget och förteckningen över plan 1:s
-    apparater, dosor och rör, som pdf i mappen ut (bladen för sig i arbetsmappen, under repots rot)."""
-    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3, 4)]
+    """Elritningarna (serien SERIE): elplanen för plan 1, rören i mellanbjälklaget, förteckningen över plan 1:s
+    apparater, dosor och rör, gruppförteckningen och rörens punkter i bjälklaget, som pdf i mappen ut (bladen för sig
+    i arbetsmappen, under repots rot)."""
+    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3, 4, 5)]
+    mb_blad, mb_punkter = bjalklag(utdrag, mb, plan1, (-150.0, 0.0), nr[1], nr[0], nr[4])
     bladen = [(nr[0], elplan(utdrag, plan1, norr, nr[0], nr[1], nr[2], nr[3])),
-              (nr[1], bjalklag(utdrag, mb, plan1, (-150.0, 0.0), nr[1], nr[0])),
+              (nr[1], mb_blad),
               (nr[2], forteckning(utdrag, nr[2], nr[0])),
-              (nr[3], gruppforteckning(utdrag, nr[3], nr[1]))]
+              (nr[3], gruppforteckning(utdrag, nr[3], nr[1])),
+              (nr[4], punktforteckning(mb_punkter, nr[4], nr[1]))]
     pdf = ut / f"{SERIE}.pdf"
     kompilera(bladen, arbete, pdf)
     return pdf

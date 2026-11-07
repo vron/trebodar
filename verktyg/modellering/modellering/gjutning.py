@@ -147,9 +147,21 @@ def _fordelarna(vt: dict) -> dict[str, list[tuple[str, list[float], list[float]]
 # ------------------------------------------------------------------ teman: (ritar, punkterna)
 
 def _el(v: Vy, el: dict, z: Z) -> list[Punkt]:
-    """Elens rör ingjutna i plattan (övre nivån orange, undre mörk) och var de går upp i väggarna (●) eller ned i
-    källaren (○)."""
+    """Elens rör ingjutna i plattan (övre nivån orange, undre mörk), var de går upp i väggarna (●) eller ned i
+    källaren (○), och de ingjutna dosorna i källarens tak (□): kopplingsdosorna och dosorna ovanför armaturerna som
+    sitter utanpå taket."""
     punkter: list[Punkt] = []
+    with v.lager("dosor"):
+        for k, p in el["punkter"].items():
+            t = el["typer"][p["typ"]]
+            dosa = t.get("dosa") if p["slag"] == "lampa" else t if t.get("slag") == "ingjutningsdosa" else None
+            if p["yta"] != "tak" or p["ref"] != "MB" or not dosa:
+                continue
+            x, y = p["punkt"][:2]
+            s = max(dosa["diameter"] / 2, v.s * 0.7)
+            v.rekt(x - s, y - s, x + s, y + s, "vit", "normal")
+            vad = f"ingjuten dosa för {k} ({t['namn']})" if p["slag"] == "lampa" else f"ingjuten kopplingsdosa {k}"
+            punkter.append(("", vad, x, y, f"Ø{dosa['diameter']:g} × {dosa['djup']:g}"))
     with v.lager("el"):
         for k, r in el["ror"].items():
             vag = r["vag"]

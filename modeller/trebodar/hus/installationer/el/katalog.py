@@ -126,6 +126,18 @@ KOPPLINGSDOSA = Dosatyp("KOPPLINGSDOSA", "Kopplingsdosa i innertakets installati
                         80.0, 40.0, symbol="kopplingsdosa")
 INGJUTNINGSDOSA = Dosatyp("INGJUTNINGSDOSA", "Ingjutningsdosa för betongbjälklag, takdosa (ej vald)", "ingjutningsdosa",
                           90.0, 70.0, symbol="ingjutningsdosa")
+# LEDVANCE PANEL COMPACT 600 V 26W 830 UGR19 (EAN 4099854734465, Ahlsell 7029488), källarens arbetsrum (#51): 3 640 lm,
+# 26 W, 3000 K, Ra > 80, UGR < 19, 595 × 595 × 34 med separat drivdon, utanpåliggande med tillverkarens ram för
+# ytmontage (PANEL 600 SURFACE MOUNT KIT; ramens höjd antagen 75), ansluten i en ingjuten dosa ovanför sig
+PANEL_600 = Armaturtyp(
+    "PANEL-600", "PANEL COMPACT 600 V 26W 830 U19", "LEDVANCE", "4099854734465",
+    "https://www.ledvance.com/sv-se/shortlink/4099854734465", produkt="ARM-PANEL",
+    ljusflode=3640.0, effekt=26.0, fargtemperatur=3000.0, ra=80.0, stralvinkel=90.0, vridbar=0.0, ip="IP50/IP20",
+    dimring="ingen", ring_d=0.0, hal_d=0.0, djup=0.0, lysande_d=575.0, brandavstand=0.0, drivdon=None,
+    fotometri="ledvance/panel-compact-600/4099854734465.ldt",
+    fotometri_url="https://www.ledvance.com/00_Free_To_Use/asset-13340714_LDT_file_Eulumdat_COMP_600_V_26W_830_U19"
+                  "_3640lm.ldt",
+    symbol="panel", panel=(595.0, 595.0, 75.0), dosa=INGJUTNINGSDOSA)
 CENTRAL = Dosatyp("CENTRAL", "Gruppcentralen i teknikrummet (rörens början på dess ovansida)", "central", 0.0, 0.0,
                   symbol="central")
 BRANDLARM_MATNING = Dosatyp("BL-MATNING", "Brandlarmets matningsdosa i källarens tak (brandlarm/larm.py, D01)",

@@ -701,7 +701,8 @@ def main(argv: list[str] | None = None) -> None:
             bas = arg.ut / f"ljusplan-{namn}"
             lux = np.load(str(bas) + ".npy")
             delar = snitt(ma, step_fil, golv[y.plan] + 1200.0, UT / f"ljusplan-{y.plan}.json")
-            rum = {k: v for k, v in vy_mod.RUMSNAMN.items() if (len(v[1]) > 2 and v[1][2] == "k") == (y.plan == 0)}
+            rum = {k: v for k, v in {**vy_mod.RUMSNAMN, **getattr(vy_mod, "LJUSPLANENS_RUM", {})}.items()
+                   if (len(v[1]) > 2 and v[1][2] == "k") == (y.plan == 0)}
             hinder = ljusplan.inredningen([snitt(ma, step_fil, golv[y.plan] + h, UT / f"ljusplan-{namn}-{h:g}.json",
                                                  ",".join(ljusplan.INREDNING)) for h in mat_mod.INREDNING_SNITT
                                            if max(y.hojd, 2.0) <= h <= y.hojd + mat_mod.INREDNING_OVER])

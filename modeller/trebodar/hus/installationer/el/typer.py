@@ -100,6 +100,8 @@ class Armaturtyp:
     isoleras: bool = False      # infälld: får täckas med värmeisolering (monteringsanvisningen; SG: IsoSafe)
     min_djup: float = 0.0       # infälld som inte får täckas: minsta fria höjd från takytan ovanför den [mm]
     min_volym: float = 0.0      # infälld som inte får täckas: minsta luftvolym i hålrummet runt den [l]
+    panel: tuple[float, float, float] | None = None    # utanpåliggande panel: längd, bredd, höjd med ramen [mm]
+    dosa: Dosatyp | None = None  # utanpåliggande på betong: den ingjutna dosan ovanför, där armaturen ansluts
 
 
 @dataclass(frozen=True)

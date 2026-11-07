@@ -445,6 +445,17 @@ ansvarig = "byggherre"
 fas      = "invandigt"
 
 [[produkt]]
+kod      = "ARM-PANEL"
+grupp    = "Belysning"
+namn     = "LED-panel 600 × 600, utanpåliggande, 3000 K, i källarens arbetsrum"
+vald     = "LEDVANCE PANEL COMPACT 600 V 26W 830 U19 (EAN 4099854734465, Ahlsell 7029488) med ramen för ytmontage"
+status   = "vald"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [51]
+anm      = "Vanlig grossistprodukt enligt #51; ansluts i en ingjuten dosa ovanför."
+
+[[produkt]]
 kod      = "ARM-VAGGLAMPA"
 grupp    = "Belysning"
 namn     = "Vägglampa med glob av opalglas Ø160 på arm av mässing, IP44"

@@ -253,6 +253,8 @@ def armatur(p: Lampa) -> Montage:
         return _pendel(p)
     if t.huvud is not None:
         return _tubspot(p)
+    if t.panel is not None:
+        return _panelen(p)
     d = _delar_armatur(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
@@ -267,6 +269,25 @@ def armatur(p: Lampa) -> Montage:
     m.lagg(d["LINS"], sys @ spot, f"{p.id}-LINS")
     if "DRIVDON" in d and t.drivdon:
         m.lagg(d["DRIVDON"], sys @ Placering.flytt(drivdonet(p), 0.0, -TAKSKIVOR - t.drivdon[2]), f"{p.id}-DRIVDON")
+    return m
+
+
+def _panelen(p: Lampa) -> Montage:
+    """Utanpåliggande panel: ramen under taket (ihålig, med bakstycket mot taket, så att renderingens ljuskälla bakom
+    linsen lyser ut), den lysande ytan i undersidan och den ingjutna dosan ovanför, där panelen ansluts."""
+    t = p.typ
+    assert t.panel is not None
+    lgd, b, h = t.panel
+    sys = _system(p.lage)
+    m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
+    ly = t.lysande_d / 2
+    ram = box(-lgd / 2, lgd / 2, -b / 2, b / 2, 0.0, h - 2.0) - box(-ly, ly, -ly, ly, 2.0, h)   # öppen mot linsen
+    m.lagg(Del(f"{t.namn} med ram", ram, ARMATUR), sys, f"{p.id}-RAM")
+    m.lagg(Del(f"{t.namn}, lysande yta", box(-ly, ly, -ly, ly, h - 2.0, h), ARMATURLINS), sys, f"{p.id}-LINS")
+    if t.dosa is not None:
+        d = t.dosa
+        m.lagg(Del(f"{d.namn} Ø{d.diameter:g} × {d.djup:g}", cylinder(d.diameter / 2, d.djup, (0.0, 0.0, -d.djup)),
+                   ELDOSA), sys, f"{p.id}-DOSA")
     return m
 
 

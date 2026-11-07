@@ -186,14 +186,22 @@ RUMSNAMN = {
     "kontor-litet": ("Kontor, litet", (12400, 3750)), "gastrum": ("Gästrum", (12400, 5650)),
     "gang": ("Gång", (10250, 4600)), "trappa": ("Trappa", (8350, 5470)), "kallare": ("Källare", (7000, 7800, "k")),
 }
+# fler rum för ljusplanernas statistik (som RUMSNAMN; ljusplanerna delar en öppen planlösning mellan namnen): källarens
+# rum, med samma namn som golvvärmens zoner
+LJUSPLANENS_RUM = {
+    "kallare-hall": ("Hall", (1300, 7300, "k")), "kallare-teknik": ("Teknikrum", (3300, 8500, "k")),
+    "kallare-ksv": ("Rum söder om hallen", (1500, 4800, "k")), "kallare-ksm": ("Rum öster om KL2", (3650, 4800, "k")),
+    "kallare-trapphall": ("Trapphall", (6000, 6600, "k")), "kallare-ks": ("Rum söder om trapphallen", (6800, 2700, "k")),
+    "kallare-ko": ("Stora rummet", (11600, 7000, "k")),
+}
 
 # taklampor (LED-paneler, fyrkantiga och nedåtlysande) som tänds i bilderna som anger dem: källaren är mörk med
-# sina små fönster. Lägena (x, y), höjden z under bjälklaget, sidan [mm], ljusflödet per panel [lm] och
-# färgtemperaturen [K]
+# sina små fönster. Arbetsrummen (det stora rummet och de två små rummen söder om KL1) har elinstallationens paneler
+# (hus/installationer/el/rum/kallare.py); de här lyser i de andra rummen tills deras belysning är bestämd (#51). Lägena
+# (x, y), höjden z under bjälklaget, sidan [mm], ljusflödet per panel [lm] och färgtemperaturen [K]
 LAMPOR = {
-    "kallare": {"lagen": [(1500, 5200), (3300, 5200), (1500, 6750), (3300, 6750), (1500, 8400), (5800, 1800),
-                          (8200, 1800), (5800, 4200), (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300),
-                          (11600, 2600), (11600, 5600), (11600, 8600), (11600, 11000)],
+    "kallare": {"lagen": [(1500, 6750), (3300, 6750), (1500, 8400), (5800, 1800), (8200, 1800), (5800, 4200),
+                          (8200, 4200), (5800, 6400), (5800, 9300), (8200, 9300)],
                 "z": -S.H_BJALKLAG - 20.0, "sida": 600.0, "lumen": 2500.0, "kelvin": 3000.0},
 }
 

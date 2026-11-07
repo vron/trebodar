@@ -67,8 +67,8 @@ _B = _rad(RAD_B, BJALKLAG["MB"], norrut=(BJALKLAG["MB"], BJALKLAG["MB-UK"]))
 # stråken: stigarna och stråkets brytpunkter (det första stycket vinkelrätt mot raden)
 # den främre raden: S de västra (utom stigaren vid tappvattnets stigare BA-DU1-KV, som S går förbi), E de östra; den
 # bakre raden: N de västra, och österut till ön och hällen
-S_STIG, E_STIG = (_A[0], *_A[2:6]), _A[6:12]
-N_STIG, ON_STIG, HALL_STIG = _B[:2], _B[2], _B[5]
+S_STIG, E_STIG = _A[0:6], _A[6:12]
+N_STIG, ON_STIG, HALL_STIG, KA_STIG = _B[:2], _B[2], _B[5], _B[3]     # KA_STIG: källarens stora rum (G17)
 Y_S, X_S, Y_S_SLUT = 8400.0, 3480.0, 4380.0     # S: österut i y, söderut i x till V7:s vinkeljärn
 Y_E, X_E_SLUT = 8587.0, 13100.0                 # E: österut i y, i glipan mellan V19:s och V15:s järn och söder om
 #                                                 V3:s vinkeljärn, till V14:s vinkeljärn
@@ -92,7 +92,7 @@ STRAK = {
 }
 
 
-def _ur_raden(x: float, rad: float, niva: str) -> tuple[Vek, ...]:
+def ur_raden(x: float, rad: float, niva: str) -> tuple[Vek, ...]:
     """Röret ur centralens ovansida (bakre raden: in i väggen) och upp till nivån i bjälklaget."""
     z = BJALKLAG[niva]
     if rad == RAD_A:
@@ -100,7 +100,7 @@ def _ur_raden(x: float, rad: float, niva: str) -> tuple[Vek, ...]:
     return (x, _TOPP[1] + 40.0, Z_GC_TOPP), (x, _TOPP[1] + 40.0, Z_GC_TOPP + OVER), (x, rad, Z_GC_TOPP + OVER), (x, rad, z)
 
 
-def _i_straket(x: float, strak: str, mal: Sequence[tuple[float, float]], upp: tuple[Vek, ...]) -> tuple[Vek, ...]:
+def i_straket(x: float, strak: str, mal: Sequence[tuple[float, float]], upp: tuple[Vek, ...]) -> tuple[Vek, ...]:
     """Från stigaren x i den främre raden längs sin fil i stråket till punkten närmast mal[0], genom mal (i plan) och
     upp till dosan."""
     z = BJALKLAG["MB"]
@@ -121,7 +121,7 @@ def _ror(grupp: str, strak: str, x: float, p: str, via_y: float | None = None, v
     upp = _upp(p)
     xt, yt = upp[0][0], upp[0][1]
     mal = [(xt, via_y)] if via_y is not None else [(via_x, yt)] if via_x is not None else []
-    return Ror(f"{grupp}-M", FXP16, "GC", p, via=_i_straket(x, strak, (*mal, (xt, yt)), upp[1:]))
+    return Ror(f"{grupp}-M", FXP16, "GC", p, via=i_straket(x, strak, (*mal, (xt, yt)), upp[1:]))
 
 
 def _norr(grupp: str, x: float, p: str, y: float, mal: Sequence[tuple[float, float]], typ: Rortyp = FXP16,
@@ -130,7 +130,7 @@ def _norr(grupp: str, x: float, p: str, y: float, mal: Sequence[tuple[float, flo
     upp = _upp(p, niva=niva, d=typ.ytterdiameter)
     z = BJALKLAG[niva]
     plan = [(x, y), *mal, (upp[0][0], upp[0][1])]
-    return Ror(f"{grupp}-M", typ, "GC", p, via=(*_ur_raden(x, RAD_B, niva), *((a, b, z) for a, b in plan), *upp[1:]))
+    return Ror(f"{grupp}-M", typ, "GC", p, via=(*ur_raden(x, RAD_B, niva), *((a, b, z) for a, b in plan), *upp[1:]))
 
 
 # brandlarmets matningsdosa D01 (../../brandlarm/larm.py): en punkt utan egen geometri, matad från allrummets dimmer
@@ -145,12 +145,13 @@ _HU = _upp("HA-U1")[0]
 _KD = _upp("KO-D1", niva="MB-UK", d=20.0)[0]
 
 ROR = [
-    # S: stigarna från väster; det som viker av först ytterst (västerut i ordning söderut, österut sist)
+    # S: stigarna från väster; det som viker av först ytterst (västerut i ordning söderut, österut sist); S_STIG[1]
+    # går till källarens små rum (G18, ../rum/kallare.py)
     _ror("G05", "S", S_STIG[0], "BA-B1"),
-    _ror("G09", "S", S_STIG[1], "BA-U3", via_y=5160.0),
-    _ror("G08", "S", S_STIG[2], "BA-U2", via_y=5130.0),
-    _ror("G07", "S", S_STIG[3], "BA-U1", via_y=Y_S_SLUT + 20.0),
-    _ror("G03", "S", S_STIG[4], "SV-B1"),
+    _ror("G09", "S", S_STIG[2], "BA-U3", via_y=5160.0),
+    _ror("G08", "S", S_STIG[3], "BA-U2", via_y=5130.0),
+    _ror("G07", "S", S_STIG[4], "BA-U1", via_y=Y_S_SLUT + 20.0),
+    _ror("G03", "S", S_STIG[5], "SV-B1"),
     # E: söder om mitten det som viker av söderut (i ordning österut), norr om den det som viker av norrut
     _ror("G02", "E", E_STIG[0], "AL-B1"),
     _ror("G04", "E", E_STIG[1], "GR-B1"),
