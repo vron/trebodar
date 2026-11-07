@@ -115,8 +115,8 @@ def jarnen(plan: int) -> tuple[tuple[Point | LineString, float], ...]:
 @cache
 def _hinder(plan: int) -> Polygon:
     """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens
-    rör i det och avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören upp genom
-    bottenplattan (servisen och köldbärarens skyddsrör, källaren)."""
+    rör i det och avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom
+    bottenplattan (servisen, köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
@@ -130,6 +130,9 @@ def _hinder(plan: int) -> Polygon:
         delar.append(Point(*GOLVBRUNN).buffer(FRITT + BRUNN[0] / 2))
     else:
         delar += [Point(k.vag[0][0], k.vag[0][1]).buffer(FRITT + KB_D / 2) for k in kollektorns().values()]
+        delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
+                  for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
+                  and min(a[2], b[2]) < S.Z_BOTTENPLATTA < max(a[2], b[2])]
         for u in UTRUSTNING.values():
             if u.lage.yta != "golv":
                 continue

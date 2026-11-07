@@ -171,6 +171,7 @@ namn     = "Diskho, undermonterad, och köksblandare"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
+anm      = "Avloppet i hons bakre del, 80 mm från bakkanten (bakom skåpets lådor), rakt ned genom golvet (AV5)."
 
 [[produkt]]
 kod      = "HALL"
@@ -190,7 +191,7 @@ status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 arende   = [50]
-anm      = "I ön; vatten, avlopp och el gjuts in i mellanbjälklaget."
+anm      = "I ön; vatten och el gjuts in i mellanbjälklaget, avloppet går från vattenlåset i sockeln under O2 rakt ned (AV7)."
 
 [[produkt]]
 kod      = "KYL"
