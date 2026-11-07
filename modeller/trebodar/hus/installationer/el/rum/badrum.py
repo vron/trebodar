@@ -18,9 +18,10 @@ from trebodar import skelett as S
 from trebodar.hus import badrum as B
 from trebodar.hus.invandigt.vaggar import vaggdef
 
-from ..katalog import APPARATDOSA, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, UTTAG_2_IP44, VAGGLAMPA
+from ..katalog import ANSLUTNING, APPARATDOSA, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, UTTAG_1_IP44, UTTAG_2_IP44, VAGGLAMPA
 from ..lakt import mellan_lakten
-from ...montering import tak, vagg, vid_tak
+from ...montering import Montering, tak, vagg, vid_tak
+from ...ventilation.grenar.badrum import U as U_FF2, Z as Z_FF2
 from ..punkter import Apparat, Dosa, Lampa, Ror, Rum, Tandgrupp
 
 RUM = Rum("BA", "Badrum", plan=1)
@@ -36,6 +37,19 @@ U_UTTAG = B.Y_1NO + 250.0 - _L9.origo[1]     # uttaget på L9 vid bänkens ände
 Z_UTTAG = B.Z_BANK + B.BANK_Z + 230.0
 U_LAMPA = B.LAMPA_TVATTSTALL[0] - S.YTTERVAGGAR["1NO"].origo[0]
 U_TORK = B.HANDDUKSTORK[0] + 60.0 - S.INNERVAGGAR["1A"].origo[0]
+# tvätten i skåpet (#51): två enkla uttag IP44 i en dubbel ram vid användarens markering (B.TVATT_UTTAG), på L10
+# ovanför maskinerna, tvättmaskinen och torktumlaren på var sin grupp; fläkten FF2 fast ansluten bredvid den
+_L10 = vaggdef("L10")
+U_TVATT = (B.TVATT_UTTAG[0] - 40.0 - _L10.origo[0], B.TVATT_UTTAG[0] + 40.0 - _L10.origo[0])
+U_FLAKT = U_FF2 + 250.0
+
+
+def _over_golvet(kod: str, u: float, z: float, sida: int) -> Montering:
+    """På väggens färdiga yta vid u, z över golvet vid väggen (badrumsgolvets fall)."""
+    m = vagg(kod, u, 0.0, sida)
+    return vagg(kod, u, B.golvniva(m.punkt[0] + m.normal[0] * 2.0, m.punkt[1] + m.normal[1] * 2.0) + z, sida)
+
+
 
 TANDGRUPPER = [
     Tandgrupp("BA-T1", "Badrum, spotar"),
@@ -50,6 +64,8 @@ PUNKTER = [
     Apparat("BA-U1", UTTAG_2_IP44, vagg("L9", U_UTTAG, Z_UTTAG, sida=1)),
     Dosa("BA-D1", APPARATDOSA, vagg("1A", U_TORK, B.golvniva(B.HANDDUKSTORK[0] + 60.0, B.Y_1A - 5.0) + 500.0,
                                    sida=-1)),
+    *[Apparat(f"BA-U{2 + i}", UTTAG_1_IP44, _over_golvet("L10", u, B.TVATT_UTTAG[1], 1)) for i, u in enumerate(U_TVATT)],
+    Apparat("BA-D2", ANSLUTNING, vagg("1NO", U_FLAKT, Z_FF2)),
 ]
 
 _VID_L11 = vid_tak("L11", U_B, sida=-1)

@@ -29,6 +29,7 @@ from shapely.ops import unary_union
 from trebodar import skelett as S
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.installationer.el import lakt
+from trebodar.hus.installationer.el.grupper import BRANDLARM_D01
 from trebodar.hus.installationer.el.installation import installation
 from trebodar.hus.invandigt import kallarens_innervaggar as KV
 from trebodar.hus.invandigt import vaggar
@@ -224,7 +225,7 @@ def brandlarm() -> Brandlarm:
     (xv, yv, _), (xm, _, _), (xh, yh, _) = upp_v[0], upp_m[0], upp_h[0]
     y_stam = varnare["BV-KN"].lage.punkt[1]                         # stammen österut i källaren
     dosor = {d.id: d for d in (
-        Dosa("D01", "Matningsdosa: matningen från elcentralen (läget inte bestämt)", kallartak(6200.0, 5200.0)),
+        Dosa("D01", "Matningsdosa: matningen från elcentralen, grupp G02 (el/grupper.py)", kallartak(*BRANDLARM_D01)),
         Dosa("DV", "Kopplingsdosa under stigaren till hallen och vardagsrummet (1A)", kallartak(xv, yv)),
         Dosa("DM", "Kopplingsdosa vid stigaren till sovrummet (2A)", kallartak(xm, y_stam)),
         Dosa("DH", "Kopplingsdosa under stigaren till köket (L4)", kallartak(xh, yh)),

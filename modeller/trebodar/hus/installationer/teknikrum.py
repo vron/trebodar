@@ -1,5 +1,6 @@
 """Teknikrummet i källarens vänstra del, i hörnet vid ytterväggen V3 och innerväggen V19 (under badrummet och hallen):
-utrustningen för vatten och värme, som installationerna (vatten/, golvvarme/) ansluter till, och dess geometri.
+utrustningen för vatten, värme och el, som installationerna (vatten/, golvvarme/, el/) ansluter till, och dess
+geometri.
 Rummets väggar är källarens innerväggar KL8–KL10 (invandigt/kallarens_innervaggar.py) med en knyck runt värmepumpen;
 YTA är den del av källaren som pekats ut för utrustningen.
 
@@ -11,6 +12,7 @@ YTA är den del av källaren som pekats ut för utrustningen.
   varmvattenledning från beredaren.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
   väg till huset är inte bestämd.
+- Elens gruppcentral på V3 väster om vattenmätaren (el/grupper.py), rören ur dess ovansida upp i mellanbjälklaget.
 
 Utrustningen kontrolleras i modellens krockkontroll (står på golvet och hänger på väggarna). Lägen i K-05:s
 koordinater, z från plan 1:s golv (källarens golv z −2 250).
@@ -67,7 +69,19 @@ VATTENMATARE = Utrustning("TK-VM", "Vattenmätare med huvudavstängning och back
                           {"in": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] - 125.0),
                            "ut": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] + 125.0)})
 
-UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE)}
+# elcentralen (gruppcentralen, #51) på V3 väster om vattenmätaren, x 2 400–3 000, med FRITT_FRAMFOR fritt framför;
+# ventilationens kanal FF3-K2 går längs V3 under taket från V19 till x 2 810 och där bort från väggen, över
+# centralens östra del, så centralen sitter lägre (överkanten Z_GC_TOPP under kanalen) och rören går upp ur ovansidans
+# västra del, väster om kanalen, rakt in i mellanbjälklaget (el/grupper.py, el/bjalklag/mellanbjalklag.py)
+X_GC = 2700.0
+FRITT_FRAMFOR = 800.0
+GC_MATT = (600.0, 130.0, 900.0)                 # bredd, djup, höjd
+Z_GC_TOPP = -420.0                              # centralens överkant, under kanalens underkant (z −367)
+_GC = kallarvagg("V3", X_GC, Z_GC_TOPP - GC_MATT[2] / 2 - PLAN[0], -1)
+GRUPPCENTRAL = Utrustning("TK-GC", "Gruppcentral, fyra rader (72 moduler), utanpåliggande (ej vald)", _GC,
+                          GC_MATT, {"topp": (X_GC, _GC.punkt[1] - GC_MATT[1] / 2, Z_GC_TOPP)}, produkt="GRUPPCENTRAL")
+
+UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE, GRUPPCENTRAL)}
 
 
 def _placering(u: Utrustning) -> Placering:
@@ -92,8 +106,9 @@ def _skap(u: Utrustning) -> Montage:
 
 
 def montage() -> Montage:
-    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet och vattenmätaren på väggarna."""
-    m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare och vattenmätare")
+    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet, vattenmätaren och elcentralen på väggarna."""
+    m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare, vattenmätare och "
+                                         "elcentral")
     for u in UTRUSTNING.values():
         b, d, h = u.matt
         if h <= 0:
@@ -104,5 +119,7 @@ def montage() -> Montage:
             m.lagg(Del(u.namn, box(-b / 2, b / 2, -d / 2, d / 2, 0.0, h), VVS_APPARAT, produkt=u.produkt or None),
                    _placering(u), u.id)
         else:
-            m.lagg(Del(u.namn, box(-b / 2, b / 2, 0.0, d, -h / 2, h / 2), VVS_APPARAT), _placering(u), u.id)
+            mat = PLATSKAP if u is GRUPPCENTRAL else VVS_APPARAT
+            m.lagg(Del(u.namn, box(-b / 2, b / 2, 0.0, d, -h / 2, h / 2), mat, produkt=u.produkt or None),
+                   _placering(u), u.id)
     return m

@@ -369,8 +369,21 @@ def main(argv: list[str] | None = None) -> None:
         fel, anm = inst.kontroll()
         arg.ut.mkdir(parents=True, exist_ok=True)
         if arg.atgard == "kontroll":
+            from . import installationer
+            # krockarna: rören i bjälklagen och källaren mot järnen och de andra installationerna (fel); genom
+            # skikten och stommen på plan 1 går de utan håltagning i modellen (räknas)
+            rot_ = valj(ladda(), None)
+            karna_ = Karna()
+            karna_.forbered(d.form for _, d, _ in rot_.platta())
+            kr = installationer.krockar(rot_, karna_, importlib.import_module("trebodar.kontrollregler"),
+                                        "Hus/Installationer/El")
+            # köksfläktens skorstenskåpa är en ihålig plåtkåpa (modellerad massiv): fläktens uttag sitter inne i den
+            kapan = [k for k in kr.installationer if "-SKORSTEN" in k]
+            fel += [f"krock med {k}" for k in kr.installationer + kr.armering if k not in kapan]
+            anm += [f"inne i köksfläktens skorstenskåpa: {k.split(' mot ')[0]}" for k in kapan]
             print(f"  {len(inst.punkter)} punkter, {len(inst.tandgrupper)} tändgrupper, {len(inst.ror)} rör: "
-                  f"{len(fel)} fel, {len(anm)} anmärkningar")
+                  f"{len(fel)} fel, {len(anm)} anmärkningar; genom stommen {len(kr.stomme)}, genom skikten "
+                  f"{len(kr.skikt)} rör")
             for f in fel:
                 print(f"    FEL {f}")
             for a in anm:
@@ -761,7 +774,10 @@ def main(argv: list[str] | None = None) -> None:
         arg.ut.mkdir(parents=True, exist_ok=True)
         if arg.atgard in ("kontroll", "lista"):
             kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Ventilation")
-            fel += [f"krock med {k}" for k in kr.installationer]
+            # köksfläktens skorstenskåpa är en ihålig plåtkåpa (modellerad massiv), med fläktens uttag inne i den
+            kapan = [k for k in kr.installationer if k.startswith("FF1-D1-SKORSTEN") and "/El/" in k]
+            fel += [f"krock med {k}" for k in kr.installationer if k not in kapan]
+            anm += [f"elen inne i köksfläktens skorstenskåpa: {k.split('/')[-1].split(' ')[0]}" for k in kapan]
             krockar = kr.stomme + kr.armering + kr.skikt
         if arg.atgard == "kontroll":
             n_el, n_gf = len(utdrag["element"]), len(utdrag["genomforingar"])  # type: ignore[arg-type]

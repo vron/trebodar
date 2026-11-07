@@ -377,6 +377,18 @@ ansvarig = "byggherre"
 fas      = "tatt"
 anm      = "800 mm över nocken (antaget)."
 
+# ------------------------------------------------------------------ el
+
+[[produkt]]
+kod      = "GRUPPCENTRAL"
+grupp    = "El"
+namn     = "Gruppcentral med huvudbrytare, överspänningsskydd och personskyddsautomater"
+status   = "att välja"
+ansvarig = "el"
+fas      = "installationer"
+arende   = [51]
+anm      = "Fyra rader (72 moduler), utanpåliggande på V3 i teknikrummet; grupperna i el/grupper.py (E-01)."
+
 # ------------------------------------------------------------------ belysning
 
 [[produkt]]

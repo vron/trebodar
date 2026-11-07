@@ -126,6 +126,10 @@ KOPPLINGSDOSA = Dosatyp("KOPPLINGSDOSA", "Kopplingsdosa i innertakets installati
                         80.0, 40.0, symbol="kopplingsdosa")
 INGJUTNINGSDOSA = Dosatyp("INGJUTNINGSDOSA", "Ingjutningsdosa för betongbjälklag, takdosa (ej vald)", "ingjutningsdosa",
                           90.0, 70.0, symbol="ingjutningsdosa")
+CENTRAL = Dosatyp("CENTRAL", "Gruppcentralen i teknikrummet (rörens början på dess ovansida)", "central", 0.0, 0.0,
+                  symbol="central")
+BRANDLARM_MATNING = Dosatyp("BL-MATNING", "Brandlarmets matningsdosa i källarens tak (brandlarm/larm.py, D01)",
+                            "brandlarm", 0.0, 0.0, symbol="ingjutningsdosa")
 
 # ------------------------------------------------------------------ apparater (allmänna)
 
@@ -139,6 +143,12 @@ UTTAG_2 = Apparattyp("UTTAG-2", "Vägguttag, dubbelt, jordat (ej valt)", "uttag"
 UTTAG_1 = Apparattyp("UTTAG-1", "Vägguttag, enkelt, jordat (ej valt)", "uttag", 1, (80.0, 80.0), APPARATDOSA, "uttag")
 UTTAG_2_IP44 = Apparattyp("UTTAG-2-IP44", "Vägguttag, dubbelt, jordat, IP44 med lock (våtrum, ej valt)", "uttag", 2,
                           (151.0, 80.0), APPARATDOSA, "uttag")
+UTTAG_1_IP44 = Apparattyp("UTTAG-1-IP44", "Vägguttag, enkelt, jordat, IP44 med lock (våtrum, ej valt)", "uttag", 1,
+                          (80.0, 80.0), APPARATDOSA, "uttag")
+ANSLUTNING = Apparattyp("ANSLUTNING", "Anslutning för fast ansluten apparat, med lock (ej vald)", "anslutning", 1,
+                        (80.0, 80.0), APPARATDOSA, "anslutning")
+ANSLUTNING_3FAS = Apparattyp("ANSLUTNING-3F", "Anslutning för fast ansluten apparat, 400 V (hällen, ej vald)",
+                             "anslutning", 1, (80.0, 80.0), APPARATDOSA, "anslutning")
 
 # ------------------------------------------------------------------ rör
 

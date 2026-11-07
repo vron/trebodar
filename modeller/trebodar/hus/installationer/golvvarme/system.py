@@ -114,16 +114,18 @@ def jarnen(plan: int) -> tuple[tuple[Point | LineString, float], ...]:
 @cache
 def _hinder(plan: int) -> Polygon:
     """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens
-    rör i det och avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom
+    rör lodrätt genom slingornas nivå och avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom
     bottenplattan (servisen, köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
         delar += [Point(a[0], a[1]).buffer(FRITT) for r in v.ror.values() for a, b in zip(v.vag(r), v.vag(r)[1:])
                   if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < 0.0 < max(a[2], b[2])]
-        el = installation()
-        delar += [LineString([a[:2], b[:2]]).buffer(FRITT) for r in el.ror.values()
-                  for a, b in zip(el.vag(r), el.vag(r)[1:]) if KALLARTAK < min(a[2], b[2]) and max(a[2], b[2]) < 0.0]
+        el = installation()            # elrören går över och under slingorna (montering.BJALKLAG), utom där de går
+        z = PLAN[plan].Z               # lodrätt genom slingornas nivå (upp i väggarna och ned till centralen)
+        delar += [Point(a[0], a[1]).buffer(FRITT + r.typ.ytterdiameter / 2) for r in el.ror.values()
+                  for a, b in zip(el.vag(r), el.vag(r)[1:])
+                  if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < z < max(a[2], b[2])]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < 0.0 and max(a[2], b[2]) > -S.H_BJALKLAG]

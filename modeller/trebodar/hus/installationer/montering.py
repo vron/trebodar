@@ -24,7 +24,9 @@ TAKSKIVOR = 2 * SKIVA                          # innertakets gips (2 × 12,5)
 I_TAKET = TAKSKIVOR + LAKT / 2                 # installationsskiktets mitt ovanför takytan
 PLAN = {1: 0.0, 0: S.Z_BOTTENPLATTA}           # golvets z: plan 1 och källaren
 KALLARTAK = -S.H_BJALKLAG                      # källarens tak: mellanbjälklagets underkant
-BJALKLAG = {"MB": -S.H_BJALKLAG / 2}           # bjälklagens mitt, där rören gjuts in
+# elrörens nivåer i mellanbjälklaget (rörets mitt): de klena (Ø16) mellan golvvärmens rör och överkantsnätet, där de går
+# över tappvattnets och golvvärmens rör; de grova (Ø20) i tappvattnets nivå, utan att korsa dess rör
+BJALKLAG = {"MB": -51.0, "MB-UK": -100.0}
 
 # installationernas skikt i betongen, mellan armeringsnäten (R-06, R-04): i mellanbjälklaget tappvattnets rör-i-rör
 # (Ø28) närmast underkantsnätet och golvvärmens rör (Ø16) ovanför dem, under järnen under överkantsnätet; i
@@ -213,7 +215,7 @@ def langs_taket(a: Vek, b: Vek, steg: float = 250.0) -> list[Vek]:
 
 
 def i_bjalklag(x: float, y: float, bjalklag: str = "MB") -> Vek:
-    """Ingjutet i bjälklaget (mitt i betongen)."""
+    """Ingjutet i bjälklaget, i elrörens nivå (BJALKLAG)."""
     return (float(x), float(y), BJALKLAG[bjalklag])
 
 

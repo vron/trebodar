@@ -263,7 +263,7 @@ def _plan1(utdrag: dict) -> dict[str, dict]:
 
 
 def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: str, bjalklaget: str,
-           forteckningen: str) -> Blad:
+           forteckningen: str, grupperna: str) -> Blad:
     """Elplanen för plan 1: punkterna, styrningen och rören i väggar och innertak (rören i bjälklaget på
     bjälklagets ritning, bjalklaget; apparaterna, dosorna och rören i förteckningen, forteckningen)."""
     v = vy(SKALA, PLAN1, 24.0, 27.0)
@@ -369,7 +369,8 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             "Apparaternas höjd är centrum över färdigt golv. Apparater intill varandra på samma vägg ritas bredvid "
             "varandra.",
             f"Rören i mellanbjälklaget: {bjalklaget}. Apparaterna, dosorna och rören: {forteckningen}. "
-            "Gruppcentralen och grupperna läggs till när centralens läge är bestämt.",
+            f"Gruppcentralen sitter i teknikrummet i källaren, grupperna och deras rör: {grupperna}. Vid dosor "
+            f"märkta ned i bjälklaget kommer gruppens rör från centralen upp i väggen.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(legend),
@@ -496,14 +497,50 @@ def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
     return blad(nummer, ["Elinstallation", "Förteckning, plan 1"], "–", "Modellen", kol, [], block)
 
 
+def gruppforteckning(utdrag: dict, nummer: str, bjalklaget: str) -> Blad:
+    """Gruppcentralen och gruppförteckningen: varje grupp med säkring, faser, ledarnas area, jordfelsskydd, punkterna
+    i rörens ordning och röret från centralen (tabell)."""
+    c, ror = utdrag["central"], utdrag["ror"]
+    rader = []
+    for k, g in utdrag["grupper"].items():
+        m = ror.get(f"{k}-M") or next((r for r in ror.values() if r["fran"] == "GC" and r.get("grupp") == k), None)
+        lgd = sum(r["langd"] for r in ror.values() if r.get("grupp") == k) / 1000
+        rader.append([k, g["namn"], g["sakring"], "3" if g["faser"] == 3 else "1", sv(g["area"], 1),
+                      "typ A 30 mA" if g["jordfel"].startswith("personskydd") else "enligt tillverkaren",
+                      ", ".join(g["punkter"]), f"Ø{sv(m['diameter'])}" if m else "–", sv(lgd, 1)])
+    block: list[dict] = [dict(x=24.0, y=14.0, w=300.0, innehall=[
+        dict(typ="rubrik", text="Grupper"),
+        dict(typ="tabell", kolumner=["Grupp", "Namn", "Säkring", "Faser", "mm²", "Jordfel", "Punkter (i rörens ordning)",
+                                     "Rör", "m"],
+             bredd=(0.45, 2.6, 0.55, 0.4, 0.35, 0.9, 3.3, 0.4, 0.35), just=["l", "l", "r", "r", "r", "l", "l", "l", "r"],
+             sz=6.4, rader=rader)])]
+    kol: list[dict] = [
+        dict(typ="rubrik", text="Anvisningar"),
+        dict(typ="lista", sz=7.0, rader=[
+            f"Gruppcentralen sitter i teknikrummet på V3 väster om vattenmätaren, med 800 mm fritt framför: "
+            f"huvudbrytare {c['huvudbrytare']}, överspänningsskydd {c['overspanningsskydd']} och en "
+            f"personskyddsautomat (dvärgbrytare och jordfelsbrytare typ A 30 mA) per grupp; värmepumpen enligt "
+            f"dess tillverkare (typ B om den kräver det). Utförande enligt SS 436 40 00.",
+            "Ledarna FK med skyddsledare i rör, 1,5 mm² för 10 A och 2,5 mm² för 16 A; hällen och värmepumpen 400 V "
+            "med fem ledare i rör Ø20. En grupp per rör från centralen.",
+            f"Varje grupps rör från centralen till dess första punkt går ingjutet i mellanbjälklaget ({bjalklaget}); "
+            f"därifrån går rören mellan punkterna i apparatdosorna, i väggarna och innertaket (förgrenat i dosorna). "
+            f"Belysningen matas genom brytarna och dimrarna som styr den. Längden är gruppens alla rör.",
+            "Förteckningen ritas ur modellen med ./mod el ritning (modeller/trebodar/hus/installationer/el/grupper.py).",
+        ]),
+    ]
+    return blad(nummer, ["Elinstallation", "Gruppförteckning"], "–", "Modellen", kol, [], block)
+
+
 def ritningar(utdrag: dict, plan1: list[dict], mb: list[dict], norr: tuple[float, float], arbete: Path,
               ut: Path) -> Path:
     """Elritningarna (serien SERIE): elplanen för plan 1, rören i mellanbjälklaget och förteckningen över plan 1:s
     apparater, dosor och rör, som pdf i mappen ut (bladen för sig i arbetsmappen, under repots rot)."""
-    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3)]
-    bladen = [(nr[0], elplan(utdrag, plan1, norr, nr[0], nr[1], nr[2])),
+    nr = [f"{SERIE.split()[0]}.{i}" for i in (1, 2, 3, 4)]
+    bladen = [(nr[0], elplan(utdrag, plan1, norr, nr[0], nr[1], nr[2], nr[3])),
               (nr[1], bjalklag(utdrag, mb, plan1, (-150.0, 0.0), nr[1], nr[0])),
-              (nr[2], forteckning(utdrag, nr[2], nr[0]))]
+              (nr[2], forteckning(utdrag, nr[2], nr[0])),
+              (nr[3], gruppforteckning(utdrag, nr[3], nr[1]))]
     pdf = ut / f"{SERIE}.pdf"
     kompilera(bladen, arbete, pdf)
     return pdf

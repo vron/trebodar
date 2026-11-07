@@ -17,15 +17,17 @@ from trebodar.byggdelar.genomforing import Lada
 from trebodar.byggdelar.ror import stang
 from trebodar.hus.invandigt.skikt import LAKT
 
-from . import lakt
+from . import kedjor, lakt
+from .grupper import GRUPP, GRUPPER, HUVUDBRYTARE, OVERSPANNINGSSKYDD
 from .bjalklag import mellanbjalklag
 from ..montering import PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
-from .punkter import Apparat, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
-from .rum import (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum)
+from .punkter import Apparat, Dosa, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
+from .rum import (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, teknikrum,
+                  vardagsrum)
 from .typer import Apparattyp, Armaturtyp
 
 MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, badrum, sovrum, kontor, sovrum_litet,
-                                   kontor_litet, gastrum, mellanbjalklag)
+                                   kontor_litet, gastrum, teknikrum, mellanbjalklag, kedjor)
 SLADD_MINST = 50.0                             # pendelns sladd under takkoppen, minst [mm]
 
 
@@ -43,7 +45,9 @@ class Installation:
     def vag(self, r: Ror) -> list[Vek]:
         """Rörets mittlinje: från punktens anslutning genom brytpunkterna till den andra punktens, i innertakets
         installationsskikt över nocken och dalarna (montering.langs_taket)."""
-        p = [anslutning(self.punkter[r.fran]), *r.via, anslutning(self.punkter[r.till])]
+        fran = self.punkter[r.fran]
+        start = [] if isinstance(fran, Dosa) and fran.typ.slag == "central" and r.via else [anslutning(fran)]
+        p = [*start, *r.via, anslutning(self.punkter[r.till])]
         return [p[0], *(q for a, b in zip(p, p[1:]) for q in langs_taket(a, b)[1:])]
 
     def kontroll(self) -> tuple[list[str], list[str]]:
@@ -114,7 +118,52 @@ class Installation:
         for p in self.punkter.values():
             if p.id not in anslutna:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
-        anm.append("matningen: centralen i teknikrummet är inte ritad (#51), rören slutar i dosor")
+        g_fel, g_anm = self._grupperna()
+        return fel + g_fel, anm + g_anm
+
+    def _grupperna(self) -> tuple[list[str], list[str]]:
+        """Grupperna (grupper.py): varje apparat och dosa utom lamporna och centralen i en grupp, gruppens punkter
+        hopkopplade med rör från centralen, gruppens rör från centralen till dess första punkt, och belastningen."""
+        fel: list[str] = []
+        anm: list[str] = []
+        i_grupp: dict[str, list[str]] = {}
+        for g in GRUPPER:
+            for pid in g.punkter:
+                i_grupp.setdefault(pid, []).append(g.id)
+                if pid not in self.punkter:
+                    fel.append(f"{g.id}: punkten {pid} finns inte")
+        for p in self.punkter.values():
+            if isinstance(p, Lampa) or (isinstance(p, Dosa) and p.typ.slag == "central"):
+                continue
+            if isinstance(p, Dosa) and p.typ.slag in ("ingjutningsdosa", "kopplingsdosa") and p.id not in i_grupp:
+                continue
+            n = len(i_grupp.get(p.id, []))
+            if n != 1:
+                fel.append(f"{p.id}: i {n} grupper" + (f" ({', '.join(i_grupp[p.id])})" if n else ""))
+        central = next((p.id for p in self.punkter.values() if isinstance(p, Dosa) and p.typ.slag == "central"), None)
+        if central is None:
+            return fel + ["centralen saknas"], anm
+        grannar: dict[str, set[str]] = {}
+        for r in self.ror.values():
+            grannar.setdefault(r.fran, set()).add(r.till)
+            grannar.setdefault(r.till, set()).add(r.fran)
+        for g in GRUPPER:
+            if not g.punkter or g.punkter[0] not in grannar.get(central, set()):
+                fel.append(f"{g.id}: inget rör från centralen till gruppens första punkt {g.punkter[0]}")
+            # gruppens punkter nås från den första genom gruppens egna punkter (förgrenat i dosorna)
+            egna, nadda, kvar = set(g.punkter), {g.punkter[0]}, [g.punkter[0]]
+            while kvar:
+                for q in grannar.get(kvar.pop(), set()) & egna:
+                    if q not in nadda:
+                        nadda.add(q)
+                        kvar.append(q)
+            for pid in g.punkter:
+                if pid not in nadda:
+                    fel.append(f"{g.id}: {pid} har inget rör från gruppens andra punkter")
+            appar = [self.punkter[pid] for pid in g.punkter if isinstance(self.punkter.get(pid), Apparat)]
+            uttag = sum(a.typ.kanaler for a in appar if isinstance(a, Apparat) and a.typ.slag == "uttag")
+            if g.sakring == 10 and g.faser == 1 and uttag > 10:
+                anm.append(f"{g.id}: {uttag} uttag på 10 A")
         return fel, anm
 
     def utdrag(self) -> dict[str, object]:
@@ -148,8 +197,12 @@ class Installation:
                                 for k, t in self.tandgrupper.items()},
                 "ror": {k: {"typ": r.typ.kod, "diameter": r.typ.ytterdiameter, "fran": r.fran, "till": r.till,
                             "modul": self.modul[k], "vag": [list(v) for v in self.vag(r)],
-                            "langd": langd(self.vag(r)), "bojar": bojar(self.vag(r))}
-                        for k, r in self.ror.items()}}
+                            "langd": langd(self.vag(r)), "bojar": bojar(self.vag(r)),
+                            "grupp": k.split("-")[0] if k.split("-")[0] in GRUPP else None}
+                        for k, r in self.ror.items()},
+                "grupper": {g.id: {"namn": g.namn, "sakring": g.text, "faser": g.faser, "area": g.area,
+                                   "jordfel": g.jordfel, "punkter": list(g.punkter)} for g in GRUPPER},
+                "central": {"huvudbrytare": HUVUDBRYTARE, "overspanningsskydd": OVERSPANNINGSSKYDD}}
 
 
 def _armatur(t: Armaturtyp) -> dict[str, object]:

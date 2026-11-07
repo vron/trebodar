@@ -270,6 +270,9 @@ def armatur(p: Lampa) -> Montage:
     return m
 
 
+UTAN_GEOMETRI = ("central", "brandlarm")     # punkter vars geometri finns i ett annat montage (teknikrummet, brandlarmet)
+
+
 def _dosa_del(t: Dosatyp) -> Del:
     return Del(f"{t.namn} Ø{t.diameter:g}", cylinder(t.diameter / 2, t.djup, (0.0, 0.0, -t.djup)), ELDOSA)
 
@@ -327,6 +330,8 @@ def montage() -> Montage:
     m = Montage("El", beskrivning="Elinstallationen: armaturer, apparater, dosor och rör (hus/installationer/el)")
     delar: dict[str, Montage] = {}
     for p in inst.punkter.values():
+        if isinstance(p, Dosa) and p.typ.slag in UTAN_GEOMETRI:
+            continue
         mm = delar.setdefault(inst.modul[p.id], Montage(inst.modul[p.id]))
         mm.lagg(armatur(p) if isinstance(p, Lampa) else apparat(p) if isinstance(p, Apparat) else dosa(p))
     for r in inst.ror.values():

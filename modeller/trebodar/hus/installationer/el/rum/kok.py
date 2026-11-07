@@ -12,16 +12,28 @@ emot gaveln L16 av kökets inbyggnad (som under förrådet bara är två gipsski
 rören går upp i väggen och i installationsskiktet till varje rad. Uttagen
 till kylen och frysen sitter på L4 i förrådet ovanför dem (nås genom luckan); sladdarna går upp genom springan längs
 L4.
+
+Apparaterna och uttagen vid bänken och ön (#50, grupperna i ../grupper.py):
+
+- hällen fast ansluten, 400 V, i en anslutningsdosa på 3NV bakom hällens skåp (KO-D1), och köksfläkten i ett uttag
+  på 3NV inne i fläktens kåpa (KO-U13);
+- ugnen eller mikron i ett uttag på 3NV i skafferiet (KO-U6), eftersom köket inte har någon ugn ritad;
+- vid bänken dubbla uttag 250 mm över bänkskivan där väggen är fri från fönster (KO-U8 vid bänkens början, KO-U9
+  efter fönstret 3NV-F5, KO-U10 på 3SV före fönstret 3SV-F1), med de befintliga ovanför fönstren på samma grupp; rören
+  i ytterväggens installationsskikt, under fönstren eller ovanför dem;
+- i ön dubbla uttag på ryggen mot benutrymmet (KO-U11, KO-U12, under bänkskivan) och diskmaskinens uttag på ryggen
+  bakom skåpet bredvid maskinen (KO-U7); rören upp ur mellanbjälklaget i öns rygg.
 """
 from __future__ import annotations
 
 from trebodar import skelett as S
-from trebodar.hus.inredning.koksbank import ON_X, ON_Y
+from trebodar.hus.inredning.koksbank import FOGAR_ON, ON_X, ON_Y, SIDA_T, X_ON_FRONT, Y_HALL
+from trebodar.hus.inredning.koksskap import DJUP, FRONT_T
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import TF2
 
-from ..katalog import BRYTARE_1, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, STAV, TUBE_MINI_R, UTTAG_1
+from ..katalog import ANSLUTNING_3FAS, BRYTARE_1, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, STAV, TUBE_MINI_R, UTTAG_1, UTTAG_2
 from ..lakt import mellan_lakten
-from ...montering import i_tak, tak, vagg, vid_tak
+from ...montering import Montering, i_tak, i_vagg, langs_vaggen, tak, vagg, vid_tak
 from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, mot, ovan_fonstret
 
 RUM = Rum("KO", "Kök", plan=1)
@@ -42,6 +54,28 @@ Z_B = (1050.0, 1130.0)                       # dimmern och brytaren över den
 Z_UTTAG = 2300.0                             # uttagen till kylen och frysen, i förrådet
 X_TF2 = (TF2.x_upp + NOCK) / 2               # rören till Stav förbi takfönstret TF2, mellan det och nocken
 _X_UNDER = mellan_lakten("3SO", UNDER_TF2, Y_TUB[0])    # KO-L01 under TF2: röret till KO-L02 längs y under fönstret
+Z_BANKUTTAG = 1150.0                         # uttagen vid bänken: 250 över bänkskivan (888 + 12)
+Z_HALL = 600.0                               # hällens anslutningsdosa bakom skåpet
+Z_FLAKT = 2250.0                             # köksfläktens uttag inne i kåpan
+Z_SKAFFERI = 1100.0                          # ugnen eller mikron i skafferiet
+Y_BANKUTTAG = (7750.0, 11350.0)              # längs 3NV: vid bänkens början och efter 3NV-F5
+X_BANKUTTAG = 11650.0                        # längs 3SV, före 3SV-F1
+Y_SKAFFERI = 6950.0
+X_ON_RYGG = X_ON_FRONT - FRONT_T - DJUP - SIDA_T         # öns rygg (ytan mot benutrymmet)
+X_ON_ROR = X_ON_RYGG + 50.0                  # öns rör upp ur golvet i skåpens bakkant, bakom lådorna
+Z_ON = 750.0                                 # öns uttag, under bänkskivan
+Y_ON = (Y_HALL + 40.0, Y_HALL + 640.0)       # öns uttag på ryggen, bakom skåpen bredvid diskmaskinen
+Y_DM = (FOGAR_ON[1] + FOGAR_ON[2]) / 2 - 150.0   # diskmaskinens uttag bakom skåpet bredvid maskinen
+Z_DM = 200.0
+
+
+def _3nv(y: float, z: float) -> Montering:
+    return vagg("3NV", langs_vaggen("3NV", (0.0, y, 0.0)), z)
+
+
+def _on(y: float, z: float) -> Montering:
+    """På öns rygg mot benutrymmet (normalen åt väster)."""
+    return Montering((X_ON_RYGG, y, z), (-1.0, 0.0, 0.0), "vagg", "Ön")
 
 TANDGRUPPER = [
     Tandgrupp("KO-T1", "Kök, tubspotar mot taket"),
@@ -80,6 +114,15 @@ PUNKTER = [
     Apparat("KO-U3", UTTAG_1, ovan_fonstret("3SV", 1745.0)),
     Apparat("KO-U4", UTTAG_1, vagg("L4", 250.0, Z_UTTAG, sida=1)),       # kylen (x 11 300)
     Apparat("KO-U5", UTTAG_1, vagg("L4", 1040.0, Z_UTTAG, sida=1)),      # frysen (x 12 090)
+    Apparat("KO-D1", ANSLUTNING_3FAS, _3nv(Y_HALL, Z_HALL)),
+    Apparat("KO-U6", UTTAG_1, _3nv(Y_SKAFFERI, Z_SKAFFERI)),
+    Apparat("KO-U7", UTTAG_1, _on(Y_DM, Z_DM)),
+    Apparat("KO-U8", UTTAG_2, _3nv(Y_BANKUTTAG[0], Z_BANKUTTAG)),
+    Apparat("KO-U9", UTTAG_2, _3nv(Y_BANKUTTAG[1], Z_BANKUTTAG)),
+    Apparat("KO-U10", UTTAG_2, vagg("3SV", langs_vaggen("3SV", (X_BANKUTTAG, 0.0, 0.0)), Z_BANKUTTAG)),
+    Apparat("KO-U11", UTTAG_2, _on(Y_ON[0], Z_ON)),
+    Apparat("KO-U12", UTTAG_2, _on(Y_ON[1], Z_ON)),
+    Apparat("KO-U13", UTTAG_1, _3nv(Y_HALL, Z_FLAKT)),
 ]
 
 

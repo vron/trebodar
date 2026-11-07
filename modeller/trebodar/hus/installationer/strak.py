@@ -115,6 +115,14 @@ def glipa(vagg: str, z: float, nara: float) -> float:
     return min(((a + b) / 2 for a, b in zip(t, t[1:])), key=lambda m: abs(m - nara))
 
 
+def fri(g: BaseGeometry, r: float, z0: float, z1: float, spel: float = 5.0) -> bool:
+    """Ett rör (radien r) lodrätt i punkten g eller vågrätt längs linjen g går fritt (spel) från järnen som går genom
+    höjderna z0–z1."""
+    trad, jarn = _jarnen(min(z0, z1), max(z0, z1))
+    return all(g.distance(jarn[int(i)][0]) >= r + jarn[int(i)][1] / 2 + spel
+               for i in trad.query(g.buffer(r + spel + 10.0)))
+
+
 @cache
 def _jarnen(z0: float, z1: float) -> tuple[STRtree, tuple[tuple[Point | LineString, float], ...]]:
     j = jarnen_i_nivan(z0, z1)

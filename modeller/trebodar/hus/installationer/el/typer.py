@@ -12,7 +12,8 @@ class Dosatyp:
     """Dosa: apparatdosa i vägg (för brytare och uttag), kopplingsdosa i innertaket eller ingjutningsdosa i betong."""
     kod: str
     namn: str
-    slag: str                   # "apparatdosa", "kopplingsdosa", "ingjutningsdosa"
+    slag: str                   # "apparatdosa", "kopplingsdosa", "ingjutningsdosa"; "central" och "brandlarm" är
+    #                             punkter utan egen geometri (centralen i teknikrummet, brandlarmets matningsdosa)
     diameter: float             # håltagningen eller dosans diameter [mm]
     djup: float                 # [mm]
     symbol: str = "dosa"        # symbolen på elritningarna
