@@ -710,7 +710,7 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
     betong_bp = unary_union(polygoner(bp, bara=("Hus/Grund/Bottenplatta/BP-B",)))
     kant_mb = _kanter(betong_mb, grund)
     m_vagg = (vaggar_1, grund, "Plan 1:s väggar är streckade och källarens tunna.",
-              ("plattans kant, trapphålets kant eller källarväggens liv", kant_mb, betong_mb))
+              ("plattans kant, trapphålets kant eller källarväggens liv, cellplastens yta", kant_mb, betong_mb))
     b_vagg = (vaggar_0, None, "Källarens väggar på plattan är streckade.",
               ("plattans kant", _kanter(betong_bp), betong_bp))
 
