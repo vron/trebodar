@@ -66,5 +66,6 @@ GRUPPER = [
     Grupp("G20", "Uttag tvättstugan", 10, 1, 1.5, ("KA-U1", "KA-U2")),
     Grupp("G21", "Tvättmaskin, tvättstugan", 10, 1, 1.5, ("KA-U3",)),
     Grupp("G22", "Torktumlare, tvättstugan", 10, 1, 1.5, ("KA-U4",)),
+    Grupp("G23", "Uttag de små rummen söder om KL1", 10, 1, 1.5, ("KA-U5", "KA-U6", "KA-U7", "KA-U8")),
 ]
 GRUPP = {g.id: g for g in GRUPPER}

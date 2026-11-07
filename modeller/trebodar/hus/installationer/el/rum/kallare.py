@@ -38,7 +38,7 @@ from ...strak import fri, mellan_jarnen
 from ...vatten.system import vatten
 from .. import kedjor
 from ..bjalklag import mellanbjalklag as MB
-from ..katalog import BRYTARE_1, FXP16, INGJUTNINGSDOSA, PANEL_600, UTTAG_1_IP44, UTTAG_2_IP44
+from ..katalog import BRYTARE_1, FXP16, INGJUTNINGSDOSA, PANEL_600, UTTAG_1_IP44, UTTAG_2, UTTAG_2_IP44
 from ...montering import kallarvagg
 from ...teknikrum import GC_MATT, X_GC
 from . import teknikrum
@@ -161,6 +161,12 @@ UTTAG = [
       for i, x in enumerate(X_TVATT_UTTAG)],
     *[Apparat(f"KA-U{i + 3}", UTTAG_1_IP44, kallarvagg("V21", y, teknikrum.Z_UTTAG, 1)) for i, y in enumerate(Y_MASKINER)],
 ]
+# arbetsrummen söder om KL1: två dubbla uttag i vardera rummet, på V21 och V7 i det västra och på V7 i det östra, i
+# uttagshöjden 1 100 mm (G23)
+Z_GOLVZON = 250.0                             # rören mellan dem i väggarnas cellplast, så högt över golvet
+UTTAG_SMA = [("V21", 4800.0, 1), ("V7", 1500.0, 1), ("V7", 3200.0, 1), ("V7", 4100.0, 1)]
+UTTAG += [Apparat(f"KA-U{i + 5}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
+          for i, (v, s_, sida) in enumerate(UTTAG_SMA)]
 PUNKTER = [*PANELER, Dosa("KA-D1", INGJUTNINGSDOSA, kallartak(*D_STORA)), *BRYTARE.values(), *UTTAG]
 _P = BRYTARE
 
@@ -275,7 +281,35 @@ def _tvatten(n: int, x0: float, dz: float) -> tuple[Vek, ...]:
     return (*teknikrum.bakifran(x0, _ZU - dz), (_V21_EPS, _V3_EPS, _ZU - dz), (_V21_EPS, y, _ZU - dz), (_V21_EPS, y, _ZU))
 
 
+_V7_EPS = kallarvagg("V7", 0.0, 0.0, 1).punkt[1] - 63.0
+_ZG = PLAN[0] + Z_GOLVZON
+
+
+def _i_cellplasten(v: str, s_: float) -> tuple[float, float]:
+    """Punkten i plan mitt i källarväggens cellplast (mot rummet) vid s_ längs väggen (V21 längs y, V7 längs x)."""
+    return (_V21_EPS, s_) if v == "V21" else (s_, _V7_EPS)
+
+
+def _sma_uttagen() -> list[Ror]:
+    """De små rummens uttag (G23): gruppens rör ur centralens baksida, ned i V3:s cellplast till golvzonen, västerut
+    och runt hörnet söderut i V21:s till det första uttaget; därifrån rören mellan uttagen i golvzonen i V21:s och
+    V7:s cellplast, var och ett upp till sitt uttag (rören som går vidare ned 30 mm bredvid)."""
+    x0 = _X_UT + 100.0
+    u0 = _i_cellplasten(*UTTAG_SMA[0][:2])
+    ut = [_ror("G23-M", "GC", "KA-U5", (*teknikrum.bakifran(x0, _ZU - 150.0), (x0, _V3_EPS, _ZG),
+                                        (_V21_EPS, _V3_EPS, _ZG), (u0[0], u0[1], _ZG), (u0[0], u0[1], _ZU)))]
+    for i, ((va, sa, _), (vb, sb, _)) in enumerate(zip(UTTAG_SMA, UTTAG_SMA[1:])):
+        riktning = -1.0 if va == "V21" else 1.0                  # söderut längs V21, österut längs V7
+        a = _i_cellplasten(va, sa + 30.0 * riktning)
+        b = _i_cellplasten(vb, sb)
+        horn = [(_V21_EPS, _V7_EPS, _ZG)] if va != vb else []
+        ut.append(_ror(f"G23-R{i + 1}", f"KA-U{i + 5}", f"KA-U{i + 6}",
+                       ((a[0], a[1], _ZU), (a[0], a[1], _ZG), *horn, (b[0], b[1], _ZG), (b[0], b[1], _ZU))))
+    return ut
+
+
 ROR: list[Ror] = [
+    *_sma_uttagen(),
     # tvättstugan: uttagen på V3 (G20) och maskinernas (G21, G22) ur centralens baksida västerut i V3:s cellplast,
     # under uttagen (torktumlaren 50 mm, tvättmaskinen 100 mm, så att rören inte korsar varandra vid V21)
     _ror("G20-M", "GC", "KA-U1", (*teknikrum.bakifran(_X_UT + 20.0, _ZU), (X_TVATT_UTTAG[0], _V3_EPS, _ZU))),
