@@ -37,6 +37,9 @@ DUNGE_CELL = (45.0, 15.0)       # dungarnas två rutnät [m]
 MODELLER = {
     "tall": [("pine_tree_01/pine_tree_01_1k.blend", f"pine_tree_01_{v}_LOD2") for v in "abc"],
     "gran": [("fir_tree_01/fir_tree_01_1k.blend", f"fir_tree_01_{v}_LOD2") for v in "abc"],
+    # unga tallar och granar i skogen, en variant var (en fjärdedel av skogens träd)
+    "tallplanta": [("pine_sapling_medium/pine_sapling_medium_1k.blend", "pine_sapling_medium_a_LOD2")],
+    "granplanta": [("fir_sapling_medium/fir_sapling_medium_1k.blend", "fir_sapling_medium_a_LOD2")],
     "block": [(f"namaqualand_boulder_0{n}/namaqualand_boulder_0{n}_2k.blend", f"namaqualand_boulder_0{n}_LOD1")
               for n in (4, 6)],
     # buskarna vid bäddarna och bäddarnas låga växter: små buskar och gräs i tuvor
@@ -49,7 +52,9 @@ BUSKE_HOJD = (0.9, 1.4)         # buskarna vid bäddarna [m]
 BUSKE_TATHET = 3                # så många av Poly Havens buskar ihop i varje buske (de är glesa)
 VAXT_SKALA = {"gras": (1.6, 3.0), "smabuske": (1.2, 2.2)}      # bäddarnas växter, gånger modellens storlek
 SMABUSKAR = 0.18                # andelen små buskar bland bäddarnas växter
-SKOGENS = {"tall": ("Tall", 10.0), "gran": ("Gran", 9.0)}    # modellerna i skogen: ersätter sorten, höjd [m]
+# modellerna i skogen, sorten och höjden [m]; finns de används inte de enkla träden (tradsorter)
+SKOGENS = {"tall": ("Tall", 10.0), "gran": ("Gran", 9.0), "tallplanta": ("Tallplanta", 2.6),
+           "granplanta": ("Granplanta", 2.2)}
 # modellernas färgbilder: mättnaden gånger den första, sedan gånger färgen (linjärt), som granit och tallbarr på platsen
 TONING = {"namaqualand_boulder_04": (0.3, (1.15, 1.2, 1.25)), "namaqualand_boulder_06": (0.3, (1.15, 1.2, 1.25)),
           "pine_tree_01_twig": (1.0, (0.72, 0.88, 0.8))}
@@ -226,7 +231,8 @@ def _valj(lista: list[tuple[float, str]], r: float) -> str:
 
 def byggnader(rut: Rutnat) -> bpy.types.Object | None:
     """Grannhusen: väggar till takfoten och valmat tak (ringen krympt mot mitten), eller platt tak ("tak": "platt");
-    färgerna slumpade per hus, om de inte anges ("farg", "takfarg")."""
+    färgerna slumpade per hus, om de inte anges ("farg", "takfarg"). Väggarna har stående panel och en rad fönster
+    (_grannhusmaterial)."""
     hus = rut.besk.get("byggnader", [])
     if not hus:
         return None
@@ -234,6 +240,7 @@ def byggnader(rut: Rutnat) -> bpy.types.Object | None:
     verts: list[tuple[float, float, float]] = []
     faces: list[tuple[int, ...]] = []
     farger: list[tuple[float, float, float, float]] = []
+    vaggar: list[tuple[float, float, float]] = []          # per yta: vägg (1) eller tak (0), väggens längd och höjd
     for h in hus:
         p = [tuple(v) for v in h["horn"]]
         if len(p) < 3:
@@ -259,26 +266,73 @@ def byggnader(rut: Rutnat) -> bpy.types.Object | None:
             j = (i + 1) % n
             faces.append((b + i, b + j, b + n + j, b + n + i))
             farger.append(vf)
+            vaggar.append((1.0, math.dist(p[i], p[j]), zv - z0))
             faces.append((b + n + i, b + n + j, b + 2 * n + j, b + 2 * n + i))
             farger.append(tf)
+            vaggar.append((0.0, 0.0, 0.0))
         faces.append(tuple(b + 2 * n + i for i in range(n)))
         farger.append(tf)
+        vaggar.append((0.0, 0.0, 0.0))
     me = bpy.data.meshes.new("Grannhus")
     me.from_pydata(verts, [], faces)
     me.update()
     attr = me.color_attributes.new("farg", "FLOAT_COLOR", "FACE")
     for i, c in enumerate(farger):
         attr.data[i].color = c
+    for k, namn in enumerate(("vagg", "langd")):
+        a = me.attributes.new(namn, "FLOAT", "FACE")
+        a.data.foreach_set("value", [v[k] for v in vaggar])
+    # väggarnas uv: längs väggen från dess början och upp från underkanten [m]
+    uv = me.uv_layers.new(name="UVMap")
+    for poly, (ar_vagg, langd, hojd) in zip(me.polygons, vaggar):
+        hornen = [(0.0, 0.0), (langd, 0.0), (langd, hojd), (0.0, hojd)] if ar_vagg else [(0.0, 0.0)] * poly.loop_total
+        for li, q in zip(poly.loop_indices, hornen):
+            uv.data[li].uv = q
     ob = bpy.data.objects.new("Grannhus", me)
     bpy.context.scene.collection.objects.link(ob)
-    mat = bpy.data.materials.new("Grannhus")
-    g = Graf(mat)
-    g.yta(g.nod("ShaderNodeAttribute", {"attribute_name": "farg"}).outputs["Color"], 0.8)
-    ob.data.materials.append(mat)
+    ob.data.materials.append(_grannhusmaterial())
     return ob
 
 
 # ------------------------------------------------------------------ material
+
+# grannhusens väggar: stående panel (brädornas bredd, fogens andel) och fönster (bredd, höjd, bröstning över
+# väggens underkant, som står GRUND under marken; avstånd c/c och minsta avstånd till hörnen, karmens bredd) [m]
+PANEL = (0.12, 0.06)
+FONSTER = {"bredd": 1.2, "hojd": 1.3, "brostning": 1.8, "cc": 3.0, "horn": 0.8, "karm": 0.06}
+
+
+def _grannhusmaterial() -> bpy.types.Material:
+    """Grannhusens material: färgen per yta (attributet farg), och på väggarna (vagg) stående panel med mörka fogar
+    och lite olika ljusa brädor, och en rad fönster med vit karm och mörkt glas (väggens uv i meter, langd)."""
+    mat = bpy.data.materials.new("Grannhus")
+    g = Graf(mat)
+    m = g.matte
+    farg = g.nod("ShaderNodeAttribute", {"attribute_name": "farg"}).outputs["Color"]
+    vagg = g.nod("ShaderNodeAttribute", {"attribute_name": "vagg"}).outputs["Fac"]
+    langd = g.nod("ShaderNodeAttribute", {"attribute_name": "langd"}).outputs["Fac"]
+    u, v, _ = g.sep(g.nod("ShaderNodeUVMap", {"uv_map": "UVMap"}).outputs["UV"])
+    q = m("DIVIDE", u, PANEL[0])
+    fog = m("MULTIPLY", m("LESS_THAN", m("FRACT", q), PANEL[1]), vagg)
+    ljus = m("MULTIPLY", g.linj((g.slump(m("FLOOR", q)), 0.12), bas=0.94), m("SUBTRACT", 1.0, m("MULTIPLY", fog, 0.4)))
+    col = g.blanda(vagg, farg, g.ljus(farg, ljus))
+    f = FONSTER
+
+    def inom(x: object, a: object, b: object) -> object:
+        return m("MULTIPLY", m("GREATER_THAN", x, a), m("LESS_THAN", x, b))
+
+    def ruta(k: float) -> object:
+        """Fönstren, k utanför glaset (karmen)."""
+        uu = m("MULTIPLY", m("FRACT", m("DIVIDE", m("SUBTRACT", u, f["horn"]), f["cc"])), f["cc"])
+        ru = m("MULTIPLY", inom(uu, -k, f["bredd"] + k), inom(v, f["brostning"] - k, f["brostning"] + f["hojd"] + k))
+        hornen = inom(u, f["horn"] - k, m("SUBTRACT", langd, f["horn"] - k))
+        return m("MULTIPLY", m("MULTIPLY", ru, hornen), vagg)
+    karm, glas = ruta(f["karm"]), ruta(0.0)
+    col = g.blanda(karm, col, rgba("#e6e3dc"))
+    col = g.blanda(glas, col, rgba("#1b2126"))
+    g.yta(col, g.linj((glas, -0.72), bas=0.8), hojd=m("SUBTRACT", 1.0, fog), styrka=0.3)
+    return mat
+
 
 def vattenmaterial() -> bpy.types.Material:
     """Havet: mörkt blågrönt med reflexer efter Fresnel och vågor i flera skalor (bump)."""
@@ -386,9 +440,10 @@ def markmaterial(rut: Rutnat | None, tillgangar: str | None = None) -> bpy.types
     gras = g.blanda(m("MULTIPLY", g.jamn(stor, 0.55, 0.7), 0.6), gras, rgba("#5b4f3d"))       # ljung
     gras = detalj(g.blanda(m("MULTIPLY", g.jamn(fin, 0.62, 0.72), 0.7), gras, rgba("#2f3b26")), "gras")   # enar
     barr = detalj(g.blanda(g.jamn(mellan, 0.3, 0.7), rgba("#5f4a3a"), rgba("#7d5c44")), "barr")
-    berg = g.blanda(g.jamn(fin, 0.3, 0.7), rgba("#8a8882"), rgba("#a19f98"))
-    berg = g.blanda(m("MULTIPLY", g.jamn(korn, 0.6, 0.75), 0.5), berg, rgba("#bbbab2"))       # lavar
-    berg = g.blanda(m("MULTIPLY", g.jamn(mellan, 0.62, 0.7), 0.6), berg, rgba("#4d4b47"))     # mörka strimmor
+    # vittrad granit med lavar, reflektans 0,15–0,25 (som bohusgraniten, något varm)
+    berg = g.blanda(g.jamn(fin, 0.3, 0.7), rgba("#6f6a65"), rgba("#857e77"))
+    berg = g.blanda(m("MULTIPLY", g.jamn(korn, 0.6, 0.75), 0.5), berg, rgba("#9b998d"))       # lavar
+    berg = g.blanda(m("MULTIPLY", g.jamn(mellan, 0.62, 0.7), 0.6), berg, rgba("#3f3c38"))     # mörka strimmor
     # sprickorna i berget, med ljung och gräs: kanterna i ett starkt förvrängt Voronoi-mönster (celler om 15–20 m),
     # avbrutna efter brus
     vr = g.nod("ShaderNodeTexVoronoi", {"feature": "DISTANCE_TO_EDGE"}, Scale=0.06,
@@ -451,7 +506,10 @@ def markmaterial(rut: Rutnat | None, tillgangar: str | None = None) -> bpy.types
                 return g.jamn(lin((v, 1.0), (kant, skarpa)), 0.3, 0.55)
             fb, fg, fbarr = (nara(v, s) for v, s in zip(g.sep(t.outputs["Color"]), (0.3, 0.15, 0.4)))
             fbarr = m("MULTIPLY", fbarr, g.jamn(g.brus(k, 0.6, 3.0, 0.6), 0.38, 0.6))          # fläckvis
-            gmatta = detalj(g.blanda(g.jamn(fin, 0.35, 0.65), rgba("#4c6633"), rgba("#5a7639")), "gras")
+            # gräsmattan: grön med torrare och frodigare fläckar
+            gmatta = g.blanda(g.jamn(fin, 0.35, 0.65), rgba("#4a5d33"), rgba("#5a6b3a"))
+            gmatta = g.blanda(m("MULTIPLY", g.jamn(stor, 0.5, 0.75), 0.55), gmatta, rgba("#6f7040"))
+            gmatta = detalj(g.blanda(m("MULTIPLY", g.jamn(mellan, 0.55, 0.7), 0.45), gmatta, rgba("#3c4f2c")), "gras")
             for f, farg, namn, gv in ((fb, berg, "berg", 0.77), (fg, gmatta, "gras", 0.92), (fbarr, barr, "barr", 0.95)):
                 col = g.blanda(f, col, farg)
                 grov = mix(f, grov, tal(namn, 1, gv))
@@ -570,8 +628,8 @@ def _trad_mesh(namn: str, stam_h: float, stam_r: float, krona: dict, stamfarg: s
 
 
 def tradsorter(tillgangar: str | None = None) -> bpy.types.Collection:
-    """Tallar, granar, björkar och enar som förlagor för instanserna (två av vissa sorter); med tillgångarna är
-    tallarna och granarna Poly Havens (SKOGENS)."""
+    """Förlagorna för skogens träd: med tillgångarna Poly Havens tallar och granar, vuxna och unga (SKOGENS); utan
+    dem enkla tallar, granar, björkar och enar (två av vissa sorter)."""
     kol = bpy.data.collections.get("Träd") or bpy.data.collections.new("Träd")
     if kol.objects:
         return kol
@@ -593,9 +651,8 @@ def tradsorter(tillgangar: str | None = None) -> bpy.types.Collection:
          "#4a6328"),
         ("En", 0.2, 0.05, {"form": "kon", "z": (0.1, 2.2, 0.55), "klumpar": 40}, "#4d3a2c", "#24301e"),
     ]
-    for i, (namn, h, r, krona, sf, kf) in enumerate(sorter):
-        if namn.split()[0] not in ersatta:
-            kol.objects.link(_trad_mesh(namn, h, r, krona, sf, kf, i + 3))
+    for i, (namn, h, r, krona, sf, kf) in enumerate(sorter if not ersatta else ()):
+        kol.objects.link(_trad_mesh(namn, h, r, krona, sf, kf, i + 3))
     return kol
 
 
