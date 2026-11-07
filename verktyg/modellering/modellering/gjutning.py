@@ -160,7 +160,7 @@ def _el(v: Vy, el: dict, z: Z) -> list[Punkt]:
             x, y = p["punkt"][:2]
             s = max(dosa["diameter"] / 2, v.s * 0.7)
             v.rekt(x - s, y - s, x + s, y + s, "vit", "normal")
-            vad = f"ingjuten dosa för {k} ({t['namn']})" if p["slag"] == "lampa" else f"ingjuten kopplingsdosa {k}"
+            vad = f"ingjuten dosa för {k} (panel)" if p["slag"] == "lampa" else f"ingjuten kopplingsdosa {k}"
             punkter.append(("", vad, x, y, f"Ø{dosa['diameter']:g} × {dosa['djup']:g}"))
     with v.lager("el"):
         for k, r in el["ror"].items():
@@ -699,7 +699,7 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
         dict(typ="symboler", rader=[dict(form="linje", stil=st, text=t) for st, t in tecken]),
         dict(typ="rubrik", text="Punkterna"),
         dict(typ="tabell", kolumner=["Nr", "Vad", "x", "y", "Mått"], bredd=(0.35, 2.4, 0.45, 0.45, 0.6),
-             just=["l", "l", "r", "r", "l"], sz=5.2, rader=rader),
+             just=["l", "l", "r", "r", "l"], sz=5.2 if len(rader) <= 40 else 4.4, rader=rader),
     ]
     return blad(nummer, [f"Gjutning av {platta.lower()}", tema], f"1:{SKALA:g}", "Modellen", kol,
                 [v, *extra]), punkter
