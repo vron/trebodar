@@ -38,7 +38,7 @@ from ...strak import fri, mellan_jarnen
 from ...vatten.system import vatten
 from .. import kedjor
 from ..bjalklag import mellanbjalklag as MB
-from ..katalog import BRYTARE_1, FXP16, INGJUTNINGSDOSA, PANEL_600, UTTAG_1_IP44, UTTAG_2, UTTAG_2_IP44
+from ..katalog import ANSLUTNING, BRYTARE_1, FXP16, INGJUTNINGSDOSA, PANEL_600, UTTAG_1_IP44, UTTAG_2, UTTAG_2_IP44
 from ...montering import kallarvagg
 from ...teknikrum import GC_MATT, X_GC
 from . import teknikrum
@@ -167,6 +167,13 @@ Z_GOLVZON = 250.0                             # rören mellan dem i väggarnas c
 UTTAG_SMA = [("V21", 4800.0, 1), ("V7", 1500.0, 1), ("V7", 3200.0, 1), ("V7", 4100.0, 1)]
 UTTAG += [Apparat(f"KA-U{i + 5}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
           for i, (v, s_, sida) in enumerate(UTTAG_SMA)]
+# det stora rummet: fyra dubbla uttag, på V15, V1 och två på V14, i uttagshöjden; och fläkten FF3:s anslutning på V20
+# vid fläkten (ventilation, FF3-FL1), 1 900 mm över golvet (G24)
+Y_FF3, Z_FF3 = 9800.0, 1900.0
+UTTAG_STORA = [("V15", 9830.0, 1), ("V1", 11600.0, -1), ("V14", 10000.0, -1), ("V14", 5000.0, -1)]
+UTTAG += [Apparat("KA-D2", ANSLUTNING, kallarvagg("V20", Y_FF3, Z_FF3, 1))]
+UTTAG += [Apparat(f"KA-U{i + 9}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
+          for i, (v, s_, sida) in enumerate(UTTAG_STORA)]
 PUNKTER = [*PANELER, Dosa("KA-D1", INGJUTNINGSDOSA, kallartak(*D_STORA)), *BRYTARE.values(), *UTTAG]
 _P = BRYTARE
 
@@ -308,8 +315,54 @@ def _sma_uttagen() -> list[Ror]:
     return ut
 
 
+def _eps(v: str) -> float:
+    """Källarväggens cellplast mot rummet: mittens läge tvärs väggen (x för väggar längs y, y för väggar längs x)."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    sida = {"V15": 1, "V16": 1, "V20": 1, "V1": -1, "V14": -1}[v]
+    return w.c + sida * (K.KARNA / 2 + K.CELL / 2)
+
+
+def ned_i_kallarvaggen(v: str, s_: float, z: float) -> tuple[Vek, Vek]:
+    """Ned ur bjälklaget (elrörens undre nivå) i källarväggens cellplast vid s_ längs väggen, mellan
+    underkantsnätets järn (förskjutet längs väggen), till höjden z: (punkten i bjälklaget, punkten i väggen)."""
+    w = next(q for q in K.VAGGAR if q.namn == v)
+    c = _eps(v)
+    x, y = (s_, c) if w.riktning == "h" else (c, s_)
+    langs = (1.0, 0.0) if w.riktning == "h" else (0.0, 1.0)
+    dx, dy = mellan_jarnen([(x, y)], KALLARTAK, BJALKLAG["MB-UK"], FXP16.ytterdiameter / 2, langs=langs, tvars=30.0)
+    return (x + dx, y + dy, BJALKLAG["MB-UK"]), (x + dx, y + dy, z)
+
+
+Y_G24 = 9800.0            # det stora rummets grupprör österut i bjälklaget, i glipan mellan V20:s järn
+
+
+def _stora_uttagen() -> list[Ror]:
+    """Det stora rummets uttag och fläkten FF3 (G24): gruppens rör ur den bakre raden över centralen norrut över V3 och
+    österut i bjälklaget, ned i V20:s cellplast till fläktens anslutning; därifrån upp och österut i bjälklaget och
+    ned i V15:s cellplast till det första uttaget, och sedan i golvzonen i V15:s, V16:s, V1:s och V14:s cellplast
+    mellan uttagen (under stråket E och tappvattnet till UF1, som går i bjälklaget)."""
+    ff3 = ned_i_kallarvaggen("V20", Y_FF3, PLAN[0] + Z_FF3)
+    ut = [_ror("G24-M", "GC", "KA-D2", (*MB.ur_raden(MB.G24_STIG, MB.RAD_B, "MB-UK"),
+                                        *i_bjalklaget([(MB.G24_STIG, MB.RAD_B), (MB.G24_STIG, Y_G24),
+                                                       (ff3[0][0], Y_G24), ff3[0][:2]]), ff3[1]))]
+    upp = ned_i_kallarvaggen("V20", Y_FF3 + 40.0, PLAN[0] + Z_FF3)
+    u9 = ned_i_kallarvaggen("V15", UTTAG_STORA[0][1], _ZU)
+    ut.append(_ror("G24-R1", "KA-D2", "KA-U9", (upp[1], *i_bjalklaget([upp[0][:2], (upp[0][0], u9[0][1]), u9[0][:2]]),
+                                                u9[1])))
+    hornen = {("V15", "V1"): (_eps("V16"), _eps("V1")), ("V1", "V14"): (_eps("V14"), _eps("V1"))}
+    for i, ((va, sa, _), (vb, sb, _)) in enumerate(zip(UTTAG_STORA, UTTAG_STORA[1:])):
+        riktning = -1.0 if (va, vb) == ("V14", "V14") else 1.0
+        a = (_eps(va), sa + 30.0 * riktning) if va in ("V15", "V14") else (sa + 30.0, _eps(va))
+        b = (_eps(vb), sb) if vb in ("V15", "V14") else (sb, _eps(vb))
+        horn = [(*hornen[(va, vb)], _ZG)] if (va, vb) in hornen else []
+        ut.append(_ror(f"G24-R{i + 2}", f"KA-U{i + 9}", f"KA-U{i + 10}",
+                       ((a[0], a[1], _ZU), (a[0], a[1], _ZG), *horn, (b[0], b[1], _ZG), (b[0], b[1], _ZU))))
+    return ut
+
+
 ROR: list[Ror] = [
     *_sma_uttagen(),
+    *_stora_uttagen(),
     # tvättstugan: uttagen på V3 (G20) och maskinernas (G21, G22) ur centralens baksida västerut i V3:s cellplast,
     # under uttagen (torktumlaren 50 mm, tvättmaskinen 100 mm, så att rören inte korsar varandra vid V21)
     _ror("G20-M", "GC", "KA-U1", (*teknikrum.bakifran(_X_UT + 20.0, _ZU), (X_TVATT_UTTAG[0], _V3_EPS, _ZU))),

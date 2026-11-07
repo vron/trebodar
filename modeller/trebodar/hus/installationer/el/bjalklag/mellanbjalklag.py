@@ -68,7 +68,8 @@ _B = _rad(RAD_B, BJALKLAG["MB"], norrut=(BJALKLAG["MB"], BJALKLAG["MB-UK"]))
 # den främre raden: S de västra (utom stigaren vid tappvattnets stigare BA-DU1-KV, som S går förbi), E de östra; den
 # bakre raden: N de västra, och österut till ön och hällen
 S_STIG, E_STIG = _A[0:6], _A[6:12]
-N_STIG, ON_STIG, HALL_STIG, KA_STIG = _B[:2], _B[2], _B[5], _B[3]     # KA_STIG: källarens stora rum (G17)
+N_STIG, ON_STIG, HALL_STIG, KA_STIG, G24_STIG = _B[:2], _B[2], _B[5], _B[4], _B[3]   # KA_STIG: källarens stora
+#                       rum (G17), G24_STIG: dess uttag och FF3 (längre norrut än G17, så västligare, utan att korsa)
 Y_S, X_S, Y_S_SLUT = 8400.0, 3480.0, 4380.0     # S: österut i y, söderut i x till V7:s vinkeljärn
 Y_E, X_E_SLUT = 8587.0, 13100.0                 # E: österut i y, i glipan mellan V19:s och V15:s järn och söder om
 #                                                 V3:s vinkeljärn, till V14:s vinkeljärn
