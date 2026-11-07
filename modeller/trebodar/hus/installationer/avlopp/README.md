@@ -32,9 +32,11 @@ cd verktyg/modellering
 - **WC:n**: S-låset till ett rör Ø110 genom golvet `WC_AVLOPP` från L9 (AV1), som blir samlingsledningen.
 - **Tvättstället**: vattenlåset i skåpet till ett rör Ø50 genom golvet under tvättstället (AV2).
 - **Badkaret**: vattenlåset under karet till ett rör Ø50 genom golvet under karets mitt (AV3).
+- **Tvätten i skåpet** (#51, förberedd för tvättmaskin och torktumlare staplade): vattenlåset utanpå L10 i nischen
+  (`TVATT_AVLOPP` i `hus/badrum.py`) till ett rör Ø50 ned i väggens regelfack och genom golvet (AV21).
 - **Under bjälklaget**, `UPPHANG` under betongen: samlingsledningen Ø110 norrut i WC:ns linje, under KL1:s hammarband
-  genom väggen, och österut längs KL8 till stammen; tvättställets ledning längs V7 till WC:ns lodräta rör, badkarets
-  och golvbrunnens till samlingsledningen.
+  genom väggen, och österut längs KL8 till stammen; tvättställets ledning längs V7 till WC:ns lodräta rör, badkarets,
+  golvbrunnens och tvättens till samlingsledningen (tvättens under KL2:s hammarband genom väggen).
 
 Hålen genom bjälklaget ligger utanför rörens genomstansningszon (6d, `GENOMSTANSNING`) utom golvbrunnens, ca 0,5 m från
 P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
@@ -44,8 +46,12 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 - **Diskhon**: avloppet i hons bakre del, `DISKHO_AVLOPP` från bakkanten (`hus/inredning/koksbank.py`), bakom
   diskbänksskåpets korta lådor (NL 350). Vattenlåset Ø40 står mellan hon och golvet, och röret Ø50 går rakt ned genom
   mellanbjälklaget, källaren (längs källarväggen V14:s gips) och bottenplattan till en gren Ø110 (AV5, AV6).
-- **Diskmaskinen i ön**: vattenlåset Ø40 i sockeln under skåpet O2 (`ON_AVLOPP`). Hur det ansluter till diskhons
-  avlopp är en öppen fråga i #49: ingjutet i bjälklaget med självfall ryms det inte mellan armeringsnäten.
+- **Diskmaskinen i ön** (#50): pumpat avlopp (AV20). Maskinens egen pump trycker vattnet genom ett rör PEX 25 utan
+  fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen
+  (`koksbank.diskmaskinens_anslutningar`) väster om dess vattenrör och snett söder om rören till diskbänken, upp i
+  diskbänksskåpet bakom lådorna (`DM_DISKBANK`), där slangen går till diskhons vattenlås (anslutning för diskmaskin,
+  med en ögla under bänkskivan). Ett avlopp med självfall ryms inte mellan armeringsnäten (#49). Diskmaskinen ska
+  tillåta `DM_SLANG` m avloppsslang.
 
 ## Stammen och grundledningen
 
@@ -86,4 +92,5 @@ lagt med `FALL`. Höjderna är rörets mitt i modellens z (plan 1:s golv är z 0
 
 Avloppet ingår inte i modellens krockkontroll (`kontrollregler.UTOM_KONTROLL`): rören går genom golvens skikt,
 bjälklagen, skåpens botten och källarväggarnas gips utan håltagning i modellen. `./mod avlopp kontroll` prövar dem
-mot husets delar: stommen, skåpens lådor och de andra installationerna är fel, järnen och skikten redovisas.
+mot husets delar: stommen (utom syll och hammarband för ledningarna lodrätt i väggarna, `I_VAGGEN`, som urtas), skåpens
+lådor och de andra installationerna är fel, järnen och skikten redovisas. Det pumpade avloppet prövas inte för fall.

@@ -8,8 +8,9 @@ fördelarna, stråken i mellanbjälklaget och matarledningarna.
   underkantsnätets järn.
 - Tappställenas ordning (ORDNING, från söder) bestämmer filerna i stråken: rören viker av åt det håll där deras fil
   ligger ytterst. Ett tappställes två rör ligger bredvid varandra, det som viker av först ytterst (system.py).
-- Stråken, ingjutna i mellanbjälklaget: O österut över V19 (mellan dess lodräta järn) till källarrummet och köket; S
-  västerut och söderut till badrummet och längs V7; V västerut och söderut längs V21.
+- Stråken, ingjutna i mellanbjälklaget: O österut över V19 (mellan dess lodräta järn) till källarrummet och
+  underfördelaren UF1 under köket; S västerut och söderut till badrummet, underfördelaren UF2 och längs V7; V
+  västerut och söderut längs V21.
 - Matarledningarna (PEX 22) i teknikrummet: servisen till vattenmätaren, vattenmätaren till kallvattnets fördelare
   (inlopp i norra änden), kallvattnet vidare genom fördelaren till värmepumpens varmvattenberedare (genomgång i södra
   änden) och varmvattnet därifrån till varmvattnets fördelare (inlopp i södra änden, 1 m). De går över
@@ -31,13 +32,13 @@ _Y0 = _SK[1] - FORDELARSKAP.matt[0] / 2 + 65.0                 # den första fil
 Y_FIL0 = _Y0 + mellan_jarnen([(x, _Y0 + k * FIL) for x in X.values() for k in range(-1, 18)], KALLARTAK, Z_ROR,
                              R_ROR, langs=(0.0, 1.0))[1]
 
-# tappställe: (stråk, stråkets ben där rören viker av; None: närmast), från söder
-# stråken västerut går söder och norr om 1C (inte under den): duschen söder om, O emellan
+# tappställe eller underfördelare (underfordelare.py): (stråk, stråkets ben där rören viker av; None: närmast), från
+# söder; stråken västerut går söder och norr om 1C (inte under den): duschen söder om, O emellan
 ORDNING: dict[str, tuple[str, int | None]] = {
     "BA-DU1": ("S", 0),             # viker av norrut till väggen 1C före stråkets hörn
-    "KO-DB1": ("O", None),
+    "UF1": ("O", None),             # underfördelaren under köket, på V14
     "KA-TH2": ("O", None),          # källarrummet: viker av norrut till V15 före köket
-    "BA-WC1": ("S", 1),             # österut till L9
+    "UF2": ("S", 1),                # underfördelaren under badrummet, österut till KL1
     "KA-TH3": ("S", 2),             # stråkets slut, längs V7
     "BA-TS1": ("S", 1),             # västerut
     "BA-BK1": ("S", 1),             # västerut, först
@@ -45,7 +46,9 @@ ORDNING: dict[str, tuple[str, int | None]] = {
     "KA-TM1": ("V", 1),             # västerut till V21, först
 }
 
-X_O = 13400.0                                   # O österut till köket
+X_O = 13450.0                                   # O österut till underfördelaren UF1 på V14
+X_O_NORR, Y_O_KOK = 10000.0, 9300.0             # O norrut före köket, så att den når UF1 norr om diskhons avlopp
+#                                                 och diskbänkens golvdosa (rören därifrån korsar den inte)
 X_S, X_V = 1500.0, 450.0                        # S söderut under badrummet, V längs V21
 Y_V7 = i_vaggen(kallarvagg("V7", 0.0, 0.0, 1), (0.0, 0.0, 0.0))[1] + 150.0      # S längs V7, rören viker av
 #                                                                               till dess cellplast
@@ -56,7 +59,8 @@ def strak(mitt: dict[str, float]) -> dict[str, Strak]:
     mellan väggens lodräta järn."""
     y_o = glipa("V19", Z_ROR, mitt["O"])
     return {s.id: s for s in (
-        Strak("O", ((X["KV"] - 100.0, mitt["O"]), (_SK[0] + 80.0, mitt["O"]), (_SK[0] + 80.0, y_o), (X_O, y_o))),
+        Strak("O", ((X["KV"] - 100.0, mitt["O"]), (_SK[0] + 80.0, mitt["O"]), (_SK[0] + 80.0, y_o), (X_O_NORR, y_o),
+                    (X_O_NORR, Y_O_KOK), (X_O, Y_O_KOK))),
         Strak("S", ((X["VV"] + 100.0, mitt["S"]), (X_S, mitt["S"]), (X_S, Y_V7), (3800.0, Y_V7))),
         Strak("V", ((X["VV"] + 100.0, mitt["V"]), (X_V, mitt["V"]), (X_V, 7500.0))),
     )}

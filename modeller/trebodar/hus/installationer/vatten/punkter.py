@@ -51,7 +51,8 @@ class Rum:
 class Tappstalle:
     """Ett tappställe: dosans mitt på ytan (normalen ut i rummet), rörtypen från fördelarna, för golvdosor riktningen
     från varmvattnet till kallvattnet (standard x) och punkter i plan som rören går förbi efter stråket (via, per
-    media eller för båda; None i en koordinat: anslutningens)."""
+    media eller för båda; None i en koordinat: anslutningens). En underfördelares inlopp (underfordelare.py) har
+    rörens ändar i anslutningar: stammarnas början per media, rakt under där rören kommer ned ur bjälklaget."""
     id: str
     typ: Tappstalletyp
     dosa: Dosatyp
@@ -59,6 +60,7 @@ class Tappstalle:
     ror: Rortyp
     kallt: Vek | None = None
     via: Via | dict[str, Via] | None = None
+    anslutningar: tuple[tuple[str, Vek], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -95,6 +97,8 @@ class Ror:
 
 
 def _anslutning(t: Tappstalle, media: str) -> Vek:
+    if t.anslutningar:
+        return dict(t.anslutningar)[media]
     m, d = t.lage, t.dosa
     n = m.normal
     hoger = (-n[1], n[0], 0.0) if d.slag != "golv" else (t.kallt or (1.0, 0.0, 0.0))
@@ -123,7 +127,7 @@ def _forskjutning(t: Tappstalle) -> tuple[float, float]:
         vaggar = unary_union([box(a - hx - 5.0, b - hy - 5.0, c + hx + 5.0, d + hy + 5.0)
                               for a, b, c, d in (hel.bounds for hel, _, _, _ in vaggarna().values())])
         return mellan_jarnen([_anslutning(t, m)[:2] for m in medier], Z_ROR, PLAN[1], r, undvik=vaggar)
-    if t.dosa.slag != "vägg":
+    if t.dosa.slag != "vägg":                                    # utanpå; underfördelarna står mellan järnen
         return 0.0, 0.0
     n = t.lage.normal
     plan1 = t.lage.punkt[2] > PLAN[1] - 1.0
@@ -150,7 +154,9 @@ def till_tappstallet(t: Tappstalle, media: str) -> tuple[tuple[tuple[float, floa
     väggen och vågrätt till dosan."""
     a = anslutning(t, media)
     slut: tuple[Vek, ...] = ()
-    if t.dosa.slag == "vägg":
+    if t.dosa.slag == "fördelare":                              # rakt ned ur bjälklaget till stammens början
+        slut = (a,)
+    elif t.dosa.slag == "vägg":
         i = i_vaggen(t.lage, a)
         dx, dy = forskjutning(t)
         n = t.lage.normal

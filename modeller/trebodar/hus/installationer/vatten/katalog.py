@@ -15,6 +15,7 @@ BADKAR = Tappstalletyp("BK", "Badkar", 0.3, 0.3, "BK")
 WC = Tappstalletyp("WC", "WC", 0.1, 0.0, "WC")
 TVATTMASKIN = Tappstalletyp("TM", "Tvättmaskin", 0.2, 0.0, "TM")
 TVATTHO = Tappstalletyp("TH", "Tvättho", 0.2, 0.2, "TH")
+DISKMASKIN = Tappstalletyp("DM", "Diskmaskin", 0.2, 0.0, "DM")
 
 # ------------------------------------------------------------------ anslutningar
 
@@ -22,6 +23,8 @@ VAGGDOSA_BLANDARE = Dosatyp("VD2", "Väggdosa för rör-i-rör, kallt och varmt 
                             70.0, cc=160.0)
 VAGGDOSA = Dosatyp("VD1", "Väggdosa för rör-i-rör (ej vald)", "vägg", 90.0, 90.0, 70.0)
 GOLVDOSA = Dosatyp("GD", "Golvgenomföring för rör-i-rör i skåpet (ej vald)", "golv", 160.0, 80.0, 40.0, cc=60.0)
+INLOPP = Dosatyp("UF", "Underfördelarens inlopp: rören ned ur bjälklaget till stammarnas början", "fördelare",
+                 0.0, 0.0, 0.0)
 
 # ------------------------------------------------------------------ rör
 
@@ -31,6 +34,11 @@ ROR_I_ROR_18 = Rortyp("RIR18", "PEX 18 × 2,5 i skyddsrör 28 (rör-i-rör)", 18
 PEX_22 = Rortyp("PEX22", "PEX 22 × 3,0, isoleras i teknikrummet", 22.0, 3.0)
 
 # ------------------------------------------------------------------ fördelare (stammens ändar: inlopp och genomgång)
+# huvudfördelarna i fördelarskåpet och underfördelarna utanpå väggen i källaren (underfordelare.py)
 
 FORDELARE_KV = Fordelartyp("FDKV", "Fördelare för kallvatten, rör-i-rör, 10 utgångar och genomgång (ej vald)", 10, 40.0)
 FORDELARE_VV = Fordelartyp("FDVV", "Fördelare för varmvatten, rör-i-rör, 8 utgångar (ej vald)", 8, 40.0)
+UNDERFORDELARE_KV = Fordelartyp("UFKV", "Underfördelare för kallvatten, rör-i-rör, 3 utgångar (ej vald)", 3,
+                                50.0)
+UNDERFORDELARE_VV = Fordelartyp("UFVV", "Underfördelare för varmvatten, rör-i-rör, 2 utgångar (ej vald)", 2,
+                                50.0)

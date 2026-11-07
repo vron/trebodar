@@ -71,6 +71,19 @@ _Y_DISKHO_AVLOPP = (K.DJUP - K.T - DISKHO[1]) / 2 + DISKHO[1] - DISKHO_AVLOPP
 assert _Y_DISKHO_AVLOPP - 20.0 - K.DISKBANKSSKAP.nl >= 40.0, "diskhons avlopp bakom lådorna"
 
 
+# diskmaskinen i öns skåp O1: vattnets golvdosa och avloppets anslutning (det pumpade avloppsröret upp ur golvet) under
+# maskinens bakre del, var sin sida om maskinens mitt (nås när maskinen dras ut); avloppet närmare nischens bakkant
+DISKMASKIN_BAK = (100.0, 50.0)  # golvdosan och avloppet från nischens bakkant
+DISKMASKIN_ISAR = 120.0         # golvdosan och avloppet från maskinens mitt
+
+
+def diskmaskinens_anslutningar() -> tuple[tuple[float, float], tuple[float, float]]:
+    """Diskmaskinens golvdosa för kallvattnet och avloppets anslutning i plan."""
+    x = X_ON_FRONT - K.FRONT_T - K.DJUP
+    y = (FOGAR_ON[0] + FOGAR_ON[1]) / 2
+    return (x + DISKMASKIN_BAK[0], y + DISKMASKIN_ISAR), (x + DISKMASKIN_BAK[1], y - DISKMASKIN_ISAR)
+
+
 def diskhons_avlopp() -> tuple[float, float]:
     """Diskhons avlopp i plan: i hons bakre del (DISKHO_AVLOPP), bakom diskbänksskåpets korta lådor, där vattenlåset
     står och avloppet går rakt ned genom golvet och källaren längs V14 (hus/installationer/avlopp)."""

@@ -21,10 +21,11 @@ class Tappstalletyp:
 @dataclass(frozen=True)
 class Dosatyp:
     """Anslutningen vid tappstället: väggdosa i väggen (rören upp i regelfacket), golvdosa (rören upp genom golvet i
-    skåpet under tappstället) eller väggfäste utanpå källarens vägg; cc: avståndet mellan kallt och varmt."""
+    skåpet under tappstället) eller väggfäste utanpå källarens vägg; cc: avståndet mellan kallt och varmt. En
+    underfördelares inlopp ("fördelare") är rören rakt ned ur bjälklaget till stammarnas början."""
     kod: str
     namn: str
-    slag: str                   # "vägg", "golv" eller "utanpå"
+    slag: str                   # "vägg", "golv", "utanpå" eller "fördelare"
     b: float
     h: float
     djup: float

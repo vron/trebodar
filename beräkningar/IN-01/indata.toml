@@ -171,7 +171,7 @@ namn     = "Diskho, undermonterad, och köksblandare"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
-anm      = "Avloppet i hons bakre del, 80 mm från bakkanten (bakom skåpets lådor), rakt ned genom golvet (AV5)."
+anm      = "Avloppet i hons bakre del, 80 mm från bakkanten (bakom skåpets lådor), rakt ned genom golvet (AV5). Vattenlåset med anslutning för diskmaskin (diskmaskinen i ön, pumpat avlopp AV20)."
 
 [[produkt]]
 kod      = "HALL"
@@ -191,7 +191,7 @@ status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 arende   = [50]
-anm      = "I ön; vatten och el gjuts in i mellanbjälklaget, avloppet går från vattenlåset i sockeln under O2 rakt ned (AV7)."
+anm      = "I ön; vatten från underfördelaren UF1 och el gjuts in i mellanbjälklaget. Avloppet är pumpat (AV20): maskinens pump trycker vattnet genom ett ingjutet rör till diskhons vattenlås, så maskinen ska tillåta minst 4 m avloppsslang (ca 3,8 m från maskinen till vattenlåset)."
 
 [[produkt]]
 kod      = "KYL"

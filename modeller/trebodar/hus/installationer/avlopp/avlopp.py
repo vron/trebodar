@@ -1,6 +1,6 @@
 """Avloppet i modellen (Hus/Installationer/Avlopp): ledningarna (ledningar.py) som rör längs sina punkter, badrummets
 golvbrunn med kropp, klämring och sil, källarens golvbrunnar med kropp och sil, stammens rensning, luftningshuven på
-taket och vattenlåsen under tvättstället, badkaret och diskhon och diskmaskinens i sockeln under öns skåp O2.
+taket och vattenlåsen under tvättstället, badkaret och diskhon och för tvätten i badrummets skåp (på L10).
 Avloppet går genom skikten och bjälklagen utan håltagning i modellen och ingår inte i modellens krockkontroll; dess
 egen kontroll (./mod avlopp kontroll) prövar det mot husets delar och de andra installationerna."""
 from __future__ import annotations
@@ -20,12 +20,11 @@ from trebodar.material import AVLOPPSROR, ROSTFRITT, TAKPLAT
 
 from ..montering import pa_tak
 from .ledningar import (BADKAR_AVLOPP, BADKAR_BOTTEN, BRUNN, BRUNN_KALLARE, BRUNN_SIL, DISKHO, GODS,
-                        GOLVBRUNNAR_KALLARE, HUV, LUFT_DY, LUFTNING, ON_AVLOPP, RENSNING, STAM, TVATTSTALL_AVLOPP,
-                        ledningar)
+                        GOLVBRUNNAR_KALLARE, HUV, LUFT_DY, LUFTNING, RENSNING, STAM, TVATTSTALL_AVLOPP, ledningar)
 
 VATTENLAS = 32.0                    # tvättställets och badkarets vattenlås (förenklade som raka rör)
-VATTENLAS_KOK = 40.0                # diskhons och diskmaskinens
-Z_DM_VATTENLAS = 80.0               # diskmaskinens vattenlås i sockeln under skåpet O2
+VATTENLAS_KOK = 40.0                # diskhons
+VATTENLAS_TVATT = (50.0, 180.0)     # tvättens vattenlås på L10: Ø och höjd (utanpå väggen, slangarna ovanifrån)
 SIL_KALLARE = (190.0, 5.0)          # källarens golvbrunnar: silen i kroppens överkant (diameter, tjocklek)
 LOCK = 20.0                         # rensningens lock
 RENS_UT = 30.0                      # rensningens lock utanför KL8:s gips
@@ -39,8 +38,8 @@ def montage() -> Montage:
         for i, (a, b) in enumerate(zip(led.vag, led.vag[1:]), 1):
             if math.dist(a, b) < 1.0:
                 continue
-            m.lagg(Del(f"Avloppsrör PP Ø{fmt(led.d)}", ror(a, b, led.d, GODS[led.d]), AVLOPPSROR),
-                   Placering(), f"{led.id}-{i:02d}")
+            namn = f"Avloppsrör PEX Ø{fmt(led.d)}, pumpat" if led.pumpad else f"Avloppsrör PP Ø{fmt(led.d)}"
+            m.lagg(Del(namn, ror(a, b, led.d, GODS[led.d]), AVLOPPSROR), Placering(), f"{led.id}-{i:02d}")
     # golvbrunnen: kroppen i bjälklaget, klämringen i tätskiktet och silen i klinkern
     gx, gy = B.GOLVBRUNN
     d, h = BRUNN
@@ -89,8 +88,15 @@ def montage() -> Montage:
     m.lagg(Del("Luftningshuv, plåt i takets plan", box(-kant, kant, -kant, kant, 0.0, 2.0)
                - cylinder(r, 10.0, (0.0, 0.0, -5.0)),
                TAKPLAT), Placering.axlar(mt.punkt, (0.0, 1.0, 0.0), mt.normal), "AV-HUV-PLAT")
-    # köket: diskhons vattenlås från hons botten ned till golvet bakom lådorna, diskmaskinens i sockeln under O2
-    for kod, (xp, yp), z_topp in (("DB", DISKHO, K.Z_TOPP - KB.DISKHO[2]), ("DM", ON_AVLOPP, Z_DM_VATTENLAS)):
-        las = ror((xp, yp, 0.0), (xp, yp, z_topp), VATTENLAS_KOK, GODS[VATTENLAS_KOK])
-        m.lagg(Del(f"Vattenlås Ø{fmt(VATTENLAS_KOK)}", las, AVLOPPSROR), Placering(), f"AV-VL-{kod}")
+    # köket: diskhons vattenlås från hons botten ned till golvet bakom lådorna
+    xp, yp = DISKHO
+    las = ror((xp, yp, 0.0), (xp, yp, K.Z_TOPP - KB.DISKHO[2]), VATTENLAS_KOK, GODS[VATTENLAS_KOK])
+    m.lagg(Del(f"Vattenlås Ø{fmt(VATTENLAS_KOK)}", las, AVLOPPSROR), Placering(), "AV-VL-DB")
+    # tvätten i badrummets skåp: vattenlåset utanpå L10, med utloppet in i väggen där AV21 börjar
+    x, z = B.TVATT_AVLOPP
+    zg = B.golvniva(x, B.Y_L10 + 50.0)
+    d, h = VATTENLAS_TVATT
+    y = B.Y_L10 + d / 2
+    m.lagg(Del(f"Vattenlås för tvättmaskin Ø{fmt(d)}", ror((x, y, zg + z - h / 2), (x, y, zg + z + h / 2), d, GODS[d]),
+               AVLOPPSROR, produkt=None), Placering(), "AV-VL-TM")
     return m

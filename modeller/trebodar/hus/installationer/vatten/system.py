@@ -1,15 +1,18 @@
 """Tappvattnet ur modulerna (MODULER): tappställena, rörens filer och fördelarnas utgångar (i tappställenas ordning
-teknikrum.ORDNING), rören från fördelarna till tappställena längs stråken och matarledningarna, kontrollen,
-genomföringarna och utdraget för ritningarna (verktyg/modellering: `./mod vatten`).
+teknikrum.ORDNING, och underfördelarnas egna, underfordelare.py), rören från fördelarna till tappställena längs
+stråken och matarledningarna, kontrollen, genomföringarna och utdraget för ritningarna (verktyg/modellering:
+`./mod vatten`).
 
-Rörens ändar: fördelarnas utgångar ("FD-KV:3"; utgång 0 och utgången efter den sista är stammens ändar), utrustningen
-i teknikrummet ("TK-VP:VV-ut", ..teknikrum.UTRUSTNING) och tappställena (anslutningen i dosan, kallt och varmt).
+Rörens ändar: fördelarnas utgångar ("FD-KV:3", "UF1-KV:2"; utgång 0 och utgången efter den sista är stammens ändar:
+underfördelarnas matning går till utgång 0), utrustningen i teknikrummet ("TK-VP:VV-ut", ..teknikrum.UTRUSTNING) och
+tappställena (anslutningen i dosan, kallt och varmt).
 """
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
+from collections.abc import Callable
 from types import ModuleType
 
 from ..genomforingar import Genomforing, Stycke, genomforingar
@@ -20,6 +23,7 @@ from .katalog import FORDELARE_KV, FORDELARE_VV
 from ..strak import Strak, filer
 from .punkter import FIL, Z_ROR, Fordelare, Ror, Rum, Tappstalle, anslutning, ror, till_tappstallet
 from .rum import badrum, kallare, kok
+from .underfordelare import ROR_MATNING, UNDERFORDELARE, Underfordelare
 
 MODULER: tuple[ModuleType, ...] = (badrum, kok, kallare)
 
@@ -30,12 +34,14 @@ V_MAX, V_ANM = 2.5, 2.0        # vattenhastighet vid normflödet [m/s]: fel öve
 @dataclass
 class Vatten:
     tappstallen: dict[str, Tappstalle]
-    fordelare: dict[str, Fordelare]
+    fordelare: dict[str, Fordelare]    # huvudfördelarna (FD-KV, FD-VV) och underfördelarnas stammar (UF1-KV …)
     ror: dict[str, Ror]
     rum: dict[str, Rum]
     modul: dict[str, str]              # tappställets eller rörets id -> rummets namn (matarledningarna: Teknikrum)
     strak: dict[str, Strak]
-    utgangar: dict[str, dict[str, int]]    # tappställe -> media -> utgång
+    utgangar: dict[str, tuple[str, dict[str, int]]]    # tappställe eller underfördelare -> (fördelare: "FD", "UF1",
+    #                                                    media -> utgång)
+    underfordelare: dict[str, Underfordelare]
 
     def ande(self, ref: str, media: str) -> Vek:
         """Rörets ände: fördelarens utgång, utrustningens anslutning eller tappställets anslutning."""
@@ -59,12 +65,16 @@ class Vatten:
         return genomforingar(self.stycken())
 
     def vv_volym(self, tid: str) -> float:
-        """Varmvattnets volym från beredaren till tappstället [l]: röret från fördelaren och matarledningen till den."""
+        """Varmvattnets volym från beredaren till tappstället [l]: röret från fördelaren och rören uppströms till den
+        (en underfördelares matning och matarledningen till huvudfördelaren)."""
         vv = [r for r in self.ror.values() if r.media == "VV"]
-        till = next(r for r in vv if r.till == tid)
-        fd = till.fran.split(":")[0]
-        return sum(langd(self.vag(r)) / 1000 * r.typ.liter_per_m
-                   for r in (till, *(m for m in vv if m.till.split(":")[0] == fd)))
+        r: Ror | None = next(r for r in vv if r.till == tid)
+        summa = 0.0
+        while r is not None:
+            summa += langd(self.vag(r)) / 1000 * r.typ.liter_per_m
+            fd = r.fran.split(":")[0]
+            r = next((m for m in vv if m.till.split(":")[0] == fd), None)
+        return summa
 
     def vv_tid(self, tid: str) -> float:
         """Tiden tills varmvattnet når tappstället vid dess normflöde [s] (volymen från beredaren)."""
@@ -76,9 +86,12 @@ class Vatten:
         genomföringarna."""
         fel: list[str] = []
         anm: list[str] = []
-        fel += [f"{t}: inte i tappställenas ordning (teknikrum.ORDNING)" for t in self.tappstallen
-                if t not in teknikrum.ORDNING]
-        fel += [f"{t}: i tappställenas ordning men finns inte" for t in teknikrum.ORDNING if t not in self.tappstallen]
+        ordningar = {"teknikrum.ORDNING": teknikrum.ORDNING,
+                     **{f"{u.id}:s ordning": dict(u.ordning) for u in self.underfordelare.values()}}
+        fel += [f"{t}: i {n} tappställenas ordningar" for t in self.tappstallen
+                if (n := sum(t in o for o in ordningar.values())) != 1]
+        fel += [f"{t}: i {k} men finns inte" for k, o in ordningar.items() for t in o
+                if t not in self.tappstallen and t not in self.underfordelare]
         for r in self.ror.values():
             for ref in (r.fran, r.till):
                 try:
@@ -105,6 +118,12 @@ class Vatten:
                     v = q * 1000.0 / r.typ.area
                     (fel if v > V_MAX else anm if v > V_ANM else []).append(
                         f"{r.id}: {v:.1f} m/s i {r.typ.matt} vid {q:g} l/s")
+        for u in self.underfordelare.values():                 # matningen vid det dimensionerande flödet
+            for media, q in u.flode:
+                r = self.ror[f"{u.id}-{media}"]
+                v = q * 1000.0 / r.typ.area
+                (fel if v > V_MAX else anm if v > V_ANM else []).append(
+                    f"{r.id}: {v:.1f} m/s i {r.typ.matt} vid {q:g} l/s (dimensionerande flöde)")
         for fd in self.fordelare.values():
             anv = [int(ref.split(":")[1]) for r in self.ror.values() for ref in (r.fran, r.till)
                    if ref.split(":")[0] == fd.id]
@@ -113,7 +132,7 @@ class Vatten:
                     fel.append(f"{fd.id}: utgång {n} används av {anv.count(n)} rör")
             if fd.utgangar > fd.typ.utgangar:
                 fel.append(f"{fd.id}: {fd.utgangar} utgångar men fördelaren har {fd.typ.utgangar}")
-        for tid, utg in self.utgangar.items():
+        for tid, (_, utg) in self.utgangar.items():
             if len(utg) == 2:
                 avvik = [_avvik(self.vag(self.ror[f"{tid}-{m}"])) for m in ("KV", "VV")]
                 if math.dist(avvik[0], avvik[1]) < FIL - 1.0:
@@ -150,19 +169,31 @@ class Vatten:
             ror_[r.id] = {"typ": r.typ.namn, "matt": r.typ.matt, "yttre": r.typ.yttre, "media": r.media,
                           "fran": r.fran, "till": r.till, "modul": self.modul[r.id], "vag": [list(p) for p in v],
                           "langd": langd(v), "volym": langd(v) / 1000 * r.typ.liter_per_m}
-        utg = {t: (min(u.values()), teknikrum.ORDNING[t][0]) for t, u in self.utgangar.items()}
+        ordning = {**teknikrum.ORDNING, **{t: s for u in self.underfordelare.values() for t, s in u.ordning}}
+
+        def utgang(tid: str) -> str:
+            fd, utg = self.utgangar.get(tid, ("FD", {}))
+            txt = ", ".join(f"{m} {n}" for m, n in utg.items())
+            return txt if fd == "FD" else f"{fd}: {txt}"
+
+        def stam(f: Fordelare) -> dict[str, object]:
+            return {"typ": f.typ.namn, "media": f.media, "start": list(f.utgang(0)),
+                    "slut": list(f.utgang(f.utgangar + 1)), "utgangar": f.utgangar}
+
         return {"rum": {k: {"namn": x.namn, "plan": x.plan} for k, x in self.rum.items()},
                 "tappstallen": {t.id: {"typ": t.typ.namn, "symbol": t.typ.symbol, "kv": t.typ.kv, "vv": t.typ.vv,
                                        "dosa": t.dosa.namn, "slag": t.dosa.slag, "punkt": list(t.lage.punkt),
                                        "normal": list(t.lage.normal), "rum": self.modul[t.id], "ror": t.ror.matt,
-                                       "utgang": ", ".join(f"{m} {n}" for m, n in self.utgangar.get(t.id, {}).items()),
-                                       "strak": utg[t.id][1] if t.id in utg else None,
+                                       "utgang": utgang(t.id), "strak": ordning[t.id][0] if t.id in ordning else None,
                                        "vv_tid": self.vv_tid(t.id) if t.typ.vv > 0 else 0.0,
                                        "vv_volym": self.vv_volym(t.id) if t.typ.vv > 0 else 0.0}
                                 for t in self.tappstallen.values()},
-                "fordelare": {f.id: {"typ": f.typ.namn, "media": f.media, "start": list(f.utgang(0)),
-                                     "slut": list(f.utgang(f.utgangar + 1)), "utgangar": f.utgangar}
-                              for f in self.fordelare.values()},
+                "fordelare": {f.id: stam(f) for f in self.fordelare.values() if f.id.split("-")[0] == "FD"},
+                "underfordelare": {u.id: {"namn": u.namn, "rum": u.rum, "matning": utgang(u.id),
+                                          "strak": teknikrum.ORDNING[u.id][0], "stammar": {
+                                              m: stam(self.fordelare[f"{u.id}-{m}"]) for m in u.medier},
+                                          "tappstallen": [t for t, _ in u.ordning],
+                                          "flode": dict(u.flode)} for u in self.underfordelare.values()},
                 "utrustning": {u.id: {"namn": u.namn, "punkt": list(u.lage.punkt), "normal": list(u.lage.normal),
                                       "yta": u.lage.yta, "matt": list(u.matt)} for u in UTRUSTNING.values()},
                 "strak": {k: [list(p) for p in s.punkter] for k, s in self.strak.items()},
@@ -215,12 +246,14 @@ def _avvik(vag: list[Vek]) -> tuple[float, float]:
     return vag[i][0], vag[i][1]
 
 
-def _filer(tapp: dict[str, Tappstalle]) -> tuple[dict[tuple[str, str], int], dict[str, float]]:
-    """Rörens filer från söder (c/c FIL längs V19) i tappställenas ordning, och stråkens mitt (..strak.filer)."""
+def _filer(tapp: dict[str, Tappstalle], ordning: dict[str, tuple[str, int | None]],
+           strak: Callable[[dict[str, float]], dict[str, Strak]], borjan: tuple[float, float],
+           riktning: tuple[float, float]) -> tuple[dict[tuple[str, str], int], dict[str, float]]:
+    """Rörens filer längs fördelaren (c/c FIL från borjan) i tappställenas ordning, och stråkens mitt (..strak.filer)."""
     rader = [(t, s, ben, {m: till_tappstallet(tapp[t], m)[0][0] for m, q in (("KV", tapp[t].typ.kv),
                                                                               ("VV", tapp[t].typ.vv)) if q > 0})
-             for t, (s, ben) in teknikrum.ORDNING.items() if t in tapp]
-    return filer(rader, teknikrum.strak, (teknikrum.X["KV"], teknikrum.Y_FIL0), (0.0, 1.0), FIL)
+             for t, (s, ben) in ordning.items() if t in tapp]
+    return filer(rader, strak, borjan, riktning, FIL)
 
 
 @cache
@@ -235,18 +268,38 @@ def vatten() -> Vatten:
         for t in mod.TAPPSTALLEN:
             tapp[t.id] = t
             modul[t.id] = mod.RUM.namn
-    filer, mitt = _filer(tapp)
-    fd = {m: teknikrum.fordelare(m, typ, tuple(sorted(n for (_, mm), n in filer.items() if mm == m)))
+    uf = {u.id: u for u in UNDERFORDELARE}
+    huvud = {**tapp, **{u.id: u.inlopp() for u in uf.values()}}         # underfördelarnas inlopp som tappställen
+    filer_, mitt = _filer(huvud, teknikrum.ORDNING, teknikrum.strak, (teknikrum.X["KV"], teknikrum.Y_FIL0), (0.0, 1.0))
+    fd = {m: teknikrum.fordelare(m, typ, tuple(sorted(n for (_, mm), n in filer_.items() if mm == m)))
           for m, typ in (("KV", FORDELARE_KV), ("VV", FORDELARE_VV))}
-    utgangar: dict[str, dict[str, int]] = {}
-    for (t_id, m), n in filer.items():
-        utgangar.setdefault(t_id, {})[m] = fd[m].filer.index(n) + 1
+    utgangar: dict[str, tuple[str, dict[str, int]]] = {}
+    for (t_id, m), n in filer_.items():
+        utgangar.setdefault(t_id, ("FD", {}))[1][m] = fd[m].filer.index(n) + 1
     strak = teknikrum.strak(mitt)
     ror_: dict[str, Ror] = {r.id: r for r in teknikrum.matarledningar(fd["KV"], fd["VV"])}
     modul.update({r: "Teknikrum" for r in ror_})
-    for t_id, utg in utgangar.items():
+    for t_id, (_, utg) in list(utgangar.items()):
         s_id, ben = teknikrum.ORDNING[t_id]
-        for r in ror(tapp[t_id], utg, strak[s_id], fd, ben):
+        for r in ror(huvud[t_id], utg, strak[s_id], fd, ben):
+            if t_id in uf:                                              # matningen till underfördelarens utgång 0
+                r = replace(r, till=f"{t_id}-{r.media}:0", typ=ROR_MATNING.get((t_id, r.media), r.typ))
             ror_[r.id] = r
-            modul[r.id] = modul[t_id]
-    return Vatten(tapp, {f.id: f for f in fd.values()}, ror_, rum, modul, strak, utgangar)
+            modul[r.id] = uf[t_id].rum if t_id in uf else modul[t_id]
+    fordelare = {f.id: f for f in fd.values()}
+    for u in uf.values():
+        ordning = dict(u.ordning)
+        filer_u, mitt_u = _filer(tapp, ordning, u.strak, u.borjan, (u.riktning[0], u.riktning[1]))
+        fd_u = {m: u.fordelare(m, tuple(sorted(n for (_, mm), n in filer_u.items() if mm == m))) for m in u.medier}
+        for (t_id, m), n in filer_u.items():
+            utgangar.setdefault(t_id, (u.id, {}))[1][m] = fd_u[m].filer.index(n) + 1
+        strak_u = u.strak(mitt_u)
+        strak.update(strak_u)
+        for t_id in ordning:
+            if t_id in tapp:
+                s_id, ben = ordning[t_id]
+                for r in ror(tapp[t_id], utgangar[t_id][1], strak_u[s_id], fd_u, ben):
+                    ror_[r.id] = r
+                    modul[r.id] = modul[t_id]
+        fordelare.update({f.id: f for f in fd_u.values()})
+    return Vatten(tapp, fordelare, ror_, rum, modul, strak, utgangar, uf)

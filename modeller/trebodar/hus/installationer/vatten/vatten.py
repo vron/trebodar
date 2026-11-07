@@ -1,5 +1,5 @@
 """Tappvattnets geometri ur systemet (system.py): rören (rör-i-rör och matarledningarna), dosorna och väggfästena vid
-tappställena och fördelarna, ett montage per rum och ett för teknikrummet. Delarna kontrolleras inte i modellens
+tappställena och fördelarna (underfördelarna med konsoler på väggen), ett montage per rum och ett för teknikrummet. Delarna kontrolleras inte i modellens
 krockkontroll (kontrollregler.UTOM_KONTROLL) och tar inga hål i andra delar; vattnet har en egen kontroll
 (`./mod vatten kontroll`, med krockarna mot huset och ventilationen) och redovisar genomföringarna.
 
@@ -17,9 +17,11 @@ from trebodar.material import FORDELARSTAM, TAPPVATTEN_KV, TAPPVATTEN_VV, VATTEN
 from ..montering import Vek, enhet
 from .punkter import Fordelare, Tappstalle, forskjutning
 from .system import vatten
+from .underfordelare import Underfordelare
 
 MATERIAL = {"KV": TAPPVATTEN_KV, "VV": TAPPVATTEN_VV}
 D_STAM = 32.0                   # fördelarnas stam
+KONSOL = 30.0                   # underfördelarnas konsoler, bredd
 
 
 def _vinkelratt(v: Vek) -> Vek:
@@ -62,6 +64,24 @@ def _fordelare(f: Fordelare) -> tuple[Del, Placering]:
             Placering.axlar(f.utgang(0), _vinkelratt(f.riktning), f.riktning))
 
 
+def _underfordelare(u: Underfordelare, stammar: list[Fordelare]) -> Montage:
+    """Underfördelarens stammar och två konsoler från väggen till den yttre stammen, vid stammarnas ändar."""
+    m = Montage(u.id, beskrivning=u.namn)
+    for f in stammar:
+        m.lagg(*_fordelare(f), f.id)
+    n, r = u.normal, u.riktning
+    ut = max(stammar, key=lambda f: (f.lage[0] - u.start[0]) * n[0] + (f.lage[1] - u.start[1]) * n[1])
+    djup = (ut.lage[0] - u.start[0]) * n[0] + (ut.lage[1] - u.start[1]) * n[1] + D_STAM / 2
+    z0 = min(f.lage[2] for f in stammar) - D_STAM / 2
+    z1 = max(f.lage[2] for f in stammar) + D_STAM / 2
+    lgd = max((f.typ.utgangar + 1) * f.typ.delning for f in stammar)
+    for i, s in enumerate((0.0, lgd)):
+        p = (u.start[0] + r[0] * s, u.start[1] + r[1] * s, z0)
+        m.lagg(Del("Konsol för underfördelaren", box(-KONSOL / 2, KONSOL / 2, 0.0, djup, 0.0, z1 - z0), FORDELARSTAM),
+               Placering.axlar(p, (n[1], -n[0], 0.0), (0.0, 0.0, 1.0)), f"{u.id}-KONSOL{i + 1}")    # y ut ur väggen
+    return m
+
+
 def montage() -> Montage:
     v = vatten()
     m = Montage("Vatten", beskrivning="Tappvatten, kallt och varmt: rör-i-rör från fördelarskåpet i teknikrummet "
@@ -69,7 +89,10 @@ def montage() -> Montage:
     delar = {"Teknikrum": Montage("Teknikrum", beskrivning="Fördelarna och matarledningarna")}
     delar.update({r.namn: Montage(r.namn) for r in v.rum.values()})
     for f in v.fordelare.values():
-        delar["Teknikrum"].lagg(*_fordelare(f), f.id)
+        if f.id.split("-")[0] not in v.underfordelare:
+            delar["Teknikrum"].lagg(*_fordelare(f), f.id)
+    for u in v.underfordelare.values():
+        delar[u.rum].lagg(_underfordelare(u, [f for f in v.fordelare.values() if f.id.split("-")[0] == u.id]))
     for t in v.tappstallen.values():
         delar[v.modul[t.id]].lagg(*_dosa(t), t.id)
     for r in v.ror.values():

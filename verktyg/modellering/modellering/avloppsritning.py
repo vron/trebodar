@@ -25,7 +25,8 @@ SZ = 5.6                                          # texternas storlek [pt]
 R_LODRATT, R_GB, R_STAM, R_LU = 0.75, 1.3, 1.2, 0.95   # symbolernas radie på papperet [mm]
 PIL = "#8a5524"                                   # flödespilarna (ritningsmallens AV)
 # avloppspunkterna på plan 1 och i källaren: ledningen vars första punkt är punkten och dess förkortning i planen
-PUNKTER = {"AV1": "WC", "AV2": "TS", "AV3": "BK", "AV5": "DB", "AV14": "TH1", "AV16": "TH2", "AV18": "TH3"}
+PUNKTER = {"AV1": "WC", "AV2": "TS", "AV3": "BK", "AV5": "DB", "AV14": "TH1", "AV16": "TH2", "AV18": "TH3",
+           "AV21": "TM"}
 
 Pkt = tuple[float, float]
 
@@ -35,9 +36,10 @@ def vg(u: dict, ld: dict, z: float) -> str:
     return "+" + sv((z - ld["d"] / 2 + u["gods"][ld["d"]] + u["rh0"]) / 1000, 3)
 
 
-def _lager(u: dict, z: float) -> str:
-    """Linjens stil efter höjden: under bottenplattan eller i källarens tak (och mellanbjälklaget)."""
-    return "av" if z < u["bottenplattan"] else "av_tak"
+def _lager(u: dict, z: float, pumpad: bool = False) -> str:
+    """Linjens stil efter höjden: under bottenplattan eller i källarens tak; det pumpade avloppet ingjutet i
+    mellanbjälklaget tunt."""
+    return "av_tunn" if pumpad else "av" if z < u["bottenplattan"] else "av_tak"
 
 
 # ------------------------------------------------------------------ symboler (pappersmått)
@@ -77,6 +79,7 @@ def _flodestecken(v: Vy) -> None:
 TECKEN: list[tuple[Callable[[Vy], None] | dict, str]] = [
     (dict(form="linje", stil="av"), "grundledning Ø110 under bottenplattan"),
     (dict(form="linje", stil="av_tak"), "ledning i källarens tak, under mellanbjälklaget"),
+    (dict(form="linje", stil="av_tunn"), "diskmaskinens pumpade avlopp, ingjutet i mellanbjälklaget"),
     (lambda w: _flodestecken(w), "flödets riktning"),
     (lambda w: lodratt(w, 0.0, 0.0), "lodrätt rör (från plan 1 eller tvätthoets anslutning)"),
     (lambda w: golvbrunn(w, 0.0, 0.0), "golvbrunn"),
@@ -120,7 +123,7 @@ def _plan(u: dict, delar: list[dict], norr: tuple[float, float]) -> Vy:
             if lid.startswith("LU"):
                 continue
             for pkt, z in _stycken(ld["vag"]):
-                v.linje(pkt, _lager(u, z))
+                v.linje(pkt, _lager(u, z, ld.get("pumpad", False)))
                 linjer.append(LineString(pkt).buffer(v.m(0.5)))
                 for a, b in zip(pkt, pkt[1:]):
                     if math.dist(a, b) / v.s > 12.0:
@@ -169,8 +172,8 @@ def _plan(u: dict, delar: list[dict], norr: tuple[float, float]) -> Vy:
         texter.satt((lx, ly + v.m(2.2)), (-0.5, 1.0), [("AV7 stam Ø110 i KL8, rensning mot teknikrummet;", "av"),
                                                        ("LU luftning Ø50 i L11, Ø75 ut genom taket", "av"),
                                                        ("(se sektionen)", "gra")], sz=5.4, fran=(sx, sy))
-        texter.satt((dx, dy), (-1.0, 0.3), [("DM diskmaskinens vattenlås i ön", "av"),
-                                            ("(anslutningen öppen, #49)", "gra")], sz=5.4)
+        texter.satt((dx, dy), (-1.0, 0.3), [("DM diskmaskinen i ön, AV20 pumpat:", "av"),
+                                            ("PEX 25 ingjutet till diskhons vattenlås", "av")], sz=5.4)
         # grundledningens höjder: där den börjar (vid GB1), vid GB2, där den går ut under V9 och där ritningen slutar
         gl = led["AV8"]
         pkt = gl["vag"]
@@ -255,6 +258,8 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
         vgg = ld["vattengang"]
         st = [(a, b) for a, b in zip(ld["vag"], ld["vag"][1:]) if math.dist(a[:2], b[:2]) >= 1.0]
         fall = sv(1000 * (st[0][0][2] - st[0][1][2]) / math.dist(st[0][0][:2], st[0][1][:2]), 0) if st else "lodrätt"
+        if ld.get("pumpad"):
+            fall = "pumpat"
         rader.append([k, ld["namn"].replace(", grenen under bottenplattan", ", grenen").replace(", rakt ned", ""),
                       f"{ld['d']:g}", sv(langd(ld["vag"]), 1), fall,
                       vg(u, ld, vgg[0] + ld["d"] / 2) if vgg else "–", vg(u, ld, vgg[1] + ld["d"] / 2) if vgg else "–"])
@@ -278,7 +283,12 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
             "genomstansningszon (K-05).",
             "Golvbrunnarna i källaren gjuts in i bottenplattan med flänsen i dess överkant; tvättmaskinen töms i GB1. "
             "Tvätthona TH1–TH3 får var sin anslutning Ø50 i golvet framför väggdosan.",
-            "Diskmaskinens anslutning i köksön är inte bestämd (#49): vattenlåset står i sockeln under skåpet O2.",
+            "Diskmaskinen i köksön har pumpat avlopp (AV20): maskinens egen pump trycker vattnet genom ett rör PEX 25 "
+            "utan fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen "
+            "till diskbänksskåpet bakom lådorna och upp till diskhons vattenlås (anslutning för diskmaskin, med en ögla "
+            f"under bänkskivan). Diskmaskinen ska tillåta minst {sv(u['dm_slang'], 0)} m avloppsslang.",
+            "Tvätten i badrummets skåp (förberedd för tvättmaskin och torktumlare): vattenlåset på väggen L10, Ø50 "
+            "ned i väggen och genom bjälklaget (AV21) till samlingsledningen, under KL2:s hammarband genom väggen.",
             f"Höjderna: vattengången (VG, rörets innerbotten) i RH 2000; plan 1 ±0 = +{sv(u['rh0'] / 1000, 3)}, "
             f"källargolvet +{sv((u['bottenplattan'] + u['rh0']) / 1000, 3)}.",
             "Produkterna är inte valda (allmänna typer med vanliga mått). Ritningen ritas med ./mod avlopp ritning.",

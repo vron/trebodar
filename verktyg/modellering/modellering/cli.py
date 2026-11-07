@@ -978,12 +978,13 @@ def main(argv: list[str] | None = None) -> None:
         fel, anm = av.kontroll()
         kr = installationer.krockar(rot, karna, regler, "Hus/Installationer/Avlopp")
         # samlingsledningen ansluter till stammen (Onshape-modellens, VVS); järnen läggs om runt hålen i bjälklaget
-        # luftningen går lodrätt genom väggens syll och hammarband (urtas); allt annat i stommen är fel
-        urtag = [k for k in kr.stomme if k.startswith("LU") and re.search(r"-[SH]\d+ \(", k)]
+        # ledningarna i väggarnas regelfack (luftningen, tvätten) går lodrätt genom syll och hammarband (urtas); allt
+        # annat i stommen är fel
+        urtag = [k for k in kr.stomme if k.split("-")[0] in av.I_VAGGEN and re.search(r"-[SH]\d+ \(", k)]
         fel += [f"krock med {k}" for k in kr.installationer + kr.stomme if k not in urtag]
         fel += [f"krock med {k}" for k in kr.inredning if "-LADA" in k]        # vattenlåsen går fria från lådorna
         if urtag:
-            anm.append("syll och hammarband urtas för luftningen: " + ", ".join(sorted(
+            anm.append("syll och hammarband urtas för ledningarna i väggarna: " + ", ".join(sorted(
                 {k.split(" mot ")[1].split("/")[-1].split(" ")[0] for k in urtag})))
         if kr.armering:
             anm.append("hål i bjälklagen, järnen läggs om runt dem: "

@@ -1,7 +1,8 @@
 # Tappvattnet
 
-Kallvattnet och varmvattnet som data i modellen: tappställena, fördelarna i fördelarskåpet, rören (rör-i-rör från
-fördelarskåpet till varje tappställe, ingjutna i mellanbjälklaget) och matarledningarna i teknikrummet. Samma data ger
+Kallvattnet och varmvattnet som data i modellen: tappställena, fördelarna i fördelarskåpet och underfördelarna i
+källaren, rören (rör-i-rör från fördelarna till varje tappställe, ingjutna i mellanbjälklaget) och matarledningarna i
+teknikrummet. Samma data ger
 modellens geometri (rören, dosorna och fördelarna i 3D), genomföringarna genom husets delar, kontrollen och
 tappvattenritningarna. Vattnet är fristående: det tar inga hål i andra delar och ingår inte i modellens krockkontroll;
 det har en egen kontroll som redovisar genomföringarna och krockarna mot husets delar och de andra installationerna.
@@ -23,6 +24,7 @@ cd verktyg/modellering
 | [`katalog.py`](katalog.py) | Produkterna, tills vidare allmänna typer med vanliga mått och normflöden (ej valda) |
 | [`punkter.py`](punkter.py) | Tappställe, fördelare och rör, och hur rören dras: nivån i bjälklaget (`Z_ROR`), filerna (`FIL`), `till_tappstallet` och `ror` |
 | [`teknikrum.py`](teknikrum.py) | Fördelarna, tappställenas ordning (`ORDNING`), stråken (`strak`) och matarledningarna |
+| [`underfordelare.py`](underfordelare.py) | Underfördelarna UF1 (under köket) och UF2 (under badrummet): läget på väggen, stammarna, matningen och deras tappställen i egna stråk |
 | `rum/<rum>.py` | Ett rums tappställen: typ, dosa, läge på väggen eller golvet och rörtyp |
 | [`system.py`](system.py) | Allt ur rummen (`MODULER`), rören från fördelarna, kontrollen, genomföringarna och utdraget för ritningarna |
 | [`vatten.py`](vatten.py) | Geometrin, ett montage per rum och ett för teknikrummet under `Hus/Installationer/Vatten` |
@@ -40,6 +42,11 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
   höger och varmvattnet till vänster sett mot dosan; golvdosornas riktning från varmt till kallt är `kallt`.
 - **Fördelare** (`Fordelare`): kallvattnets och varmvattnets stammar i fördelarskåpet, med numrerade utgångar uppåt;
   utgång 0 och utgången efter den sista är stammens ändar (inlopp och genomgång).
+- **Underfördelare** (`Underfordelare`): en liten fördelare öppet på en vägg i källaren i ett rum med golvbrunn,
+  matad från fördelarskåpet med ett rör per media som ett tappställe i `ORDNING` (rören rakt ned ur bjälklaget till
+  stammarnas början, utgång 0), med egna utgångar till sina tappställen i ett eget stråk. UF1 under köket på V14
+  (diskbänken och diskmaskinen i ön, #50) och UF2 under badrummet på KL1 (WC:n och tvättmaskinen i skåpet, #51):
+  fördelarskåpets filer räcker inte till fler rör (ett sjuttonde krockar med ventilationens kanal FF3-K2).
 - **Rör** (`Ror`): från en fördelares utgång (`FD-KV:3`), en utrustning (`TK-VP:VV-ut`) eller ett tappställe till ett
   annat. Rören till tappställena har tappställets id och media (`BA-DU1-VV`) och dras ur stråken (`ror`);
   matarledningarna i teknikrummet (`VA-KV1` …) har sina brytpunkter i `teknikrum.py`.
@@ -73,10 +80,12 @@ rör som går i varandra och krockarna mot järnen.
 `./mod vatten kontroll` (fel stoppar, anmärkningar redovisas):
 
 - utgångarna: varje tappställe har en utgång och varje utgång används en gång, inom fördelarens utgångar och ändar;
+  varje tappställe står i en ordning (fördelarskåpets eller en underfördelares);
 - anslutningarna: ett rör per media som tappstället har (normflöde över noll), referenserna till fördelare, utrustning
   och tappställen;
 - tiden till varmvatten vid tappställets normflöde, ur volymen från beredaren (högst 10 s, BBR 6:62 och Säker Vatten;
-  anmärkning över 8 s), och vattenhastigheten vid normflödet (fel över 2,5 m/s, anmärkning över 2,0 m/s);
+  anmärkning över 8 s; genom en underfördelare räknas dess matning med), och vattenhastigheten vid normflödet (fel
+  över 2,5 m/s, anmärkning över 2,0 m/s; underfördelarnas matning vid det dimensionerande flödet);
 - rören: var de lämnar stråket (kallt och varmt inte på samma ställe), sneda stycken och rör som går i varandra;
 - genomföringarna ur husets geometri: ingjutna rör ut ur bjälklagets över- och underkant, rör i väggarnas regelfack
   (syllen urtas) och i källarväggarnas cellplast (ska rymmas), hylsor eller kärnborrning där rör går genom en platta

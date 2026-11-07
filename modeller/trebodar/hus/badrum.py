@@ -189,6 +189,17 @@ SKAP_X = (X_L9, X_L11)
 SKAP_Y = (Y_L10, Y_L19S)
 SKAP_Z = 2100.0                             # skåpets överkant över golvet, som dörrarna
 
+# tvätten i skåpet (#51), förberedd för en tvättmaskin och en torktumlare staplade (600 × 600, 1 750 höga med
+# staplingssatsen) mot L19: vattnets väggdosa med avstängningen och avloppets vattenlås på L10 i glipan bredvid dem,
+# och dubbeluttaget på L10 ovanför dem (användarens markering)
+TVATT = (600.0, 600.0, 1750.0)              # maskinerna: bredd, djup, höjd staplade
+TVATT_VATTEN = (2750.0, 1100.0)             # x, z över golvet
+TVATT_AVLOPP = (3050.0, 650.0)
+TVATT_UTTAG = (2950.0, 1950.0)
+assert SKAP_Y[1] - SKAP_Y[0] >= TVATT[0] + 150.0, "skåpet rymmer maskinerna och glipan för anslutningarna"
+assert SKAP_X[1] - SKAP_X[0] >= TVATT[1] + 100.0, "skåpet rymmer maskinerna och slangarna bakom dem"
+assert SKAP_Z >= TVATT[2] + 300.0, "uttaget ryms ovanför maskinerna"
+
 # handdukstorken på 1A mellan badkaret och duschen
 HANDDUKSTORK = (1400.0, 1900.0, 400.0, 1600.0)     # x0, x1, z0, z1 över golvet
 

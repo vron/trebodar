@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 
 from .planritning import (MINSTA_HAL, VAGGAR, Blad, Vy, blad, figur, kompilera, norrpil, papper, plan, polygoner,
@@ -89,6 +89,10 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
             "Tappvattnet ur modellen (modeller/trebodar/hus/installationer/vatten): rör-i-rör från fördelarskåpet i "
             "teknikrummet till varje tappställe (stjärnsystem, läckor syns i skåpet). Ritningen ritas med ./mod "
             "vatten ritning.",
+            "Underfördelarna UF1 (under köket, på V14) och UF2 (under badrummet, på KL1) sitter öppet på väggen i "
+            "rum med golvbrunn, matade med ett rör per media från fördelarskåpet; rören från dem går i egna stråk "
+            "(K, B) till sina tappställen: " + "; ".join(
+                f"{k} {', '.join(u['tappstallen'])}" for k, u in utdrag.get("underfordelare", {}).items()) + ".",
             f"Rören gjuts in i mellanbjälklaget (R-06) i stråk, c/c 50 som nätens maskor, i en nivå närmast "
             f"underkantsnätet (z {svm(niv['rören i bjälklaget'])}); golvvärmen går ovanför. Rören läggs före "
             f"gjutningen och kommer ut ur bjälklaget mellan armeringsjärnen (golvdosorna och rören i väggarna "
@@ -103,11 +107,21 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
     ]
 
 
-def _tappstallen(v: Vy, tapp: dict, plan1: list[dict], kallare: list[dict]) -> None:
+def _uf_ytor(utdrag: dict) -> list[Polygon]:
+    """Underfördelarnas stammar i plan (32 mm breda)."""
+    ut = []
+    for u in utdrag.get("underfordelare", {}).values():
+        for f in u["stammar"].values():
+            ut.append(LineString([tuple(f["start"][:2]), tuple(f["slut"][:2])]).buffer(16.0, cap_style="flat"))
+    return ut
+
+
+def _tappstallen(v: Vy, tapp: dict, plan1: list[dict], kallare: list[dict], hinder: list[Polygon] = ()) -> None:
     """Tappställenas symboler med id, en bit från dosan i första riktningen där symbolen inte hamnar på en vägg på
-    tappställets våning: väggdosor ut från väggen, golvdosor norr, söder, öster eller väster."""
-    vaggar = {True: unary_union(polygoner(plan1, bara=VAGGAR)),
-              False: unary_union(polygoner(kallare, bara=VAGGAR + ("Hus/Grund",)))}
+    tappställets våning eller på hindren (underfördelarna): väggdosor ut från väggen, golvdosor norr, söder, öster
+    eller väster."""
+    vaggar = {True: unary_union([*polygoner(plan1, bara=VAGGAR), *hinder]),
+              False: unary_union([*polygoner(kallare, bara=VAGGAR + ("Hus/Grund",)), *hinder])}
     L = v.m(R_TAPP + 3.0)
     with v.lager("tappstallen"):
         for k, t in tapp.items():
@@ -148,7 +162,14 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
                     stigare(v, a[0], a[1], r["media"])
                 elif _lodratt(a, b) and min(a[2], b[2]) < Z_UK < max(a[2], b[2]):
                     stigare(v, a[0], a[1], r["media"], ned=True)
-    _tappstallen(v, tapp, plan1, kallare)
+    with v.lager("underfordelare"):
+        for yta in _uf_ytor(utdrag):
+            v.polygon(list(yta.exterior.coords), "#c9c2a8", "tunn")
+        for k, u in utdrag.get("underfordelare", {}).items():
+            f = next(iter(u["stammar"].values()))
+            c = ((f["start"][0] + f["slut"][0]) / 2, (f["start"][1] + f["slut"][1]) / 2)
+            v.ptext(c[0], c[1], -3.0, -2.5, f"{k} underfördelare", a="rt", sz=5.6, bg=True)
+    _tappstallen(v, tapp, plan1, kallare, _uf_ytor(utdrag))
     with v.lager("strak"):
         for k, sp in utdrag["strak"].items():
             a, b = max(zip(sp, sp[1:]), key=lambda ab: math.dist(ab[0], ab[1]))
@@ -158,7 +179,7 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
         fs = utdrag["utrustning"]["TK-FS"]["punkt"]
         v.hanvisning((fs[0] - 60.0, fs[1]), (fs[0] - 60.0 - v.m(14.0), fs[1] + v.m(16.0)),
                      "fördelarskåpet TK-FS i källaren (VS-01.2)", a="rm", sz=5.4)
-    norrpil(v, 11800.0, 9150.0, norr)
+    norrpil(v, 12300.0, 7300.0, norr)
     with hela.lager("rubrik"):
         hela.rubrik(*papper(hela, 24.0, 24.0), "Mellanbjälklaget, rör för tappvatten ingjutna i betongen", round(s_))
         hela.skalstock(*papper(hela, 250.0, 20.0), langd_m=2, steg_m=1)

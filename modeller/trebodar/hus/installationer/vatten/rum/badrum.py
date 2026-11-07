@@ -3,6 +3,9 @@ blandare vid badkarets ände mot 1A, WC:n på L9 och tvättstället i badrumsbä
 bjälklaget från stråket S i mellanbjälklaget: i väggarnas regelfack till väggdosorna (duschen, WC:n) och genom golvet
 till golvdosorna (badkarets blandare, som monteras på golvdosan, och tvättstället, i skåpet under det).
 
+Tvättmaskinen i skåpet i nischen (#51, förberedd) har en egen väggdosa på L10 i glipan bredvid maskinerna, med kallt
+från underfördelaren UF2 under badrummet, som också matar WC:n (underfordelare.py); de andra kommer från stråket S.
+
 Duschens blandare sitter i regelfacket mellan stolpen LN5_1 och regeln 1C-R01 (x 2 245–2 488), väster om
 ventilationens kanal FF3 i facket intill. WC:ns väggdosa sitter vid sidan av cisternen i regelfacket mellan L9-R02 och
 L9-R03. Golvdosorna står i golvets färdiga yta (klinkern över fallavjämningen) och dosornas höjd räknas från golvet.
@@ -14,8 +17,8 @@ from trebodar.hus import badrum as B
 from trebodar.hus.invandigt.vaggar import vaggdef
 
 from ...montering import Montering, vagg
-from ..katalog import (BADKAR, DUSCH, GOLVDOSA, ROR_I_ROR_15, ROR_I_ROR_16, ROR_I_ROR_18, TVATTSTALL, VAGGDOSA,
-                       VAGGDOSA_BLANDARE, WC)
+from ..katalog import (BADKAR, DUSCH, GOLVDOSA, ROR_I_ROR_15, ROR_I_ROR_16, ROR_I_ROR_18, TVATTMASKIN, TVATTSTALL,
+                       VAGGDOSA, VAGGDOSA_BLANDARE, WC)
 from ..punkter import Rum, Tappstalle
 
 RUM = Rum("BA", "Badrum", plan=1)
@@ -45,4 +48,6 @@ TAPPSTALLEN = [
     Tappstalle("BA-WC1", WC, VAGGDOSA, _over_golvet("L9", Y_WC_DOSA - vaggdef("L9").origo[1], Z_WC_DOSA, 1),
                ROR_I_ROR_15),
     Tappstalle("BA-TS1", TVATTSTALL, GOLVDOSA, _golv(*TS_DOSA), ROR_I_ROR_15, kallt=(0.0, 1.0, 0.0)),
+    Tappstalle("BA-TM1", TVATTMASKIN, VAGGDOSA,
+               _over_golvet("L10", B.TVATT_VATTEN[0] - vaggdef("L10").origo[0], B.TVATT_VATTEN[1], 1), ROR_I_ROR_16),
 ]
