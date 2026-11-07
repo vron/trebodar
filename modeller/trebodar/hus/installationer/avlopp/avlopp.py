@@ -51,7 +51,8 @@ def montage() -> Montage:
         m.lagg(Del(f"Vattenlås Ø{fmt(VATTENLAS)}", ror((xp, yp, zg), (xp, yp, z_botten), VATTENLAS, GODS[VATTENLAS]),
                    AVLOPPSROR), Placering(), f"AV-VL-{kod}")
     # köket: diskhons vattenlås från hons botten ned till golvet bakom lådorna, diskmaskinens i sockeln under O2
-    for kod, (_, (xp, yp)), z_topp in (("DB", KOK["AV5"], K.Z_TOPP - KB.DISKHO[2]), ("DM", KOK["AV7"], Z_DM_VATTENLAS)):
+    for kod, (_, (xp, yp)), z_topp in (("DB", KOK["AV5"], K.Z_TOPP - KB.DISKHO[2]),
+                                       ("DM", KOK["AV7"], Z_DM_VATTENLAS)):
         m.lagg(Del(f"Vattenlås Ø{fmt(VATTENLAS_KOK)}", ror((xp, yp, 0.0), (xp, yp, z_topp), VATTENLAS_KOK,
                                                           GODS[VATTENLAS_KOK]), AVLOPPSROR), Placering(), f"AV-VL-{kod}")
     return m

@@ -1,6 +1,6 @@
-"""Avloppet från badrummet (ärende #52) och köket (ärende #49): avloppspunkterna på inredningens lägen (hus/badrum.py,
-inredning/koksbank.py), badrummets ledningar under mellanbjälklaget till stammen och kökets rakt ned till grundledningen.
-Resten av avloppet, stammen Ø110 i källarväggen KL8 öster om röret P4 och grundledningarna under bottenplattan, är
+"""Avloppet från badrummet (ärende #52) och köket (ärende #49): avloppspunkterna på inredningens lägen
+(hus/badrum.py, inredning/koksbank.py), badrummets ledningar under mellanbjälklaget till stammen och kökets rakt ned
+till grundledningen. Resten av avloppet, stammen Ø110 i källarväggen KL8 öster om röret P4 och grundledningarna under bottenplattan, är
 tills vidare Onshape-modellens (installationer.py, VVS), kapad under bjälklaget, där badrummets samlingsledning
 ansluter till stammen (ärende #49: hela avloppet som egen installation).
 
@@ -122,9 +122,9 @@ def ledningar() -> dict[str, Ledning]:
 
 
 def _gren(x: float, y: float, d: float = 110.0) -> tuple[tuple[Vek, Vek], float]:
-    """Grenen Ø d under bottenplattan, vinkelrätt mot grundledningen från det lodräta röret i (x, y) till grundledningens
-    yta, med fallet FALL[d] och vattengången ANSLUTNING_OVER över grundledningens där den ansluter; den börjar sin radie
-    bakom det lodräta röret (böjen). Grenens ändar och dess mitt (z) under det lodräta röret."""
+    """Grenen Ø d under bottenplattan, vinkelrätt mot grundledningen från det lodräta röret i (x, y) till
+    grundledningens yta, med fallet FALL[d] och vattengången ANSLUTNING_OVER över grundledningens där den ansluter; den
+    börjar sin radie bakom det lodräta röret (böjen). Grenens ändar och dess mitt (z) under det lodräta röret."""
     (ax, ay), (bx, by), zg, dg = GRUNDLEDNING
     lg = math.hypot(bx - ax, by - ay)
     ux, uy = (bx - ax) / lg, (by - ay) / lg

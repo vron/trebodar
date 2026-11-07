@@ -26,8 +26,9 @@ lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06
   systemskruv Ø6 × 14,5 (661.1450.HG) i hålen LOPARENS_SKRUVAR från stommens framkant (löparen i liv med den).
 
 Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvarna ritas inte, och skruvhålen
-står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna fasta på en skiva, öppet tak för diskhon, kortare lådor för
-rören bakom) och hällskåp (den översta fronten fast, öppet tak för hällen); diskmaskinen står i ett skåps ställe.
+står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna
+fasta på en skiva, öppet tak för diskhon, kortare lådor för rören bakom) och hällskåp (den översta fronten fast, öppet
+tak för hällen); diskmaskinen står i ett skåps ställe.
 """
 from __future__ import annotations
 
