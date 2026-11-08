@@ -255,6 +255,9 @@ def main(argv: list[str] | None = None) -> None:
     pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av plattorna (AR-03, AR-04, #86)")
     pg.add_argument("atgard", choices=("ritning",))
     pg.add_argument("--ut", type=Path, default=ROT / "ritningar")
+    ps = sub.add_parser("stomme", help="konstruktionsritningen av trästommen ur bärverket (R-02, #91)")
+    ps.add_argument("atgard", choices=("ritning",))
+    ps.add_argument("--ut", type=Path, default=ROT / "ritningar")
     pw = sub.add_parser("vatten", help="tappvattnet: kontroll (med krockar mot huset), lista och ritningar")
     pw.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: utgångarna, anslutningarna, tiden till varmvatten, hastigheterna, rören som går i "
@@ -811,6 +814,13 @@ def main(argv: list[str] | None = None) -> None:
                          for g, y in ventritning.sektioner(utdrag)}
             pdf = ventritning.ritningar(utdrag, plan1, kallare, sektioner, _norr(), UT / "ventilation" / "blad", arg.ut)
             print(f"  {pdf}")
+    elif arg.kommando == "stomme":
+        from . import stomritning
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        utdrag = importlib.import_module("trebodar.hus.stomme.barverk").utdrag(rot)
+        pdf = stomritning.ritningar(utdrag, UT / "stomme" / "blad", arg.ut / f"{stomritning.SERIE} {stomritning.TITEL}.pdf")
+        print(f"  {pdf}")
     elif arg.kommando == "gjutning":
         from . import gjutning
         from .planritning import snitt

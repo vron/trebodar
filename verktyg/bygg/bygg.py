@@ -131,6 +131,9 @@ STEG = [
                                   "--projekt", f"../../{BER}/U-04/indata.toml", "--ut", f"../../{BER}/U-04"]],
          kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"], tung=True,
          manuell=True, rapport=("U-04_ljusplaner.pdf", "Ljusplaner - belysningsstyrka med all belysning tänd")),
+    # konstruktionsritningen av trästommen ur modellens bärverk, samma utdrag som K-04 (#91)
+    Steg("R-02", "verktyg/modellering", [["mod", "stomme", "ritning"]], kallor=[*MODELL, MALL],
+         utdata=["ritningar/R-02 Trästomme.pdf"]),
     ritning("R-01", "Nock- och dalbalkar", bygger_pa=["K-01", "K-03", "K-05"], kallor=["modeller/balkplattor"]),
     ritning("R-05", "Källarstomme", bygger_pa=["K-05", "K-06"]),
     ritning("R-04", "Bottenplatta", bygger_pa=["R-05", "K-06"]),

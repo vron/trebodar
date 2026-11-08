@@ -33,6 +33,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | **K-05, K-06, U-01, U-03** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | **U-04** (tungt, manuellt) | `./mod ljusplan` (renderingen i Blender) | ljusplanerna, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | R-01, R-03, R-04, R-05, R-06, AR-01, AR-02 | `ritningar.py` | ritningsserien i `ritningar/` |
+| `R-02` | `./mod stomme ritning` (modellens bärverk, samma utdrag som K-04) | R-02 i `ritningar/` |
 | `gjutning` | `./mod gjutning ritning` (installationernas data och modellens snitt) | AR-03 och AR-04 i `ritningar/` |
 | E-01, E-02, VS-01, VS-02, VS-03, VV-01, VL-01 | `./mod <installation> ritning` (installationernas data och modellens snitt) | installationsritningen i `ritningar/` |
 
