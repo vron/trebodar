@@ -272,11 +272,16 @@ def skiktets_tjocklek(kod: str, sida: int, u: float) -> float:
 
 
 def _ytterskivor() -> list[Hinder]:
-    """Ytterväggarnas skivor (utanför installationsskiktet), som de lätta väggarnas skikt slutar mot."""
+    """Ytterväggarnas skivor (utanför installationsskiktet), som de lätta väggarnas skikt slutar mot: OSB och gips,
+    i badrummet våtrumsskikten (#99: med våtrumsskiktens tjocklek överallt slutade skikten 13 mm före gipsen och
+    lämnade en springa i hörnet)."""
     ut = []
     for kod, v in S.YTTERVAGGAR.items():
         w = S.T_STOMME + FOLIE + LAKT
-        ut.append((_band(v, 0.0, v.langd, w, w + SKIVOR_VATRUM_T), 0.0, 10000.0))
+        ut.append((_band(v, 0.0, v.langd, w, w + SKIVOR_T), 0.0, 10000.0))
+        vat = _band(v, 0.0, v.langd, w, w + SKIVOR_VATRUM_T).intersection(BADRUM)
+        if not vat.is_empty:
+            ut.append((vat, 0.0, 10000.0))
     return ut
 
 
