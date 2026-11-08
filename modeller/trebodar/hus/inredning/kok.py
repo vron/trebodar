@@ -4,8 +4,8 @@ koksbank.py, med skåpen i koksskap.py).
 
 Kylen (A) och frysen (B) är integrerade vitvaror för nischer 560 breda och 1 780 respektive 880 höga (förenklade som
 lådor, 556 breda och 545 djupa med dörren), på en sockel 100 (två reglar och en bottenskiva) med ett sockelgaller 40
-mm innanför fronten, där luften till vitvarorna tas in. Över kylen ett skåp upp till öppningen och över frysen ett
-högskåp med två hyllor, av vit melamin 16. Fronterna, vitmålade 19 i liv med väggen, 3 mm från smygarna och
+mm innanför fronten, där luften till vitvarorna tas in. Kylen har en hel front från sockeln till öppningens överkant
+(#93, inget skåp ovanför); över frysen ett högskåp med två hyllor, av vit melamin 16. Fronterna, vitmålade 19 i liv med väggen, 3 mm från smygarna och
 varandra, sitter på vitvarornas dörrar och på skåpen, med ett handtag av oljad ask vid den fria kanten (ärende #78;
 kylen hängd mot gaveln, frysen mot skafferiet, så att deras handtag sitter intill varandra). Bakom vitvarorna och
 skåpen är spalten mot L4, där luften går upp till förrådet. Skafferiet (C) har en dörr av samma slag som fronterna,
@@ -78,6 +78,7 @@ def _handtag(namn: str, x0: float, x1: float, za: float, zb: float) -> Del:
                                                                zm + lang / 2), ASK, produkt="HANDTAG")
 NISCHER = {"Kyl": ("Integrerat kylskåp", 1769.0, ()),     # (vitvaran, dess höjd, hyllornas överkant i skåpet)
            "Frys": ("Integrerat frysskåp", 873.0, (1360.0, 1730.0))}
+HEL_FRONT = ("Kyl",)                                      # en hel front från sockeln till öppningens överkant (#93)
 DORR_Z = 10.0                                             # skafferidörrens underkant
 HYLLOR = (450.0, 850.0, 1250.0, 1650.0)                  # skafferiets hyllor, överkant
 HYLLA_DJUP = 300.0
@@ -102,15 +103,19 @@ def _nisch(namn: str) -> Montage:
     zs = SOCKEL + h
     m.lagg(Del(f"{vitvara} {fmt(VITVARA_B)}×{fmt(DJUP)}×{fmt(h)}",
                box(xm - VITVARA_B / 2, xm + VITVARA_B / 2, yb, yf, SOCKEL, zs), VITVARA, produkt=kod), Placering(), kod)
-    # skåpet ovanför: sidor, botten, tak och hyllor
+    hel = namn in HEL_FRONT
+    # skåpet ovanför: sidor, botten, tak och hyllor (inte bakom en hel front)
     skap = [("S1", box(x0, x0 + SKAP_T, yb, yf, zs, Z_TOPP)), ("S2", box(x1 - SKAP_T, x1, yb, yf, zs, Z_TOPP)),
             ("B", box(x0 + SKAP_T, x1 - SKAP_T, yb, yf, zs, zs + SKAP_T)),
             ("T", box(x0 + SKAP_T, x1 - SKAP_T, yb, yf, Z_TOPP - SKAP_T, Z_TOPP))]
     skap += [(f"H{i}", box(x0 + SKAP_T, x1 - SKAP_T, yb, yf - 20.0, z - SKAP_T, z)) for i, z in enumerate(hyllor, 1)]
-    for k, f in skap:
+    for k, f in ([] if hel else skap):
         m.lagg(Del(f"Skåpstomme {fmt(SKAP_T)}", f, SKAPSTOMME), Placering(), f"{kod}-SKAP-{k}")
-    # fronterna på vitvarans dörr och på skåpet; skåpets dörr på gångjärn i skåpsidan
-    for k, (za, zb) in (("1", (SOCKEL + SPEL, zs - SPEL)), ("2", (zs, Z_TOPP - SPEL))):
+    # fronterna på vitvarans dörr och på skåpet; skåpets dörr på gångjärn i skåpsidan; en hel front på vitvarans
+    # dörr upp till öppningens överkant (#93)
+    fronter = (("1", (SOCKEL + SPEL, Z_TOPP - SPEL)),) if hel else (("1", (SOCKEL + SPEL, zs - SPEL)),
+                                                                    ("2", (zs, Z_TOPP - SPEL)))
+    for k, (za, zb) in fronter:
         hal: list[Form] = []
         if k == "2":
             fast = x0 + SKAP_T if GANGJARN[namn] < 0 else x1 - SKAP_T

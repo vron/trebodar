@@ -195,8 +195,8 @@ SKAPSTOMME = Material("Skåpstomme", "Skåpstommar och hyllor, vit melamin (kök
                       cad="#e4e0ee")
 VITVARA = Material("Vitvara", "Integrerade kyl- och frysskåp (förenklade som lådor)", 300, "#f2f2f0", 0.35,
                    cad="#9fc2dc")
-SOCKELGALLER = Material("Sockelgaller", "Sockelgaller för vitvarornas ventilation, svartlackerad aluminium", 2700,
-                        "#1d1d1e", 0.55, cad="#34363a")
+SOCKELGALLER = Material("Sockelgaller", "Sockelgaller för vitvarornas ventilation, vitlackerad aluminium (#93)", 2700,
+                        "#e9e7e1", 0.55, cad="#d9d7d1")
 # köksskåpen (hus/inredning/koksskap.py): stommar 20 mm av björkplywood, lådor av massiv björk 14 mm med botten av
 # björkplywood 4 mm
 BJORKPLYWOOD = Material("Björkplywood", "Björkplywood, klarlackad (skåpstommar, lådbottnar)", 680, "#e4d6ba",
