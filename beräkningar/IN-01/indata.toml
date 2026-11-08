@@ -76,6 +76,16 @@ ansvarig = "bygg"
 fas      = "mellanbjalklag"
 dokument = "K-05, R-05"
 
+[[produkt]]
+kod      = "BETONGBULT-SYLL"
+grupp    = "Stomme"
+namn     = "Betongbultar genom syllarna"
+status   = "att välja"
+ansvarig = "bygg"
+fas      = "stomme"
+arende   = [88]
+anm      = "M12 (Ø12) genom syllen 45 mm, minst 90 mm i betongen, med bricka och mutter; ETA för sprucken betong och kantavstånd ned till 45 mm (ytterväggarnas syll står 30 mm utanför plattans kant). Högst 300 mm från syllens ändar och 1 200 mm isär, i facken. Borras i det gröna på AR-03.4 (minst 30 mm från rören)."
+
 # ------------------------------------------------------------------ fönster och dörrar
 
 [[produkt]]

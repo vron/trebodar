@@ -63,6 +63,11 @@ TILLATNA_OVERLAPP = {
     frozenset(("Stålband",)): "stålbanden korsar varandra i kryssets mitt",
     frozenset(("Stålband", "Träfiberisolering")): "isoleringen i facken trycks undan vid de infällda stålbanden",
     frozenset(("Stålband", "Mineralull")): "isoleringen i facken trycks undan vid de infällda stålbanden",
+    frozenset(("Betongbult", "C24")): "betongbultarna går genom syllarna (#88)",
+    frozenset(("Betongbult", "Träfiberisolering")): "isoleringen i facket skärs ur kring bultens mutter (#88)",
+    frozenset(("Betongbult", "Mineralull")): "isoleringen i facket skärs ur kring bultens mutter (#88)",
+    frozenset(("Betongbult", "Betong")): "betongbultarna i mellanbjälklaget (#88)",
+    frozenset(("Betongbult", "Armering")): "bultens hål borras fritt från järnen (järnsökare, bulten flyttas i facket)",
     # plåtarna runt fönstren och fönsterdörrarna (VELFAC) går från karmen upp och ut bakom läkten (läkten skruvas genom dem)
     frozenset(("Anslutningsplåt RAL 3009", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",
     frozenset(("Anslutningsplåt RAL 7012", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",

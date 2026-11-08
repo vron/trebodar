@@ -709,6 +709,16 @@ def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
     return punkter
 
 
+def _bultar(v: Vy, bultar: Sequence[tuple[str, float, float]]) -> list[Punkt]:
+    """Stommens betongbultar genom syllarna (#88): de borras i det gröna efter gjutningen."""
+    punkter: list[Punkt] = []
+    with v.lager("golvvarme"):
+        for kod, x, y in bultar:
+            v.cirkel(x, y, R_PUNKT * 0.8, fyll="svart", stil=None)
+            punkter.append(("", f"betongbult {kod}", x, y, "M12"))
+    return punkter
+
+
 def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], ovan: object, under: object,
           vaggarna: str, referenser: tuple[str, tuple[list[Kant], list[Kant]], object],
           rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
@@ -764,11 +774,12 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[str, list[dict]],
               trapphal: list[list[float]], plattor: dict[str, list[dict]], snitt_: dict[str, list[dict]],
-              norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict, skap: dict
-              ) -> tuple[list[Path], list[str], list[str]]:
+              norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict, skap: dict,
+              bultar: Sequence[tuple[str, float, float]] = ()) -> tuple[list[Path], list[str], list[str]]:
     """AR-03 (mellanbjälklaget: elen, tappvattnet, avloppet, golvvärmen, hålen och ingjutningsgodset) och AR-04
     (bottenplattan: golvvärmen, avloppet, hålen och ingjutningsgodset), och kontrollen av deras punkter mot modellen
-    (fel och anmärkningar). snitt_: mellanbjälklaget, plan 1, källaren och bottenplattan."""
+    (fel och anmärkningar). snitt_: mellanbjälklaget, plan 1, källaren och bottenplattan; bultar: stommens
+    betongbultar genom syllarna (vägg, x, y; #88), som borras i det gröna på AR-03.4."""
     mb, plan1, kallare, bp = (snitt_[k] for k in ("mb", "plan1", "kallare", "bp"))
     vaggar_1 = unary_union(polygoner(plan1, bara=VAGGAR))
     vaggar_0 = unary_union(polygoner(kallare, bara=("Hus/Grund", "Hus/Invändigt")))
@@ -827,9 +838,11 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "Avloppets rör genom plattan gjuts in eller sparas ur (järnen läggs om runt hålen); golvbrunnens kropp "
             "gjuts in med flänsen i plattans överkant. Diskmaskinens pumpade avlopp gjuts in i tappvattnets nivå.",
             norr),
-        gor(nr[3], m, "golvvärme", "G", mb, *m_vagg, lambda v: _golvvarme(v, golvvarme, fritt_1, MB, 1),
-            [("gv", "golvvärmens slinga och tillopp (z −68)")],
-            "Golvvärmens rör läggs på underkantsnätets järn i slingorna. " + borra.format("plan 1:s"), norr),
+        gor(nr[3], m, "golvvärme", "G", mb, *m_vagg,
+            lambda v: _golvvarme(v, golvvarme, fritt_1, MB, 1) + _bultar(v, bultar),
+            [("gv", "golvvärmens slinga och tillopp (z −68)"), ("normal", "betongbult genom syllen (●)")],
+            "Golvvärmens rör läggs på underkantsnätets järn i slingorna. " + borra.format("plan 1:s") +
+            " Stommens betongbultar genom syllarna (#88) borras efter gjutningen där punkterna visar.", norr),
         gor(nr[4], m, "hål och ursparingar", "H", mb, *m_vagg, lambda v: _hal(v, hal["MB"], trapphal),
             [("normal", "hål eller ursparing")],
             "Alla genomföringar i plattan: hål som sparas ur eller hylsor som gjuts in, med måttet (håltagningen), "
@@ -843,6 +856,9 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
     kompilera(bladen, arbete / "AR-03", pdf[-1])
     fel, anm = kontroll(betong_mb, hal["MB"], plattor["MB"],
                         {k: v for k, v in punkter.items() if k.startswith("AR-03")})
+    rorzon: Any = _ror_zon(el, vatten, avlopp, golvvarme, MB, 1)
+    fel += [f"betongbulten genom {kod}:s syll ({x:.0f}, {y:.0f}) står under {FRIZON:g} mm från ett rör i plattan"
+            for kod, x, y in bultar if rorzon.contains(Point(x, y).buffer(5.0))]
     nr = [f"{SERIE_BP.split()[0]}.{i}" for i in range(1, 5)]
     b = "Bottenplattan"
     bladen = [

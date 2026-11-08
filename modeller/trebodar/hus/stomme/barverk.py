@@ -47,7 +47,8 @@ def _delar(stomme: Montage, plac: Placering) -> list[dict[str, Any]]:
         for i in m:
             q = p @ i.placering
             if isinstance(i.barn, Montage):
-                ga(i.barn, q, GRUPPER.get(i.barn.namn, grupp), i.barn.kod or element)
+                if i.barn.namn != "Förankring":          # bultarna genom syllarna ingår inte i K-04:s balkmodell
+                    ga(i.barn, q, GRUPPER.get(i.barn.namn, grupp), i.barn.kod or element)
                 continue
             d = i.barn
             f, q = _form(d.form, q)

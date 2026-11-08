@@ -877,7 +877,8 @@ def main(argv: list[str] | None = None) -> None:
                                   "text": f"{b:g}×{d:g}×{pel.FOT_T:g}"})
         pdf, fel, anm = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
                                            [list(p) for p in skel.TRAPPHAL], plattor, snitt_, _norr(),
-                                           UT / "gjutning", arg.ut, jarn, central, skap)
+                                           UT / "gjutning", arg.ut, jarn, central, skap,
+                                           imp("trebodar.hus.stomme.forankring").bultar())
         for p in pdf:
             print(f"  {p.relative_to(ROT)}")
         for t in anm:
