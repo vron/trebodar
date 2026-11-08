@@ -7,8 +7,8 @@ bakom gipsen (fräst spår): i V3 och V19 under ventilationens kanal FF3-K2, som
 from __future__ import annotations
 
 from ...montering import PLAN, Montering, Vek, kallarvagg
-from ...teknikrum import GC_MATT, GRUPPCENTRAL, Z_GC_TOPP
-from ..katalog import ANSLUTNING_3FAS, CENTRAL, FXP16, FXP20, UTTAG_2
+from ...teknikrum import DRIVDONSSKAP as LC, GC_MATT, GRUPPCENTRAL, Z_GC_TOPP
+from ..katalog import ANSLUTNING_3FAS, CENTRAL, DRIVDONSSKAP, FXP16, FXP20, UTTAG_2
 from ..punkter import Apparat, Dosa, Ror, Rum
 
 RUM = Rum("TK", "Teknikrum", plan=0)
@@ -25,6 +25,8 @@ Z_UTTAG = 1100.0                             # uttagen i teknikrummet och tvätt
 X_UTTAG = (3200.0, 3450.0, 3700.0)          # teknikrummets uttag på V3, mellan centralen och vattenmätaren (x 3 850)
 PUNKTER = [
     Dosa("GC", CENTRAL, Montering(_TOPP, (0.0, 0.0, 1.0), "central", GRUPPCENTRAL.id)),
+    # drivdonsskåpet för källarens ljuslinjer på KL8 mitt emot centralen (rören i rum/kallare.py)
+    Dosa("TK-LC", DRIVDONSSKAP, Montering(LC.anslutningar["topp"], (0.0, 0.0, 1.0), "central", LC.id)),
     Apparat("TK-D1", ANSLUTNING_3FAS, _VP),
     *[Apparat(f"TK-U{i + 1}", UTTAG_2, kallarvagg("V3", x, Z_UTTAG, -1)) for i, x in enumerate(X_UTTAG)],
 ]

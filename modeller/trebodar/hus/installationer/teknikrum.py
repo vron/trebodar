@@ -13,6 +13,9 @@ YTA är den del av källaren som pekats ut för utrustningen.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
   väg till huset är inte bestämd.
 - Elens gruppcentral på V3 väster om vattenmätaren (el/grupper.py), rören ur dess ovansida upp i mellanbjälklaget.
+- Drivdonsskåpet för källarens ljuslinjer (TK-LC, el/rum/kallare.py) på KL8:s norra sida: ett plåtskåp (ej valt) med
+  ett 24 V-drivdon per tändgrupp, åtkomligt framifrån; rören (den dimrade fasen från dimrarna och 24 V till
+  ljuslinjerna) ur dess ovansida i en rad upp i mellanbjälklaget.
 
 Utrustningen kontrolleras i modellens krockkontroll (står på golvet och hänger på väggarna). Lägen i K-05:s
 koordinater, z från plan 1:s golv (källarens golv z −2 250).
@@ -23,8 +26,11 @@ from dataclasses import dataclass
 
 from modellering import Del, Montage, Placering, box
 
-from trebodar.material import PLATSKAP, VVS_APPARAT
+from trebodar.hus.invandigt.kallare import GIPS_T
+from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as KL_VAGGAR
+from trebodar.material import DRIVDON as DRIVDON_MAT, PLATSKAP, VVS_APPARAT
 
+from .el.katalog import FDIM_24V_60W
 from .montering import PLAN, Montering, Vek, golv, kallarvagg
 
 _V19, _V3 = kallarvagg("V19", 0.0, 0.0, -1).punkt[0], kallarvagg("V3", 0.0, 0.0, -1).punkt[1]
@@ -81,7 +87,22 @@ _GC = kallarvagg("V3", X_GC, Z_GC_TOPP - GC_MATT[2] / 2 - PLAN[0], -1)
 GRUPPCENTRAL = Utrustning("TK-GC", "Gruppcentral, fyra rader (72 moduler), utanpåliggande (ej vald)", _GC,
                           GC_MATT, {"topp": (X_GC, _GC.punkt[1] - GC_MATT[1] / 2, Z_GC_TOPP)}, produkt="GRUPPCENTRAL")
 
-UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE, GRUPPCENTRAL)}
+# drivdonsskåpet för källarens ljuslinjer (el/rum/kallare.py, #51) på KL8:s norra sida mitt emot centralen, väster om
+# avloppet AV7 i KL8 och söder om ventilationens kanal FF3-K2 och dess don: drivdonen 24 V (fasdimbara, ett per
+# tändgrupp och kanal), de dimrade faserna från dimrarna in och 24 V ut till ljuslinjerna, rören rakt upp ur skåpets
+# ovansida in i bjälklaget; åtkomligt framifrån
+_KL8 = KL_VAGGAR["KL8"]
+X_LC = 2730.0
+LC_MATT = (500.0, 130.0, 600.0)                 # bredd, djup, höjd
+Z_LC_TOPP = -300.0
+_LC = Montering((X_LC, _KL8.c + _KL8.h + GIPS_T, Z_LC_TOPP - LC_MATT[2] / 2), (0.0, 1.0, 0.0), "vagg", "KL8")
+DRIVDONSSKAP = Utrustning("TK-LC", "Drivdonsskåp för ljuslinjerna, plåtskåp utanpåliggande (ej valt)", _LC, LC_MATT,
+                          {"topp": (X_LC, _LC.punkt[1] + LC_MATT[1] / 2, Z_LC_TOPP)}, produkt="DRIVDONSSKAP")
+# drivdonen i skåpet, mot dess baksida (längd, bredd, höjd ur katalogen): x längs väggen och z, i två kolumner
+DRIVDON_I_SKAPET = ((-120.0, -95.0), (120.0, -95.0), (-120.0, -205.0), (120.0, -205.0), (-120.0, -315.0))
+DRIVDON = FDIM_24V_60W
+
+UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE, GRUPPCENTRAL, DRIVDONSSKAP)}
 
 
 def _placering(u: Utrustning) -> Placering:
@@ -105,16 +126,38 @@ def _skap(u: Utrustning) -> Montage:
     return m
 
 
+def _drivdonsskap(u: Utrustning) -> Montage:
+    """Drivdonsskåpet: plåtlåda (baksida, dörr, sidor, tak och botten) med drivdonen mot baksidan."""
+    b, d, h = u.matt
+    m = Montage(u.id, beskrivning=u.namn, produkt=u.produkt or None)
+    for namn, form in (("baksida", box(-b / 2, b / 2, 0.0, PLAT, -h / 2, h / 2)),
+                       ("dörr", box(-b / 2, b / 2, d - PLAT, d, -h / 2, h / 2)),
+                       ("sida 1", box(-b / 2, -b / 2 + PLAT, PLAT, d - PLAT, -h / 2, h / 2)),
+                       ("sida 2", box(b / 2 - PLAT, b / 2, PLAT, d - PLAT, -h / 2, h / 2)),
+                       ("tak", box(-b / 2 + PLAT, b / 2 - PLAT, PLAT, d - PLAT, h / 2 - PLAT, h / 2)),
+                       ("botten", box(-b / 2 + PLAT, b / 2 - PLAT, PLAT, d - PLAT, -h / 2, -h / 2 + PLAT))):
+        m.lagg(Del(f"Drivdonsskåp, {namn}", form, PLATSKAP), _placering(u), f"{u.id}-{namn.replace(' ', '')}")
+    lg, br, hd = DRIVDON.matt
+    for i, (x, z) in enumerate(DRIVDON_I_SKAPET):
+        m.lagg(Del(f"{DRIVDON.tillverkare} {DRIVDON.namn} ({DRIVDON.artikel})",
+                   box(x - lg / 2, x + lg / 2, PLAT, PLAT + hd, h / 2 + z - br / 2, h / 2 + z + br / 2), DRIVDON_MAT,
+                   produkt=DRIVDON.produkt or None), _placering(u), f"{u.id}-DD{i + 1}")
+    return m
+
+
 def montage() -> Montage:
-    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet, vattenmätaren och elcentralen på väggarna."""
-    m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare, vattenmätare och "
-                                         "elcentral")
+    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet, vattenmätaren, elcentralen och drivdonsskåpet
+    på väggarna."""
+    m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare, vattenmätare, "
+                                         "elcentral och drivdonen för källarens ljuslinjer")
     for u in UTRUSTNING.values():
         b, d, h = u.matt
         if h <= 0:
             continue
         if u is FORDELARSKAP:
             m.lagg(_skap(u))
+        elif u is DRIVDONSSKAP:
+            m.lagg(_drivdonsskap(u))
         elif u.lage.yta == "golv":
             m.lagg(Del(u.namn, box(-b / 2, b / 2, -d / 2, d / 2, 0.0, h), VVS_APPARAT, produkt=u.produkt or None),
                    _placering(u), u.id)

@@ -11,7 +11,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
+from shapely import box as lada_yta
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
+from shapely.prepared import prep
 
 from .planritning import (MINSTA_HAL, VAGGAR, Blad, Vy, blad, figur, kompilera, norrpil, origo, papper, plan,
                           polygoner, rita_ytor, sv, svm, vy)
@@ -69,11 +72,51 @@ def symbol(v: Vy, slag: str, X: float, Y: float, kanaler: int = 1) -> None:
     elif slag == "uttag":
         v.cirkel(X, Y, R_APPARAT, fyll="vit", stil="normal")
         v.linje([(X - v.m(1.5), Y), (X + v.m(1.5), Y)], "normal")
+    elif slag == "drivdonsskap":
+        b, h = v.m(1.6), v.m(0.9)
+        v.rekt(X - b, Y - h, X + b, Y + h, fyll="vit", stil="normal")
+        v.linje([(X - b, Y - h), (X + b, Y + h)], "tunn")
+        v.linje([(X - b, Y + h), (X + b, Y - h)], "tunn")
+    elif slag == "linje":                             # teckenförklaringens prov (ljuslinjerna ritas med linjesymbol)
+        linjesymbol(v, (X - v.m(3.0), Y), (X + v.m(3.0), Y), v.m(0.8), [(X - v.m(2.6), Y)])
     else:
         s = v.m(0.75)
         v.rekt(X - s, Y - s, X + s, Y + s, fyll="vit", stil="normal")
         if slag == "ingjutningsdosa":
             v.linje([(X - s, Y - s), (X + s, Y + s)], "tunn")
+
+
+def linjesymbol(v: Vy, a: Punkt, b: Punkt, bredd: float, rorandar: list[Punkt]) -> None:
+    """Ljuslinjen i sin längd: profilen (a–b, bredd i modellmått, minst 0,8 mm på papperet) med den lysande linjen i
+    mitten, och rörändarna i taket (●)."""
+    d = np.subtract(b, a)
+    lg = float(np.hypot(*d))
+    if lg < 1e-6:
+        return
+    t = d / lg
+    n = np.array([-t[1], t[0]]) * max(bredd, v.m(1.4)) / 2
+    p0, p1 = np.asarray(a, float), np.asarray(b, float)
+    v.polygon([tuple(p0 + n), tuple(p1 + n), tuple(p1 - n), tuple(p0 - n)], fyll="vit", stil="tunn")
+    v.linje([tuple(p0 + t * v.m(0.7)), tuple(p1 - t * v.m(0.7))], "normal")
+    for q in rorandar:
+        v.cirkel(q[0], q[1], 0.38, fyll="svart", stil=None)
+
+
+def _linjen(p: dict, t: dict) -> tuple[Punkt, Punkt, float, list[Punkt]]:
+    """Ljuslinjens profil i plan (ändarna), dess bredd och rörändarna."""
+    lj, tl = p["linje"], t["linje"]
+    u = np.array(lj["langs"][:2])
+    m = np.array(p["punkt"][:2])
+    a, b = m - u * tl["langd"] / 2, m + u * tl["langd"] / 2
+    return ((float(a[0]), float(a[1])), (float(b[0]), float(b[1])), float(tl["bredd"]),
+            [tuple(lj["ror_in"][:2]), tuple(lj["ror_ut"][:2])])
+
+
+def _innehall(r: dict) -> str:
+    """Vad röret har i sig: gruppens ledare (230 V), den dimrade fasen till drivdonen eller 24 V till ljuslinjerna."""
+    if r.get("slag") == "24 V":
+        return f"24 V, 2 × {sv(r['ledare'], 1)} mm²" if r.get("ledare") else "24 V"
+    return "230 V dimrad" if r.get("slag") == "230 V dimrad" else "230 V"
 
 
 def _genomforing(v: Vy, X: float, Y: float) -> None:
@@ -190,6 +233,8 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
     "uttag": (lambda v: symbol(v, "uttag", 0.0, 0.0), "vägguttag"),
     "kopplingsdosa": (lambda v: symbol(v, "kopplingsdosa", 0.0, 0.0), "kopplingsdosa"),
     "panel": (lambda v: symbol(v, "panel", 0.0, 0.0), "LED-panel utanpå taket (ansluten i en ingjuten dosa ovanför)"),
+    "linje": (lambda v: symbol(v, "linje", 0.0, 0.0), "ljuslinje i ask utanpå taket, 24 V; ●: rörändan i taket"),
+    "drivdonsskap": (lambda v: symbol(v, "drivdonsskap", 0.0, 0.0), "drivdonsskåp (drivdonen 24 V, fasdimbara)"),
     "central": (lambda v: symbol(v, "central", 0.0, 0.0), "gruppcentralen"),
     "ingjutningsdosa": (lambda v: symbol(v, "ingjutningsdosa", 0.0, 0.0), "ingjuten dosa i källarens tak"),
 }
@@ -197,16 +242,20 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
 
 class _Etiketter:
     """Etiketternas lägen: provar lägen runt punkten tills etiketten inte täcker en symbol eller en tidigare
-    etikett (lådor i modellmått, textens storlek uppskattad ur antalet tecken)."""
+    etikett (lådor i modellmått, textens storlek uppskattad ur antalet tecken); med hinder (planens fyllda ytor:
+    väggarna, betongen, trappan) undviker de etiketter som anger det också dem."""
 
-    def __init__(self, v: Vy):
+    def __init__(self, v: Vy, hinder: BaseGeometry | None = None):
         self.v = v
         self.lador: list[tuple[float, float, float, float]] = []
+        self.hinder = hinder
+        self._hinder = prep(hinder) if hinder is not None else None
 
     def symbol(self, X: float, Y: float, r: float) -> None:
         self.lador.append((X - self.v.m(r), Y - self.v.m(r), X + self.v.m(r), Y + self.v.m(r)))
 
-    def satt(self, X: float, Y: float, txt: str, lagen: list[tuple[float, float, str]], **kw: object) -> None:
+    def satt(self, X: float, Y: float, txt: str, lagen: list[tuple[float, float, str]], undvik: bool = False,
+             **kw: object) -> None:
         rader = txt.split("\n")
         w = self.v.m(max(len(r) for r in rader) * SZ_ETIKETT * 0.19)
         h = self.v.m(len(rader) * SZ_ETIKETT * 0.43)
@@ -218,6 +267,9 @@ class _Etiketter:
                 lada = (x0, y0, x0 + w, y0 + h)
                 tackt = sum(max(0.0, min(lada[2], b[2]) - max(lada[0], b[0])) * max(0.0, min(lada[3], b[3]) - max(lada[1], b[1]))
                             for b in self.lador)
+                if (undvik and self.hinder is not None and self._hinder is not None
+                        and self._hinder.intersects(yta := lada_yta(*lada))):
+                    tackt += self.hinder.intersection(yta).area
                 if tackt < minst:                         # det första fria läget, annars det som täcker minst
                     val, minst = (du, dv, a, k), tackt
                 if tackt == 0.0:
@@ -274,6 +326,8 @@ def _ritlagen(v: Vy, punkter: dict[str, dict], grupper: list[list[str]]) -> dict
 
 
 def _typnamn(t: dict) -> str:
+    if "linje" in t:
+        return f"Ljuslinje i ask {svm(round(t['linje']['langd']))} mm, COB-LED 24 V (egen tillverkning)"
     lampa = f"; {t['pendel']['ljuskalla']}" if "pendel" in t else ""
     return f"{t['tillverkare']} {t['namn']}, art. {t['artikel']}{lampa}"
 
@@ -290,7 +344,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
     källaren i väggarna; rören i bjälklaget på bjälklagets ritning, bjalklaget; plan 1:s apparater, dosor och rör i
     förteckningen, forteckningen)."""
     v = vy(SKALA, PLAN1, 24.0, 27.0)
-    plan(v, delar)
+    ytor = plan(v, delar)
     punkter = _plan1(utdrag, plan_)
     kallare = plan_ == 0
 
@@ -304,6 +358,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
     gc = utdrag["punkter"].get("GC") if kallare else None              # gruppcentralen, ritas i källaren
     vid_centralen: list[str] = []
     rortexter: list[tuple[Punkt, Punkt, str]] = []                  # ritas efter etiketterna, där de får plats
+    fria: list[tuple[float, float, list[str]]] = []                  # rören upp (ned) i bjälklaget utan punkt intill
     with v.lager("ror"):
         for k, r in utdrag["ror"].items():
             if r["fran"] not in punkter and r["till"] not in punkter:
@@ -322,12 +377,24 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
                     if gc is not None and math.dist(gc["punkt"][:2], a[:2]) < 400.0:
                         vid_centralen.append(k)                            # ur centralens ovansida
                         continue
+                    vid_skap = [q for q in (r["fran"], r["till"]) if q in punkter
+                                and typer[punkter[q]["typ"]]["symbol"] == "drivdonsskap"
+                                and math.dist(punkter[q]["punkt"][:2], a[:2]) < 400.0]
+                    if vid_skap:                                         # ur drivdonsskåpets ovansida
+                        extra[vid_skap[0]].append(k)
+                        continue
                     nara = [q for q, p in punkter.items() if math.dist(p["punkt"][:2], a[:2]) < v.m(3)]
                     if nara:
                         extra[nara[0]].append(k)
-                    else:
-                        _genomforing(v, a[0], a[1])
-                        v.ptext(a[0], a[1], 1.2, -1.2, f"{k} {riktning}", a="lt", sz=5.0, col="gra")
+                    else:                                    # rören som går upp intill varandra får en etikett
+                        intill = next((q for q in fria if math.dist(q[:2], a[:2]) < v.m(1.5)), None)
+                        if intill is None:
+                            fria.append((a[0], a[1], [k]))
+                        elif k not in intill[2]:
+                            intill[2].append(k)
+        for x, y, ks in fria:
+            _genomforing(v, x, y)
+            v.ptext(x, y, 1.2, -1.2, f"{', '.join(ks)} {riktning}", a="lt", sz=5.0, col="gra")
     with v.lager("styrning"):
         for k, p in punkter.items():
             for g in p.get("styr", []):
@@ -335,12 +402,23 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
                     pts = _bage(v, rit[k], tuple(utdrag["punkter"][lid]["punkt"][:2]), R_APPARAT, R_LAMPA)
                     if len(pts) > 1:
                         v.linje(pts, f"styr{_grupp(utdrag, g)}")
+    skap = [k for k, p in punkter.items() if typer[p["typ"]]["symbol"] == "drivdonsskap"]
     with v.lager("punkter"):
-        etiketter = _Etiketter(v)
+        etiketter = _Etiketter(v, unary_union([u for u, fyll, _ in ytor if fyll is not None]))
         for k, p in punkter.items():
             t = typer[p["typ"]]
             X, Y = rit[k]
-            if p["slag"] == "lampa":
+            if "linje" in p:                                  # ljuslinjen i sin längd, med rörändarna
+                a, b, br, rorandar = _linjen(p, t)
+                anslutna = [q for q, ut in zip(rorandar, (False, True))
+                            if any((r["till"] == k and not ut) or (r["fran"] == k and ut)
+                                   for r in utdrag["ror"].values())]
+                linjesymbol(v, a, b, br, anslutna)
+                lg = math.dist(a, b)
+                for i in range(int(lg // v.m(2.0)) + 1):
+                    f = i * v.m(2.0) / lg if lg else 0.0
+                    etiketter.symbol(a[0] + f * (b[0] - a[0]), a[1] + f * (b[1] - a[1]), 1.0)
+            elif p["slag"] == "lampa":
                 _pil(v, X, Y, p["riktning"])
                 symbol(v, t["symbol"], X, Y)
                 etiketter.symbol(X, Y, R_LAMPA + 0.6)
@@ -353,7 +431,8 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             etiketter.symbol(gx, gy, R_APPARAT + 0.6)
         for k, p in punkter.items():
             if p["slag"] == "lampa":
-                etiketter.satt(*rit[k], f"{k}\n{p['tand']}", LAGEN_LAMPA, col=f"tand{_grupp(utdrag, p['tand'])}")
+                etiketter.satt(*rit[k], f"{k}\n{p['tand']}", LAGEN_LAMPA, undvik=True, bg=True,
+                               col=f"tand{_grupp(utdrag, p['tand'])}")
         for g in grupper:
             p = punkter[g[0]]
             hojd = {round(punkter[q]["over_golv"]) for q in g if punkter[q]["yta"] == "vagg"}
@@ -364,6 +443,9 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             etiketter.satt(X, Y, "\n".join(text), LAGEN_APPARAT, bg=True)
         if gc is not None:
             etiketter.satt(gx, gy, "\n".join(["GC central", *_i_bjalklaget(sorted(set(vid_centralen)), "upp")]),
+                           LAGEN_APPARAT, bg=True)
+        for k in skap:                                        # drivdonsskåpet: rören upp ur dess ovansida
+            etiketter.satt(*rit[k], "\n".join([f"{k} drivdonsskåp", *_i_bjalklaget(sorted(set(extra[k])), "upp")]),
                            LAGEN_APPARAT, bg=True)
     with v.lager("rortext"):
         for a, b, txt in rortexter:
@@ -381,8 +463,23 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
             antal[p["typ"]] = antal.get(p["typ"], 0) + 1
     armaturer = [[_typnamn(typer[kod]), str(n), sv(typer[kod]["ljusflode"]), sv(typer[kod]["effekt"]),
                   sv(typer[kod]["fargtemperatur"]), sv(typer[kod]["ra"]),
-                  f"{sv(typer[kod]['stralvinkel'])}°" if typer[kod]["stralvinkel"] else "–",
-                  f"ø{sv(typer[kod]['hal_d'])}" if typer[kod]["hal_d"] else "–"] for kod, n in antal.items()]
+                  f"{sv(typer[kod]['stralvinkel'])}°" if typer[kod]["stralvinkel"] and "linje" not in typer[kod]
+                  else "–", f"ø{sv(typer[kod]['hal_d'])}" if typer[kod]["hal_d"] else "–"] for kod, n in antal.items()]
+    kretsar = [k for k in utdrag.get("kretsar", []) if any(q in punkter for q in k["lampor"])]
+    dd = utdrag.get("drivdon", {})
+    kretstabell: list[dict] = ([
+        dict(typ="rubrik", text="Drivdon och 24 V-kretsar"),
+        dict(typ="lista", sz=6.4, rader=[
+            f"Ett drivdon per krets i drivdonsskåpet i teknikrummet: {dd['tillverkare']} {dd['namn']} "
+            f"({dd['artikel']}), {sv(dd['spanning'])} V, {sv(dd['minsta'])}–{sv(dd['storsta'])} W, fasdimbart "
+            f"(bakkant). Kablarna 24 V i egna rör, två ledare; spänningsfallet till den sista ljuslinjen."
+            + (" Dimmern k2: den andra dimmern i en dubbelram." if any(k["kanal"] for k in kretsar) else "")]),
+        dict(typ="tabell", kolumner=["Krets", "Tändgrupp", "Dimmer", "Ljuslinjer", "W", "mm²", "m", "ΔU %"],
+             bredd=(0.5, 0.65, 0.65, 1.1, 0.4, 0.4, 0.4, 0.45), just=["l", "l", "l", "l", "r", "r", "r", "r"], sz=6.4,
+             rader=[[k["id"], k["tand"], k["dimmer"] + (f" k{k['kanal'] + 1}" if k["kanal"] else ""),
+                     ", ".join(k["lampor"]), sv(k["last"], 1), sv(k["area"], 1), sv(k["kabel"], 1),
+                     sv(k["fall_max"], 1)] for k in kretsar]),
+    ] if kretsar and dd else [])
     tandgrupper = [g for g, tg in utdrag["tandgrupper"].items() if any(lid in punkter for lid in tg["lampor"])]
     block: list[dict] = [dict(**TABELLER, innehall=[
         dict(typ="rubrik", text="Armaturer"),
@@ -394,6 +491,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
                  text=f"{g} {utdrag['tandgrupper'][g]['namn']}: {', '.join(utdrag['tandgrupper'][g]['lampor'])}, "
                       f"{'dimbar' if utdrag['tandgrupper'][g]['dimbar'] else 'ej dimbar'}, från "
                       f"{', '.join(utdrag['tandgrupper'][g]['styrs_av'])}") for g in tandgrupper]),
+        *kretstabell,
     ])]
     slag = {typer[p["typ"]]["symbol"] for p in punkter.values()} | ({"central"} if gc is not None else set())
     legend: list[Rad] = [(_LEGEND[s][0], _LEGEND[s][1]) for s in _LEGEND if s in slag]
@@ -403,15 +501,17 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         "Elinstallationen i källaren ur modellen (modeller/trebodar/hus/installationer/el, rum/kallare.py och "
         "rum/teknikrum.py): armaturer, apparater, dosor, tändgrupper och rör. Lägena följer husets geometri; "
         "ritningen ritas med ./mod el ritning.",
-        "Panelerna och spotarna sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. Rören till dem "
-        "och mellan rummen är ingjutna i mellanbjälklaget (" + bjalklaget + "): ur brytarnas och dimrarnas dosor går "
-        "de rakt upp i väggen in i bjälklaget. Rören som ritas här går i KL-väggarnas regelfack och i källarväggarnas "
-        "cellplast bakom gipsen, i rummen norr om V4–V6 strax under taket till den mellersta och den norra raden "
-        "spotar.",
+        "Arbetsrummens paneler sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. De trevliga "
+        "rummen (trapphallen, tvättstugan, rummen norr om V4–V6 och rummet söder om trapphallen) har ljuslinjer i ask "
+        "utanpå taket, utan dosor: 24 V i egna ingjutna rör från drivdonen i drivdonsskåpet TK-LC, som slutar i taket "
+        "under profilens ände (rörändan tätas vid gjutningen och täcks av armaturen).",
+        "Rören i bjälklaget (" + bjalklaget + "): ur brytarnas och dimrarnas dosor går de rakt upp i väggen in i "
+        "bjälklaget. Rören som ritas här går i KL-väggarnas regelfack och i källarväggarnas cellplast bakom gipsen.",
         "Apparaternas höjd är centrum över färdigt golv. Gruppcentralen sitter på V3 i teknikrummet; grupperna och "
         f"deras rör: {grupperna}. Uttagen i teknikrummet och tvättstugan matas ur centralens baksida.",
-        "Dimrarna sitter vid ingångarna och styr spotarna i trapphallen, tvättstugan, rummen norr om V4–V6 (den västra "
-        "och den östra delen) och rummet söder om trapphallen. Fläkten FF3 ansluts vid fläkten på V20 (KA-D2).",
+        "Dimrarna vid ingångarna (vanliga vriddimrar, bakkant) dimrar drivdonen: den dimrade fasen går i ett eget rör "
+        "till drivdonsskåpet mitt emot centralen, där ett drivdon per tändgrupp matar ljuslinjerna. Fläkten FF3 "
+        "ansluts vid fläkten på V20 (KA-D2).",
     ] if kallare else None)
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
@@ -450,34 +550,58 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
 
     punkter: list[list[str]] = []
     ror: list[list[str]] = []
+    lagda: list[tuple[float, float, float, float]] = []       # rörens texter (lådor i modellmått)
+
+    def fri(lada: tuple[float, float, float, float]) -> bool:
+        return not any(lada[0] < q[2] and q[0] < lada[2] and lada[1] < q[3] and q[1] < lada[3] for q in lagda)
+
     with v.lager("ror"):
         for k, r in utdrag["ror"].items():
             vag = r["vag"]
             foljder = _foljder(vag, inne)
             if not foljder:
                 continue
-            ror.append([k, r["typ"], r["fran"], r["till"], sv(r["langd"] / 1000, 1), f"{sv(r['bojar'])}°"])
+            ror.append([k, r["typ"], r["fran"], r["till"], sv(r["langd"] / 1000, 1), f"{sv(r['bojar'])}°",
+                        _innehall(r)])
+            txt = f"{k} {r['typ']}"
             for i0, i1 in foljder:
                 d = _xy(vag[i0:i1 + 1])
                 v.linje(d, "ror_ingjutet")
-                a, b = max(zip(d, d[1:]), key=lambda s: math.dist(*s))
-                if _ryms(v, a, b, f"{k} {r['typ']}", 5.6):
-                    _langs(v, a, b, f"{k} {r['typ']}", sz=5.6, col="ok")
-                else:                                       # kort rör: texten vid sidan, med hänvisningslinje
+                # texten längs den längsta sträckan där den ryms och inte täcker en annan rörtext
+                strackor = sorted(zip(d, d[1:]), key=lambda s: -math.dist(*s))
+                lagd = next(((a, b, lada) for a, b in strackor
+                             if _ryms(v, a, b, txt, 5.6) and fri(lada := _langs_lada(v, a, b, txt, 5.6))), None)
+                if lagd is not None:
+                    a, b, lada = lagd
+                    _langs(v, a, b, txt, sz=5.6, col="ok")
+                else:                                       # texten vid sidan, med hänvisningslinje, där den är fri
+                    a, b = strackor[0]
                     m = (np.asarray(a) + np.asarray(b)) / 2
                     t = np.subtract(b, a) / math.dist(a, b)
-                    n = np.array([t[1], -t[0]]) if t[1] < 0 else np.array([-t[1], t[0]])
-                    v.hanvisning(tuple(m), tuple(m + n * v.m(9.0)), f"{k} {r['typ']}", a="lm" if n[0] >= 0 else "rm",
-                                 sz=5.6, punkt=False, col="ok")
+                    n0 = np.array([t[1], -t[0]]) if t[1] < 0 else np.array([-t[1], t[0]])
+                    w, h = v.m(len(txt) * 0.19 * 5.6), v.m(5.6 * 0.43)
+                    lagen = []
+                    for avst in (9.0, 14.0, 19.0, 24.0):
+                        for n in (n0, -n0):
+                            q = m + n * v.m(avst)
+                            x0 = q[0] if n[0] >= 0 else q[0] - w
+                            lagen.append((q, "lm" if n[0] >= 0 else "rm", (x0, q[1] - h / 2, x0 + w, q[1] + h / 2)))
+                    q, ank, lada = next((x for x in lagen if fri(x[2])), lagen[0])
+                    v.hanvisning(tuple(m), tuple(q), txt, a=ank, sz=5.6, punkt=False, col="ok")
+                lagda.append(lada)
                 for j, q in enumerate(d):
                     anm = ""
                     if j in (0, len(d) - 1):
                         i, nasta = (i0, i0 - 1) if j == 0 else (i1, i1 + 1)
+                        pid = r["fran"] if j == 0 else r["till"]
                         if 0 <= nasta < len(vag) and vag[nasta][2] > z[1] + 1.0:
-                            anm = f"upp i väggen till {r['fran'] if j == 0 else r['till']}"
+                            anm = f"upp i väggen till {pid}"
                             _genomforing(v, *q)
+                        elif (nasta < 0 or nasta >= len(vag)) and "linje" in utdrag["punkter"].get(pid, {}):
+                            anm = f"rörände för {pid}, i taket"
+                            v.cirkel(q[0], q[1], 0.7, fyll="vit", stil="normal")
                         elif nasta < 0 or nasta >= len(vag):
-                            anm = r["fran"] if j == 0 else r["till"]
+                            anm = pid
                     # numret vid sidan av röret, växelvis åt höger och vänster
                     t = np.subtract(d[min(j + 1, len(d) - 1)], d[max(j - 1, 0)])
                     t = t / max(float(np.hypot(*t)), 1e-9)
@@ -495,8 +619,9 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
     _rubrik(v, "Mellanbjälklaget, rör ingjutna i betongen")
     block: list[dict] = [dict(**TABELLER, innehall=[
         dict(typ="rubrik", text="Rör"),
-        dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "Längd (m)", "Böjar"],
-             bredd=(0.8, 0.6, 0.6, 0.6, 0.7, 0.6), just=["l", "l", "l", "l", "r", "r"], sz=6.4, rader=ror),
+        dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "m", "Böjar", "Innehåll"],
+             bredd=(0.75, 0.55, 0.6, 0.6, 0.4, 0.5, 0.9), just=["l", "l", "l", "l", "r", "r", "l"], sz=6.0,
+             rader=ror),
     ])]
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
@@ -514,6 +639,8 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
             ("ror_ingjutet", "rör ingjutet i bjälklaget, med punkternas nummer"),
             (lambda w: _genomforing(w, 0.0, 0.0), "röret går upp i väggen ovanför"),
             (lambda w: symbol(w, "ingjutningsdosa", 0.0, 0.0), "ingjutningsdosa i källarens tak"),
+            (lambda w: w.cirkel(0.0, 0.0, 0.7, fyll="vit", stil="normal"),
+             "rörände i källarens tak under en ljuslinje (24 V, tätas vid gjutningen)"),
             ("dold", "väggarna på plan 1"),
         ]),
     ]

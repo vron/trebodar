@@ -139,6 +139,15 @@ def _armaturer() -> list[dict[str, object]]:
         if p["slag"] != "lampa":
             continue
         t = u["typer"][p["typ"]]
+        if "linje" in p:                      # ljuslinje: diffusorns yta som ett lambertskt arealjus
+            lj, tl = p["linje"], t["linje"]
+            yta = tl["lysande"] * tl["diffusor"] * 1e-6
+            ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "riktning": p["riktning"],
+                       "punkt": p["punkt"], "normal": p["normal"],
+                       "linje": {"a": lj["a"], "b": lj["b"], "bredd": tl["diffusor"]}, "lumen": t["ljusflode"],
+                       "farg": dagsljus.svartkropp(float(t["fargtemperatur"])),
+                       "luminans": t["ljusflode"] / (math.pi * yta)})
+            continue
         pe = t.get("pendel")
         if pe:
             flode = t["ljusflode"] * pe["transmission"]
@@ -866,6 +875,8 @@ def main(argv: list[str] | None = None) -> None:
         gc = tk.GRUPPCENTRAL
         central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1],
                    "kanal": [2810.0 - 62.5, 8936.0 - 62.5, 4950.0, 8936.0 + 62.5]}
+        lc = tk.DRIVDONSSKAP
+        skap = {"topp": list(lc.anslutningar["topp"]), "matt": [lc.matt[0], lc.matt[1]], "vagg": lc.lage.punkt[1]}
         plattor: dict[str, list[dict]] = {"MB": [], "BP": []}
         fot = pel.fotplat_mitt()
         for k, (x, y) in pel.PELARE.items():
@@ -879,7 +890,7 @@ def main(argv: list[str] | None = None) -> None:
                                   "text": f"{b:g}×{d:g}×{pel.FOT_T:g}"})
         pdf, fel, anm = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
                                            [list(p) for p in skel.TRAPPHAL], plattor, snitt_, _norr(),
-                                           UT / "gjutning", arg.ut, jarn, central)
+                                           UT / "gjutning", arg.ut, jarn, central, skap)
         for p in pdf:
             print(f"  {p.relative_to(ROT)}")
         for t in anm:

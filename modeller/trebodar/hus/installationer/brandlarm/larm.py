@@ -206,6 +206,13 @@ def _rensa(vag: Sequence[Vek]) -> tuple[Vek, ...]:
     return tuple(ut)
 
 
+# kablarna under källarens tak runt ljuslinjerna (el/rum/kallare.py): K02 från trapphallens varnare västerut till
+# X_K02 och därifrån norrut, väster om trapphallens linje; K08 från DM norrut till Y_K08 och därifrån österut, norr
+# om linjerna i rummet söder om trapphallen
+X_K02 = 4700.0
+Y_K08 = 4400.0                  # mellan pelarna P16 och P14 i KL5, söder om P15 i det stora rummet
+
+
 @cache
 def brandlarm() -> Brandlarm:
     """Brandvarnarna, dosorna och kablarna."""
@@ -241,14 +248,14 @@ def brandlarm() -> Brandlarm:
         return flytt(m.punkt, m.normal, -(I_TAKET + OVER_ROREN))
     kablar = [
         Kabel("K01", "D01", "BV-KT", (a["D01"], (kt[0], a["D01"][1], z), kt)),
-        Kabel("K02", "BV-KT", "DV", (kt, (kt[0], yv, z), a["DV"])),
+        Kabel("K02", "BV-KT", "DV", (kt, (X_K02, kt[1], z), (X_K02, yv, z), a["DV"])),
         Kabel("K03", "DV", "BV-HA", upp_v),
         Kabel("K04", "BV-HA", "BV-VR", (a["BV-HA"], hogt(x_tf3, a["BV-HA"][1]), hogt(x_tf3, a["BV-VR"][1]),
                                          a["BV-VR"])),
         Kabel("K05", "BV-KT", "BV-KN", (kt, kn)),
         Kabel("K06", "BV-KN", "DM", (kn, a["DM"])),
         Kabel("K07", "DM", "BV-SV", (a["DM"], *upp_m)),
-        Kabel("K08", "DM", "DH", (a["DM"], (xh, y_stam, z), a["DH"])),
+        Kabel("K08", "DM", "DH", (a["DM"], (a["DM"][0], Y_K08, z), (xh, Y_K08, z), a["DH"])),
         Kabel("K09", "DH", "BV-KO", upp_h),
     ]
     return Brandlarm(varnare, dosor, {k.id: Kabel(k.id, k.fran, k.till, _rensa(k.vag)) for k in kablar})
@@ -319,8 +326,8 @@ def kontroll() -> tuple[list[str], list[str]]:
             d_vagg = _kallarvaggarna().distance(Point(x, y))
         if d_vagg < 500.0:
             fel.append(f"{v.id}: {d_vagg:.0f} mm från väggen (minst 500)")
-        for aid, (ax, ay, az) in armaturer.items():
-            d = math.hypot(ax - x, ay - y)
+        for aid, (g, az) in armaturer.items():
+            d = g.distance(Point(x, y))
             if d < 500.0 and abs(az - v.lage.punkt[2]) < 1500.0:
                 anm.append(f"{v.id}: {d:.0f} mm från armaturen {aid}")
     for r in b.kablar.values():
@@ -332,11 +339,13 @@ def kontroll() -> tuple[list[str], list[str]]:
     return fel, anm
 
 
-def _armaturer() -> dict[str, tuple[float, ...]]:
-    """Elinstallationens armaturer (linsens läge), för avståndet till brandvarnarna."""
+def _armaturer() -> dict[str, tuple[BaseGeometry, float]]:
+    """Elinstallationens armaturer i plan (linsens läge; ljuslinjerna hela den lysande linjen) och höjd, för
+    avståndet till brandvarnarna."""
     punkter = installation().utdrag()["punkter"]
     assert isinstance(punkter, dict)
-    return {pid: tuple(p["lins"]) for pid, p in punkter.items() if p["slag"] == "lampa"}
+    return {pid: ((LineString([p["linje"]["a"][:2], p["linje"]["b"][:2]]) if "linje" in p else Point(p["lins"][:2])),
+                  p["lins"][2]) for pid, p in punkter.items() if p["slag"] == "lampa"}
 
 
 def _kallarvaggarna() -> BaseGeometry:

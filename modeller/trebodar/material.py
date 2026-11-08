@@ -234,6 +234,10 @@ ARMATURLINS = Material("Armaturlins", "Armaturens reflektor och lins", 2500, "#f
 DRIVDON = Material("Drivdon", "Drivdon för LED (plast)", 1200, "#ececea", 0.6, cad="#8d96a3")
 APPARAT = Material("Apparat", "Strömbrytare, dimrar och uttag, vit plast", 1200, "#f4f4f1", 0.35, cad="#fbfbf7")
 ELDOSA = Material("Eldosa", "Dosor (plast)", 1000, "#7f8a95", 0.6, cad="#ff7a1a")
+# ljuslinjerna i ask (källaren): aluminiumkanalen och LED-listen i den (bakom den opala diffusorn, som är en lins)
+LEDKANAL_ALU = Material("Aluminium anodiserad", "Aluminium, naturanodiserad (LED-kanalen)", 2700, "#c4c7ca", 0.35,
+                        1.0, cad="#b4b9be")
+LEDLIST = Material("LED-list", "LED-list COB på flexibelt kretskort", 1500, "#efe3b0", 0.5, cad="#ffd84a")
 ELROR = Material("Elrör", "Flexrör (PVC)", 1400, "#8f9499", 0.6, cad="#ff9d2e")
 
 # ------------------------------------------------------------------ brandlarmet (hus/installationer/brandlarm)

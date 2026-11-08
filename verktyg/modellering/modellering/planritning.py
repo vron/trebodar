@@ -92,12 +92,14 @@ def plan_ytor(delar: list[dict], vagg: str = VAGG) -> list[tuple[Any, str | None
     return [(unary_union(ytor), fyll, stil) for ytor, (fyll, stil) in zip(grupper, stilar) if ytor]
 
 
-def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> None:
+def plan(v: Vy, delar: list[dict], vagg: str = VAGG, ram: Any = None) -> list[tuple[Any, str | None, str | None]]:
     """Planens snitt i vyn (plan_ytor), med hålrummen i väggarna fyllda. ram: bara inom den ytan (en del av
-    planet)."""
+    planet). Ger ytorna (plan_ytor)."""
+    ytor = plan_ytor(delar, vagg)
     with v.lager("snitt"):
-        for u, fyll, stil in plan_ytor(delar, vagg):
+        for u, fyll, stil in ytor:
             rita_ytor(v, u if ram is None else u.intersection(ram), fyll, stil, MINSTA_HAL)
+    return ytor
 
 
 # sektionernas ytor i ritordning (sökvägens början, fyllning, linje); delarna i en grupp slås ihop till en yta

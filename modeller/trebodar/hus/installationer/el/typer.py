@@ -1,5 +1,5 @@
-"""Elinstallationens produkttyper: armaturer (ljusdata och mått; infällda, på stam eller pendlar), apparater (brytare,
-dimrar, uttag), dosor och rör.
+"""Elinstallationens produkttyper: armaturer (ljusdata och mått; infällda, på stam, pendlar eller ljuslinjer),
+apparater (brytare, dimrar, uttag), drivdon för ljuslinjerna, dosor och rör.
 En typ beskriver en produkt en gång (katalog.py); punkterna i rummen refererar till den.
 """
 from __future__ import annotations
@@ -29,19 +29,61 @@ class Apparattyp:
     ram: tuple[float, float]    # täckramens bredd och höjd [mm]
     dosa: Dosatyp
     symbol: str                 # symbolen på elritningarna
+    produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
+    minsta_last: float = 0.0    # dimmer: minsta last [W] (med nolla)
+    storsta_last: float = 0.0   # dimmer: största last för bakkantsstyrd LED [W]
+
+
+@dataclass(frozen=True)
+class Drivdonstyp:
+    """Drivdon för LED med konstant spänning (24 V), fasdimbart, i drivdonsskåpet vid centralen."""
+    kod: str
+    namn: str
+    tillverkare: str
+    artikel: str                # tillverkarens namn eller E-nummer
+    spanning: float             # utspänningen [V]
+    minsta: float               # minsta last [W]
+    storsta: float              # största last [W]
+    verkningsgrad: float        # vid full last
+    dimring: str                # "bakkant"
+    matt: tuple[float, float, float]   # längd, bredd, höjd [mm]
+    produkt: str = ""
+
+
+@dataclass(frozen=True)
+class Linjeprofil:
+    """Ljuslinje utanpå betongtaket: en profil (ask) med ett fräst spår underifrån, en aluminiumkanal i spåret och en
+    LED-list i kanalens botten bakom en opal diffusor som klipps i kanalen (mått i mm). Spåret slutar ande från
+    profilens ändar: där är profilen hel, med matningens rörände och kabelns ficka mot taket. Ljuset kommer ut genom
+    diffusorn på profilens längd utom ändarna (den lysande längden)."""
+    bredd: float                # profilens bredd
+    hojd: float                 # profilens höjd under taket
+    fas: float                  # fasen på de undre långkanterna
+    ande: float                 # profilens hela ände (utan spår) i var ände
+    spar: tuple[float, float]   # spårets (och kanalens) bredd och djup
+    gods: float                 # kanalens godstjocklek
+    diffusor: tuple[float, float, float]   # diffusorns bredd, tjocklek och indrag från profilens undersida
+    list_bredd: float           # LED-listens bredd
+    lm_per_m: float             # armaturens ljusflöde per meter lysande längd (listen genom diffusorn) [lm/m]
+    w_per_m: float              # listens effekt per meter [W/m]
+    spanning: float             # listens spänning [V]
+    ror_in: float               # rörändens mitt från profilens ände (i fickan)
+    list_namn: str              # LED-listen (kravet eller produkten)
+    kanal_namn: str             # kanalen och diffusorn
+    list_produkt: str = ""      # specialprodukternas koder i inköpslistan
+    kanal_produkt: str = ""
 
 
 @dataclass(frozen=True)
 class Tubhuvud:
-    """Spotens huvud under taket: en tub på en stam från frontplattan (infälld) eller takkoppen (utanpåliggande),
-    vridbar kring stammen och lutbar i leden där stammen fäster i tubens sida (mått i mm)."""
+    """Spotens huvud under taket: en tub på en stam från frontplattan, vridbar kring stammen och lutbar i leden där
+    stammen fäster i tubens sida (mått i mm)."""
     diameter: float             # tubens diameter
     langd: float                # tubens längd
-    stam: float                 # stammens längd från frontplattan (takkoppen) till leden
+    stam: float                 # stammens längd från frontplattan till leden
     stam_d: float               # stammens diameter
     led: float                  # ledens läge längs tuben, från den bakre änden
     indrag: float               # reflektorn (den lysande ytan) så långt in från tubens front
-    kopp: float = 0.0           # utanpåliggande: takkoppens höjd (frontplattans diameter är takkoppens); 0: infälld
 
 
 @dataclass(frozen=True)
@@ -103,6 +145,13 @@ class Armaturtyp:
     min_volym: float = 0.0      # infälld som inte får täckas: minsta luftvolym i hålrummet runt den [l]
     panel: tuple[float, float, float] | None = None    # utanpåliggande panel: längd, bredd, höjd med ramen [mm]
     dosa: Dosatyp | None = None  # utanpåliggande på betong: den ingjutna dosan ovanför, där armaturen ansluts
+    linje: Linjeprofil | None = None   # ljuslinje: profilen; längden är langd
+    langd: float = 0.0          # ljuslinjens längd [mm]
+
+    @property
+    def lysande_langd(self) -> float:
+        """Ljuslinjens lysande längd (utan ändarna) [mm]."""
+        return self.langd - 2 * self.linje.ande if self.linje else 0.0
 
 
 @dataclass(frozen=True)

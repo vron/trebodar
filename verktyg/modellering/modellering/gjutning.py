@@ -7,9 +7,9 @@ egen konstruktion och armering står på R-03–R-06.
 
 Varje blad har plattans snitt, väggarna på plattan streckade (och källarens tunna under mellanbjälklaget),
 punkterna numrerade och måttsatta från närmaste fasta referens (plattans kant, hålets kant, källarväggens liv; i rad
-som måttkedjor), detaljer 1:10 där det är tätt (centralens rör, tappvattnets stigare vid V19, köket vid V14), en
-tabell över punkternas lägen x, y i mm från mellanbjälklagets kanter (K-05:s origo, som på R-04, R-05 och R-06) och
-vad de är, och en teckenförklaring. Punkterna kontrolleras mot modellen (kontroll). Ritas med
+som måttkedjor), detaljer 1:10 där det är tätt (centralens och drivdonsskåpets rör, tappvattnets stigare vid V19,
+köket vid V14), en tabell över punkternas lägen x, y i mm från mellanbjälklagets kanter (K-05:s origo, som på R-04,
+R-05 och R-06) och vad de är, och en teckenförklaring. Punkterna kontrolleras mot modellen (kontroll). Ritas med
 `./mod gjutning ritning` (i ritningar/, i ./bygg).
 """
 from __future__ import annotations
@@ -175,6 +175,15 @@ def _el(v: Vy, el: dict, z: Z) -> list[Punkt]:
                     v.cirkel(a[0], a[1], R_PUNKT, fyll="#c8661c" if g == "upp" else "vit", stil="tunn")
                     mal = r["till"] if (g == "upp") == (b[2] > a[2]) else r["fran"]
                     punkter.append(("", f"{k} {g} till {mal}", a[0], a[1], f"Ø{r['diameter']:g}"))
+            # rören som slutar i plattans undersida (ljuslinjernas 24 V): rörändan tätas vid gjutningen, armaturen
+            # täcker den
+            for i, mal in ((0, r["fran"]), (len(vag) - 1, r["till"])):
+                q, nasta = vag[i], vag[1 if i == 0 else -2]
+                if ("linje" in el["punkter"].get(mal, {}) and abs(q[2] - z[0]) < 1.0
+                        and math.hypot(nasta[0] - q[0], nasta[1] - q[1]) < 1.0 and nasta[2] > q[2]):
+                    v.cirkel(q[0], q[1], R_PUNKT, fyll="vit", stil="normal")
+                    v.cirkel(q[0], q[1], R_PUNKT * 0.35, fyll="svart", stil=None)
+                    punkter.append(("", f"{k} rörände för {mal} (24 V), tätas", q[0], q[1], f"Ø{r['diameter']:g}"))
     return punkter
 
 
@@ -487,9 +496,10 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: Sequence[Omrade] =
 
 TABELL_EL = (226.0, 14.0, 48.0)       # AR-03.1:s punkttabell i två spalter till höger på ritytan, över detaljen
 DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # el: rören ur gruppcentralen (x0, x1, y0, y1)
+DETALJ_LC = (2440.0, 3020.0, 7690.0, 7935.0)         # el: rören ur drivdonsskåpet på KL8
 DETALJ_VATTEN = (4150.0, 4500.0, 7980.0, 9080.0)     # tappvatten: stigarna ur källaren vid V19
 DETALJ_KOK = (13280.0, 13520.0, 8300.0, 8900.0)      # köket vid V14: hylsorna, diskbänkens avlopp, UF1
-DETALJER = (DETALJ, DETALJ_VATTEN, DETALJ_KOK)
+DETALJER = (DETALJ, DETALJ_LC, DETALJ_VATTEN, DETALJ_KOK)
 SKALA_DETALJ = 10.0
 Element = dict                                        # detaljens innehåll: {"linje", "r", "fyll"} eller {"punkt", ...}
 Detalj = Callable[[Nummer], list[Vy]]
@@ -655,6 +665,39 @@ def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Detalj:
     return rita
 
 
+def _detalj_skapet(el: dict, jarn: list[dict], skap: dict) -> Detalj:
+    """Detalj 1:10 ovanför drivdonsskåpet på KL8: rörens stigare i en rad mitt på skåpets ovansida, mellan
+    underkantsnätets järn, med rörens namn och måtten från skåpets västra kant (under ramen)."""
+    x0, x1, y0, y1 = DETALJ_LC
+    s = SKALA_DETALJ
+
+    def rita(_: Nummer) -> list[Vy]:
+        v, ram = _ram(DETALJ_LC, (226.0, 246.0), "Detalj: rören ur drivdonsskåpet",
+                      ["rörens namn: 24 V till ljuslinjerna och dimrarnas faser", "måtten från skåpets västra kant"])
+        (cx, cy, _z), (b, d), yv = skap["topp"], skap["matt"], skap["vagg"]
+        with v.lager("detalj"):
+            v.rekt(cx - b / 2, yv, cx + b / 2, yv + d, "#efefec", "normal")
+            v.linje([(x0, yv), (x1, yv)], "normal")
+            _jarnen(v, jarn)
+        xs: list[float] = []
+        with v.lager("stigare"):
+            for nr, r in el["ror"].items():
+                if "TK-LC" not in (r["fran"], r["till"]):
+                    continue
+                for a, b_ in zip(r["vag"], r["vag"][1:]):
+                    if (_i(DETALJ_LC, a[0], a[1]) and math.hypot(a[0] - b_[0], a[1] - b_[1]) < 1.0
+                            and min(a[2], b_[2]) < MB[0] < max(a[2], b_[2])):
+                        v.cirkel(a[0], a[1], r["diameter"] / 2, fyll="#c8661c", stil="tunn", modell=True)
+                        v.ptext(a[0], a[1], 0.0, 1.3, nr, a="lm", sz=4.2, rot=90, b=True, bg=True)
+                        xs.append(a[0])
+                        break
+        with ram.lager("matt"):
+            xx = [cx - b / 2, *sorted(xs)]
+            ram.mattx(xx, y0 - 5.0 * s, [cy] * len(xx), sz=5.0)
+        return [v, ram]
+    return rita
+
+
 def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
     """Ingjutningsgodset: stålplåtarna som gjuts in (källarpelarnas topp- och fotplåtar), med mått."""
     punkter: list[Punkt] = []
@@ -721,7 +764,7 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[str, list[dict]],
               trapphal: list[list[float]], plattor: dict[str, list[dict]], snitt_: dict[str, list[dict]],
-              norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict
+              norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict, skap: dict
               ) -> tuple[list[Path], list[str], list[str]]:
     """AR-03 (mellanbjälklaget: elen, tappvattnet, avloppet, golvvärmen, hålen och ingjutningsgodset) och AR-04
     (bottenplattan: golvvärmen, avloppet, hålen och ingjutningsgodset), och kontrollen av deras punkter mot modellen
@@ -764,9 +807,12 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             [("ror_ingjutet", "elrör ingjutet, övre nivån (Ø16, z −51)"),
              ("ror_ingjutet_uk", "elrör ingjutet, undre nivån (Ø20 och källarens rör, z −100)")],
             "Elrören gjuts in före gjutningen, i sina nivåer: de klena över tappvattnet och golvvärmen, de grova i "
-            "tappvattnets nivå utan att korsa det. ● röret går upp i väggen ovanför, ○ ned i källaren. Rören går upp "
-            "mellan armeringsjärnen; ur gruppcentralen i två rader enligt detaljen (måtten från centralens västra "
-            "kant).", norr, [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central))], TABELL_EL),
+            "tappvattnets nivå utan att korsa det. ● röret går upp i väggen ovanför, ○ ned i källaren, ◉ rörände i "
+            "undersidan (24 V till en ljuslinje i källaren: rörändan pluggas och tätas vid gjutningen och täcks sedan "
+            "av armaturen). Rören går upp mellan armeringsjärnen; ur gruppcentralen i två rader och ur "
+            "drivdonsskåpet på KL8 i en rad enligt detaljerna (måtten från centralens och skåpets västra kant).", norr,
+            [(DETALJ, _detalj_centralen(el, jarn_i(DETALJ), central)),
+             (DETALJ_LC, _detalj_skapet(el, jarn_i(DETALJ_LC), skap))], TABELL_EL),
         gor(nr[1], m, "tappvatten", "V", mb, *m_vagg, lambda v: _vatten(v, vatten, MB),
             [("vv", "varmvatten, rör-i-rör ingjutet (z −94)"), ("kv", "kallvatten, rör-i-rör ingjutet"),
              ("dold", "fördelarna under plattan (" + ", ".join(_fordelarna(vatten)) + ")")],

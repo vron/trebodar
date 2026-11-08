@@ -39,14 +39,15 @@ de höga snedtaken:
   betongtaket.
 
 Kontrollen kräver minst 500 mm till väggarna och redovisar höjden över golvet, avståndet till nocken och armaturer
-närmare än 500 mm.
+närmare än 500 mm (ljuslinjerna i källaren längs hela den lysande linjen).
 
 ## Kablarna
 
 Kabeln är en installationskabel 4G1,5 (fas, nolla, skyddsjord och larmledaren), Ø `KABEL_D`:
 
 - **Stammen** går klammad under källarens tak från matningsdosan D01 (där matningen från elcentralen kommer in;
-  centralens läge är inte bestämt) via BV-KT och BV-KN och kopplingsdosorna DV, DM och DH.
+  centralens läge är inte bestämt) via BV-KT och BV-KN och kopplingsdosorna DV, DM och DH, runt ljuslinjerna
+  (`X_K02`, `Y_K08`).
 - **Stigarna**: innertakets installationsskikt slutar vid dalbalkarna, så huskropparna förbinds i källaren, med en
   stigare per huskropp: genom väggen 1A till hallen och vardagsrummet, 2A till sovrummet och L4 till köket. Stigaren
   går genom mellanbjälklaget i en hylsa, fri från armeringens järn och de ingjutna rören (tappvattnet, golvvärmen och

@@ -456,15 +456,66 @@ arende   = [51]
 anm      = "Vanlig grossistprodukt enligt #51; ansluts i en ingjuten dosa ovanför."
 
 [[produkt]]
-kod      = "ARM-TUBE-S"
+kod      = "ARM-ASKLINJE"
 grupp    = "Belysning"
-namn     = "Utanpåliggande tubspot med låg bländning, 3000 K, i källarens trevliga rum"
-vald     = "SG Armaturen Tube Mini S White 900lm 3000K Ra 98 (320692), förslag"
+namn     = "Ljuslinje i ask utanpå betongtaket, 24 V, i källarens trevliga rum (egen tillverkning)"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 arende   = [51]
-anm      = "Ansluts i en ingjuten dosa ovanför; SG:s ingjutningshus för infällda spotar ryms inte i bjälklaget."
+anm      = "Askprofil 56 × 22 med fasade undre kanter och ett spår underifrån som slutar 40 mm från ändarna, som husets snickerier; aluminiumkanalen, LED-listen och diffusorn i spåret. Den lysande längden en multipel av 150 mm. Matas med 24 V i egna ingjutna rör som slutar i taket under profilens ände: ficka mot taket för rörändan och kabeln, genomgående ledare till nästa linje. Ljusflödet i ljusplanen (U-04) antaget 560 lm/m lysande längd."
+
+[[produkt]]
+kod      = "LEDLIST-COB"
+grupp    = "Belysning"
+namn     = "COB-LED-list 24 V, Ra ≥ 97, R9 > 90, 3000 K, cirka 8 W/m, i ljuslinjerna"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [51]
+anm      = "Krav: COB (ingen prickighet bakom diffusorn trots den låga höjden), Ra ≥ 97 och R9 > 90 uppmätt (begär spektraldata), cirka 800 lm/m vid 8 W/m (värmen i träprofilen). Svenska grossisters COB-listor anger Ra > 90 utan R9 (t.ex. Designlight Cobby, E 75 107 84); en lista med uppmätt Ra 97 och R9 > 90 finns främst hos specialister."
+
+[[produkt]]
+kod      = "LEDKANAL"
+grupp    = "Belysning"
+namn     = "Aluminiumkanal 18 × 11 med opal diffusor (PC eller PMMA), i ljuslinjerna"
+status   = "att välja"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [51]
+anm      = "Kanalen leder värmen från listen; diffusorn klipps i kanalen, 0,5 mm in från profilens undersida. Diffusorn och kanalen antagna släppa ut 70 % av listens ljus."
+
+[[produkt]]
+kod      = "DRIVDON-24V"
+grupp    = "El"
+namn     = "Drivdon 24 V, fasdimbart med bakkant, ett per tändgrupp i drivdonsskåpet"
+vald     = "Hide-a-lite LED-dimtrafo FDIM 24V 60W (Elektro Elco, E 79 823 41), förslag"
+status   = "att välja"
+ansvarig = "el"
+fas      = "installationer"
+arende   = [51]
+anm      = "Last 15–60 W, dimrar till 1 % med en dimmer som når så lågt (annars 7 %), lågt flimmer. Lasten per tändgrupp 19–48 W och spänningsfallet i 24 V-kablarna på E-01.6."
+
+[[produkt]]
+kod      = "DIMMER-LED"
+grupp    = "El"
+namn     = "Vriddimmer för LED, bakkant, vid dörrarna i källarens trevliga rum"
+vald     = "Schneider Electric Exxact LED-dimmer 1–370 W (WDE008303, E 13 607 55), förslag"
+status   = "att välja"
+ansvarig = "el"
+fas      = "installationer"
+arende   = [51]
+anm      = "Bakkantsstyrd LED 1–200 VA, ansluten med nolla för mjukare dimring lågt. Bekräfta med Elektro Elco och Schneider att dimmern och drivdonet är provade ihop (lägsta nivå, flimmer), eller prova ett exemplar av vardera före beställningen. KA-B3: två dimrar i en dubbelram."
+
+[[produkt]]
+kod      = "DRIVDONSSKAP"
+grupp    = "El"
+namn     = "Kapsling för drivdonen, utanpåliggande på KL8 i teknikrummet"
+status   = "att välja"
+ansvarig = "el"
+fas      = "installationer"
+arende   = [51]
+anm      = "Cirka 500 × 600 × 130, plåt, för fem drivdon och plintar, åtkomlig framifrån; rören upp ur ovansidan i en rad."
 
 [[produkt]]
 kod      = "ARM-VAGGLAMPA"

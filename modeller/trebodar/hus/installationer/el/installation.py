@@ -23,7 +23,9 @@ from .bjalklag import mellanbjalklag
 from shapely.geometry import LineString, Point
 
 from ..montering import KALLARTAK, PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
-from .punkter import Apparat, Dosa, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linsen, pendeln
+from ..teknikrum import DRIVDON, DRIVDON_I_SKAPET
+from .punkter import (Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linjen, linsen,
+                      pendeln)
 from .rum import (allrum, badrum, gang, gastrum, hall, kallare, kok, kontor, kontor_litet, sovrum, sovrum_litet,
                   teknikrum, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
@@ -33,6 +35,34 @@ MODULER: tuple[ModuleType, ...] = (allrum, kok, gang, hall, vardagsrum, badrum, 
 SLADD_MINST = 50.0                             # pendelns sladd under takkoppen, minst [mm]
 
 
+SKAP = ("central", "drivdonsskap")          # rören börjar och slutar på skåpets ovansida (i via), inte i en dosa
+SPANNINGSFALL = 3.0                          # 24 V-kretsarna: största spänningsfall till en ljuslinje [%]
+LEDARE = (1.5, 2.5)                          # 24 V-kablarnas area [mm²], den minsta som räcker
+RHO = 0.0183                                 # kopparens resistivitet vid 30 °C [Ω mm²/m]
+KABEL_TILLAGG = 300.0                        # kabeln i varje ände utöver röret (i skåpet och i armaturens ficka) [mm]
+DRIVDON_LAST = 0.8                           # drivdonens last högst så stor andel av märkeffekten (anmärkning)
+
+
+@dataclass(frozen=True)
+class Kretsresultat:
+    """En 24 V-krets uträknad (Installation.kretsresultat)."""
+    krets: Krets
+    last: float                                # ljuslinjernas effekt [W]
+    spanning: float                            # [V]
+    area: float                                # ledarnas area [mm²]
+    kabel: float                               # kablarnas längd, med genomgången i profilerna [m]
+    fall: dict[str, float]                     # spänningsfallet till varje ljuslinje [%]
+    fall_max: float                            # [%]
+    ror: tuple[str, ...]                       # 24 V-rören från drivdonet
+
+    def utdrag(self) -> dict[str, object]:
+        k = self.krets
+        return {"id": k.id, "tand": k.tand, "dimmer": k.dimmer, "kanal": k.kanal, "skap": k.skap,
+                "drivdon": k.drivdon, "lampor": list(k.lampor), "last": self.last, "spanning": self.spanning,
+                "area": self.area, "kabel": self.kabel, "fall": self.fall, "fall_max": self.fall_max,
+                "ror": list(self.ror)}
+
+
 @dataclass(frozen=True)
 class Installation:
     rum: dict[str, Rum]
@@ -40,17 +70,71 @@ class Installation:
     tandgrupper: dict[str, Tandgrupp]
     ror: dict[str, Ror]
     modul: dict[str, str]                      # punktens eller rörets modul (montagets namn)
+    kretsar: dict[str, Krets]
 
     def styrs_av(self, tand: str) -> list[str]:
         return [p.id for p in self.punkter.values() if isinstance(p, Apparat) and tand in p.styr]
 
     def vag(self, r: Ror) -> list[Vek]:
-        """Rörets mittlinje: från punktens anslutning genom brytpunkterna till den andra punktens, i innertakets
-        installationsskikt över nocken och dalarna (montering.langs_taket)."""
-        fran = self.punkter[r.fran]
-        start = [] if isinstance(fran, Dosa) and fran.typ.slag == "central" and r.via else [anslutning(fran)]
-        p = [*start, *r.via, anslutning(self.punkter[r.till])]
+        """Rörets mittlinje: från punktens anslutning (en ljuslinjes rörände i dess andra ände, mot nästa) genom
+        brytpunkterna till den andra punktens, i innertakets installationsskikt över nocken och dalarna
+        (montering.langs_taket); vid centralen och drivdonsskåpet börjar och slutar röret på skåpets ovansida."""
+        fran, till = self.punkter[r.fran], self.punkter[r.till]
+        start = [] if isinstance(fran, Dosa) and fran.typ.slag in SKAP and r.via else [anslutning(fran, ut=True)]
+        slut = [] if isinstance(till, Dosa) and till.typ.slag in SKAP and r.via else [anslutning(till)]
+        p = [*start, *r.via, *slut]
         return [p[0], *(q for a, b in zip(p, p[1:]) for q in langs_taket(a, b)[1:])]
+
+    def kretsresultat(self) -> list[Kretsresultat]:
+        """24 V-kretsarna: lasten, drivdonet, rören från drivdonet (ett träd: från skåpet till en ljuslinjes rörände,
+        och från en ljuslinjes andra ände till nästa, med ledaren genom profilen emellan), ledarnas area (den minsta i
+        LEDARE som ger högst SPANNINGSFALL till varje ljuslinje), kabelns längd och spänningsfallet till den sista."""
+        ut: list[Kretsresultat] = []
+        for k in self.kretsar.values():
+            lampor = [p for q in k.lampor if isinstance(p := self.punkter.get(q), Lampa)]
+            effekt = {p.id: p.typ.effekt for p in lampor}
+            u = lampor[0].typ.linje.spanning if lampor and lampor[0].typ.linje else 24.0
+            barn: dict[str, list[tuple[str, Ror]]] = {}
+            for r in self.ror.values():
+                if r.slag == "24 V" and r.till in effekt and (r.fran == k.skap or r.fran in effekt):
+                    barn.setdefault(r.fran, []).append((r.till, r))
+
+            def nedstroms(q: str) -> float:
+                return effekt[q] + sum(nedstroms(c) for c, _ in barn.get(q, []))
+
+            def fall(area: float) -> tuple[dict[str, float], float]:
+                """Spänningsfallet till varje ljuslinje [V] och kablarnas längd [m]."""
+                du: dict[str, float] = {}
+                total = 0.0
+                kvar = [(k.skap, 0.0)]
+                while kvar:
+                    q, d0 = kvar.pop()
+                    for c, r in barn.get(q, []):
+                        lgd = (langd(self.vag(r)) + 2 * KABEL_TILLAGG) / 1000.0
+                        genom = 0.0
+                        if q != k.skap:                    # genom profilen från rörändan i matningens ände
+                            p = self.punkter[q]
+                            assert isinstance(p, Lampa) and p.typ.linje is not None
+                            genom = (p.typ.langd - 2 * p.typ.linje.ror_in) / 1000.0
+                        i = nedstroms(c) / u
+                        d = d0 + 2 * RHO * (lgd + genom) * i / area
+                        total += lgd + genom
+                        du[c] = d
+                        kvar.append((c, d))
+                return du, total
+            val = None
+            for area in LEDARE:
+                du, total = fall(area)
+                val = (area, du, total)
+                if du and max(du.values()) / u * 100.0 <= SPANNINGSFALL:
+                    break
+            assert val is not None
+            area, du, total = val
+            ut.append(Kretsresultat(k, sum(effekt.values()), u, area, total,
+                                    {q: d / u * 100.0 for q, d in du.items()},
+                                    max(du.values()) / u * 100.0 if du else 0.0,
+                                    tuple(sorted(r.id for v in barn.values() for _, r in v))))
+        return ut
 
     def kontroll(self) -> tuple[list[str], list[str]]:
         """(fel, anmärkningar): referenser, styrning, armaturernas vinkel, djup och hål i innertakets gips (pendlarna:
@@ -121,7 +205,75 @@ class Installation:
             if p.id not in anslutna:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
         g_fel, g_anm = self._grupperna()
-        return fel + g_fel + self._i_bjalklaget(), anm + g_anm
+        k_fel, k_anm = self._kretsarna()
+        return fel + g_fel + k_fel + self._i_bjalklaget(), anm + g_anm + k_anm
+
+    def _kretsarna(self) -> tuple[list[str], list[str]]:
+        """Ljuslinjerna och 24 V-kretsarna: varje ljuslinje i en krets och nådd med 24 V-rör från drivdonet,
+        drivdonet i skåpet och lasten inom dess område, dimmerns kanal styr tändgruppen och har ett eget rör med den
+        dimrade fasen till skåpet, dimmerns last inom dess område, rörens ändar under profilen och spänningsfallet."""
+        fel: list[str] = []
+        anm: list[str] = []
+        i_krets: dict[str, list[str]] = {}
+        for k in self.kretsar.values():
+            for q in k.lampor:
+                i_krets.setdefault(q, []).append(k.id)
+        for p in self.punkter.values():
+            if isinstance(p, Lampa) and p.typ.linje is not None and len(i_krets.get(p.id, [])) != 1:
+                fel.append(f"{p.id}: i {len(i_krets.get(p.id, []))} 24 V-kretsar")
+        platser = len(DRIVDON_I_SKAPET)
+        drivdon = [k.drivdon for k in self.kretsar.values()]
+        if len(set(drivdon)) != len(drivdon) or any(not 0 <= d < platser for d in drivdon):
+            fel.append(f"24 V-kretsarna: drivdonen {drivdon}, skåpet har {platser} drivdon")
+        if len(drivdon) != platser:
+            fel.append(f"24 V-kretsarna: {len(drivdon)} kretsar men {platser} drivdon i skåpet")
+        dimmerlast: dict[str, float] = {}
+        for r in self.kretsresultat():
+            k = r.krets
+            for lid in k.lampor:
+                lampa = self.punkter.get(lid)
+                if not isinstance(lampa, Lampa) or lampa.typ.linje is None:
+                    fel.append(f"{k.id}: {lid} är inte en ljuslinje")
+                elif lampa.tand != k.tand:
+                    fel.append(f"{k.id}: {lid} hör till tändgruppen {lampa.tand}, kretsen till {k.tand}")
+                elif lid not in r.fall:
+                    fel.append(f"{k.id}: inget 24 V-rör från drivdonet till {lid}")
+            dimmer = self.punkter.get(k.dimmer)
+            if not isinstance(dimmer, Apparat) or dimmer.typ.slag != "dimmer" or k.kanal >= len(dimmer.styr) \
+                    or dimmer.styr[k.kanal] != k.tand:
+                fel.append(f"{k.id}: {k.dimmer} kanal {k.kanal + 1} styr inte {k.tand}")
+            elif not any(ro.slag == "230 V dimrad" and ro.fran == k.dimmer and ro.till == k.skap
+                         for ro in self.ror.values()):
+                fel.append(f"{k.id}: inget rör med den dimrade fasen från {k.dimmer} till {k.skap}")
+            if not DRIVDON.minsta <= r.last <= DRIVDON.storsta:
+                fel.append(f"{k.id}: {r.last:.1f} W, drivdonet {DRIVDON.namn} tar "
+                           f"{DRIVDON.minsta:g}–{DRIVDON.storsta:g} W")
+            elif r.last > DRIVDON_LAST * DRIVDON.storsta:
+                anm.append(f"{k.id}: {r.last:.1f} W, mer än {DRIVDON_LAST:.0%} av drivdonets {DRIVDON.storsta:g} W")
+            dimmerlast[k.dimmer] = dimmerlast.get(k.dimmer, 0.0) + r.last / DRIVDON.verkningsgrad
+            if r.fall_max > SPANNINGSFALL:
+                fel.append(f"{k.id}: spänningsfallet {r.fall_max:.1f} % med {LEDARE[-1]:g} mm² "
+                           f"(högst {SPANNINGSFALL:g} %)")
+        for did, w in dimmerlast.items():
+            d = self.punkter[did]
+            assert isinstance(d, Apparat)
+            kanaler = sum(1 for k in self.kretsar.values() if k.dimmer == did)
+            if d.typ.storsta_last and w / max(kanaler, 1) > d.typ.storsta_last:
+                fel.append(f"{did}: {w:.0f} W på {kanaler} kanaler, dimmern tar {d.typ.storsta_last:g} W per kanal")
+            if w / max(kanaler, 1) < d.typ.minsta_last:
+                fel.append(f"{did}: {w:.1f} W, dimmern behöver minst {d.typ.minsta_last:g} W")
+        # rörens ändar i taket under ljuslinjens profil (de täcks helt av armaturen)
+        for ro in self.ror.values():
+            for pid, ande in ((ro.fran, self.vag(ro)[0]), (ro.till, self.vag(ro)[-1])):
+                lampa = self.punkter.get(pid)
+                if isinstance(lampa, Lampa) and lampa.typ.linje is not None:
+                    mitt, u = lampa.lage.punkt, enhet(lampa.langs)
+                    dx, dy = ande[0] - mitt[0], ande[1] - mitt[1]
+                    if (abs(dx * u[0] + dy * u[1]) > lampa.typ.langd / 2 - 10.0
+                            or abs(-dx * u[1] + dy * u[0]) > lampa.typ.linje.bredd / 2 - 10.0
+                            or abs(ande[2] - mitt[2]) > 1.0):
+                        fel.append(f"{ro.id}: röret slutar inte i taket under {pid}:s profil")
+        return fel, anm
 
     def _i_bjalklaget(self) -> list[str]:
         """Rören i mellanbjälklaget som går i varandra (mittlinjerna närmare än radierna, utom där två rör möts i
@@ -198,7 +350,10 @@ class Installation:
         return fel, anm
 
     def utdrag(self) -> dict[str, object]:
-        """Allt som ritningarna och renderingen behöver, som JSON: rum, typer, punkter, tändgrupper och rör."""
+        """Allt som ritningarna och renderingen behöver, som JSON: rum, typer, punkter, tändgrupper, rör (24 V-rörens
+        ledare ur kretsarna) och 24 V-kretsarna."""
+        kretsar = self.kretsresultat()
+        ledare = {rid: k.area for k in kretsar for rid in k.ror}
         typer: dict[str, dict[str, object]] = {}
         punkter: dict[str, dict[str, object]] = {}
         for p in self.punkter.values():
@@ -215,6 +370,10 @@ class Installation:
                 punkter[p.id] |= {"tand": p.tand, "riktning": list(p.riktning), "lins": list(linsen(p))}
                 if p.typ.pendel is not None:
                     punkter[p.id] |= {"underkant": p.underkant, "topp": list(pendeln(p)[1])}
+                if p.typ.linje is not None:
+                    a, b = linjen(p)
+                    punkter[p.id] |= {"linje": {"a": list(a), "b": list(b), "langs": list(enhet(p.langs)),
+                                                "ror_in": list(anslutning(p)), "ror_ut": list(anslutning(p, ut=True))}}
             if isinstance(p, Apparat):
                 punkter[p.id] |= {"styr": list(p.styr)}
             rum = self.rum.get(p.id.split("-")[0])
@@ -228,9 +387,14 @@ class Installation:
                                 for k, t in self.tandgrupper.items()},
                 "ror": {k: {"typ": r.typ.kod, "diameter": r.typ.ytterdiameter, "fran": r.fran, "till": r.till,
                             "modul": self.modul[k], "vag": [list(v) for v in self.vag(r)],
-                            "langd": langd(self.vag(r)), "bojar": bojar(self.vag(r)),
+                            "langd": langd(self.vag(r)), "bojar": bojar(self.vag(r)), "slag": r.slag,
+                            "ledare": ledare.get(k),
                             "grupp": k.split("-")[0] if k.split("-")[0] in GRUPP else None}
                         for k, r in self.ror.items()},
+                "kretsar": [k.utdrag() for k in kretsar],
+                "drivdon": {"namn": DRIVDON.namn, "tillverkare": DRIVDON.tillverkare, "artikel": DRIVDON.artikel,
+                            "minsta": DRIVDON.minsta, "storsta": DRIVDON.storsta, "spanning": DRIVDON.spanning,
+                            "verkningsgrad": DRIVDON.verkningsgrad},
                 "grupper": {g.id: {"namn": g.namn, "sakring": g.text, "faser": g.faser, "area": g.area,
                                    "jordfel": g.jordfel, "punkter": list(g.punkter)} for g in GRUPPER},
                 "central": {"huvudbrytare": HUVUDBRYTARE, "overspanningsskydd": OVERSPANNINGSSKYDD}}
@@ -242,8 +406,12 @@ def _armatur(t: Armaturtyp) -> dict[str, object]:
             "effekt": t.effekt, "fargtemperatur": t.fargtemperatur, "ra": t.ra, "ip": t.ip, "dimring": t.dimring,
             "vridbar": t.vridbar, "stralvinkel": t.stralvinkel,
             "lysande_d": t.lysande_d, "hal_d": t.hal_d, "fotometri": t.fotometri, "fotometri_url": t.fotometri_url,
-            "form": "pendel" if pe else "infalld" if t.huvud is None else "tub",
+            "form": "pendel" if pe else "linje" if t.linje else "infalld" if t.huvud is None else "tub",
             **({"dosa": {"namn": t.dosa.namn, "diameter": t.dosa.diameter, "djup": t.dosa.djup}} if t.dosa else {}),
+            **({"linje": {"langd": t.langd, "lysande": t.lysande_langd, "bredd": t.linje.bredd, "hojd": t.linje.hojd,
+                          "diffusor": t.linje.diffusor[0], "lm_per_m": t.linje.lm_per_m, "w_per_m": t.linje.w_per_m,
+                          "spanning": t.linje.spanning, "list": t.linje.list_namn, "kanal": t.linje.kanal_namn}}
+               if t.linje else {}),
             **({"pendel": {"form": pe.form, "diameter": pe.diameter, "hojd": pe.hojd, "kalla_d": pe.kalla_d,
                            "ljuskalla": pe.ljuskalla, "lysande_yta": pe.lysande_yta,
                            "lysande_andel": pe.lysande_andel, "transmission": pe.transmission}} if pe else {})}
@@ -276,17 +444,18 @@ def installation() -> Installation:
     tandgrupper: dict[str, Tandgrupp] = {}
     ror: dict[str, Ror] = {}
     modul: dict[str, str] = {}
+    kretsar: dict[str, Krets] = {}
     for m in MODULER:
         if hasattr(m, "RUM"):
             rum[m.RUM.kod] = m.RUM
         for samling, lista in ((tandgrupper, getattr(m, "TANDGRUPPER", [])), (punkter, getattr(m, "PUNKTER", [])),
-                               (ror, getattr(m, "ROR", []))):
+                               (ror, getattr(m, "ROR", [])), (kretsar, getattr(m, "KRETSAR", []))):
             for o in lista:
                 if o.id in modul:
                     raise ValueError(f"id {o.id} finns två gånger ({m.NAMN})")
                 samling[o.id] = o
                 modul[o.id] = m.NAMN
-    return Installation(rum, punkter, tandgrupper, ror, modul)
+    return Installation(rum, punkter, tandgrupper, ror, modul, kretsar)
 
 
 def haltagningar() -> list[tuple[Form, Lada]]:

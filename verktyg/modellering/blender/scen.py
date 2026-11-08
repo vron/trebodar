@@ -441,12 +441,58 @@ class Armatur:
             o["lysande_farg"] = self.farg
 
 
-def armaturer(lista: list[dict]) -> list[Armatur]:
-    """Armaturerna ur scenens beskrivning; en IES-text per armaturtyp, linserna efter delarnas namn (<id>-LINS).
-    Hålen i taket för de infällda armaturerna finns i modellen (el.installation.haltagningar)."""
+class Linje:
+    """En ljuslinje i scenen: ett rektangulärt arealjus i diffusorns yta (lambertskt, som en opal diffusor; Cycles
+    arealjus med effekten lm / 683 W ger samma belysningsstyrka som en lambertsk yta med ljusflödet, kontrollerat mot
+    beräkningen), med armaturens ljusflöde och färg, en halv millimeter utanför diffusorn i ljusets riktning, och
+    diffusorns objekt, som lyser för kameran när linjen är tänd (materialtypen lins, luminansen flödet / (π · ytan))."""
+
+    def __init__(self, a: dict, linser: list[bpy.types.Object]):
+        self.tand = a["tand"]
+        lj = a["linje"]
+        p0, p1 = Vector(lj["a"]), Vector(lj["b"])
+        x = (p1 - p0).normalized()
+        d = Vector(a["riktning"]).normalized()               # ljusets riktning (in i rummet)
+        z = -d                                               # arealjuset lyser längs sitt −Z
+        y = z.cross(x)
+        ljus = bpy.data.lights.new(a["id"], "AREA")
+        ljus.shape = "RECTANGLE"
+        ljus.size = (p1 - p0).length / 1000
+        ljus.size_y = lj["bredd"] / 1000
+        ljus.color = tuple(a["farg"])
+        self.ljus = bpy.data.objects.new(a["id"], ljus)
+        bpy.context.scene.collection.objects.link(self.ljus)
+        self.ljus.location = ((p0 + p1) / 2 + 0.5 * d) / 1000
+        self.ljus.rotation_euler = Matrix((x, y, z)).transposed().to_euler()
+        self.lumen = float(a["lumen"])
+        self.luminans = a["luminans"] / LUMEN_PER_WATT
+        self.linser = linser
+        self.farg = tuple(a["farg"])
+        for o in linser:
+            o.visible_shadow = False
+        self.tand_till(0.0)
+
+    def tand_till(self, niva: float) -> None:
+        """Tänd (niva 0–1, dimrad) eller släck."""
+        self.ljus.hide_render = niva <= 0
+        self.ljus.data.energy = self.lumen / LUMEN_PER_WATT * niva
+        for o in self.linser:
+            o["lysande"] = self.luminans * niva
+            o["lysande_farg"] = self.farg
+
+
+def armaturer(lista: list[dict]) -> list[Armatur | Linje]:
+    """Armaturerna ur scenens beskrivning; en IES-text per armaturtyp, linserna efter delarnas namn (<id>-LINS);
+    ljuslinjerna som arealjus (Linje). Hålen i taket för de infällda armaturerna finns i modellen
+    (el.installation.haltagningar)."""
     texter: dict[str, bpy.types.Text] = {}
-    ut = []
+    ut: list[Armatur | Linje] = []
     for a in lista:
+        if "linje" in a:
+            namn = f"{a['id']}-LINS"
+            ut.append(Linje(a, [o for o in bpy.data.objects if o.type == "MESH" and
+                                (o.name.split(".")[0] == namn or str(o.get("sokvag", "")).endswith("/" + namn))]))
+            continue
         if a["typ"] not in texter:
             texter[a["typ"]] = bpy.data.texts.new(f"{a['typ']}.ies")
             texter[a["typ"]].from_string(a["ies"])

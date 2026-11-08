@@ -1,11 +1,13 @@
-"""Produkterna i elinstallationen. Armaturerna är valda produkter med tillverkarens data; dosor, apparater och rör är
-tills vidare allmänna typer med vanliga mått (produkterna väljs senare).
+"""Produkterna i elinstallationen. Armaturerna är valda produkter med tillverkarens data, utom ljuslinjerna i källaren
+(egen tillverkning, ljuslinje); dosor, apparater och rör är tills vidare allmänna typer med vanliga mått (produkterna
+väljs senare), utom ljuslinjernas drivdon och LED-dimrarna (förslag med tillverkarens data, IN-01).
 """
 from __future__ import annotations
 
 import math
+from functools import cache
 
-from .typer import Apparattyp, Armaturtyp, Dosatyp, Pendel, Rortyp, Tubhuvud
+from .typer import Apparattyp, Armaturtyp, Dosatyp, Drivdonstyp, Linjeprofil, Pendel, Rortyp, Tubhuvud
 
 # ------------------------------------------------------------------ armaturer
 
@@ -138,26 +140,46 @@ PANEL_600 = Armaturtyp(
     fotometri_url="https://www.ledvance.com/00_Free_To_Use/asset-13340714_LDT_file_Eulumdat_COMP_600_V_26W_830_U19"
                   "_3640lm.ldt",
     symbol="panel", panel=(595.0, 595.0, 75.0), dosa=INGJUTNINGSDOSA)
-# SG Armaturen Tube Mini S, utanpåliggande, källarens trevliga rum (#51): databladet för 320692 och fotometrifilen
-# (900 lm, 40°, UGR < 19, lysande yta Ø54). Takkopp Ø102 × 25 med drivdonet och kopplingsplinten (genomgående
-# ledare, högst 16 A), monteringsplattan skruvad på dosan (hålen c/c 70, monteringsanvisningen rev. 04.03.2022);
-# tuben Ø59 × 160 som Tube Mini R:s, på en stam från takkoppen, vridbar 350° och lutbar 90°; stammen och leden mätta
-# ur linjeritningen. Databladet anger inget avstånd till brännbart material: samma tub som Tube Mini R. Ansluten i en
-# ingjuten dosa ovanför sig.
-TUBE_MINI_S = Armaturtyp(
-    "TUBE-MINI-S", "Tube Mini S White 900lm 3000K Ra 98 Trailing edge", "SG Armaturen", "320692",
-    "https://www.sg-as.com/products/tube-mini-s/320692",
-    produkt="ARM-TUBE-S",
-    ljusflode=900.0, effekt=14.0, fargtemperatur=3000.0, ra=98.0, stralvinkel=40.0, vridbar=90.0, ip="IP20",
-    dimring="bakkant", ring_d=102.0, hal_d=0.0, djup=0.0, lysande_d=54.0, brandavstand=50.0, drivdon=None,
-    fotometri="sg-armaturen/tube-mini-s/320692.ldt",
-    fotometri_url="https://www.sg-as.com/int/en/file/techfile/5PO9/7021983206923_Tube%20Mini%20S%20White%20900lm"
-                  "%203000K%20Ra%2098%20Trailing%20edge%20dimming.ldt",
-    symbol="tubspot", huvud=Tubhuvud(diameter=59.0, langd=160.0, stam=50.0, stam_d=12.0, led=46.0, indrag=18.0,
-                                     kopp=25.0),
-    dosa=INGJUTNINGSDOSA)
+# Ljuslinjerna i källarens trevliga rum (#51): egen tillverkning, utanpå betongtaket utan dosa. En profil i ask 56 × 22
+# (som husets snickerier) med fasade undre kanter och ett spår underifrån, en aluminiumkanal i spåret och en
+# COB-LED-lista 24 V (Ra ≥ 97, R9 > 90, 3000 K, ingen prickighet trots den låga höjden) i kanalens botten bakom en
+# opal diffusor (PC eller PMMA) som klipps i kanalen. Spåret slutar 40 mm från ändarna; där är profilen hel, med
+# fickan mot taket för matningens rörände och kabeln (rören slutar i taket och täcks helt av armaturen). Listens
+# effekt cirka 8 W/m (värmen i träprofilen: kanalen leder den till diffusorn och betongen); armaturens ljusflöde
+# antaget 560 lm/m lysande längd (listen cirka 800 lm/m, diffusorn och kanalen 70 %), lambertskt som en opal yta.
+ASKPROFIL = Linjeprofil(
+    bredd=56.0, hojd=22.0, fas=3.0, ande=40.0, spar=(18.0, 11.0), gods=1.0, diffusor=(15.8, 1.5, 0.5),
+    list_bredd=8.0, lm_per_m=560.0, w_per_m=8.0, spanning=24.0, ror_in=22.0,
+    list_namn="COB-LED-list 24 V, Ra ≥ 97, R9 > 90, 3000 K, cirka 8 W/m (ej vald)",
+    kanal_namn="Aluminiumkanal 18 × 11 med opal diffusor (PC/PMMA), klippbar (ej vald)",
+    list_produkt="LEDLIST-COB", kanal_produkt="LEDKANAL")
+
+
+@cache
+def ljuslinje(langd: float) -> Armaturtyp:
+    """Ljuslinjen i ask med längden langd [mm] (ljusflöde och effekt efter den lysande längden)."""
+    p = ASKPROFIL
+    lys = (langd - 2 * p.ande) / 1000.0
+    return Armaturtyp(
+        f"ASKLINJE-{langd:.0f}", f"Ljuslinje i ask {langd:.0f} mm, COB-LED 24 V 3000 K Ra ≥ 97, opal diffusor",
+        "Egen tillverkning", f"askprofil {p.bredd:g} × {p.hojd:g}", "", produkt="ARM-ASKLINJE",
+        ljusflode=round(p.lm_per_m * lys), effekt=round(p.w_per_m * lys, 1), fargtemperatur=3000.0, ra=97.0,
+        stralvinkel=120.0, vridbar=0.0, ip="IP20", dimring="bakkant", ring_d=0.0, hal_d=0.0, djup=0.0,
+        lysande_d=p.diffusor[0], brandavstand=0.0, drivdon=None, fotometri="", fotometri_url="", symbol="linje",
+        linje=p, langd=float(langd))
+
+
 CENTRAL = Dosatyp("CENTRAL", "Gruppcentralen i teknikrummet (rörens början på dess ovansida)", "central", 0.0, 0.0,
                   symbol="central")
+# drivdonsskåpet vid centralen (../teknikrum.py): de dimrade ledarna från dimrarna in och 24 V ut till ljuslinjerna,
+# rören på dess ovansida
+DRIVDONSSKAP = Dosatyp("DRIVDONSSKAP", "Drivdonsskåpet för ljuslinjerna i teknikrummet (rören på dess ovansida)",
+                       "drivdonsskap", 0.0, 0.0, symbol="drivdonsskap")
+# Hide-a-lite LED-dimtrafo FDIM 24V 60W (Elektro Elco, E 79 823 41, monteringsanvisningen IM00579): 24 V konstant
+# spänning, last 15–60 W, fasdimbar med bakkant (triac), PWM-dimring till 1 % med en dimmer som når så lågt (annars
+# 7 %), verkningsgrad > 87 %, 210 × 50 × 32
+FDIM_24V_60W = Drivdonstyp("FDIM-24V-60W", "LED-dimtrafo FDIM 24V 60W", "Hide-a-lite (Elektro Elco)", "E 79 823 41",
+                           24.0, 15.0, 60.0, 0.87, "bakkant", (210.0, 50.0, 32.0), produkt="DRIVDON-24V")
 BRANDLARM_MATNING = Dosatyp("BL-MATNING", "Brandlarmets matningsdosa i källarens tak (brandlarm/larm.py, D01)",
                             "brandlarm", 0.0, 0.0, symbol="ingjutningsdosa")
 
@@ -167,6 +189,15 @@ DIMMER_1 = Apparattyp("DIMMER-1", "Dimmer, en kanal, bakkant (LED, ej vald)", "d
                       "dimmer")
 DIMMER_2 = Apparattyp("DIMMER-2", "Dimmer, två kanaler, bakkant (LED, ej vald)", "dimmer", 2, (80.0, 80.0), APPARATDOSA,
                       "dimmer")
+# källarens ljuslinjer: vanliga vriddimrar vid dörrarna, bakkant, som dimrar drivdonen i teknikrummet (den dimrade
+# fasen i eget rör dit): Schneider Electric Exxact LED-dimmer 1–370 W (WDE008303, E 13 607 55), bakkantsstyrd LED
+# 1–200 VA med nolla (mjukare lågt), en eller två i en dubbelram (två kanaler)
+DIMMER_LED = Apparattyp("DIMMER-LED", "Exxact LED-dimmer 1–370 W, vrid, bakkant (Schneider Electric WDE008303)",
+                        "dimmer", 1, (80.0, 80.0), APPARATDOSA, "dimmer", produkt="DIMMER-LED", minsta_last=1.0,
+                        storsta_last=200.0)
+DIMMER_LED_2 = Apparattyp("DIMMER-LED-2", "Två Exxact LED-dimrar 1–370 W, bakkant, i en dubbelram (WDE008303)",
+                          "dimmer", 2, (151.0, 80.0), APPARATDOSA, "dimmer", produkt="DIMMER-LED", minsta_last=1.0,
+                          storsta_last=200.0)
 BRYTARE_1 = Apparattyp("BRYTARE-1", "Strömbrytare, en pol (ej vald)", "brytare", 1, (80.0, 80.0), APPARATDOSA,
                        "brytare")
 UTTAG_2 = Apparattyp("UTTAG-2", "Vägguttag, dubbelt, jordat (ej valt)", "uttag", 2, (151.0, 80.0), APPARATDOSA, "uttag")

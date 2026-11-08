@@ -18,7 +18,7 @@ from shapely import voronoi_polygons
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import unary_union
 
-from .elritning import R_LAMPA, symbol
+from .elritning import R_LAMPA, _linjen, linjesymbol, symbol
 from .karna import ROT
 from .planritning import Blad, Vy, blad, figur, norrpil, papper, plan, polygoner, rita_ytor, sv, vy
 
@@ -29,8 +29,8 @@ KANTZON = 500.0                  # utan kantzonen längs väggarna i rummens sta
 SKALOR = (20.0, 50.0, 75.0, 100.0)
 PLATS = (205.0, 240.0)           # planens största bredd och höjd på bladet [mm]
 FORSTORING = 4                   # rastrets bildpunkter per mätruta och led (bilinjärt mellan rutorna)
-INREDNING = ("Hus/Inredning", "Hus/Kamin", "Hus/Trappa")   # inredningen på mätytan (och källartrappan, där man
-#                                                             inte går), som lämnas utanför statistiken
+INREDNING = ("Hus/Inredning", "Hus/Kamin", "Hus/Trappa", "Hus/Grund/Rör")   # inredningen på mätytan (och
+#             källartrappan, där man inte går, och källarens pelare), som lämnas utanför statistiken
 FARGER = ["#{:02x}{:02x}{:02x}".format(*(round(255 * c) for c in f[:3]))
           for f in plt.get_cmap("inferno")(np.linspace(0.08, 0.98, len(NIVAER) - 1))]
 
@@ -115,16 +115,18 @@ def _ruta(r: tuple[float, float, float, float]) -> Polygon:
 
 
 def _etikettlage(rum: Any, mitt: Point, b: float, h: float, upptaget: list[tuple[float, float, float, float]],
-                 steg: float) -> tuple[float, float]:
+                 steg: float, reserv: Any = None) -> tuple[float, float]:
     """Etikettens mitt (rutan b × h, modellens mm) i rummet: närmast mitt bland lägena där rutan ligger i rummet och
     inte täcker det som är upptaget (armaturerna och deras id, delområdena och etiketterna: rutor x0, y0, x1, y1);
-    finns inget sådant läge, det som täcker minst."""
-    rx0, ry0, rx1, ry1 = rum.bounds
-    mx, my = np.meshgrid(np.arange(rx0 + b / 2, rx1 - b / 2 + 1.0, steg),
-                         np.arange(ry0 + h / 2, ry1 - h / 2 + 1.0, steg))
-    gx, gy = mx.ravel(), my.ravel()
-    i = shapely.contains(rum, shapely.box(gx - b / 2, gy - h / 2, gx + b / 2, gy + h / 2)) if gx.size else gx > 0
-    if i.any():
+    finns inget sådant läge, det som täcker minst. Ryms rutan inte i rummet: i reserv (golvet runt rummet)."""
+    def bast(yta: Any) -> tuple[float, float] | None:
+        rx0, ry0, rx1, ry1 = yta.bounds
+        mx, my = np.meshgrid(np.arange(rx0 + b / 2, rx1 - b / 2 + 1.0, steg),
+                             np.arange(ry0 + h / 2, ry1 - h / 2 + 1.0, steg))
+        gx, gy = mx.ravel(), my.ravel()
+        i = shapely.contains(yta, shapely.box(gx - b / 2, gy - h / 2, gx + b / 2, gy + h / 2)) if gx.size else gx > 0
+        if not i.any():
+            return None
         gx, gy = gx[i], gy[i]
         u = np.array(upptaget, dtype=float).reshape(1, -1, 4)
         dx = np.minimum(gx[:, None] + b / 2, u[..., 2]) - np.maximum(gx[:, None] - b / 2, u[..., 0])
@@ -132,6 +134,9 @@ def _etikettlage(rum: Any, mitt: Point, b: float, h: float, upptaget: list[tuple
         tackt = (np.clip(dx, 0, None) * np.clip(dy, 0, None)).sum(axis=1)
         k = np.lexsort((np.hypot(gx - mitt.x, gy - mitt.y), tackt))[0]
         return float(gx[k]), float(gy[k])
+    for yta in (rum, reserv):
+        if yta is not None and not yta.is_empty and (lage := bast(yta)) is not None:
+            return lage[0], lage[1]
     return mitt.x, mitt.y
 
 
@@ -182,6 +187,8 @@ def _prov(v: Vy, rita: str) -> None:
     v.rekt(-4.5, -1.3, 4.5, 1.3, fyll=FARGER[4], stil=None)
     if rita == "armatur":
         symbol(v, "spot", 0.0, 0.0)
+    elif rita == "linje":
+        symbol(v, "linje", 0.0, 0.0)
     elif rita == "panel":
         _panel(v, 0.0, 0.0, 2.0)
     else:
@@ -231,12 +238,26 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
               and omrade[2] <= p["punkt"][1] <= omrade[3]
               and (rum_plan.get(p.get("rum", ""), yta.plan) == 1) == (yta.plan == 1)]
     r = v.m(R_LAMPA + 0.8)
-    upptaget = ([(px - r, py - r, px + v.m(2.6 + 1.0 * len(k)), py + v.m(3.4)) for k, px, py in lampor]
+    linjer = {k: _linjen(utdrag["punkter"][k], utdrag["typer"][utdrag["punkter"][k]["typ"]]) for k, _, _ in lampor
+              if "linje" in utdrag["punkter"][k]}
+    def id_lada(k: str, px: float, py: float) -> tuple[float, float, float, float]:
+        """Armaturens symbol och id (som de ritas nedan); ljuslinjens id vid dess mitt."""
+        w = v.m(1.0 * len(k) + 1.0)
+        if k not in linjer:
+            return (px - r, py - r, px + v.m(2.6 + 1.0 * len(k)), py + v.m(3.4))
+        a, b = linjer[k][0], linjer[k][1]
+        if abs(b[1] - a[1]) > abs(b[0] - a[0]):
+            return (px + v.m(1.2), py - v.m(1.6), px + v.m(1.6) + w, py + v.m(1.6))
+        return (px - w / 2, py + v.m(1.0), px + w / 2, py + v.m(4.2))
+    upptaget = ([id_lada(k, px, py) for k, px, py in lampor]
                 + [(px - sd / 2, py - sd / 2, px + sd / 2, py + sd / 2) for px, py, sd in paneler]
-                + [(z.omrade[0], z.omrade[2], z.omrade[1], z.omrade[3]) for z in yta.zoner])
+                + [(z.omrade[0], z.omrade[2], z.omrade[1], z.omrade[3]) for z in yta.zoner]
+                + [(min(a[0], b[0]) - v.m(0.8), min(a[1], b[1]) - v.m(0.8), max(a[0], b[0]) + v.m(0.8),
+                    max(a[1], b[1]) + v.m(0.8)) for a, b, _, _ in linjer.values()])
     # statistik per rum (namnen ur RUMSNAMN) och per delområde
     stat: list[dict[str, Any]] = []
     vaggar = unary_union(polygoner(delar))
+    golvet = hus.difference(vaggar).difference(ivagen)          # där en etikett som inte ryms i sitt rum får stå
     with v.lager("statistik"):
         for namn, r in rummen(delar, rumsnamn):
             lage = next(lg for n, lg in rumsnamn.values() if n == namn)
@@ -259,7 +280,8 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
             rader = [namn, f"medel {sv(s['medel'])} lux", f"min {sv(s['minst'])} / max {sv(s['storst'])}"]
             b_, h_ = v.m(1.05 * max(len(t) for t in rader) + 1.5), v.m(2.45 * len(rader) + 1.0)
             ex, ey = _etikettlage(storst.intersection(matt).difference(ivagen).difference(upph),
-                                  inre.representative_point(), b_, h_, upptaget, v.m(1.0))
+                                  inre.representative_point(), b_, h_, upptaget, v.m(1.0),
+                                  storst.buffer(1.5 * b_).intersection(golvet).intersection(matt))
             upptaget.append((ex - b_ / 2, ey - h_ / 2, ex + b_ / 2, ey + h_ / 2))
             v.text(ex, ey, "\n".join(rader), a="cm", sz=5.8, bg=True)
         for z in yta.zoner:
@@ -283,6 +305,13 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
     # armaturerna på planet
     with v.lager("armaturer"):
         for k, px, py in lampor:
+            if k in linjer:                               # ljuslinjen i sin längd, id:t vid dess mitt
+                a, b, br, _ = linjer[k]
+                linjesymbol(v, a, b, br, [])
+                lodratt = abs(b[1] - a[1]) > abs(b[0] - a[0])
+                v.ptext(px, py, 1.6 if lodratt else 0.0, 0.0 if lodratt else 1.4, k, a="lm" if lodratt else "cb",
+                        sz=5.0, bg=True)
+                continue
             symbol(v, utdrag["typer"][utdrag["punkter"][k]["typ"]]["symbol"], px, py)
             v.ptext(px, py, 1.8, 0.6, k, a="lb", sz=5.0, bg=True)
         for px, py, sida in paneler:
@@ -308,12 +337,14 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
                                     else "på golvet")
             + f", i rutor om {sv(yta.cell)} mm, ur renderingen i Blender (Cycles): armaturernas uppmätta "
             "ljusfördelning (tillverkarnas fotometrifiler), dagsljuset och reflexerna i rummen."
-            + "".join(f" Delområdena {_och([z.namn for z in hoga if z.hojd == h])} mäts på en vågrät yta "
+            + (" Ljuslinjerna lyser som lambertska ytor (den opala diffusorn) med det antagna ljusflödet per meter "
+               "lysande längd." if linjer else "")
+            + "".join(f" {'Delområdet' if len(zh) == 1 else 'Delområdena'} {_och(zh)} mäts på en vågrät yta "
                       f"{sv(h / 1000, 2)} m över golvet."
-                      for h in sorted({z.hojd for z in hoga})),
+                      for h in sorted({z.hojd for z in hoga}) if (zh := [z.namn for z in hoga if z.hojd == h])),
             *scenario,
             "Statistiken per rum utan en kantzon på 0,5 m längs väggarna (SS-EN 12464-1), i små rum mindre, och "
-            "utan inredningen på mätytan (skåp, säng, bänkskivor och källartrappan, vita på planen); jämnheten U₀ = "
+            "utan inredningen på mätytan (skåp, säng, bänkskivor, källartrappan och pelarna, vita på planen); jämnheten U₀ = "
             "minsta / medel. "
             "Rummen är de slutna ytorna mellan väggarna; en öppen planlösning delas mellan rummens namn.",
             "Ritningen ritas med ./mod ljusplan (verktyg/modellering); mätytorna står i modellens el/matytor.py.",
@@ -324,6 +355,7 @@ def rita(lux: np.ndarray, yta: Any, delar: list[dict], utdrag: dict, rumsnamn: d
             {**figur(lambda w: _prov(w, "matyta")), "text": "rummets yta i statistiken (utan kantzonen)"},
             {**figur(lambda w: _prov(w, "delomrade")), "text": "delområde med egen statistik"},
             {**figur(lambda w: _prov(w, "armatur")), "text": "armatur"},
+            *([{**figur(lambda w: _prov(w, "linje")), "text": "ljuslinje, i sin längd"}] if linjer else []),
             *([{**figur(lambda w: _prov(w, "panel")), "text": "taklampa (LED-panel)"}] if paneler else []),
         ]),
     ]

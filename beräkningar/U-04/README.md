@@ -8,7 +8,7 @@ belysning tänd och mörkt ute (21 december kl. 22), på fyra blad i ritningsmal
 | U-04.1 | Plan 1, golvet, med köksbänkarna och ön 0,91 m över golvet |
 | U-04.2 | Plan 1, bordshöjd 0,75 m, med köksbänkarna och ön 0,91 m över golvet |
 | U-04.3 | Köket, bänkskivorna 0,91 m |
-| U-04.4 | Källaren, golvet |
+| U-04.4 | Källaren, golvet, med tvättbänken längs V21 0,9 m över golvet |
 
 Belysningsstyrkan räknas i renderingen (Blender, Cycles) med armaturernas uppmätta ljusfördelning, reflexerna och
 upptaget i rummen; se Ljusplaner i elinstallationens

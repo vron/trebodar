@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import math
 
-from modellering import Del, Form, Montage, Placering, box, cylinder, varv
+from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, varv
 
 from trebodar.byggdelar.ror import stang
 
-from trebodar.material import (APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, DRIVDON, ELDOSA, ELROR, FROSTAT_GLAS,
-                               MASSING, OPALGLAS, RAMASSING, SLADD_SVART, SLADD_VIT)
+from trebodar.material import (APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, ASK, DRIVDON, ELDOSA, ELROR,
+                               FROSTAT_GLAS, LEDKANAL_ALU, LEDLIST, MASSING, OPALGLAS, RAMASSING, SLADD_SVART, SLADD_VIT)
 
 from .installation import installation
 from ..montering import TAKSKIVOR, Montering, Vek
@@ -68,33 +68,26 @@ def _delar_tub(t: Armaturtyp) -> dict[str, Del]:
     tub = cylinder(r, h.langd) - cylinder(ri, h.indrag + 40.0, (0.0, 0.0, h.langd - h.indrag - 40.0 + 1.0))
     baffel = (cylinder(ri, BAFFEL, (0.0, 0.0, h.langd - BAFFEL)) -
               cylinder(rl, BAFFEL + 2.0, (0.0, 0.0, h.langd - BAFFEL - 1.0)))
-    ut = {"PLATTA": (Del(f"{namn} takkopp Ø{t.ring_d:g} × {h.kopp:g}", cylinder(t.ring_d / 2, h.kopp), ARMATUR)
-                     if h.kopp else Del(f"{namn} frontplatta Ø{t.ring_d:g}", cylinder(t.ring_d / 2, PLATTA_T), ARMATUR))}
-    if t.hal_d > 0:
-        ut["KROPP"] = Del(f"{namn} dosa Ø{t.hal_d:g}", cylinder(t.hal_d / 2, t.djup, (0.0, 0.0, -t.djup)), ARMATUR)
-    return ut | {"STAM": Del(f"{namn} stam Ø{h.stam_d:g}", cylinder(h.stam_d / 2, h.stam), ARMATUR),
-                 "LED": Del(f"{namn} led", cylinder(h.stam_d / 2 + 3.0, h.stam_d + 6.0,
-                                                   (0.0, 0.0, -h.stam_d / 2 - 3.0)), ARMATUR),
-                 "TUB": Del(f"{namn} tub Ø{h.diameter:g}×{h.langd:g}", tub, ARMATUR),
-                 "BAFFEL": Del(f"{namn} bländskydd", baffel, ARMATUR_SVART),
-                 "LINS": Del(f"{namn} reflektor Ø{2 * rl:g}", cylinder(rl, 1.0), ARMATURLINS)}
+    return {"PLATTA": Del(f"{namn} frontplatta Ø{t.ring_d:g}", cylinder(t.ring_d / 2, PLATTA_T), ARMATUR),
+            "KROPP": Del(f"{namn} dosa Ø{t.hal_d:g}", cylinder(t.hal_d / 2, t.djup, (0.0, 0.0, -t.djup)), ARMATUR),
+            "STAM": Del(f"{namn} stam Ø{h.stam_d:g}", cylinder(h.stam_d / 2, h.stam), ARMATUR),
+            "LED": Del(f"{namn} led", cylinder(h.stam_d / 2 + 3.0, h.stam_d + 6.0, (0.0, 0.0, -h.stam_d / 2 - 3.0)),
+                       ARMATUR),
+            "TUB": Del(f"{namn} tub Ø{h.diameter:g}×{h.langd:g}", tub, ARMATUR),
+            "BAFFEL": Del(f"{namn} bländskydd", baffel, ARMATUR_SVART),
+            "LINS": Del(f"{namn} reflektor Ø{2 * rl:g}", cylinder(rl, 1.0), ARMATURLINS)}
 
 
 def _tubspot(p: Lampa) -> Montage:
-    """Tubspoten: frontplattan på takytan och dosan i håltagningen (utanpåliggande: takkoppen under taket och den
-    ingjutna dosan ovanför), stammen längs takets normal, leden och tuben riktad i ljusets riktning (punkter.tuben),
-    bländskyddet och reflektorn i tubens front."""
+    """Tubspoten: frontplattan på takytan och dosan i håltagningen, stammen längs takets normal, leden och tuben
+    riktad i ljusets riktning (punkter.tuben), bländskyddet och reflektorn i tubens front."""
     t = p.typ
-    assert t.huvud is not None
     d = _delar_tub(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
-    m.lagg(d["PLATTA"], sys, f"{p.id}-{'KOPP' if t.huvud.kopp else 'PLATTA'}")
-    if "KROPP" in d:
-        m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
-    if t.dosa is not None:
-        m.lagg(_ingjuten(t.dosa), sys, f"{p.id}-DOSA")
-    m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, t.huvud.kopp or PLATTA_T), f"{p.id}-STAM")
+    m.lagg(d["PLATTA"], sys, f"{p.id}-PLATTA")
+    m.lagg(d["KROPP"], sys, f"{p.id}-KROPP")
+    m.lagg(d["STAM"], sys @ Placering.flytt(0.0, 0.0, PLATTA_T), f"{p.id}-STAM")
     led, bak, _ = tuben(p)
     r = p.riktning
     tubsys = Placering.axlar(bak, _vinkelratt(r), r)
@@ -262,6 +255,8 @@ def armatur(p: Lampa) -> Montage:
         return _tubspot(p)
     if t.panel is not None:
         return _panelen(p)
+    if t.linje is not None:
+        return _linjearmatur(p)
     d = _delar_armatur(t)
     sys = _system(p.lage)
     m = Montage(p.id, beskrivning=f"{t.tillverkare} {t.namn}", produkt=t.produkt or None)
@@ -276,6 +271,41 @@ def armatur(p: Lampa) -> Montage:
     m.lagg(d["LINS"], sys @ spot, f"{p.id}-LINS")
     if "DRIVDON" in d and t.drivdon:
         m.lagg(d["DRIVDON"], sys @ Placering.flytt(drivdonet(p), 0.0, -TAKSKIVOR - t.drivdon[2]), f"{p.id}-DRIVDON")
+    return m
+
+
+def _linjearmatur(p: Lampa) -> Montage:
+    """Ljuslinjen utanpå betongtaket: profilen i ask (fasade undre långkanter, längs x så att fibrerna går längs den)
+    med spåret underifrån, som slutar ande från ändarna, aluminiumkanalen i spåret, LED-listen i kanalens botten och
+    den opala diffusorn i kanalen (lins: den lyser i renderingen); systemets origo i profilens mitt på takytan, x längs
+    profilen och z in i rummet."""
+    t = p.typ
+    pr = t.linje
+    assert pr is not None
+    lg, b, h, f, e = t.langd, pr.bredd, pr.hojd, pr.fas, pr.ande
+    sb, sd = pr.spar
+    db, dt, di = pr.diffusor
+    lys = t.lysande_langd
+    snitt = [(-b / 2, 0.0), (b / 2, 0.0), (b / 2, h - f), (b / 2 - f, h), (-b / 2 + f, h), (-b / 2, h - f)]
+    n = len(snitt)
+    horn = [(-lg / 2, y, z) for y, z in snitt] + [(lg / 2, y, z) for y, z in snitt]
+    ytor = [tuple(range(n)), tuple(range(2 * n - 1, n - 1, -1))] + [(i, (i + 1) % n, n + (i + 1) % n, n + i)
+                                                                     for i in range(n)]
+    kropp = polyeder(horn, ytor) - box(-lg / 2 + e, lg / 2 - e, -sb / 2, sb / 2, h - sd, h + 1.0)
+    g = pr.gods
+    kanal = (box(-lys / 2, lys / 2, -sb / 2, sb / 2, h - sd, h)
+             - box(-lys / 2 - 1.0, lys / 2 + 1.0, -sb / 2 + g, sb / 2 - g, h - sd + g, h + 1.0))
+    namn = f"{t.namn}"
+    m = Montage(p.id, beskrivning=f"{t.tillverkare}: {t.namn}", produkt=t.produkt or None)
+    sys = Placering.axlar(p.lage.punkt, p.langs, p.lage.normal)
+    m.lagg(Del(f"Askprofil {b:g} × {h:g}, L={lg:.0f}", kropp, ASK), sys, f"{p.id}-PROFIL")
+    m.lagg(Del(f"{pr.kanal_namn}, L={lys:.0f}", kanal, LEDKANAL_ALU, produkt=pr.kanal_produkt or None), sys,
+           f"{p.id}-KANAL")
+    m.lagg(Del(f"{pr.list_namn}, L={lys:.0f}", box(-lys / 2, lys / 2, -pr.list_bredd / 2, pr.list_bredd / 2,
+                                                    h - sd + g, h - sd + g + 0.4), LEDLIST,
+               produkt=pr.list_produkt or None), sys, f"{p.id}-LIST")
+    m.lagg(Del(f"{namn}, diffusor {db:g} mm", box(-lys / 2, lys / 2, -db / 2, db / 2, h - di - dt, h - di),
+               ARMATURLINS), sys, f"{p.id}-LINS")
     return m
 
 
@@ -301,14 +331,16 @@ def _ingjuten(d: Dosatyp) -> Del:
     return Del(f"{d.namn} Ø{d.diameter:g} × {d.djup:g}", cylinder(d.diameter / 2, d.djup, (0.0, 0.0, -d.djup)), ELDOSA)
 
 
-UTAN_GEOMETRI = ("central", "brandlarm")     # punkter vars geometri finns i ett annat montage (teknikrummet, brandlarmet)
+UTAN_GEOMETRI = ("central", "brandlarm", "drivdonsskap")    # punkter vars geometri finns i ett annat montage
+#                                                             (teknikrummet, brandlarmet)
 
 
 def _dosa_del(t: Dosatyp) -> Del:
     return Del(f"{t.namn} Ø{t.diameter:g}", cylinder(t.diameter / 2, t.djup, (0.0, 0.0, -t.djup)), ELDOSA)
 
 
-def _apparat_delar(t: Apparattyp) -> list[tuple[str, Del, Placering]]:
+def _apparat_delar(t: Apparattyp, produkt: str | None = None) -> list[tuple[str, Del, Placering]]:
+    """Täckramen och uttagen eller vipporna; produkt: varje vippa är en produkt (flera dimrar i en ram)."""
     b, h = t.ram
     ut = [("RAM", Del(f"{t.namn}, täckram {b:g}×{h:g}", box(-b / 2, b / 2, -h / 2, h / 2, 0.0, 9.0), APPARAT),
            Placering())]
@@ -322,16 +354,17 @@ def _apparat_delar(t: Apparattyp) -> list[tuple[str, Del, Placering]]:
         for i in range(t.kanaler):
             x = -b / 2 + 8.0 + (i + 0.5) * w
             ut.append((f"VIPPA{i + 1}", Del(f"{t.namn}, vippa", box(-w / 2 + 1.0, w / 2 - 1.0, -h / 2 + 10.0,
-                                                                   h / 2 - 10.0, 0.0, 3.0), APPARAT),
+                                                                   h / 2 - 10.0, 0.0, 3.0), APPARAT, produkt=produkt),
                        Placering.flytt(x, 0.0, 9.0)))
     return ut
 
 
 def apparat(p: Apparat) -> Montage:
     sys = _system(p.lage)
-    m = Montage(p.id, beskrivning=p.typ.namn)
+    per_vippa = p.typ.slag == "dimmer" and p.typ.kanaler > 1     # dimrarna i en flerfacksram: en produkt var
+    m = Montage(p.id, beskrivning=p.typ.namn, produkt=None if per_vippa else (p.typ.produkt or None))
     m.lagg(_dosa_del(p.typ.dosa), sys, f"{p.id}-DOSA")
-    for namn, d, pl in _apparat_delar(p.typ):
+    for namn, d, pl in _apparat_delar(p.typ, (p.typ.produkt or None) if per_vippa else None):
         m.lagg(d, sys @ pl, f"{p.id}-{namn}")
     return m
 

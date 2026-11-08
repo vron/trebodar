@@ -47,6 +47,9 @@ ON: Ruta = (KB.ON_X - KB.ON_DJUP / 2, KB.X_ON_FRONT + KB.UTSTICK, KB.FOGAR_ON[0]
 KOK: Ruta = (ON[0] - 500.0, KB.X_VAGG, K_YTA, KB.Y_SYD)
 BANK_Z = Z_TOPP + KB.BANK_T + 10.0                     # 10 mm över bänkskivorna, ovanför hällens glas
 BANKAR = (Zon("Bänken längs 3NV", BANK_NV, BANK_Z), Zon("Bänken längs 3SV", BANK_SV, BANK_Z), Zon("Ön", ON, BANK_Z))
+# tvättstugans bänk längs V21 (inte modellerad): tvätthoet KA-TH1 och tvättmaskinen och torktumlaren vid KA-TM1, 600
+# djup från V21:s gips (x 333), mätt i arbetshöjden
+TVATTBANKEN = Zon("Tvättbänken längs V21", (333.0, 933.0, 7400.0, 8950.0), 900.0)
 # inredningen på mätytan (skåpen, sängen, bänkskivorna, kaminen) lämnas utanför statistiken: den snittas i de här
 # höjderna över golvet [mm] som ligger på mätytan eller högst INREDNING_OVER över den (bänkskivorna i sin mitt)
 INREDNING_SNITT = (2.0, 100.0, 200.0, 300.0, 450.0, 600.0, 750.0, Z_TOPP + KB.BANK_T / 2)
@@ -60,5 +63,5 @@ MATYTOR = {
     "plan1-golv": Matyta("Plan 1, golvet", 1, GOLV_Z, PLAN1, zoner=BANKAR),
     "plan1-bord": Matyta("Plan 1, bordshöjd 0,75 m", 1, 750.0, PLAN1, zoner=BANKAR),
     "kok-bank": Matyta("Köket, bänkskivorna 0,91 m", 1, BANK_Z, KOK, cell=25.0, zoner=BANKAR),
-    "kallare-golv": Matyta("Källaren, golvet", 0, 0.0, KALLARE),
+    "kallare-golv": Matyta("Källaren, golvet", 0, 0.0, KALLARE, zoner=(TVATTBANKEN,)),
 }
