@@ -5,10 +5,12 @@ inbyggda väggarna: garderoben och kökets inbyggnad).
 """
 from __future__ import annotations
 
+from typing import Any
+
 from shapely.geometry import Point, Polygon
 from shapely.geometry import box as plan_box
 
-from modellering import Form, Kapad, Material, prisma
+from modellering import Form, Kapad, Material, Union, prisma
 
 from trebodar import skelett as S
 from trebodar.hus.rum import BADRUM
@@ -93,12 +95,27 @@ def takplan(p: Polygon, ned: float = 0.0) -> list[Plan3]:
     return ut
 
 
-def upp_till_taket(p: Polygon, z0: float, ned: float = 0.0) -> Form:
-    """Prisma över ytan p från z0 upp till innertaket (ned mm under det)."""
-    f: Form = prisma(list(p.exterior.coords)[:-1], HOJD - z0, z0=z0)
-    for pkt, n in takplan(p, ned):
+def kapad_vid_taket(f: Form, p: Polygon, ned: float = 0.0, inv: Any = None) -> Form:
+    """Formen f över ytan p kapad vid innertaket (ned mm under det). Under en nock (två takfall som stiger mot
+    varandra) ligger delen under båda planen; under en dal (takfall som stiger från varandra, #94) under något av dem.
+    inv: placeringens invers, när f är i en dels eget system."""
+    plan = takplan(p, ned)
+    if inv is not None:
+        plan = [(inv.punkt(pkt), inv.riktning(n)) for pkt, n in plan]
+    if len(plan) == 2:
+        x0 = p.bounds[0] + 1.0
+        t = innertakets_fall(x0, p.centroid.y)
+        stiger_at_hoger = t is not None and t.z_overkant(x0 + 1.0) > t.z_overkant(x0)
+        if t is not None and not stiger_at_hoger:          # dal: den vänstra delen faller mot dalen
+            return Union(tuple(Kapad(f, pkt, n) for pkt, n in plan))
+    for pkt, n in plan:
         f = Kapad(f, pkt, n)
     return f
+
+
+def upp_till_taket(p: Polygon, z0: float, ned: float = 0.0) -> Form:
+    """Prisma över ytan p från z0 upp till innertaket (ned mm under det)."""
+    return kapad_vid_taket(prisma(list(p.exterior.coords)[:-1], HOJD - z0, z0=z0), p, ned)
 
 
 def under_taket(p: Polygon, ned: float) -> Plan3:

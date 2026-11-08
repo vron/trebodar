@@ -9,14 +9,14 @@ from __future__ import annotations
 
 from shapely.geometry import Polygon
 
-from modellering import Del, Kapad, Montage
+from modellering import Del, Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.material import ASK
 
 from .lattvaggar import VAGGAR
-from .skikt import HOJD, SKIVOR_T, SKIVOR_VATRUM, takplan, upp_till_taket
+from .skikt import HOJD, SKIVOR_T, SKIVOR_VATRUM, kapad_vid_taket, upp_till_taket
 from .vaggar import FRIA_ANDAR_VATRUM
 
 T = 22.0
@@ -53,9 +53,7 @@ def montage() -> Montage:
         p = yta(kod, ande)
         x0, y0, x1, y1 = p.bounds
         d, pl = virke_i_lada(x0, x1, y0, y1, 0.0, HOJD, "z", ASK)
-        f = d.form
-        for pkt, n in takplan(p):                            # kapad vid innertaket, i brädans system
-            f = Kapad(f, pl.invers().punkt(pkt), pl.invers().riktning(n))
+        f = kapad_vid_taket(d.form, p, inv=pl.invers())     # kapad vid innertaket, i brädans system
         m.lagg(Del(f"Ändbräda ask {fmt(T)} vägg {kod}", f, ASK), pl, f"{kod}-ANDE")
     for kod, ande in FRIA_ANDAR_VATRUM:
         _vatrum(m, kod, ande)
