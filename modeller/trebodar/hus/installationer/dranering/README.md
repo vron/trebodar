@@ -12,7 +12,7 @@ cd verktyg/modellering
 ./mod dranering kontroll     # fallet, höjderna vid brunnen, brunnarnas djup och krockarna mot husets delar och de
                              # andra installationerna (utom marken; ledningarna i berget redovisas)
 ./mod dranering lista        # ledningarna med brytpunkternas höjder och brunnarna (ut/dranering/dranering.md)
-./mod dranering ritning      # ritningen D-01 (ut/dranering/D-01 Dagvatten och dränering.pdf, kräver STEP-filen:
+./mod dranering ritning      # ritningen VS-03 (ut/dranering/VS-03 Dagvatten och dränering.pdf, kräver STEP-filen:
                              # ./mod bygg)
 ```
 

@@ -10,7 +10,7 @@ och krockarna mot husets delar.
 cd verktyg/modellering
 ./mod ventilation kontroll     # kedjorna, flödena, genomföringarna och krockarna mot husets delar
 ./mod ventilation lista        # grenar, element, kanaler, genomföringar och krockar (ut/ventilation/)
-./mod ventilation ritning      # ritningarna V-01 (ut/ventilation/V-01 Ventilation.pdf, kräver STEP-filen: ./mod bygg)
+./mod ventilation ritning      # ritningarna VL-01 (ut/ventilation/VL-01 Ventilation.pdf, kräver STEP-filen: ./mod bygg)
 ./mod rendera detalj-kallarkanal detalj-1c detalj-takhuv detalj-takflakt detalj-koket   # ventilationen i bild
 ```
 
@@ -77,9 +77,9 @@ den ligger ovanför rummet, och ytterväggarnas installationsskikt (45 mm) rymme
 
 ## Ritningarna
 
-`./mod ventilation ritning` ritar serien V-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3):
+`./mod ventilation ritning` ritar serien VL-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3):
 
-- **V-01.1 plan 1** och **V-01.2 källaren** (1:75): kanalerna med frånluft i skala, lodräta kanaler genom
+- **VL-01.1 plan 1** och **VL-01.2 källaren** (1:75): kanalerna med frånluft i skala, lodräta kanaler genom
   bjälklaget, donen, fläktarna, avluftsdonen och flödena, med tabeller över grenarna, kanalerna och produkterna;
-- **V-01.3 sektionen** (1:50) längs källarrummets kanal upp genom väggen 1C till takhuven, med genomföringarna och
+- **VL-01.3 sektionen** (1:50) längs källarrummets kanal upp genom väggen 1C till takhuven, med genomföringarna och
   deras mått, och tabellen över alla genomföringar.

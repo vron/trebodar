@@ -16,7 +16,7 @@ from shapely.ops import nearest_points, unary_union
 
 from .planritning import Blad, Vy, blad, figur, kompilera, norrpil, papper, plan, plan_ytor, sv, vy
 
-SERIE = "D-01 Dagvatten och dränering"
+SERIE = "VS-03 Dagvatten och dränering"
 SKALA, DETALJ = 100.0, 20.0                       # planen och brunnen
 PLANEN = (-3400.0, 16200.0, -3300.0, 17700.0)     # planens område (x0, x1, y0, y1) [mm]
 BRUNNEN = (10450.0, 12050.0, -500.0, 1500.0)      # brunnens

@@ -250,7 +250,7 @@ def main(argv: list[str] | None = None) -> None:
     pv = sub.add_parser("ventilation", help="ventilationen: kontroll (med krockar mot huset), lista och ritningar")
     pv.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: kedjorna, flödena, genomföringarna och krockarna mot husets delar; lista: grenar, "
-                         "element, kanaler och genomföringar (markdown); ritning: planerna och sektionen (V-01)")
+                         "element, kanaler och genomföringar (markdown); ritning: planerna och sektionen (VL-01)")
     pv.add_argument("--ut", type=Path, default=UT / "ventilation")
     pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av plattorna (AR-03, AR-04, #86)")
     pg.add_argument("atgard", choices=("ritning",))
@@ -266,7 +266,7 @@ def main(argv: list[str] | None = None) -> None:
     pg.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: slingornas längd, fördelarna, rören som går i varandra eller mot järnen i sin "
                          "nivå, genomföringarna och krockarna mot husets delar och de andra installationerna; lista: "
-                         "kretsar och genomföringar (markdown); ritning: plan 1 och källaren med fördelarna (VG-01)")
+                         "kretsar och genomföringar (markdown); ritning: plan 1 och källaren med fördelarna (VV-01)")
     pg.add_argument("--ut", type=Path, default=UT / "golvvarme")
     pb = sub.add_parser("kollektor", help="köldbärarledningarna: kontroll (med krockar mot huset)")
     pb.add_argument("atgard", choices=("kontroll",),
@@ -275,14 +275,14 @@ def main(argv: list[str] | None = None) -> None:
     pa.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: sammankopplingen, varnarnas placering, genomföringarna och krockarna mot husets "
                          "delar och de andra installationerna; lista: varnare, dosor, kablar och "
-                         "genomföringar (markdown); ritning: plan 1 och källaren (B-01)")
+                         "genomföringar (markdown); ritning: plan 1 och källaren (E-02)")
     pa.add_argument("--ut", type=Path, default=UT / "brandlarm")
     pd = sub.add_parser("dranering", help="dräneringen och dagvattnet: kontroll (med krockar mot huset), lista och "
                                           "ritning")
     pd.add_argument("atgard", choices=("kontroll", "lista", "ritning"),
                     help="kontroll: fallet, höjderna vid brunnen, brunnarnas djup och krockarna mot husets delar och "
                          "de andra installationerna (inte marken); lista: ledningar och brunnar med höjderna "
-                         "(markdown); ritning: planen med höjderna (D-01)")
+                         "(markdown); ritning: planen med höjderna (VS-03)")
     pd.add_argument("--ut", type=Path, default=UT / "dranering")
     pv = sub.add_parser("avlopp", help="avloppet: kontroll (med krockar mot huset), lista och ritning")
     pv.add_argument("atgard", choices=("kontroll", "lista", "ritning"),

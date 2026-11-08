@@ -244,7 +244,7 @@ ansvarig   = "vvs"
 forslag    = true
 inblandade = ["mark", "borr"]
 prel       = true
-anm        = "2 × Ø110 till borrhålet, bara 15° böjar, dragtråd, pluggar, tätning mot radon och inmätt ände (VG-01.3)."
+anm        = "2 × Ø110 till borrhålet, bara 15° böjar, dragtråd, pluggar, tätning mot radon och inmätt ände (VV-01.3)."
 
 [[steg]]
 fas        = "grund"
@@ -253,7 +253,7 @@ start      = "2027-08-30"
 slut       = "2027-09-10"
 ansvarig   = ""
 inblandade = ["vvs", "el", "betong", "ka"]
-anm        = "L-element L400 och cellplast, avlopp och inkommande vatten, elrör, golvvärme (VG-01), armering och startjärn (R-04); kontroll före gjutning."
+anm        = "L-element L400 och cellplast, avlopp och inkommande vatten, elrör, golvvärme (VV-01), armering och startjärn (R-04); kontroll före gjutning."
 
 [[steg]]
 fas        = "grund"
@@ -320,7 +320,7 @@ start      = "2027-10-20"
 slut       = "2027-10-29"
 ansvarig   = "mark"
 prel       = true
-anm        = "Dränledningen och dagvattnet till brunnen B1 (D-01); grundmursskiva mot väggarna (K-06)."
+anm        = "Dränledningen och dagvattnet till brunnen B1 (VS-03); grundmursskiva mot väggarna (K-06)."
 
 [[steg]]
 fas        = "mellanbjalklag"
@@ -329,7 +329,7 @@ start      = "2027-10-20"
 slut       = "2027-11-02"
 ansvarig   = ""
 inblandade = ["el", "vvs", "betong", "ka"]
-anm        = "Elrör (E-01), tappvatten (VS-01), golvvärme (VG-01), avloppet, köksön (#50), golvbrunnen (#52), armering i två lager (R-06); kontroll före gjutning."
+anm        = "Elrör (E-01), tappvatten (VS-01), golvvärme (VV-01), avloppet, köksön (#50), golvbrunnen (#52), armering i två lager (R-06); kontroll före gjutning."
 
 [[steg]]
 fas        = "mellanbjalklag"
@@ -451,7 +451,7 @@ start      = "2028-01-10"
 slut       = "2028-02-25"
 ansvarig   = "el"
 prel       = true
-anm        = "Rör och dosor i väggar och installationsskikt, centralen (#51), brandlarmet (B-01)."
+anm        = "Rör och dosor i väggar och installationsskikt, centralen (#51), brandlarmet (E-02)."
 
 [[steg]]
 fas        = "installationer"
@@ -461,7 +461,7 @@ slut       = "2028-02-11"
 ansvarig   = ""
 inblandade = ["vvs", "el"]
 prel       = true
-anm        = "Köksfläkten, badrumsfläkten och källarrummet (V-01); ersättningsluften (#53)."
+anm        = "Köksfläkten, badrumsfläkten och källarrummet (VL-01); ersättningsluften (#53)."
 
 [[steg]]
 fas        = "installationer"
@@ -576,7 +576,7 @@ start      = "2028-05-29"
 slut       = "2028-06-09"
 ansvarig   = "mark"
 prel       = true
-anm        = "Stuprören till dagvattnet (D-01), marken faller från huset (K-06), grönsakslandet."
+anm        = "Stuprören till dagvattnet (VS-03), marken faller från huset (K-06), grönsakslandet."
 
 [[steg]]
 fas        = "utvandigt"

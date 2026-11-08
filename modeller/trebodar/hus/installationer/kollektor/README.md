@@ -9,7 +9,7 @@ högst 15°.
 cd verktyg/modellering
 ./mod kollektor kontroll     # böjarna, rören i varandra, genomföringarna och krockarna mot husets delar och de andra
                              # installationerna
-./mod golvvarme ritning      # ritningen VG-01.3 (köldbärarledningarna, i golvvärmens serie)
+./mod golvvarme ritning      # ritningen VV-01.3 (köldbärarledningarna, i golvvärmens serie)
 ```
 
 ## Filerna

@@ -15,7 +15,7 @@ from shapely.ops import unary_union
 
 from .planritning import Blad, Vy, blad, figur, kompilera, norrpil, papper, plan, plan_ytor, sv, vy
 
-SERIE = "B-01 Brandlarm"
+SERIE = "E-02 Brandlarm"
 SKALA = 75.0
 PLAN1 = (-500.0, 14300.0, -300.0, 16300.0)          # planernas område (x0, x1, y0, y1) [mm]
 R_VARNARE, R_STIGARE, DOSA = 2.3, 1.1, 1.3            # symbolernas mått på papperet [mm]

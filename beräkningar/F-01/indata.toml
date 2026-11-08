@@ -103,7 +103,103 @@ rev = "02"
 datum = "2026-10-31"
 andring = "Badrum, hall och kök uppdaterade"
 
-# Handlingar till tekniskt samråd. status: "klar", "upprättas", "inlämnad" eller "ej aktuell".
+# Registret: alla handlingar, i nummerserier. Varje serie har en bokstavskod (före "-nn") med en betydelse, ett avsnitt
+# på webbplatsens förteckning och om den lämnas in till tekniskt samråd (samrad). F-01:s pdf listar bara handlingarna
+# i de serier som lämnas in; webbplatsen (verktyg/bygg/startsida.py) visar allt, avsnitt för avsnitt i seriernas
+# ordning. Bygglovets handlingar (100, 200–209, kommunens numrering) står i bygglov/ och [[bygglov]] ovan.
+[[serie]]
+kod = "F"
+namn = "Förutsättningar"
+betydelse = "gemensamma förutsättningar för konstruktionen: objektet, regelverk, klasser och laster"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "K"
+namn = "Konstruktionsberäkningar"
+betydelse = "beräkningar av den bärande konstruktionen, del för del"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "R"
+namn = "Konstruktionsritningar"
+betydelse = "ritningar över den bärande konstruktionen"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "TP"
+namn = "Tidsplan"
+betydelse = "byggets faser, steg och ansvar"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "KP"
+namn = "Kontrollplan"
+betydelse = "förslag till kontrollplan enligt PBL"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "BR"
+namn = "Brandskydd"
+betydelse = "brandskyddsbeskrivning"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "AV"
+namn = "Avfall"
+betydelse = "avfallshanteringsplan för rivning och byggande"
+avsnitt = "Tekniskt samråd"
+samrad = true
+[[serie]]
+kod = "E"
+namn = "Elritningar"
+betydelse = "elinstallationen och brandlarmet"
+avsnitt = "Installationsritningar"
+samrad = false
+[[serie]]
+kod = "VS"
+namn = "VVS-ritningar, vatten och sanitet"
+betydelse = "tappvatten, avlopp, dagvatten och dränering"
+avsnitt = "Installationsritningar"
+samrad = false
+[[serie]]
+kod = "VV"
+namn = "VVS-ritningar, värme"
+betydelse = "golvvärmen och köldbärarledningarna"
+avsnitt = "Installationsritningar"
+samrad = false
+[[serie]]
+kod = "VL"
+namn = "VVS-ritningar, luft"
+betydelse = "ventilationen"
+avsnitt = "Installationsritningar"
+samrad = false
+[[serie]]
+kod = "AR"
+namn = "Arbetsritningar"
+betydelse = "ritningar för utförandet på bygget"
+avsnitt = "Arbetsritningar"
+samrad = false
+[[serie]]
+kod = "U"
+namn = "Utredningar"
+betydelse = "egna utredningar som underlag för projekteringen"
+avsnitt = "Utredningar"
+samrad = false
+[[serie]]
+kod = "IN"
+namn = "Inköp"
+betydelse = "specialprodukterna med vald produkt, status, ansvarig roll och fas"
+avsnitt = "Inköp"
+samrad = false
+[[serie]]
+kod = "I"
+namn = "Illustrationer"
+betydelse = "underlag för husets bilder: renderingarnas kameror"
+avsnitt = "Illustrationer"
+samrad = false
+
+# Handlingarna. status: "klar", "upprättas", "inlämnad" eller "ej aktuell". fil: pdf:en där den inte ligger i
+# rapporter/ eller ritningar/.
 [[handling]]
 nr = "F-01"
 namn = "Förutsättningar, referenser och laster"
@@ -172,43 +268,72 @@ status = "upprättas"
 nr = "AV-01"
 namn = "Avfallshanteringsplan"
 status = "klar"
-
-# Övriga handlingar: egna utredningar (U) som underlag för projekteringen, arbetsritningar (AR) för utförandet och
-# inköpslistan (IN).
-# Ingår inte i handlingarna till tekniskt samråd. Samma status som ovan.
-[[ovrig]]
-nr = "U-01"
-namn = "Bottenplattan – temperatur och fukt under året"
+[[handling]]
+nr = "E-01"
+namn = "Elinstallation: elplanerna, rören i mellanbjälklaget, förteckningarna och grupperna"
 status = "klar"
-[[ovrig]]
-nr = "U-02"
-namn = "Nock- och dalbalkar – lyft i två punkter"
+[[handling]]
+nr = "E-02"
+namn = "Brandlarm"
 status = "klar"
-[[ovrig]]
-nr = "U-03"
-namn = "Takets luftspalt – luftflöde, fukt och mögelrisk"
+[[handling]]
+nr = "VS-01"
+namn = "Tappvatten"
 status = "klar"
-[[ovrig]]
-nr = "U-04"
-namn = "Ljusplaner – belysningsstyrka med all belysning tänd"
+[[handling]]
+nr = "VS-02"
+namn = "Avlopp"
 status = "klar"
-[[ovrig]]
+[[handling]]
+nr = "VS-03"
+namn = "Dagvatten och dränering"
+status = "klar"
+[[handling]]
+nr = "VV-01"
+namn = "Golvvärme och köldbärarledningar"
+status = "klar"
+[[handling]]
+nr = "VL-01"
+namn = "Ventilation"
+status = "klar"
+[[handling]]
 nr = "AR-01"
 namn = "Arbetsritning fasadsten på källarväggarna"
 status = "klar"
-[[ovrig]]
+[[handling]]
 nr = "AR-02"
 namn = "Arbetsritning utsättning, koordinater och höjder"
 status = "klar"
-[[ovrig]]
+[[handling]]
 nr = "AR-03"
 namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål, ingjutningsgods"
 status = "klar"
-[[ovrig]]
+[[handling]]
 nr = "AR-04"
 namn = "Arbetsritning gjutning av bottenplattan: golvvärme, avlopp, hål, ingjutningsgods"
 status = "klar"
-[[ovrig]]
+[[handling]]
+nr = "U-01"
+namn = "Bottenplattan – temperatur och fukt under året"
+status = "klar"
+[[handling]]
+nr = "U-02"
+namn = "Nock- och dalbalkar – lyft i två punkter"
+status = "klar"
+[[handling]]
+nr = "U-03"
+namn = "Takets luftspalt – luftflöde, fukt och mögelrisk"
+status = "klar"
+[[handling]]
+nr = "U-04"
+namn = "Ljusplaner – belysningsstyrka med all belysning tänd"
+status = "klar"
+[[handling]]
 nr = "IN-01"
 namn = "Inköpslista, specialprodukterna"
 status = "klar"
+[[handling]]
+nr = "I-01"
+namn = "Kameraplan, renderingarnas kameror"
+status = "klar"
+fil = "renderingar/kameraplan.pdf"

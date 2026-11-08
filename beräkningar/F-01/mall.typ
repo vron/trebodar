@@ -39,7 +39,7 @@
 
 = Syfte
 
-Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen. Avsnitt 6 listar övriga handlingar, underlag som inte lämnas in till tekniskt samråd.
+Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet, regelverk, klasser och laster. Detaljhandlingarna i avsnitt 5 bygger på dessa och redovisar respektive del av konstruktionen. Avsnitt 5 listar handlingarna som lämnas in till tekniskt samråd och anger hur handlingarna numreras.
 
 = Objekt
 
@@ -175,13 +175,13 @@ Handlingarna motsvarar det som kallelsen till tekniskt samråd begär.
   ..r.handlingar.map(h => ([#h.nr], [#h.namn], [#h.status])).flatten(),
 )
 
-= Övriga handlingar
+== Numrering
 
-Egna utredningar (U) som underlag för projekteringen, arbetsritningar (AR) för utförandet och inköpslistan (IN) med specialprodukterna. De ingår inte i handlingarna till tekniskt samråd.
+Alla handlingar numreras med en bokstavskod för serien och ett löpnummer (t.ex. K-05). Serierna och deras betydelse står nedan. Bara serierna markerade *ja* lämnas in till tekniskt samråd; de andra är egna underlag och ritningar för utförandet, och finns i projektets handlingsförteckning. Bygglovets handlingar (100, 200–209) följer kommunens numrering.
 
 #table(
-  columns: (12mm, 1fr, 16mm),
-  align: (left, left, left),
-  [Nr], [Handling], [Status],
-  ..r.ovriga.map(h => ([#h.nr], [#h.namn], [#h.status])).flatten(),
+  columns: (12mm, 1fr, 1.6fr, 16mm),
+  align: (left, left, left, left),
+  [Kod], [Serie], [Betydelse], [Samråd],
+  ..r.serier.map(x => ([#x.kod], [#x.namn], [#x.betydelse], [#if x.samrad [ja] else [nej]])).flatten(),
 )

@@ -14,7 +14,7 @@ from shapely.ops import unary_union
 from .planritning import (MINSTA_HAL, VAGGAR, Blad, Vy, blad, figur, kompilera, norrpil, papper, plan, polygoner,
                           rita_ytor, sektion, sv, svm, vy)
 
-SERIE = "VG-01 Golvvärme"
+SERIE = "VV-01 Golvvärme"
 SKALA, SKALA_VY = 100.0, 20.0
 PLAN1 = (-200.0, 14100.0, -200.0, 16100.0)          # planernas område (x0, x1, y0, y1) [mm]
 KALLARE = (-200.0, 14000.0, -200.0, 12700.0)

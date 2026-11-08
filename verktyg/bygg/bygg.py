@@ -80,6 +80,13 @@ def ritning(nr: str, titel: str, *kor: str, bygger_pa: list[str] = (), kallor: l
                utdata=[f"ritningar/{nr} {titel}.pdf"])
 
 
+def installation(nr: str, titel: str, system: str) -> Steg:
+    """Installationsritningen nr (./mod <system> ritning) ur modellens snitt, till ritningar/."""
+    return Steg(nr, "verktyg/modellering", [["mod", system, "ritning", "--ut", "../../ritningar"]],
+                kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"],
+                utdata=[f"ritningar/{nr} {titel}.pdf"])
+
+
 STEG = [
     Steg("modell", "modeller/trebodar", [["mod", "bygg", "--format", "step"]],
          kallor=[*MODELL, "verktyg/modellanalys/modell.py"],             # modellanalysens cache skrivs också
@@ -135,6 +142,14 @@ STEG = [
     Steg("gjutning", "verktyg/modellering", [["mod", "gjutning", "ritning"]],
          kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"],
          utdata=["ritningar/AR-03 Gjutning av mellanbjälklaget.pdf", "ritningar/AR-04 Gjutning av bottenplattan.pdf"]),
+    # installationsritningarna ur installationernas data och modellens snitt (#90)
+    installation("E-01", "Elinstallation", "el"),
+    installation("E-02", "Brandlarm", "brandlarm"),
+    installation("VS-01", "Tappvatten", "vatten"),
+    installation("VS-02", "Avlopp", "avlopp"),
+    installation("VS-03", "Dagvatten och dränering", "dranering"),
+    installation("VV-01", "Golvvärme", "golvvarme"),
+    installation("VL-01", "Ventilation", "ventilation"),
 ]
 STEG_NAMN = {s.namn: s for s in STEG}
 

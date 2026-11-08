@@ -217,7 +217,7 @@ vald     = "Fjäråskupan Carisma 70, vit, för extern fläkt"
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "invandigt"
-dokument = "V-01"
+dokument = "VL-01"
 arende   = [53, 59]
 anm      = "Bredden 70, den minsta, över hällen 60. Utloppet Ø150 upp i skorstenen och den isolerade kanalen Ø200 genom taket till takfläkten; forcerat 400 m³/h. Ersättningsluften behövs."
 
@@ -229,7 +229,7 @@ vald     = "Systemair TFSR 200 EC Sileo med backspjäll och varvtalsstyrning (EC
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "tatt"
-dokument = "V-01"
+dokument = "VL-01"
 arende   = [59, 75]
 anm      = "Tyst takfläkt för köksfläkten, rakt ovanför kåpan: 108 l/s vid 284 Pa, så kåpans 111 l/s på ungefär halvt varvtal. Kanalen genom taket görs när taket läggs. Kulören är inte vald."
 

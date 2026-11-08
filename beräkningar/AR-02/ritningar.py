@@ -482,7 +482,7 @@ def blad_sektion():
             f"{rh(Z_DRAN_INM)}; dimensionerande nivå {svm(H['ror_marginal'] * 1000)} mm högre, {rh(Z_DRAN)}, för "
             "mätosäkerheten.",
             f"Dräneringen runt källaren har överkanten i cellplastens underkant, {rh(Z_MAK)}, och faller mot brunnen "
-            f"till rörets dimensionerande nivå: {svm(Z_MAK - Z_DRAN)} mm fall längs källaren (D-01).",
+            f"till rörets dimensionerande nivå: {svm(Z_MAK - Z_DRAN)} mm fall längs källaren (VS-03).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

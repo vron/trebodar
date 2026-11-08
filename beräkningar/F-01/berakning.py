@@ -52,6 +52,11 @@ print(f"tak {kg_tak:.1f} kg/m² = {g_tak:.3f} kN/m² takyta ({g_tak_h:.3f} horis
 print(f"snö μ1 {mu1:.2f} s {s1:.2f}, μ2 {mu2:.2f} s {s2:.2f}")
 print(f"vind kr {kr:.4f} cr {cr:.3f} Iv {Iv:.3f} qb {qb:.3f} qp {qp:.3f} ce {ce:.2f}")
 
+SERIE = {x["kod"]: x for x in IN["serie"]}
+okanda = sorted({h["nr"] for h in IN["handling"] if h["nr"].split("-")[0] not in SERIE})
+if okanda:
+    raise SystemExit(f"handlingar utan serie i registret: {', '.join(okanda)}")
+
 R = {
     "projekt": IN["projekt"], "objekt": IN["objekt"], "klasser": IN["klasser"],
     "tak": [dict(skikt=t["skikt"], kg=fmt(t["kg"], 1)) for t in tak],
@@ -62,7 +67,9 @@ R = {
                 mu1=fmt(mu1, 1), mu2=fmt(mu2, 1), s1=fmt(s1, 2), s2=fmt(s2, 2)),
     "vind": dict(vb=v["vb"], z0=fmt(v["z0"], 3), z=fmt(v["z"], 1), kr=fmt(kr, 3), cr=fmt(cr, 2),
                  Iv=fmt(Iv, 3), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(ce, 2)),
-    "handlingar": IN["handling"], "bygglov": IN.get("bygglov", []), "ovriga": IN.get("ovrig", []), "nedb": IN["nedbojning"],
+    # registret: bara handlingarna i de serier som lämnas in till tekniskt samråd, och alla serierna
+    "handlingar": [h for h in IN["handling"] if SERIE[h["nr"].split("-")[0]]["samrad"]],
+    "serier": IN["serie"], "bygglov": IN.get("bygglov", []), "nedb": IN["nedbojning"],
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 

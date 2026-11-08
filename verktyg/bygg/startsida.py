@@ -76,11 +76,23 @@ def _blad(rot: Path, nr: str) -> list[dict]:
     return blad
 
 
+# avsnittens text i förteckningen (avsnitten och vilka serier som hör till dem: F-01:s register)
+AVSNITT = {
+    "Tekniskt samråd": "Handlingarna till det tekniska samrådet.",
+    "Installationsritningar": "Elens och VVS-installationernas ritningar. Ingår inte i handlingarna till samrådet.",
+    "Arbetsritningar": "Ritningar för utförandet. Ingår inte i handlingarna till samrådet.",
+    "Utredningar": "Egna utredningar som underlag för projekteringen. Ingår inte i handlingarna till samrådet.",
+    "Inköp": "Specialprodukterna med vald produkt, status, ansvarig roll och fas. Ingår inte i handlingarna till "
+             "samrådet.",
+    "Illustrationer": "Underlag för husets bilder. Ingår inte i handlingarna till samrådet.",
+}
+
+
 def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tuple[str, str, list[dict]]], dict]:
-    """Handlingsförteckningen: bygglovet (beslutet och handlingarna som tillhör det), F-01:s grupper (de reviderade
-    bygglovsritningarna, handlingarna till tekniskt samråd och de egna handlingarna: arbetsritningarna, utredningarna
-    och inköpslistan) och övrigt (kameraplanen och pdf:er som inte står i förteckningen), med filerna kopierade till
-    ut.
+    """Handlingsförteckningen: bygglovet (beslutet och handlingarna som tillhör det), de reviderade
+    bygglovsritningarna, F-01:s register avsnitt för avsnitt (seriernas avsnitt: tekniskt samråd,
+    installationsritningar, arbetsritningar, utredningar, inköp och illustrationer) och övrigt (pdf:er som inte står i
+    registret), med filerna kopierade till ut.
     rapporter: rapportens projektuppgifter per nummer (revision, datum). Returnerar grupperna och F-01:s indata."""
     shutil.rmtree(ut, ignore_errors=True)
     f01 = tomllib.loads((rot / "beräkningar" / "F-01" / "indata.toml").read_text(encoding="utf-8"))
@@ -119,23 +131,17 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tu
         ("Bygglov, uppdaterade ritningar", "Bygglovsritningarna, reviderade efter beslutet.",
          [rad(b["nr"], b["namn"], "klar", b["rev"], b["datum"], b.get("andring", ""))
           for b in f01.get("bygglov", [])]),
-        ("Tekniskt samråd", "Handlingarna till det tekniska samrådet.",
-         [rad(h["nr"], h["namn"], h["status"]) for h in f01.get("handling", [])]),
     ]
-    # de egna handlingarna efter slag (numrets början): arbetsritningarna, utredningarna och resten (inköpslistan)
-    ovriga = f01.get("ovrig", [])
-    for rubrik, text, slag in (
-            ("Arbetsritningar", "Ritningar för utförandet. Ingår inte i handlingarna till samrådet.", ("AR-",)),
-            ("Utredningar", "Egna utredningar som underlag för projekteringen. Ingår inte i handlingarna till "
-                            "samrådet.", ("U-",)),
-            ("Inköp", "Specialprodukterna med vald produkt, status, ansvarig roll och fas. Ingår inte i "
-                      "handlingarna till samrådet.", None)):
-        valda = [h for h in ovriga if (h["nr"].startswith(slag) if slag else not h["nr"].startswith(("AR-", "U-")))]
+    # registret (F-01): handlingarna avsnitt för avsnitt, i seriernas ordning
+    serie = {x["kod"]: x for x in f01.get("serie", [])}
+    for avsnitt in dict.fromkeys(x["avsnitt"] for x in f01.get("serie", [])):
+        valda = [h for h in f01.get("handling", []) if serie[h["nr"].split("-")[0]]["avsnitt"] == avsnitt]
         if valda:
-            grupper.append((rubrik, text, [rad(h["nr"], h["namn"], h["status"]) for h in valda]))
+            grupper.append((avsnitt, AVSNITT.get(avsnitt, ""),
+                            [rad(h["nr"], h["namn"], h["status"],
+                                 p=rot / h["fil"] if "fil" in h and (rot / h["fil"]).exists() else None)
+                             for h in valda]))
     ovrigt = [rad(nr, nfc(p.stem).split(" ", 1)[-1], "klar") for nr, p in list(filer.items())]
-    if (k := rot / "renderingar" / "kameraplan.pdf").exists():
-        ovrigt.append(rad("–", "Kameraplan, renderingarnas kameror", "klar", p=k))
     if ovrigt:
         grupper.append(("Övrigt", "", ovrigt))
     return grupper, f01
@@ -293,7 +299,9 @@ def html_planer(docs: Path) -> str:
 def _fakta(f01: dict) -> str:
     o = f01.get("objekt", {})
     lov = re.search(r"\d{4}-\d{2}-\d{2}", o.get("lov", ""))
-    register = [h for h in f01.get("handling", []) + f01.get("ovrig", []) if h["status"] != "ej aktuell"]
+    serie = {x["kod"]: x for x in f01.get("serie", [])}
+    register = [h for h in f01.get("handling", []) if h["status"] != "ej aktuell"
+                and serie.get(h["nr"].split("-")[0], {}).get("samrad")]
     klara = sum(h["status"] in ("klar", "inlämnad") for h in register)
     fakta = [
         ("Plats", "Resö, Tanums kommun"),

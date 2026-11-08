@@ -12,7 +12,7 @@ cd verktyg/modellering
 ./mod golvvarme kontroll     # slingornas längd, fördelarna, rören i varandra och mot järnen, genomföringarna och
                              # krockarna mot husets delar och de andra installationerna
 ./mod golvvarme lista        # kretsar, fördelare och genomföringar (ut/golvvarme/)
-./mod golvvarme ritning      # ritningarna VG-01 (ut/golvvarme/VG-01 Golvvärme.pdf, kräver STEP-filen: ./mod bygg)
+./mod golvvarme ritning      # ritningarna VV-01 (ut/golvvarme/VV-01 Golvvärme.pdf, kräver STEP-filen: ./mod bygg)
 ```
 
 ## Filerna
@@ -87,11 +87,11 @@ följer med). En ny zon läggs i `ZONER` i fördelarens ordning, med ett stråk 
 
 ## Ritningarna
 
-`./mod golvvarme ritning` ritar serien VG-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3):
+`./mod golvvarme ritning` ritar serien VV-01 i den gemensamma ritningsmallen (`beräkningar/ritningsmall`, A3):
 
-- **VG-01.1 plan 1 och källaren** (1:100): kretsarna i mellanbjälklaget och bottenplattan med zonerna, tilloppen och
+- **VV-01.1 plan 1 och källaren** (1:100): kretsarna i mellanbjälklaget och bottenplattan med zonerna, tilloppen och
   järnen i rörens nivå; tabeller över kretsarna;
-- **VG-01.2 fördelarna** (1:20): planen och vyn mot V5 med stammarna, rören upp och ned i betongen och
+- **VV-01.2 fördelarna** (1:20): planen och vyn mot V5 med stammarna, rören upp och ned i betongen och
   matarledningarna; tabeller över fördelarna, matarledningarna och genomföringarna;
-- **VG-01.3 köldbärarledningarna** (1:100): planen och sektionen längs skyddsrören till energibrunnen
+- **VV-01.3 köldbärarledningarna** (1:100): planen och sektionen längs skyddsrören till energibrunnen
   (`../kollektor/`).

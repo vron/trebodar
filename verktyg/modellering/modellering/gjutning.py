@@ -740,7 +740,7 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
             "punkter i rad mot samma referens i en kedja. Tabellen ger lägena x, y i mm från mellanbjälklagets kanter "
             "x = 0 och y = 0 (K-05:s origo, som på R-04, R-05 och R-06), för kontroll.",
             f"{vaggarna} Plattans konstruktion och armering: R-03–R-06.",
-            "Ritas ur modellen med ./mod gjutning ritning; lägena är installationernas egna (E-01, VS-01, VS-02, VG-01).",
+            "Ritas ur modellen med ./mod gjutning ritning; lägena är installationernas egna (E-01, VS-01, VS-02, VV-01).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[dict(form="linje", stil=st, text=t) for st, t in tecken]),

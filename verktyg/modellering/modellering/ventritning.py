@@ -14,7 +14,7 @@ from shapely.geometry import LineString, Polygon
 
 from .planritning import Blad, Vy, blad, figur, kompilera, norrpil, papper, plan, sektion, sv, svm, vy
 
-SERIE = "V-01 Ventilation"
+SERIE = "VL-01 Ventilation"
 SKALA, SKALA_SEKTION = 75.0, 50.0
 PLAN1 = (-500.0, 14300.0, -300.0, 16300.0)          # planernas område (x0, x1, y0, y1) [mm]
 TABELLER = dict(x=226.0, y=14.0, w=98.0)            # tabellerna till höger om planerna [pappersmm]

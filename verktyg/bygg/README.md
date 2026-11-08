@@ -33,10 +33,12 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | **K-05, K-06, U-01, U-03** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | **U-04** (tungt, manuellt) | `./mod ljusplan` (renderingen i Blender) | ljusplanerna, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | R-01, R-03, R-04, R-05, R-06, AR-01, AR-02 | `ritningar.py` | ritningsserien i `ritningar/` |
+| `gjutning` | `./mod gjutning ritning` (installationernas data och modellens snitt) | AR-03 och AR-04 i `ritningar/` |
+| E-01, E-02, VS-01, VS-02, VS-03, VV-01, VL-01 | `./mod <installation> ritning` (installationernas data och modellens snitt) | installationsritningen i `ritningar/` |
 
 Efter stegen skriver `./bygg` (utan valda steg) webbplatsens startsida, `docs/index.html` ([`startsida.py`](startsida.py) med mallen [`startsida.html`](startsida.html)), och kopierar bygglovet, rapporterna, ritningarna och kameraplanen till `docs/handlingar/`. Startsidan byggs ur det som redan är byggt:
 
-- projektets uppgifter och handlingsförteckningen (med status) ur F-01:s `indata.toml`, bygglovets beslut och handlingar ur `bygglov/handlingar.toml`;
+- projektets uppgifter och handlingsförteckningen (med status) ur registret i F-01:s `indata.toml`: alla handlingar, avsnitt för avsnitt efter seriernas avsnitt (`[[serie]]`: tekniskt samråd, installationsritningar, arbetsritningar, utredningar, inköp, illustrationer), och bygglovets beslut och handlingar ur `bygglov/handlingar.toml`;
 - rapporternas revision och datum och ritningsbladens nummer, titel, skala, revision och datum (bladens JSON);
 - bilderna ur renderingarnas förteckning (`docs/renderingar/bilder/renderingar.json`) med vyernas texter (`TEXTER` och `TEKNIK` i `modeller/trebodar/vyer.py`), i grupperna urval (`URVAL` i `startsida.py`), ute, inne och stomme och teknik;
 - planerna ur `docs/renderingar/plan.json` (`./mod kameraplan`).

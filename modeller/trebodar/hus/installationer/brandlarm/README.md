@@ -12,7 +12,7 @@ cd verktyg/modellering
 ./mod brandlarm kontroll     # sammankopplingen, varnarnas plats, genomföringarna och krockarna mot husets delar och
                              # de andra installationerna
 ./mod brandlarm lista        # varnare, dosor, kablar och genomföringar (ut/brandlarm/brandlarm.md)
-./mod brandlarm ritning      # ritningen B-01 (ut/brandlarm/B-01 Brandlarm.pdf, kräver STEP-filen: ./mod bygg)
+./mod brandlarm ritning      # ritningen E-02 (ut/brandlarm/E-02 Brandlarm.pdf, kräver STEP-filen: ./mod bygg)
 ```
 
 ## Filerna
