@@ -13,6 +13,7 @@ skikten runt.
 from __future__ import annotations
 
 from functools import cache
+from typing import Any
 
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
@@ -135,6 +136,17 @@ def insidans_plan(kod: str) -> Polygon:
                                                             (u1, S.T_STOMME + INSIDA_T), (u0, S.T_STOMME + INSIDA_T))])
 
 
+_YTOR: dict[str, list[tuple[float, Any, Any]]] = {}
+
+
+def synliga_ytor(kod: str) -> list[tuple[float, Any, Any]]:
+    """Ytterväggens synliga yta (det yttersta skiktet): (w i väggens system, ytan i (u, z), materialet), för
+    golvlisterna (#100)."""
+    insida(kod)
+    return _YTOR[kod]
+
+
+@cache
 def insida(kod: str) -> Montage:
     """Ytterväggens insida: ångbroms, liggande installationsläkt 45×45 c/c 600, OSB och gips (i badrummet plywood,
     gips, tätskikt och kakel)."""
@@ -209,7 +221,11 @@ def insida(kod: str) -> Montage:
     vatrum = unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad])
     vanligt = box(u0 - 1.0, -1.0, u1 + 1.0, topp + 1.0).difference(vatrum)
     plan: dict[str, Plan] = {}
+    _YTOR[kod] = []
     for omrade, lager in ((vanligt, SKIVLAGER["vanligt"]), (vatrum, SKIVLAGER["vatrum_malat"])):   # målade (#105)
+        namn_, a_, b_, _, mat_ = lager[-1]
+        _YTOR[kod].append((S.T_STOMME + b_, _yta(kod, *granser[(a_, b_)]).intersection(omrade).difference(oppet_skivor),
+                           mat_))
         for namn, a, b, typ, mat in lager:
             p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", b - a, material=mat))
             for q in P.polygoner(_yta(kod, *granser[(a, b)]).intersection(omrade).difference(oppet_skivor)):

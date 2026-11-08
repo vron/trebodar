@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from modellering import Montage
 
-from . import badrum, garderob, kok, sang
+from . import badrum, garderob, golvlister, kok, sang
 
 
 def montage() -> Montage:
@@ -19,4 +19,5 @@ def montage() -> Montage:
     m.lagg(sang.montage())
     m.lagg(kok.montage())
     m.lagg(badrum.montage())
+    m.lagg(golvlister.montage())
     return m

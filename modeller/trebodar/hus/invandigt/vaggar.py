@@ -294,6 +294,7 @@ def _ytterskivor() -> list[Hinder]:
 class _Skikt:
     montage: dict[str, Montage] = field(default_factory=dict)
     band: dict[str, list[Hinder]] = field(default_factory=dict)
+    ytor: list[tuple[str, int, float, Any, Any]] = field(default_factory=list)   # (vägg, sida, w, yta i (u, z), material)
 
 
 @cache
@@ -336,6 +337,8 @@ def _skikt() -> _Skikt:
                     if namn == "OSB" and not fickzon.is_empty:
                         delar = [(namn, typ, mat, omrade.difference(fickzon)),
                                  ("Bräda", "BR", BRADA, omrade.intersection(fickzon))]
+                    if (namn, t, typ, mat) == skivor[-1]:             # den synliga ytan (golvlisterna, #100)
+                        res.ytor.append((kod, sida, ws + sida * t, omrade, mat))
                     for namn_, typ_, mat_, yta in delar:
                         p = plan.setdefault(namn_, Plan(kod, f"{namn_} {kod}", t, material=mat_))
                         for q in P.polygoner(yta, 100.0):
@@ -444,3 +447,9 @@ def montage() -> Montage:
         skikt.lagg(_skikt().montage[kod], vaggdef(kod).placering())
     m.lagg(skikt)
     return m
+
+
+def synliga_ytor() -> list[tuple[str, int, float, Any, Any]]:
+    """Innerväggarnas yttersta skikt per sida och segment: (vägg, sida, w för ytan i väggens system, ytan i (u, z),
+    materialet), för golvlisterna (#100)."""
+    return _skikt().ytor
