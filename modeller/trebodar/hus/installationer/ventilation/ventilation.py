@@ -156,8 +156,8 @@ def _don(e: Don, g: Gren) -> Montage:
             ytor = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
             lutning = (h_fram - h_bak) / sd
             nn = (0.0, 1.0, -lutning)
-            kapa = Kapad(polyeder(horn, ytor), (0.0, h_bak, 0.0), nn)
-            mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g} till innertaket", kapa, KOKSFLAKT), sys,
+            kropp = Kapad(polyeder(horn, ytor), (0.0, h_bak, 0.0), nn)
+            mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g} till innertaket", kropp, KOKSFLAKT), sys,
                     f"{e.id}-SKORSTEN")                          # ihålig plåtkåpa, som skorstenskåpan (kontrollerna)
             mm.lagg(Del(f"{t.namn}, fettfilter", box(-t.b / 2 + 25.0, t.b / 2 - 25.0, -1.0, 2.0, 25.0, t.d - 25.0),
                         FETTFILTER), sys, f"{e.id}-FILTER")

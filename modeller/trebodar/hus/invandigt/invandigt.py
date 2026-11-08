@@ -10,12 +10,14 @@ from __future__ import annotations
 
 from modellering import Montage
 
-from . import andbrador, badrumsgolv, innertak, kallare, kallarens_innervaggar, kokets_inbyggnad, vagginsida, vaggar
+from . import (andbrador, badrumsgolv, innertak, kallare, kallarens_innervaggar, kokets_inbyggnad, nedsankta_tak,
+               vagginsida, vaggar)
 
 
 def montage() -> Montage:
     m = Montage("Invändigt", beskrivning="Ångbroms, installationsskikt och gips (F-01)")
     m.lagg(innertak.montage())
+    m.lagg(nedsankta_tak.montage())
     m.lagg(vagginsida.montage())
     m.lagg(vaggar.montage())
     m.lagg(kokets_inbyggnad.montage())
