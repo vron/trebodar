@@ -62,7 +62,7 @@ GRUPPER = [
     Grupp("G16", "Värmepump", 16, 3, 2.5, ("TK-D1",), JORDFEL_VP),
     Grupp("G17", "Belysning källaren, det stora rummet", 10, 1, 1.5, ("KA-D1", "KA-B5")),
     Grupp("G18", "Belysning källaren utom det stora rummet (ljuslinjernas drivdon genom dimrarna)", 10, 1, 1.5,
-          ("KA-B6", "KA-B7", "KA-B4", "KA-B1", "KA-B2", "KA-B3", "TK-LC")),
+          ("KA-B6", "KA-B7", "KA-B4", "KA-D5", "KA-B1", "KA-B2", "KA-B3", "TK-LC")),
     Grupp("G19", "Uttag teknikrummet", 10, 1, 1.5, ("TK-U1", "TK-U2", "TK-U3")),
     Grupp("G20", "Uttag tvättstugan", 10, 1, 1.5, ("KA-U1", "KA-U2")),
     Grupp("G21", "Tvättmaskin, tvättstugan", 10, 1, 1.5, ("KA-U3",)),
@@ -70,6 +70,6 @@ GRUPPER = [
     Grupp("G23", "Uttag de små rummen norr om KL1, rummet norr om trapphallen och trapphallen", 16, 1, 2.5,
           ("KA-U5", "KA-U6", "KA-U7", "KA-U8", "KA-U13", "KA-U14", "KA-U18", "KA-U17")),
     Grupp("G24", "Uttag det stora rummet och rummen vid V2, fläkten FF3", 16, 1, 2.5,
-          ("KA-D2", "KA-U9", "KA-U10", "KA-U11", "KA-U12", "KA-U15", "KA-U16")),
+          ("KA-D2", "KA-D4", "KA-U9", "KA-U10", "KA-U11", "KA-U12", "KA-U15", "KA-U16")),
 ]
 GRUPP = {g.id: g for g in GRUPPER}

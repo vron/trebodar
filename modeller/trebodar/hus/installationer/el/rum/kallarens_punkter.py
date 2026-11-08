@@ -35,17 +35,24 @@ SPEL = 15.0                                  # fritt mellan de ingjutna dosorna 
 GENOMSTANSNING = 720.0                       # rörens genomstansningszon (6d, K-05): inga dosor där
 
 
-def vaggens_c(namn: str) -> float:
+def _c(namn: str) -> float:
     return next(v.c for v in K.VAGGAR if v.namn == namn)
 
 
-V_GIPSYTA = K.KARNA / 2 + K.CELL + GIPS_T            # källarväggarnas gipsyta från kärnans mitt
-KL_GIPSYTA = KL["KL1"].h + GIPS_T                    # KL-väggarnas gipsyta från stommens mitt
+_V = K.KARNA / 2 + K.CELL + GIPS_T            # källarväggarnas gipsyta från kärnans mitt
+_KL = KL["KL1"].h + GIPS_T                    # KL-väggarnas gipsyta från stommens mitt
+V_GIPSYTA, KL_GIPSYTA = _V, _KL             # källarväggarnas och KL-väggarnas gipsyta från mitten
+
+
+def vaggens_c(namn: str) -> float:
+    """Källarväggens centrumlinje (x för väggar längs y, y för väggar längs x)."""
+    return _c(namn)
+
 
 # arbetsrummen (golvets yta innanför väggarnas gips)
-STORA_RUMMET = box(vaggens_c("V15") + V_GIPSYTA, vaggens_c("V9") + V_GIPSYTA, vaggens_c("V14") - V_GIPSYTA, vaggens_c("V1") - V_GIPSYTA)
-SMA_V = box(vaggens_c("V21") + V_GIPSYTA, vaggens_c("V7") + V_GIPSYTA, KL["KL2"].c - KL_GIPSYTA, KL["KL1"].c - KL_GIPSYTA)
-SMA_O = box(KL["KL2"].c + KL_GIPSYTA, vaggens_c("V7") + V_GIPSYTA, KL["KL3"].c - KL_GIPSYTA, KL["KL1"].c - KL_GIPSYTA)
+STORA_RUMMET = box(_c("V15") + _V, _c("V9") + _V, _c("V14") - _V, _c("V1") - _V)
+SMA_V = box(_c("V21") + _V, _c("V7") + _V, KL["KL2"].c - _KL, KL["KL1"].c - _KL)
+SMA_O = box(KL["KL2"].c + _KL, _c("V7") + _V, KL["KL3"].c - _KL, KL["KL1"].c - _KL)
 
 
 @cache
@@ -72,12 +79,15 @@ def _hinder() -> Polygon:
     return unary_union(delar)
 
 
-def dosans_lage(x: float, y: float, rum: Polygon, hinder: Polygon | None = None) -> tuple[float, float]:
+def dosans_lage(x: float, y: float, rum: Polygon, hinder: Polygon | None = None,
+                extra: Polygon | None = None) -> tuple[float, float]:
     """Den ingjutna dosans läge närmast (x, y) i rummet: fri från rören i bjälklaget och genomstansningszonerna (eller
-    hinder, där dosans mitt inte får stå), och mellan underkantsnätets järn."""
+    hinder, där dosans mitt inte får stå, och extra), och mellan underkantsnätets järn."""
     r = INGJUTNINGSDOSA.diameter / 2
     inne = rum.buffer(-300.0)
     stopp = _hinder() if hinder is None else hinder
+    if extra is not None:
+        stopp = stopp.union(extra)
     for steg in range(0, 1201, 50):
         for dx, dy in sorted({(sx * steg, sy * j) for sx in (-1, 1) for sy in (-1, 1) for j in range(0, steg + 1, 50)}
                              | {(sx * j, sy * steg) for sx in (-1, 1) for sy in (-1, 1) for j in range(0, steg + 1, 50)},
@@ -119,7 +129,7 @@ PANELER = [Lampa(f"KA-P{i + 1:02d}", PANEL_600, kallartak(x, y), "KA-T6") for i,
 PANELER += [Lampa("KA-P07", PANEL_600, kallartak(*_PV), "KA-T7"), Lampa("KA-P08", PANEL_600, kallartak(*_PO), "KA-T8")]
 
 # den ingjutna kopplingsdosan i det stora rummets tak, i dess sydvästra hörn, dit gruppens rör kommer från centralen
-D_STORA = dosans_lage(vaggens_c("V15") + V_GIPSYTA + 300.0, 9750.0, STORA_RUMMET)
+D_STORA = dosans_lage(_c("V15") + _V + 300.0, 9750.0, STORA_RUMMET)
 
 
 def pa_kl(kod: str, langs: float, sida: int, z: float = Z_BRYTARE) -> Montering:

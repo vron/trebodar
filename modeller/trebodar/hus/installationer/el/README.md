@@ -74,7 +74,9 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   mjuk båge snett mot sin punkt, det som lämnar först ytterst, så att rören inte korsar varandra. Källarens grupper
   G17, G18 och G24 går i samma knippen ([`rum/kallarens_punkter.py`](rum/kallarens_punkter.py), `FRAN_CENTRALEN`).
   Rören går upp i väggarnas regelfack eller ytterväggarnas installationsskikt mellan överkantsnätets järn
-  ([`dragning.py`](dragning.py)).
+  ([`dragning.py`](dragning.py)). Där ett av källarens rör ändå fick långt över 270° böjar går det genom en
+  **dragdosa**: en ingjuten dosa i källarens tak, åtkomlig underifrån, där dess svängar delas lika (`DRAGDOSOR` i
+  [`rum/kallare.py`](rum/kallare.py)): KA-D3 i KA-R6-3, KA-D4 i G24-R1 och KA-D5 i G18-R3 (rören a och b).
 - **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
   (mellan underkantsnätets järn, fria från rören i bjälklaget och pelarnas genomstansningszoner). Rören från brytarna
   går rakt upp ur dosorna i KL-väggarnas regelfack in i bjälklaget, helst i dess undre nivå (under plan 1:s rör), och in

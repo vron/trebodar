@@ -78,11 +78,13 @@ from . import teknikrum
 from ..punkter import Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning
 
 from . import kallarens_punkter as KP
-from .kallarens_punkter import (BRYTARE, D_STORA, DOSOR, PANELER, S6, S_D2, SPEL, UTTAG_KS, UTTAG_SMA, UTTAG_STORA,
-                                UTTAG_V2, X_TVATT_UTTAG, X_UTTAG_KL4, Y_FF3, Y_MASKINER, Y_UTTAG_KL3, Z_BRYTARE, Z_FF3,
-                                Z_GOLVZON, KL_GIPSYTA, V_GIPSYTA, vaggens_c, pa_kl, panelens, xy, ned_i_dosan, stigarna, ur_dosan)
+from .kallarens_punkter import (BRYTARE, D_STORA, DOSOR, KL_GIPSYTA, PANELER, S6, S_D2, SMA_O, SMA_V, SPEL,
+                                STORA_RUMMET, UTTAG_KS, UTTAG_SMA, UTTAG_STORA, UTTAG_V2, V_GIPSYTA, X_TVATT_UTTAG,
+                                X_UTTAG_KL4, Y_FF3, Y_MASKINER, Y_UTTAG_KL3, Z_BRYTARE, Z_FF3, Z_GOLVZON, dosans_lage,
+                                ned_i_dosan, pa_kl, panelens, stigarna, ur_dosan, vaggens_c, xy)
 
 RUM, NAMN = KP.RUM, KP.NAMN
+_V, _KL, _c = V_GIPSYTA, KL_GIPSYTA, vaggens_c
 TANDGRUPPER = [*KP.TANDGRUPPER]
 PUNKTER: list[Punkt] = [*KP.PUNKTER]
 
@@ -202,13 +204,13 @@ ROR: list[Ror] = [
 # rummen (golvets yta innanför väggarnas gips): trapphallen öster om KL3 (utan trappan mellan KL4 och KL6),
 # tvättstugan (hallen mellan KL1 och KL8 och rummet vid V3 väster om KL8), rummen söder om V4–V6 (en yta utan vägg
 # emellan, belyst som två delar) och rummet norr om trapphallen (norr om KL4)
-TRAPPHALL = box(KL["KL3"].c + KL_GIPSYTA, KL["KL4"].c + KL_GIPSYTA, KL["KL7"].c - KL_GIPSYTA, vaggens_c("V5") - V_GIPSYTA).difference(
-    box(KL["KL6"].a - 60.0, KL["KL4"].c, KL["KL7"].c, KL["KL6"].c + KL_GIPSYTA))
-TVATTSTUGA = unary_union([box(vaggens_c("V21") + V_GIPSYTA, KL["KL1"].c + KL_GIPSYTA, KL["KL8"].a, vaggens_c("V3") - V_GIPSYTA),
-                          box(KL["KL8"].a, KL["KL1"].c + KL_GIPSYTA, KL["KL3"].c - KL_GIPSYTA, KL["KL10"].c - KL_GIPSYTA)])
-RUMMEN_V2 = box(vaggens_c("V19") + V_GIPSYTA, vaggens_c("V5") + V_GIPSYTA, vaggens_c("V15") - V_GIPSYTA, vaggens_c("V2") - V_GIPSYTA)
-RUMMET_KS = unary_union([box(vaggens_c("V18") + V_GIPSYTA, vaggens_c("V10") + V_GIPSYTA, KL["KL5"].c - KL_GIPSYTA, KL["KL4"].c - KL_GIPSYTA),
-                         box(KL["KL3"].c + KL_GIPSYTA, vaggens_c("V7") + V_GIPSYTA, vaggens_c("V18") + V_GIPSYTA, KL["KL4"].c - KL_GIPSYTA)])
+TRAPPHALL = box(KL["KL3"].c + _KL, KL["KL4"].c + _KL, KL["KL7"].c - _KL, _c("V5") - _V).difference(
+    box(KL["KL6"].a - 60.0, KL["KL4"].c, KL["KL7"].c, KL["KL6"].c + _KL))
+TVATTSTUGA = unary_union([box(_c("V21") + _V, KL["KL1"].c + _KL, KL["KL8"].a, _c("V3") - _V),
+                          box(KL["KL8"].a, KL["KL1"].c + _KL, KL["KL3"].c - _KL, KL["KL10"].c - _KL)])
+RUMMEN_V2 = box(_c("V19") + _V, _c("V5") + _V, _c("V15") - _V, _c("V2") - _V)
+RUMMET_KS = unary_union([box(_c("V18") + _V, _c("V10") + _V, KL["KL5"].c - _KL, KL["KL4"].c - _KL),
+                         box(KL["KL3"].c + _KL, _c("V7") + _V, _c("V18") + _V, KL["KL4"].c - _KL)])
 
 TANDGRUPPER += [
     Tandgrupp("KA-T1", "Källaren, trapphallen"),
@@ -278,6 +280,42 @@ def _dra(id_: str, fran: str, till: str, a: tuple[float, float], b: tuple[float,
                     nivaer=(niva(a), niva(b)))
 
 
+# dragdosorna (#87): där ett rör annars får för många böjar (elkontrollen: mer än 270°) går det genom en ingjuten
+# dosa i källarens tak, åtkomlig underifrån, där böjarna delas lika; rören går in i den från sidan i den undre nivån
+DRAGDOSOR: list[Dosa] = []
+RUMMEN = [STORA_RUMMET, SMA_V, SMA_O, TRAPPHALL, TVATTSTUGA, RUMMEN_V2, RUMMET_KS]
+
+
+def _med_dragdosa(did: str, id_: str, fran: str, till: str, a: tuple[float, float], b: tuple[float, float],
+                  fore: Sequence[Vek] = (), efter: Sequence[Vek] = (), kost: tuple[float, float] = KALLAREN
+                  ) -> list[Ror]:
+    """Röret id_ i två delar (id_ a och b) genom dragdosan did, i det rum där vägen utan dosan har hälften av sina
+    svängar i bjälklaget, fri från rören och stigarna där."""
+    prov = _ING.dra(id_, FXP16, fran, till, a, b, fore=fore, efter=efter, kost=kost, prova=True)
+    nivaer = [BJALKLAG[n] for n in NIVAER]
+    pts = [q[:2] for q in prov.via if any(abs(q[2] - z) < 1.0 for z in nivaer)]
+    svang = [0.0]
+    for p0, p1, p2 in zip(pts, pts[1:], pts[2:]):
+        u, w = (p1[0] - p0[0], p1[1] - p0[1]), (p2[0] - p1[0], p2[1] - p1[1])
+        svang.append(svang[-1] + (abs(math.atan2(u[0] * w[1] - u[1] * w[0], u[0] * w[0] + u[1] * w[1]))
+                                  if math.hypot(*u) > 1.0 and math.hypot(*w) > 1.0 else 0.0))
+    i = next((k for k, v in enumerate(svang) if v >= svang[-1] / 2), 0)
+    q0, q1 = pts[i], pts[min(i + 1, len(pts) - 1)]
+    mitt = Point((q0[0] + q1[0]) / 2, (q0[1] + q1[1]) / 2)
+    rum = min(RUMMEN, key=lambda g: g.distance(mitt))
+    r_d = INGJUTNINGSDOSA.diameter / 2
+    upptaget = unary_union([*upptaget_av(_ING.ror, r_d)[NIVAER.index("MB-UK")],
+                            *(Point(x, y).buffer(rr + r_d + SPEL) for x, y, rr, z0, z1 in _ING.stigare
+                              if z0 < BJALKLAG["MB-UK"] + 8.0), *(Point(x, y).buffer(rr + r_d + SPEL)
+                                                                     for x, y, rr in _ING.dosor)])
+    x, y = dosans_lage(mitt.x, mitt.y, rum, extra=upptaget)
+    DRAGDOSOR.append(Dosa(did, INGJUTNINGSDOSA, kallartak(x, y)))
+    DOSOR.append((x, y, r_d))
+    _ING.dosor.append((x, y, r_d))
+    return [_dra(f"{id_}a", fran, did, a, (x, y), fore=fore, kost=kost),
+            _dra(f"{id_}b", did, till, (x, y), b, efter=efter, kost=kost)]
+
+
 # det stora rummet (G17): gruppens rör från centralen till kopplingsdosan KA-D1 i rummets tak, därifrån till brytaren
 # på KL7 (stigarna norr om brytaren, i regelfacket bort från dörren KD5) och till panelerna, i rader
 _B5 = BRYTARE["KA-B5"]
@@ -300,14 +338,15 @@ ROR += [
     _dra("G17-R1", "KA-D1", "KA-B5", D_STORA, _S5[0], efter=ned_i_dosan(_B5, _S5[0])),
     _dra("KA-R6-1", "KA-D1", "KA-P05", D_STORA, _P05),
     _dra("KA-R6-2", "KA-P05", "KA-P06", _P05, _P06),
-    _dra("KA-R6-3", "KA-B5", "KA-P03", _S5[1], _P03, fore=ur_dosan(_B5, _S5[1])),
+    *_med_dragdosa("KA-D3", "KA-R6-3", "KA-B5", "KA-P03", _S5[1], _P03, fore=ur_dosan(_B5, _S5[1])),
     _dra("KA-R6-4", "KA-P03", "KA-P04", _P03, _P04),
     _dra("KA-R6-5", "KA-P04", "KA-P02", _P04, _P02),
     _dra("KA-R6-6", "KA-P02", "KA-P01", _P02, _P01),
     _dra("KA-R7-1", "KA-B6", "KA-P07", _S6[1], _P07, fore=ur_dosan(_B6, _S6[1])),
     _dra("G18-R1", "KA-B6", "KA-B7", _S6[2], _S7[0], fore=ur_dosan(_B6, _S6[2]), efter=ned_i_dosan(_B7, _S7[0])),
     _dra("KA-R8-1", "KA-B7", "KA-P08", _S7[1], _P08, fore=ur_dosan(_B7, _S7[1])),
-    _dra("G24-R1", "KA-D2", "KA-U9", _S_D2[1], _S_U9[0], fore=ur_dosan(_D2, _S_D2[1]), efter=ned_i_dosan(_U9, _S_U9[0])),
+    *_med_dragdosa("KA-D4", "G24-R1", "KA-D2", "KA-U9", _S_D2[1], _S_U9[0], fore=ur_dosan(_D2, _S_D2[1]),
+                   efter=ned_i_dosan(_U9, _S_U9[0])),
 ]
 
 
@@ -479,8 +518,9 @@ def _skapets_ror() -> list[Ror]:
 # ordning, helst i den övre (över knippena), och rören mellan ljuslinjerna, runt dem
 ROR += [*_skapets_ror()]
 ROR += [
-    _dra("G18-R2", "KA-B7", "KA-B4", _S7[2], _S4[0], fore=ur_dosan(_B7, _S7[2]), efter=ned_i_dosan(_D["KA-B4"], _S4[0]), kost=PLAN1),
-    _dra("G18-R3", "KA-B4", "KA-B1", _S4[2], _S1[0], fore=ur_dosan(_D["KA-B4"], _S4[2]),
+    _dra("G18-R2", "KA-B7", "KA-B4", _S7[2], _S4[0], fore=ur_dosan(_B7, _S7[2]), efter=ned_i_dosan(_D["KA-B4"], _S4[0]),
+         kost=PLAN1),
+    *_med_dragdosa("KA-D5", "G18-R3", "KA-B4", "KA-B1", _S4[2], _S1[0], fore=ur_dosan(_D["KA-B4"], _S4[2]),
          efter=ned_i_dosan(_D["KA-B1"], _S1[0]), kost=PLAN1),
     _dra("G18-R4", "KA-B1", "KA-B2", _S1[1], _S2[0], fore=ur_dosan(_D["KA-B1"], _S1[1]),
          efter=ned_i_dosan(_D["KA-B2"], _S2[0]), kost=PLAN1),
@@ -489,3 +529,4 @@ ROR += [
     _dra("LK2-2", T2[0].id, T2[1].id, _xy_ror(T2[0], ut=True), _xy_ror(T2[1]), slag="24 V"),
     _dra("LK5-2", T5[0].id, T5[1].id, _xy_ror(T5[0], ut=True), _xy_ror(T5[1]), slag="24 V"),
 ]
+PUNKTER += DRAGDOSOR

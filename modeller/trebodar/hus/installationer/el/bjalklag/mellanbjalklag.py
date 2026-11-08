@@ -28,7 +28,7 @@ from shapely.geometry import LineString, Point
 from shapely.geometry.base import BaseGeometry
 
 from ...montering import BJALKLAG, KALLARTAK, PLAN, Vek, kallartak
-from ...plattan import Karta, Punkt
+from ...plattan import Karta, Punkt, ledning
 from ...strak import fri
 from ...teknikrum import GRUPPCENTRAL, Z_GC_TOPP
 from ..dragning import upp_till_dosan
@@ -90,6 +90,13 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
     mal = {g: _malet(p, _GROVA.get(g, (FXP16, "MB"))) for g, p in _PLAN1}
     mal |= {g: (b, efter) for g, (_, b, efter) in KP.FRAN_CENTRALEN.items()}
     till = dict(_PLAN1) | {g: p for g, (p, _, _) in KP.FRAN_CENTRALEN.items()}
+    # källarens punkter i ett band av vinkeljärn i den övre nivån (fläktens anslutning i V20:s cellplast): röret når
+    # dem genom ledningen ut ur bandet, som knippet går mot (inte mot stigaren bakom den)
+    ovre = kartor_el(FXP16.ytterdiameter / 2)[0]
+    ledb: dict[str, list[Punkt]] = {}
+    for g in KP.FRAN_CENTRALEN:
+        if any(b.contains(Point(mal[g][0])) for b in ovre.band):
+            ledb[g] = ledning(ovre, mal[g][0], (X_RAD[0], RAD_B))
     # hindren: punkternas stigare (upp till plan 1, ned till källaren) och alla stigare i raderna över centralen
     alla: list[Ror3] = [(x, y, 8.0, BJALKLAG["MB-UK"] - 10.0, PLAN[1]) if g not in KP.FRAN_CENTRALEN else
                         (x, y, 8.0, KALLARTAK, BJALKLAG["MB"] + 8.0) for g, ((x, y), _) in mal.items()]
@@ -146,7 +153,8 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
             ut_ = (0.0, -1.0) if namn == "A" else (0.0, 1.0)
             slut_ = max((mal[g][0] for g in d), key=lambda q: math.dist(q, (block[0], y)))
             hd = hinder(FXP16.ytterdiameter / 2, list(alla), KP.DOSOR, utom=[*((x, y) for x in block), slut_])
-            st, vg = knippe(kartorna(d[0]), [(x, y) for x in block], ut_, {g: mal[g][0] for g in d}, slut_, hd)
+            st, vg = knippe(kartorna(d[0]), [(x, y) for x in block], ut_,
+                            {g: (ledb[g] or [mal[g][0]])[-1] if g in ledb else mal[g][0] for g in d}, slut_, hd)
             stigare.update(st)
             vagar.update(vg)
         for g in grova:                            # det grova röret där det har mest plats till grannarna
@@ -167,7 +175,7 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
             bestallningar.append(dict(id_=f"{g}-M", typ=typ, fran="GC", till=till[g], a=pts[-1], b=mal[g][0],
                                       fore=(upp, *((q[0], q[1], z) for q in pts[:-1])), fore_radier=(0.0, *rr[:-1]),
                                       bage_a=LAMNA, led_a={"MB": []}, efter=mal[g][1], nivaer=(("MB",), nivaer(g)),
-                                      kost=kost(g)))
+                                      kost=kost(g), **({"led_b": {"MB": ledb[g]}} if g in ledb else {})))
         else:
             bestallningar.append(dict(id_=f"{g}-M", typ=typ, fran="GC", till=till[g], a=s_, b=mal[g][0], fore=(upp,),
                                       efter=mal[g][1], nivaer=(nivaer(g), nivaer(g)), kost=kost(g)))
