@@ -78,6 +78,8 @@ UTEGIPS = Material("Utegips", "Utegips 10 mm", 750, "#d4cdb2", 0.9, enhet="m2", 
 GIPS = Material("Gips", "Gipsskiva, målad", 720, "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
 OSB = Material("OSB", "OSB/3", 620, "#c8a46c", 0.8, enhet="m2", cad="#c59a5f")
 PLYWOOD = Material("Plywood", "Plywood (våtrum)", 520, "#d2b383", 0.7, enhet="m2", cad="#d8a679")
+VATRUMSFARG = Material("Våtrumsfärg", "Tätskikt (rollat) och våtrumsfärg vit på gips (badrummets målade väggar, #105)", 1400,
+                      "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
 TATSKIKT = Material("Tätskikt", "Tätskikt och fix (våtrum)", 1400, "#4f6d8a", 0.6, enhet="m2", cad="#4f7fc0")
 # badrummets kakel och klinker (ärende #52): Bricmate Jura Select Classic Honed, samma som köksbänkarnas skivor;
 # väggarna 60 × 120 stående, golvet 60 × 60, ljus kalksten med svag skiftning per platta och ljusgrå fog

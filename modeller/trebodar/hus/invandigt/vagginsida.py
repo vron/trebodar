@@ -142,7 +142,8 @@ def insida(kod: str) -> Montage:
     m = Montage(f"Insida {kod}", beskrivning="Ångbroms, installationsskikt 45, OSB 12 och gips 13 (i badrummet plywood "
                                              "15, gips 12, tätskikt och kakel)")
     # skiktens utbredning längs väggen (_u_granser)
-    granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in GRUND + SKIVLAGER["vanligt"] + SKIVLAGER["vatrum"]}
+    granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in
+               GRUND + SKIVLAGER["vanligt"] + SKIVLAGER["vatrum"] + SKIVLAGER["vatrum_malat"]}
     u0, u1 = min(g[0] for g in granser.values()), max(g[1] for g in granser.values())
     topp = _yta(kod, u0, u1).bounds[3]
     # öppningarna i karmens linje (dörrarna från golvet, fönstren under fönsterbänken: Oppning.inre)
@@ -202,12 +203,13 @@ def insida(kod: str) -> Montage:
             for q in P.polygoner(yta.difference(oppet)):
                 p.skiva(P.kontur(q), P.hal(q), S.T_STOMME + a, S.T_STOMME + b, typ, mat, f"{namn} {kod}")
         m.lagg(p.montage())
-    # skivorna: våtrumsskikt där badrummet ligger mot väggen, annars OSB och gips
+    # skivorna: våtrumsskikt där badrummet ligger mot väggen (ytterväggarna i badrummet är målade, #105), annars OSB
+    # och gips
     bad = _badrum_langs(kod, u0, u1, S.T_STOMME, S.T_STOMME + INSIDA_VATRUM_T)
     vatrum = unary_union([box(a, -1.0, b, topp + 1.0) for a, b in bad])
     vanligt = box(u0 - 1.0, -1.0, u1 + 1.0, topp + 1.0).difference(vatrum)
     plan: dict[str, Plan] = {}
-    for omrade, lager in ((vanligt, SKIVLAGER["vanligt"]), (vatrum, SKIVLAGER["vatrum"])):
+    for omrade, lager in ((vanligt, SKIVLAGER["vanligt"]), (vatrum, SKIVLAGER["vatrum_malat"])):   # målade (#105)
         for namn, a, b, typ, mat in lager:
             p = plan.setdefault(namn, Plan(kod, f"{namn} {kod}", b - a, material=mat))
             for q in P.polygoner(_yta(kod, *granser[(a, b)]).intersection(omrade).difference(oppet_skivor)):

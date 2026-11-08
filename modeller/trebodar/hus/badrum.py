@@ -95,6 +95,11 @@ def _plan_genom(p: tuple[float, float, float], q: tuple[float, float, float], r:
 
 Z_DUSCH = BRUNN_Z + FALL_DUSCH       # duschens kant och övrig yta vid duschen
 
+# väggarnas kakel (#105): i duschens nisch och på 1A mellan badkaret och duschen; de andra väggarna i badrummet är
+# målade (tätskikt och våtrumsfärg, invandigt/skikt.SKIVOR_VATRUM_MALAD)
+KAKELZON = box(X_1B - 200.0, Y_1A - 100.0, X_L11 + 200.0, Y_1C + 200.0).union(
+    box(X_1SO - 200.0, Y_1A - 100.0, X_1B + 200.0, Y_1A + 200.0))
+
 
 def _fallytor() -> tuple[Fallyta, ...]:
     xb, yb = GOLVBRUNN

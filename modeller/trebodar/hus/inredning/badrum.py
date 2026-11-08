@@ -31,8 +31,8 @@ from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, 
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus import badrum as B
 from trebodar.hus.invandigt.skikt import upp_till_taket
-from trebodar.material import (ASK, BADKARSMATERIAL, BANKSKIVA, BJORKPLYWOOD, DUSCHGLAS, KAKEL, KROM, PLYWOOD, PORSLIN,
-                               SPEGEL)
+from trebodar.material import (ASK, BADKARSMATERIAL, BANKSKIVA, BJORKPLYWOOD, DUSCHGLAS, KROM, PLYWOOD, PORSLIN, SPEGEL,
+                               VATRUMSFARG)
 
 from . import koksskap as K
 
@@ -263,16 +263,16 @@ def _spegeln() -> Del:
                box(B.X_L9 - 6.0, B.X_L9, y0, y1, zg + z0, zg + z1), SPEGEL, produkt="SPEGEL")
 
 
-INKLADNAD_T = (30.0, 10.0)          # inklädnaden över skåpet: regel och skiva, kakel
+INKLADNAD_T = (30.0, 10.0)          # inklädnaden över skåpet: regel och skiva, gips med tätskikt och våtrumsfärg (#105)
 
 
 def _over_skapet() -> Montage:
-    """Inklädnaden över skåpet (#98): från skåpets överkant upp till innertaket i L9:s yta, kaklad som väggarna."""
+    """Inklädnaden över skåpet (#98): från skåpets överkant upp till innertaket i L9:s yta, målad som väggen (#105)."""
     m = Montage("Över skåpet", beskrivning="Inklädnad över skåpet upp till innertaket, kaklad")
     (x0, _), (y0, y1) = B.SKAP_X, B.SKAP_Y
     zt = B.hogsta_golv(*B.SKAP_X, y0, y1) + B.SKAP_Z               # som skåpets överkant
     t_stomme, t_kakel = INKLADNAD_T
-    for namn, a, b, mat, kod in (("Kakel", x0, x0 + t_kakel, KAKEL, "K"),
+    for namn, a, b, mat, kod in (("Våtrumsfärg", x0, x0 + t_kakel, VATRUMSFARG, "K"),
                                  ("Regel och skiva", x0 + t_kakel, x0 + t_kakel + t_stomme, PLYWOOD, "S")):
         yta = Polygon([(a, y0), (b, y0), (b, y1), (a, y1)])
         m.lagg(Del(f"{namn} över skåpet", upp_till_taket(yta, zt), mat), Placering(), f"BA-SKAP-OVER-{kod}")

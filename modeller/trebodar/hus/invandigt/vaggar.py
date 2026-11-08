@@ -39,12 +39,14 @@ from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar import virke
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR
+from trebodar.hus.badrum import KAKELZON
 from trebodar.hus.rum import BADRUM, KAMINKAPA
 
 from trebodar.material import BRADA, KALCIUMSILIKAT
 
 from .lattvaggar import FICKA_SKENA, H_VIRKE, LATTA, T, VAGGAR, Lattvagg, fickor, vaggdef  # noqa: F401
-from .skikt import (FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_T, innertak_vid,
+from .skikt import (FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_MALAD,
+                    SKIVOR_VATRUM_T, innertak_vid,
                     innertakets_fall)
 
 SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
@@ -246,11 +248,14 @@ def _skivor(v: S.Vaggdef, sida: int) -> list[tuple[float, float, tuple[Any, ...]
     prov = _band(v, 0.0, v.langd, w + sida * 30.0, w + sida * 40.0)
     Pi = v.placering().invers()
     sarskilda = []
-    for rum, skivor in ((BADRUM, SKIVOR_VATRUM), (KAMINKAPA, SKIVOR_KAMIN)):
+    for rum, skivor in ((BADRUM.intersection(KAKELZON), SKIVOR_VATRUM), (BADRUM.difference(KAKELZON), SKIVOR_VATRUM_MALAD),
+                        (KAMINKAPA, SKIVOR_KAMIN)):        # kakel i duschen och längs 1A, annars målat (#105)
         for g in P.polygoner(rum.intersection(prov)):
             x0, y0, x1, y1 = g.bounds
             us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]
-            sarskilda.append((max(0.0, min(us)), min(v.langd, max(us)), skivor))
+            a, b = max(0.0, min(us)), min(v.langd, max(us))
+            if b - a > 1.0:                                  # inte där ett område bara nuddar väggen
+                sarskilda.append((a, b, skivor))
     ut: list[tuple[float, float, tuple[Any, ...]]] = []
     u = 0.0
     for a, b, skivor in sorted(sarskilda, key=lambda t: t[0]):

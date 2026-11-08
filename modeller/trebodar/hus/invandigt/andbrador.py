@@ -16,7 +16,7 @@ from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.material import ASK
 
 from .lattvaggar import VAGGAR
-from .skikt import HOJD, SKIVOR_T, SKIVOR_VATRUM, kapad_vid_taket, upp_till_taket
+from .skikt import HOJD, SKIVOR_T, SKIVOR_VATRUM_MALAD, kapad_vid_taket, upp_till_taket
 from .vaggar import FRIA_ANDAR_VATRUM
 
 T = 22.0
@@ -38,7 +38,7 @@ def _vatrum(m: Montage, kod: str, ande: int) -> None:
     v = VAGGAR[kod]
     (ox, oy), (ux, uy) = v.origo, v.u
     d = 0.0
-    for namn, t, typ, mat in SKIVOR_VATRUM:
+    for namn, t, typ, mat in SKIVOR_VATRUM_MALAD:                # målad som väggarna runt skåpet (#105)
         u0, u1 = (-d - t, -d) if ande == 0 else (v.langd + d, v.langd + d + t)
         w0, w1 = -d - t, v.tjocklek + d + t
         p = Polygon([(ox + ux * u - uy * w, oy + uy * u + ux * w) for u, w in ((u0, w0), (u1, w0), (u1, w1), (u0, w1))])

@@ -15,7 +15,7 @@ from modellering import Form, Kapad, Material, Union, prisma
 from trebodar import skelett as S
 from trebodar.hus.rum import BADRUM
 from trebodar.hus.tak.takytor import REGIONER
-from trebodar.material import ANGBROMS, C24_LAKT, GIPS, KAKEL, OSB, PLYWOOD, TATSKIKT
+from trebodar.material import ANGBROMS, C24_LAKT, GIPS, KAKEL, OSB, PLYWOOD, TATSKIKT, VATRUMSFARG
 
 FOLIE, LAKT = 0.4, 45.0                        # ångbroms och installationsskikt 45×45
 # skivorna på väggarna, från reglarna eller installationsläkten och utåt: OSB och gips, i badrummet plywood, gips,
@@ -25,6 +25,11 @@ SKIVOR_VATRUM = (("Plywood", 15.0, "PW", PLYWOOD), ("Gips", 12.0, "GI", GIPS), (
                  ("Kakel", 8.0, "KA", KAKEL))
 SKIVOR_T = sum(t for _, t, _, _ in SKIVOR)
 SKIVOR_VATRUM_T = sum(t for _, t, _, _ in SKIVOR_VATRUM)
+# badrummets målade väggar (#105): samma tjocklek, en våtrumsgips till i stället för kaklet och tätskiktet rollat
+# under färgen, så att rummets ytor och inredningen ligger kvar
+SKIVOR_VATRUM_MALAD = (("Plywood", 15.0, "PW", PLYWOOD), ("Gips", 12.0, "GI", GIPS), ("Våtrumsgips", 8.0, "GV", GIPS),
+                       ("Tätskikt och våtrumsfärg", 3.0, "TF", VATRUMSFARG))
+assert abs(sum(t for _, t, _, _ in SKIVOR_VATRUM_MALAD) - SKIVOR_VATRUM_T) < 1e-9
 SKIVA = 12.5                                   # innertakets gipsskivor
 TAK_W = (-S.TAKBALK_H - FOLIE, -S.TAKBALK_H)                 # under takbalkarnas underkant
 LAKT_W = (TAK_W[0] - LAKT, TAK_W[0])
@@ -46,7 +51,8 @@ def _med_lage(skikt: tuple[tuple[str, float, str, Material], ...], a: float
 
 # väggarnas skikt med avståndet från stommens insida
 GRUND = _med_lage((("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT)), 0.0)
-SKIVLAGER = {"vanligt": _med_lage(SKIVOR, FOLIE + LAKT), "vatrum": _med_lage(SKIVOR_VATRUM, FOLIE + LAKT)}
+SKIVLAGER = {"vanligt": _med_lage(SKIVOR, FOLIE + LAKT), "vatrum": _med_lage(SKIVOR_VATRUM, FOLIE + LAKT),
+             "vatrum_malat": _med_lage(SKIVOR_VATRUM_MALAD, FOLIE + LAKT)}
 
 
 def insida_t(kod: str, u: float) -> float:
