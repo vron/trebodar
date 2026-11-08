@@ -34,7 +34,7 @@ cd verktyg/modellering
 - **Badkaret**: vattenlåset under karet till ett rör Ø50 genom golvet under karets mitt (AV3).
 - **Tvätten i skåpet** (#51, förberedd för tvättmaskin och torktumlare staplade): vattenlåset utanpå L10 i nischen
   (`TVATT_AVLOPP` i `hus/badrum.py`) till ett rör Ø50 ned i väggens regelfack och genom golvet (AV21).
-- **Under bjälklaget**, `UPPHANG` under betongen: samlingsledningen Ø110 norrut i WC:ns linje, under KL1:s hammarband
+- **Under bjälklaget**, `UPPHANG` under betongen: samlingsledningen Ø110 söderut i WC:ns linje, under KL1:s hammarband
   genom väggen, och österut längs KL8 till stammen; tvättställets ledning längs V7 till WC:ns lodräta rör, badkarets,
   golvbrunnens och tvättens till samlingsledningen (tvättens under KL2:s hammarband genom väggen).
 
@@ -56,10 +56,10 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 ## Stammen och grundledningen
 
 - **Stammen** Ø110 står i källarväggen KL8 (AV7) under badrummets vägg L11, från toppen (`Z_STAM`) ned genom
-  bottenplattan, och går med en böj och en kort sträcka söderut till grundledningen. Rensningen sitter `RENSNING` över
+  bottenplattan, och går med en böj och en kort sträcka norrut till grundledningen. Rensningen sitter `RENSNING` över
   källargolvet, med locket genom KL8:s gips mot teknikrummet.
 - **Grundledningen** Ø110 (AV8) under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i
-  teknikrummet, söder om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under
+  teknikrummet, norr om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under
   källarväggen V9 (`UTLOPP`). Direkt utanför väggen faller den brant under dräneringen runt grunden (`UTLOPP_FALL`) och
   fortsätter åt nordost, längs dagvattnets utgående rör, mot förbindelsepunkten; `UTLOPP_L` av den ritas.
 - Överkanten ligger `UNDER_CELLPLAST` under bottenplattans cellplast där den börjar. Grenarna går vinkelrätt mot den,

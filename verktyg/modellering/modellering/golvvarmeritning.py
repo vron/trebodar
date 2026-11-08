@@ -1,6 +1,6 @@
 """Golvvärmeritningar ur modellens golvvärme (utdraget ur trebodar.hus.installationer.golvvarme), i ritningsmallen
 (A3): kretsarna ingjutna i mellanbjälklaget (plan 1) och i bottenplattan (källaren) med zonerna, tilloppen från
-fördelarna och järnen i rörens nivå, och fördelarna på V5 i en vy mot norr. Planerna och vyn ur modellens snitt
+fördelarna och järnen i rörens nivå, och fördelarna på V5 i en vy mot söder. Planerna och vyn ur modellens snitt
 (STEP-filen).
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ SERIE = "VG-01 Golvvärme"
 SKALA, SKALA_VY = 100.0, 20.0
 PLAN1 = (-200.0, 14100.0, -200.0, 16100.0)          # planernas område (x0, x1, y0, y1) [mm]
 KALLARE = (-200.0, 14000.0, -200.0, 12700.0)
-VY_X = (6150.0, 7900.0)                             # vyn mot V5 (norrut) från planet y = Y_VY
+VY_X = (6150.0, 7900.0)                             # vyn mot V5 (söderut) från planet y = Y_VY
 Y_VY = 7050.0
 VY_Z = (-2450.0, 100.0)
 R_STIG = 0.45                                       # lodrätt rör [pappersmm]
@@ -175,7 +175,7 @@ def _planerna(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
     kol = _anvisningar(utdrag, ovriga, "Plan 1: plan 1:s väggar är streckade och källarväggarna tunna; källarväggarnas "
                                        "lodräta järn når upp i bjälklaget och delar zonerna. Källaren: balkarnas "
                                        "överkantsjärn under V4–V6, V15 och V19 ligger i rörens nivå, så källarrummet "
-                                       "norr om V4–V6 värms inte.") + [
+                                       "söder om V4–V6 värms inte.") + [
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(TECKEN + [("dold", "väggarna på plan 1"), ("hjalp", "källarväggarna (plan 1)")])]
     return blad(nummer, ["Golvvärme", "Plan 1 och källaren"], f"1:{s:g}", "Modellen", kol, vyer, block)
@@ -183,7 +183,7 @@ def _planerna(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
 
 def _fordelarna(utdrag: dict, kallare: list[dict], vyn: list[dict], nummer: str, ovriga: str) -> Blad:
     """Fördelarna på V5: planen (rören upp i mellanbjälklaget och ned i bottenplattan, tilloppen i båda) och vyn mot
-    norr med stammarna, rören och matarledningarna."""
+    söder med stammarna, rören och matarledningarna."""
     s = SKALA_VY
     # ---------------------------------------------------------------- planen
     omr_p = (VY_X[0], VY_X[1], 6450.0, 7750.0)
@@ -208,7 +208,7 @@ def _fordelarna(utdrag: dict, kallare: list[dict], vyn: list[dict], nummer: str,
                     p.cirkel(a[0], a[1], R_STIG, fyll="gv", stil=None)
     with hp.lager("rubrik"):
         hp.rubrik(*papper(hp, pp[0], pp[1] - 6.0), "Fördelarna, plan", round(s))
-    # ---------------------------------------------------------------- vyn mot V5 (norrut)
+    # ---------------------------------------------------------------- vyn mot V5 (söderut)
     omr = (VY_X[0], VY_X[1], VY_Z[0], VY_Z[1])
     be = (24.0, pp[1] + (omr_p[3] - omr_p[2]) / s + 20.0)
     e = Vy(be[0], be[1], (omr[1] - omr[0]) / s, (omr[3] - omr[2]) / s, s, omr[0], omr[3], klipp=True)
@@ -234,7 +234,7 @@ def _fordelarna(utdrag: dict, kallare: list[dict], vyn: list[dict], nummer: str,
                 e.ptext(omr[1], zz, -0.5, 0.4, f"{'±0' if abs(zz) < 0.5 else svm(zz)} {txt}", a="rb", sz=4.8)
     ev = vy(s, omr, *be)
     with ev.lager("rubrik"):
-        ev.rubrik(*papper(ev, be[0], be[1] - 6.0), f"Fördelarna, vy mot V5 (norrut) från y = {svm(Y_VY)}", round(s))
+        ev.rubrik(*papper(ev, be[0], be[1] - 6.0), f"Fördelarna, vy mot V5 (söderut) från y = {svm(Y_VY)}", round(s))
         ev.skalstock(*papper(ev, be[0], be[1] + (omr[3] - omr[2]) / s + 5.0), langd_m=1, steg_m=0.5)
     fd = [[fid, f["media"], str(f["utgangar"]), svm(round(f["start"][0])), svm(round(f["start"][1])),
            svm(f["start"][2])] for fid, f in utdrag["fordelare"].items()]
@@ -268,7 +268,7 @@ def _fordelarna(utdrag: dict, kallare: list[dict], vyn: list[dict], nummer: str,
 
 
 def _kollektorn(kb: dict, kallare: list[dict], sek: list[dict], norr: tuple[float, float], nummer: str) -> Blad:
-    """Köldbärarledningarna: planen över källarens vänstra del och trädgården och sektionen längs rören (söderut till
+    """Köldbärarledningarna: planen över källarens vänstra del och trädgården och sektionen längs rören (norrut till
     vänster), 1:100."""
     s, sk = SKALA, SKALA
     omr = (-500.0, 5500.0, -2600.0, 9600.0)
@@ -288,7 +288,7 @@ def _kollektorn(kb: dict, kallare: list[dict], sek: list[dict], norr: tuple[floa
     with hv.lager("rubrik"):
         hv.rubrik(*papper(hv, pp[0], pp[1] - 6.0), "Köldbärarledningarna, plan", round(s))
         hv.skalstock(*papper(hv, pp[0], pp[1] + (omr[3] - omr[2]) / s + 5.0), langd_m=2, steg_m=1)
-    # sektionen x = rörens mitt, sedd från öster (söder till vänster): X = y
+    # sektionen x = rörens mitt, sedd från öster (norr till vänster): X = y
     oms = (-2600.0, 9600.0, -3100.0, 400.0)
     ps = (108.0, 30.0)
     e = Vy(ps[0], ps[1], (oms[1] - oms[0]) / sk, (oms[3] - oms[2]) / sk, sk, oms[0], oms[3], klipp=True)

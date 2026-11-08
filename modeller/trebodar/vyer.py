@@ -192,13 +192,13 @@ RUMSNAMN = {
 # fler rum för ljusplanernas statistik (som RUMSNAMN; ljusplanerna delar en öppen planlösning mellan namnen efter
 # närmaste namn, så namnen står så att gränserna hamnar vid väggarna): källarens rum, med samma namn som golvvärmens
 # zoner; tvättstugan (hallen och rummet vid V3 väster om KL8) och teknikrummet är en öppen yta, liksom trapphallen och
-# rummen norr om V4–V6 (källarrummet i RUMSNAMN)
+# rummen söder om V4–V6 (källarrummet i RUMSNAMN)
 LJUSPLANENS_RUM = {
     "kallare-hall": ("Tvättstugan, hallen", (3000, 6550, "k")),
     "kallare-tvatt": ("Tvättstugan vid V3", (1150, 8350, "k")), "kallare-teknik": ("Teknikrum", (3000, 8750, "k")),
-    "kallare-ksv": ("Rum söder om hallen", (1500, 4800, "k")), "kallare-ksm": ("Rum öster om KL2", (3650, 4800, "k")),
-    "kallare-trapphall": ("Trapphall", (7000, 6400, "k")), "kallare": ("Rummen norr om V4–V6", (7000, 8630, "k")),
-    "kallare-ks": ("Rum söder om trapphallen", (6800, 2700, "k")), "kallare-ko": ("Stora rummet", (11600, 7000, "k")),
+    "kallare-ksv": ("Rum norr om hallen", (1500, 4800, "k")), "kallare-ksm": ("Rum öster om KL2", (3650, 4800, "k")),
+    "kallare-trapphall": ("Trapphall", (7000, 6400, "k")), "kallare": ("Rummen söder om V4–V6", (7000, 8630, "k")),
+    "kallare-ks": ("Rum norr om trapphallen", (6800, 2700, "k")), "kallare-ko": ("Stora rummet", (11600, 7000, "k")),
 }
 
 

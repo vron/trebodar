@@ -10,12 +10,12 @@ och hällens grova rör (Ø20) i den undre, i tappvattnets nivå men fritt från
 Rören går i stråk, ett rör per fil (..strak: filen genom rörets stigare, stråket förskjutet i sidled), och viker av
 ur stråket mot sin punkt, det som viker av först ytterst mot sin sida, så att de inte korsar varandra:
 
-- S från den främre raden söderut, österut förbi ventilationens stigare (FF3-K2) och söderut öster om badrummet till
+- S från den främre raden norrut, österut förbi ventilationens stigare (FF3-K2) och norrut öster om badrummet till
   badrummet och sovrummet i vänstra huskroppen;
-- E från den främre raden söderut och österut genom glipan mellan V19:s och V15:s järn till köket och högra
-  huskroppen, och söderut till gången;
-- N från den bakre raden norrut över V3 och västerut till hallen och vardagsrummet (plattan på mark);
-- hällens rör (Ø20) från den bakre raden norrut över V3 och österut i den undre nivån, norr om tappvattnets rör,
+- E från den främre raden norrut och österut genom glipan mellan V19:s och V15:s järn till köket och högra
+  huskroppen, och norrut till gången;
+- N från den bakre raden söderut över V3 och västerut till hallen och vardagsrummet (plattan på mark);
+- hällens rör (Ø20) från den bakre raden söderut över V3 och österut i den undre nivån, söder om tappvattnets rör,
   genom glipan mellan V20:s och V15:s järn till hällens anslutning på 3NV.
 
 Rören går upp ur bjälklaget till punktens dosa lodrätt under den, mellan överkantsnätets järn (../dragning.py).
@@ -48,30 +48,30 @@ SPEL = 5.0
 OVER = 15.0                                  # rören in i väggen ur centralens ovansida så högt över den
 
 
-def _rad(y: float, z: float, r: float = 8.0, norrut: Sequence[float] = ()) -> list[float]:
+def _rad(y: float, z: float, r: float = 8.0, over_v3: Sequence[float] = ()) -> list[float]:
     """Stigarnas x i en rad: tätt (CC) från centralens västra kant, där röret går fritt mellan järnen från källarens
-    tak till nivån z (och, för rören som går norrut ur raden över V3, i nivåerna norrut mellan V3:s järn)."""
+    tak till nivån z (och, för rören som går ur raden över V3, i nivåerna över V3 mellan dess järn)."""
     ut: list[float] = []
     x = X_RAD[0]
     while x <= X_RAD[1]:
         if (not ut or x - ut[-1] >= CC - 1e-6) and fri(Point(x, y), r, KALLARTAK, z, SPEL) and all(
-                fri(LineString([(x, y), (x, y + 400.0)]), 10.0, h - 1.0, h + 1.0, SPEL) for h in norrut):
+                fri(LineString([(x, y), (x, y + 400.0)]), 10.0, h - 1.0, h + 1.0, SPEL) for h in over_v3):
             ut.append(x)
         x += 1.0
     return ut
 
 
 _A = _rad(RAD_A, BJALKLAG["MB"])
-_B = _rad(RAD_B, BJALKLAG["MB"], norrut=(BJALKLAG["MB"], BJALKLAG["MB-UK"]))
+_B = _rad(RAD_B, BJALKLAG["MB"], over_v3=(BJALKLAG["MB"], BJALKLAG["MB-UK"]))
 
 # stråken: stigarna och stråkets brytpunkter (det första stycket vinkelrätt mot raden)
 # den främre raden: S de västra (utom stigaren vid tappvattnets stigare BA-DU1-KV, som S går förbi), E de östra; den
 # bakre raden: N de västra, och österut till ön och hällen
 S_STIG, E_STIG = _A[0:6], _A[6:12]
 N_STIG, ON_STIG, HALL_STIG, KA_STIG, G24_STIG = _B[:2], _B[2], _B[5], _B[4], _B[3]   # KA_STIG: källarens stora
-#                       rum (G17), G24_STIG: dess uttag och FF3 (längre norrut än G17, så västligare, utan att korsa)
-Y_S, X_S, Y_S_SLUT = 8400.0, 3480.0, 4380.0     # S: österut i y, söderut i x till V7:s vinkeljärn
-Y_E, X_E_SLUT = 8587.0, 13100.0                 # E: österut i y, i glipan mellan V19:s och V15:s järn och söder om
+#                       rum (G17), G24_STIG: dess uttag och FF3 (längre söderut än G17, så västligare, utan att korsa)
+Y_S, X_S, Y_S_SLUT = 8400.0, 3480.0, 4380.0     # S: österut i y, norrut i x till V7:s vinkeljärn
+Y_E, X_E_SLUT = 8587.0, 13100.0                 # E: österut i y, i glipan mellan V19:s och V15:s järn och norr om
 #                                                 V3:s vinkeljärn, till V14:s vinkeljärn
 Y_N = 9400.0                                     # N: västerut i y
 Y_ON = 9645.0                                    # till ön och hällen: österut i y, genom glipan mellan V20:s och V15:s
@@ -125,9 +125,9 @@ def _ror(grupp: str, strak: str, x: float, p: str, via_y: float | None = None, v
     return Ror(f"{grupp}-M", FXP16, "GC", p, via=i_straket(x, strak, (*mal, (xt, yt)), upp[1:]))
 
 
-def _norr(grupp: str, x: float, p: str, y: float, mal: Sequence[tuple[float, float]], typ: Rortyp = FXP16,
-          niva: str = "MB") -> Ror:
-    """Från den bakre raden norrut över V3 till y, och därifrån genom mal till punktens stigare och upp."""
+def _over_v3(grupp: str, x: float, p: str, y: float, mal: Sequence[tuple[float, float]], typ: Rortyp = FXP16,
+             niva: str = "MB") -> Ror:
+    """Från den bakre raden söderut över V3 till y, och därifrån genom mal till punktens stigare och upp."""
     upp = _upp(p, niva=niva, d=typ.ytterdiameter)
     z = BJALKLAG[niva]
     plan = [(x, y), *mal, (upp[0][0], upp[0][1])]
@@ -146,23 +146,23 @@ _HU = _upp("HA-U1")[0]
 _KD = _upp("KO-D1", niva="MB-UK", d=20.0)[0]
 
 ROR = [
-    # S: stigarna från väster; det som viker av först ytterst (västerut i ordning söderut, österut sist); S_STIG[1]
+    # S: stigarna från väster; det som viker av först ytterst (västerut i ordning norrut, österut sist); S_STIG[1]
     # går till källarens små rum (G18, ../rum/kallare.py)
     _ror("G05", "S", S_STIG[0], "BA-B1"),
     _ror("G09", "S", S_STIG[2], "BA-U3", via_y=5160.0),
     _ror("G08", "S", S_STIG[3], "BA-U2", via_y=5130.0),
     _ror("G07", "S", S_STIG[4], "BA-U1", via_y=Y_S_SLUT + 20.0),
     _ror("G03", "S", S_STIG[5], "SV-B1"),
-    # E: söder om mitten det som viker av söderut (i ordning österut), norr om den det som viker av norrut
+    # E: norr om mitten det som viker av norrut (i ordning österut), söder om den det som viker av söderut
     _ror("G02", "E", E_STIG[0], "AL-B1"),
     _ror("G04", "E", E_STIG[1], "GR-B1"),
     _ror("G15", "E", E_STIG[2], "KO-U4"),
     _ror("G11", "E", E_STIG[3], "KO-U6", via_x=X_E_SLUT - 80.0),
     _ror("G12", "E", E_STIG[4], "KO-U8", via_x=X_E_SLUT - 55.0),
     _ror("G14", "E", E_STIG[5], "KO-U7", via_x=11200.0),
-    # N och österut från den bakre raden norrut över V3
-    _norr("G01", N_STIG[0], "HA-B1", Y_N - 32.0, [(_HA[0], Y_N - 32.0)]),
-    _norr("G06", N_STIG[1], "HA-U1", Y_N + 32.0, [(_HU[0], Y_N + 32.0)]),
-    _norr("G13", ON_STIG, "KO-U11", Y_ON, [(_ON, Y_ON)]),
-    _norr("G10", HALL_STIG, "KO-D1", Y_ON, [(X_HALL, Y_ON), (X_HALL, _KD[1])], FXP20, "MB-UK"),
+    # N och österut från den bakre raden söderut över V3
+    _over_v3("G01", N_STIG[0], "HA-B1", Y_N - 32.0, [(_HA[0], Y_N - 32.0)]),
+    _over_v3("G06", N_STIG[1], "HA-U1", Y_N + 32.0, [(_HU[0], Y_N + 32.0)]),
+    _over_v3("G13", ON_STIG, "KO-U11", Y_ON, [(_ON, Y_ON)]),
+    _over_v3("G10", HALL_STIG, "KO-D1", Y_ON, [(X_HALL, Y_ON), (X_HALL, _KD[1])], FXP20, "MB-UK"),
 ]

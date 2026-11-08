@@ -502,7 +502,7 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         "rum/teknikrum.py): armaturer, apparater, dosor, tändgrupper och rör. Lägena följer husets geometri; "
         "ritningen ritas med ./mod el ritning.",
         "Arbetsrummens paneler sitter utanpå betongtaket och ansluts i en ingjuten dosa ovanför sig. De trevliga "
-        "rummen (trapphallen, tvättstugan, rummen norr om V4–V6 och rummet söder om trapphallen) har ljuslinjer i ask "
+        "rummen (trapphallen, tvättstugan, rummen söder om V4–V6 och rummet norr om trapphallen) har ljuslinjer i ask "
         "utanpå taket, utan dosor: 24 V i egna ingjutna rör från drivdonen i drivdonsskåpet TK-LC, som slutar i taket "
         "under profilens ände (rörändan tätas vid gjutningen och täcks av armaturen).",
         "Rören i bjälklaget (" + bjalklaget + "): ur brytarnas och dimrarnas dosor går de rakt upp i väggen in i "

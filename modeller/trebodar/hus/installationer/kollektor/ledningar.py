@@ -2,7 +2,7 @@
 upp genom bottenplattan i teknikrummet, där kollektorslangarna (i skyddsrören) går vidare till värmepumpens anslutningar
 (..teknikrum.VARMEPUMP, KB-in och KB-ut). Slangarna dras in genom rören efteråt, så rören har bara böjar om högst 15°
 (VINKEL): lodrätt upp genom plattan, en sväng till vågrätt med böjar om 15° under plattans cellplast och makadam,
-vågrätt söderut under källarens vänstra del och ut till brunnen, med en sidoförskjutning om 15° utanför huset.
+vågrätt norrut under källarens vänstra del och ut till brunnen, med en sidoförskjutning om 15° utanför huset.
 
 Rören går lodrätt genom plattan mellan armeringsnätens järn (..strak.mellan_jarnen) och golvvärmen håller sig fri från
 dem (golvvarme/system.py). Brunnens läge är ungefärligt (användarens markering). Koordinater i mm (K-05), z från plan 1:s
@@ -29,10 +29,10 @@ S_BOJ = 120.0                               # sträckan mellan svängens böjar
 Z_GOLV = PLAN[0]
 Z_TOPP = Z_GOLV + 100.0                     # rörens ände över golvet i teknikrummet
 Z_VAG = Z_GOLV - 650.0                      # rörens mitt under plattan: under cellplasten och makadamen, under
-                                            # avloppet och under dräneringen (installationer/dranering) söder om V7
+                                            # avloppet och under dräneringen (installationer/dranering) norr om V7
 UPP = (3840.0, 8200.0)                      # upp genom plattan (mitt mellan rören), användarens markering
 BRUNN = (3500.0, -2000.0)                   # energibrunnen, ungefärligt
-Y_SIDA = 1000.0                             # sidoförskjutningen börjar (utanför huset, söder om V7)
+Y_SIDA = 1000.0                             # sidoförskjutningen börjar (utanför huset, norr om V7)
 RIKTNING = {"KB-in": 1, "KB-ut": -1}        # rören öster och väster om mitten
 
 
@@ -44,13 +44,13 @@ class Ledning:
 
 
 def _riktningar(n: int) -> list[tuple[float, float, float]]:
-    """Riktningarna genom svängen från nedåt till söderut, VINKEL i taget."""
+    """Riktningarna genom svängen från nedåt till norrut, VINKEL i taget."""
     return [(0.0, -math.sin(math.radians(VINKEL * k)), -math.cos(math.radians(VINKEL * k))) for k in range(n + 1)]
 
 
 def _vag(x: float, y: float) -> tuple[Vek, ...]:
-    """Ett rör från änden över golvet: lodrätt ned, svängen till söderut, söderut till sidoförskjutningen, snett mot
-    brunnen (VINKEL) och söderut till den."""
+    """Ett rör från änden över golvet: lodrätt ned, svängen till norrut, norrut till sidoförskjutningen, snett mot
+    brunnen (VINKEL) och norrut till den."""
     n = round(90.0 / VINKEL)
     r = _riktningar(n)
     fall = S_BOJ * sum(d[2] for d in r[1:n])                    # svängens fall (negativt)

@@ -195,7 +195,7 @@ def lager_yttermatt(v, d1=4.0, d2=10.0):
     måttkedjornas avstånd från ytterlivet (pappersmm)."""
     s = v.s
     with v.lager("matt"):
-        # söder: fasaden med öppningarna F1–F3 och V8/V9 med D1
+        # norr: fasaden med öppningarna F1–F3 och V8/V9 med D1
         f = [o for o in OPPN if o["c"] == VAGG["V10"]["c"]]
         xs = [ytterliv("V18")] + [p for o in f for p in (o["x0"], o["x1"])] + [ytterliv("V17")]
         kedja(v, xs, -30.0 - d1 * s, [-30.0] * len(xs))
@@ -206,7 +206,7 @@ def lager_yttermatt(v, d1=4.0, d2=10.0):
         ys = [ytterliv("V7"), ytterliv("V3"), ytterliv("V2"), ytterliv("V1")]
         fr = [ytterliv("V21"), ytterliv("V21"), ytterliv("V20"), ytterliv("V16")]
         kedja(v, ys, -30.0 - d1 * s, fr, ax="y")
-        # norr: V3, V2, V1 och totalmåttet i x
+        # söder: V3, V2, V1 och totalmåttet i x
         xs3 = [-30.0, ytterliv("V20"), ytterliv("V16"), ytterliv("V14")]
         kedja(v, xs3, ytterliv("V1") + d1 * s, [ytterliv("V3"), ytterliv("V2"), ytterliv("V1"), ytterliv("V1")])
         kedja(v, [-30.0, ytterliv("V14")], ytterliv("V1") + d2 * s, [ytterliv("V1") + d1 * s] * 2)
@@ -214,7 +214,7 @@ def lager_yttermatt(v, d1=4.0, d2=10.0):
         ys4 = [-30.0, ytterliv("V9"), ytterliv("V1")]
         kedja(v, ys4, ytterliv("V14") + d1 * s, [ytterliv("V17"), ytterliv("V14"), ytterliv("V14")], ax="y")
         kedja(v, [-30.0, ytterliv("V1")], ytterliv("V14") + d2 * s, [ytterliv("V14") + d1 * s] * 2, ax="y")
-        # sydväst: V7 och V18
+        # nordväst: V7 och V18
         kedja(v, [ytterliv("V21"), ytterliv("V18")], ytterliv("V7") - d1 * s, [ytterliv("V7")] * 2)
         kedja(v, [ytterliv("V10"), ytterliv("V7")], ytterliv("V18") - d1 * s, [ytterliv("V18")] * 2, ax="y")
 
@@ -242,7 +242,7 @@ def lager_smyglister(v):
 
 
 def lager_fardigmatt(v, d=7.0):
-    """De färdiga öppningarna, innanför smyglisterna: på väggens insida (innerväggarna: norr om väggen), d pappersmm
+    """De färdiga öppningarna, innanför smyglisterna: på väggens insida (innerväggarna: söder om väggen), d pappersmm
     från väggen."""
     with v.lager("fardigmatt"):
         for o in OPPN:
@@ -281,7 +281,7 @@ def lager_oppningsnamn(v):
     with v.lager("oppningar"):
         for o in OPPN:
             m = (o["x0"] + o["x1"]) / 2
-            ute = VAGG[o["vaggar"][0]]["ute"] or -1          # innerväggarna: namnet norr om väggen
+            ute = VAGG[o["vaggar"][0]]["ute"] or -1          # innerväggarna: namnet söder om väggen
             v.text(m, o["c"] - ute * (K.T_VAGG / 2 + 1.8 * v.s), o["namn"], a="cm", sz=7.0, b=True, col="ok",
                    bg=True)
 
@@ -698,10 +698,10 @@ ELEV = [
     dict(namn="a", titel="FASADEN MED F1–F3 (V10–V13), sedd utifrån", c=VAGG["V10"]["c"],
          vaggar=("V10", "V11", "V12", "V13"), vy=(24.0, 12.0)),
     dict(namn="b", titel="V8 OCH V9 MED D1, sedd utifrån", c=VAGG["V8"]["c"], vaggar=("V8", "V9"), vy=(176.0, 12.0)),
-    dict(namn="c", titel="V4–V6 MED D2 OCH D3, sedd från söder", c=VAGG["V4"]["c"], vaggar=("V4", "V5", "V6"),
+    dict(namn="c", titel="V4–V6 MED D2 OCH D3, sedd från norr", c=VAGG["V4"]["c"], vaggar=("V4", "V5", "V6"),
          vy=(24.0, 103.0)),
-    dict(namn="d", titel="V3, sedd inifrån (från söder)", c=VAGG["V3"]["c"], vaggar=("V3",), vy=(176.0, 103.0)),
-    dict(namn="e", titel="V2, sedd inifrån (från söder): typisk yttervägg", c=VAGG["V2"]["c"], vaggar=("V2",),
+    dict(namn="d", titel="V3, sedd inifrån (från norr)", c=VAGG["V3"]["c"], vaggar=("V3",), vy=(176.0, 103.0)),
+    dict(namn="e", titel="V2, sedd inifrån (från norr): typisk yttervägg", c=VAGG["V2"]["c"], vaggar=("V2",),
          vy=(24.0, 194.0)),
 ]
 

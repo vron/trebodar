@@ -1,9 +1,9 @@
 """Källaren (användarens markeringar): tvättmaskinen och ett tvättho på västra ytterväggen V21, ett tvättho i
-källarrummet på V15:s västsida och ett på V7:s norrsida i källarens vänstra del. Rören kommer från stråken i
+källarrummet på V15:s västsida och ett på V7:s södersida i källarens vänstra del. Rören kommer från stråken i
 mellanbjälklaget, ned ur bjälklagets underkant i väggens cellplast bakom gipsen, till väggdosorna.
 
-Källarrummets rör viker av norrut från stråket O var för sig (varmt först) till V15. Tvätthoet på V7 är flyttat till
-väggen från markeringen 0,8 m norr om den.
+Källarrummets rör viker av söderut från stråket O var för sig (varmt först) till V15. Tvätthoet på V7 är flyttat till
+väggen från markeringen 0,8 m söder om den.
 """
 from __future__ import annotations
 

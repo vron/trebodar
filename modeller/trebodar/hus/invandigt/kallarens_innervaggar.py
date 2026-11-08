@@ -8,10 +8,10 @@ KD1–KD5 är för dörrar M9×20 (KD3 M8×20), håltagning 900 (800) × 2 010 f
 överstycke under hammarbandet; rumshöjden 2 100 rymmer inte en dörr M×21. Dörrbladen och karmarna finns inte i
 modellen.
 
-Rummen: teknikrummet norr om KL8–KL10 (värmepumpen TK-VP står innanför knycken KL9–KL10), hallen mellan KL1 och KL8 med
-dörren KD1 till rummet söder om KL1 (väster om KL2; rummet öster om KL2 når man genom KD3 i KL3), trapphallen öster
-om KL3 (KD2) mellan KL4 och KL6 med KD4 söderut, och det stora rummet i högra huskroppen öster om KL5 och KL7 (KD5).
-KL5 börjar vid KL4, eftersom trappan går ut över dess linje norr om den.
+Rummen: teknikrummet söder om KL8–KL10 (värmepumpen TK-VP står innanför knycken KL9–KL10), hallen mellan KL1 och KL8 med
+dörren KD1 till rummet norr om KL1 (väster om KL2; rummet öster om KL2 når man genom KD3 i KL3), trapphallen öster
+om KL3 (KD2) mellan KL4 och KL6 med KD4 norrut, och det stora rummet i högra huskroppen öster om KL5 och KL7 (KD5).
+KL5 börjar vid KL4, eftersom trappan går ut över dess linje söder om den.
 
 Där två väggar möts går den ena igenom (stommen till den andras bortre sida) och den andra slutar mot dess stomme,
 med en regel i den genomgående väggen vid anslutningen; mot källarväggarna slutar stommen mot deras gips (kallare.py).
@@ -120,16 +120,16 @@ VAGGAR = {v.kod: v for v in (
     Innervagg("KL3", "v", _P["P10"][0], _c("V7") + _GIPSYTA, _c("V4") - _GIPSYTA,
               "från V7 till hörnet V4/V19 i rörets P10 linje"),
     Innervagg("KL4", "h", _P["P11"][1], _P["P10"][0] + _H, _P["P14"][0] - _H,
-              "från KL3 till KL5 i rörens P11–P14 linje, söder om trappan"),
+              "från KL3 till KL5 i rörens P11–P14 linje, norr om trappan"),
     Innervagg("KL5", "v", _P["P14"][0], _c("V8") + _GIPSYTA, _P["P11"][1] + _H,
               "från hörnet V8/V17 till KL4 i rörens P19, P16 och P14 linje"),
     Innervagg("KL6", "h", _P["P6"][1], _P["P6"][0] - R.VKR / 2 - FRIGANG - B, _c("V15") + _H,
-              "från rörets P6 västra sida till KL7 i rörens P6 och P7 linje, norr om trappan"),
+              "från rörets P6 västra sida till KL7 i rörens P6 och P7 linje, söder om trappan"),
     Innervagg("KL7", "v", _c("V15"), _P["P6"][1] + _H, _c("V6") - _GIPSYTA, "från KL6 till hörnet V6/V15"),
     Innervagg("KL8", "h", _P["P4"][1], X_KL8, X_KL9 + _H,
               "teknikrummets vägg i rörets P4 och avloppsstammens linje, fri ände i väster", T_KL8),
     Innervagg("KL9", "v", X_KL9, Y_KL10 + _H, _P["P4"][1] - T_KL8 / 2, "knycken väster om värmepumpen"),
-    Innervagg("KL10", "h", Y_KL10, X_KL9 - _H, _P["P10"][0] - _H, "teknikrummets vägg söder om värmepumpen till KL3"),
+    Innervagg("KL10", "h", Y_KL10, X_KL9 - _H, _P["P10"][0] - _H, "teknikrummets vägg norr om värmepumpen till KL3"),
 )}
 DORRHAL = (
     Dorrhal("KD1", "KL1", 730.0, 1630.0, "M9×20"),

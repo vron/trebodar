@@ -281,7 +281,7 @@ def _utrustning(v: Vy, utdrag: dict, etiketter: bool = True) -> None:
 # ------------------------------------------------------------------ teknikrummet
 
 def _spegla(delar: list[dict]) -> list[dict]:
-    """Snittet x = konstant (y, z) speglat i y, så att vyn ser österut (norr till vänster)."""
+    """Snittet x = konstant (y, z) speglat i y, så att vyn ser österut (söder till vänster)."""
     return [{**d, "ytor": [[[[-p[0], p[1]] for p in ring] for ring in yta] for yta in d["ytor"]]} for d in delar]
 
 
@@ -339,7 +339,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
                 hela.hanvisning((q[0], q[1]), (X, Y), f"{k} {u[k]['namn'].split(' (')[0].split(',')[0].lower()}",
                                 a=ank, sz=5.2)
         hela.rubrik(*papper(hela, bp[0], bp[1] - 6.0), "Teknikrummet, plan", round(s))
-    # ---------------------------------------------------------------- vyn mot V19 (österut, norr till vänster): X = −y
+    # ---------------------------------------------------------------- vyn mot V19 (österut, söder till vänster): X = −y
     omr = (-y1, -y0, Z_VY[0], Z_VY[1])
     e = Vy(be[0], be[1], (y1 - y0) / s, (Z_VY[1] - Z_VY[0]) / s, s, omr[0], omr[3], klipp=True)
     sektion(e, _spegla(vyn))
@@ -409,8 +409,8 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
     kol = _anvisningar(
         utdrag,
         "Fördelarskåpet på V19 med varmvattnets fördelare bakom och kallvattnets framför: rören går upp ur skåpets "
-        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 50) mellan underkantsnätets järn och söder "
-        "om ventilationens kanal FF3. Matarledningarna över värmepumpen; kallvattnet in i fördelarens norra ände och "
+        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 50) mellan underkantsnätets järn och norr "
+        "om ventilationens kanal FF3. Matarledningarna över värmepumpen; kallvattnet in i fördelarens södra ände och "
         "vidare genom den till beredaren.",
         "Skåpet får läckageindikering till golvbrunnen i teknikrummet (Säker Vatten); avloppet ritas senare. "
         "Servisens väg till huset är inte bestämd.",

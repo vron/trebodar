@@ -31,12 +31,12 @@ BLADEN = [("R-03.1", ["Bärande system i betong", "Översikt i 3D"], "–", "R-0
 
 H, Z1 = S.H, S.Z1
 Y_SNITT, X_SNITT = 5700.0, 5000.0          # vy 4: snitt genom källarens västra del
-Y_KAPA3 = 5500.0                            # vy 3: bjälklaget bortskuret söder om y, genom trapphålet
+Y_KAPA3 = 5500.0                            # vy 3: bjälklaget bortskuret norr om y, genom trapphålet
 
 
 # ================================================================== vyerna
 def vy1(s):
-    """Bottenplattan; plattan bortskuren i sydvästra delen, så att balkarna, plintarna och cellplasten syns."""
+    """Bottenplattan; plattan bortskuren i nordvästra delen, så att balkarna, plintarna och cellplasten syns."""
     S.grund(s, kapa=box(-500, -500, 7600, 8000), folie=box(-500, -500, 3600, 8000))
 
 
@@ -303,9 +303,9 @@ def blad():
         dict(typ="lista", sz=6.8, rader=[
             "Bilderna visar betongarbetets bärande delar i 3D.",
             "Mellanbjälklaget, 150 mm, bär plan 1 och vilar på källarväggarna och på stålrören P1–P19. Över "
-            f"fyllningen norr om källaren ligger det som platta på mark på {K.EPS_MARK:.0f} mm cellplast (K-05, K-06).",
+            f"fyllningen söder om källaren ligger det som platta på mark på {K.EPS_MARK:.0f} mm cellplast (K-05, K-06).",
             "Källarväggarna av Sundolitt Kub 350-150 bär bjälklaget och jordtrycket; ytterväggarna hålls i toppen av "
-            "bjälklaget och i botten av bottenplattan. Fasaden mot söder har fönster F1–F3 mellan pelare (K-06).",
+            "bjälklaget och i botten av bottenplattan. Fasaden mot norr har fönster F1–F3 mellan pelare (K-06).",
             "Rören står på fotplåtar som gjuts in i plintarnas överkant. Väggarna står på kantbalken i L-elementen "
             "och på balkarna under innerväggarna.",
             "Bottenplattan, 100 mm, gjuts i en gjutning med kantbalkarna, balkarna och plintarna. De fördelar lasten "

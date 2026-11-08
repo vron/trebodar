@@ -67,14 +67,14 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
 - Rören går ur fördelarskåpets öppna ovansida upp i mellanbjälklaget och gjuts in mellan armeringsnäten (R-06), alla
   i en nivå närmast underkantsnätet (`Z_ROR`; golvvärmen går ovanför), en fil per rör c/c 50 som nätens maskor:
   kallt och varmt bredvid varandra. Varmvattnets fördelare sitter bakom kallvattnets, och utgångarna sitter i sina
-  rörs filer, mellan underkantsnätets järn och söder om ventilationens kanal FF3.
+  rörs filer, mellan underkantsnätets järn och norr om ventilationens kanal FF3.
 - Där rören går upp eller ned genom bjälklaget går de mellan armeringsjärnen (`forskjutning`, med
   `../strak.mellan_jarnen`): golvdosan flyttas så lite som behövs (fri från väggarna), och rören i väggen flyttas längs
   väggen (och tvärs den inom regelfacket eller cellplasten) och går därifrån till väggdosan.
-- Tappställenas ordning (`ORDNING`, från söder, med stråkets ben där rören viker av) bestämmer filerna: ett
+- Tappställenas ordning (`ORDNING`, från norr, med stråkets ben där rören viker av) bestämmer filerna: ett
   tappställes två rör ligger bredvid varandra, det som viker av först ytterst mot sin sida, så att rören inte korsar
-  varandra. Stråket O går österut över V19 till källarrummet och köket, S västerut och söderut till badrummet och
-  längs V7, och V västerut och söderut längs V21. Där stråken går över källarväggarnas lodräta järn går de mellan
+  varandra. Stråket O går österut över V19 till källarrummet och köket, S västerut och norrut till badrummet och
+  längs V7, och V västerut och norrut längs V21. Där stråken går över källarväggarnas lodräta järn går de mellan
   dem.
 - Röret lämnar filen i punkten närmast tappstället (eller förbi `via`) och går därifrån upp ur bjälklaget i väggens
   regelfack eller golvdosan på plan 1, eller ned ur bjälklaget i källarväggens cellplast bakom gipsen till väggdosan i

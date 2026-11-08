@@ -2,9 +2,9 @@
 genom en vägg på plan 1 och ut genom taket, utan att kanalen syns på plan 1.
 
 Rummet har inga väggar ovanför på plan 1 (allrummet), och dess ytterväggar V2 och V20 står mot marken. Kanalen går
-därför under källarens tak från frånluftsdonet i rummets nordvästra hörn till kanalfläkten i rummet, genom innerväggen
+därför under källarens tak från frånluftsdonet i rummets sydvästra hörn till kanalfläkten i rummet, genom innerväggen
 V19 (kärnborrning mellan dess lodräta järn) till källarens vänstra del, längs V3 förbi tappvattnets fördelarskåp (vars
-rör går upp i bjälklaget söder om kanalen), och upp i den bärande innerväggen 1C mellan badrummet och hallen
+rör går upp i bjälklaget norr om kanalen), och upp i den bärande innerväggen 1C mellan badrummet och hallen
 (y 8 220):
 
 - i 1C i regelfacket mellan reglarna 1C-R01 och 1C-R02 (x 2 532–3 088), som platt kanal 204 × 60 i stommen 45 × 70
@@ -27,7 +27,7 @@ from ..katalog import (FRANLUFTSDON_125, ISOLERAD_125, KANALFLAKT_125, PLATT_125
 
 Y = S.INNERVAGGAR["1C"].origo[1] + S.INNERVAGGAR["1C"].tjocklek / 2       # väggen 1C:s mitt
 X_STIG = 2810.0                             # mitt i regelfacket 1C-R01–1C-R02
-X_DON, Y_DON = 4950.0, 10400.0              # rummets nordvästra hörn
+X_DON, Y_DON = 4950.0, 10400.0              # rummets sydvästra hörn
 Y_FLAKT = 9700.0                            # i rummet, längs västra väggen
 Z = KALLARTAK - 155.0                       # kanalens mitt under taket (fläkten 30 mm under betongen)
 Y_V3 = glipa("V19", Z, 8936.0)              # genom V19 mellan järnen, längs V3

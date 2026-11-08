@@ -36,7 +36,7 @@ from .katalog import FORDELARE, GOLVVARMEROR, MATARROR
 from .punkter import FIL, FRITT, JARN, MARGINAL, Fordelare, Zon, langd, slinga
 
 PLAN: dict[int, ModuleType] = {1: plan1, 0: kallare}
-Y_MATARE = {"fram": 6000.0, "retur": 6050.0}       # matarledningarna österut genom hallen och KL3 söder om KD2
+Y_MATARE = {"fram": 6000.0, "retur": 6050.0}       # matarledningarna österut genom hallen och KL3 norr om KD2
 SPEL = 5.0                              # rörens fria avstånd till järnen och till varandra
 
 
@@ -205,8 +205,8 @@ def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, For
 
 
 def _matare(fd: dict[int, dict[str, Fordelare]]) -> dict[str, list[Vek]]:
-    """Matarledningarna under källarens tak: värmepumpens fram och retur söderut genom KL10, österut genom hallen och
-    KL3 (söder om dörren KD2) och norrut i trapphallen till plan 1:s fördelare (västra änden), och därifrån vidare till
+    """Matarledningarna under källarens tak: värmepumpens fram och retur norrut genom KL10, österut genom hallen och
+    KL3 (norr om dörren KD2) och söderut i trapphallen till plan 1:s fördelare (västra änden), och därifrån vidare till
     källarens (östra ändarna); fram och retur i olika höjder, så att de kan gå bredvid och över varandra."""
     vp = VARMEPUMP.anslutningar
     ut = {}

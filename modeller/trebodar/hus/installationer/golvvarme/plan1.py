@@ -1,19 +1,19 @@
 """Plan 1:s golvvärme, ingjuten i mellanbjälklaget ovanför tappvattnets rör: zonerna med en slinga var och
-tilloppens stråk från fördelaren på V5:s södra sida i källaren (rören upp i bjälklaget framför väggen, mellan
+tilloppens stråk från fördelaren på V5:s norra sida i källaren (rören upp i bjälklaget framför väggen, mellan
 underkantsnätets järn).
 
-Källarväggarnas lodräta järn når upp i bjälklaget (R-05) och delar golvet: allrummet norr om V4–V6, hallen och
-vardagsrummet norr om V3 och resten. Slingorna stannar i sin del, och stråken går över järnens rader i dörröppningarna
+Källarväggarnas lodräta järn når upp i bjälklaget (R-05) och delar golvet: allrummet söder om V4–V6, hallen och
+vardagsrummet söder om V3 och resten. Slingorna stannar i sin del, och stråken går över järnens rader i dörröppningarna
 (D2 i V4–V5) eller mellan två järn (V3). Zonerna och stråken i fördelarens ordning från väster:
 
-- AR: allrummet, genom D2 och längs dess södra kant.
-- N: vardagsrummet och hallens norra del (med allrummets västra del), norrut genom V3.
-- V: badrummet och hallens södra del, västerut från stråket i allrummets västra del.
-- S: sovrummet, söderut genom 2C väster om kaminen och elens rör i bjälklaget (MB-R01).
-- G: kontoret, sovrummet och kontoret vid gången och gästrummet: österut under 2B och söderut i gången.
-- O: köket, österut längs kökets södra vägg.
+- AR: allrummet, genom D2 och längs dess norra kant.
+- N: vardagsrummet och hallens södra del (med allrummets västra del), söderut genom V3.
+- V: badrummet och hallens norra del, västerut från stråket i allrummets västra del.
+- S: sovrummet, norrut genom 2C väster om kaminen och elens rör i bjälklaget (MB-R01).
+- G: kontoret, sovrummet och kontoret vid gången och gästrummet: österut under 2B och norrut i gången.
+- O: köket, österut längs kökets norra vägg.
 
-Tilloppen värmer också golvet de går under (allrummets södra del, gången). Koordinater i mm (K-05).
+Tilloppen värmer också golvet de går under (allrummets norra del, gången). Koordinater i mm (K-05).
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from ..strak import Strak, glipa
 from .punkter import Zon
 
 Z = I_BETONGEN["golvvarme"]
-VAGG = kallarvagg("V5", 0.0, 0.0, -1).punkt[1]          # V5:s södra gips, fördelaren
+VAGG = kallarvagg("V5", 0.0, 0.0, -1).punkt[1]          # V5:s norra gips, fördelaren
 X0 = 6475.0                                              # den första filen (väster), mellan underkantsnätets järn
 Y_FD = {"fram": VAGG - 115.0, "retur": VAGG - 75.0}      # stammarna, under nätets maska närmast väggen
 Z_FD = {"fram": -650.0, "retur": -550.0}
@@ -51,7 +51,7 @@ ZONER = [
 
 
 def strak(mitt: dict[str, float]) -> dict[str, Strak]:
-    """Tilloppens stråk söderut från fördelaren, med deras första sträcka genom mitten av sina filer (mitt: x); de
+    """Tilloppens stråk norrut från fördelaren, med deras första sträcka genom mitten av sina filer (mitt: x); de
     som viker av åt samma håll gör det i ordning, det första närmast väggen."""
     return {s.id: s for s in (
         Strak("AR", ((mitt["AR"], VAGG), (mitt["AR"], 7150.0), (5830.0, 7150.0), (5830.0, 7600.0), (4600.0, 7600.0))),

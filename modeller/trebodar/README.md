@@ -13,6 +13,9 @@ cd verktyg/modellering
 ```
 
 Koordinater som i K-05 (mm): x och y från skärningen mellan mellanbjälklagets kanter, z från bjälklagets överkant.
+Väderstrecken i texterna följer planen: norr = lågt y, söder = högt y, öster = högt x och väster = lågt x (planens
+väderstreck; verklig norr är (0,751; −0,660), `vyer.sweref_passning`). Fasadernas väderstreck (1NO, 2SO …) är ett
+eget system, och rummens, zonernas och stråkens koder (KS, KSV, ÖN, HN, stråket N …) är bara koder.
 
 ## Hur koden är ordnad
 
@@ -433,7 +436,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 - **Källarens innerväggar KL1–KL10**: lätta väggar 45×95 C24 c/c 600 med gips 13 på båda sidor från bottenplattan
   till bjälklaget, i rörens linjer så att rören står i stommen (KL8 45×120 för avloppsstammen Ø110 bredvid P4), med
   dörrhålen KD1–KD5 för M9×20 och M8×20 (rumshöjden 2 100 rymmer inte M×21). Teknikrummet avgränsas av KL8–KL10 med
-  en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje norr därom.
+  en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje söder därom.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
   en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen

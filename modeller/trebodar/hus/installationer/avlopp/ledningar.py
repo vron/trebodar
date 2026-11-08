@@ -10,7 +10,7 @@ Plan 1, badrummet (#52), med var sitt rör lodrätt genom mellanbjälklaget (hyl
 - badkaret: vattenlåset under karet till ett rör Ø50 genom golvet under karets mitt;
 - tvätten i skåpet i nischen (#51, förberedd för tvättmaskin och torktumlare): vattenlåset på L10 (hus/badrum.py) till
   ett rör Ø50 ned i väggen och genom bjälklaget.
-Under bjälklaget (i källarens tak, med överkanten UPPHANG under betongen) samlingsledningen Ø110 från WC:n norrut
+Under bjälklaget (i källarens tak, med överkanten UPPHANG under betongen) samlingsledningen Ø110 från WC:n söderut
 genom källarväggen KL1 och längs KL8 österut till stammen, tvättställets ledning längs V7 till WC:ns, badkarets,
 golvbrunnens och tvättens till samlingsledningen (tvättens under KL2:s hammarband genom väggen). Hålen genom bjälklaget ligger utanför rörens (P4, P8, P9) genomstansningszon 6d
 utom golvbrunnens, som K-05 ska pröva (kontrollen redovisar hålen inom GENOMSTANSNING från rören).
@@ -38,7 +38,7 @@ KA-TH1–KA-TH3, som inte är modellerade) får var sin anslutning Ø50 i golvet
 ned till en gren.
 
 Grundledningen Ø110 under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i teknikrummet,
-söder om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under källarväggen V9
+norr om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under källarväggen V9
 (UTLOPP). Direkt utanför väggen faller den brant under dräneringen runt grunden (UTLOPP_FALL) och fortsätter åt
 nordost, längs dagvattnets utgående rör, mot förbindelsepunkten (UTLOPP_L av den ritas). Överkanten ligger
 UNDER_CELLPLAST under bottenplattans cellplast där den börjar. Grenarna går vinkelrätt mot den (de nära varandra något
@@ -88,11 +88,11 @@ HUV = (160.0, 350.0)                        # luftningshuven av plåt på taket:
 # luftningen ligger så långt från stammens mitt i y (excentrisk övergång i stammens topp), mitt emellan takets
 # ströläkt 1NV-SL45 och -SL46, inom KL8:s stomme och fri från L11:s regel
 LUFT_DY = 25.0
-X_SAMLING = B.X_L9 - B.WC_AVLOPP            # samlingsledningen norrut i WC:ns linje
+X_SAMLING = B.X_L9 - B.WC_AVLOPP            # samlingsledningen söderut i WC:ns linje
 Y_KL8 = KL["KL8"].c - KL["KL8"].h - GIPS_T - 10.0 - 55.0      # österut längs KL8, 10 mm från dess gips
 # samlingsledningen går under KL1:s hammarband (FRI under det där den går genom väggen) och faller därifrån
 FRI = 5.0
-_Y_KL1 = KL["KL1"].c - KL["KL1"].h - GIPS_T                   # KL1:s gips mot söder
+_Y_KL1 = KL["KL1"].c - KL["KL1"].h - GIPS_T                   # KL1:s gips mot norr
 Z_SAMLING = -S.H_BJALKLAG - KL_VIRKE - FRI - 55.0 + FALL[110.0] * (_Y_KL1 - B.WC_Y)     # mitten vid WC:n
 TVATTSTALL_AVLOPP = (B.X_TVATTSTALL, B.Y_1NO + 260.0)      # under tvättställets mitt (inredning/badrum.py)
 BADKAR_AVLOPP = ((B.BADKAR_X[0] + B.BADKAR_X[1]) / 2, (B.BADKAR_Y[0] + B.BADKAR_Y[1]) / 2)
@@ -100,12 +100,12 @@ BADKAR_BOTTEN = B.Z_BADKAR + B.BADKAR_KAR                        # karets botten
 BRUNN = (200.0, 100.0)                      # golvbrunnens kropp: diameter, djup under flänsen
 BRUNN_SIL = (220.0, 230.0)                  # silen och klämringen (hålet i golvets skikt, badrumsgolv.BRUNN_HAL)
 DISKHO = KB.diskhons_avlopp()               # diskhons avlopp i plan
-# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen längs ön till DM_SODER, österut och söderut
-# till diskbänksskåpet bakom lådorna, söder om tappvattnets matning till UF1 (som kommer ned till underfördelaren vid
+# diskmaskinens pumpade avlopp (AV20): från anslutningen under maskinen längs ön till Y_DM, österut och norrut
+# till diskbänksskåpet bakom lådorna, norr om tappvattnets matning till UF1 (som kommer ned till underfördelaren vid
 # y 8 825)
 DM_ROR = 25.0                               # PEX 25 × 2,3
 DM_ANSLUTNING = KB.diskmaskinens_anslutningar()[1]
-DM_SODER = 8700.0                           # längs ön till hit, förbi matningen till UF1 (y 8 825)
+Y_DM = 8700.0                               # längs ön till hit, förbi matningen till UF1 (y 8 825)
 DM_DISKBANK = (13500.0, 8200.0)             # upp i diskbänksskåpet bakom lådorna
 DM_STOS = 100.0                             # rörets ände i diskbänksskåpet över golvet, där slangen ansluter (under
 #                                             maskinen slutar det i golvet)
@@ -126,7 +126,7 @@ GREN_AVSTAND = 300.0                        # grenarnas anslutningar minst så l
 GOLVBRUNNAR_KALLARE = {"GB1": (1520.0, 8430.0),            # vid tvätten (tvättmaskinen töms i den)
                        "GB2": (3770.0, 8510.0),            # i teknikrummet (fördelarskåpets läckageindikering)
                        "GB3": (8330.0, 9920.0),
-                       "GB4": (3850.0, 4180.0),            # vid tvätthoet KA-TH3 på V7 (skissen: 1,2 m söderut), så
+                       "GB4": (3850.0, 4180.0),            # vid tvätthoet KA-TH3 på V7 (skissen: 1,2 m norrut), så
                        "GB5": (11310.0, 3430.0)}           # att golvvärmens slinga ryms i rummet öster om KL2
 BRUNN_KALLARE = (200.0, G.H_PLATTA)         # golvbrunnens kropp i källaren: diameter och djup (plattans betong)
 TVATTHO_AVSTAND = 150.0                     # tvätthoets avlopp i golvet från väggens gips
@@ -246,7 +246,7 @@ def ledningar() -> dict[str, Ledning]:
     samling = [(xs, ys, B.golvniva(xs, ys))] + _fall((xs, ys, Z_SAMLING),
                                                      [(xs, Y_KL8), (sx, Y_KL8), (sx, sy - sd / 2)], 110.0)
     ut["AV1"] = Ledning("AV1", "WC:n och samlingsledningen till stammen", 110.0, tuple(samling), "AV7")
-    # tvättställets: genom golvet under tvättstället, längs V7 och norrut till WC:ns lodräta rör
+    # tvättställets: genom golvet under tvättstället, längs V7 och söderut till WC:ns lodräta rör
     xt, yt = B.X_TVATTSTALL, TVATTSTALL_AVLOPP[1]
     ts = [(xt, yt, B.golvniva(xt, yt))] + _fall((xt, yt, _under(50.0)),
                                                 [(xs - 85.0, yt), (xs - 85.0, ys), (xs - 55.0, ys)], 50.0)
@@ -255,7 +255,7 @@ def ledningar() -> dict[str, Ledning]:
     xb, yb = BADKAR_AVLOPP
     bk = [(xb, yb, B.golvniva(xb, yb))] + _fall((xb, yb, _under(50.0)), [(xs - 55.0, yb)], 50.0)
     ut["AV3"] = Ledning("AV3", "Badkaret", 50.0, tuple(bk), "AV1")
-    # golvbrunnens: lodrätt utlopp ur kroppen, norrut till samlingsledningen längs KL8
+    # golvbrunnens: lodrätt utlopp ur kroppen, söderut till samlingsledningen längs KL8
     gx, gy = B.GOLVBRUNN
     gb = [(gx, gy, -BRUNN[1])] + _fall((gx, gy, _under(75.0)), [(gx, Y_KL8 - 55.0)], 75.0)
     ut["AV4"] = Ledning("AV4", "Golvbrunnen i duschen", 75.0, tuple(gb), "AV1")
@@ -283,7 +283,7 @@ def ledningar() -> dict[str, Ledning]:
     huvud = [(x0, y0, gl.z0 + FALL[GRUND] * GRUND / 2)] + [gl.langs(s) for s in (s1, gl.inne, gl.inne + UTLOPP_FALL[1],
                                                                                  gl.inne + UTLOPP_L)]
     ut["AV8"] = Ledning("AV8", "Grundledningen mot förbindelsepunkten", GRUND, tuple(huvud))
-    # stammen: lodrätt i KL8 och med en böj söderut till grundledningens första sträcka
+    # stammen: lodrätt i KL8 och med en böj norrut till grundledningens första sträcka
     gren, _ = _gren(sx, sy, anslutning(sx, sy, GREN_AVSTAND, s1 - GREN_AVSTAND), False)
     ut["AV7"] = Ledning("AV7", "Stammen i KL8", GRUND, ((sx, sy, Z_STAM),) + gren, "AV8")
     # golvbrunnarna: GB1 och GB2 rakt ned i grundledningen, de andra med var sin gren
@@ -315,7 +315,7 @@ def ledningar() -> dict[str, Ledning]:
     ax, ay = _mellan_jarnen(DM_ANSLUTNING)
     bx, by = _mellan_jarnen(DM_DISKBANK)
     ut["AV20"] = Ledning("AV20", "Diskmaskinen i ön, pumpat till diskhons vattenlås", DM_ROR,
-                         ((ax, ay, 0.0), (ax, ay, z), (ax, DM_SODER, z), (bx, DM_SODER, z), (bx, by, z),
+                         ((ax, ay, 0.0), (ax, ay, z), (ax, Y_DM, z), (bx, Y_DM, z), (bx, by, z),
                           (bx, by, DM_STOS)), "AV5",
                          pumpad=True)
     # luftningen: rakt upp från stammens topp i L11 och från ångbromsen en dimension större ut genom taket

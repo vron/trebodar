@@ -339,7 +339,7 @@ Med väggarna och rören som fjädrar på en bottenplatta som sätter sig blir K
 
 == Glidning, tjäle och fukt
 
-- *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN söderut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Räknas också packningstrycket blir det #D.glid.Fdk kN, #D.glid.utnk. Kraften förs genom mellanbjälklaget och bottenplattan som skivor. TG 2216 kräver att jordtrycket tas med i husets stabilitet när väggarna hålls av bjälklaget.
+- *Glidning:* fasaden med öppningarna har bara #D.fasad.h m fyllning, så jordtrycket på huset är ojämnt. Karakteristiskt blir det netto #D.glid.Fy kN norrut och #D.glid.Fx kN åt höger i @fig-kallare[figur]. Dimensionerande är det #D.glid.Fd kN mot friktionen $mu G$ = #D.glid.my × #D.glid.G = #D.glid.Rd kN i det svagaste skiktet (plastfolien mellan cellplastskikten), alltså #D.glid.utn. Räknas också packningstrycket blir det #D.glid.Fdk kN, #D.glid.utnk. Kraften förs genom mellanbjälklaget och bottenplattan som skivor. TG 2216 kräver att jordtrycket tas med i husets stabilitet när väggarna hålls av bjälklaget.
 - *Tjäle:* grundläggning på dränerad makadam på berg och uppvärmd källare. Ingen markisolering behövs mot tjäle, inte heller vid fasaden med öppningarna.
 - *Fukt:* dränering och fuktskydd enligt @utf. Den åldringsbeständiga plastfolien i hela ytan under plattan ligger kvar som i Plattor.pdf och minskar också risken för radon.
 

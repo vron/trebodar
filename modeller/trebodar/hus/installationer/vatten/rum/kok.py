@@ -6,7 +6,7 @@ alla kopplingar och avstängningar i källaren.
 - Diskbänken: hylsorna står i diskbänksskåpet bakom de korta lådorna (NL 350), intill källarväggen V14:s gips, på
   samma sida om diskhons avlopp som underfördelaren och i samma maska i armeringsnätet: över V14 ligger nätet c/c 150
   och stödjärnen c/c 200 tätt, så hylsorna är Ø50 (två Ø75 ryms inte mellan järnen där). Kopparrören går rakt upp
-  till blandarens slangar (kallt till höger, söder om varmt, sett mot blandaren).
+  till blandarens slangar (kallt till höger, norr om varmt, sett mot blandaren).
 - Diskmaskinen: hylsan under maskinens bakre del, kopparrörets ände med maskinens anslutning under den, nås när
   maskinen dras ut (hus/inredning/koksbank.py).
 """

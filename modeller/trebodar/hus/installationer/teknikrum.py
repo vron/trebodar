@@ -7,13 +7,13 @@ YTA är den del av källaren som pekats ut för utrustningen.
 - Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19;
   anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till golvvärmen (golvvarme/, fördelarna på
   V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
-- Tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
-  går ut genom skåpets öppna ovansida, söder om ventilationens kanal FF3 under taket längs V3. Kort
+- Tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
+  går ut genom skåpets öppna ovansida, norr om ventilationens kanal FF3 under taket längs V3. Kort
   varmvattenledning från beredaren.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
   väg till huset är inte bestämd.
 - Elens gruppcentral på V3 väster om vattenmätaren (el/grupper.py), rören ur dess ovansida upp i mellanbjälklaget.
-- Drivdonsskåpet för källarens ljuslinjer (TK-LC, el/rum/kallare.py) på KL8:s norra sida: ett plåtskåp (ej valt) med
+- Drivdonsskåpet för källarens ljuslinjer (TK-LC, el/rum/kallare.py) på KL8:s södra sida: ett plåtskåp (ej valt) med
   ett 24 V-drivdon per tändgrupp, åtkomligt framifrån; rören (den dimrade fasen från dimrarna och 24 V till
   ljuslinjerna) ur dess ovansida i en rad upp i mellanbjälklaget.
 
@@ -34,7 +34,7 @@ from .el.katalog import FDIM_24V_60W
 from .montering import PLAN, Montering, Vek, golv, kallarvagg
 
 _V19, _V3 = kallarvagg("V19", 0.0, 0.0, -1).punkt[0], kallarvagg("V3", 0.0, 0.0, -1).punkt[1]
-YTA = (1500.0, _V19, 6900.0, _V3)               # (x0, x1, y0, y1): till V19:s och V3:s gips i öster och norr
+YTA = (1500.0, _V19, 6900.0, _V3)               # (x0, x1, y0, y1): till V19:s och V3:s gips i öster och söder
 Z_GOLV = PLAN[0]
 PLAT = 1.5                                      # fördelarskåpets plåt
 
@@ -62,7 +62,7 @@ VARMEPUMP = Utrustning(
      "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)},
     produkt="VARMEPUMP")
 
-# tappvattnets fördelarskåp (rör-i-rör) på V19 norr om värmepumpen, söder om ventilationens kanal FF3 längs V3
+# tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, norr om ventilationens kanal FF3 längs V3
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
                           kallarvagg("V19", 8510.0, 1250.0, -1), (1000.0, 120.0, 600.0), {})
 
@@ -87,8 +87,8 @@ _GC = kallarvagg("V3", X_GC, Z_GC_TOPP - GC_MATT[2] / 2 - PLAN[0], -1)
 GRUPPCENTRAL = Utrustning("TK-GC", "Gruppcentral, fyra rader (72 moduler), utanpåliggande (ej vald)", _GC,
                           GC_MATT, {"topp": (X_GC, _GC.punkt[1] - GC_MATT[1] / 2, Z_GC_TOPP)}, produkt="GRUPPCENTRAL")
 
-# drivdonsskåpet för källarens ljuslinjer (el/rum/kallare.py, #51) på KL8:s norra sida mitt emot centralen, väster om
-# avloppet AV7 i KL8 och söder om ventilationens kanal FF3-K2 och dess don: drivdonen 24 V (fasdimbara, ett per
+# drivdonsskåpet för källarens ljuslinjer (el/rum/kallare.py, #51) på KL8:s södra sida mitt emot centralen, väster om
+# avloppet AV7 i KL8 och norr om ventilationens kanal FF3-K2 och dess don: drivdonen 24 V (fasdimbara, ett per
 # tändgrupp och kanal), de dimrade faserna från dimrarna in och 24 V ut till ljuslinjerna, rören rakt upp ur skåpets
 # ovansida in i bjälklaget; åtkomligt framifrån
 _KL8 = KL_VAGGAR["KL8"]

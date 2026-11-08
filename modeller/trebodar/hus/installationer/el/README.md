@@ -61,8 +61,8 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
 - **Rören i mellanbjälklaget**: de klena (Ø16) i elrörens övre nivå, över tappvattnet och golvvärmen, hällens (Ø20) i
   den undre, fritt från tappvattnet (`../montering.BJALKLAG`). De går upp ur centralens ovansida i två rader mellan
   underkantsnätets järn (den bakre i V3:s cellplast) och i stråk (`../strak`, en fil per rör) genom glipan mellan
-  källarväggarnas järn: söderut till badrummet och sovrummet, österut till allrummet, köket och högra huskroppen, och
-  norrut över V3 till hallen, ön och hällen. Rören håller sig utanför ytterväggarnas vinkeljärn (R-06 pos 14), som
+  källarväggarnas järn: norrut till badrummet och sovrummet, österut till allrummet, köket och högra huskroppen, och
+  söderut över V3 till hallen, ön och hällen. Rören håller sig utanför ytterväggarnas vinkeljärn (R-06 pos 14), som
   går in i bjälklaget vinkelrätt mot väggarna, och korsar dem bara vinkelrätt; de går upp i väggarnas regelfack eller
   ytterväggarnas installationsskikt mellan överkantsnätets järn ([`dragning.py`](dragning.py)).
 - **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
@@ -74,10 +74,10 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   brytaren korsar stråket E, tappvattnet till UF1 och avloppet AV20 i den övre nivån vid x 13 090 (under köksbänken).
   De små rummens grupp (G18) kommer i stråket S och går ned i KL1, och fortsätter till dimrarna i de trevliga rummen.
 - **Källarens trevliga rum** ([`rum/kallare.py`](rum/kallare.py), #51): trapphallen, tvättstugan, de två små rummen
-  norr om V4–V6 och rummet söder om trapphallen har ljuslinjer i ask utanpå betongtaket (egen tillverkning, se
+  söder om V4–V6 och rummet norr om trapphallen har ljuslinjer i ask utanpå betongtaket (egen tillverkning, se
   Armaturerna), parallella med väggarna och efter hur rummen används: längs trapphallen och en tvärs ned mot trappans
-  fot, längs tvättstugans hall och en över bänken vid V21, en mitt i var och en av de två delarna norr om V4–V6 och
-  två parallella i rummet söder om trapphallen. Ingen dosa i taket: 24 V går i egna ingjutna rör (skilda från 230 V)
+  fot, längs tvättstugans hall och en över bänken vid V21, en mitt i var och en av de två delarna söder om V4–V6 och
+  två parallella i rummet norr om trapphallen. Ingen dosa i taket: 24 V går i egna ingjutna rör (skilda från 230 V)
   som slutar i taket under profilens ände, pluggade och tätade vid gjutningen och täckta av armaturen, och ledaren
   går genom profilen till nästa linje. Drivdonen (24 V CV, fasdimbara med bakkant, ett per tändgrupp) sitter samlade
   och åtkomliga i drivdonsskåpet TK-LC på KL8 i teknikrummet (`../teknikrum.DRIVDONSSKAP`); vanliga vriddimrar vid

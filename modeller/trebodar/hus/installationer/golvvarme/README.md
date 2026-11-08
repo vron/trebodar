@@ -36,10 +36,11 @@ liksom nivåerna i betongen (`I_BETONGEN` i [`../montering.py`](../montering.py)
 
 - **Zon** (`Zon`): en uppvärmd yta med en slinga, med id per våning (`AR`, `KM1` …): en rektangel eller polygon som
   skärs med golvet, rördelningen `cc`, radernas riktning (`x` eller `y`), hörnet där slingan börjar (`start`) och
-  stråket som tilloppen kommer i. Kretsen heter `GV<våning>-<zon>` (våning 1 plan 1, 0 källaren).
+  stråket som tilloppen kommer i. Kretsen heter `GV<våning>-<zon>` (våning 1 plan 1, 0 källaren). Zonernas och
+  stråkens id (`HN`, `KS`, `ÖN` …) är koder, inte väderstreck; texterna följer planens (norr = lågt y).
 - **Slinga** (`slinga`): dubbelslinga i meander, framledningen och returen bredvid varandra cc isär och raderna 2·cc
   isär, från raden närmast `start`; framledningen går ut till vändpunkten och returen tillbaka.
-- **Fördelare** (`Fordelare`): framledningens och returens stammar (FD1 plan 1, FD0 källaren) på V5:s södra sida,
+- **Fördelare** (`Fordelare`): framledningens och returens stammar (FD1 plan 1, FD0 källaren) på V5:s norra sida,
   med utgångarna i rörens filer, c/c 50.
 - **Stråk** (`Strak`): en gemensam väg från fördelaren med en fil per rör; filerna c/c 50.
 
@@ -51,18 +52,18 @@ liksom nivåerna i betongen (`I_BETONGEN` i [`../montering.py`](../montering.py)
   hållas fritt: järnen som går genom rörens nivå (`JARN`), tappvattnets rör upp ur bjälklaget, elens rör i det och
   avloppets rör och golvbrunn genom det (`FRITT`), och på källarens golv värmepumpen och servisen.
 - Järnen i rörens nivå: källarväggarnas lodräta järn når upp i mellanbjälklaget (R-05) och delar plan 1:s golv i delar
-  (allrummet norr om V4–V6, hallen och vardagsrummet norr om V3, resten); balkarnas överkantsjärn under V4–V6, V15 och
-  V19 ligger i bottenplattans rörnivå (R-04), så källarrummet norr om V4–V6 värms inte. Slingorna stannar i sin del;
+  (allrummet söder om V4–V6, hallen och vardagsrummet söder om V3, resten); balkarnas överkantsjärn under V4–V6, V15 och
+  V19 ligger i bottenplattans rörnivå (R-04), så källarrummet söder om V4–V6 värms inte. Slingorna stannar i sin del;
   stråken går över väggarnas järn i dörröppningarna eller mitt i en glipa mellan två järn (`glipa`).
 - I källaren har varje rum sin slinga (det stora rummet tre), och stråken går genom innerväggarnas dörröppningar;
   trapphallen, där fördelarna sitter, värms av tilloppen.
 - Rören går upp (FD1) eller ned (FD0) i betongen mellan armeringsnätets järn: utgångarna c/c 50 mitt för nätets
   maskor (s150), stammarna där deras rader ligger mellan nätets järn.
-- Tilloppen går söderut från fördelaren och viker av i ordning: de som viker av först västerut eller österut närmast
+- Tilloppen går norrut från fördelaren och viker av i ordning: de som viker av först västerut eller österut närmast
   väggen, och i ett stråk det rör som viker av först ytterst mot sin sida. Zonernas ordning i `ZONER` är filernas
   ordning längs fördelaren. Röret lämnar sin fil vinkelrätt mot slingans början, så slingans rader går vinkelrätt mot
   stråkets sista sträcka; kontrollen visar rör som går i varandra.
-- Matarledningarna går under källarens tak från värmepumpens anslutningar genom KL10, hallen och KL3 (söder om
+- Matarledningarna går under källarens tak från värmepumpens anslutningar genom KL10, hallen och KL3 (norr om
   dörren KD2) till FD1:s västra ände; FD0 matas från FD1:s östra ände.
 
 En zon flyttas eller delas i `plan1.py` eller `kallare.py` (rektangeln skärs med golvet, så små ändringar av väggarna

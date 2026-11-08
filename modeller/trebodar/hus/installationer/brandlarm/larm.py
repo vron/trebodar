@@ -207,10 +207,10 @@ def _rensa(vag: Sequence[Vek]) -> tuple[Vek, ...]:
 
 
 # kablarna under källarens tak runt ljuslinjerna (el/rum/kallare.py): K02 från trapphallens varnare västerut till
-# X_K02 och därifrån norrut, väster om trapphallens linje; K08 från DM norrut till Y_K08 och därifrån österut, norr
-# om linjerna i rummet söder om trapphallen
+# X_K02 och därifrån söderut, väster om trapphallens linje; K08 från DM söderut till Y_K08 och därifrån österut, söder
+# om linjerna i rummet norr om trapphallen
 X_K02 = 4700.0
-Y_K08 = 4400.0                  # mellan pelarna P16 och P14 i KL5, söder om P15 i det stora rummet
+Y_K08 = 4400.0                  # mellan pelarna P16 och P14 i KL5, norr om P15 i det stora rummet
 
 
 @cache
