@@ -67,6 +67,59 @@ def vag(ut: Vek, z: float, strak: Strak, genom: tuple[tuple[float, float], ...],
     return (*punkter, *slut)
 
 
+def rundad(punkter: Sequence[Vek], radie: float, minst: float = 0.0, hinder: BaseGeometry | None = None,
+           hoppa: Sequence[tuple[float, float]] = (), nara: float = 150.0, steg: float = math.radians(15.0)
+           ) -> tuple[tuple[Vek, ...], list[tuple[float, float]]]:
+    """Polylinjen med hörnen i plan (där båda sträckorna ligger i samma nivå) rundade med radien (#87): en båge med
+    punkter var steg radianer, tangent mot båda sträckorna; där sträckorna är för korta för radien den största som
+    ryms (högst halva den kortare sträckan), men aldrig under minst. Hörnen där bågen skulle gå in i hindren (i plan)
+    och hörnen närmare än nara från punkterna i hoppa lämnas räta; de förra returneras med vägen (så att ett rör
+    bredvid kan lämna samma hörn rätt). Parallella filer med samma radie korsar inte varandra i hörnen."""
+    if len(punkter) < 3:
+        return tuple(punkter), []
+    pts: list[Vek] = [(float(q[0]), float(q[1]), float(q[2])) for q in punkter]
+    ut: list[Vek] = [pts[0]]
+    hoppade: list[tuple[float, float]] = []
+    kvar = [math.dist(a, b) for a, b in zip(pts, pts[1:])]         # det som är kvar av varje sträcka
+    for i in range(1, len(pts) - 1):
+        a, b, c = pts[i - 1], pts[i], pts[i + 1]
+        if abs(a[2] - b[2]) > 0.5 or abs(b[2] - c[2]) > 0.5:
+            ut.append(b)
+            continue
+        u = (b[0] - a[0], b[1] - a[1])
+        w = (c[0] - b[0], c[1] - b[1])
+        lu, lw = math.hypot(*u), math.hypot(*w)
+        if lu < 1e-6 or lw < 1e-6:
+            ut.append(b)
+            continue
+        u, w = (u[0] / lu, u[1] / lu), (w[0] / lw, w[1] / lw)
+        vinkel = math.atan2(u[0] * w[1] - u[1] * w[0], u[0] * w[0] + u[1] * w[1])
+        if abs(vinkel) < math.radians(1.0):
+            ut.append(b)
+            continue
+        tg = math.tan(abs(vinkel) / 2)
+        t_max = min(radie * tg, kvar[i - 1] * (1.0 if i == 1 else 0.5), kvar[i] * (1.0 if i == len(pts) - 2 else 0.5))
+        r = t_max / tg
+        if r < minst or any(math.dist(b[:2], q) < nara for q in hoppa):
+            ut.append(b)
+            continue
+        p0 = (b[0] - u[0] * t_max, b[1] - u[1] * t_max)
+        n = (-u[1], u[0]) if vinkel > 0 else (u[1], -u[0])              # mot bågens mitt
+        m = (p0[0] + n[0] * r, p0[1] + n[1] * r)
+        a0 = math.atan2(p0[1] - m[1], p0[0] - m[0])
+        k = max(2, int(math.ceil(abs(vinkel) / steg)))
+        bage = [(m[0] + r * math.cos(a0 + vinkel * j / k), m[1] + r * math.sin(a0 + vinkel * j / k), b[2])
+                for j in range(k + 1)]
+        if hinder is not None and LineString([q[:2] for q in bage]).intersects(hinder):
+            hoppade.append((b[0], b[1]))
+            ut.append(b)
+            continue
+        kvar[i] -= t_max
+        ut.extend(bage)
+    ut.append(pts[-1])
+    return tuple(ut), hoppade
+
+
 def filer(rader: list[tuple[str, str, int | None, dict[str, tuple[float, float]]]],
           strak: Callable[[dict[str, float]], dict[str, Strak]], borjan: tuple[float, float],
           riktning: tuple[float, float], fil: float) -> tuple[dict[tuple[str, str], int], dict[str, float]]:

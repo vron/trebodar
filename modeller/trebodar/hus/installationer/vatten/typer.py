@@ -49,6 +49,11 @@ class Rortyp:
         return self.d - 2 * self.t
 
     @property
+    def boj_min(self) -> float:
+        """Minsta böjradie i plan: 8 × skyddsrörets (eller rörets) ytterdiameter, så att röret går att byta (#87)."""
+        return 8.0 * (self.skydd or self.d)
+
+    @property
     def area(self) -> float:
         """Invändig area [mm²]."""
         return math.pi * self.d_inre ** 2 / 4

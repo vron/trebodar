@@ -15,6 +15,11 @@ from functools import cache
 from collections.abc import Callable
 from types import ModuleType
 
+from shapely.geometry import LineString, Polygon
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import unary_union
+
+from ..avlopp.ledningar import ledningar
 from ..genomforingar import Genomforing, Stycke, genomforingar
 from ..montering import KALLARTAK, PLAN, Vek
 from ..teknikrum import UTRUSTNING
@@ -152,8 +157,12 @@ class Vatten:
                                f"via)")
         for r in self.ror.values():
             for a, b in zip(self.vag(r), self.vag(r)[1:]):
-                if sum(abs(a[i] - b[i]) > 0.5 for i in range(3)) > 1:
+                if abs(a[2] - b[2]) > 0.5 and math.hypot(a[0] - b[0], a[1] - b[1]) > 0.5:     # i plan får de svepa
                     anm.append(f"{r.id}: snett stycke från ({_xyz(a)}) till ({_xyz(b)})")
+        for r in self.ror.values():                         # rör-i-rör: skarpa böjar högst BOJAR_MAX (#87)
+            if r.typ.skydd > 0 and (skarpa := bojar(self.vag(r))) > BOJAR_MAX + 1e-6:
+                anm.append(f"{r.id}: de skarpa böjarna är {skarpa:.0f}° sammanlagt (mer än {BOJAR_MAX:.0f}°: svårt att byta "
+                           f"röret), svepen {bojar(self.vag(r), svep=True):.0f}°")
         fel += self._i_varandra()
         fel += self.genomforingar()[1]
         return fel, anm
@@ -216,6 +225,42 @@ class Vatten:
                 "genomforingar": [{"del": x.del_, "atgard": x.atgard, "punkt": list(x.punkt), "matt": x.matt,
                                    "element": x.element} for x in self.genomforingar()[0]],
                 "hylsor": [{"ror": r, "tappstalle": t, "punkt": list(p), "d": d} for r, t, p, d in self.hylsor()]}
+
+
+SPEL_AVLOPP = 10.0                      # rörens svep i bjälklaget fria från avloppsledningarna
+
+
+@cache
+def avloppen_i_nivan(r: float) -> BaseGeometry:
+    """Avloppsledningarna som går genom rörens nivå i bjälklaget, i plan, förstorade med deras och rörets radie och
+    SPEL_AVLOPP (svepen i hörnen går runt dem)."""
+    g = []
+    for led in ledningar().values():
+        for a, b in zip(led.vag, led.vag[1:]):
+            if min(a[2], b[2]) - led.d / 2 < Z_ROR + r and max(a[2], b[2]) + led.d / 2 > Z_ROR - r:
+                g.append(LineString([a[:2], b[:2]]).buffer(led.d / 2 + r + SPEL_AVLOPP))
+    return unary_union(g) if g else Polygon()
+
+
+BOJAR_MAX = 270.0
+SVEP_STEG = 20.0                        # riktningsändringar upp till så mycket i plan är svepens bågar [°]
+
+
+def bojar(vag: list[Vek], svep: bool = False) -> float:
+    """Summan av rörets skarpa böjar [°] (eller med svep bara svepen: de små riktningsändringarna i plan längs
+    bågarna i bjälklaget)."""
+    s = 0.0
+    for a, b, c in zip(vag, vag[1:], vag[2:]):
+        u = [y - x for x, y in zip(a, b)]
+        w = [y - x for x, y in zip(b, c)]
+        nu, nw = math.hypot(*u), math.hypot(*w)
+        if nu < 1e-6 or nw < 1e-6:
+            continue
+        v = math.degrees(math.acos(max(-1.0, min(1.0, sum(x * y for x, y in zip(u, w)) / (nu * nw)))))
+        i_plan = abs(u[2]) < 0.5 and abs(w[2]) < 0.5
+        if (i_plan and v <= SVEP_STEG) == svep:
+            s += v
+    return s
 
 
 def langd(vag: list[Vek]) -> float:
@@ -295,7 +340,7 @@ def vatten() -> Vatten:
     modul.update({r: "Teknikrum" for r in ror_})
     for t_id, (_, utg) in list(utgangar.items()):
         s_id, ben = teknikrum.ORDNING[t_id]
-        for r in ror(huvud[t_id], utg, strak[s_id], fd, ben):
+        for r in ror(huvud[t_id], utg, strak[s_id], fd, ben, avloppen_i_nivan(huvud[t_id].ror.yttre / 2)):
             if t_id in uf:                                              # matningen till underfördelarens utgång 0
                 r = replace(r, till=f"{t_id}-{r.media}:0", typ=ROR_MATNING.get((t_id, r.media), r.typ))
             ror_[r.id] = r

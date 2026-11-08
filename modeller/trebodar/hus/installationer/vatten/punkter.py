@@ -28,6 +28,7 @@ import math
 from dataclasses import dataclass
 
 from shapely.geometry import box
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from trebodar import skelett as S
@@ -35,7 +36,7 @@ from trebodar.hus.grund.kallarvaggar import CELL
 
 from ..genomforingar import vaggarna
 from ..montering import I_BETONGEN, KALLARTAK, PLAN, Montering, Vek, flytt, i_vaggen
-from ..strak import Strak, mellan_jarnen, vag
+from ..strak import Strak, mellan_jarnen, rundad, vag
 from .typer import Dosatyp, Fordelartyp, Rortyp, Tappstalletyp
 
 R_ROR = 14.0                            # största skyddsrörets radie (rör-i-rör 18/28)
@@ -43,6 +44,7 @@ FIL = 50.0                              # rörens avstånd i stråken (c/c), som
 Z_ROR = I_BETONGEN["vatten"]            # i mellanbjälklaget, närmast underkantsnätet
 Z_TAKET = {"VV": KALLARTAK - 40.0, "KV": KALLARTAK - 80.0}     # kopparrören under källarens tak, varmvattnet överst
 HYLSA_TVARS = 10.0                      # hylsan flyttas högst så långt tvärs `kallt`
+BOJ_RADIE = 300.0                       # rörens böjar i plan i bjälklaget, som elrörens svep (#87)
 
 Via = tuple[float | None, float | None]
 
@@ -237,14 +239,16 @@ def ror_hylsa(t: Tappstalle, utgang: dict[str, int], fordelare: dict[str, Fordel
 
 
 def ror(t: Tappstalle, utgang: dict[str, int], strak: Strak, fordelare: dict[str, Fordelare],
-        ben: int | None = None) -> list[Ror]:
+        ben: int | None = None, hinder: BaseGeometry | None = None) -> list[Ror]:
     """Rören till tappstället från fördelarnas utgångar (per media), längs filerna i stråket: varmt och kallt, det
     som tappstället har."""
-    ut = []
+    vagar = {}
     for media in ("VV", "KV"):
         if media in utgang:
-            fd = fordelare[media]
             genom, slut = till_tappstallet(t, media)
-            ut.append(Ror(f"{t.id}-{media}", t.ror, media, f"{fd.id}:{utgang[media]}", t.id,
-                          vag(fd.utgang(utgang[media]), Z_ROR, strak, genom, slut, ben)))
-    return ut
+            vagar[media] = vag(fordelare[media].utgang(utgang[media]), Z_ROR, strak, genom, slut, ben)
+    # svepen med samma radie för kallt och varmt (så att rören inte korsar varandra); där ett svep skulle gå in i ett
+    # avlopp lämnas hörnet rätt i båda rören
+    hoppa = [q for v in vagar.values() for q in rundad(v, BOJ_RADIE, t.ror.boj_min, hinder, nara=FIL * 3)[1]]
+    return [Ror(f"{t.id}-{m}", t.ror, m, f"{fordelare[m].id}:{utgang[m]}", t.id,
+                rundad(v, BOJ_RADIE, t.ror.boj_min, None, hoppa, nara=FIL * 3)[0]) for m, v in vagar.items()]

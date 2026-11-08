@@ -74,16 +74,28 @@ def genom_nivan(z0: float, z1: float) -> tuple[Stigare, ...]:
     return tuple(ut)
 
 
+FORENKLA = 12.0                              # tappvattnets svep förenklade så mycket i kartorna [mm]
+
+
 @cache
 def i_nivan(z0: float, z1: float) -> tuple[tuple[LineString, float], ...]:
     """Tappvattnets och avloppets vågräta rör i höjderna z0–z1 (den undre nivån): linjen i plan och radien."""
-    ut: list[tuple[LineString, float]] = []
+    ut: list[tuple[LineString, float]] = []         # svepen förenklade (färre hörn i kartorna), radien lika mycket större
     v = vatten()
-    segment = [(a, b, r.typ.yttre / 2) for r in v.ror.values() for a, b in zip(v.vag(r), v.vag(r)[1:])]
-    segment += [(a, b, led.d / 2) for led in avloppets().values() for a, b in zip(led.vag, led.vag[1:])]
-    for a, b, r in segment:
-        if math.dist(a[:2], b[:2]) > 1.0 and min(a[2], b[2]) - r < z1 and max(a[2], b[2]) + r > z0:
-            ut.append((LineString([a[:2], b[:2]]), r))
+    vagar: list[tuple[Sequence[Vek], float]] = [(v.vag(r), r.typ.yttre / 2) for r in v.ror.values()]
+    vagar += [(led.vag, led.d / 2) for led in avloppets().values()]
+    for vag_, r in vagar:                       # i följd i nivån: en linje (tappvattnets svep har många punkter)
+        linje: list[tuple[float, float]] = []
+        for a, b in zip(vag_, vag_[1:]):
+            if math.dist(a[:2], b[:2]) > 1.0 and min(a[2], b[2]) - r < z1 and max(a[2], b[2]) + r > z0:
+                if linje and math.dist(linje[-1], a[:2]) < 1e-6:
+                    linje.append(b[:2])
+                else:
+                    if len(linje) > 1:
+                        ut.append((LineString(linje).simplify(FORENKLA), r + FORENKLA))
+                    linje = [a[:2], b[:2]]
+        if len(linje) > 1:
+            ut.append((LineString(linje).simplify(FORENKLA), r + FORENKLA))
     return tuple(ut)
 
 
