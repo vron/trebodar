@@ -40,20 +40,19 @@ from trebodar.byggdelar import virke
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR
 from trebodar.hus.badrum import KAKELZON
-from trebodar.hus.rum import BADRUM, KAMINKAPA
+from trebodar.hus.rum import BADRUM
 
-from trebodar.material import BRADA, KALCIUMSILIKAT
+from trebodar.material import BRADA
 
 from .lattvaggar import FICKA_SKENA, H_VIRKE, LATTA, T, VAGGAR, Lattvagg, fickor, vaggdef  # noqa: F401
 from .skikt import (FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_MALAD,
                     SKIVOR_VATRUM_T, innertak_vid,
                     innertakets_fall)
 
-SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kaminens kåpa (Rais: 50 mm)
 CC = 600.0
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
 ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L19", "L12", "L7",
-           "L6", "L13", "L14", "L20", "L21")
+           "L6", "L20", "L21")
 # fria ändar i badrummet: skikten går förbi änden så långt som skikten innanför dem, och ändens skikt (andbrador.py) går
 # över dem, så att tätskiktet och kaklet går runt änden
 FRIA_ANDAR_VATRUM = (("L19", 0),)
@@ -248,8 +247,7 @@ def _skivor(v: S.Vaggdef, sida: int) -> list[tuple[float, float, tuple[Any, ...]
     prov = _band(v, 0.0, v.langd, w + sida * 30.0, w + sida * 40.0)
     Pi = v.placering().invers()
     sarskilda = []
-    for rum, skivor in ((BADRUM.intersection(KAKELZON), SKIVOR_VATRUM), (BADRUM.difference(KAKELZON), SKIVOR_VATRUM_MALAD),
-                        (KAMINKAPA, SKIVOR_KAMIN)):        # kakel i duschen och längs 1A, annars målat (#105)
+    for rum, skivor in ((BADRUM.intersection(KAKELZON), SKIVOR_VATRUM), (BADRUM.difference(KAKELZON), SKIVOR_VATRUM_MALAD)):    # kakel i duschen och längs 1A, annars målat (#105)
         for g in P.polygoner(rum.intersection(prov)):
             x0, y0, x1, y1 = g.bounds
             us = [Pi.punkt((x, y, 0.0))[0] for x in (x0, x1) for y in (y0, y1)]

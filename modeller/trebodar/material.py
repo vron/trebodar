@@ -104,6 +104,10 @@ KALCIUMSILIKAT = Material("Kalciumsilikat", "Kalciumsilikatskiva (brandskydd kri
                           enhet="m2", cad="#e3c7b0")
 KALCIUMSILIKAT_MALAD = Material("Kalciumsilikat målad", "Kalciumsilikatskiva, målad i väggarnas vita färg (kaminens front)",
                                 450, "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
+LATTBETONG = Material("Lättbetong", "Lättbetongblock 100, murade (kaminens skorsten, #102)", 500, "#d9d6cf", 0.9,
+                      enhet="m3", cad="#d9d6cf")
+KALKPUTS = Material("Kalkputs", "Kalkputs 10 på nät, kalkad (kaminens skorsten, #102)", 1600, "#efede6", 0.92,
+                    textur="gips", enhet="m2", cad="#f3f1ea")
 KAMIN = Material("Kamin", "Kamininsats, svart stål", 7850, "#232426", 0.6, 0.8, cad="#3a3d42")
 ROSTFRITT = Material("Rostfritt", "Rostfritt stål (skorsten)", 7900, "#c4c8cc", 0.3, 1.0, cad="#b4bcc6")
 ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,

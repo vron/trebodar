@@ -1,5 +1,5 @@
-"""Garderoben i sovrummet i mittre huskroppen (ärende #16): inbyggd, från stolpen LD4_1 längs 2C och runt kaminens
-kåpa fram till trapphålets vägg L7, med fronten i linje med L6 och ett snett hörn 600 × 600 mot fickdörren ID6.
+"""Garderoben i sovrummet i mittre huskroppen (ärende #16): inbyggd, från stolpen LD4_1 längs 2C fram till
+trapphålets vägg L7, med fronten i linje med L6 och ett snett hörn 600 × 600 mot fickdörren ID6.
 
 Väggarna (lägena i invandigt/lattvaggar.py: GC vid stolpen, GB det sneda hörnet och GA fronten) är lätta väggar 45×70
 C24 med syll, reglar och hammarband under innertaket. Mot rummet har de samma skikt som de andra innerväggarna, OSB 12
@@ -7,7 +7,7 @@ och gips 13, upp till innertaket (snett som taket); inuti gips 13 upp till garde
 skikten slutar mot stolpen, L7:s skikt och L6:s skikt, som går runt L7:s ände. Fronten har två öppningar (deras
 smyg vitmålad furu 15) med par av dörrar, blad 22 i trä i liv med väggen. Garderobens tak, gips 13 på överstyckenas
 höjd, stänger den uppåt; ovanför är ett tomrum upp till innertaket. Insidan bakom är de befintliga väggarnas skikt
-(2C, kåpans väggar L14 och L13, L7).
+(2C och L7); kaminen står på allrummets sida av 2C (#102).
 """
 from __future__ import annotations
 
@@ -29,8 +29,7 @@ SPEL = 3.0                                                            # mellan b
 H_OPPNING = 2100.0                                                    # öppningarnas höjd
 TAK_Z = H_OPPNING + H_VIRKE                                           # garderobens tak på överstyckena
 POST_NORR = LD4_1[1] - LD4_1_B / 2                                    # stolpens norra sida (mot sovrummet)
-# frontens öppningar i GA:s u: väster om kåpan (djup) och framför kåpan (grund), med två reglar emellan i linje
-# med kåpans vägg L14
+# frontens öppningar i GA:s u, med två reglar emellan
 OPPNINGAR = ((90.0, 1038.0), (1128.0, 2158.0))
 REGLAR = {"GC": (236.0,), "GB": (60.0, 400.0, 744.0), "GA": (0.0, 45.0, 1038.0, 1083.0, 2158.0, 2203.0)}
 
@@ -130,12 +129,10 @@ def _skikt() -> Montage:
     # garderobens tak: inuti, mellan insidans gips och de befintliga väggarnas skikt
     inre = _offset(T + GIPS_T)
     x_l7 = 7278.0 - skiktets_tjocklek("L7", 1, 100.0)
-    y_l13 = vaggdef("L13").origo[1] - skiktets_tjocklek("L13", -1, 100.0)
-    x_l14 = vaggdef("L14").origo[0] - T - skiktets_tjocklek("L14", 1, 100.0)
     y_2c = vaggdef("2C").origo[1] - skiktets_tjocklek("2C", -1, 2000.0)
     x_post = LD4_1[0] + LD4_1_B / 2
-    tak = Polygon([(inre[0][0], POST_NORR), inre[1], inre[2], (x_l7, inre[3][1]), (x_l7, y_l13), (x_l14, y_l13),
-                   (x_l14, y_2c), (x_post, y_2c), (x_post, POST_NORR)])
+    tak = Polygon([(inre[0][0], POST_NORR), inre[1], inre[2], (x_l7, inre[3][1]), (x_l7, y_2c), (x_post, y_2c),
+                   (x_post, POST_NORR)])
     m.lagg(Del(f"Gips {fmt(GIPS_T)} garderobens tak", prisma(list(tak.exterior.coords)[:-1], GIPS_T, z0=TAK_Z),
                GIPS), Placering(), "G-TAK")
     return m

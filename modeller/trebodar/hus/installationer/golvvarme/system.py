@@ -20,7 +20,7 @@ from trebodar.hus.armering.armering import jarnen_i_nivan
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as INNERVAGGAR
-from trebodar.hus.rum import KAMINKAPA
+from trebodar.hus.rum import KAMINMUR
 
 from ..avlopp.ledningar import golvbrunnar
 from ..avlopp.ledningar import ledningar as avloppets
@@ -100,7 +100,7 @@ def golvet(plan: int) -> Polygon:
     bottenplattan utan källarväggarna, källarens innerväggar och trappan."""
     if plan == 1:
         vaggar = unary_union([hel for hel, _, _, _ in vaggarna().values()])
-        return Polygon(S.KONTUR).difference(Polygon(S.TRAPPHAL)).difference(KAMINKAPA).difference(vaggar)
+        return Polygon(S.KONTUR).difference(Polygon(S.TRAPPHAL)).difference(KAMINMUR).difference(vaggar)
     vaggar = unary_union([hel for hel, _ in kallarvaggarna().values()] +
                          [v.stomme().buffer(GIPS_T, join_style="mitre") for v in INNERVAGGAR.values()])
     return K.ytterkontur().difference(vaggar).difference(Polygon(S.TRAPPHAL))

@@ -90,9 +90,7 @@ LATTA = (
     Lattvagg("L12", (3345.0, 5925.0), _PX, 4405.0 - 3345.0, "över fickdörren mellan allrummet och sovrummet",
              syll=False),
     Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),
-    Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot kaminens kåpa"),
-    Lattvagg("L13", (6068.0, 5452.0), _PX, 7278.0 - 6068.0, "kaminens kåpa, norra sidan"),
-    Lattvagg("L14", (6138.0, 5522.0), _PY, 5900.0 - 5522.0, "kaminens kåpa, västra sidan"),
+    Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot garderoben"),
     # hallens garderob (#96): väggbiten vid 1B:s ände, 500 från 1B:s yta mot hallen till frontens yta, och fronten
     # från 1C till väggbiten med öppningen för dörrarna (oppningar.INNEROPPNINGAR, hus/inredning/hallgarderob.py)
     Lattvagg("L20", (2130.0, 9255.0), _PX, 500.0, "hallens garderob, väggbiten vid 1B:s ände"),

@@ -371,11 +371,11 @@ anm        = "Samma serie som köksbänkarnas skivor. Golvet med fall mot golvbr
 kod      = "KAMIN"
 grupp    = "Kamin"
 namn     = "Kamininsats med förbränningsluft utifrån"
-vald     = "Rais 600, frontmodell med glas, och Rais AirSystem"
+vald     = "Rais 600:3 (glas på tre sidor) och Rais AirSystem"
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "invandigt"
-anm      = "Inbyggd i 2C med Skamotec 225 enligt anvisningen."
+anm      = "I en murad skorsten av lättbetong mot 2C, putsad och kalkad, med front av Skamotec 225 (#102)."
 
 [[produkt]]
 kod      = "SKORSTEN"
@@ -384,7 +384,7 @@ namn     = "Isolerad skorsten Ø150/Ø250 med regnhuv och takgenomföring"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "tatt"
-anm      = "800 mm över nocken (antaget)."
+anm      = "Från rökstosen, 800 mm över nocken (antaget)."
 
 # ------------------------------------------------------------------ el
 
