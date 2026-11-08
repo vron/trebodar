@@ -22,6 +22,7 @@ from modellering.placering import Placering
 
 from trebodar import skelett as S
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.stomme import forankring
 from trebodar.hus.tak.takytor import REGIONER
 
 VERSION = 1
@@ -98,4 +99,7 @@ def utdrag(rot: Montage) -> dict[str, Any]:
     return {"version": VERSION, "z_bjalklag": 0.0, "h_vagg": S.H_VAGG,
             "huskroppar": [{"nr": k.nr, "x0": k.x0, "x1": k.x1, "y0": k.y0, "y1": k.y1, "nock": k.nock}
                            for k in S.HUSKROPPAR.values()],
-            "delar": _delar(stomme, p), "takytor": _takytor(), "vaggar": _vaggar()}
+            "delar": _delar(stomme, p), "takytor": _takytor(), "vaggar": _vaggar(),
+            # förankringen (inte i K-04:s balkmodell; R-02 visar den): betongbultarna genom syllarna
+            "bultar": {"d": forankring.D, "djup": forankring.DJUP, "over": forankring.OVER,
+                       "lagen": [{"vagg": k, "x": x, "y": y} for k, x, y in forankring.bultar()]}}

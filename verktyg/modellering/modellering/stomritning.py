@@ -112,6 +112,7 @@ class Element:
     ev: np.ndarray
     oppningar: list[tuple[float, float, float, float]]
     nr: str = ""
+    bultar: list[float] | None = None          # betongbultarnas lägen längs väggen (u), väggarna
 
     def uv(self, p: np.ndarray) -> np.ndarray:
         q = np.atleast_2d(p) - self.origo
@@ -164,7 +165,9 @@ def element(utdrag: dict, alla: list[Del]) -> list[Element]:
         opp = [(a, b, c, d_) for a, b, c, d_ in v.get("oppningar", [])]
         if (u @ np.array([*v["u"], 0.0])) < 0:
             opp = [(v["langd"] - b, v["langd"] - a, c, d_) for a, b, c, d_ in opp]
-        ut.append(Element(kod, titel, slag, dl, o, u, np.array([0.0, 0.0, 1.0]), opp))
+        bult = [float((np.array([b["x"], b["y"], 0.0]) - o) @ u) for b in utdrag.get("bultar", {}).get("lagen", [])
+                if b["vagg"] == kod]
+        ut.append(Element(kod, titel, slag, dl, o, u, np.array([0.0, 0.0, 1.0]), opp, bultar=sorted(bult)))
 
     for k in KROPPAR:
         for s in ("NO", "SO", "SV", "NV"):
@@ -244,6 +247,11 @@ def _elementblad(e: Element) -> Blad:
     with v.lager("oppningar"):
         for a, b, c, d_ in e.oppningar:
             v.polygon([(a, c), (b, c), (b, d_), (a, d_)], None, "dold")
+    if e.bultar:
+        with v.lager("bultar"):
+            for b in e.bultar:
+                v.linje([(b, -60.0), (b, 70.0)], "grov")
+                v.cirkel(b, 22.0, 0.6, fyll="svart", stil=None)
     with v.lager("id"):
         for d in e.delar:
             g = ytor[d.namn]
@@ -268,9 +276,15 @@ def _elementblad(e: Element) -> Blad:
         if len(xs) > 2:
             v.mattx(xs, y_linje, [v0] * len(xs), sz=5.6)
         v.mattx([xs[0], xs[-1]], y_linje - 7.0 * skala, [v0, v0], sz=6.4)
+        rad = 14.0
         if e.oppningar:
             ox = sorted({round(u0), round(u1), *(round(q) for a, b, _, _ in e.oppningar for q in (a, b))})
-            v.mattx(ox, y_linje - 14.0 * skala, [v0] * len(ox), sz=5.6)
+            v.mattx(ox, y_linje - rad * skala, [v0] * len(ox), sz=5.6)
+            rad += 7.0
+        if e.bultar:                                    # betongbultarna genom syllen, från samma ände
+            bx = [round(u0), *(round(b) for b in e.bultar), round(u1)]
+            v.mattx(bx, y_linje - rad * skala, [v0] * len(bx), sz=5.6)
+            v.text(u0 - 3.0 * skala, y_linje - rad * skala, "bultar", a="rm", sz=5.6, i=True)
         # i höjd: de liggande delarnas underkant och öppningarnas kanter
         zs = {round(v0), round(v1)}
         for d in e.delar:
@@ -290,7 +304,7 @@ def _elementblad(e: Element) -> Blad:
             v.matty(ys, u1 + 10.0 * skala, [u1] * len(ys), sz=5.6)
     kapp = _kapplista(e)
     block: list[dict] = []
-    y_kapp = y + hojd / skala + (34.0 if e.oppningar else 27.0)
+    y_kapp = y + hojd / skala + 27.0 + 7.0 * (bool(e.oppningar) + bool(e.bultar))
     rader = max(1, int((282.0 - y_kapp - 8.0) / 3.0))
     for i in range(0, len(kapp), rader):
         block.append(dict(x=rx + (i // rader) * (KAPP_B + 4.0), y=y_kapp, w=KAPP_B, innehall=[
@@ -310,6 +324,9 @@ def _elementblad(e: Element) -> Blad:
             "totalmått; i höjd till de liggande delarnas kanter och öppningarna.",
             "Mått i mm. Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
             *(["Stålet i nock- och dalbalkarna (plåtar, distansreglar): se R-01."] if e.slag == "balk" else []),
+            *([f"Förankringen: {len(e.bultar)} betongbultar M{BULT[0]:g} genom syllen, {BULT[1]:g} mm ned i "
+               "mellanbjälklaget (#88; lägena längs syllen i måttkedjan \"bultar\", i plan på AR-03.4). Borras efter "
+               "gjutningen, fria från rören i plattan."] if e.bultar else []),
         ]),
     ]
     return blad(e.nr, ["Trästomme", e.titel], f"1:{skala:g}", "Modellen", kol, [v], block)
@@ -328,7 +345,7 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
     P = np.vstack(list(proj.values()))
     x0, y0 = P.min(axis=0)
     x1, y1 = P.max(axis=0)
-    rb, rh = 290.0, 200.0
+    rb, rh = 290.0, 185.0
     skala = max((x1 - x0) / rb, (y1 - y0) / rh)
     skala = next(s for s in (50.0, 75.0, 100.0, 125.0, 150.0) if s >= skala)
     v = Vy(0.0, 0.0, 420.0, 297.0, skala, x0 - (25.0 + (rb - (x1 - x0) / skala) / 2) * skala, y1 + 18.0 * skala)
@@ -343,9 +360,29 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
             Q = np.vstack([proj[d.namn] for d in e.delar])
             c = Q.mean(axis=0)
             v.text(c[0], c[1], f"{e.kod} · {e.nr}", a="cm", sz=6.2, b=True, bg=True)
+    # planöversikten: väggarna i plan med kod och blad (K-05:s x åt höger, y uppåt)
+    vaggarna = [e for e in elementen if e.slag == "vägg"]
+    Pp = np.vstack([d.horn()[:, :2] for e in vaggarna for d in e.delar])
+    px0, py0 = Pp.min(axis=0)
+    px1, py1 = Pp.max(axis=0)
+    ps = 250.0
+    vp = Vy(0.0, 0.0, 420.0, 297.0, ps, px0 - (232.0 + (88.0 - (px1 - px0) / ps) / 2) * ps, py1 + 214.0 * ps)
+    with vp.lager("plan"):
+        for e in vaggarna:
+            for d in e.delar:
+                if d.material in ("Stålband", "Spikplåt"):
+                    continue
+                h = MultiPoint([tuple(q) for q in d.horn()[:, :2]]).convex_hull
+                if hasattr(h, "exterior"):
+                    vp.polygon(list(h.exterior.coords)[:-1], "mark", "fin")
+        for e in vaggarna:
+            Q = np.vstack([d.horn()[:, :2] for d in e.delar])
+            c = (Q.min(axis=0) + Q.max(axis=0)) / 2
+            vp.text(c[0], c[1], f"{e.kod} · {e.nr.split('.')[1]}", a="cm", sz=4.8, b=True, bg=True)
+        vp.text(px0, py0 - 4.0 * ps, "Väggarna i plan, 1:250 (blad R-02.n)", a="lt", sz=6.0, i=True)
     forteckning = [[f"{SERIE}.1", "Översikt och förteckning"], *([e.nr, e.titel] for e in elementen)]
     halv = (len(forteckning) + 1) // 2
-    block = [dict(x=25.0 + i * 100.0, y=226.0, w=96.0, innehall=[
+    block = [dict(x=25.0 + i * 100.0, y=214.0, w=96.0, innehall=[
         dict(typ="rubrik", text="Bladen i byggordning" if i == 0 else "Bladen, forts."),
         dict(typ="tabell", kolumner=["Blad", "Innehåll"], bredd=(0.5, 2.2), just=["l", "l"], sz=5.8,
              rader=forteckning[i * halv:(i + 1) * halv])]) for i in range(2)]
@@ -360,10 +397,15 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
             "Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
         ]),
     ]
-    return blad(f"{SERIE}.1", ["Trästomme", "Översikt i 3D och förteckning"], "–", "Modellen", kol, [v], block)
+    return blad(f"{SERIE}.1", ["Trästomme", "Översikt i 3D och förteckning"], "–", "Modellen", kol, [v, vp], block)
+
+
+BULT = [12.0, 100.0]                        # betongbultarna: diameter, djup i betongen (ur utdraget)
 
 
 def ritningar(utdrag: dict, mapp: Path, pdf: Path) -> Path:
+    b = utdrag.get("bultar", {})
+    BULT[:] = [float(b.get("d", BULT[0])), float(b.get("djup", BULT[1]))]
     alla = delar(utdrag)
     elementen = element(utdrag, alla)
     bladen = [(f"{SERIE}.1", _oversikt(elementen, alla))] + [(e.nr, _elementblad(e)) for e in elementen]
