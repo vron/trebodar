@@ -126,6 +126,10 @@ VAGGLAMPA = Armaturtyp(
 APPARATDOSA = Dosatyp("APPARATDOSA", "Apparatdosa för skiva, Ø68 (ej vald)", "apparatdosa", 68.0, 45.0)
 KOPPLINGSDOSA = Dosatyp("KOPPLINGSDOSA", "Kopplingsdosa i innertakets installationsskikt (ej vald)", "kopplingsdosa",
                         80.0, 40.0, symbol="kopplingsdosa")
+# dragdosa i innertaket (#87): där ett rör mellan två väggdosor genom innertaket annars får mer än 270° böjar, i läktens
+# fack, infälld i gipsen med vitt blindlock, så att den går att nå underifrån
+DRAGDOSA_TAK = Dosatyp("DRAGDOSA-TAK", "Dragdosa i innertaket, infälld i gipsen med vitt blindlock (ej vald)",
+                       "kopplingsdosa", 80.0, 40.0, symbol="kopplingsdosa")
 INGJUTNINGSDOSA = Dosatyp("INGJUTNINGSDOSA", "Ingjutningsdosa för betongbjälklag, takdosa (ej vald)", "ingjutningsdosa",
                           90.0, 70.0, symbol="ingjutningsdosa")
 # LEDVANCE PANEL COMPACT 600 V 26W 830 UGR19 (EAN 4099854734465, Ahlsell 7029488), källarens arbetsrum (#51): 3 640 lm,

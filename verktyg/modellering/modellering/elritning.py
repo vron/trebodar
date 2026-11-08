@@ -679,6 +679,9 @@ def punktforteckning(punkter: list[list[str]], nummer: str, bjalklaget: str) -> 
     return blad(nummer, ["Elinstallation", "Rör i mellanbjälklaget, punkterna"], "–", "Modellen", kol, [], block)
 
 
+ROR_PA_BLADET = 95                  # så många rör ryms i förteckningens tabell med full textstorlek
+
+
 def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
     """Förteckningen över plan 1:s apparater och dosor och rören i väggar och innertak (tabeller)."""
     punkter = _plan1(utdrag)
@@ -698,7 +701,8 @@ def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
         dict(x=200.0, y=14.0, w=120.0, innehall=[
             dict(typ="rubrik", text="Rör i väggar och innertak, plan 1"),
             dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "Längd (m)", "Böjar"],
-                 bredd=(0.8, 0.6, 0.6, 0.6, 0.7, 0.6), just=["l", "l", "l", "l", "r", "r"], sz=6.4, rader=ror)]),
+                 bredd=(0.8, 0.6, 0.6, 0.6, 0.7, 0.6), just=["l", "l", "l", "l", "r", "r"],
+                 sz=min(6.4, 6.4 * ROR_PA_BLADET / max(len(ror), 1)), rader=ror)]),
     ]
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),

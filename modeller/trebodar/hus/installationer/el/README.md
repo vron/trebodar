@@ -77,6 +77,12 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   ([`dragning.py`](dragning.py)). Där ett av källarens rör ändå fick långt över 270° böjar går det genom en
   **dragdosa**: en ingjuten dosa i källarens tak, åtkomlig underifrån, där dess svängar delas lika (`DRAGDOSOR` i
   [`rum/kallare.py`](rum/kallare.py)): KA-D3 i KA-R6-3, KA-D4 i G24-R1 och KA-D5 i G18-R3 (rören a och b).
+- **Dragdosor i innertaket** ([`kedjor.py`](kedjor.py), #87): ett rör mellan två punkter genom innertaket som får
+  mer än 270° böjar delas i en dragdosa i innertaket (`DRAGDOSA_TAK`, infälld i gipsen med vitt blindlock, mitt i
+  läktens fack), i den brytpunkt där böjarna delas jämnast, och vid behov igen; dosorna heter efter rummet vid den
+  närmaste änden (t.ex. BA-DD1), två rör nära varandra delar dosa, och rörens delar heter a, b, c … i ordning.
+  Böjarna räknas i `punkter.bojar`: rörets ände i en dosa (högst 100 mm från dosans mitt) räknas som en kort S-böj in
+  genom dosans hål, inte som en rät böj.
 - **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
   (mellan underkantsnätets järn, fria från rören i bjälklaget och pelarnas genomstansningszoner). Rören från brytarna
   går rakt upp ur dosorna i KL-väggarnas regelfack in i bjälklaget, helst i dess undre nivå (under plan 1:s rör), och in

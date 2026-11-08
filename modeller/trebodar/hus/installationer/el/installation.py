@@ -27,8 +27,8 @@ from shapely.geometry import LineString, Point
 from ..montering import KALLARTAK, PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
 from ..plattan import bage_punkter
 from ..teknikrum import DRIVDON, DRIVDON_I_SKAPET
-from .punkter import (Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linjen, linsen,
-                      pendeln)
+from .punkter import (SVEP_MAX, Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, bojar, drivdonet,
+                      linjen, linsen, pendeln, vinkel)
 from .rum import (allrum, badrum, gang, gastrum, hall, kallare, kok, kontor, kontor_litet, sovrum, sovrum_litet,
                   teknikrum, vardagsrum)
 from .typer import Apparattyp, Armaturtyp
@@ -183,9 +183,9 @@ class Installation:
                     elif (sladd := pendeln(p)[0][2] - pendeln(p)[1][2]) < SLADD_MINST:
                         fel.append(f"{p.id}: pendeln når inte ned, sladden blir {sladd:.0f} mm")
                     continue
-                vinkel = _vinkel(p.lage.normal, p.riktning)
-                if vinkel > p.typ.vridbar + 0.5:
-                    fel.append(f"{p.id}: ljuset ska vridas {vinkel:.0f}°, armaturen tillåter {p.typ.vridbar:.0f}°")
+                vriden = vinkel(p.lage.normal, p.riktning)
+                if vriden > p.typ.vridbar + 0.5:
+                    fel.append(f"{p.id}: ljuset ska vridas {vriden:.0f}°, armaturen tillåter {p.typ.vridbar:.0f}°")
                 if p.lage.yta == "tak" and p.lage.ref != "MB":
                     plats = TAKSKIVOR + LAKT
                     x, y, _ = p.lage.punkt
@@ -359,6 +359,9 @@ class Installation:
             if n != 1:
                 fel.append(f"{p.id}: i {n} grupper" + (f" ({', '.join(i_grupp[p.id])})" if n else ""))
         central = next((p.id for p in self.punkter.values() if isinstance(p, Dosa) and p.typ.slag == "central"), None)
+        # dragdosorna och kopplingsdosorna utanför grupperna: gruppens rör går genom dem
+        fria = {p.id for p in self.punkter.values() if isinstance(p, Dosa) and p.id not in i_grupp
+                and p.typ.slag in ("ingjutningsdosa", "kopplingsdosa")}
         if central is None:
             return fel + ["centralen saknas"], anm
         grannar: dict[str, set[str]] = {}
@@ -369,7 +372,7 @@ class Installation:
             if not g.punkter or g.punkter[0] not in grannar.get(central, set()):
                 fel.append(f"{g.id}: inget rör från centralen till gruppens första punkt {g.punkter[0]}")
             # gruppens punkter nås från den första genom gruppens egna punkter (förgrenat i dosorna)
-            egna, nadda, kvar = set(g.punkter), {g.punkter[0]}, [g.punkter[0]]
+            egna, nadda, kvar = set(g.punkter) | fria, {g.punkter[0]}, [g.punkter[0]]
             while kvar:
                 for q in grannar.get(kvar.pop(), set()) & egna:
                     if q not in nadda:
@@ -455,11 +458,6 @@ def _armatur(t: Armaturtyp) -> dict[str, object]:
                            "lysande_andel": pe.lysande_andel, "transmission": pe.transmission}} if pe else {})}
 
 
-def _vinkel(a: Vek, b: Vek) -> float:
-    d = sum(x * y for x, y in zip(a, b)) / (math.hypot(*a) * math.hypot(*b))
-    return math.degrees(math.acos(max(-1.0, min(1.0, d))))
-
-
 def langd(vag: list[Vek]) -> float:
     return sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
 
@@ -472,25 +470,6 @@ def _i_dosan(p: Punkt, q: Sequence[Vek]) -> bool:
         return False
     m = p.lage.punkt
     return math.dist(q[0][:2], m[:2]) <= dosa.diameter / 2 and m[2] - 1.0 <= q[0][2] <= m[2] + dosa.djup + 1.0
-
-
-MJUK_RADIE = 300.0                           # böjar med minst så stor radie (plattans svep, #87) räknas för sig
-SVEP_MAX = 270.0                             # och svepen högst så mycket sammanlagt (anmärkning)
-
-
-def bojar(vag: list[Vek], radier: list[float] | None = None, svep: bool = False) -> float:
-    """Summan av riktningsändringarna längs röret [°]; med radierna (en per brytpunkt) bara böjarna med mindre radie
-    än MJUK_RADIE (där röret går upp eller ned ur plattan, in i en vägg, centralen eller en dosa och skarpare hörn),
-    eller med svep bara de andra: de mjuka svepen i plattan."""
-    s = 0.0
-    for i, (a, b, c) in enumerate(zip(vag, vag[1:], vag[2:])):
-        if radier is not None and (radier[i + 1] >= MJUK_RADIE) != svep:
-            continue
-        u = tuple(y - x for x, y in zip(a, b))
-        v = tuple(y - x for x, y in zip(b, c))
-        if math.hypot(*u) > 1e-6 and math.hypot(*v) > 1e-6:
-            s += _vinkel(u, v)  # type: ignore[arg-type]
-    return s
 
 
 @cache

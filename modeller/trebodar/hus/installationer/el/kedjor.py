@@ -7,13 +7,22 @@ apparatdosorna. Vägarna (dragning.py):
 - köksbänkens uttag i ytterväggens installationsskikt, under och över fönstren och runt hörnet mellan 3NV och 3SV;
 - öns uttag och brandlarmets matningsdosa genom mellanbjälklaget, raka och sneda med mjuka böjar runt
   grupprören och deras stigare (bjalklag/ingjutna.py).
+
+Får ett rör genom innertaket (här och i rummens moduler) mer än BOJAR_MAX böjar delas det i en dragdosa i innertaket
+(katalog.DRAGDOSA_TAK, #87):
+i den brytpunkt i installationsskiktet där böjarna delas jämnast, mitt i läktens fack, och vid behov igen; dosorna
+heter efter rummet vid den närmaste änden (t.ex. BA-DD1) och rörens delar a, b, c … i ordning.
 """
 from __future__ import annotations
 
-from ..montering import BJALKLAG, Vek, i_tak, i_vagg, langs_vaggen, vid_tak
+import math
+from dataclasses import replace
+
+from ..montering import BJALKLAG, Vek, i_tak, i_vagg, langs_taket, langs_vaggen, tak, vid_tak
+from . import lakt
 from .dragning import upp_till_dosan, via_taket
-from .katalog import FXP16
-from .punkter import Punkt, Ror
+from .katalog import DRAGDOSA_TAK, FXP16
+from .punkter import Dosa, Punkt, Ror, anslutning, bojar
 from .rum import allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum
 from .bjalklag import mellanbjalklag as MB
 from .bjalklag.ingjutna import Ingjutning
@@ -102,5 +111,84 @@ ROR = [
         via=(*via_taket(_P["KO-U5"].lage, _P["KO-U13"].lage)[:2], *_vid_flakten[::-1],
              _i_ytterväggen("3NV", _Y_FLAKT, _P["KO-U13"].lage.punkt[2]))),
 ]
+BOJAR_MAX = 270.0
+SAMMA = 150.0                   # en dragdosa så nära en annan blir samma
+LANG = 1500.0                   # och på så långa sträckor i skiktet kan den sitta mitt på
+
+
+PUNKTER: list[Dosa] = []
+
+
+def _utan_dubbla(pts: list[Vek]) -> tuple[Vek, ...]:
+    """Brytpunkterna mellan ändarna, utan punkter som ligger på den föregående (eller på änden)."""
+    ut = [pts[0]]
+    for q in pts[1:]:
+        if math.dist(q, ut[-1]) > 1.0:
+            ut.append(q)
+        elif q is pts[-1]:
+            ut[-1] = q
+    return tuple(ut[1:-1])
+
+
+def _med_dragdosa(r: Ror) -> list[Ror]:
+    """Röret r, eller i två delar genom en dragdosa i innertaket där böjarna delas jämnast (inga över BOJAR_MAX)."""
+    if r.fran not in _P or r.till not in _P:
+        return [r]
+    grund = [anslutning(_P[r.fran], ut=True), *r.via, anslutning(_P[r.till])]
+    pts = grund[:1]                                     # över nocken och dalarna i installationsskiktet
+    for a, b in zip(grund, grund[1:]):
+        for q in langs_taket(a, b)[1:]:
+            p0 = pts[-1]
+            if math.dist(p0, q) > LANG and abs(q[2] - p0[2]) < 0.9 * math.dist(p0, q):     # mitt på långa sträckor
+                pts.append(tuple((x + y) / 2 for x, y in zip(p0, q)))                       # type: ignore[arg-type]
+            pts.append(q)
+    if bojar(pts) <= BOJAR_MAX:
+        return [r]
+    bast = None
+    dragdosa = {d.id for d in PUNKTER}
+    k0 = 1 if r.fran in dragdosa else 2                 # brytpunkterna i installationsskiktet (inte väggarnas)
+    k1 = len(pts) - (1 if r.till in dragdosa else 2)
+    for k in range(k0, k1):
+        x, y, z = pts[k]
+        try:
+            m = tak(x, y)
+        except ValueError:
+            continue
+        if abs(m.punkt[2] - z) > 120.0:
+            continue
+        xd = lakt.mellan_lakten(m.ref, x, y)            # mitt i läktens fack
+        finns = next((d for d in PUNKTER if math.dist(d.lage.punkt[:2], (xd, y)) < SAMMA), None)  # två rör i en dosa
+        if finns is not None and finns.id in (r.fran, r.till):
+            continue
+        delning = max(bojar(pts[:k + 1]), bojar(pts[k:]))
+        if bast is None or delning < bast[0]:
+            bast = (delning, k, xd, y, finns)
+    if bast is None:
+        return [r]
+    _, k, x, y, finns = bast
+    if finns is not None:
+        did = finns.id
+    else:                                               # i rummet vid den närmaste änden (förteckningen per rum)
+        rum = min((r.fran, r.till), key=lambda q: math.dist(anslutning(_P[q])[:2], (x, y))).split("-")[0]
+        did = f"{rum}-DD{sum(1 for p in PUNKTER if p.id.startswith(rum + '-DD')) + 1}"
+        PUNKTER.append(Dosa(did, DRAGDOSA_TAK, tak(x, y)))
+        _P[did] = PUNKTER[-1]
+    ansl = anslutning(_P[did])
+    delar = [replace(r, till=did, via=_utan_dubbla([pts[0], *pts[1:k], ansl])),
+             replace(r, fran=did, via=_utan_dubbla([ansl, *pts[k + 1:-1], pts[-1]]))]
+    return [d for del_ in delar for d in _med_dragdosa(del_)]
+
+
+def _delad(r: Ror) -> list[Ror]:
+    """Röret r, eller dess delar genom dragdosorna i ordning: a, b, c …"""
+    delar = _med_dragdosa(r)
+    if len(delar) == 1:
+        return delar
+    return [replace(d, id=f"{r.id}{chr(ord('a') + i)}") for i, d in enumerate(delar)]
+
+
+ROR = [d for r in ROR for d in _delad(r)]
+for _m in (allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum):
+    _m.ROR[:] = [d for r in _m.ROR for d in _delad(r)]      # rummens rör genom innertaket likaså
 # stigarna genom bjälklaget (grupprörens och kedjornas), som hinder för källarens rör
 STIGARE = _ING.stigare

@@ -211,3 +211,37 @@ def anslutning(p: Punkt, ut: bool = False) -> Vek:
         return flytt(m.punkt, m.normal, -I_TAKET)
     dosa = p.typ.dosa if isinstance(p, Apparat) else p.typ
     return flytt(m.punkt, m.normal, -dosa.djup / 2)
+
+
+def vinkel(a: Vek, b: Vek) -> float:
+    """Vinkeln mellan riktningarna a och b [°]."""
+    d = sum(x * y for x, y in zip(a, b)) / (math.hypot(*a) * math.hypot(*b))
+    return math.degrees(math.acos(max(-1.0, min(1.0, d))))
+
+
+MJUK_RADIE = 300.0                           # böjar med minst så stor radie (plattans svep, #87) räknas för sig
+SVEP_MAX = 270.0                             # och svepen högst så mycket sammanlagt (anmärkning)
+ANSLUTNING = 100.0                           # rörets ände i dosan högst så lång: in genom dosans hål med en S-böj
+FORSKJUTNING = 150.0                         # S-böjens längd längs röret
+
+
+def bojar(vag: list[Vek], radier: list[float] | None = None, svep: bool = False) -> float:
+    """Summan av riktningsändringarna längs röret [°]; med radierna (en per brytpunkt) bara böjarna med mindre radie
+    än MJUK_RADIE (där röret går upp eller ned ur plattan, in i en vägg, centralen eller en dosa och skarpare hörn),
+    eller med svep bara de andra: de mjuka svepen i plattan. Rörets ändar i dosorna: är änden högst ANSLUTNING lång
+    (från dosans mitt till regelfacket, installationsskiktet eller takets skikt) går röret in genom dosans hål i
+    rörets riktning med en kort S-böj (förskjutningen över FORSKJUTNING), inte med en rät böj in i dosans baksida."""
+    s = 0.0
+    n = len(vag) - 3
+    for i, (a, b, c) in enumerate(zip(vag, vag[1:], vag[2:])):
+        if radier is not None and (radier[i + 1] >= MJUK_RADIE) != svep:
+            continue
+        u = tuple(y - x for x, y in zip(a, b))
+        v = tuple(y - x for x, y in zip(b, c))
+        if math.hypot(*u) > 1e-6 and math.hypot(*v) > 1e-6:
+            vk = vinkel(u, v)  # type: ignore[arg-type]
+            for k, ande in ((0, u), (n, v)):
+                if i == k and math.hypot(*ande) <= ANSLUTNING:
+                    vk = min(vk, 2.0 * math.degrees(math.atan2(math.hypot(*ande), FORSKJUTNING)))
+            s += vk
+    return s
