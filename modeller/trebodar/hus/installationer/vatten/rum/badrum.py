@@ -1,13 +1,13 @@
-"""Badrummet (ärende #52) på inredningens lägen i hus/badrum.py: duschens blandare på 1C, badkarets golvstående
-blandare vid badkarets ände mot 1A, WC:n på L9 och tvättstället i badrumsbänken längs 1NO. Rören kommer upp genom
-bjälklaget från stråket S i mellanbjälklaget: i väggarnas regelfack till väggdosorna (duschen, WC:n) och genom golvet
-till golvdosorna (badkarets blandare, som monteras på golvdosan, och tvättstället, i skåpet under det).
+"""Badrummet (ärende #52) på inredningens lägen i hus/badrum.py: duschens blandare på 1C mitt i nischen, badkarets
+blandare på 1SO mitt för karet (#97), WC:n på L9 och tvättstället i badrumsbänken längs 1NO. Rören kommer upp genom
+bjälklaget från stråket S i mellanbjälklaget: i väggarnas regelfack eller installationsskikt till väggdosorna (duschen,
+badkaret, WC:n) och genom golvet till golvdosan (tvättstället, i skåpet under det).
 
 Tvättmaskinen i skåpet i nischen (#51, förberedd) har en egen väggdosa på L10 i glipan bredvid maskinerna, med kallt
 från underfördelaren UF2 under badrummet, som också matar WC:n (underfordelare.py); de andra kommer från stråket S.
 
-Duschens blandare sitter i regelfacket mellan stolpen LN5_1 och regeln 1C-R01 (x 2 245–2 488), väster om
-ventilationens kanal FF3 i facket intill. WC:ns väggdosa sitter vid sidan av cisternen i regelfacket mellan L9-R02 och
+Duschens blandare sitter mitt i nischen, i regelfacket mellan reglarna 1C-R01 och 1C-R02, väster om ventilationens
+kanal FF3 i samma fack. WC:ns väggdosa sitter vid sidan av cisternen i regelfacket mellan L9-R02 och
 L9-R03. Golvdosorna står i golvets färdiga yta (klinkern över fallavjämningen) och dosornas höjd räknas från golvet.
 """
 from __future__ import annotations
@@ -44,7 +44,9 @@ TAPPSTALLEN = [
     Tappstalle("BA-DU1", DUSCH, VAGGDOSA_BLANDARE,
                _over_golvet("1C", B.X_DUSCHBLANDARE - S.INNERVAGGAR["1C"].origo[0], B.Z_DUSCHBLANDARE, -1),
                ROR_I_ROR_16),
-    Tappstalle("BA-BK1", BADKAR, GOLVDOSA, _golv(*B.BADKARSBLANDARE), ROR_I_ROR_18, kallt=(0.0, 1.0, 0.0)),
+    Tappstalle("BA-BK1", BADKAR, VAGGDOSA_BLANDARE,
+               _over_golvet("1SO", S.YTTERVAGGAR["1SO"].origo[1] - B.BADKARSBLANDARE[1], B.Z_BADKARSBLANDARE, 1),
+               ROR_I_ROR_18),
     Tappstalle("BA-WC1", WC, VAGGDOSA, _over_golvet("L9", Y_WC_DOSA - vaggdef("L9").origo[1], Z_WC_DOSA, 1),
                ROR_I_ROR_15),
     Tappstalle("BA-TS1", TVATTSTALL, GOLVDOSA, _golv(*TS_DOSA), ROR_I_ROR_15, kallt=(0.0, 1.0, 0.0)),

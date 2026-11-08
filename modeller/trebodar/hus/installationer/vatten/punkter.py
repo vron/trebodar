@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from shapely.geometry import box
 from shapely.ops import unary_union
 
+from trebodar import skelett as S
 from trebodar.hus.grund.kallarvaggar import CELL
 
 from ..genomforingar import vaggarna
@@ -123,6 +124,7 @@ def forskjutning(t: Tappstalle) -> tuple[float, float]:
 
 
 _FORSKJUTNING: dict[str, tuple[float, float]] = {}
+INIFRAN = (60.0, 120.0, 180.0, 240.0, 300.0)   # rörets väg in till en yttervägg, prövad mot järnen
 
 
 def _forskjutning(t: Tappstalle) -> tuple[float, float]:
@@ -141,8 +143,29 @@ def _forskjutning(t: Tappstalle) -> tuple[float, float]:
     z = (Z_ROR, PLAN[1]) if plan1 else (KALLARTAK, Z_ROR)
     facket = vaggarna()[t.lage.ref][2] if plan1 else CELL                 # regelfacket eller cellplasten
     tvars = facket / 2 - r - 2.0
-    return mellan_jarnen([i_vaggen(t.lage, _anslutning(t, m))[:2] for m in medier], *z, r, langs=(-n[1], n[0]),
-                         tvars=tvars)
+    punkter = [i_vaggen(t.lage, _anslutning(t, m))[:2] for m in medier]
+    langs = (-n[1], n[0])
+    if not (plan1 and t.lage.ref in S.YTTERVAGGAR):
+        return mellan_jarnen(punkter, *z, r, langs=langs, tvars=tvars)
+    # en yttervägg: rören kommer in från rummet i sin nivå genom bandet vid kanten (vinkeljärnen och källarväggens
+    # lodräta järn, #97) och går upp i väggen; båda ska gå fria, så förskjutningen prövas om tills de gör det
+    inifran = [(x + n[0] * d, y + n[1] * d) for x, y in punkter for d in INIFRAN]
+
+    def tvars_fri(pts: list[tuple[float, float]], z0: float, z1: float, tv: float) -> tuple[float, float] | None:
+        """Förskjutningen tvärs väggen (högst tv) som gör punkterna fria, eller None."""
+        try:
+            return mellan_jarnen(pts, z0, z1, r, langs=langs, tvars=tv, langst=0.0)
+        except ValueError:
+            return None
+    for steg in sorted(range(-40, 41), key=abs):                   # 5 mm steg, högst 200 mm åt var håll
+        dx, dy = langs[0] * 5.0 * steg, langs[1] * 5.0 * steg
+        upp = tvars_fri([(x + dx, y + dy) for x, y in punkter], *z, tvars)
+        if upp is None:
+            continue
+        dx, dy = dx + upp[0], dy + upp[1]
+        if tvars_fri([(x + dx, y + dy) for x, y in inifran], Z_ROR - r, Z_ROR + r, 0.0) == (0.0, 0.0):
+            return dx, dy
+    raise ValueError(f"{t.id}: inget läge mellan järnen för rören in i {t.lage.ref}")
 
 
 def anslutning(t: Tappstalle, media: str) -> Vek:

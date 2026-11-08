@@ -26,7 +26,7 @@ from ..katalog import (FRANLUFTSDON_125, ISOLERAD_125, KANALFLAKT_125, PLATT_125
                        SPIRO_125, TAKHUV_125)
 
 Y = S.INNERVAGGAR["1C"].origo[1] + S.INNERVAGGAR["1C"].tjocklek / 2       # väggen 1C:s mitt
-X_STIG = 2810.0                             # mitt i regelfacket 1C-R01–1C-R02
+X_STIG = 2980.0                             # i regelfacket 1C-R01–1C-R02:s östra del (duschens blandare i den västra, #97)
 X_DON, Y_DON = 4950.0, 10400.0              # rummets sydvästra hörn
 Y_FLAKT = 9700.0                            # i rummet, längs västra väggen
 Z = KALLARTAK - 155.0                       # kanalens mitt under taket (fläkten 30 mm under betongen)

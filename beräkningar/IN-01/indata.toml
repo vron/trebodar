@@ -278,12 +278,12 @@ anm      = "Avloppet Ø50 genom golvet under karets mitt (AV3)."
 [[produkt]]
 kod      = "BADKARSBLANDARE"
 grupp    = "Badrum"
-namn     = "Badkarsblandare, golvstående, med handdusch"
+namn     = "Badkarsblandare, väggmonterad, med pip"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
-arende   = [52]
-anm      = "Monteras på tappvattnets golvdosa BA-BK1 vid badkarets ände mot 1A."
+arende   = [52, 97]
+anm      = "På 1SO mitt för karet, på tappvattnets väggdosa BA-BK1 800 mm över golvet; pipen minst 290 mm från kaklet (karet står 120 mm från väggen)."
 
 [[produkt]]
 kod      = "WC"

@@ -7,12 +7,12 @@ och L10 mot sovrummet och L11 mot allrummet med fickdörren ID1, de bärande 1A 
 L11. Från skissen:
 
 - **Duschen** i nischen, med två glasdörrar mot rummet i 1A:s linje och golvbrunnen i nischen.
-- **Badkaret** fristående längs 1SO under takfönstret TF1, med en golvstående blandare vid änden mot 1A.
+- **Badkaret** fristående längs 1SO under takfönstret TF1, med en väggmonterad blandare på 1SO vid karets mitt (#97).
 - **WC:n** golvstående mot L9, mitt för skissens.
-- **Badrumsbänken** längs 1NO från 1SO till L9, med tvättstället mitt under fönstret 1NO-F1; spegeln till höger om
-  fönstret, under badrumsfläkten FF2.
+- **Badrumsbänken** längs 1NO från 1SO till L9, med tvättstället mitt under fönstret 1NO-F1; spegeln på L9 mellan
+  bänken och WC:n (#97).
 - **Väggbiten** L19 från L11 fram till L9:s yta, i liv med ID1:s smyg, och det **inbyggda skåpet** i nischen mellan L10
-  och L19 med fronten i L9:s yta.
+  och L19 med fronten i L9:s yta, inklätt ovanför upp till innertaket (#98).
 - **Handdukstorken** på 1A mellan badkaret och duschen.
 
 Golvet: klinker på tätskikt och fix på en fallavjämning på mellanbjälklaget (som inte ändras: plattan är 150 mm med
@@ -152,18 +152,21 @@ def pa_golvet(form: Form, x0: float, x1: float, y0: float, y1: float) -> Form:
 # duschen: två glasdörrar 8 mm i Y_DUSCH mellan 1B och L11, hängda i väggarna, utåtgående; blandaren på 1C (där
 # tappvattnets väggdosa sitter, vatten/rum/badrum.py) och takduschen och handduschen på en stång ovanför
 DUSCHDORR_T, DUSCHDORR_H, DUSCHDORR_SPEL = 8.0, 2000.0, 8.0
-X_DUSCHBLANDARE = 2366.0                    # blandarens mitt på 1C, i regelfacket väster om ventilationens kanal FF3
+X_DUSCHBLANDARE = (X_1B + X_L11) / 2       # blandarens mitt på 1C, mitt i nischen (#97; kanalen FF3 öster om den)
 Z_DUSCHBLANDARE = 1000.0
 Z_TAKDUSCH = 2150.0                         # takduschens underkant över golvet
 
-# badkaret: fristående, ovalt, längs 1SO under takfönstret TF1, BADKAR_VAGG från väggen; blandaren golvstående vid
-# änden mot 1A
+# badkaret: fristående, ovalt, längs 1SO under takfönstret TF1, BADKAR_VAGG från väggen; blandaren på 1SO mitt för
+# karet med pipen ut över kanten (#97)
 BADKAR = (1700.0, 800.0, 600.0)             # längd, bredd, höjd
 BADKAR_KAR = 60.0                           # karets botten över badkarets underkant
 BADKAR_VAGG = 120.0
 BADKAR_Y = (5200.0, 5200.0 + BADKAR[0])     # längs 1SO
 BADKAR_X = (X_1SO + BADKAR_VAGG, X_1SO + BADKAR_VAGG + BADKAR[1])
-BADKARSBLANDARE = ((BADKAR_X[0] + BADKAR_X[1]) / 2, BADKAR_Y[1] + 100.0)
+BADKARSBLANDARE = (X_1SO, 6220.0)            # på 1SO:s kakel, 170 mm från karets mitt mot 1A: där rören går fria mellan
+#                                              källarväggens och överkantsnätets järn och förbi karets avlopp
+Z_BADKARSBLANDARE = 800.0                    # blandarens mitt över golvet (karets kant 600)
+BADKARSPIP = 290.0                           # pipen från kaklet, ut över karets kant
 
 # WC:n golvstående med S-lås mot L9, mitt som i skissen; avloppet i golvet WC_AVLOPP från väggen
 WC_Y = 4980.0
@@ -180,8 +183,8 @@ TVATTSTALL = (480.0, 300.0, 150.0)          # tvättställets insida: längs bä
 TVATTSTALL_GODS = 10.0                      # förenklat
 X_TVATTSTALL = X_FONSTER
 
-# spegeln på 1NO till höger om fönstret, under fläkten FF2; lampan över tvättstället på 1NO ovanför fönstret
-SPEGEL = (1850.0, 2370.0, 1050.0, 1850.0)   # x0, x1, z0, z1
+# spegeln på L9 mellan bänken och WC:n (#97); lampan över tvättstället på 1NO ovanför fönstret
+SPEGEL = (Y_1NO + BANK_DJUP + 30.0, WC_Y - WC[0] / 2 - 30.0, 1050.0, 1850.0)   # y0, y1 (bänken, WC:n), z0, z1
 LAMPA_TVATTSTALL = (X_TVATTSTALL, 2300.0)    # x, z
 
 # skåpet i nischen mellan L10 och väggbiten L19, fronten i L9:s yta
@@ -203,8 +206,8 @@ assert SKAP_Z >= TVATT[2] + 300.0, "uttaget ryms ovanför maskinerna"
 # handdukstorken på 1A mellan badkaret och duschen
 HANDDUKSTORK = (1400.0, 1900.0, 400.0, 1600.0)     # x0, x1, z0, z1 över golvet
 
-assert BADKARSBLANDARE[1] + 60.0 < Y_1A, "badkarsblandaren går fri från 1A"
-assert SPEGEL[1] < X_L9 - 100.0 and SPEGEL[0] > F1.u1 + S.YTTERVAGGAR["1NO"].origo[0], "spegeln mellan fönstret och L9"
+assert BADKARSPIP > BADKAR_VAGG + 60.0, "badkarets pip når ut över karets kant"
+assert SPEGEL[0] >= Y_1NO + BANK_DJUP and SPEGEL[1] <= WC_Y - WC[0] / 2, "spegeln mellan bänken och WC:n"
 
 # nivåer som inredningen och avloppet delar: golvet under bänken och badkaret (de står på dess högsta punkt),
 # tvättställets och karets botten

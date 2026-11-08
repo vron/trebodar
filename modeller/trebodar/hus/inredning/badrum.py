@@ -12,7 +12,8 @@
   en termostatblandare med stång, takdusch och handdusch.
 - **Skåpet** i nischen mellan L10 och L19: stomme av björkplywood med hyllor och två höga dörrar av fräst ask i L9:s
   yta; ovanför skåpet är nischen öppen upp till innertaket.
-- **Spegeln** på 1NO till höger om fönstret och **handdukstorken** (elektrisk) på 1A.
+- **Spegeln** på L9 mellan bänken och WC:n (#97), **handdukstorken** (elektrisk) på 1A och **inklädnaden** över
+  skåpet upp till innertaket (#98).
 
 Delarna heter BA- och sedan BANK (skåpen BANK1–BANK3 med -SIDA-V osv. som köksskåpen, -DORR1 och -DORR2),
 BANK-SKIVA, BANK-SPARK, TVATTSTALL, TVATTSTALL-BLANDARE, BADKAR, BADKAR-BLANDARE, WC- (FOT, SITS, LOCK, CISTERN),
@@ -23,11 +24,15 @@ from __future__ import annotations
 
 import math
 
+from shapely.geometry import Polygon
+
 from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, prisma, svep
 
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus import badrum as B
-from trebodar.material import (ASK, BADKARSMATERIAL, BANKSKIVA, BJORKPLYWOOD, DUSCHGLAS, KROM, PORSLIN, SPEGEL)
+from trebodar.hus.invandigt.skikt import upp_till_taket
+from trebodar.material import (ASK, BADKARSMATERIAL, BANKSKIVA, BJORKPLYWOOD, DUSCHGLAS, KAKEL, KROM, PLYWOOD, PORSLIN,
+                               SPEGEL)
 
 from . import koksskap as K
 
@@ -148,13 +153,12 @@ def _badkaret() -> Montage:
                 _ellips(W / 2 - kant, L / 2 - kant, zg + H + 1.0, n, cx, cy))
     m.lagg(Del(f"Badkar fristående {fmt(L)}×{fmt(W)}", yttre - kar, BADKARSMATERIAL, produkt="BADKAR"), Placering(),
            "BA-BADKAR")
-    bx, by = B.BADKARSBLANDARE
-    zb = B.hogsta_golv(bx - 45.0, bx + 45.0, by - 45.0, by + 45.0)
-    pip = svep([(bx, by, zb), (bx, by, zb + 980.0), (bx, by - 230.0, zb + 980.0), (bx, by - 230.0, zb + 930.0)], 17.0,
-               60.0)
-    fot = B.pa_golvet(cylinder(45.0, 14.0, (bx, by, zb - 2.0)), bx - 45.0, bx + 45.0, by - 45.0, by + 45.0)
-    hand = cylinder(16.0, 220.0, (bx + 45.0, by, zb + 560.0))
-    m.lagg(Del("Badkarsblandare golvstående med handdusch", pip | fot | hand, KROM, produkt="BADKARSBLANDARE"),
+    bx, by = B.BADKARSBLANDARE                                   # på 1SO:s kakel mitt för karet (#97)
+    zb = B.golvniva(bx + 2.0, by) + B.Z_BADKARSBLANDARE
+    kropp = svep([(bx, by - 70.0, zb), (bx + 55.0, by - 70.0, zb), (bx + 55.0, by + 70.0, zb), (bx, by + 70.0, zb)],
+                 22.0, 15.0)
+    pip = svep([(bx, by, zb + 40.0), (bx + B.BADKARSPIP, by, zb + 40.0), (bx + B.BADKARSPIP, by, zb)], 13.0, 30.0)
+    m.lagg(Del("Badkarsblandare väggmonterad med pip", kropp | pip, KROM, produkt="BADKARSBLANDARE"),
            Placering(), "BA-BADKAR-BLANDARE")
     return m
 
@@ -252,10 +256,27 @@ def _skapet() -> Montage:
 
 
 def _spegeln() -> Del:
-    x0, x1, z0, z1 = B.SPEGEL
-    zg = B.Z_BANK
-    return Del(f"Spegel {fmt(x1 - x0)}×{fmt(z1 - z0)}, limmad på kaklet",
-               box(x0, x1, B.Y_1NO, B.Y_1NO + 6.0, zg + z0, zg + z1), SPEGEL, produkt="SPEGEL")
+    """Spegeln på L9 mellan bänken och WC:n (#97)."""
+    y0, y1, z0, z1 = B.SPEGEL
+    zg = B.golvniva(B.X_L9 - 2.0, (y0 + y1) / 2)
+    return Del(f"Spegel {fmt(y1 - y0)}×{fmt(z1 - z0)}, limmad på kaklet",
+               box(B.X_L9 - 6.0, B.X_L9, y0, y1, zg + z0, zg + z1), SPEGEL, produkt="SPEGEL")
+
+
+INKLADNAD_T = (30.0, 10.0)          # inklädnaden över skåpet: regel och skiva, kakel
+
+
+def _over_skapet() -> Montage:
+    """Inklädnaden över skåpet (#98): från skåpets överkant upp till innertaket i L9:s yta, kaklad som väggarna."""
+    m = Montage("Över skåpet", beskrivning="Inklädnad över skåpet upp till innertaket, kaklad")
+    (x0, _), (y0, y1) = B.SKAP_X, B.SKAP_Y
+    zt = B.hogsta_golv(*B.SKAP_X, y0, y1) + B.SKAP_Z               # som skåpets överkant
+    t_stomme, t_kakel = INKLADNAD_T
+    for namn, a, b, mat, kod in (("Kakel", x0, x0 + t_kakel, KAKEL, "K"),
+                                 ("Regel och skiva", x0 + t_kakel, x0 + t_kakel + t_stomme, PLYWOOD, "S")):
+        yta = Polygon([(a, y0), (b, y0), (b, y1), (a, y1)])
+        m.lagg(Del(f"{namn} över skåpet", upp_till_taket(yta, zt), mat), Placering(), f"BA-SKAP-OVER-{kod}")
+    return m
 
 
 def _handdukstorken() -> Montage:
@@ -289,5 +310,6 @@ def montage() -> Montage:
     m.lagg(_duschen())
     m.lagg(_skapet())
     m.lagg(_spegeln(), Placering(), "BA-SPEGEL")
+    m.lagg(_over_skapet())
     m.lagg(_handdukstorken())
     return m
