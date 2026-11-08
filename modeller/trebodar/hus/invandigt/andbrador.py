@@ -1,4 +1,4 @@
-"""Ändbrädorna (ärende #31): väggarna som slutar fritt i ett rum (1B, 1D, 2A och 2B) får en bräda av oljad ask 22
+"""Ändbrädorna (ärende #31): väggarna som slutar fritt i ett rum (1D, 2A och 2B) får en bräda av oljad ask 22
 över änden, som smygen runt fönstren: från golvet till innertaket och över skikten på båda sidorna, med fibrerna på
 höjden.
 
@@ -20,7 +20,7 @@ from .skikt import HOJD, SKIVOR_T, SKIVOR_VATRUM_MALAD, kapad_vid_taket, upp_til
 from .vaggar import FRIA_ANDAR_VATRUM
 
 T = 22.0
-ANDAR = (("1B", 1), ("1D", 1), ("2A", 0), ("2B", 1))      # väggen och änden (0 början, 1 slutet) som slutar fritt
+ANDAR = (("1D", 1), ("2A", 0), ("2B", 1))      # väggen och änden (0 början, 1 slutet) som slutar fritt
 
 
 def yta(kod: str, ande: int) -> Polygon:

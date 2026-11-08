@@ -215,6 +215,8 @@ VIT_SKIVA = Material("Vit skiva", "Skiva, vitmålad (köksbänkens och öns sido
                      cad="#f1efe9")
 VIT_FRONT = Material("Vit front", "Front, vitmålad (kökets inbyggnad: kylens, frysens och skåpens fronter och "
                                   "skafferidörren)", 700, "#f0eee8", 0.5, cad="#f1efe9")
+TEMPERA_BLA = Material("Ljusblå front", "Front, målad med äggoljetempera i ljusblått (hallens garderob, #96)", 700,
+                       "#a8c3d3", 0.6, cad="#a8c3d3")
 HALLGLAS = Material("Hällglas", "Induktionshällens glaskeramik, svart", 2500, "#111214", 0.06, cad="#2a2c30")
 
 # badrummet (hus/inredning/badrum.py): sanitetsporslin, badkaret, blandarna och duschens glas, spegeln och tröskeln

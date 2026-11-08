@@ -7,7 +7,7 @@ from pathlib import Path
 
 from trebodar import skelett as S
 from trebodar.hus.installationer.el.installation import stralar
-from trebodar.hus.installationer.fria_volymer import fria_volymer
+from trebodar.hus.installationer.fria_volymer import dolda_volymer, fria_volymer
 
 # moduler (prefix) och vad de inte får importera ur paketet: beroendena går från skelettet och materialen via
 # byggdelarna till husets system, och huset beror inte på marken
@@ -76,7 +76,8 @@ TILLATNA_OVERLAPP = {
 # installationernas vägar (verktyg/modellering/modellering/vagar.py, ärende #34): rören, kablarna och kanalerna (delar
 # av LEDNINGAR) ska gå dolda i skikten, ingjutna eller i marken, inte fritt genom rummens luft (eller fönstrens och
 # takfönstrens öppningar). I UTANPA-zonerna (under z) får de gå utanpå väggarna och taket, högst så långt från ytan
-# (på konsoler); SYNLIGA får synas; in i FRIA_VOLYMER (fickdörrarnas fickor) får de inte gå
+# (på konsoler); SYNLIGA får synas; in i FRIA_VOLYMER (fickdörrarnas fickor) får de inte gå; i DOLDA_VOLYMER
+# (ovanför de nedsänkta innertaken, inuti köksfläktens kåpa) är de dolda
 LEDNINGAR = ("Elrör", "Brandlarmskabel", "Tappvatten KV", "Tappvatten VV", "Kopparrör", "Spirokanal", "Plattkanal",
              "Golvvärmerör")
 VAGAR_UTOM = {
@@ -89,6 +90,7 @@ SYNLIGA = {                                          # delträd: motivering
     "Hus/Installationer/Vatten/Kök/KO-DM1-": "kopparrörets ände under diskmaskinen, maskinens anslutning (#83)",
 }
 FRIA_VOLYMER = fria_volymer
+DOLDA_VOLYMER = dolda_volymer
 # armaturernas avstånd till brännbart material i ljusets riktning (vagar.py): inom det får ingen av husets ytor ligga
 # framför den lysande ytan
 STRALAR = stralar

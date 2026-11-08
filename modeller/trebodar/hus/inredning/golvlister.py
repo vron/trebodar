@@ -22,7 +22,7 @@ from trebodar.hus.kamin import kamin
 from trebodar.hus.stomme.lagen import ladar
 from trebodar.material import ASK, GIPS
 
-from . import garderob, kok, sang
+from . import garderob, hallgarderob, kok, sang
 
 LIST = (15.0, 35.0)             # tjocklek ut från väggen, höjd
 PROV_Z = 10.0                   # ytans underkant prövas så högt över golvet
@@ -33,7 +33,7 @@ MINST = 50.0                    # kortare bitar läggs inte
 @cache
 def _hinder() -> Any:
     """Det som står mot väggarna vid golvet, i plan."""
-    lador = [b for m in (garderob.montage(), sang.montage(), kok.montage(), kamin.montage(),
+    lador = [b for m in (garderob.montage(), hallgarderob.montage(), sang.montage(), kok.montage(), kamin.montage(),
                          fonster_och_dorrar.montage(), andbrador.montage(), kokets_inbyggnad.montage())
              for b in ladar(m)]
     saker = [plan_box(x0, y0, x1, y1).buffer(FRITT, join_style=2)

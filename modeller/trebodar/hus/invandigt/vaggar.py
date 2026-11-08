@@ -53,7 +53,7 @@ SKIVOR_KAMIN = (("Kalciumsilikat", 50.0, "KS", KALCIUMSILIKAT),)      # mot kami
 CC = 600.0
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
 ORDNING = ("1B", "2B", "1A", "1C", "1D", "2A", "2C", "L1", "L2", "L3", "L4", "L9", "L11", "L10", "L19", "L12", "L7",
-           "L6", "L13", "L14")
+           "L6", "L13", "L14", "L20", "L21")
 # fria ändar i badrummet: skikten går förbi änden så långt som skikten innanför dem, och ändens skikt (andbrador.py) går
 # över dem, så att tätskiktet och kaklet går runt änden
 FRIA_ANDAR_VATRUM = (("L19", 0),)
@@ -363,10 +363,11 @@ def barande_skikt() -> list[Hinder]:
 
 
 def _spann(lv: Lattvagg) -> tuple[list[tuple[float, float]], list[float]]:
-    """Dörrarnas utsträckning i stommen (öppningen och fickorna, också fickor som går in från en annan vägg) och
-    överstyckets underkant; en öppning och dess ficka är ett spann."""
+    """Dörrarnas och öppningarnas utsträckning i stommen (öppningen och fickorna, också fickor som går in från en annan
+    vägg) och överstyckets underkant; en öppning och dess ficka är ett spann."""
     bitar = sorted([(d.u0, d.u1, d.hojd + (FICKA_SKENA if d.ficka else 0.0)) for d in INNERDORRAR if d.vagg == lv.kod]
-                   + [(a, b, z1 - H_VIRKE) for a, b, z1, _ in fickor(lv.kod)])
+                   + [(a, b, z1 - H_VIRKE) for a, b, z1, _ in fickor(lv.kod)]
+                   + [(a, b, z1) for vagg, a, b, z0, z1, _ in INNEROPPNINGAR if vagg == lv.kod and z0 <= 0.0])
     sammanslagna: list[list[float]] = []
     for a, b, zo in bitar:
         a, b = max(a, 0.0), min(b, lv.langd)

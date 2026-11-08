@@ -249,5 +249,7 @@ INNERDORRAR = (
 
 # öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt. Kaminens öppning (x 6 400–
 # 7 236) är symmetrisk kring insatsen (x 6 818, kamin.X_MITT), så att fronten syns lika bred på båda sidorna; i
-# planritning 201 är den bredare åt öster (u 2 993)
-INNEROPPNINGAR = (("2C", 1983.0, 2819.0, 0.0, 2045.0, "kaminen (Rais 600), planritning 201"),)
+# planritning 201 är den bredare åt öster (u 2 993). Hallens garderob (#96, hus/inredning/hallgarderob.py): öppningen i
+# fronten L21 mellan ändreglarna, med dörrarna i liv med väggen
+INNEROPPNINGAR = (("2C", 1983.0, 2819.0, 0.0, 2045.0, "kaminen (Rais 600), planritning 201"),
+                  ("L21", 45.0, 955.0, 0.0, 2100.0, "hallens garderob, två dörrar i liv med väggen"))

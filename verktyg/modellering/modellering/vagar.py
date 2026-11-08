@@ -2,7 +2,8 @@
 rummens luft eller genom fönstrens och takfönstrens öppningar, och inte in i volymer som ska hållas fria
 (fickdörrarnas fickor). Reglerna står i modellens kontrollregler: LEDNINGAR (materialen), VAGAR_UTOM (delträd som
 inte prövas, t.ex. ledningarna i marken), UTANPA (zoner där ledningarna får gå utanpå väggarna och taket), SYNLIGA
-(delträd som får synas) och FRIA_VOLYMER.
+(delträd som får synas), FRIA_VOLYMER och DOLDA_VOLYMER (hålrum där ledningarna är dolda fast de har fritt omkring
+sig, t.ex. ovanför ett nedsänkt innertak eller inuti en ihålig kåpa som är modellerad massiv).
 
 Husets delar och installationernas övriga delar (dosorna, fördelarna, armaturerna, fläktarna; inte ledningarna själva
 och inte armeringen) blir ett triangelnät med en sökstruktur (vtk). Varje ledningsdel
@@ -146,6 +147,7 @@ def kontrollera(rot: Montage, karna: Karna, regler: ModuleType, trad: str | None
     synliga = tuple(getattr(regler, "SYNLIGA", {}))
     utanpa = sorted(getattr(regler, "UTANPA", ()), key=lambda z: z[1])
     volymer = [(namn, Polygon(yta), z0, z1) for namn, yta, z0, z1 in getattr(regler, "FRIA_VOLYMER", list)()]
+    dolda = [(Polygon(yta), z0, z1) for _, yta, z0, z1 in getattr(regler, "DOLDA_VOLYMER", list)()]
     ledningar = [(vag.split("/", 1)[1], d, p) for vag, d, p in rot.platta()
                  if d.material.namn in material and vag.split("/", 1)[1].startswith(trad or INSTALLATIONER)
                  and not vag.split("/", 1)[1].startswith(utom)]
@@ -171,7 +173,8 @@ def kontrollera(rot: Montage, karna: Karna, regler: ModuleType, trad: str | None
             P = C[kub == i]
             c = P.mean(axis=0)
             ut.kuber += 1
-            if rel.startswith(synliga) or not huset.fritt(c):
+            if rel.startswith(synliga) or any(z0 < c[2] < z1 and yta.contains(shapely.Point(c[0], c[1]))
+                                              for yta, z0, z1 in dolda) or not huset.fritt(c):
                 continue
             avst, yta_ = huset.narmast(P[:: max(1, len(P) // 16)])
             zon = next((z for z in utanpa if c[2] < z[1]), None)

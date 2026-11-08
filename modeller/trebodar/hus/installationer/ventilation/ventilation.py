@@ -268,6 +268,20 @@ def gren(g: Gren) -> Montage:
     return m
 
 
+def kapornas_volymer() -> list[tuple[str, list[tuple[float, float]], float, float]]:
+    """Insidan av köksfläktarnas avsmalnande kåpor (ihålig plåt, modellerad massiv), där kanalen går dold
+    (kontrollregler.DOLDA_VOLYMER): kåpans underkant i plan, från ramen till innertaket."""
+    ut = []
+    for g in ventilation().grenar.values():
+        for e in g.kedja:
+            if isinstance(e, Don) and isinstance(e.typ, Koksflakttyp) and e.typ.avsmalnande:
+                t, sys = e.typ, _vagg(e.lage)
+                yta = [sys.punkt((x, 0.0, z))[:2] for x, z in ((-t.b / 2, 0.0), (t.b / 2, 0.0), (t.b / 2, t.d),
+                                                                (-t.b / 2, t.d))]
+                ut.append((f"{e.id}:s kåpa", yta, e.lage.punkt[2] + KAPA_RAM, 10000.0))
+    return ut
+
+
 def montage() -> Montage:
     v = ventilation()
     m = Montage("Ventilation", beskrivning="Frånluft: köksfläkten, badrumsfläkten och källarrummet "
