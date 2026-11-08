@@ -1,8 +1,8 @@
 """Köket: köksfläkten på den nordvästra långsidan 3NV, mitt emellan fönstren 3NV-F4 och 3NV-F5 (1 × 1 m) över
 hällen, utan egen fläkt, och takfläkten på taket rakt ovanför (ärende #59).
 
-Kåpan (Fjäråskupan Carisma 70, vit) har underkanten 650 mm över hällen (bänken 900 mm över golvet), och skorstenen
-går upp till innertaket. Utloppet Ø150 går upp i skorstenen, så långt mot takbalksfackets mitt som skorstenen rymmer,
+Kåpan, av vit pulverlackerad rostfri plåt (#104), har underkanten 650 mm över hällen (bänken 900 mm över golvet) och
+går som en enda form upp till innertaket, avsmalnande med samma vinkel på bredden och djupet. Utloppet Ø150 går upp i skorstenen, så långt mot takbalksfackets mitt som skorstenen rymmer,
 genom innertaket och ångbromsen. Ovanför ångbromsen går en övergång till den större kanalen, isolerad Ø200, lodrätt
 genom takets isolering, luftspalten och råsponten till takfläkten (Systemair TFSR 200 EC Sileo, tyst) på en sockel i
 takplåten. Ströläkten kapas runt kanalen, med omluftning som runt takfönstren (U-03).

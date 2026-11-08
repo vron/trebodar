@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 
-from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, prisma
+from modellering import Del, Form, Kapad, Montage, Placering, box, cylinder, polyeder, prisma
 
 from trebodar import skelett as S
 from trebodar.hus.invandigt.skikt import innertak_vid
@@ -138,6 +138,30 @@ def _don(e: Don, g: Gren) -> Montage:
     if isinstance(t, Koksflakttyp):
         sys = _vagg(m)
         sb, sd = t.skorsten
+        if t.avsmalnande:
+            # ramen i underkanten och en kåpa upp till innertaket, avsmalnande med samma vinkel k på bredden (båda
+            # sidor) och djupet (framsidan), kapad längs innertaket (x längs väggen, y uppåt, z ut från väggen)
+            r = KAPA_RAM
+            mm.lagg(Del(f"{t.namn}, ram {t.b:g} × {t.d:g}", box(-t.b / 2, t.b / 2, 0.0, r, 0.0, t.d), KOKSFLAKT), sys,
+                    f"{e.id}-RAM")
+            n = m.normal
+            z0 = m.punkt[2]
+            fram = flytt(m.punkt, n, sd)
+            h_bak, h_fram = innertak_vid(m.punkt[0], m.punkt[1]) - z0, innertak_vid(fram[0], fram[1]) - z0
+            k = (t.d - sd) / ((h_bak + h_fram) / 2 - r)                  # djupet sd vid innertaket (i mitten)
+            ht = max(h_bak, h_fram) + 200.0                              # över innertaket; kapas längs det
+            bt, dt = t.b / 2 - k * (ht - r), t.d - k * (ht - r)
+            horn = [(-t.b / 2, r, 0.0), (t.b / 2, r, 0.0), (t.b / 2, r, t.d), (-t.b / 2, r, t.d),
+                    (-bt, ht, 0.0), (bt, ht, 0.0), (bt, ht, dt), (-bt, ht, dt)]
+            ytor = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+            lutning = (h_fram - h_bak) / sd
+            nn = (0.0, 1.0, -lutning)
+            kapa = Kapad(polyeder(horn, ytor), (0.0, h_bak, 0.0), nn)
+            mm.lagg(Del(f"{t.namn}, kåpa {t.b:g} × {t.d:g} till innertaket", kapa, KOKSFLAKT), sys,
+                    f"{e.id}-SKORSTEN")                          # ihålig plåtkåpa, som skorstenskåpan (kontrollerna)
+            mm.lagg(Del(f"{t.namn}, fettfilter", box(-t.b / 2 + 25.0, t.b / 2 - 25.0, -1.0, 2.0, 25.0, t.d - 25.0),
+                        FETTFILTER), sys, f"{e.id}-FILTER")
+            return mm
         if t.sluttande:
             # ramen i underkanten och kåpan som sluttar upp mot skorstenen (x längs väggen, y uppåt, z ut från väggen)
             r = KAPA_RAM

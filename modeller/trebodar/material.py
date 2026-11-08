@@ -269,7 +269,7 @@ SPIROKANAL = Material("Spirokanal", "Spirokanal, förzinkad stålplåt", 150, "#
 KANALISOLERING = Material("Kanalisolering", "Mineralull med aluminiumfolie runt kanalen", 100, "#c8ccd0", 0.45, 0.7,
                           cad="#a8c8e0")
 PLATTKANAL = Material("Plattkanal", "Plattkanal, vit plast", 120, "#eeeeea", 0.45, cad="#9fd0f0")
-KOKSFLAKT = Material("Köksfläkt", "Köksfläkt, vit pulverlackerad stålplåt", 100, "#f2f2ef", 0.45, cad="#b8c4cc")
+KOKSFLAKT = Material("Köksfläkt", "Köksfläktskåpa, vit pulverlackerad rostfri plåt", 100, "#f2f2ef", 0.45, cad="#b8c4cc")
 FETTFILTER = Material("Fettfilter", "Köksfläktens fettfilter, aluminium", 500, "#8f9397", 0.5, 1.0, cad="#8f9397")
 VENTILATIONSDON = Material("Ventilationsdon", "Frånluftsdon och väggfläktens front, vitlackerat", 1200, "#f1f1ee",
                            0.4, cad="#5aa9e6")

@@ -222,14 +222,13 @@ fas      = "invandigt"
 [[produkt]]
 kod      = "KOKSFLAKT"
 grupp    = "Kök"
-namn     = "Köksfläkt, vägghängd kåpa med skorsten, utan egen fläkt"
-vald     = "Fjäråskupan Carisma 70, vit, för extern fläkt"
-status   = "vald"
+namn     = "Köksfläktskåpa av vit pulverlackerad rostfri plåt, avsmalnande till innertaket, utan egen fläkt"
+status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 dokument = "VL-01"
-arende   = [53, 59]
-anm      = "Bredden 70, den minsta, över hällen 60. Utloppet Ø150 upp i skorstenen och den isolerade kanalen Ø200 genom taket till takfläkten; forcerat 400 m³/h. Ersättningsluften behövs."
+arende   = [53, 59, 104]
+anm      = "Specialtillverkad (plåtslagare) eller en fläktkåpa med samma form: 698 × 500 i underkanten, 650 över hällen, avsmalnande med samma vinkel på bredden och djupet till ca 180 × 240 vid innertaket, kapad längs innertakets lutning. Med fettfilter och en fläktinsats för extern fläkt (utlopp Ø150 till den isolerade kanalen Ø200 genom taket och takfläkten); forcerat 400 m³/h. Ersättningsluften behövs (#108). Förut Fjäråskupan Carisma 70."
 
 [[produkt]]
 kod      = "TAKFLAKT"

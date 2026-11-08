@@ -65,6 +65,8 @@ class Koksflakttyp:
     flode_normal: float                 # normalt flöde [l/s]
     produkt: str = ""           # specialprodukt i inköpslistan (IN-01): dess kod; tom: ingen
     sluttande: bool = False     # kåpan sluttar från ramen i underkanten upp mot skorstenen
+    avsmalnande: bool = False   # en kåpa från ramen upp till innertaket, med samma vinkel på bredden och djupet (#104);
+    #                             skorsten: dess bredd och djup vid innertaket
 
 
 @dataclass(frozen=True)

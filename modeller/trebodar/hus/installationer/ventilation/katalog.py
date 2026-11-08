@@ -30,11 +30,14 @@ RUND_150_200 = Overgangstyp("OV150-200", "Övergång Ø150 – Ø200, isolerad",
 
 FRANLUFTSDON_125 = Dontyp("FD125", "Frånluftsdon Ø125, vitlackerat (ej valt)", 125.0, 190.0, 40.0, 20.0)
 
-# vägghängd köksfläkt med skorstenskåpa, utan egen fläkt (takfläkten nedan): kåpan 698 × 500 × 150, skorstenen
-# 270 × 240 (Fjäråskupans måttritning); forcerat 400 m³/h, normalt 200 m³/h
-KOKSFLAKT_CARISMA = Koksflakttyp("CAR70", "Köksfläkt Fjäråskupan Carisma 70, vit, för extern fläkt", "Fjäråskupan",
-                                 "Carisma 70", b=698.0, d=500.0, h=150.0, skorsten=(270.0, 240.0), anslutning=150.0,
-                                 utlopp=120.0, flode=111.0, flode_normal=56.0, produkt="KOKSFLAKT", sluttande=True)
+# vägghängd köksfläkt utan egen fläkt (takfläkten nedan): en kåpa av vit pulverlackerad rostfri plåt från ramen
+# 698 × 500 i underkanten upp till innertaket, avsmalnande med samma vinkel på bredden och djupet till 180 × 240 vid
+# innertaket (#104, specialtillverkad), med fettfilter och utlopp Ø150 för extern fläkt; forcerat 400 m³/h, normalt
+# 200 m³/h
+KOKSFLAKT_CARISMA = Koksflakttyp("KAPA70", "Köksfläktskåpa av vit pulverlackerad rostfri plåt, avsmalnande till "
+                                 "innertaket, för extern fläkt", "", "", b=698.0, d=500.0, h=150.0,
+                                 skorsten=(180.0, 240.0), anslutning=150.0, utlopp=120.0, flode=111.0, flode_normal=56.0,
+                                 produkt="KOKSFLAKT", avsmalnande=True)
 
 # badrumsfläkt i röret genom ytterväggen, fuktstyrd, med backspjäll
 VAGGFLAKT_100 = Vaggflakttyp("VF100", "Badrumsfläkt för vägg Ø100, fuktstyrd med backspjäll (ej vald)", "", "",
