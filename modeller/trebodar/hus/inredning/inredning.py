@@ -1,5 +1,5 @@
 """Inredning som byggs in i huset men hålls isär från husets system, så att den är lätt att visa eller dölja för
-sig: garderoben i sovrummet (garderob.py), hallens garderobs smyg och dörrar (hallgarderob.py, #96), dubbelsängen där (sang.py), köket (kok.py: kylen, frysen, skåpen och
+sig: garderoben i sovrummet (garderob.py), hallens garderobs smyg och dörrar (hallgarderob.py, #96), allrummets matbord, stolar och fåtöljer (allrum.py, #103), dubbelsängen där (sang.py), köket (kok.py: kylen, frysen, skåpen och
 skafferiet i kökets inbyggnad, vars väggar hör till de invändiga, hus/invandigt/kokets_inbyggnad.py, och bänken och ön,
 koksbank.py, med köksskåpen i koksskap.py) och badrummet (badrum.py: bänken, badkaret, WC:n, duschen, skåpet, spegeln
 och handdukstorken på lägena i hus/badrum.py). Garderobens väggar byggs som de
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from modellering import Montage
 
-from . import badrum, garderob, golvlister, hallgarderob, kok, sang
+from . import allrum, badrum, garderob, golvlister, hallgarderob, kok, sang
 
 
 def montage() -> Montage:
@@ -20,5 +20,6 @@ def montage() -> Montage:
     m.lagg(sang.montage())
     m.lagg(kok.montage())
     m.lagg(badrum.montage())
+    m.lagg(allrum.montage())
     m.lagg(golvlister.montage())
     return m

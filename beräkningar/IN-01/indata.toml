@@ -564,6 +564,16 @@ anm        = "Beslut med försiktighetsmått 2 november 2026 (MSK.2026.2199). Vi
 # ------------------------------------------------------------------ inredning och mark
 
 [[produkt]]
+kod      = "FATOLJ"
+grupp    = "Inredning och mark"
+namn     = "Fåtöljer i allrummet vid kaminen"
+vald     = "Mathsson Mi 473 Eva hög, betsad björk och ek (brun), flätad linnegjord naturell, utan huvudkudde"
+status   = "vald"
+ansvarig = "byggherre"
+fas      = "invandigt"
+arende   = [103]
+
+[[produkt]]
 kod      = "TRAPPA"
 grupp    = "Inredning och mark"
 namn     = "Trappa till källaren, furu"
