@@ -205,8 +205,15 @@ def _varv(f: F.Varv) -> TopoDS_Shape:
 def _svep(f: F.Svep) -> TopoDS_Shape:
     """Cirkeln svept längs polylinjen: raka kanter och, i hörnen, bågar i hörnets plan (tangentlängden högst halva den
     kortare sträckan)."""
-    P = [np.array(q, dtype=float) for q in f.punkter]
-    P = [q for i, q in enumerate(P) if i == 0 or np.linalg.norm(q - P[i - 1]) > 1e-6]
+    hela = list(f.punkter)
+    rad = list(f.radier) + [0.0] * (len(hela) - len(f.radier))
+    P: list[np.ndarray] = []
+    R: list[float] = []
+    for i, q in enumerate(hela):
+        a_ = np.array(q, dtype=float)
+        if i == 0 or np.linalg.norm(a_ - P[-1]) > 1e-6:
+            P.append(a_)
+            R.append(rad[i] if rad[i] > 0 else f.bojradie)
     mw = BRepBuilderAPI_MakeWire()
     start = P[0]
     for i in range(1, len(P) - 1):
@@ -214,11 +221,16 @@ def _svep(f: F.Svep) -> TopoDS_Shape:
         lu, lw = np.linalg.norm(b - a), np.linalg.norm(c - b)
         u, w = (b - a) / lu, (c - b) / lw
         vinkel = math.acos(max(-1.0, min(1.0, float(u @ w))))
-        if vinkel < 1e-4:
+        if vinkel < 1e-3:
             continue
-        r = min(f.bojradie, 0.5 * min(lu, lw) / math.tan(vinkel / 2))
+        r = min(R[i], 0.5 * min(lu, lw) / math.tan(vinkel / 2))
         t = r * math.tan(vinkel / 2)
         p1, p2 = b - u * t, b + w * t
+        if r < 0.5 or np.linalg.norm(p2 - p1) < 0.05:          # för litet för en båge: skarpt hörn
+            if np.linalg.norm(b - start) > 1e-6:
+                mw.Add(BRepBuilderAPI_MakeEdge(gp_Pnt(*start), gp_Pnt(*b)).Edge())
+                start = b
+            continue
         if np.linalg.norm(p1 - start) > 1e-6:
             mw.Add(BRepBuilderAPI_MakeEdge(gp_Pnt(*start), gp_Pnt(*p1)).Edge())
         d = (w - u) / np.linalg.norm(w - u)

@@ -5,16 +5,19 @@ apparatdosorna. Vägarna (dragning.py):
 - mellan dosor på olika väggar upp i väggen, i innertakets installationsskikt och ned i den andra väggen;
 - mellan dosor intill varandra eller på samma vägg och höjd rakt i väggen (regelfacket eller installationsskiktet);
 - köksbänkens uttag i ytterväggens installationsskikt, under och över fönstren och runt hörnet mellan 3NV och 3SV;
-- öns uttag och brandlarmets matningsdosa genom mellanbjälklaget.
+- öns uttag och brandlarmets matningsdosa genom mellanbjälklaget, raka och sneda med mjuka böjar runt
+  grupprören och deras stigare (bjalklag/ingjutna.py).
 """
 from __future__ import annotations
 
 from ..montering import BJALKLAG, Vek, i_tak, i_vagg, langs_vaggen, vid_tak
-from .dragning import upp_ur_bjalklaget, via_taket
+from .dragning import upp_till_dosan, via_taket
 from .katalog import FXP16
 from .punkter import Punkt, Ror
 from .rum import allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum
-from .bjalklag.mellanbjalklag import D01, PUNKTER as MB_PUNKTER
+from .bjalklag import mellanbjalklag as MB
+from .bjalklag.ingjutna import Ingjutning
+from .bjalklag.mellanbjalklag import PUNKTER as MB_PUNKTER
 
 NAMN = "Gruppernas rör"
 
@@ -39,11 +42,21 @@ def _i_ytterväggen(kod: str, y_eller_x: float, z: float) -> Vek:
     return i_vagg(kod, langs_vaggen(kod, p), z)
 
 
-def _bjalklag(a: str, b: str) -> tuple[Vek, ...]:
-    """Ned från dosan a till bjälklaget, i elrörens nivå (först längs x, sedan y) och upp till dosan b."""
-    ua, ub = upp_ur_bjalklaget(_P[a]), upp_ur_bjalklaget(_P[b])
-    z = BJALKLAG["MB"]
-    return ua[1], ua[0], (ub[0][0], ua[0][1], z), ub[0], ub[1]
+_ING = Ingjutning(MB.STIGARE, (), MB.ROR)
+
+
+def _genom_bjalklaget(rid: str, a: str, b: str) -> Ror:
+    """Röret från dosan a ned i bjälklaget, där raka och sneda (bjalklag/ingjutna.py) och upp i dosan b (eller till en
+    punkt i källarens tak)."""
+    ua = upp_till_dosan(_P[a])
+    if b in _P and _P[b].lage.ref != "MB":
+        ub = upp_till_dosan(_P[b])
+        return _ING.dra(rid, FXP16, a, b, ua[0][:2], ub[0][:2], fore=ua[1:][::-1], efter=ub[1:])
+    m = _P[b].lage.punkt
+    ro = _ING.dra(rid, FXP16, a, b, ua[0][:2], (m[0], m[1]), fore=ua[1:][::-1])
+    r = FXP16.ytterdiameter / 2                  # och rakt ned i källarens tak: en stigare genom den undre nivån
+    _ING.stigare.append((m[0], m[1], r, m[2], ro.via[-1][2] + r))
+    return ro
 
 
 _Z_HOG = 2300.0                                  # köksbänkens rör över fönstren (uttagen ovanför dem)
@@ -51,7 +64,6 @@ _Y = {k: _P[k].lage.punkt[1] for k in ("KO-U8", "KO-U9")}
 _X10 = _P["KO-U10"].lage.punkt[0]
 _HORN = (_i_ytterväggen("3NV", 0.0, 0.0)[0], _i_ytterväggen("3SV", 0.0, 0.0)[1])
 _Z_BANK = _P["KO-U9"].lage.punkt[2]
-_d01 = upp_ur_bjalklaget(_P["AL-B2"])
 _Y_FLAKT = kok.Y_HALL - 230.0                    # bredvid köksfläktens kanal genom innertaket
 _vid_flakten = vid_tak("3NV", langs_vaggen("3NV", (0.0, _Y_FLAKT, 0.0)))
 
@@ -59,8 +71,7 @@ ROR = [
     _tak("G01", 1, "HA-B1", "VR-B1", ((400.0, 10850.0),)),          # runt takfönstret TF3
     _rakt("G01", 2, "VR-B1", "VR-B2"),
     _rakt("G02", 1, "AL-B1", "AL-B2"),
-    Ror("G02-R2", FXP16, "AL-B2", "BL-D01",
-        via=(_d01[1], _d01[0], (_d01[0][0], D01[1], BJALKLAG["MB"]), (D01[0], D01[1], BJALKLAG["MB"]))),
+    _genom_bjalklaget("G02-R2", "AL-B2", "BL-D01"),
     _tak("G02", 3, "AL-B1", "GA-B1"),
     _rakt("G02", 4, "GA-B1", "KO-B1"),
     _rakt("G02", 5, "KO-B1", "KO-B2"),
@@ -84,10 +95,12 @@ ROR = [
     Ror("G12-R3", FXP16, "KO-U2", "KO-U9", via=(_i_ytterväggen("3NV", _Y["KO-U9"], _Z_HOG),)),
     Ror("G12-R4", FXP16, "KO-U9", "KO-U10", via=((*_HORN, _Z_BANK),)),
     Ror("G12-R5", FXP16, "KO-U10", "KO-U3", via=(_i_ytterväggen("3SV", _X10, _Z_HOG),)),
-    Ror("G13-R1", FXP16, "KO-U11", "KO-U12", via=_bjalklag("KO-U11", "KO-U12")),
+    _genom_bjalklaget("G13-R1", "KO-U11", "KO-U12"),
     _rakt("G15", 1, "KO-U4", "KO-U5"),
     # köksfläktens uttag inne i skorstenskåpan: ned i 3NV bredvid kanalen och i installationsskiktet till uttaget
     Ror("G15-R2", FXP16, "KO-U5", "KO-U13",
         via=(*via_taket(_P["KO-U5"].lage, _P["KO-U13"].lage)[:2], *_vid_flakten[::-1],
              _i_ytterväggen("3NV", _Y_FLAKT, _P["KO-U13"].lage.punkt[2]))),
 ]
+# stigarna genom bjälklaget (grupprörens och kedjornas), som hinder för källarens rör
+STIGARE = _ING.stigare

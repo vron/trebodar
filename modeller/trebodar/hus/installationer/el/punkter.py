@@ -71,13 +71,16 @@ Punkt = Lampa | Apparat | Dosa
 class Ror:
     """Rör från punkten fran till punkten till genom brytpunkterna via (montering: i_tak, i_vagg, vid_tak,
     i_bjalklag). slag: vad röret har i sig, 230 V (gruppens ledare), den dimrade fasen från en dimmer till
-    drivdonen ("230 V dimrad") eller 24 V från ett drivdon till ljuslinjerna (egna rör, skilda från 230 V)."""
+    drivdonen ("230 V dimrad") eller 24 V från ett drivdon till ljuslinjerna (egna rör, skilda från 230 V).
+    radier: böjens radie i varje brytpunkt (de ingjutna rörens mjuka böjar, ../plattan.py); 0 eller saknas: rörtypens
+    minsta böjradie."""
     id: str
     typ: Rortyp
     fran: str
     till: str
     via: tuple[Vek, ...] = ()
     slag: str = "230 V"
+    radier: tuple[float, ...] = ()
 
 
 @dataclass(frozen=True)

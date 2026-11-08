@@ -496,7 +496,7 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: Sequence[Omrade] =
 
 TABELL_EL = (226.0, 14.0, 48.0)       # AR-03.1:s punkttabell i två spalter till höger på ritytan, över detaljen
 DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # el: rören ur gruppcentralen (x0, x1, y0, y1)
-DETALJ_LC = (2440.0, 3020.0, 7690.0, 7935.0)         # el: rören ur drivdonsskåpet på KL8
+DETALJ_LC = (3090.0, 3670.0, 7690.0, 7935.0)         # el: rören ur drivdonsskåpet på KL8 (öster om P4)
 DETALJ_VATTEN = (4150.0, 4500.0, 7980.0, 9080.0)     # tappvatten: stigarna ur källaren vid V19
 DETALJ_KOK = (13280.0, 13520.0, 8300.0, 8900.0)      # köket vid V14: hylsorna, diskbänkens avlopp, UF1
 DETALJER = (DETALJ, DETALJ_LC, DETALJ_VATTEN, DETALJ_KOK)

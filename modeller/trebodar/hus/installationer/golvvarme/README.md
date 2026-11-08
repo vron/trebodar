@@ -49,8 +49,11 @@ liksom nivåerna i betongen (`I_BETONGEN` i [`../montering.py`](../montering.py)
 - Zonens yta är zonen på golvet (mellanbjälklaget utan plan 1:s väggar, trapphålet och kaminen; bottenplattan utan
   källarväggarna, källarens innerväggar KL1–KL10 och trappan), 150 mm (`MARGINAL`) från väggar och från zonens
   kanter, utan tilloppen och det som ska
-  hållas fritt: järnen som går genom rörens nivå (`JARN`), tappvattnets rör upp ur bjälklaget, elens rör i det och
-  avloppets rör och golvbrunn genom det (`FRITT`), och på källarens golv värmepumpen och servisen.
+  hållas fritt: järnen som går genom rörens nivå (`JARN`), tappvattnets rör upp ur bjälklaget, elens rör där de går
+  genom rörens nivå (lodrätt, där de byter nivå och där de går under eller över ett annat rör) och avloppets rör och
+  golvbrunn genom det (`FRITT`), och på källarens golv värmepumpen och servisen. Där en slinga skulle gå genom ett
+  sådant hål mitt i zonen förlängs hålet längs raderna till zonens kant, så att raderna slutar vid det. Elrören byter
+  inte nivå och korsar inte varandra i tilloppens stråk (`el/bjalklag/ingjutna.golvvarmens_strak`).
 - Järnen i rörens nivå: källarväggarnas lodräta järn når upp i mellanbjälklaget (R-05) och delar plan 1:s golv i delar
   (allrummet söder om V4–V6, hallen och vardagsrummet söder om V3, resten); balkarnas överkantsjärn under V4–V6, V15 och
   V19 ligger i bottenplattans rörnivå (R-04), så källarrummet söder om V4–V6 värms inte. Slingorna stannar i sin del;

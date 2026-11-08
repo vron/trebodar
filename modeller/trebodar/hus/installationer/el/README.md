@@ -23,8 +23,8 @@ cd verktyg/modellering
 | [`katalog.py`](katalog.py) | Produkterna: armaturerna (SG Armaturen Junistar Exclusive 903201, infälld; Tube Mini R 320696, tub på stam; pendlarna Louis Poulsen PH 5 och VL45 Radiohus Ø175, Ø250 och Ø370, Konsthantverk Stav och en glob i opalglas; en vägglampa med glob på arm; LEDVANCE PANEL COMPACT 600, utanpåliggande panel på betong med en ingjuten dosa ovanför; ljuslinjerna i ask, `ljuslinje(längd)` med profilen `ASKPROFIL`, egen tillverkning), drivdonet för ljuslinjerna (Hide-a-lite LED-dimtrafo FDIM 24V 60W, förslag), LED-dimrarna (Schneider Exxact, förslag) och tills vidare allmänna dosor, apparater och rör |
 | [`punkter.py`](punkter.py) | Beståndsdelarna (`Lampa`, `Apparat`, `Dosa`, `Tandgrupp`, `Ror`, `Rum`), riktningarna (`mot` en punkt, `lutad` mot en vägg), uttag ovanför fönster (`ovan_fonstret`) och pendelns sladd (`pendeln`); lägena på husets ytor (`tak`, `kallartak`, `vagg` och rörens brytpunkter `i_tak`, `i_vagg`, `vid_tak`, `i_bjalklag`) i installationernas gemensamma [`../montering.py`](../montering.py) |
 | [`lakt.py`](lakt.py) | Innertakets läkt ur innertakets geometri: `mellan_lakten` flyttar en armatur mitt emellan läkten |
-| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52); i källaren teknikrummet (centralen och värmepumpen) och källarens övriga rum ([`rum/kallare.py`](rum/kallare.py), #51: panelerna, ljuslinjerna, brytarna, dimrarna, uttagen och deras rör och grupprör, ingjutna i bjälklaget, och 24 V-kretsarna) |
-| `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag: gruppernas rör från centralen (mellanbjälklaget) och brandlarmets matningsdosa |
+| `rum/<rum>.py` | Ett rum: dess punkter, tändgrupper och rören i rummets väggar och innertak. Plan 1 efter belysningsplanen (ärende #8): allrum, kök, gång, hall, vardagsrum, sovrum, kontor, sovrum och kontor i högra huskroppen, gästrum; badrummet (ärende #52); i källaren teknikrummet (centralen och värmepumpen) och källarens övriga rum ([`rum/kallare.py`](rum/kallare.py), #51: ljuslinjerna, dimrarna, rören och 24 V-kretsarna; punkterna, rummen, panelerna, brytarna och uttagen i [`rum/kallarens_punkter.py`](rum/kallarens_punkter.py)) |
+| `bjalklag/<bjälklag>.py` | Rören ingjutna i ett bjälklag: kartorna och vägarna (`ingjutna.py`, på [`../plattan.py`](../plattan.py)), gruppernas rör från centralen i knippen (mellanbjälklaget) och brandlarmets matningsdosa |
 | [`grupper.py`](grupper.py) | Gruppcentralen och grupperna: säkring, faser, ledarnas area, jordfelsskydd och punkterna i rörens ordning |
 | [`kedjor.py`](kedjor.py) | Rören mellan gruppernas punkter: genom innertaket, längs väggarna och genom bjälklaget |
 | [`dragning.py`](dragning.py) | Rörens vägar: genom innertaket, i väggen och upp ur bjälklaget mellan järnen |
@@ -58,21 +58,29 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   (apparater och dosor, lamporna matas genom brytarna) i rörens ordning: ett rör från centralen till den första
   ([`bjalklag/mellanbjalklag.py`](bjalklag/mellanbjalklag.py), `Gnn-M`, ingjutet i mellanbjälklaget) och därifrån rör
   mellan punkterna ([`kedjor.py`](kedjor.py), `Gnn-Rn`): i väggarna och innertaket, förgrenat i apparatdosorna.
-- **Rören i mellanbjälklaget**: de klena (Ø16) i elrörens övre nivå, över tappvattnet och golvvärmen, hällens (Ø20) i
-  den undre, fritt från tappvattnet (`../montering.BJALKLAG`). De går upp ur centralens ovansida i två rader mellan
-  underkantsnätets järn (den bakre i V3:s cellplast) och i stråk (`../strak`, en fil per rör) genom glipan mellan
-  källarväggarnas järn: norrut till badrummet och sovrummet, österut till allrummet, köket och högra huskroppen, och
-  söderut över V3 till hallen, ön och hällen. Rören håller sig utanför ytterväggarnas vinkeljärn (R-06 pos 14), som
-  går in i bjälklaget vinkelrätt mot väggarna, och korsar dem bara vinkelrätt; de går upp i väggarnas regelfack eller
-  ytterväggarnas installationsskikt mellan överkantsnätets järn ([`dragning.py`](dragning.py)).
+- **Rören i mellanbjälklaget** (#87): raka och sneda direkt från punkt till punkt, med mjuka böjar med stor radie
+  (upp till 600 mm) runt det de inte får gå genom, inga räta vinklar i plattan
+  ([`../plattan.py`](../plattan.py), [`bjalklag/ingjutna.py`](bjalklag/ingjutna.py)). Två nivåer
+  (`../montering.BJALKLAG`): plan 1:s klena rör (Ø16) i den övre, över tappvattnet och golvvärmen, och hällens (Ø20)
+  och källarens i den undre, runt tappvattnets och avloppets rör. Rören går utanför pelarnas kontrollsnitt för
+  genomstansning (2d) och helst utanför genomstansningszonen (6d), genom banden av vinkeljärn vid väggarna bara mellan
+  järnen, mellan källarväggarnas lodräta järn och runt allt som går lodrätt genom nivån (andra rörs stigare, hylsor,
+  ventilationen, golvbrunnen). De dras i tur och ordning och går helst inte genom de rör som redan är dragna: korsar
+  två ändå varandra i samma nivå går det ena under (den övre nivån) eller över (den undre) det andra i en kort svacka.
+  Nivån byts och rören korsar varandra inte i golvvärmens stråk (golvvärmens slingor går runt svackorna och ramperna,
+  stråken ligger fast). Gruppernas rör från centralen går upp ur dess ovansida i två rader mellan underkantsnätets järn
+  (den bakre i V3:s cellplast) och i knippen åt var sitt håll, rakt ut ur bandet över V3 och vidare som ett brett rör
+  med en fil per rör ([`bjalklag/mellanbjalklag.py`](bjalklag/mellanbjalklag.py)); varje rör lämnar sitt knippe i en
+  mjuk båge snett mot sin punkt, det som lämnar först ytterst, så att rören inte korsar varandra. Källarens grupper
+  G17, G18 och G24 går i samma knippen ([`rum/kallarens_punkter.py`](rum/kallarens_punkter.py), `FRAN_CENTRALEN`).
+  Rören går upp i väggarnas regelfack eller ytterväggarnas installationsskikt mellan överkantsnätets järn
+  ([`dragning.py`](dragning.py)).
 - **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
   (mellan underkantsnätets järn, fria från rören i bjälklaget och pelarnas genomstansningszoner). Rören från brytarna
-  går rakt upp ur dosorna i KL-väggarnas regelfack och i bjälklagets undre nivå där den är fri, annars den övre
-  (`i_bjalklaget` väljer per sträcka och prövar mot plan 1:s elrör, tappvattnet, avloppet och järnen). Nivån byts bara
-  där golvvärmen inte går, eftersom slingorna bara undviker lodräta elrör vid väggarna. Det stora rummets grupp (G17)
-  kommer från den bakre raden över centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och röret till
-  brytaren korsar stråket E, tappvattnet till UF1 och avloppet AV20 i den övre nivån vid x 13 090 (under köksbänken).
-  De små rummens grupp (G18) kommer i stråket S och går ned i KL1, och fortsätter till dimrarna i de trevliga rummen.
+  går rakt upp ur dosorna i KL-väggarnas regelfack in i bjälklaget, helst i dess undre nivå (under plan 1:s rör), och in
+  i en ingjuten dosa från sidan i den undre nivån. Det stora rummets grupp (G17) kommer från den bakre raden över
+  centralen till en ingjuten kopplingsdosa i rummets tak (KA-D1), och därifrån till brytaren och panelerna. De små
+  rummens grupp (G18) kommer från den främre raden och går ned i KL1, och fortsätter till dimrarna i de trevliga rummen.
 - **Källarens trevliga rum** ([`rum/kallare.py`](rum/kallare.py), #51): trapphallen, tvättstugan, de två små rummen
   söder om V4–V6 och rummet norr om trapphallen har ljuslinjer i ask utanpå betongtaket (egen tillverkning, se
   Armaturerna), parallella med väggarna och efter hur rummen används: längs trapphallen och en tvärs ned mot trappans
@@ -81,9 +89,13 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   som slutar i taket under profilens ände, pluggade och tätade vid gjutningen och täckta av armaturen, och ledaren
   går genom profilen till nästa linje. Drivdonen (24 V CV, fasdimbara med bakkant, ett per tändgrupp) sitter samlade
   och åtkomliga i drivdonsskåpet TK-LC på KL8 i teknikrummet (`../teknikrum.DRIVDONSSKAP`); vanliga vriddimrar vid
-  ingångarna dimrar dem, och den dimrade fasen går i ett eget rör från varje dimmer till skåpet. Skåpets rör går upp
-  i en rad (detaljen på AR-03.1) och i ett band i bjälklagets undre nivå österut, där vart och ett viker av; G18:s rör
-  mellan dimrarna går i den övre nivån där de korsar dem, och nivån byts bara utanför golvvärmens stråk.
+  ingångarna dimrar dem, och den dimrade fasen går i ett eget rör från varje dimmer till skåpet. Skåpet sitter öster om
+  pelaren P4 i KL8, så att rören går upp ur dess ovansida i en rad (detaljen på AR-03.1) utanför pelarens
+  kontrollsnitt; därifrån går de i knippen i bjälklagets undre nivå, norrut och söderut ur raden mot sina punkter.
+  Knippena dras först, sedan G18:s rör mellan dimrarna, helst i den övre nivån (över knippena), och rören mellan
+  ljuslinjerna. Dimrarna KA-B1 och KA-B4 på KL4 sitter så långt från pelarna P12 och P11 att deras rör går in i
+  bjälklaget utanför kontrollsnitten; KA-B6 på KL1 och KA-B2 på KL3 sitter mellan sin dörr och en pelare (P8, P10),
+  så att deras rör går in i bjälklaget innanför kontrollsnittet och leds rakt ut ur det.
 - **24 V-kretsarna** (`KRETSAR` i [`rum/kallare.py`](rum/kallare.py), `Krets`): en per tändgrupp, med drivdonet i
   skåpet, dimmerns kanal och ljuslinjerna. `Installation.kretsresultat` räknar lasten, rören från drivdonet som ett
   träd (från skåpet till en ljuslinjes rörände och vidare, med ledaren genom profilerna), spänningsfallet till varje
@@ -167,7 +179,11 @@ kanalen och diffusorn.
   ryms i innertaket (gips och installationsskikt), och en armatur som inte får täckas med isolering har sin fria
   höjd och sin luft i läktens fack; hålet och drivdonet ligger inte på installationsskiktets läkt; pendlarna når ned
   (sladden minst 50 mm under takkoppen);
-- rören: summan av böjarna mellan dosorna (mer än 270° är svårt att dra) och att varje punkt har ett rör;
+- rören: summan av böjarna mellan dosorna, där röret går upp eller ned ur bjälklaget, in i en vägg, centralen eller en
+  dosa och skarpare hörn (mer än 270° är svårt att dra), och för sig de mjuka svepen i bjälklaget (radie minst 300 mm,
+  `installation.MJUK_RADIE`; anmärkning över 270°), och att varje punkt har ett rör;
+- rören i bjälklaget: att de inte går i varandra (mittlinjerna i 3D minst radierna isär, utom där två rör möts i
+  samma dosa) eller genom en armaturs ingjutna dosa;
 - grupperna: varje apparat och dosa (utom lamporna, centralen och ingjutningsdosorna) i en grupp, ett rör från
   centralen till gruppens första punkt, gruppens punkter hopkopplade med rör, och högst tio uttag på en grupp 10 A;
 - krockarna (modellen byggs): rören och dosorna mot armeringsjärnen och de andra installationerna är fel (köksfläktens
@@ -193,12 +209,13 @@ planer ur modellens snitt (STEP-filen), med etiketterna där de inte täcker sym
   (apparater intill varandra på samma vägg bredvid varandra med en gemensam etikett), tändgruppernas styrning
   (streckade bågar från brytaren till lamporna, färg per tändgrupp), rören i väggar och innertak, och tabeller över
   armaturerna och tändgrupperna;
-- **E-01.2 rören i mellanbjälklaget**: de ingjutna rören med numrerade punkter, var rören går upp i väggarna ovanför,
-  ingjutningsdosorna och ljuslinjernas rörändar i källarens tak, med plan 1:s väggar streckade, och rörens innehåll
-  (230 V, dimrad, 24 V med ledarna);
+- **E-01.2 rören i mellanbjälklaget**: de ingjutna rören med de mjuka böjarna och brytpunkterna numrerade, var rören
+  går upp i väggarna ovanför, ingjutningsdosorna och ljuslinjernas rörändar i källarens tak, med plan 1:s väggar
+  streckade, och rörens innehåll (230 V, dimrad, 24 V med ledarna), böjar och svep;
 - **E-01.3 förteckningen** över plan 1:s apparater och dosor och rören i väggar och innertak;
 - **E-01.4 gruppförteckningen**: centralen och grupperna med säkring, faser, area, jordfelsskydd, punkter och rör;
-- **E-01.5 rörens punkter** i mellanbjälklaget, numrerade som på E-01.2, med koordinaterna (K-05);
+- **E-01.5 rörens punkter** i mellanbjälklaget, numrerade som på E-01.2: brytpunkterna (där rörets raka sträckor
+  möts) med koordinaterna (K-05) och böjarnas radier;
 - **E-01.6 källarens elplan**: armaturerna (ljuslinjerna i sin längd med rörändarna), apparaterna och dosorna,
   drivdonsskåpet, tändgruppernas styrning och rören i väggarna (rören i bjälklaget på E-01.2), och drivdonen och
   24 V-kretsarna med last, ledare, kabellängd och spänningsfall.

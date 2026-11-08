@@ -87,11 +87,12 @@ class Cylinder(Form):
 
 @dataclass(frozen=True)
 class Svep(Form):
-    """Rör: en cirkel med radien svept längs polylinjen genom punkterna, med hörnen avrundade med bojradien (mindre där
-    sträckorna är för korta för den)."""
+    """Rör: en cirkel med radien svept längs polylinjen genom punkterna, med hörnen avrundade med bojradien eller
+    hörnets egen radie (radier, en per punkt; 0: bojradien), mindre där sträckorna är för korta för den."""
     punkter: tuple[Vek, ...]
     radie: float
     bojradie: float
+    radier: tuple[float, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -196,9 +197,10 @@ def cylinder(radie: float, hojd: float, origo: Sequence[float] = (0.0, 0.0, 0.0)
     return Cylinder(float(radie), float(hojd), _v(origo))
 
 
-def svep(punkter: Sequence[Sequence[float]], radie: float, bojradie: float) -> Svep:
-    """Rör längs polylinjen (punkter i föräldern), med avrundade hörn."""
-    return Svep(tuple(_v(q) for q in punkter), float(radie), float(bojradie))
+def svep(punkter: Sequence[Sequence[float]], radie: float, bojradie: float, radier: Sequence[float] = ()) -> Svep:
+    """Rör längs polylinjen (punkter i föräldern), med avrundade hörn (radier: hörnens egna, 0 för bojradien)."""
+    return Svep(tuple(_v(q) for q in punkter), float(radie), float(bojradie),
+                tuple(float(r) for r in radier) if any(r > 0 for r in radier) else ())
 
 
 def polyeder(horn: Sequence[Sequence[float]], ytor: Sequence[Sequence[int]]) -> Polyeder:

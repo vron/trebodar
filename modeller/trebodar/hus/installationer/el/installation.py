@@ -7,6 +7,7 @@ i MODULER.
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cache
 from types import ModuleType
@@ -20,9 +21,11 @@ from trebodar.hus.invandigt.skikt import LAKT
 from . import kedjor, lakt
 from .grupper import GRUPP, GRUPPER, HUVUDBRYTARE, OVERSPANNINGSSKYDD
 from .bjalklag import mellanbjalklag
+from .bjalklag.ingjutna import korsningar
 from shapely.geometry import LineString, Point
 
 from ..montering import KALLARTAK, PLAN, TAKSKIVOR, Vek, enhet, flytt, langs_taket
+from ..plattan import bage_punkter
 from ..teknikrum import DRIVDON, DRIVDON_I_SKAPET
 from .punkter import (Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, anslutning, drivdonet, linjen, linsen,
                       pendeln)
@@ -75,15 +78,42 @@ class Installation:
     def styrs_av(self, tand: str) -> list[str]:
         return [p.id for p in self.punkter.values() if isinstance(p, Apparat) and tand in p.styr]
 
-    def vag(self, r: Ror) -> list[Vek]:
-        """Rörets mittlinje: från punktens anslutning (en ljuslinjes rörände i dess andra ände, mot nästa) genom
-        brytpunkterna till den andra punktens, i innertakets installationsskikt över nocken och dalarna
-        (montering.langs_taket); vid centralen och drivdonsskåpet börjar och slutar röret på skåpets ovansida."""
+    def _med_radier(self, r: Ror) -> list[tuple[Vek, float]]:
+        """Rörets brytpunkter med böjarnas radier (0: rörtypens minsta): från punktens anslutning (en ljuslinjes
+        rörände i dess andra ände, mot nästa) genom brytpunkterna till den andra punktens, i innertakets
+        installationsskikt över nocken och dalarna (montering.langs_taket); vid centralen och drivdonsskåpet börjar och
+        slutar röret på skåpets ovansida, och i en ingjuten dosa där det går in i dosan från sidan."""
         fran, till = self.punkter[r.fran], self.punkter[r.till]
-        start = [] if isinstance(fran, Dosa) and fran.typ.slag in SKAP and r.via else [anslutning(fran, ut=True)]
-        slut = [] if isinstance(till, Dosa) and till.typ.slag in SKAP and r.via else [anslutning(till)]
-        p = [*start, *r.via, *slut]
-        return [p[0], *(q for a, b in zip(p, p[1:]) for q in langs_taket(a, b)[1:])]
+        rad = list(r.radier) + [0.0] * (len(r.via) - len(r.radier))
+        p: list[tuple[Vek, float]] = list(zip(r.via, rad))
+        if not (isinstance(fran, Dosa) and fran.typ.slag in SKAP and r.via) and not _i_dosan(fran, r.via[:1]):
+            p.insert(0, (anslutning(fran, ut=True), 0.0))
+        if not (isinstance(till, Dosa) and till.typ.slag in SKAP and r.via) and not _i_dosan(till, r.via[-1:]):
+            p.append((anslutning(till), 0.0))
+        ut = [p[0]]
+        for (a, _), (b, rb) in zip(p, p[1:]):
+            mellan = langs_taket(a, b)[1:]
+            ut += [(q, 0.0) for q in mellan[:-1]] + [(mellan[-1], rb)]
+        return ut
+
+    def vag(self, r: Ror) -> list[Vek]:
+        """Rörets brytpunkter (_med_radier)."""
+        return [q for q, _ in self._med_radier(r)]
+
+    def radier(self, r: Ror) -> list[float]:
+        """Böjarnas radier i rörets brytpunkter (vag), 0 där röret har rörtypens minsta."""
+        return [rr for _, rr in self._med_radier(r)]
+
+    def mittlinje(self, r: Ror) -> list[Vek]:
+        """Rörets mittlinje med de mjuka böjarna i plan rundade (bågar ur punkter)."""
+        p = self._med_radier(r)
+        ut: list[Vek] = [p[0][0]]
+        for (a, _), (b, rb), (c, _) in zip(p, p[1:], p[2:]):
+            if rb > 0.0 and abs(a[2] - b[2]) < 0.5 and abs(b[2] - c[2]) < 0.5:
+                ut += [(x, y, b[2]) for x, y in bage_punkter(a[:2], b[:2], c[:2], rb)]
+            else:
+                ut.append(b)
+        return [*ut, p[-1][0]] if len(p) > 1 else ut
 
     def kretsresultat(self) -> list[Kretsresultat]:
         """24 V-kretsarna: lasten, drivdonet, rören från drivdonet (ett träd: från skåpet till en ljuslinjes rörände,
@@ -198,9 +228,14 @@ class Installation:
                     fel.append(f"{ro.id}: punkten {a} finns inte")
             if ro.fran in self.punkter and ro.till in self.punkter:
                 anslutna |= {ro.fran, ro.till}
-                b = bojar(self.vag(ro))
+                b = bojar(self.vag(ro), self.radier(ro))
+                sv = bojar(self.vag(ro), self.radier(ro), svep=True)
                 if b > 270.0 + 1e-6:
-                    anm.append(f"{ro.id}: böjarna är {b:.0f}° sammanlagt (mer än 270°: svårt att dra, dosa emellan?)")
+                    anm.append(f"{ro.id}: böjarna är {b:.0f}° sammanlagt (mer än 270°: svårt att dra, dosa emellan?)"
+                               + (f", och svepen i plattan {sv:.0f}°" if sv > 0.5 else ""))
+                elif sv > SVEP_MAX + 1e-6:
+                    anm.append(f"{ro.id}: svepen i plattan är {sv:.0f}° sammanlagt (mer än {SVEP_MAX:.0f}°: långt att "
+                               f"dra, och böjarna {b:.0f}°)")
         for p in self.punkter.values():
             if p.id not in anslutna:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
@@ -279,7 +314,7 @@ class Installation:
         """Rören i mellanbjälklaget som går i varandra (mittlinjerna närmare än radierna, utom där två rör möts i
         samma punkt) eller genom en armaturs ingjutna dosa."""
         bitar = [(r.id, r.fran, r.till, a, b, r.typ.ytterdiameter / 2) for r in self.ror.values()
-                 for a, b in zip(self.vag(r), self.vag(r)[1:])
+                 for a, b in zip(self.mittlinje(r), self.mittlinje(r)[1:])
                  if max(a[2], b[2]) > KALLARTAK + 1.0 and min(a[2], b[2]) < PLAN[1] - 1.0]
         dosor = [(p.id, p.lage.punkt, p.typ.dosa.diameter / 2) for p in self.punkter.values()
                  if isinstance(p, Lampa) and p.typ.dosa is not None]
@@ -350,8 +385,9 @@ class Installation:
         return fel, anm
 
     def utdrag(self) -> dict[str, object]:
-        """Allt som ritningarna och renderingen behöver, som JSON: rum, typer, punkter, tändgrupper, rör (24 V-rörens
-        ledare ur kretsarna) och 24 V-kretsarna."""
+        """Allt som ritningarna och renderingen behöver, som JSON: rum, typer, punkter, tändgrupper, rör (mittlinjen
+        med de mjuka böjarna i plattan rundade, brytpunkterna och deras radier, böjarna och svepen, 24 V-rörens ledare
+        ur kretsarna) och 24 V-kretsarna."""
         kretsar = self.kretsresultat()
         ledare = {rid: k.area for k in kretsar for rid in k.ror}
         typer: dict[str, dict[str, object]] = {}
@@ -386,8 +422,10 @@ class Installation:
                                                if isinstance(p, Lampa) and p.tand == k]}
                                 for k, t in self.tandgrupper.items()},
                 "ror": {k: {"typ": r.typ.kod, "diameter": r.typ.ytterdiameter, "fran": r.fran, "till": r.till,
-                            "modul": self.modul[k], "vag": [list(v) for v in self.vag(r)],
-                            "langd": langd(self.vag(r)), "bojar": bojar(self.vag(r)), "slag": r.slag,
+                            "modul": self.modul[k], "vag": [list(v) for v in self.mittlinje(r)],
+                            "brytpunkter": [list(v) for v in self.vag(r)], "radier": self.radier(r),
+                            "langd": langd(self.mittlinje(r)), "bojar": bojar(self.vag(r), self.radier(r)),
+                            "svep": bojar(self.vag(r), self.radier(r), svep=True), "slag": r.slag,
                             "ledare": ledare.get(k),
                             "grupp": k.split("-")[0] if k.split("-")[0] in GRUPP else None}
                         for k, r in self.ror.items()},
@@ -426,10 +464,28 @@ def langd(vag: list[Vek]) -> float:
     return sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
 
 
-def bojar(vag: list[Vek]) -> float:
-    """Summan av riktningsändringarna längs röret [°]."""
+def _i_dosan(p: Punkt, q: Sequence[Vek]) -> bool:
+    """Om punkten q (rörets ände) ligger i den ingjutna dosan p (in i dosan från sidan): inom dosans radie i plan och
+    mellan dess under- och överkant."""
+    dosa = p.typ.dosa if isinstance(p, Lampa) else p.typ if isinstance(p, Dosa) else None
+    if dosa is None or dosa.slag != "ingjutningsdosa" or not q:
+        return False
+    m = p.lage.punkt
+    return math.dist(q[0][:2], m[:2]) <= dosa.diameter / 2 and m[2] - 1.0 <= q[0][2] <= m[2] + dosa.djup + 1.0
+
+
+MJUK_RADIE = 300.0                           # böjar med minst så stor radie (plattans svep, #87) räknas för sig
+SVEP_MAX = 270.0                             # och svepen högst så mycket sammanlagt (anmärkning)
+
+
+def bojar(vag: list[Vek], radier: list[float] | None = None, svep: bool = False) -> float:
+    """Summan av riktningsändringarna längs röret [°]; med radierna (en per brytpunkt) bara böjarna med mindre radie
+    än MJUK_RADIE (där röret går upp eller ned ur plattan, in i en vägg, centralen eller en dosa och skarpare hörn),
+    eller med svep bara de andra: de mjuka svepen i plattan."""
     s = 0.0
-    for a, b, c in zip(vag, vag[1:], vag[2:]):
+    for i, (a, b, c) in enumerate(zip(vag, vag[1:], vag[2:])):
+        if radier is not None and (radier[i + 1] >= MJUK_RADIE) != svep:
+            continue
         u = tuple(y - x for x, y in zip(a, b))
         v = tuple(y - x for x, y in zip(b, c))
         if math.hypot(*u) > 1e-6 and math.hypot(*v) > 1e-6:
@@ -455,6 +511,9 @@ def installation() -> Installation:
                     raise ValueError(f"id {o.id} finns två gånger ({m.NAMN})")
                 samling[o.id] = o
                 modul[o.id] = m.NAMN
+    # där två rör i bjälklaget ändå korsar varandra i samma nivå går det ena förbi det andra (bjalklag/ingjutna.py)
+    for ro in korsningar(list(ror.values())):
+        ror[ro.id] = ro
     return Installation(rum, punkter, tandgrupper, ror, modul, kretsar)
 
 

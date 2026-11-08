@@ -87,12 +87,13 @@ _GC = kallarvagg("V3", X_GC, Z_GC_TOPP - GC_MATT[2] / 2 - PLAN[0], -1)
 GRUPPCENTRAL = Utrustning("TK-GC", "Gruppcentral, fyra rader (72 moduler), utanpåliggande (ej vald)", _GC,
                           GC_MATT, {"topp": (X_GC, _GC.punkt[1] - GC_MATT[1] / 2, Z_GC_TOPP)}, produkt="GRUPPCENTRAL")
 
-# drivdonsskåpet för källarens ljuslinjer (el/rum/kallare.py, #51) på KL8:s södra sida mitt emot centralen, väster om
-# avloppet AV7 i KL8 och norr om ventilationens kanal FF3-K2 och dess don: drivdonen 24 V (fasdimbara, ett per
-# tändgrupp och kanal), de dimrade faserna från dimrarna in och 24 V ut till ljuslinjerna, rören rakt upp ur skåpets
-# ovansida in i bjälklaget; åtkomligt framifrån
+# drivdonsskåpet för källarens ljuslinjer (el/rum/kallare.py, #51) på KL8:s södra sida öster om pelaren P4 i KL8, så
+# att rören rakt upp ur skåpets ovansida går in i bjälklaget utanför pelarens kontrollsnitt för genomstansning (#87),
+# och väster om knycken KL9: drivdonen 24 V (fasdimbara, ett per tändgrupp och kanal), de dimrade faserna från
+# dimrarna in och 24 V ut till ljuslinjerna; åtkomligt framifrån (avloppets stam AV7 i KL8 bakom skåpet, med
+# rensningen under det)
 _KL8 = KL_VAGGAR["KL8"]
-X_LC = 2730.0
+X_LC = 3380.0
 LC_MATT = (500.0, 130.0, 600.0)                 # bredd, djup, höjd
 Z_LC_TOPP = -300.0
 _LC = Montering((X_LC, _KL8.c + _KL8.h + GIPS_T, Z_LC_TOPP - LC_MATT[2] / 2), (0.0, 1.0, 0.0), "vagg", "KL8")

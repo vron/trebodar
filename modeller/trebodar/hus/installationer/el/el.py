@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 
-from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, varv
+from modellering import Del, Form, Montage, Placering, box, cylinder, polyeder, svep, varv
 
 from trebodar.byggdelar.ror import stang
 
@@ -21,7 +21,7 @@ from trebodar.material import (APPARAT, ARMATUR, ARMATUR_SVART, ARMATURLINS, ASK
 from .installation import installation
 from ..montering import TAKSKIVOR, Montering, Vek
 from .punkter import LINS_INDRAG, PLATTA_T, Apparat, Dosa, Lampa, drivdonet, linsen, pendeln, tuben
-from .typer import Apparattyp, Armaturtyp, Dosatyp, Pendel
+from .typer import Apparattyp, Armaturtyp, Dosatyp, Pendel, Rortyp
 
 RING_T = PLATTA_T                # frontringens tjocklek
 SPOT_D, SPOT_H = 64.0, 30.0     # den vridbara spotens kropp
@@ -375,17 +375,16 @@ def dosa(p: Dosa) -> Montage:
     return m
 
 
-def ror(namn: str, vag: list[Vek], diameter: float) -> Montage:
-    """Röret som raka bitar längs mittlinjen."""
-    m = Montage(namn, beskrivning=f"Rör Ø{diameter:g}")
-    for i, (a, b) in enumerate(zip(vag, vag[1:])):
-        v = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
-        langd = math.hypot(*v)
-        if langd < 1.0:
-            continue
-        z = (v[0] / langd, v[1] / langd, v[2] / langd)
-        d = Del(f"Rör Ø{diameter:g} L={langd:.0f}", cylinder(diameter / 2, langd), ELROR)
-        m.lagg(d, Placering.axlar(a, _vinkelratt(z), z), f"{namn}-{i + 1}")
+SKARP = 1.5                     # böjarna utan egen radie ritas med så många rörradier (nästan skarpa, som vägarna)
+
+
+def ror(namn: str, vag: list[Vek], radier: list[float], typ: Rortyp) -> Montage:
+    """Röret svept längs mittlinjen (brytpunkterna vag), med de mjuka böjarna i mellanbjälklaget rundade med sina
+    radier (#87) och de andra nästan skarpa (SKARP; på plats böjs röret med minst sin minsta böjradie)."""
+    m = Montage(namn, beskrivning=f"Rör Ø{typ.ytterdiameter:g}")
+    langd = sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
+    r = typ.ytterdiameter / 2
+    m.lagg(Del(f"Rör Ø{typ.ytterdiameter:g} L={langd:.0f}", svep(vag, r, SKARP * r, radier), ELROR), Placering(), namn)
     return m
 
 
@@ -400,7 +399,7 @@ def montage() -> Montage:
         mm.lagg(armatur(p) if isinstance(p, Lampa) else apparat(p) if isinstance(p, Apparat) else dosa(p))
     for r in inst.ror.values():
         mm = delar.setdefault(inst.modul[r.id], Montage(inst.modul[r.id]))
-        mm.lagg(ror(r.id, inst.vag(r), r.typ.ytterdiameter))
+        mm.lagg(ror(r.id, inst.vag(r), inst.radier(r), r.typ))
     for mm in delar.values():
         m.lagg(mm)
     return m

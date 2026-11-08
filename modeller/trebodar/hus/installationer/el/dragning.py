@@ -11,7 +11,7 @@ from trebodar.hus.invandigt.vaggar import vaggdef
 
 from ..montering import BJALKLAG, PLAN, Montering, Vek, i_vagg, langs_vaggen, vid_tak
 from ..strak import mellan_jarnen
-from .punkter import Punkt, anslutning
+from .punkter import Apparat, Punkt, anslutning
 from .rum.kok import X_ON_ROR
 
 D_ROR = 16.0                   # de klena rörens diameter (Ø16), för läget mellan järnen
@@ -85,3 +85,23 @@ def upp_ur_bjalklaget(p: Punkt, niva: str = "MB", d: float = D_ROR) -> tuple[Vek
                            tvars=_tvars(p.lage.ref, d) if vagg else 0.0)
     x, y = i[0] + dx, i[1] + dy
     return (x, y, BJALKLAG[niva]), (x, y, a[2])
+
+
+H_SYLL = 45.0                  # rören går lodrätt upp ur bjälklaget genom syllen (så högt över golvet) och därifrån
+#                                rakt till dosan
+
+
+def _dosans_halva(p: Punkt) -> float:
+    """Halva dosans höjd (apparatdosan och kopplingsdosan sitter med axeln vinkelrätt mot väggen)."""
+    dosa = p.typ.dosa if isinstance(p, Apparat) else getattr(p.typ, "dosa", None) or p.typ
+    return float(getattr(dosa, "diameter", 0.0)) / 2
+
+
+def upp_till_dosan(p: Punkt, niva: str = "MB", d: float = D_ROR) -> tuple[Vek, ...]:
+    """Från elrörens nivå i mellanbjälklaget upp till punktens dosa: lodrätt upp ur bjälklaget mellan
+    överkantsnätets järn (upp_ur_bjalklaget) genom syllen, och därifrån rakt till dosans underkant under dess mitt,
+    så att röret går in i dosan underifrån utan böj (installation.vag slutar i dosans mitt)."""
+    u = upp_ur_bjalklaget(p, niva, d)
+    a = anslutning(p)
+    under = (a[0], a[1], a[2] - _dosans_halva(p))
+    return u[0], (u[0][0], u[0][1], PLAN[1] + H_SYLL), under

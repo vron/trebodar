@@ -7,6 +7,7 @@ utan tilloppens stråk, järnen i rörens nivå och det som ska hållas fritt (r
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from functools import cache
 from types import ModuleType
@@ -111,21 +112,57 @@ def jarnen(plan: int) -> tuple[tuple[Point | LineString, float], ...]:
     return jarnen_i_nivan(z - r, z + r)
 
 
+def _genom_hal(yta: Polygon, s: tuple[list[tuple[float, float]], list[tuple[float, float]]],
+               riktning: str) -> Polygon | None:
+    """Där slingan s går genom ett hål i ytan (slingans rader går förbi hålet, men vändningen mellan två rader går
+    rakt över det): hålen förlängda längs raderna (riktning) till ytans kant på den närmaste sidan, så att raderna
+    slutar vid hålet (None om slingan håller sig i ytan)."""
+    linje = LineString([*s[0], *s[1]])
+    x0, y0, x1, y1 = yta.bounds
+    delar = []
+    for ring in yta.interiors:
+        h = Polygon(ring)
+        if not linje.intersects(h.buffer(-1.0)):
+            continue
+        a, b, c, d = h.bounds
+        if riktning == "y":
+            delar.append(box(a, b, c, y1 + 1.0) if y1 - d < b - y0 else box(a, y0 - 1.0, c, d))
+        else:
+            delar.append(box(a, b, x1 + 1.0, d) if x1 - c < a - x0 else box(x0 - 1.0, b, c, d))
+    return unary_union(delar) if delar else None
+
+
+def _i_nivan(a: Vek, b: Vek, z0: float, z1: float) -> Point | LineString | None:
+    """Den del av sträckan a–b som går mellan höjderna z0 och z1, i plan (None om ingen)."""
+    if abs(b[2] - a[2]) < 1e-6:
+        t0, t1 = (0.0, 1.0) if z0 < a[2] < z1 else (1.0, 0.0)
+    else:
+        t0, t1 = sorted(((z0 - a[2]) / (b[2] - a[2]), (z1 - a[2]) / (b[2] - a[2])))
+        t0, t1 = max(t0, 0.0), min(t1, 1.0)
+    if t0 >= t1:
+        return None
+    p, q = ((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) for t in (t0, t1))
+    return LineString([p, q]) if math.dist(p, q) > 1.0 else Point(p)
+
+
 @cache
 def _hinder(plan: int) -> Polygon:
-    """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens
-    rör lodrätt genom slingornas nivå och avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom
-    bottenplattan (servisen, köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
+    """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens rör
+    där de går genom slingornas nivå (lodrätt, där de byter nivå och där de går under eller över ett annat rör, #87) och
+    avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom bottenplattan
+    (servisen, köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
         delar += [Point(a[0], a[1]).buffer(FRITT) for r in v.ror.values() for a, b in zip(v.vag(r), v.vag(r)[1:])
                   if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < 0.0 < max(a[2], b[2])]
         el = installation()            # elrören går över och under slingorna (montering.BJALKLAG), utom där de går
-        z = PLAN[plan].Z               # lodrätt genom slingornas nivå (upp i väggarna och ned till centralen)
-        delar += [Point(a[0], a[1]).buffer(FRITT + r.typ.ytterdiameter / 2) for r in el.ror.values()
-                  for a, b in zip(el.vag(r), el.vag(r)[1:])
-                  if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0 and min(a[2], b[2]) < z < max(a[2], b[2])]
+        z = PLAN[plan].Z               # genom slingornas nivå: lodrätt (upp i väggarna och ned till centralen), där de
+        for r in el.ror.values():      # byter nivå och där de går under eller över ett annat rör
+            h = r.typ.ytterdiameter / 2 + GOLVVARMEROR.d / 2
+            m = el.mittlinje(r)
+            delar += [g.buffer(FRITT + r.typ.ytterdiameter / 2) for a, b in zip(m, m[1:])
+                      for g in [_i_nivan(a, b, z - h, z + h)] if g is not None]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < 0.0 and max(a[2], b[2]) > -S.H_BJALKLAG]
@@ -156,8 +193,8 @@ def _fordelare(plan: int, mod: ModuleType, filer_: dict[tuple[str, str], int]) -
 
 
 def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, Fordelare], list[str]]:
-    """Kretsarna och fördelarna på en våning: slingorna i zonerna, filerna och tilloppen; zonernas ytor utan
-    tilloppen (andra varvet)."""
+    """Kretsarna och fördelarna på en våning: slingorna i zonerna (där en slinga skulle gå genom ett hål i ytan slutar
+    raderna vid hålet), filerna och tilloppen; zonernas ytor utan tilloppen (andra varvet)."""
     golv, hinder = golvet(plan), _hinder(plan)
     band = Polygon()
     fel: list[str] = []
@@ -168,6 +205,12 @@ def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, For
                 band)
             yta = max(getattr(yta, "geoms", [yta]), key=lambda g: g.area) if not yta.is_empty else Polygon()
             s = slinga(yta, z.cc, z.riktning, z.start) if not yta.is_empty else None
+            for _ in range(4):                     # slingan runt hålen i ytan (rör genom nivån mitt i zonen)
+                if s is None or not (hal := _genom_hal(yta, s, z.riktning)):
+                    break
+                yta = yta.difference(hal)
+                yta = max(getattr(yta, "geoms", [yta]), key=lambda g: g.area)
+                s = slinga(yta, z.cc, z.riktning, z.start)
             if s is None:
                 fel.append(f"{z.id}: ytan rymmer ingen slinga")
                 continue

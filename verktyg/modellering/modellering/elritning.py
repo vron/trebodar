@@ -561,7 +561,8 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
             foljder = _foljder(vag, inne)
             if not foljder:
                 continue
-            ror.append([k, r["typ"], r["fran"], r["till"], sv(r["langd"] / 1000, 1), f"{sv(r['bojar'])}°",
+            ror.append([k, r["typ"], r["fran"], r["till"], sv(r["langd"] / 1000, 1),
+                        f"{sv(r['bojar'])}°" + (f" ({sv(r['svep'])}°)" if r.get("svep", 0.0) > 0.5 else ""),
                         _innehall(r)])
             txt = f"{k} {r['typ']}"
             for i0, i1 in foljder:
@@ -589,18 +590,22 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
                     q, ank, lada = next((x for x in lagen if fri(x[2])), lagen[0])
                     v.hanvisning(tuple(m), tuple(q), txt, a=ank, sz=5.6, punkt=False, col="ok")
                 lagda.append(lada)
+            # brytpunkterna (där rörets raka sträckor möts) numrerade, med den mjuka böjens radie
+            bp, rad = r["brytpunkter"], r["radier"]
+            for i0, i1 in _foljder(bp, inne):
+                d = _xy(bp[i0:i1 + 1])
                 for j, q in enumerate(d):
                     anm = ""
                     if j in (0, len(d) - 1):
-                        i, nasta = (i0, i0 - 1) if j == 0 else (i1, i1 + 1)
+                        nasta = i0 - 1 if j == 0 else i1 + 1
                         pid = r["fran"] if j == 0 else r["till"]
-                        if 0 <= nasta < len(vag) and vag[nasta][2] > z[1] + 1.0:
+                        if 0 <= nasta < len(bp) and bp[nasta][2] > z[1] + 1.0:
                             anm = f"upp i väggen till {pid}"
                             _genomforing(v, *q)
-                        elif (nasta < 0 or nasta >= len(vag)) and "linje" in utdrag["punkter"].get(pid, {}):
+                        elif (nasta < 0 or nasta >= len(bp)) and "linje" in utdrag["punkter"].get(pid, {}):
                             anm = f"rörände för {pid}, i taket"
                             v.cirkel(q[0], q[1], 0.7, fyll="vit", stil="normal")
-                        elif nasta < 0 or nasta >= len(vag):
+                        elif nasta < 0 or nasta >= len(bp):
                             anm = pid
                     # numret vid sidan av röret, växelvis åt höger och vänster
                     t = np.subtract(d[min(j + 1, len(d) - 1)], d[max(j - 1, 0)])
@@ -608,7 +613,9 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
                     n = np.array([-t[1], t[0]]) * (1 if j % 2 == 0 else -1)
                     v.ptext(q[0], q[1], 1.8 * n[0], 1.8 * n[1], str(j + 1), a="cm", sz=6.0, b=True, col="ok",
                             bg=True)
-                    punkter.append([k, str(j + 1), svm(round(q[0])), svm(round(q[1])), anm])
+                    radie = rad[i0 + j] if 0 < j < len(d) - 1 else 0.0
+                    punkter.append([k, str(j + 1), svm(round(q[0])), svm(round(q[1])),
+                                    svm(round(radie)) if radie > 0 else "–", anm])
     with v.lager("dosor"):
         for k, p in utdrag["punkter"].items():
             if p["slag"] == "dosa" and z[0] - 1.0 <= p["punkt"][2] <= z[1] + 1.0:
@@ -619,18 +626,21 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
     _rubrik(v, "Mellanbjälklaget, rör ingjutna i betongen")
     block: list[dict] = [dict(**TABELLER, innehall=[
         dict(typ="rubrik", text="Rör"),
-        dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "m", "Böjar", "Innehåll"],
-             bredd=(0.75, 0.55, 0.6, 0.6, 0.4, 0.5, 0.9), just=["l", "l", "l", "l", "r", "r", "l"], sz=6.0,
+        dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "m", "Böjar (svep)", "Innehåll"],
+             bredd=(0.75, 0.55, 0.6, 0.6, 0.4, 0.75, 0.9), just=["l", "l", "l", "l", "r", "r", "l"], sz=6.0,
              rader=ror),
     ])]
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
-            "Elrören gjuts in i mellanbjälklaget (R-06), mitt i betongen. Rörens punkter är numrerade längs varje "
-            f"rör; deras lägen x, y i mm (K-05) står på {punktbladet}, med origo i skärningen mellan "
+            "Elrören gjuts in i mellanbjälklaget (R-06), mitt i betongen, raka och sneda med mjuka böjar (inga räta "
+            "vinklar). Rörens brytpunkter (där de raka sträckorna möts) är numrerade längs varje rör; deras lägen "
+            f"x, y i mm (K-05) och böjarnas radier står på {punktbladet}, med origo i skärningen mellan "
             "mellanbjälklagets kanter x = 0 och y = 0, som på R-05 och R-06.",
             f"Röret går upp i väggen ovanför (●) eller slutar i en ingjutningsdosa i källarens tak. Plan 1: "
             f"{elplanen}.",
+            "Böjar: där röret går upp eller ned ur bjälklaget, in i en vägg, centralen eller en dosa (högst 270° "
+            "mellan två dosor); svep: de mjuka böjarna i bjälklaget (radie minst 300 mm), som räknas för sig.",
             "Plan 1:s väggar är streckade. Ritningen ritas ur modellen med ./mod el ritning.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
@@ -653,14 +663,16 @@ def punktforteckning(punkter: list[list[str]], nummer: str, bjalklaget: str) -> 
     n = -(-len(punkter) // 3)
     block = [dict(x=24.0 + i * 101.0, y=14.0, w=97.0, innehall=[
         dict(typ="rubrik", text="Rörens punkter (mitt i röret)" + (" forts." if i else "")),
-        dict(typ="tabell", kolumner=["Rör", "Punkt", "x", "y", "Anmärkning"], bredd=(0.8, 0.45, 0.55, 0.55, 2.0),
-             just=["l", "r", "r", "r", "l"], sz=5.6, rader=punkter[i * n:(i + 1) * n])]) for i in range(3)]
+        dict(typ="tabell", kolumner=["Rör", "Punkt", "x", "y", "Radie", "Anmärkning"],
+             bredd=(0.8, 0.45, 0.55, 0.55, 0.45, 1.6), just=["l", "r", "r", "r", "r", "l"], sz=5.6,
+             rader=punkter[i * n:(i + 1) * n])]) for i in range(3)]
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[
-            f"Punkterna längs elrören i mellanbjälklaget, numrerade som på {bjalklaget}: lägen x, y i mm (K-05) i "
-            "rörets mitt, med origo i skärningen mellan mellanbjälklagets kanter x = 0 och y = 0, som på R-05 och "
-            "R-06. Anmärkning: punkten där röret går upp i väggen ovanför, eller dess ände.",
+            f"Brytpunkterna längs elrören i mellanbjälklaget, numrerade som på {bjalklaget}: lägen x, y i mm (K-05) "
+            "där rörets raka sträckor (mitt i röret) möts, med origo i skärningen mellan mellanbjälklagets kanter "
+            "x = 0 och y = 0, som på R-05 och R-06. Radie: den mjuka böjens radie i mm där röret svänger (–: rakt "
+            "upp eller ned). Anmärkning: punkten där röret går upp i väggen ovanför, eller dess ände.",
             "Förteckningen ritas ur modellen med ./mod el ritning.",
         ]),
     ]

@@ -1,51 +1,54 @@
-"""Grupprören ingjutna i mellanbjälklaget (#50, #51): ett rör per grupp från gruppcentralen i teknikrummet till
-gruppens första punkt på plan 1 (../grupper.py), och därifrån vidare mellan punkterna (../kedjor.py).
+"""Gruppernas rör från centralen ingjutna i mellanbjälklaget (#50, #51, #87): ett rör per grupp från gruppcentralen i
+teknikrummet till gruppens första punkt på plan 1 (../grupper.py), och därifrån vidare mellan punkterna
+(../kedjor.py); och källarens grupper som går genom bjälklaget (G17, G18 och G24, ../rum/kallarens_punkter.py).
 
-Rören går upp ur centralens ovansida rakt in i bjälklaget, i två rader mellan underkantsnätets järn: den främre
-(RAD_A) ovanför centralen och den bakre (RAD_B) i V3:s cellplast bakom gipsen (rören går in i väggen ur centralens
-ovansida). Där finns plats för dem väster om ventilationens kanal FF3-K2, som går över centralens östra del. I
-bjälklaget går de klena rören (Ø16) i elrörens övre nivå, över tappvattnet och golvvärmen (montering.BJALKLAG "MB"),
-och hällens grova rör (Ø20) i den undre, i tappvattnets nivå men fritt från dess rör ("MB-UK").
+Rören går upp ur centralens ovansida in i bjälklaget, i två rader mellan underkantsnätets järn: den främre (RAD_A)
+ovanför centralen och den bakre (RAD_B) i V3:s cellplast bakom gipsen (rören går snett in i väggen ur centralens
+ovansida). Där finns plats för dem väster om ventilationens kanal FF3-K2, som går över centralens östra del. Den
+bakre raden har punkterna söder om V3, den främre de andra. Ovanför centralen ligger V3:s vinkeljärn (R-06) i elrörens
+övre nivå, så rören går i knippen (ingjutna.knippe): rakt ut ur bandet mellan järnen, den främre raden norrut och den
+bakre söderut över V3, och därifrån som ett brett rör med en fil per rör, raka och sneda med mjuka böjar runt det som
+de inte får gå genom (ingjutna.py). Den främre raden har ett knippe norrut och ett österut, den bakre ett västerut och
+ett österut; varje knippe får ett sammanhängande block av radens stigare, i ordning efter var rören lämnar det. Varje
+rör lämnar sitt knippe i en mjuk båge (LAMNA) snett mot sin punkt, det som lämnar först ytterst, och därifrån går de i
+tur och ordning runt de andra (Ingjutning.solfjader). De klena (Ø16) går i elrörens övre nivå, över tappvattnet och
+golvvärmen (montering.BJALKLAG "MB"), hällens grova rör (Ø20) för sig i den undre, i tappvattnets nivå men runt dess
+rör ("MB-UK").
 
-Rören går i stråk, ett rör per fil (..strak: filen genom rörets stigare, stråket förskjutet i sidled), och viker av
-ur stråket mot sin punkt, det som viker av först ytterst mot sin sida, så att de inte korsar varandra:
-
-- S från den främre raden norrut, österut förbi ventilationens stigare (FF3-K2) och norrut öster om badrummet till
-  badrummet och sovrummet i vänstra huskroppen;
-- E från den främre raden norrut och österut genom glipan mellan V19:s och V15:s järn till köket och högra
-  huskroppen, och norrut till gången;
-- N från den bakre raden söderut över V3 och västerut till hallen och vardagsrummet (plattan på mark);
-- hällens rör (Ø20) från den bakre raden söderut över V3 och österut i den undre nivån, söder om tappvattnets rör,
-  genom glipan mellan V20:s och V15:s järn till hällens anslutning på 3NV.
-
-Rören går upp ur bjälklaget till punktens dosa lodrätt under den, mellan överkantsnätets järn (../dragning.py).
-Brandlarmets matningsdosa D01 (BL-D01, ../../brandlarm) matas från allrummets dimmer genom bjälklaget.
+Rören går upp ur bjälklaget lodrätt under punktens dosa, mellan överkantsnätets järn, och därifrån rakt in i dosan
+underifrån (../dragning.py). Brandlarmets matningsdosa D01 (BL-D01, ../../brandlarm) matas från allrummets dimmer genom
+bjälklaget (../kedjor.py).
 """
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 
 from shapely.geometry import LineString, Point
+from shapely.geometry.base import BaseGeometry
 
-from ...montering import BJALKLAG, KALLARTAK, Vek, kallartak
-from ...strak import Strak, fri, vag
+from ...montering import BJALKLAG, KALLARTAK, PLAN, Vek, kallartak
+from ...plattan import Karta, Punkt
+from ...strak import fri
 from ...teknikrum import GRUPPCENTRAL, Z_GC_TOPP
-from ..dragning import upp_ur_bjalklaget
-from ..grupper import BRANDLARM_D01
+from ..dragning import upp_till_dosan
+from ..grupper import BRANDLARM_D01, GRUPPER
 from ..katalog import BRANDLARM_MATNING, FXP16, FXP20
-from ..punkter import Dosa, Ror
-from ..typer import Rortyp
-from ..rum import allrum, badrum, gastrum, hall, kok, sovrum
+from ..punkter import Dosa, Punkt as ElPunkt, Ror
+from ..rum import allrum, badrum, gastrum, hall, kallarens_punkter as KP, kok, sovrum
+from .ingjutna import KALLAREN, NIVAER, PLAN1, Ingjutning, Ror3, hinder, ingjutet, kartor_el, knippe
 
 NAMN = "Mellanbjälklag"
 
 _TOPP = GRUPPCENTRAL.anslutningar["topp"]
 X_RAD = (_TOPP[0] - 292.0, 2735.0)          # rörens x på centralens ovansida: från dess västra kant till kanalen
 CC = 21.0                                    # stigarnas avstånd i raderna (Ø16, 5 mm emellan)
-RAD_A = _TOPP[1] - 42.0                      # främre raden, ovanför centralen
-RAD_B = _TOPP[1] + 103.0                     # bakre raden, i V3:s cellplast bakom gipsen
+RAD_A = _TOPP[1] - 42.0                      # främre raden, ovanför centralens framkant
+RAD_B = _TOPP[1] + 40.0                      # bakre raden, ovanför centralens bakkant
 SPEL = 5.0
-OVER = 15.0                                  # rören in i väggen ur centralens ovansida så högt över den
+Y_V3 = 9170.0                                # V3:s mitt: punkterna söder därom nås ur den bakre raden
+UTANFOR = {"A": 8560.0, "B": 9330.0}         # y strax utanför bandet över centralen (norr) och V3 (söder)
+LAMNA = 400.0                                # bågen där ett rör lämnar sitt knippe, högst
 
 
 def _rad(y: float, z: float, r: float = 8.0, over_v3: Sequence[float] = ()) -> list[float]:
@@ -61,77 +64,116 @@ def _rad(y: float, z: float, r: float = 8.0, over_v3: Sequence[float] = ()) -> l
     return ut
 
 
-_A = _rad(RAD_A, BJALKLAG["MB"])
-_B = _rad(RAD_B, BJALKLAG["MB"], over_v3=(BJALKLAG["MB"], BJALKLAG["MB-UK"]))
+_RADER = {"A": (RAD_A, _rad(RAD_A, BJALKLAG["MB"])),
+          "B": (RAD_B, _rad(RAD_B, BJALKLAG["MB"], over_v3=(BJALKLAG["MB"], BJALKLAG["MB-UK"])))}
 
-# stråken: stigarna och stråkets brytpunkter (det första stycket vinkelrätt mot raden)
-# den främre raden: S de västra (utom stigaren vid tappvattnets stigare BA-DU1-KV, som S går förbi), E de östra; den
-# bakre raden: N de västra, och österut till ön och hällen
-S_STIG, E_STIG = _A[0:6], _A[6:12]
-N_STIG, ON_STIG, HALL_STIG, KA_STIG, G24_STIG = _B[:2], _B[2], _B[5], _B[4], _B[3]   # KA_STIG: källarens stora
-#                       rum (G17), G24_STIG: dess uttag och FF3 (längre söderut än G17, så västligare, utan att korsa)
-Y_S, X_S, Y_S_SLUT = 8400.0, 3480.0, 4380.0     # S: österut i y, norrut i x till V7:s vinkeljärn
-Y_E, X_E_SLUT = 8587.0, 13100.0                 # E: österut i y, i glipan mellan V19:s och V15:s järn och norr om
-#                                                 V3:s vinkeljärn, till V14:s vinkeljärn
-Y_N = 9400.0                                     # N: västerut i y
-Y_ON = 9645.0                                    # till ön och hällen: österut i y, genom glipan mellan V20:s och V15:s
-#                                                  järn, öns rör i den övre nivån och hällens rakt under det i den undre
-X_HALL = 13000.0                                 # hällens rör till y för hällens anslutning, före V14:s vinkeljärn
+_PUNKT: dict[str, ElPunkt] = {p.id: p for m in (allrum, badrum, gastrum, hall, kok, sovrum) for p in m.PUNKTER}
+# hällens grova rör i den undre nivån, de andra i den övre
+_GROVA = {"G10": (FXP20, "MB-UK")}
+# grupperna på plan 1: gruppens rör från centralen till dess första punkt
+_PLAN1 = [(g.id, g.punkter[0]) for g in GRUPPER if g.punkter[0] in _PUNKT]
 
 
-def _mitt(xs: Sequence[float]) -> float:
-    return (min(xs) + max(xs)) / 2
 
 
-def _strak(namn: str, xs: Sequence[float], y0: float, punkter: Sequence[tuple[float, float]]) -> Strak:
-    return Strak(namn, ((_mitt(xs), y0), *punkter))
+def _malet(p: str, typ_niva: tuple[object, str]) -> tuple[Punkt, tuple[Vek, ...]]:
+    """Punktens stigare i plan och vägen därifrån upp i dosan."""
+    typ, niva = typ_niva
+    upp = upp_till_dosan(_PUNKT[p], niva=niva, d=typ.ytterdiameter)       # type: ignore[attr-defined]
+    return (upp[0][0], upp[0][1]), upp[1:]
 
 
-STRAK = {
-    "S": _strak("S", S_STIG, RAD_A, ((_mitt(S_STIG), Y_S), (X_S, Y_S), (X_S, Y_S_SLUT))),
-    "E": _strak("E", E_STIG, RAD_A, ((_mitt(E_STIG), Y_E), (X_E_SLUT, Y_E))),
-}
+def _grupprören() -> tuple[list[Ror], list[Ror3]]:
+    """Gruppernas rör från centralen (plan 1:s och källarens som går genom bjälklaget): raden efter var punkten
+    ligger, knippena efter riktningen, och vart och ett från där det lämnar sitt knippe till punkten genom elrörens
+    nivåer. Ger rören och stigarna genom bjälklaget (hinder för de andra rören)."""
+    mal = {g: _malet(p, _GROVA.get(g, (FXP16, "MB"))) for g, p in _PLAN1}
+    mal |= {g: (b, efter) for g, (_, b, efter) in KP.FRAN_CENTRALEN.items()}
+    till = dict(_PLAN1) | {g: p for g, (p, _, _) in KP.FRAN_CENTRALEN.items()}
+    # hindren: punkternas stigare (upp till plan 1, ned till källaren) och alla stigare i raderna över centralen
+    alla: list[Ror3] = [(x, y, 8.0, BJALKLAG["MB-UK"] - 10.0, PLAN[1]) if g not in KP.FRAN_CENTRALEN else
+                        (x, y, 8.0, KALLARTAK, BJALKLAG["MB"] + 8.0) for g, ((x, y), _) in mal.items()]
 
+    def nivaer(g: str) -> tuple[str, ...]:
+        return ("MB-UK",) if g in _GROVA else NIVAER
 
-def ur_raden(x: float, rad: float, niva: str) -> tuple[Vek, ...]:
-    """Röret ur centralens ovansida (bakre raden: in i väggen) och upp till nivån i bjälklaget."""
-    z = BJALKLAG[niva]
-    if rad == RAD_A:
-        return (x, rad, Z_GC_TOPP), (x, rad, z)
-    return (x, _TOPP[1] + 40.0, Z_GC_TOPP), (x, _TOPP[1] + 40.0, Z_GC_TOPP + OVER), (x, rad, Z_GC_TOPP + OVER), (x, rad, z)
+    def kost(g: str) -> tuple[float, float]:
+        return KALLAREN if g in KP.FRAN_CENTRALEN else PLAN1
 
+    def kartorna(g: str) -> tuple[Karta, ...]:
+        return kartor_el(_GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2)
 
-def i_straket(x: float, strak: str, mal: Sequence[tuple[float, float]], upp: tuple[Vek, ...]) -> tuple[Vek, ...]:
-    """Från stigaren x i den främre raden längs sin fil i stråket till punkten närmast mal[0], genom mal (i plan) och
-    upp till dosan."""
-    z = BJALKLAG["MB"]
-    return ((x, RAD_A, Z_GC_TOPP), *vag((x, RAD_A, z), z, STRAK[strak], tuple(mal), upp))
-
-
-_PUNKT = {p.id: p for m in (allrum, badrum, gastrum, hall, kok, sovrum) for p in m.PUNKTER}
-
-
-def _upp(p: str, niva: str = "MB", d: float = 16.0) -> tuple[Vek, ...]:
-    """Röret upp ur bjälklaget till punktens dosa (../dragning.py)."""
-    return upp_ur_bjalklaget(_PUNKT[p], niva=niva, d=d)
-
-
-def _ror(grupp: str, strak: str, x: float, p: str, via_y: float | None = None, via_x: float | None = None) -> Ror:
-    """Gruppens rör i stråket från stigaren x till punkten p: ur filen rakt mot punkten, eller först till y via_y
-    (eller x via_x) och därifrån till punktens stigare, och upp till dosan."""
-    upp = _upp(p)
-    xt, yt = upp[0][0], upp[0][1]
-    mal = [(xt, via_y)] if via_y is not None else [(via_x, yt)] if via_x is not None else []
-    return Ror(f"{grupp}-M", FXP16, "GC", p, via=i_straket(x, strak, (*mal, (xt, yt)), upp[1:]))
-
-
-def _over_v3(grupp: str, x: float, p: str, y: float, mal: Sequence[tuple[float, float]], typ: Rortyp = FXP16,
-             niva: str = "MB") -> Ror:
-    """Från den bakre raden söderut över V3 till y, och därifrån genom mal till punktens stigare och upp."""
-    upp = _upp(p, niva=niva, d=typ.ytterdiameter)
-    z = BJALKLAG[niva]
-    plan = [(x, y), *mal, (upp[0][0], upp[0][1])]
-    return Ror(f"{grupp}-M", typ, "GC", p, via=(*ur_raden(x, RAD_B, niva), *((a, b, z) for a, b in plan), *upp[1:]))
+    def hindren(g: str, s: Punkt) -> tuple[list[BaseGeometry], ...]:
+        return hinder(_GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2, list(alla), KP.DOSOR, utom=(s, mal[g][0]))
+    # raden: den bakre (söderut över V3) för punkterna söder om V3, den främre (norrut) för de andra; förslaget till
+    # väg (för riktningen ut ur bandet) från en punkt utanför bandet mitt för raden
+    val: dict[str, tuple[str, Sequence[Vek]]] = {}
+    for g in mal:
+        namn = "B" if mal[g][0][1] > Y_V3 else "A"
+        y, xs = _RADER[namn]
+        start = (xs[len(xs) // 2], UTANFOR[namn])
+        try:
+            via, _ = ingjutet(kartorna(g), start, mal[g][0], fran=nivaer(g), till=nivaer(g), hinder_=hindren(g, start),
+                              kost=kost(g))
+        except ValueError:
+            via = ((*start, BJALKLAG["MB"]), (*mal[g][0], BJALKLAG["MB"]))
+        val[g] = (namn, ((xs[len(xs) // 2], y, BJALKLAG["MB"]), *via))
+    # knippena: den främre raden delad efter riktningen (norrut och österut), den bakre efter sidan (västerut till
+    # hallen och österut till ön och källarens stora rum); hällens grova rör för sig i den undre nivån. Varje knippe
+    # får ett sammanhängande block av radens stigare, i ordning efter riktningen.
+    def riktning(g: str) -> float:
+        linje = LineString([q[:2] for q in val[g][1]])
+        a_, b_ = linje.interpolate(min(400.0, linje.length / 2)), linje.interpolate(min(1500.0, linje.length))
+        return math.atan2(b_.x - a_.x, abs(b_.y - a_.y))
+    knippen: dict[str, list[str]] = {}
+    for g in val:
+        if g in _GROVA:
+            continue
+        namn = val[g][0]
+        knippen.setdefault(namn + ("O" if riktning(g) > math.radians(40.0) else "V") if namn == "A" else
+                           namn + ("O" if mal[g][0][0] > X_RAD[1] else "V"), []).append(g)
+    stigare: dict[str, Punkt] = {}
+    vagar: dict[str, tuple[list[Punkt], list[float]]] = {}
+    for namn, (y, xs) in _RADER.items():
+        grova = [g for g in _GROVA if val[g][0] == namn]
+        delar = [knippen[n] for n in (f"{namn}V", f"{namn}O") if n in knippen]
+        antal = sum(len(d) for d in delar) + len(grova)
+        if antal > len(xs):
+            raise ValueError(f"raden {namn} över centralen har {len(xs)} stigare, {antal} rör behövs")
+        lediga = list(xs)
+        for d in delar:
+            block, lediga = (lediga[:len(d)], lediga[len(d):]) if d is delar[0] else (lediga[-len(d):], lediga[:-len(d)])
+            ut_ = (0.0, -1.0) if namn == "A" else (0.0, 1.0)
+            slut_ = max((mal[g][0] for g in d), key=lambda q: math.dist(q, (block[0], y)))
+            hd = hinder(FXP16.ytterdiameter / 2, list(alla), KP.DOSOR, utom=[*((x, y) for x in block), slut_])
+            st, vg = knippe(kartorna(d[0]), [(x, y) for x in block], ut_, {g: mal[g][0] for g in d}, slut_, hd)
+            stigare.update(st)
+            vagar.update(vg)
+        for g in grova:                            # det grova röret där det har mest plats till grannarna
+            anv = [q[0] for q in stigare.values() if abs(q[1] - y) < 1.0]
+            x = max(lediga, key=lambda x_: min((abs(x_ - u) for u in anv), default=1e9))
+            stigare[g] = (x, y)
+            lediga.remove(x)
+    alla += [(x, y, 8.0, Z_GC_TOPP, BJALKLAG["MB"] + 8.0) for x, y in stigare.values()]
+    # rören i tur och ordning: de som inte går i ett knippe först, sedan i ordning efter var de lämnar sitt knippe
+    bestallningar: list[dict[str, object]] = []
+    for g in sorted(stigare, key=lambda g_: (g_ in vagar, LineString(vagar[g_][0]).length if g_ in vagar else 0.0)):
+        typ = _GROVA.get(g, (FXP16, "MB"))[0]
+        s_ = stigare[g]
+        z = BJALKLAG["MB"]
+        upp = (s_[0], s_[1], Z_GC_TOPP)
+        if g in vagar:
+            pts, rr = vagar[g]
+            bestallningar.append(dict(id_=f"{g}-M", typ=typ, fran="GC", till=till[g], a=pts[-1], b=mal[g][0],
+                                      fore=(upp, *((q[0], q[1], z) for q in pts[:-1])), fore_radier=(0.0, *rr[:-1]),
+                                      bage_a=LAMNA, led_a={"MB": []}, efter=mal[g][1], nivaer=(("MB",), nivaer(g)),
+                                      kost=kost(g)))
+        else:
+            bestallningar.append(dict(id_=f"{g}-M", typ=typ, fran="GC", till=till[g], a=s_, b=mal[g][0], fore=(upp,),
+                                      efter=mal[g][1], nivaer=(nivaer(g), nivaer(g)), kost=kost(g)))
+    ing = Ingjutning(alla, KP.DOSOR)
+    ut = ing.solfjader(bestallningar)
+    return sorted(ut, key=lambda r: r.id), ing.stigare
 
 
 # brandlarmets matningsdosa D01 (../../brandlarm/larm.py): en punkt utan egen geometri, matad från allrummets dimmer
@@ -140,29 +182,6 @@ PUNKTER = [
     Dosa("BL-D01", BRANDLARM_MATNING, kallartak(*D01)),
 ]
 
-_ON = kok.X_ON_ROR
-_HA = _upp("HA-B1")[0]
-_HU = _upp("HA-U1")[0]
-_KD = _upp("KO-D1", niva="MB-UK", d=20.0)[0]
-
-ROR = [
-    # S: stigarna från väster; det som viker av först ytterst (västerut i ordning norrut, österut sist); S_STIG[1]
-    # går till källarens små rum (G18, ../rum/kallare.py)
-    _ror("G05", "S", S_STIG[0], "BA-B1"),
-    _ror("G09", "S", S_STIG[2], "BA-U3", via_y=5160.0),
-    _ror("G08", "S", S_STIG[3], "BA-U2", via_y=5130.0),
-    _ror("G07", "S", S_STIG[4], "BA-U1", via_y=Y_S_SLUT + 20.0),
-    _ror("G03", "S", S_STIG[5], "SV-B1"),
-    # E: norr om mitten det som viker av norrut (i ordning österut), söder om den det som viker av söderut
-    _ror("G02", "E", E_STIG[0], "AL-B1"),
-    _ror("G04", "E", E_STIG[1], "GR-B1"),
-    _ror("G15", "E", E_STIG[2], "KO-U4"),
-    _ror("G11", "E", E_STIG[3], "KO-U6", via_x=X_E_SLUT - 80.0),
-    _ror("G12", "E", E_STIG[4], "KO-U8", via_x=X_E_SLUT - 55.0),
-    _ror("G14", "E", E_STIG[5], "KO-U7", via_x=11200.0),
-    # N och österut från den bakre raden söderut över V3
-    _over_v3("G01", N_STIG[0], "HA-B1", Y_N - 32.0, [(_HA[0], Y_N - 32.0)]),
-    _over_v3("G06", N_STIG[1], "HA-U1", Y_N + 32.0, [(_HU[0], Y_N + 32.0)]),
-    _over_v3("G13", ON_STIG, "KO-U11", Y_ON, [(_ON, Y_ON)]),
-    _over_v3("G10", HALL_STIG, "KO-D1", Y_ON, [(X_HALL, Y_ON), (X_HALL, _KD[1])], FXP20, "MB-UK"),
-]
+# gruppernas rör från centralen, och alla stigare genom bjälklaget (upp ur centralen, upp till plan 1 och ned till
+# källaren) som hinder för de andra rören i bjälklaget
+ROR, STIGARE = _grupprören()
