@@ -1,6 +1,6 @@
 """
-Läs en STEP-sammanställning (den kodgenererade modellen, Onshape-exporten eller annan AP242/AP214) och ge snabb
-åtkomst till delarna.
+Läs en STEP-sammanställning (den kodgenererade modellen eller en annan AP242/AP214) och ge snabb åtkomst
+till delarna.
 
     from modell import Modell
     m = Modell()                          # standardfilen, eller Modell("väg/till/fil.step")
@@ -37,7 +37,6 @@ import numpy as np
 HERE = Path(__file__).parent
 ROT = HERE.parent.parent
 STANDARD = (ROT / "modeller" / "trebodar" / "ut" / "trebodar.step").resolve()  # den kodgenererade modellen (mod bygg)
-REFERENS = ROT / "modeller" / "referens" / "trebodar-onshape.step"      # Onshape-modellen, fryst
 CACHE = HERE / ".cache"
 FORMAT = 2                     # höj när cacheformatet ändras (2: formerna binärt, delarnas nycklar)
 BEHALL = 4                     # cacher per filnamn som sparas (de senast använda)

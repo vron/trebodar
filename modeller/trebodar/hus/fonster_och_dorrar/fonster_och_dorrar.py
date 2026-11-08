@@ -59,8 +59,8 @@ def _ytterdorr(o: Oppning) -> Montage:
     funktion, _ = YD.PRODUKTER[o.typ]
     b, h = o.bredd - 2 * YD.DREV, o.hojd - 2 * YD.DREV
     w_karm = o.w_karm                                    # karmens insida
-    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)" +
-                (f" ({o.onshape} i Onshape)" if o.onshape else ""), produkt="YTTERDORRAR")
+    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)",
+                produkt="YTTERDORRAR")
     plac = Placering.flytt(o.u0 + YD.DREV, w_karm, o.z0 + YD.DREV)
     kropp = int(o.vagg[0])
     panel = DORRPANEL_KALLARE if o.z1 <= 0.0 else DORRPANEL[kropp]
@@ -129,8 +129,8 @@ def enhet_velfac(o: Oppning) -> Montage:
     w_karm = o.w_karm                                    # karmens insida
     w_alu = w_karm - V.DJUP
     dorr = o.typ in DORRAR
-    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} VELFAC {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)" +
-                (f" ({o.onshape} i Onshape)" if o.onshape else ""), produkt="FONSTER")
+    m = Montage(o.kod, o.kod, f"{o.typ.capitalize()} VELFAC {fmt(o.bredd)}×{fmt(o.hojd)} (regelöppning)",
+                produkt="FONSTER")
     plac = Placering.flytt(ku0, w_karm, kz0)
     for i in V.PRODUKTER[o.typ](o.kod, ku1 - ku0, kz1 - kz0, alu).barn:
         m.lagg(i.barn, plac @ i.placering, i.namn)

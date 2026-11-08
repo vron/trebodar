@@ -146,13 +146,6 @@ class Speglad(Form):
     normal: Vek
 
 
-@dataclass(frozen=True)
-class Importerad(Form):
-    """Solid ur en BREP-fil (sökväg relativt repots rot). `sha` är filens innehållshash och ingår i nyckeln."""
-    fil: str
-    sha: str
-
-
 def _v(p: Sequence[float]) -> Vek:
     return (float(p[0]), float(p[1]), float(p[2]))
 
@@ -231,7 +224,7 @@ Lada6 = tuple[float, float, float, float, float, float]
 
 def omslutande(f: Form) -> Lada6 | None:
     """Receptets omslutande låda (x0, y0, z0, x1, y1, z1) i dess eget system, utan kärnan: exakt för rätblock,
-    prismor och cylindrar, annars en låda som säkert omsluter formen. None för importerade former."""
+    prismor och cylindrar, annars en låda som säkert omsluter formen."""
     if isinstance(f, Lada):
         o = f.origo
         return (o[0], o[1], o[2], o[0] + f.dx, o[1] + f.dy, o[2] + f.dz)

@@ -21,7 +21,7 @@ from typing import Iterable, Sequence
 import numpy as np
 from OCP.Bnd import Bnd_Box, Bnd_OBB
 from OCP.BinTools import BinTools
-from OCP.BRep import BRep_Builder, BRep_Tool
+from OCP.BRep import BRep_Tool
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
 from OCP.BRepBndLib import BRepBndLib
 from OCP.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon,
@@ -32,7 +32,6 @@ from OCP.BRepGProp import BRepGProp
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
 from OCP.BRepOffsetAPI import BRepOffsetAPI_MakePipe
 from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism, BRepPrimAPI_MakeRevol
-from OCP.BRepTools import BRepTools
 from OCP.GC import GC_MakeArcOfCircle
 from OCP.GeomAPI import GeomAPI_Interpolate
 from OCP.gp import gp_Ax1, gp_Ax2, gp_Circ, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
@@ -177,14 +176,6 @@ def _bygg(f: F.Form) -> TopoDS_Shape:
         t = gp_Trsf()
         t.SetMirror(gp_Ax2(gp_Pnt(*f.punkt), gp_Dir(*f.normal)))
         return BRepBuilderAPI_Transform(bygg(f.form), t, True).Shape()
-    if isinstance(f, F.Importerad):
-        s = TopoDS_Shape()
-        fil = ROT / f.fil
-        if fil.suffix == ".bbrep":
-            BinTools.Read_s(s, str(fil))
-        else:
-            BRepTools.Read_s(s, str(fil), BRep_Builder())
-        return s
     raise TypeError(f"okänt recept: {type(f).__name__}")
 
 

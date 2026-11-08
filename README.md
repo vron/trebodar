@@ -24,7 +24,7 @@ Kräver [`uv`](https://docs.astral.sh/uv/) och typsnittet Carlito; Pythonmiljöe
 | Mapp | Innehåll |
 |---|---|
 | [`beräkningar/`](beräkningar/) | Källor per handling: indata, beräkning, rapportmall; `ritningsmall/` är den gemensamma A3-mallen |
-| [`modeller/`](modeller/) | Den kodgenererade modellen (`trebodar/`), Onshape-modellen (`referens/`, fryst), balkar och balkplåtar |
+| [`modeller/`](modeller/) | Den kodgenererade modellen (`trebodar/`), balkar och balkplåtar |
 | [`verktyg/`](verktyg/) | Modellering (`./mod`), modellanalys (`./ma`) och bygget (`./bygg`) |
 | `rapporter/`, `ritningar/` | Byggda handlingar; bygglovsritningarna 200 och 201 är färdiga pdf:er utan källa |
 | [`bygglov/`](bygglov/) | Bygglovet: beslutet (D32, 2026-02-18) och handlingarna som tillhör det, med förteckningen `handlingar.toml` |

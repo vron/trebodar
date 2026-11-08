@@ -331,11 +331,6 @@ def main(argv: list[str] | None = None) -> None:
     pa.add_argument("atgard", choices=("spara", "jamfor"))
     pa.add_argument("--del", dest="vag")
     pa.add_argument("--fil", type=Path, default=None, help="standard: modeller/trebodar/ut/<modell>-avtryck.json")
-    pj = sub.add_parser("jamfor", help="jämför med referensmodellen (Onshape)")
-    pj.add_argument("--del", dest="vag")
-    pj.add_argument("--urval", default=None, help="del av referensens sökväg, t.ex. 'Stomme prefab'")
-    pj.add_argument("--ny", default=None, help="del av modellens sökväg att jämföra med")
-    pj.add_argument("--ut", type=Path, default=UT)
     arg = a.parse_args(argv)
 
     if arg.kommando == "typ":
@@ -770,14 +765,6 @@ def main(argv: list[str] | None = None) -> None:
         (arg.ut / ".nojekyll").write_text("")
         print(f"  {mapp}: index.html, vyer.json, trebodar.glb "
               f"({(mapp / 'trebodar.glb').stat().st_size / 1e6:.1f} MB, utan {', '.join(utom) or '–'})")
-    elif arg.kommando == "jamfor":
-        from . import jamfor
-        ref = importlib.import_module("trebodar.referens")
-        jj = jamfor.jamfor(rot, karna, ref.FIL, ref.TRANSFORM, arg.urval, arg.ny)
-        namn = filnamn(rot)
-        txt = jamfor.rapport(jj, arg.ut / f"{namn}-jamforelse.md", arg.ut / f"{namn}-namntabell.csv")
-        print("  " + txt.split("\n")[2])
-        print(f"  -> {arg.ut / (namn + '-jamforelse.md')}, {arg.ut / (namn + '-namntabell.csv')}")
     elif arg.kommando == "ventilation":
         import json
         from . import installationer, ventritning

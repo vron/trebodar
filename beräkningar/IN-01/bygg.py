@@ -10,7 +10,6 @@ Kräver: pip install typst
 """
 import datetime as dt
 import json
-import re
 import tomllib
 from collections import Counter
 from pathlib import Path
@@ -44,15 +43,10 @@ def faser() -> dict[str, dict]:
 FASER = faser()
 
 
-def typ(t: str) -> str:
-    """Instansens typ i listan: modellens beskrivning utan Onshape-modellens namn."""
-    return re.sub(r" \([^()]* i Onshape\)$", "", t)
-
-
 def produkt(p: dict) -> dict:
     """Produkten i listan, med modellens instanser grupperade efter typ."""
     inst = MODELL.get(p["kod"], [])
-    varianter = Counter(typ(i["typ"]) for i in inst)
+    varianter = Counter(i["typ"] for i in inst)
     allman = p["status"] != STATUS[0] and any(a in t.lower() for t in varianter for a in ALLMAN)
     return {
         "kod": p["kod"], "namn": p["namn"], "vald": p.get("vald", ""), "status": p["status"],
@@ -62,7 +56,7 @@ def produkt(p: dict) -> dict:
                                  f"Leverantör: {p['leverantor']}" if p.get("leverantor") else "",
                                  "Modellen visar en allmän typ." if allman else "") if x],
         "arenden": [{"nr": n, "url": f"{ARENDE}{n}"} for n in p.get("arende", [])],
-        "varianter": [{"typ": t, "antal": n, "id": ", ".join(i["namn"] for i in inst if typ(i["typ"]) == t)}
+        "varianter": [{"typ": t, "antal": n, "id": ", ".join(i["namn"] for i in inst if i["typ"] == t)}
                       for t, n in varianter.items()],
     }
 

@@ -16,7 +16,7 @@ spolbrunnarna under altanen (dräneringen, ärende #71): brädorna där är egna
 Trappstegen (ärende #70) går längs framkanten och sidan, så att man kan gå ned till marken var som helst: varje steg
 är en bräda och en sargbräda högt (STEG_H) och STEG_BRADOR brädor djupt, ett litet däck med brädorna längs kanten på
 bjälkar 45×145 tvärs kanten och en sargbräda framtill (sättsteget). Ett steg står på steget under (vars brädor går
-in under det) eller, nederst, på betongplintar i berget. Antalet steg följer berget (BERG: Onshape-modellens berg
+in under det) eller, nederst, på betongplintar i berget. Antalet steg följer berget (BERG: berget i mark/marken.json
 under och framför altanen är ett plan som faller österut), så att det nedersta steget ligger närmast berget: längs
 framkanten börjar ett nytt steg där berget har fallit så långt, och sidan har lika många steg som hörnet."""
 from __future__ import annotations
@@ -54,7 +54,7 @@ SARG = (34.0, 145.0)          # sargbrädan längs de fria kanterna: tjocklek, h
 FORBI = 250.0                 # däcket förbi gaveln 1SV:s linje (ärende #70)
 STEG_BRADOR = 3               # trappstegens djup: brädor längs kanten
 STEG_PLINT = 1000.0           # plintarna under det nedersta stegets bjälkar, c/c högst
-# berget under och framför altanen (Onshape-modellens berg, som huset inte läser): planet
+# berget under och framför altanen (markens berg i mark/marken.json, som huset inte läser): planet
 # z = BERG[1] + BERG[2] (x − BERG[0])
 BERG = (4500.0, -409.0, -0.0748)
 STEG_VAGG = 150.0             # sidans steg: bjälkarna (och plintarna) från den högra kroppens fasad

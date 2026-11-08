@@ -188,6 +188,3 @@ BALKAR = {b.kod: b for b in (
     Balklinje("DB4", "Dalbalk 4", "dal", 4405.0, 3560.0, 11040.0, _UK_DAL),
     Balklinje("NB5", "Nockbalk 5", "nock", 2155.0, 3560.0, 15930.0, _UK_NOCK),
 )}
-
-# Onshape-modellens globala system -> K-05 (exakt, ur modellens koordinater; K-05 avrundar till 0,1 mm)
-ONSHAPE_TILL_K05 = Placering.flytt(12147.71107, 1292.10135, -13939.88713)

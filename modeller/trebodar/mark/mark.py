@@ -1,16 +1,16 @@
-"""Marken: berg, uppfyllnad och sovrumsavsatsen, som i Onshape-modellen (referensdelar), schaktet i berget runt
+"""Marken: berg, uppfyllnad och sovrumsavsatsen (marken.py, ur data i marken.json), schaktet i berget runt
 plattan på mark, entréavsatsen vid huvudentrén 1SO-D1, bänktrappan från sovrumsavsatsen till 2SO-D1 och källartrappan
 till källardörren D1.
 
 Schaktet går 100 mm utanför plattan på mark (hus/grund: L-element, cellplast, makadam och dränerande fyllning under
 plattan); mellan L-elementen och schaktets kant ligger makadam upp till markytan, där berget eller uppfyllnaden låg.
-Marken följer Onshape-modellens mark fram till huset; K-06:s fyllnadshöjder mot källarväggarna ligger högre, på
-säker sida (verktyg/modellanalys/kontroll_laster.py). Där Onshape-modellens mark inte når fram till källarväggarna
-ligger dränerande återfyllning upp till markens nivå intill (framför 2SV) och vid nedgången till källardörren D1 upp till K-06:s
-höjder; uppfyllnaden tas bort över nedgången. Sovrumsavsatsen och entréavsatsen är två separata avsatser av granit.
-Sovrumsavsatsen är Onshape-modellens, breddad västerut till 1SO:s fasad (AVSATS_BREDARE), så att panelen på 1NO
-slutar på avsatsen ända till hörnet: delen väster om AVSATS_SNITT, med de rundade stegen, flyttas västerut och
-avsatsen förlängs med samma tvärsnitt (den är rak längs x där).
+Marken (de färdiga höjderna efter markarbetena) går fram till huset; K-06:s fyllnadshöjder mot källarväggarna ligger
+högre, på säker sida (verktyg/modellanalys/kontroll_laster.py). Där marken inte når fram till källarväggarna ligger
+dränerande återfyllning upp till markens nivå intill (framför 2SV) och vid nedgången till källardörren D1 upp till
+K-06:s höjder; uppfyllnaden tas bort över nedgången. Sovrumsavsatsen och entréavsatsen är två separata avsatser av
+granit. Sovrumsavsatsen (marken.py) är breddad västerut till 1SO:s fasad (AVSATS_SNITT), så att panelen på 1NO slutar
+på avsatsen ända till hörnet: delen väster om AVSATS_SNITT, med de rundade stegen, flyttas västerut och avsatsen
+förlängs med samma tvärsnitt (den är rak längs x där).
 
 Entréavsatsen: granitblock framför 1SO-D1, ett trappsteg vid dörren, avsatsen och trappsteg längs fasaden ned mot
 NO, med lika steghöjder från golvet (z 0) till marken vid trappans fot. Blocken går ned i marken.
@@ -36,7 +36,6 @@ from modellering import Del, Diff, Form, Montage, Placering, cylinder, flytt, mi
 from trebodar import skelett as S
 from trebodar.hus.stomme import lagen
 from trebodar.byggdelar.polygon import polygoner, prisma_ur
-from trebodar.byggdelar.referensdel import importerad
 from trebodar.byggdelar.virke import fmt
 from trebodar.byggdelar import ytterdorrar as YD
 from trebodar.hus.altan.altan import plintarnas_former, stegens_former
@@ -44,6 +43,7 @@ from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.grund import fasadsten, kallarvaggar
 from trebodar.hus.grund.grund import H_L_MARK, MARK_PLATTA, MARK_UK, markplatta, markschakt
 from trebodar.hus.installationer.dranering.ledningar import brunnar
+from trebodar.mark import marken
 from trebodar.material import BERG, FYLLNING, LARK, MAKADAM, MARK, NATURSTEN
 
 # källartrappan vid D1: granitblock (djup, höjd; blocken överlappar, och de går över hela nedgångens bredd, från
@@ -68,7 +68,7 @@ def _kallartrappans_lage() -> tuple[float, float, float, int, float]:
     return v.origo[1], x0, o.z0, n, (x_slut - x0 - K_BLOCK[0]) / (n - 1)
 
 
-# återfyllningen mot källarväggarnas utsida där Onshape-modellens mark inte når fram: bredd från väggen, punkter
+# återfyllningen mot källarväggarnas utsida där marken inte når fram: bredd från väggen, punkter
 # (läge längs väggen, z) på överkanten och hur långt den går vågrätt förbi den första och den sista
 _Y_FASAD, _X_TRAPPA, _Z_AVSATS, _N_STEG, _K_STEG = _kallartrappans_lage()
 _X_SLUT = _X_TRAPPA + (_N_STEG - 1) * _K_STEG + K_BLOCK[0]                     # trappans slut, i 3NV:s fasad
@@ -80,7 +80,7 @@ ATERFYLLNING = {
 NEDGANG = "V9"                # nedgången: uppfyllnaden tas bort över återfyllningen (ärende #69)
 
 # entréavsatsen vid 1SO-D1: mått från panelens utsida och dörröppningen (y), höjder från golvet
-E_MARK = -928.0              # marken vid trappans fot (Onshape-modellens mark)
+E_MARK = -928.0              # marken vid trappans fot (uppfyllnaden)
 E_STEG = 6                   # steghöjder från golvet till marken: dörrsteget, avsatsen och tre trappsteg
 E_DORRSTEG = (400.0, 100.0)  # trappsteget vid dörren: djup, bredd utanför öppningen på var sida
 E_AVSATS = (1500.0, 500.0)   # avsatsens djup och bredd utanför öppningen på var sida
@@ -95,14 +95,14 @@ B_LANGD = 2400.0             # bänken längs fasaden, från B_UTANFOR söder om
 B_UTANFOR = 100.0            # steget framför dörren: bredd utanför öppningen på var sida
 B_BEN_IN = 100.0             # benen innanför plankens ändar
 B_BEN_CC = 1200.0            # benen, c/c högst
-# sovrumsavsatsen (Onshape-modellen, västra sidan i x 170) breddad till 1SO:s fasad (ärende #67): snittet öster om
+# sovrumsavsatsen (marken.py, västra sidan i x 170) breddad till 1SO:s fasad (ärende #67): snittet öster om
 # de rundade stegen, där avsatsen är rak längs x
 AVSATS_VAST = 170.0
 AVSATS_SNITT = 2100.0
 
 
 def _sovrumsavsatsens_ok(y: float) -> float:
-    """Sovrumsavsatsens överkant (Onshape-modellen): planet −0,0306 y + 0,9995 z = −848,4, som lutar längs y."""
+    """Sovrumsavsatsens överkant (marken.py): planet −0,0306 y + 0,9995 z = −848,4, som lutar längs y."""
     return (-848.406 + 0.0306 * y) / 0.9995
 
 
@@ -169,9 +169,9 @@ def _entre() -> list[tuple[str, str, Form]]:
 
 
 def _sovrumsavsatsen() -> Form:
-    """Sovrumsavsatsen ur Onshape-modellen, breddad västerut till 1SO:s fasad: delen väster om AVSATS_SNITT flyttad
+    """Sovrumsavsatsen (marken.py), breddad västerut till 1SO:s fasad: delen väster om AVSATS_SNITT flyttad
     lika långt västerut och delen öster om den, som möts i snittet (samma tvärsnitt, avsatsen är rak längs x där)."""
-    a = importerad("sovrumsavsats.bbrep")
+    a = marken.sovrumsavsats()
     d = AVSATS_VAST - S.YTTERVAGGAR["1SO"].placering().punkt((0.0, -S.T_FASAD, 0.0))[0]
     return a.kapad((AVSATS_SNITT, 0.0, 0.0), (-1.0, 0.0, 0.0)) | \
         a.kapad((AVSATS_SNITT + d, 0.0, 0.0), (1.0, 0.0, 0.0)).placerad(flytt(-d))
@@ -228,11 +228,11 @@ def _kallartrappa() -> list[tuple[str, str, Form]]:
 
 
 def montage() -> Montage:
-    m = Montage("Mark", beskrivning="Berg, uppfyllnad och sovrumsavsats (ur Onshape-modellen), schaktet runt plattan "
+    m = Montage("Mark", beskrivning="Berg, uppfyllnad och sovrumsavsats, schaktet runt plattan "
                                     "på mark, återfyllning, entréavsatsen, trätrappan till 2SO-D1 och källartrappan")
     hus = _husets_fotavtryck()
     schakt = prisma_ur(markschakt(), MARK_UK - 10.0, 10.0)
-    berg0, upp0, avsats0 = importerad("berg.bbrep"), importerad("uppfyllnad.bbrep"), _sovrumsavsatsen()
+    berg0, upp0, avsats0 = marken.berg(), marken.uppfyllnad(), _sovrumsavsatsen()
     # entréavsatsen: blocken går inte in i grunden (makadam och fyllning under plattan på mark, 100 mm utanför den)
     grund = prisma_ur(markschakt(), MARK_UK - 10.0, -H_L_MARK)
     entre = [(kod, namn, minus(f, [grund])) for kod, namn, f in _entre()]

@@ -52,7 +52,6 @@ class Oppning:
     u1: float
     z0: float
     z1: float
-    onshape: str = ""        # namnet i Onshape-modellen
 
     @property
     def bredd(self) -> float:
@@ -113,40 +112,40 @@ def velfac_bleck_z(o: Oppning, w: float) -> float:
 
 
 _R = (
-    ("1NO", "vändfönster", 750, 1750, 1100, 2100, "window_10x10_red"),
-    ("1NO", "fast fönster", 3000, 3600, 0, 2100, "window_21x6_red"),
-    ("1NV", "vändfönster", 865, 1865, 1100, 2100, "window_10x10_red"),
-    ("1NV", "fönsterdörr", 3035, 4035, 0, 2100, "wdoor_21x10_red"),
-    ("1SO", "fast fönster", 1118, 1718, 1400, 2000, "window_6x6_red"),
-    ("1SO", "fast fönster", 2318, 2918, 1400, 2000, "window_6x6_red"),
-    ("1SO", "ytterdörr", 5080, 6080, 0, 2100, ""),                    # huvudentrén (planritning 201)
-    ("1SO", "fast fönster", 10718, 11318, 1400, 2000, "window_6x6_red"),
-    ("1SV", "fast fönster", 1135, 3235, 0, 2186, "window_21x21_red"),
-    ("2NO", "vändfönster", 645, 1645, 1100, 2100, "window_10x10_gray"),
-    ("2NO", "vändfönster", 2045, 3045, 1100, 2100, "window_10x10_gray"),
-    ("2SO", "fönsterdörr", 490, 1590, 0, 2100, "wdoor_21x11_gray"),
-    ("2SV", "skjutdörr", 260, 5060, 0, S.BALKAR["DB2"].uk - 45, "slidedoor"),   # upp till hammarbandet
-    ("3NO", "fast fönster", 995, 1595, 0, 2100, "window_21x6_gray"),
-    ("3NO", "vändfönster", 2845, 3845, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "vändfönster", 560, 1360, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vändfönster", 2260, 3060, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vändfönster", 3960, 4760, 1300, 2100, "window_8x8_gray"),
-    ("3NV", "vändfönster", 7117.5, 8117.5, 1100, 2100, "window_10x10_gray"),
-    ("3NV", "vändfönster", 8970, 9970, 1100, 2100, "window_10x10_gray"),
-    ("3SO", "fönsterdörr", 172.5, 1072.5, 0, 2100, "wdoor_21x9_gray"),
-    ("3SV", "vändfönster", 695, 1695, 1100, 2100, "window_10x10_gray"),
-    ("3SV", "fast fönster", 2775, 3675, 0, 2100, "wdoor_21x9_gray"),
+    ("1NO", "vändfönster", 750, 1750, 1100, 2100),
+    ("1NO", "fast fönster", 3000, 3600, 0, 2100),
+    ("1NV", "vändfönster", 865, 1865, 1100, 2100),
+    ("1NV", "fönsterdörr", 3035, 4035, 0, 2100),
+    ("1SO", "fast fönster", 1118, 1718, 1400, 2000),
+    ("1SO", "fast fönster", 2318, 2918, 1400, 2000),
+    ("1SO", "ytterdörr", 5080, 6080, 0, 2100),                    # huvudentrén (planritning 201)
+    ("1SO", "fast fönster", 10718, 11318, 1400, 2000),
+    ("1SV", "fast fönster", 1135, 3235, 0, 2186),
+    ("2NO", "vändfönster", 645, 1645, 1100, 2100),
+    ("2NO", "vändfönster", 2045, 3045, 1100, 2100),
+    ("2SO", "fönsterdörr", 490, 1590, 0, 2100),
+    ("2SV", "skjutdörr", 260, 5060, 0, S.BALKAR["DB2"].uk - 45),   # upp till hammarbandet
+    ("3NO", "fast fönster", 995, 1595, 0, 2100),
+    ("3NO", "vändfönster", 2845, 3845, 1100, 2100),
+    ("3NV", "vändfönster", 560, 1360, 1300, 2100),
+    ("3NV", "vändfönster", 2260, 3060, 1300, 2100),
+    ("3NV", "vändfönster", 3960, 4760, 1300, 2100),
+    ("3NV", "vändfönster", 7117.5, 8117.5, 1100, 2100),
+    ("3NV", "vändfönster", 8970, 9970, 1100, 2100),
+    ("3SO", "fönsterdörr", 172.5, 1072.5, 0, 2100),
+    ("3SV", "vändfönster", 695, 1695, 1100, 2100),
+    ("3SV", "fast fönster", 2775, 3675, 0, 2100),
 )
 DORRAR = ("fönsterdörr", "skjutdörr", "ytterdörr", "pardörr")
 
 
 def _numrera() -> dict[str, list[Oppning]]:
     ut: dict[str, list[Oppning]] = {}
-    for vagg, typ, u0, u1, z0, z1, ref in sorted(_R, key=lambda r: (r[0], r[2])):
+    for vagg, typ, u0, u1, z0, z1 in sorted(_R, key=lambda r: (r[0], r[2])):
         lst = ut.setdefault(vagg, [])
         bokstav = "D" if typ in DORRAR else "F"
         n = sum(1 for o in lst if o.kod.split("-")[1][0] == bokstav) + 1
-        lst.append(Oppning(f"{vagg}-{bokstav}{n}", vagg, typ, float(u0), float(u1), float(z0), float(z1), ref))
+        lst.append(Oppning(f"{vagg}-{bokstav}{n}", vagg, typ, float(u0), float(u1), float(z0), float(z1)))
     return ut
 
 

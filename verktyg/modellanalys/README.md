@@ -2,7 +2,7 @@
 
 Läser en STEP-fil (som standard den kodgenererade modellen, `modeller/trebodar/ut/trebodar.step`, som byggs med `verktyg/modellering/mod bygg`) med exakt B-rep-geometri, delnamn och färger, och svarar på frågor om den: översikt, delträd, exakta koordinater, 3D-bilder från valfri vinkel med snittklipp, 2D-snittritningar med mm-koordinater, linjeprober (skikttjocklekar), avstånd, krockar och skillnader mellan versioner.
 
-Standardfil: `../../modeller/trebodar/ut/trebodar.step` (kodgenererad, K-05:s koordinater). Onshape-modellen: `--fil ../../modeller/referens/trebodar-onshape.step`. Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
+Standardfil: `../../modeller/trebodar/ut/trebodar.step` (kodgenererad, K-05:s koordinater). Annan fil: `--fil väg/till.step`. Enhet mm, filens globala koordinatsystem.
 
 ## Installation
 

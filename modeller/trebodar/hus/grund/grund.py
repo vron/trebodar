@@ -40,7 +40,7 @@ INRE_BALKAR = ("V15", "V19")     # balkar under innerväggarna, och linjen V4–
 # plattan på mark (AR-02): L-element 500 med fot 100, cellplast 100 + 250 under plattan, makadam 150
 H_L_MARK, T_FOT_MARK, T_MAKADAM = 500.0, 100.0, 150.0
 SCHAKT_UT = 100.0                # bergschaktet runt plattan på mark, utanför L-elementen
-MARK_UK = -2315.0                # markmodellens underkant (Onshape-modellens berg och uppfyllnad)
+MARK_UK = -2315.0                # markens underkant (berget och uppfyllnaden i mark/marken.json)
 MARK_PLATTA = ((0.0, 9205.0), (4545.0, 9205.0), (4545.0, 11010.0), (4310.0, 11010.0), (4310.0, 15900.0),
                (0.0, 15900.0))   # plattan på mark på plan 1 (K-05)
 # plattan på marks fria hörn (LA9, LA10): ryggen urtagen HORN_UTKAP längs var kant från hörnet utom RYGG_KVAR närmast

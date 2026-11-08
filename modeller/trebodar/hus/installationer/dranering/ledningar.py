@@ -53,7 +53,7 @@ UTLOPP_RIKTNING = (0.064, -0.998)                    # mot nordost (passningen m
 UTLOPP_L = 3000.0                                    # så långt det ritas; röret finns och fortsätter
 STEG = 250.0                                         # ringarnas punkter för höjderna
 # stenarna i marken som ledningarna går under (mark/mark.py: entréavsatsens block E-*, källartrappans avsats K-AV och
-# trappsteg K-S*, sovrumsavsatsen ur Onshape-modellen, breddad, och dess rundade steg): områden (x0, y0, x1, y1) och
+# trappsteg K-S*, sovrumsavsatsen ur mark/marken.json, breddad, och dess rundade steg): områden (x0, y0, x1, y1) och
 # den lägsta underkanten. Under dem inga spolbrunnar och inga lodräta fall; en ändring syns i
 # ./mod dranering kontroll (krockar med Natursten)
 HINDER = {"entréavsatsen": (((-1595.0, 8355.0, -95.0, 11255.0),), -1100.0),
@@ -67,7 +67,7 @@ DJUPARE = {"dränering": 50.0, "dagvatten": 200.0}    # så mycket raka lutninga
 # mellan 1NV och 2SV, där berget är sprängt och spolrören och spolbrunnen där dräneringen faller till källaren nås
 # genom altanen (ärende #71)
 SPOLROR = (4700.0, 12000.0)
-# berget i dagen utanför altanen (Onshape-modellens berg, mark/berg.bbrep): kropp 1:s södra del, från entréavsatsen
+# berget i dagen utanför altanen (markens berg, mark/marken.json): kropp 1:s södra del, från entréavsatsen
 # runt gaveln 1SV till altanen (altan.py: X0, Y1), områden (x0, y0, x1, y1). Där inga spolbrunnar eller spolrör
 # (ärende #73): ledningarna faller högst 1:1 och spolas från spolrören
 BERG = ((-3000.0, 8355.0, 4415.0, 19000.0), (-3000.0, 15995.0, 9395.0, 19000.0))

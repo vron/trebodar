@@ -41,8 +41,8 @@ källarväggarna och plattan på mark (`../../grund`) och marken vid fasaderna u
   lutningar mellan brytpunkterna (rören läggs i raka längder), högst `DJUPARE` under den högsta vattengången, så att
   schaktet bredvid grunden inte blir djupare än det behöver. Där grunden eller marken faller brantare än 1:1 faller
   ledningen lodrätt i en spolbrunn Ø200 (SB).
-- I berget i dagen utanför altanen (`BERG`: kropp 1:s södra del, från entréavsatsen runt gaveln 1SV, efter
-  Onshape-modellens berg) står inga spolbrunnar eller spolrör: där faller ledningarna högst 1:1, med böjar 45°, och
+- I berget i dagen utanför altanen (`BERG`: kropp 1:s södra del, från entréavsatsen runt gaveln 1SV, efter markens
+  berg i `mark/marken.json`) står inga spolbrunnar eller spolrör: där faller ledningarna högst 1:1, med böjar 45°, och
   spolas från spolrören. Kontrollen ger fel för en brunn eller ett spolrör där.
 - Under stenarna i marken (`HINDER`: entréavsatsen och sovrumsavsatsen i `mark`, som huset inte får läsa) går
   ledningarna under stenarnas underkant, utan spolbrunnar och lodräta fall. Ändras stenarna syns det som krockar i

@@ -74,7 +74,6 @@ Genererade filer versionshanteras inte (`.gitignore` i roten och i beräkningarn
 | De tunga stegens rapporter och resultat (ovan) | Tar för lång tid att räkna i GitHub Actions |
 | `ritningar/200 Situationsplan.pdf`, `ritningar/201 Planritning.pdf` | Bygglovsritningar utan källa här |
 | `bygglov/` | Bygglovet från kommunen: beslutet och handlingarna som tillhör det |
-| `modeller/referens/` (STEP och `*.bbrep`) | Onshape-modellen, fryst underlag |
 | `modeller/balkar/*.step`, `modeller/balkplattor/*.step`, `*.dxf` | Tillverkningsfilerna för K-01 rev D (text, ändras sällan); genereras med cadquery, som inte finns i miljöerna |
 | `beräkningar/K-01/halbild_*.csv` | Hålbilderna för laserskärningen (text), läses av balkplåtarna |
 | `beräkningar/U-03/klimat_era5.csv.gz` | Klimatdata, underlag |

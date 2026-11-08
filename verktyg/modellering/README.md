@@ -24,7 +24,6 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod vagar [--trad VÄG]` | Installationernas vägar ([`vagar.py`](modellering/vagar.py), reglerna i modellens `kontrollregler`): rören, kablarna och kanalerna ska gå dolda i skikten, ingjutna eller i marken, inte fritt i rummens luft eller genom fönstrens och takfönstrens öppningar (fria mått längs axlarna och diagonalerna, strålar mot husets triangelnät med vtk), och inte in i fickdörrarnas fickor; i källaren får de gå utanpå väggarna och taket (anmärkning). Under en sekund |
 | `./mod ytor` | Ytskiktens språng och springor ([`ytskikt.py`](modellering/ytskikt.py), reglerna `YTSKIKT` och `YTSKIKT_UTOM` i modellens `kontrollregler`): där två synliga skivor av gips, kakel eller kaminens målade front möts i samma plan ska ytan vara jämn, utan språng (0,3–40 mm) eller öppna springor (0,5–30 mm). En yta är synlig där ingen annan del ligger an mot den och punkten framför den är rummets luft, inte ett hålrum (fria mått längs axlarna, som `./mod vagar`). Omkring två sekunder |
 | `./mod avtryck spara\|jamfor [--del VÄG]` | Modellens fingeravtryck (varje dels låda, volym och tyngdpunkt): spara före en omstrukturering och jämför efter, så syns att geometrin är oförändrad (flyttade delar paras på namn, delar med samma geometri och nytt delnamn redovisas för sig; `ut/<modell>-avtryck.json`) |
-| `./mod jamfor [--urval TEXT] [--ny TEXT]` | Jämför med Onshape-modellen och skriver en namntabell |
 | `./mod rendera [VY …] [--serie ute\|inne\|alla] [--kvalitet skiss\|utkast\|normal\|slutlig] [--ljus M D HH:MM VÄDER] [--ljusserie B] [--tand GRUPP[=NIVÅ] …] [--ev EV] [--bredd PX] [--ut MAPP] [--blend]` | Bilder med Blender (Cycles), vyerna i `modeller/trebodar/vyer.py` (VY: namn eller början av namn, t.ex. `I05`; serien `ute` är `VYER`, `inne` inomhusbilderna I01–I30). `--tand` tänder elinstallationens tändgrupper (nivå 0–1 dimrar). Kvaliteterna: skiss 640 px, utkast 1 280, normal 1 920 och slutlig 2 048 (2K). Dagsljuset är vyns om inte `--ljus` eller `--ljusserie` (`LJUSSERIER` i vyer.py: tid, väder och tändgrupper för alla vyerna utom seriens `utan`) anges; exponeringen räknas fram ur en förhandsbild om inte `--ev` anges. `--blend` sparar scenen. Bredvid varje bild skrivs vyns data (`<namn>.json`: kamera, mål, objektiv, ljus, kvalitet, tid och modellens version), som `mod publicera` läser |
 | `./mod ljus MÅNAD DAG [HH:MM] [VÄDER] [--steg MIN] [--diagram PNG]` | Dagsljuset på platsen (`modellering/dagsljus.py`): solens riktning och höjd, solens och himlens färg (CIE-färg och färgtemperatur) och belysning för en tidpunkt eller hela dagen; väder `sol`, `lätt mulet`, `mulet` (eller `sunny`, `slightlyovercast`, `overcast`); `--diagram` ritar solens bana under året med fasadernas riktningar |
 | `./mod omgivning [--hamta]` | Omgivningen för renderingen ur öppna geodata (`modellering/geodata.py`): höjdmodell och marktäcke (berg, skog, vatten, åker, våtmark, vägar, trädgård, hav, byggnader) inom 2,3 km, runt tomten Lantmäteriets höjder och de egna inmätningarna ur `lokalt/terrang/` (`modellering/terrang.py`), i modellens koordinater via fasadens hörn i SWEREF 99 12 00 (AR-02); `--hamta` laddar ner det som saknas (OpenStreetMap via Overpass, Terrarium-höjdrutor och Poly Havens texturer och modeller till `lokalt/polyhaven/`, `modellering/polyhaven.py`). Allt i `lokalt/` (versionshanteras inte) |
@@ -54,7 +53,6 @@ egen modell (t.ex. för beställning). Utdata:
 | `trebodar-materiallista.md`, `.csv` | Materiallista per del och per material: antal, kapmått, volym, massa |
 | `trebodar-index.json` | Alla delar med sökväg, material, omslutande låda, volym, massa och tyngdpunkt |
 | `trebodar-kontroll.md` | Kontrollens rapport |
-| `trebodar-jamforelse.md`, `-namntabell.csv` | Jämförelsen med Onshape-modellen |
 | `bilder/*.png` | Renderingarna (`mod rendera`, `mod materialprov`) |
 | `trebodar-rendering.glb`, `scen.json` | Modellen och scenens beskrivning (vyer, dagsljus, material, portaler, omgivning) till Blender |
 
@@ -85,8 +83,6 @@ egen modell (t.ex. för beställning). Utdata:
   sållas bort före den exakta kontrollen och räknas som anliggande. Avsiktliga överlapp mellan material (t.ex. spikplåt
   under utegips) och numeriska skärvor under 5 mm³ (mot krökta ytor) redovisas för sig. Modellen anger båda i
   `trebodar/kontrollregler.py`.
-- **Jämförelse** (`jamfor.py`, `referens.py`, `prisma.py`): varje referensdel paras med den genererade del som har
-  störst gemensam volym; identisk, städad (minst 98 % gemensamt), ändrad, ersatt eller borttagen.
 - **Rendering** (`blender/rendera.py`, `blender/material.py`): Blender i bakgrunden läser GLB och bygger ett
   procedurellt material för varje material i modellen ur dess typ och parametrar (`scen.json`, som `mod rendera`
   skriver), utan bildtexturer (`tra.py`, `ytor.py`): virke ur en stock (varje bit och lamell sågad ur en egen stock

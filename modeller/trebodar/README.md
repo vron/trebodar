@@ -1,7 +1,9 @@
 # Trebodar – kodgenererad modell
 
-Husets 3D-modell som kod. Den här modellen är husets källmodell; Onshape-exporten som den byggdes efter finns kvar
-som fryst referens i [`modeller/referens`](../referens/). Bygg, exportera och kontrollera med ramverket i
+Husets 3D-modell som kod. Den här modellen är husets källmodell. Den byggdes först efter husets Onshape-modell, som
+finns kvar i git-historiken (`git log -- modeller/referens`) och i Onshape; där kommentarerna säger "som i
+Onshape-modellen" anger de var ett mått kommer ifrån, och skillnaderna står i [Avsiktliga skillnader mot
+Onshape-modellen](#avsiktliga-skillnader-mot-onshape-modellen). Bygg, exportera och kontrollera med ramverket i
 [`verktyg/modellering`](../../verktyg/modellering/):
 
 ```
@@ -27,10 +29,9 @@ bara geometri (rätblock, prismor med hål, plan som kapar, placeringar) och mat
 |---|---|
 | [`skelett.py`](skelett.py) | Gemensam geometri: huskroppar, väggarnas lägen och system, takfallen, nock- och dalbalkarna, nivåer |
 | [`material.py`](material.py) | Material: densitet, färg, rendering och materiallistans enhet |
-| [`byggdelar/`](byggdelar/) | Regelväggar och plana stommar, takstolar, takbalkar, takets skikt, virke och skivor, referensdelar |
+| [`byggdelar/`](byggdelar/) | Regelväggar och plana stommar, takstolar, takbalkar, takets skikt, virke och skivor |
 | [`vyer.py`](vyer.py) | Kameror och dagsljus för rendering och webbvisaren, inomhusbilderna I01–I30, bildtexterna på webbplatsen, ljusportalerna och omgivningen |
 | [`kontrollregler.py`](kontrollregler.py) | Avsiktliga överlapp som kontrollen godtar, med motivering |
-| [`referens.py`](referens.py) | Referensmodellen och transformen till K-05 (för `mod jamfor`) |
 
 Varje del definieras i ett eget system och placeras av sitt montage. Väggarna har systemet u längs väggen, w genom
 väggen (w = 0 stommens utsida) och z uppåt; deras delar skrivs som regel(u), syll(u0, u1), hammarband(u0, u1),
@@ -109,7 +110,7 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Bottenplattan | `hus/grund/grund.py` (mått enligt K-06); plintarnas storlek läses ur K-06:s `resultat.json`, balkarna följer källarväggarna |
 | Plattan på mark | `hus/grund/grund.py` (L-element, cellplast och makadam enligt AR-02); mellanbjälklagets betong slutar vid L-elementens rygg, vid de fria hörnen i ryggens urtag (`hornutkap`, samma regel som R-05:s `kallare.py`, R-06 detalj F) |
 | Armeringen | ritningarna R-04, R-05 och R-06 (`beräkningar/R-0x/ritningar.py`, funktionerna som ritar järnen och räknar stålförteckningarna); `hus/armering/armering.py` läser dem och lägger järnen i höjdled |
-| Marken | `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där Onshape-modellens mark inte når fram (`ATERFYLLNING`), entréavsatsen och bänktrappan vid 2SO-D1 |
+| Marken | `mark/marken.json`: berget, uppfyllnaden och sovrumsavsatsen som data, ovansidans ytor med höjden i varje hörn (`mark/marken.py` gör kropparna; ändra en höjd i alla ytor som har hörnet); `mark/mark.py`: schaktet runt plattan på mark, återfyllningen där marken inte når fram (`ATERFYLLNING`), entréavsatsen och bänktrappan vid 2SO-D1 |
 | Ett nytt system, t.ex. el eller ventilation | en ny mapp under `hus/` med en fil som ger ett montage, och en rad i `hus/hus.py` |
 | Ett nytt material eller utseende | `material.py`: densitet, CAD-färg, verklig färg och renderingens typ med parametrar |
 | En specialprodukt i inköpslistan (IN-01) | `produkt="KOD"` på delen eller montaget i geometriskriptet där det skapas (installationernas produkttyper: typens `produkt` i katalogen) och produkten med status i `beräkningar/IN-01/indata.toml`; `./mod kontroll` jämför koderna |
@@ -156,7 +157,7 @@ vy, för egna justeringar i Blender; ändringar som ska vara kvar görs i `mater
 
 ```
 Trebodar
-├── Mark                        berg, uppfyllnad, sovrumsavsats (ur Onshape-modellen), schaktet runt plattan på mark,
+├── Mark                        berg, uppfyllnad och sovrumsavsats (marken.json), schaktet runt plattan på mark,
 │                               återfyllning, entréavsatsen och bänktrappan vid 2SO-D1
 └── Hus
     ├── Grund                   bottenplatta (kantbalk, balkar, plintar, L-element), källarväggar V1–V21, rör P1–P19,
@@ -202,8 +203,8 @@ dalbalkarna och varje vägg eller takstol för sig (`--del "Hus/Stomme/Stomme pr
 
 ## Namn
 
-Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-modellens namn finns bara i
-[`modeller/referens/namntabell.csv`](../referens/namntabell.csv).
+Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-modellens namn står inom parentes där
+handlingarnas källfiler har dem (K-03).
 
 - **Huskroppar** 1 (vänster), 2 (mittre), 3 (höger), som V, M och H i K-05.
 - **Ytterväggar**: kropp och väderstreck: 1NO, 1SO, 1SV, 1NV, 2NO, 2SO, 2NV, 2SV, 3NO, 3NV, 3SV, 3SO (gavlarna mot
@@ -279,7 +280,7 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
 
 ## Avsiktliga skillnader mot Onshape-modellen
 
-`./mod jamfor` jämför delarna med Onshape-modellen och skriver namntabellen. Skillnaderna är dessa:
+Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
 
 - **Fickor**: plåtarna (syll, hammarband) har inga 2 mm fickor för reglarna; reglarna är 2 400 i stället för
   2 404, och stolpar står på bjälklaget (z 0) i stället för 2 mm ner i det.
@@ -441,15 +442,16 @@ Namnen i modellen är kanoniska och följer handlingarnas beteckningar. Onshape-
   en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
   fram till L-elementens rygg, 70 mm innanför K-05:s kontur vid de fria kanterna, och i ryggens fas (20 mm innanför
-  konturen i överkant), vid de fria hörnen ut till konturen i ryggens urtag (R-06 detalj F), cellplast 100 + 250, makadam 150 och dränerande fyllning i ett schakt i berget 100 mm utanför
-  plattan.
-- **Marken** följer Onshape-modellens mark fram till huset (inte K-06:s högre fyllnadshöjder). Där den inte når fram
-  ligger återfyllning: framför 2SV upp till markens nivå intill och vid nedgången till källardörren D1 från
-  källargolvets nivå (K-06); över nedgången är uppfyllnaden borttagen. Två separata avsatser av granit:
-  sovrumsavsatsen (Onshape-modellen, breddad västerut till 1SO:s fasad) och entréavsatsen vid 1SO-D1 (dörrsteg, avsats
-  och tre trappsteg längs fasaden mot NO, sex lika steghöjder till marken), och en bänktrappa av lärk vid 2SO-D1: bänk
-  längs fasaden ett steg ned från dörren och ett steg framför dörren, tre lika steghöjder till sovrumsavsatsen.
-  Källartrappan går från avsatsen framför D1 upp till husets östra fasad.
+  konturen i överkant), vid de fria hörnen ut till konturen i ryggens urtag (R-06 detalj F), cellplast 100 + 250,
+  makadam 150 och dränerande fyllning i ett schakt i berget 100 mm utanför plattan.
+- **Marken** är Onshape-modellens mark (`mark/marken.json`, de färdiga höjderna efter markarbetena) fram till huset
+  (inte K-06:s högre fyllnadshöjder). Där den inte når fram ligger återfyllning: framför 2SV upp till markens nivå
+  intill och vid nedgången till källardörren D1 från källargolvets nivå (K-06); över nedgången är uppfyllnaden
+  borttagen. Två separata avsatser av granit: sovrumsavsatsen (Onshape-modellen, breddad västerut till 1SO:s fasad)
+  och entréavsatsen vid 1SO-D1 (dörrsteg, avsats och tre trappsteg längs fasaden mot NO, sex lika steghöjder till
+  marken), och en bänktrappa av lärk vid 2SO-D1: bänk längs fasaden ett steg ned från dörren och ett steg framför
+  dörren, tre lika steghöjder till sovrumsavsatsen. Källartrappan går från avsatsen framför D1 upp till husets östra
+  fasad.
 - **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
   (K-05 räknar med en 3,0 m lång trappa).
 - **Kaminen** enligt planritning 201 och Rais måttritning och monteringsanvisning (11-6520): insatsen i öppningen i 2C
