@@ -1,6 +1,6 @@
 """Altanen (ärende #30, #70): trädäck av grånad tryckimpregnerad trall 34 × 135 framför skjutpartiet 2SV, mellan
 kropparnas fasader 1NV och 3SO, från 2SV ut FORBI förbi gaveln 1SV:s linje, med överkanten i golvets höjd (plan 1,
-z 0; skjutpartiets tröskel 33 över), och breda trappsteg ned till marken längs framkanten och sidan. Varje bräda är
+z 0; skjutpartiets tröskel 33 över), och breda trappsteg ned till marken längs sidan (framkantens togs bort, #101). Varje bräda är
 en egen del. Två val: LANGS (brädorna längs 2SV, annars tvärs, ut från huset) och RAM (en ram av brädor runt om och
 brädorna innanför den, annars brädorna kant i kant över hela däcket); fogarna fördelas lika, nära FOG.
 
@@ -13,7 +13,7 @@ dem, som täcker bjälkändarna; stommen slutar innanför den. Stuprören DB4-ST
 genom däcket, med hål runt dem. Kanterna mot fasaderna har FRI mm luft. En lucka i däcket över spolrören och
 spolbrunnarna under altanen (dräneringen, ärende #71): brädorna där är egna delar, kapade över en bjälke.
 
-Trappstegen (ärende #70) går längs framkanten och sidan, så att man kan gå ned till marken var som helst: varje steg
+Trappstegen (ärende #70) går längs kanterna i STEG_KANTER (sidan; framkantens togs bort i #101): varje steg
 är en bräda och en sargbräda högt (STEG_H) och STEG_BRADOR brädor djupt, ett litet däck med brädorna längs kanten på
 bjälkar 45×145 tvärs kanten och en sargbräda framtill (sättsteget). Ett steg står på steget under (vars brädor går
 in under det) eller, nederst, på betongplintar i berget. Antalet steg följer berget (BERG: berget i mark/marken.json
@@ -53,6 +53,7 @@ LEDNING_FRI = 50.0            # plintarna från dräneringens och dagvattnets r�
 SARG = (34.0, 145.0)          # sargbrädan längs de fria kanterna: tjocklek, höjd
 FORBI = 250.0                 # däcket förbi gaveln 1SV:s linje (ärende #70)
 STEG_BRADOR = 3               # trappstegens djup: brädor längs kanten
+STEG_KANTER = ("sida",)       # kanterna med trappsteg: "fram" (framkanten) borttagen i ärende #101
 STEG_PLINT = 1000.0           # plintarna under det nedersta stegets bjälkar, c/c högst
 # berget under och framför altanen (markens berg i mark/marken.json, som huset inte läser): planet
 # z = BERG[1] + BERG[2] (x − BERG[0])
@@ -173,7 +174,7 @@ def _stegen() -> list[tuple[str, int, tuple[float, float, float, float]]]:
             x_k = min((b[0] for b in _stegets_bjalkar("fram", *ut[-2][2])), key=lambda c: abs(c - bor))
         ut += [("fram", k, (x_k, X1 + k * STEG_DJUP, Y1, Y1 + k * STEG_DJUP)),
                ("sida", k, (X1, X1 + k * STEG_DJUP, Y_HORN + FRI, Y1))]
-    return ut
+    return [t for t in ut if t[0] in STEG_KANTER]
 
 
 def _stegets_bjalkar(kant: str, x0: float, x1: float, y0: float, y1: float) -> list[tuple[float, float, float, float]]:
