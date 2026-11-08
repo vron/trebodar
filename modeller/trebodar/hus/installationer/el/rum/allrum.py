@@ -26,7 +26,8 @@ NAMN = RUM.namn
 
 NOCK = S.BALKAR["NB3"].x                     # mittre huskroppens nock
 Y = (6745.0, 7945.0, 9145.0, 10345.0)
-RADER = {"2SO": 5510.0, "2NV": 7990.0}      # önskat läge, flyttas till mitt mellan läkten
+AVSTAND = 1380.0                             # spotarnas rader lika långt från nocken på båda sidor (#95)
+RADER = {"2SO": NOCK - AVSTAND, "2NV": NOCK + AVSTAND}   # önskat läge, flyttas till mitt mellan läkten
 # riktningen: mot mitten av det motsatta takfallet (mellan nocken och takfotsväggens insida)
 MAL = {"2SO": (NOCK + S.TAKFALL["2NV"].x_insida) / 2, "2NV": (NOCK + S.TAKFALL["2SO"].x_insida) / 2}
 VAST = (3965.0, 7705.0)                      # tubspoten i allrummets västra del (takfallet 1NV)

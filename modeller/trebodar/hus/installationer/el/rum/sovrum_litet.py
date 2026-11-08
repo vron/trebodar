@@ -8,6 +8,8 @@ LN1_1: fickdörren ID5:s ficka tar väggen öster om dörren och garderoberna v�
 """
 from __future__ import annotations
 
+from trebodar import skelett as S
+
 from ..katalog import DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, UTTAG_1
 from ..lakt import mellan_lakten
 from ...montering import tak, vagg, vid_tak
@@ -17,7 +19,8 @@ RUM = Rum("SL", "Sovrum, litet", plan=1)
 NAMN = RUM.namn
 
 RADER = ((1500.0, -1.0, "SL-T1"), (2355.0, 1.0, "SL-T2"))   # y, riktningen mot väggen och tändgruppen
-X = (("3SO", 11305.0), ("3NV", 12505.0))      # önskat x, flyttas till mitt mellan läkten
+AVSTAND = 772.0                               # lika långt från nocken på båda sidor (#95)
+X = (("3SO", S.BALKAR["NB1"].x - AVSTAND), ("3NV", S.BALKAR["NB1"].x + AVSTAND))   # flyttas till mitt mellan läkten
 LUTNING = 20.0
 U_B = 2410.0                                  # dimmern längs L1, öster om stolpen LN1_1 (x 11 565–11 745)
 

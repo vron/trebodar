@@ -6,6 +6,8 @@ sitter på 2A (kontorssidan); röret går upp i väggen och genom raderna i inst
 """
 from __future__ import annotations
 
+from trebodar import skelett as S
+
 from ..katalog import DIMMER_1, FXP16, JUNISTAR_EXCLUSIVE
 from ..lakt import mellan_lakten
 from ...montering import tak, vagg, vid_tak
@@ -14,7 +16,8 @@ from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, lutad
 RUM = Rum("KT", "Kontor", plan=1)
 NAMN = RUM.namn
 
-RADER = {"2SO": (5275.0, -1.0), "2NV": (8345.0, 1.0)}     # önskat x och riktningen mot väggen
+AVSTAND = 1370.0                              # raderna lika långt från nocken på båda sidor (#95)
+RADER = {"2SO": (S.BALKAR["NB3"].x - AVSTAND, -1.0), "2NV": (S.BALKAR["NB3"].x + AVSTAND, 1.0)}   # x, mot väggen
 Y = (850.0, 1650.0)
 LUTNING = 9.0
 U_B = 150.0                                   # dimmern längs 2A

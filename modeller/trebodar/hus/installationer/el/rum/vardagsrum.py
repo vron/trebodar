@@ -9,6 +9,8 @@ raderna i installationsskiktet.
 """
 from __future__ import annotations
 
+from trebodar import skelett as S
+
 from ..katalog import DIMMER_1, DIMMER_2, FXP16, JUNISTAR_EXCLUSIVE, UTTAG_1, VL45_175, VL45_250, VL45_370
 from ..lakt import mellan_lakten
 from ...montering import tak, vagg, vid_tak
@@ -17,8 +19,10 @@ from ..punkter import Apparat, Lampa, Ror, Rum, Tandgrupp, lutad, ovan_fonstret
 RUM = Rum("VR", "Vardagsrum", plan=1)
 NAMN = RUM.namn
 
-RADER = (("1SO", 565.0, (11465.0, 12665.0, 13865.0, 15065.0), -1.0, "VR-T1"),
-         ("1NV", 3570.0, (11530.0, 12730.0, 13930.0, 15130.0), 1.0, "VR-T2"))   # takfall, x, y, mot väggen
+AVSTAND = 1455.0                             # raderna lika långt från nocken på båda sidor (#95)
+RADER = (("1SO", S.BALKAR["NB5"].x - AVSTAND, (11465.0, 12665.0, 13865.0, 15065.0), -1.0, "VR-T1"),
+         ("1NV", S.BALKAR["NB5"].x + AVSTAND, (11530.0, 12730.0, 13930.0, 15130.0), 1.0, "VR-T2"))   # takfall, x, y,
+#                                                                                                      mot väggen
 LUTNING = 9.0
 # VL45: typ, läge och underkant över golvet (den största lägst)
 VL45 = ((VL45_250, 1740.0, 13245.0, 1950.0), (VL45_370, 2065.0, 13515.0, 1700.0), (VL45_175, 1725.0, 13645.0, 2150.0))
