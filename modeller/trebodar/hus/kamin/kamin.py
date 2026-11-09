@@ -19,13 +19,15 @@ direkt över den övre en obrännbar plåt av kalciumsilikat 50 (manualen), 1 60
 över öppningen och 1 000 över dörrens överkant. Golvet är betong (mellanbjälklaget), så golvplåt behövs inte.
 Möbler minst 950 framför dörren och 500 från sidoglasen.
 
-Skorstenen är isolerad, Ø150/Ø250 rostfri, ända ned till stosen (manualen): lodrätt till Z_BOJ, 45° bakåt genom
-plåten, murverkets baksida och 2C (i facket mellan reglarna vid x 6 647 och 7 094, 50 mm till trä) in i garderoben, där
-45° västerut ovanför garderobens tak och lodrätt genom innertaket och taket väster om nockbalken NB3 (50 mm till trä),
-i facket mellan 2C och takbalken vid y 5 415, till 800 mm över nocken, med regnhuv. Nockbalken ligger rakt ovanför
-kaminen, så skorstenen kan inte gå rakt upp. I garderoben skyddar kalciumsilikat 50 under, framför och på sidorna av
-skorstenen och kanalen (HOLJE). Hålen genom 2C:s skikt, garderobens tak, innertaket, isoleringen och taket skärs i
-hus.py.
+Skorstenen är isolerad, Ø150/Ø250 rostfri (ett CE-märkt systemskorsten med 50 mm deklarerat avstånd till brännbart,
+G50), ända ned till stosen (manualen): lodrätt till Z_BOJ och i en enda förskjutning 45° snett bakåt genom nischens
+baksida och 2C:s skikt mot garderoben (i nischen, inga reglar) in i garderoben, och lodrätt genom garderobens tak,
+innertaket och taket till 800 mm över nocken, med regnhuv: två böjar, sotningsbar uppifrån. Genom taket går den väster
+om nockbalken NB3, mellan takbalken T09 och takstolen 2C. Minst 50 mm till allt brännbart (nischens reglar, skikten,
+läkten, takbalken, nockbalken); ovanför insatsen är skorstenens sidor därför kalciumsilikat 50 i stället för lättbetong.
+Nockbalken ligger rakt ovanför kaminen, så skorstenen kan inte gå rakt upp. I garderoben står ett skydd av gips runt
+skorstenen och kanalen (HOLJE), minst 50 mm från skorstenen, med en inspektionslucka för sotaren och
+brandskyddskontrollen. Hålen genom 2C:s skikt, garderobens tak, innertaket, isoleringen och taket skärs i hus.py.
 
 Förbränningsluften (Rais AirSystem): flexslang Ø100 från anslutningen under insatsen bakåt under den till utrymmet
 bakom insatsen, och därifrån en isolerad kanal Ø100/Ø140 upp bakom insatsen och samma väg som skorstenen under den,
@@ -43,7 +45,7 @@ from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.ror import ror, stang
 from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.hus.rum import KAMINMUR
-from trebodar.material import GLAS, KALCIUMSILIKAT, KALKPUTS, KAMIN, LATTBETONG, ROSTFRITT
+from trebodar.material import GIPS, GLAS, KALCIUMSILIKAT, KALKPUTS, KAMIN, LATTBETONG, ROSTFRITT
 
 # insatsen (Rais 600:3, installationsmanualen)
 KROPP = (678.0, 392.0, 610.0)               # bredd, djup bakom ramen, höjd
@@ -72,9 +74,11 @@ STOD_IN = 60.0                              # stöden så långt in från sidorn
 SKORSTEN_D, SKORSTEN_INRE = 250.0, 150.0
 FRI = 50.0                                  # avstånd till brännbart vid genomföringen
 Z_MUR = 1900.0                              # skorstenens murade del upp till halva höjden (#109)
-Z_BOJ = 1150.0                              # skorstenen svänger 45° bakåt, genom 2C in i garderoben
-Y_GARDEROB = 5710.0                         # och där 45° västerut, mellan 2C och takbalken vid y 5 415
-X_SK, Y_SK = 6590.0, Y_GARDEROB             # och lodrätt genom taket väster om nockbalken NB3, i facket
+Z_BOJ = 1150.0                              # skorstenen svänger 45° snett bakåt, genom nischen in i garderoben
+Y_GARDEROB = 5710.0                         # förbränningsluftens kanal i garderoben
+X_SK, Y_SK = 6635.0, 5635.0                 # och lodrätt genom taket väster om nockbalken NB3 (50 till trä), i facket
+#                                            mellan takbalken T09 (y 5 460) och takstolen 2C (5 905), 50 till trä
+Z_SIDA = 1071.0                             # sidornas murverk upp hit (hålets överkant); ovanför kalciumsilikat 50
 OVER_NOCK = 800.0
 # förbränningsluften
 LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
@@ -128,13 +132,12 @@ def _luftvag() -> list[tuple[float, float, float]]:
 
 
 def skorstenens_vag() -> list[tuple[float, float, float]]:
-    """Den isolerade skorstenens mittlinje: från rökstosen lodrätt, 45° bakåt genom 2C in i garderoben, 45° västerut
-    och lodrätt genom taket."""
+    """Den isolerade skorstenens mittlinje: från rökstosen lodrätt, i en enda förskjutning 45° snett bakåt genom
+    nischen och 2C:s skikt in i garderoben (två böjar, sotningsbar uppifrån) och lodrätt genom taket."""
     ys = Y_FRONT - STOS_FRAN_FRONT
     zt = Z_INSATS + KROPP[2] + STOS_H
-    b = (X_MITT, Y_GARDEROB, Z_BOJ + (ys - Y_GARDEROB))
-    c = (X_SK, Y_SK, b[2] + (X_MITT - X_SK))
-    return [(X_MITT, ys, zt), (X_MITT, ys, Z_BOJ), b, c, (X_SK, Y_SK, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK)]
+    b = (X_SK, Y_SK, Z_BOJ + math.hypot(X_MITT - X_SK, ys - Y_SK))
+    return [(X_MITT, ys, zt), (X_MITT, ys, Z_BOJ), b, (X_SK, Y_SK, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK)]
 
 
 def kanalens_vag() -> list[tuple[float, float, float]]:
@@ -149,9 +152,8 @@ def genomforingar() -> list[tuple[Form, tuple[float, float, float, float, float,
     ut: list[tuple[Form, tuple[float, float, float, float, float, float], tuple[str, ...]]] = []
     sv, lv = skorstenens_vag(), _luftvag()
     z_tak = 2145.0                                               # garderobens tak (inredning/garderob.py)
-    rs, rl = SKORSTEN_D / 2 + FRI, LUFT_D / 2 + LUFT_FRI
-    for a, b, r in ((sv[1], sv[2], rs), (sv[2], sv[3], rs), ((sv[3][0], sv[3][1], z_tak - 200.0),
-                                                             (sv[3][0], sv[3][1], z_tak + 200.0), rs),
+    rs, rl = SKORSTEN_D / 2 + FRI + 10.0, LUFT_D / 2 + LUFT_FRI      # 10 mm marginal mot nätets fasetter
+    for a, b, r in ((sv[1], sv[2], rs), ((sv[2][0], sv[2][1], z_tak - 200.0), (sv[2][0], sv[2][1], z_tak + 200.0), rs),
                     (lv[2], lv[3], rl), ((X_LUFT, Y_LUFT, z_tak - 200.0), (X_LUFT, Y_LUFT, z_tak + 200.0),
                                          LUFT_D / 2 + LUFT_ISOL + LUFT_FRI)):
         lo = [min(a[i], b[i]) - r * 1.5 for i in range(3)]
@@ -192,21 +194,26 @@ def _skorstenen(m: Montage) -> None:
     hal = _halet()
     konv = _konvektion()
     ix0, ix1 = MX0 + PUTS + MUR, MX1 - PUTS - MUR             # insidan mellan sidorna
+    iu0, iu1 = MX0 + PUTS + KS_T, MX1 - PUTS - KS_T           # ovanför insatsen (tunnare sidor: skorstenen ryms)
     yf = Y_FRONT - PUTS                                       # frontens utsida (under putsen)
     konv_v: Form = konv[0] | konv[2]
     konv_o: Form = konv[1] | konv[3]
     delar: list[tuple[str, str, Form, Material]] = [
-        ("MUR-V", "Murverk lättbetong 100, västra sidan", _upp(MX0 + PUTS, ix0, MY0, yf) - hal - konv_v,
+        ("MUR-V", "Murverk lättbetong 100, västra sidan", _upp(MX0 + PUTS, ix0, MY0, yf, Z_SIDA) - hal - konv_v,
          LATTBETONG),
-        ("MUR-O", "Murverk lättbetong 100, östra sidan", _upp(ix1, MX1 - PUTS, MY0, yf) - hal - konv_o,
+        ("MUR-O", "Murverk lättbetong 100, östra sidan", _upp(ix1, MX1 - PUTS, MY0, yf, Z_SIDA) - hal - konv_o,
          LATTBETONG),
+        ("SIDA-V", f"Sida kalciumsilikat {KS_T:g} ovanför insatsen, västra", box(MX0 + PUTS, iu0, MY0, yf, Z_SIDA, Z_MUR)
+         - konv_v - _ror_genom(skorstenens_vag(), SKORSTEN_D), KALCIUMSILIKAT),
+        ("SIDA-O", f"Sida kalciumsilikat {KS_T:g} ovanför insatsen, östra", box(iu1, MX1 - PUTS, MY0, yf, Z_SIDA, Z_MUR)
+         - konv_o - _ror_genom(skorstenens_vag(), SKORSTEN_D), KALCIUMSILIKAT),
         ("BAK", f"Baksida kalciumsilikat {BAK:g}", _upp(ix0, ix1, MY0, MY0 + BAK)
          - _ror_genom(skorstenens_vag(), SKORSTEN_D) - stang(_luftvag()[2], _luftvag()[3], LUFT_D + 20.0),
          KALCIUMSILIKAT),
-        ("MUR-T", "Murverk lättbetong 100, locket", box(ix0, ix1, MY0 + BAK, yf - KS_T, Z_MUR - MUR, Z_MUR),
+        ("MUR-T", "Murverk lättbetong 100, locket", box(iu0, iu1, MY0 + BAK, yf - KS_T, Z_MUR - MUR, Z_MUR),
          LATTBETONG),
     ]
-    front: Form = _upp(ix0, ix1, yf - KS_T, yf) - hal
+    front: Form = (box(ix0, ix1, yf - KS_T, yf, 0.0, Z_SIDA) | box(iu0, iu1, yf - KS_T, yf, Z_SIDA, Z_MUR)) - hal
     delar.append(("FRONT", f"Front kalciumsilikat {KS_T:g}", front, KALCIUMSILIKAT))
     puts: Form = (_upp(MX0, MX1, yf, Y_FRONT, Z_MUR + PUTS) | _upp(MX0, MX0 + PUTS, MY0, yf, Z_MUR + PUTS)
                   | _upp(MX1 - PUTS, MX1, MY0, yf, Z_MUR + PUTS) | box(MX0, MX1, MY0, Y_FRONT, Z_MUR, Z_MUR + PUTS)) - hal
@@ -217,7 +224,7 @@ def _skorstenen(m: Montage) -> None:
         artikel = "Skamotec 225, 50 mm" if mat is KALCIUMSILIKAT else None
         m.lagg(Del(namn, form, mat, artikel=artikel), Placering(), f"KM-{kod}")
     # plåten över den övre konvektionsöppningen, med hål för skorstenen och kanalen
-    plat = box(ix0, ix1, MY0 + BAK, yf - KS_T, H_KASSE - KS_T, H_KASSE) - _ror_genom(skorstenens_vag(), SKORSTEN_D)
+    plat = box(iu0, iu1, MY0 + BAK, yf - KS_T, H_KASSE - KS_T, H_KASSE) - _ror_genom(skorstenens_vag(), SKORSTEN_D)
     m.lagg(Del(f"Plåt över konvektionsöppningen, kalciumsilikat {KS_T:g}", plat, KALCIUMSILIKAT,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-PLAT")
     yb = Y_FRONT - RAM[2] - KROPP[1]
@@ -227,20 +234,24 @@ def _skorstenen(m: Montage) -> None:
                Placering(), f"KM-STOD{i}")
 
 
-# skyddet runt skorstenen och kanalen i garderoben (#109): kalciumsilikat 50 framför dem och på sidorna, från golvet
-# och 2C:s skikt till garderobens tak, så att kläderna håller avstånd
-HOLJE = (6100.0, 7130.0, 5520.0, 0.0)          # x0, x1, framsidans y, underkant
+# skyddet runt skorstenen och kanalen i garderoben (#109): gips 13 framför dem och på sidorna, från golvet och 2C:s
+# skikt till garderobens tak, minst 50 från skorstenen (dess avstånd till brännbart, G50), så att kläderna håller
+# avstånd; med en inspektionslucka i fronten för sotaren och brandskyddskontrollen
+HOLJE = (6100.0, 7130.0, 5440.0, 0.0)          # x0, x1, framsidans y, underkant
+LUCKA = (6380.0, 6880.0, 1300.0, 2000.0)       # inspektionsluckan i fronten: x0, x1, z0, z1
 
 
 def _holjet(m: Montage) -> None:
     x0, x1, yf, zb = HOLJE
     y_2c = S.INNERVAGGAR["2C"].origo[1] - 25.0                  # 2C:s gips mot sovrummet
     z_tak = 2145.0                                               # garderobens tak (inredning/garderob.py)
-    for kod, f in (("FRAM", box(x0, x1, yf, yf + KS_T, zb, z_tak)),
-                   ("V", box(x0, x0 + KS_T, yf + KS_T, y_2c, zb, z_tak)),
-                   ("O", box(x1 - KS_T, x1, yf + KS_T, y_2c, zb, z_tak))):
-        m.lagg(Del(f"Skydd runt skorstenen i garderoben, kalciumsilikat {KS_T:g}", f, KALCIUMSILIKAT,
-                   artikel="Skamotec 225, 50 mm"), Placering(), f"KM-SKYDD-{kod}")
+    t = 13.0
+    lx0, lx1, lz0, lz1 = LUCKA
+    for kod, namn, f in (("FRAM", "gips 13", box(x0, x1, yf, yf + t, zb, z_tak) - box(lx0, lx1, yf - 1, yf + t + 1, lz0, lz1)),
+                         ("LUCKA", "inspektionslucka, gips 13", box(lx0, lx1, yf, yf + t, lz0, lz1)),
+                         ("V", "gips 13", box(x0, x0 + t, yf + t, y_2c, zb, z_tak)),
+                         ("O", "gips 13", box(x1 - t, x1, yf + t, y_2c, zb, z_tak))):
+        m.lagg(Del(f"Skydd runt skorstenen i garderoben, {namn}", f, GIPS), Placering(), f"KM-SKYDD-{kod}")
 
 
 def _insatsen(m: Montage) -> None:
