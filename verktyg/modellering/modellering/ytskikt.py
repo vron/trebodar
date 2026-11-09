@@ -10,12 +10,17 @@ delen är minst BREDD bred (skivornas kanter räknas inte). Två synliga ytor av
   varandra längs normalen, så att den ena skivan står ut;
 - springa: de ligger i samma plan med SPRINGA–SPRINGA_MAX mm emellan, och ingen annan del har en yta i planet som
   fyller springan (en smyg eller list i liv med skivorna).
+
+Och två synliga ytor med vinkelräta normaler i ett inåthörn (#107): båda når ut i rummet framför den andra, den ena
+får gå förbi hörnlinjen in bakom den andra väggens skikt (högst FORBI), och en springa är där den andra slutar
+SPRINGA–SPRINGA_MAX mm före hörnlinjen längs minst LANGD, utan någon annan del i dess plan som fyller remsan.
 """
 from __future__ import annotations
 
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
+from collections.abc import Callable
 from types import ModuleType
 
 import numpy as np
@@ -36,6 +41,7 @@ PLAN = 0.2                              # samma plan [mm]
 PROV = 5.0                              # rummets luft så långt framför ytan [mm]
 RUM = 150.0                             # rummets luft: minst så fritt längs axlarna genom punkten [mm]
 NORMAL = 1e-3                           # samma normal (avrundning)
+FORBI = 60.0                            # i ett inåthörn går den ena ytan högst så långt förbi hörnlinjen [mm]
 UTOM = ("Hus/Armering", "Hus/Installationer")   # delar som inte täcker ytorna (i betongen, genom skikten)
 
 
@@ -98,6 +104,70 @@ def _mitt(g: BaseGeometry) -> Point:
 def _nyckel(n: np.ndarray) -> tuple[int, int, int]:
     q = np.round(n / NORMAL).astype(int)
     return (int(q[0]), int(q[1]), int(q[2]))
+
+
+def _inathorn(synliga: dict, ytor: dict, polygon: Callable, i_planet: Callable
+              ) -> list[tuple[str, float, str, str, np.ndarray, np.ndarray]]:
+    """Springor i inåthörnen (#107): två synliga ytor med vinkelräta normaler som vetter mot samma hörn (var och en
+    framför den andras plan) och möts längs minst LANGD av hörnlinjen, där den ena (eller båda) slutar SPRINGA–
+    SPRINGA_MAX mm före hörnlinjen och ingen annan del i dess plan fyller remsan."""
+    alla = [(k, rel, dd, q, bas, n) for k, lst in synliga.items() for rel, dd, q, bas, n in lst]
+    if len(alla) < 2:
+        return []
+    # ytornas lådor i 3D, för att bara pröva par som ligger nära varandra
+    lador = []
+    for _, _, dd, q, bas, n in alla:
+        x0, y0, x1, y1 = q.bounds
+        P = np.array([bas @ np.array([x, y]) + n * dd for x in (x0, x1) for y in (y0, y1)])
+        lador.append((P.min(axis=0), P.max(axis=0)))
+    lo = np.array([a for a, _ in lador])
+    hi = np.array([b for _, b in lador])
+    N = np.array([n for *_, n in alla])
+    nara = np.all((lo[:, None, :] <= hi[None, :, :] + SPRINGA_MAX) & (lo[None, :, :] <= hi[:, None, :] + SPRINGA_MAX),
+                  axis=2)
+    vinkelrata = np.abs(N @ N.T) < 1e-3
+    ut = []
+    for i, j in zip(*np.nonzero(np.triu(nara & vinkelrata, 1))):
+        ka, ra, da, qa, basa, na = alla[i]
+        kb, rb, db, qb, basb, nb = alla[j]
+        if ra == rb:
+            continue
+        t = np.cross(na, nb)                        # hörnlinjens riktning
+        ca, cb = basa.T @ nb, basb.T @ na           # den andra ytans normal i ytans plan
+        g = []
+        fram = []
+        intervall = []
+        for q, c, d_annan, bas, nn, d_egen in ((qa, ca, db, basa, na, da), (qb, cb, da, basb, nb, db)):
+            P = np.asarray(q.exterior.coords) if hasattr(q, "exterior") else np.zeros((0, 2))
+            if len(P) == 0:
+                break
+            avst = P @ c - d_annan                  # framför den andra ytans plan: > 0
+            g.append(float(avst.min()))
+            fram.append(float(avst.max()))
+            nara_p = P[avst < avst.min() + 1.0]      # kanten närmast hörnet
+            u = (np.column_stack([nara_p[:, 0], nara_p[:, 1]]) @ (bas.T @ t))
+            intervall.append((float(u.min()), float(u.max())))
+        # inåthörn: båda ytorna når ut i rummet framför den andra; den ena får gå förbi hörnlinjen in bakom den andra
+        # väggens skikt (högst FORBI), den andra slutar SPRINGA–SPRINGA_MAX före den
+        if len(g) < 2 or min(fram) < LANGD or min(g) < -FORBI or max(g) <= SPRINGA or max(g) > SPRINGA_MAX:
+            continue
+        a0, a1 = max(intervall[0][0], intervall[1][0]), min(intervall[0][1], intervall[1][1])
+        if a1 - a0 < LANGD:
+            continue
+        # remsan mellan den korta ytans kant och hörnlinjen, i dess plan: fylls den av en annan del?
+        kort = 0 if g[0] >= g[1] else 1
+        k, rel, dd, q, bas, nn = (ka, ra, da, qa, basa, na) if kort == 0 else (kb, rb, db, qb, basb, nb)
+        c, d_annan = (ca, db) if kort == 0 else (cb, da)
+        tt = bas.T @ t
+        m0 = c * d_annan                            # hörnlinjen i planet, och remsan ut till kanten
+        remsa = Polygon([m0 + tt * a0, m0 + tt * a1, m0 + tt * a1 + c * g[kort], m0 + tt * a0 + c * g[kort]])
+        fyller = [polygon(k, m, k, bas) for m in i_planet(k, dd, 1.0) if ytor[k][m][0] not in (ra, rb)]
+        if fyller and remsa.difference(shapely.union_all(fyller).buffer(0.5)).area < 0.1 * remsa.area:
+            continue
+        mitt = m0 + tt * (a0 + a1) / 2 + c * g[kort] / 2
+        pt = bas @ mitt + nn * dd
+        ut.append(("springa i inåthörnet", g[kort], ra, rb, pt, (na + nb) / np.linalg.norm(na + nb)))
+    return ut
 
 
 def kontrollera(rot: Montage, karna: Karna, regler: ModuleType) -> Ytor:
@@ -192,6 +262,7 @@ def kontrollera(rot: Montage, karna: Karna, regler: ModuleType) -> Ytor:
             else:
                 continue
             kandidater.append((vad, mått, ri, rj, pt, n))
+    kandidater += _inathorn(synliga, ytor, polygon, i_planet)
     # bara där ytorna vetter mot ett rum: punkten PROV mm framför dem är rummets luft, minst RUM fritt längs axlarna
     # (vagar.Huset), inte ett hålrum i en vägg eller ett bjälklag eller en annan del
     rapporterade: dict[tuple[str, str], tuple[float, str]] = {}
