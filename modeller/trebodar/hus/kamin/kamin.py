@@ -13,7 +13,8 @@ lättbetong 100 (värmemotstånd 0,9 m²K/W, minst som 50 mm Skamotec 225 enligt
 insatsen är 50 mm kalciumsilikat (Skamotec 225; tunnare än murverket, så att den isolerade skorstenen ryms över
 stosen). Utsidan är kalkputs 10 på nät, kalkad i Jotun 1563 Mørk strandsand. Insatsen har 50 mm luft till baksidans murverk (manualen: avståndet
 till skivorna 50) och ryms i hålet (minst 678 × 615 × 375); hålet är 2 mm större än ramen runt om, eftersom stålet
-utvidgar sig. Konvektionsöppningar i fronten: 308 cm² under och 550 cm² över insatsen (minst 250 och 500), och
+utvidgar sig. Konvektionsöppningar i sidorna (inte i fronten, #109): 320 cm² under och 550 cm² över insatsen (minst
+250 och 500), och
 direkt över den övre en obrännbar plåt av kalciumsilikat 50 (manualen), 1 600 över golvet; innertaket är minst 500
 över öppningen och 1 000 över dörrens överkant. Golvet är betong (mellanbjälklaget), så golvplåt behövs inte.
 Möbler minst 950 framför dörren och 500 från sidoglasen.
@@ -60,10 +61,13 @@ PUTS, MUR, KS_T = 10.0, 100.0, 50.0         # kalkputs, lättbetong, kalciumsili
 BAK = KS_T                                  # baksidan mot 2C: kalciumsilikat 50 (Rais: mot brännbar vägg)
 LUFT_BAK = 50.0                             # luften mellan insatsen och baksidan (Rais: 50)
 Y_FRONT = MY1                               # insatsens front i liv med putsen
-KONV_UNDER, KONV_OVER = (440.0, 70.0), (440.0, 125.0)    # bredd, höjd (308 och 550 cm²)
+# konvektionsöppningarna i skorstenens sidor, en på varje sida (#109: inte i fronten): längd längs sidan, höjd
+KONV_UNDER, KONV_OVER = (200.0, 80.0), (250.0, 110.0)    # 2 × 160 = 320 och 2 × 275 = 550 cm² (minst 250 och 500)
 Z_KONV_UNDER = 250.0
+Y_KONV = 6080.0                             # öppningarnas bakre kant (i skorstenens synliga del, framför 2C)
 H_KASSE = 1600.0                            # plåten över den övre konvektionsöppningen
 STOD_B = 60.0
+STOD_IN = 60.0                              # stöden så långt in från sidorna: luften från de nedre öppningarna
 # rökröret och skorstenen
 SKORSTEN_D, SKORSTEN_INRE = 250.0, 150.0
 FRI = 50.0                                  # avstånd till brännbart vid genomföringen
@@ -76,7 +80,7 @@ OVER_NOCK = 800.0
 LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
 LUFT_ISOL = 20.0                            # kanalens isolering
 LUFT_Z = 200.0                              # slangen under insatsen
-X_SLANG, Y_SLANG = 6800.0, 5800.0          # slangen rakt bakåt under insatsen, genom 2C in i garderoben
+X_SLANG, Y_SLANG = 6880.0, 5800.0          # slangen rakt bakåt under insatsen, genom 2C in i garderoben
 X_LUFT, Y_LUFT = 6275.0, Y_GARDEROB         # och lodrätt genom taket väster om skorstenen
 LUFT_FRI = 5.0                              # hålen runt kanalen
 HUV_OVER = 300.0                            # kanalens ände över taket, under huven
@@ -165,9 +169,12 @@ def _halet() -> Form:
 
 
 def _konvektion() -> list[Form]:
-    """Konvektionsöppningarna genom fronten och putsen."""
-    return [box(X_MITT - b / 2, X_MITT + b / 2, Y_FRONT - PUTS - KS_T - 1.0, Y_FRONT + 1.0, z, z + h)
-            for (b, h), z in ((KONV_UNDER, Z_KONV_UNDER), (KONV_OVER, H_KASSE - KS_T - KONV_OVER[1]))]
+    """Konvektionsöppningarna genom sidorna (murverket och putsen), under och över insatsen."""
+    ut = []
+    for (b, h), z in ((KONV_UNDER, Z_KONV_UNDER), (KONV_OVER, H_KASSE - KS_T - KONV_OVER[1] - 50.0)):
+        for x0, x1 in ((MX0 - 1.0, MX0 + PUTS + MUR + 1.0), (MX1 - PUTS - MUR - 1.0, MX1 + 1.0)):
+            ut.append(box(x0, x1, Y_KONV, Y_KONV + b, z, z + h))
+    return ut
 
 
 def _upp(x0: float, x1: float, y0: float, y1: float, z1: float = Z_MUR) -> Form:
@@ -186,9 +193,13 @@ def _skorstenen(m: Montage) -> None:
     konv = _konvektion()
     ix0, ix1 = MX0 + PUTS + MUR, MX1 - PUTS - MUR             # insidan mellan sidorna
     yf = Y_FRONT - PUTS                                       # frontens utsida (under putsen)
+    konv_v: Form = konv[0] | konv[2]
+    konv_o: Form = konv[1] | konv[3]
     delar: list[tuple[str, str, Form, Material]] = [
-        ("MUR-V", "Murverk lättbetong 100, västra sidan", _upp(MX0 + PUTS, ix0, MY0, yf) - hal, LATTBETONG),
-        ("MUR-O", "Murverk lättbetong 100, östra sidan", _upp(ix1, MX1 - PUTS, MY0, yf) - hal, LATTBETONG),
+        ("MUR-V", "Murverk lättbetong 100, västra sidan", _upp(MX0 + PUTS, ix0, MY0, yf) - hal - konv_v,
+         LATTBETONG),
+        ("MUR-O", "Murverk lättbetong 100, östra sidan", _upp(ix1, MX1 - PUTS, MY0, yf) - hal - konv_o,
+         LATTBETONG),
         ("BAK", f"Baksida kalciumsilikat {BAK:g}", _upp(ix0, ix1, MY0, MY0 + BAK)
          - _ror_genom(skorstenens_vag(), SKORSTEN_D) - stang(_luftvag()[2], _luftvag()[3], LUFT_D + 20.0),
          KALCIUMSILIKAT),
@@ -196,8 +207,6 @@ def _skorstenen(m: Montage) -> None:
          LATTBETONG),
     ]
     front: Form = _upp(ix0, ix1, yf - KS_T, yf) - hal
-    for k in konv:
-        front = front - k
     delar.append(("FRONT", f"Front kalciumsilikat {KS_T:g}", front, KALCIUMSILIKAT))
     puts: Form = (_upp(MX0, MX1, yf, Y_FRONT, Z_MUR + PUTS) | _upp(MX0, MX0 + PUTS, MY0, yf, Z_MUR + PUTS)
                   | _upp(MX1 - PUTS, MX1, MY0, yf, Z_MUR + PUTS) | box(MX0, MX1, MY0, Y_FRONT, Z_MUR, Z_MUR + PUTS)) - hal
@@ -212,7 +221,7 @@ def _skorstenen(m: Montage) -> None:
     m.lagg(Del(f"Plåt över konvektionsöppningen, kalciumsilikat {KS_T:g}", plat, KALCIUMSILIKAT,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-PLAT")
     yb = Y_FRONT - RAM[2] - KROPP[1]
-    for i, x0 in enumerate((ix0, ix1 - STOD_B), 1):
+    for i, x0 in enumerate((ix0 + STOD_IN, ix1 - STOD_IN - STOD_B), 1):
         m.lagg(Del(f"Stöd under insatsen, kalciumsilikat {STOD_B:g}", box(x0, x0 + STOD_B, yb, yf - KS_T, 0.0,
                                                                             Z_INSATS), KALCIUMSILIKAT),
                Placering(), f"KM-STOD{i}")
