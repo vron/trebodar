@@ -116,7 +116,7 @@ gavel = true
 [[takstol]]
 namn  = "Stol 1SV"
 text  = "Vänster, övre gavel"
-stod  = ["N5", "D"]
+stod  = ["N5", "E"]
 gavel = true
 [[takstol]]
 namn  = "Stol 2NO"
@@ -219,9 +219,9 @@ namn = "LN5_3"
 sok = [2095, 9280]      # 1B:s ände mot den lätta väggen L20: två reglar i 1B
 [[stolpe]]
 namn = "LN5_2"
-sok = [2075, 11000]
+sok = [2030, 11000]
 gamla = "D"
-e = 48.5        # nockbalk 5 vilar på 83 av stolpens 180 mm (#45)
+e = 71          # nockbalk 5 vilar på stolpens östra 83 av 225 mm (#45): lastens mitt x 2 101,5, stolpens 2 030,5
 
 # Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D, strävor på båda sidor om stolpen.
 # Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.

@@ -51,14 +51,20 @@ KANAL_MARGINAL = 50.0
 
 
 def staende(kod: str) -> list[tuple[float, float]]:
-    """Väggens hela stående delar (reglar och stolpar från syllen och minst 1,5 m upp): (u i mitten, överkant z)."""
+    """Väggens hela stående delar (reglar och stolpar från syllen och minst 1,5 m upp): (u i mitten, överkant z). En
+    stolpe som går förbi hammarbandet upp till en balk (som stolparna i 1B:s ändar) räknas till hammarbandets
+    underkant, så att bandet slutar i hammarbandets höjd och inte i balken."""
     v = S.VAGGAR[kod]
     o, u = np.array(v.origo), np.array(v.u)
+    delar = lagen.vagg(kod)
+    hb = [d.lada[5] for d in delar if d.typ == "H"]
     ut = []
-    for d in lagen.vagg(kod):
+    for d in delar:
         x0, y0, z0, x1, y1, z1 = d.lada
         a, b = sorted(float((np.array(p) - o) @ u) for p in ((x0, y0), (x1, y1)))
         if b - a <= 100.0 and z0 <= 60.0 and z1 >= 1500.0:
+            if hb and z1 >= max(hb) - 1.0:
+                z1 = max(hb) - R
             ut.append(((a + b) / 2, z1))
     return sorted(ut)
 
