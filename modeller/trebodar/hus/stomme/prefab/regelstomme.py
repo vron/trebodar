@@ -5,6 +5,10 @@
 - reglar i väggens ändar, gavlarnas hörnstolpar (en regel i änden och en 95×45 på insidan, K-03:s LA) och fria reglar,
   antingen c/c 600 från ett raster eller uppräknade; en rasterregel utgår inne i en öppning och närmare än GLAPP
   intill en annan stående del, och rasterregler som väggen saknar räknas upp;
+- takfotsväggarna: en regel under varje takbalk och kortling som vilar på väggens hammarband (takbalkar.py), så att
+  takbalken står på regeln och hammarbandet inte bär den i böjning; över en öppning en kortregel från överstycket upp
+  till hammarbandet. En rasterregel utgår där reglarna intill den står högst CC isär utan den (rastret behålls där
+  inga takbalkar vilar på väggen), utom en regel under en elementskarv;
 - vid varje öppning (oppningar.py): karmreglar på båda sidor (dubbla där väggen anger det), överstycke i öppningens
   överkant (enkelt, med avväxling under hammarbandet eller dubbelt), bröstningsregel under fönster och kortlingar
   ovanför överstycket och under bröstningen, med lägen från öppningens början;
@@ -29,6 +33,7 @@ from shapely.geometry import Polygon, box
 from trebodar import skelett as S
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR, Oppning
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 
 R = 45.0                     # regelns bredd
 CC = 600.0
@@ -78,8 +83,68 @@ def hornstolpe(v: Plan, u: float, inat: int, namn: tuple[str, str], z1: float | 
     return [(a, a + R), (b, b + 95.0)]
 
 
-def oppning(v: Plan, o: Oppning, k: Karm = Karm()) -> list[tuple[float, float]]:
-    """Karmreglar, överstycke, bröstningsregel och kortlingar vid öppningen. Ger de stående delarnas u-intervall."""
+def takbalkarnas_u(kod: str) -> list[float]:
+    """Takbalkarna och takfönstrens kortlingar som vilar på takfotsväggens hammarband (inte de som går till en
+    dalbalk): deras början (u) i väggens system. Takfallet har takfotsväggens kod."""
+    f = FALT.get(kod)
+    if f is None:
+        return []
+    v = S.VAGGAR[kod]
+    dal = S.BALKAR[f.dal] if f.dal else None
+    ys = list(f.y) + [0.5 * (fo.y0 + fo.y1) - R / 2 for fo in f.fonster]
+    ut = []
+    for y in ys:
+        if dal and dal.y0 <= y and y + R <= dal.y1:
+            continue
+        a = min((y - v.origo[1]) * v.u[1], (y + R - v.origo[1]) * v.u[1])
+        if -1e-6 <= a <= v.langd - R + 1e-6:
+            ut.append(a)
+    return sorted(ut)
+
+
+def _under_takbalkar(kod: str, st: Sequence[tuple[float, float]], opp: Sequence[Oppning]
+                     ) -> tuple[list[float], dict[str, list[float]]]:
+    """Reglarna under takbalkarna (u) och kortreglarna över öppningarna (öppningens kod: u). En takbalk som till minst
+    halva bredden står på en stående del behöver ingen regel; står den till en mindre del på en, läggs regeln intill
+    den delen, under resten av takbalken."""
+    reglar: list[float] = []
+    kort: dict[str, list[float]] = {}
+    for u in takbalkarnas_u(kod):
+        o = next((o for o in opp if u + R > o.u0 + 1e-6 and u < o.u1 - 1e-6), None)
+        if o is not None:
+            a = min(max(u, o.u0), o.u1 - R)
+            kort.setdefault(o.kod, []).append(a)
+            continue
+        delar = list(st) + [(r, r + R) for r in reglar]
+        over = [(a, b, min(b, u + R) - max(a, u)) for a, b in delar if a < u + R and u < b]
+        if any(ov >= R / 2 - 1e-6 for *_, ov in over):
+            continue
+        for a, b, _ in over:                                  # intill delen, under resten av takbalken
+            u = b if a < u else a - R
+        reglar.append(u)
+    return reglar, kort
+
+
+def _glesa(raster_u: Sequence[float], fasta: Sequence[float], behall: Sequence[float]) -> list[float]:
+    """Rasterreglarna som behövs: en rasterregel utgår där de stående delarna intill den står högst CC isär (c/c) utan
+    den; reglarna i behall (elementskarvarna) står kvar."""
+    ut: list[float] = []
+    kvar = sorted(raster_u)
+    for i, u in enumerate(kvar):
+        if any(abs(u - b) < 1e-6 for b in behall):
+            ut.append(u)
+            continue
+        fore = [a for a in list(fasta) + ut if a < u - 1e-6]
+        efter = [a for a in list(fasta) + kvar[i + 1:] if a > u + 1e-6]
+        if fore and efter and min(efter) - max(fore) <= CC + 1e-6:
+            continue
+        ut.append(u)
+    return ut
+
+
+def oppning(v: Plan, o: Oppning, k: Karm = Karm(), uppe: Sequence[float] = ()) -> list[tuple[float, float]]:
+    """Karmreglar, överstycke, bröstningsregel och kortlingar vid öppningen, och kortreglar från överstycket upp till
+    hammarbandet i uppe (u, under takbalkarna). Ger de stående delarnas u-intervall."""
     staende = [(o.u0 - R, o.u0), (o.u1, o.u1 + R)]
     if k.dubbel:
         staende += [(o.u0 - 2 * R, o.u0 - R), (o.u1 + R, o.u1 + 2 * R)]
@@ -102,6 +167,10 @@ def oppning(v: Plan, o: Oppning, k: Karm = Karm()) -> list[tuple[float, float]]:
             v.regel(o.u0 + d, z1=o.z0 - R)
         if tak > topp:
             v.regel(o.u0 + d, z0=topp, z1=tak)
+    if tak > topp:
+        for u in uppe:
+            if all(abs(u - (o.u0 + d)) >= R - 1e-6 for d in k.kortlingar):
+                v.regel(u, z0=topp, z1=tak)
     return staende
 
 
@@ -139,10 +208,19 @@ def vagg(v: Plan, kod: str, karmar: dict[str, Karm] | None = None, skarvar: Sequ
         v.regel(langd - R)
         st.append((langd - R, langd))
     for o in opp:
-        st += oppning(v, o, (karmar or {}).get(o.kod.split("-")[-1], Karm()))
-    fria = list(reglar)
+        st += [(o.u0 - R, o.u0), (o.u1, o.u1 + R)]
+        if (karmar or {}).get(o.kod.split("-")[-1], Karm()).dubbel:
+            st += [(o.u0 - 2 * R, o.u0 - R), (o.u1 + R, o.u1 + 2 * R)]
+    tak, kort = _under_takbalkar(kod, st + [(u, u + R) for u in reglar], opp)
+    for o in opp:
+        oppning(v, o, (karmar or {}).get(o.kod.split("-")[-1], Karm()), kort.get(o.kod, ()))
+    fria = list(reglar) + tak
     if raster_origo is not None:
-        fria += raster(raster_origo, langd, st + [(u, u + R) for u in reglar], [(o.u0, o.u1) for o in opp], utan)
+        rast = raster(raster_origo, langd, st + [(u, u + R) for u in fria], [(o.u0, o.u1) for o in opp], utan)
+        if tak:
+            skarvreglar = [u for u in rast if any(abs(u + R / 2 - s) < 1e-6 for s in skarvar)]
+            rast = _glesa(rast, [a for a, _ in st] + fria, skarvreglar)
+        fria += rast
     upptagna = {round(a, 6) for a, _ in st}
     for u in fria:
         if round(u, 6) not in upptagna:
