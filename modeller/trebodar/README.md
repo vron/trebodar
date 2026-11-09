@@ -246,7 +246,7 @@ handlingarnas källfiler har dem (K-03).
   -SKAP- (S sidor, B botten, T tak, H hyllor), -FRONT1, -FRONT2 och -GANGJARN1 osv. (skåpets dörr), SKAFFERI-DORR,
   SKAFFERI-GANGJARN1–5 och SKAFFERI-HYLLA-L4-1 osv.
   Köksskåpen: B1–B7 längs 3NV norrifrån, B8–B10 längs 3SV österifrån, O1 (diskmaskinen)–O3 i ön norrifrån, med
-  -SIDA-V, -SIDA-H, -BOTTEN, -TAK (eller -TAK-F och -TAK-B), -RYGG, -SKIVA, -FRONT1–4 nedifrån och lådorna
+  -SIDA-V, -SIDA-H, -BOTTEN, -TAK (eller -TAK-F och -TAK-B), -RYGG, -SKIVA, -FRONT1–4 nedifrån (i öns O2–O3 -FRONT1–3) och lådorna
   -LADA1-SIDA-V, -SIDA-H, -BOTTEN, -FRAM, -BAK, -SKENA-V, -SKENA-H; B-BRADA, B-FOG1–10, O-FOG1–4 fogbrädorna, B-SIDA,
   O-SIDA1–2 och O-RYGG de vita sidorna, B-SPARK1–2 och O-SPARK sparklisterna, B-SKIVA och O-SKIVA bänkskivorna,
   DISKHO, BLANDARE, HALL och HALL-KROPP.
@@ -403,11 +403,11 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   underkant 888) med fyra lådor av massiv björk 14 och botten av björkplywood 4 på Blum MOVENTO 760H (SKW = LW − 42,
   SKL = NL − 10, urtag 13, NL 550; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
   bakstycket på botten, hålen för löparens hake i sidornas bakände) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
-  3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
+  i öns lådskåp tre lådor 115, 233 och 441, 3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
   mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,4
   breda (fronterna 605,4), B4–B7 och skåpen längs 3SV 599,1 (571,1); hörnet är dött med en fogbräda 22 × 22. Diskhon
   i B2, med kopparrören från underfördelaren UF1 genom två hylsor bakom lådorna (KO-DB1, #83). Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
-  och två lådskåp, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
+  och två lådskåp med tre lådor, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
   Bricmate Jura 12.
 - **Fönster och fönsterdörrar** från VELFAC (VELFAC 200 ENERGY) efter systemritningarna (utgåva 15, 07.26), med
   profilerna förenklade till ytterkonturerna och svepta med gering: vändfönster (vändbart fönster), fast fönster med

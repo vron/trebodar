@@ -5,7 +5,7 @@ stommens framkant och z uppåt från golvet.
 Stommen av björkplywood 20 mm: sidorna från sparklisten (90) upp till bänkskivans underkant (888), botten och tak
 mellan sidorna och ryggen mellan botten och tak; djupet 600, så att det blir 58 mm bakom skåpen mot väggen under
 bänkskivan 700 (frontens 22 och 20 mm utstick). Fyra fronter av fräst ask 22, från toppen 115, 115, 233 och 323 höga
-med 3 mm emellan och under bänkskivan, med ett linsformat grepp fräst nära överkanten; fronterna sitter utanpå
+(i öns lådskåp tre, 115, 233 och 441, för högre lådor) med 3 mm emellan och under bänkskivan, med ett linsformat grepp fräst nära överkanten; fronterna sitter utanpå
 stommen, 6 mm in över sidorna, och mellan skåpen sitter en lodrät askbräda 22 över fogen, 3 mm från fronterna
 (kok.py). Lådorna av massiv björk 14 med botten av björkplywood 4 i spår i sidorna och framstycket; bakstycket står
 på botten, som går ut till lådans bakkant (Blums utförande utan urtag i bakstycket). Askfronten skruvas på den färdiga
@@ -26,7 +26,7 @@ lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06
   systemskruv Ø6 × 14,5 (661.1450.HG) i hålen LOPARENS_SKRUVAR från stommens framkant (löparen i liv med den).
 
 Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvarna ritas inte, och skruvhålen
-står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor, diskbänksskåp (de två översta fronterna
+står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor (i ön tre), diskbänksskåp (de två översta fronterna
 fasta på en skiva, öppet tak för diskhon, kortare lådor för rören bakom) och hällskåp (den översta fronten fast, öppet
 tak för hällen); diskmaskinen står i ett skåps ställe.
 """
@@ -53,11 +53,13 @@ SOCKEL, Z_TOPP = 90.0, 888.0               # sparklisten och bänkskivans underk
 DJUP = 600.0
 FRONT_T, SPEL = 22.0, 3.0
 FRONTER = (323.0, 233.0, 115.0, 115.0)     # nedifrån
+FRONTER_ON = (441.0, 233.0, 115.0)         # öns lådskåp nedifrån: tre lådor, högre
 OVER_SIDAN = 6.0                           # fronten in över stommens sida
 GREPP = (280.0, 28.0, 10.0, 30.0)          # det frästa greppet: längd, höjd mitt på, djup, mitten under överkanten
 REGEL = 40.0                               # takets reglar fram och bak där taket är öppet (diskho, häll)
 DISKMASKIN = (598.0, 550.0)                # integrerad diskmaskin 60: bredd, djup (höjden från sparklisten)
-assert abs(SOCKEL + sum(FRONTER) + SPEL * len(FRONTER) - Z_TOPP) < 1e-9, "fronterna fyller upp till bänkskivan"
+assert all(abs(SOCKEL + sum(f) + SPEL * len(f) - Z_TOPP) < 1e-9 for f in (FRONTER, FRONTER_ON)), \
+    "fronterna fyller upp till bänkskivan"
 
 
 @dataclass(frozen=True)
@@ -66,26 +68,28 @@ class Skaptyp:
     lador: tuple[bool, ...]                # per front nedifrån: låda (True) eller fast front
     nl: float = 550.0                      # löparnas nominella längd
     oppet_tak: bool = False                # taket reglar fram och bak (diskho, häll)
+    fronter: tuple[float, ...] = FRONTER   # fronternas höjder nedifrån
 
 
 LADSKAP = Skaptyp("Lådskåp", (True, True, True, True))
+LADSKAP_ON = Skaptyp("Lådskåp med tre lådor", (True, True, True), fronter=FRONTER_ON)
 DISKBANKSSKAP = Skaptyp("Diskbänksskåp", (True, True, False, False), nl=350.0, oppet_tak=True)
 HALLSKAP = Skaptyp("Hällskåp", (True, True, True, False), oppet_tak=True)
 
 
-def fronternas_z() -> list[tuple[float, float]]:
+def fronternas_z(fronter: tuple[float, ...] = FRONTER) -> list[tuple[float, float]]:
     """Fronternas (z0, z1) nedifrån."""
     ut, z = [], SOCKEL
-    for h in FRONTER:
+    for h in fronter:
         ut.append((z, z + h))
         z += h + SPEL
     return ut
 
 
-def ladornas_z() -> list[tuple[float, float]]:
+def ladornas_z(fronter: tuple[float, ...] = FRONTER) -> list[tuple[float, float]]:
     """Lådornas sidor (z0, z1) nedifrån: 5 över frontens underkant, den nedersta 38 över skåpets botten (Blum), och
     7 mm fritt under löparen ovanför eller under taket."""
-    z0 = [f0 + 5.0 for f0, _ in fronternas_z()]
+    z0 = [f0 + 5.0 for f0, _ in fronternas_z(fronter)]
     z0[0] = max(z0[0], SOCKEL + T + FRITT_UNDER - URTAG - T_BOTTEN)
     topp = [b - LOPARE_H - FRITT_OVER for b in z0[1:]] + [Z_TOPP - T - FRITT_OVER]
     return list(zip(z0, topp))
@@ -149,6 +153,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
     inne = DJUP - T
     assert typ.nl + NL_TILLAGG <= inne, "skåpets invändiga djup (Blum: minst NL + 3)"
     assert typ.nl in LOPARENS_SKRUVAR, "löparens skruvhål (TD-132 s. 13) för NL"
+    assert len(typ.lador) == len(typ.fronter), "en uppgift (låda eller fast) per front"
     stomme = [("SIDA-V", box(0.0, T, 0.0, DJUP, SOCKEL, Z_TOPP)),
               ("SIDA-H", box(bredd - T, bredd, 0.0, DJUP, SOCKEL, Z_TOPP)),
               ("BOTTEN", box(T, bredd - T, 0.0, DJUP, SOCKEL, SOCKEL + T)),
@@ -160,7 +165,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
         stomme.append(("TAK", box(T, bredd - T, 0.0, DJUP, Z_TOPP - T, Z_TOPP)))
     for namn, f in stomme:
         m.lagg(Del(f"Skåpstomme björkplywood {fmt(T)}", f, BJORKPLYWOOD), Placering(), f"{kod}-{namn}")
-    fz = fronternas_z()
+    fz = fronternas_z(typ.fronter)
     fasta = [z for z, ar_lada in zip(fz, typ.lador) if not ar_lada]
     if fasta:
         # de fasta fronterna sitter på en skiva mellan sidorna, bakom dem upp till taket
@@ -168,7 +173,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
         m.lagg(Del(f"Skiva björkplywood {fmt(T)} för fasta fronter", box(T, bredd - T, 0.0, T, z0, Z_TOPP - T),
                    BJORKPLYWOOD), Placering(), f"{kod}-SKIVA")
     x0, x1 = T - OVER_SIDAN, bredd - T + OVER_SIDAN
-    for nr, ((f0, f1), (l0, l1), ar_lada) in enumerate(zip(fz, ladornas_z(), typ.lador), start=1):
+    for nr, ((f0, f1), (l0, l1), ar_lada) in enumerate(zip(fz, ladornas_z(typ.fronter), typ.lador), start=1):
         m.lagg(Del(f"Front ask fräst {fmt(FRONT_T)} {fmt(x1 - x0)}×{fmt(f1 - f0)}" + ("" if ar_lada else " (fast)"),
                    front(x0, x1, f0, f1), ASK, produkt="KOKSFRONTER"), Placering(), f"{kod}-FRONT{nr}")
         if ar_lada:

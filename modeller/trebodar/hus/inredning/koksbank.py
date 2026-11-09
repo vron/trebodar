@@ -15,6 +15,7 @@ Längs 3SV tre lådskåp och en vit sida mot rummet. Under skåpen en sparklist 
 bänkskivorna och mitt för hällen (och mellan fönstren); på andra sidan är ön öppen för benen (ryggen vit). Det
 nordligaste skåpet är diskmaskinen, en vanlig integrerad 60: skåpen på ön är så breda att diskmaskinens front är
 standardens 596 och den går fritt mellan fogbrädorna (602), och nischen bakom är minst 600.
+De två lådskåpen på ön har tre lådor (115, 233 och 441 från toppen) för högre lådor, bänkens skåp fyra.
 """
 from __future__ import annotations
 
@@ -194,11 +195,12 @@ def bank() -> Montage:
 
 
 def on() -> Montage:
-    """Ön: diskmaskinen och två lådskåp, fogbrädorna, de vita sidorna och ryggen, sparklisten och bänkskivan."""
+    """Ön: diskmaskinen och två lådskåp med tre lådor, fogbrädorna, de vita sidorna och ryggen, sparklisten och
+    bänkskivan."""
     m = Montage("Ön", beskrivning="Köksön: diskmaskin och två lådskåp mot bänken, öppen för benen på andra sidan")
     m.lagg(K.diskmaskin("O1", P_ON), _on(0))
     for k in (1, 2):
-        m.lagg(K.skap(f"O{k + 1}", K.LADSKAP, P_ON), _on(k))
+        m.lagg(K.skap(f"O{k + 1}", K.LADSKAP_ON, P_ON), _on(k))
     z0, z1 = K.SOCKEL, K.Z_TOPP - K.SPEL
     xs, xf = X_ON_FRONT - K.FRONT_T, X_ON_FRONT
     for i, j in enumerate(FOGAR_ON):
