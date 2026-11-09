@@ -69,7 +69,7 @@ den ligger ovanför rummet, och ytterväggarnas installationsskikt (45 mm) rymme
   stommen; syll och hammarband urtas), genomföringar i innertaket (ångbromsen tätas) och i taket (takhuven), och att
   kanalerna mellan takbalkarna går fria från dem;
 - kalla delar: kanaler genom ytterväggen och takets isolering ska vara isolerade (kondens);
-- helheten: ersättningsluft (köksfläkten och kaminen, ingen tilluft i modellen), avluft nära öppningsbara fönster och
+- helheten: ersättningsluften genom ventilerna i VELFAC-fönstrens överkarm (`katalog.UTELUFT_FONSTER`, #108): undertrycket normalt och med köksfläkten forcerad, högst 10 Pa; avluft nära öppningsbara fönster och
   takhuvar nära nock och dal;
 - krockar ur modellens geometri mot husets delar: stommens delar (virke, läkt, limträ, stål) var för sig och
   genomföringarna i skikten (betong, armering, isolering, skivor, fasad, tak) per element; och mot elen, tappvattnet

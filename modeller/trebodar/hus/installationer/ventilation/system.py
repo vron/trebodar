@@ -17,6 +17,7 @@ from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 
 from ..genomforingar import Genomforing, Stycke, genomforingar
 from ..montering import KALLARTAK, Vek
+from .katalog import UNDERTRYCK_MAX, UTELUFT_AREA, UTELUFT_FONSTER
 from .delar import Avluft, Don, Element, Flakt, Gren, Kanal, Overgang, kanalernas_vagar
 from .grenar import badrum, kallare, kok
 from .typer import Dontyp, Kanaltyp, Koksflakttyp, Vaggflakttyp
@@ -43,6 +44,13 @@ def bojar(vag: list[Vek]) -> list[float]:
 
 def langd(vag: list[Vek]) -> float:
     return sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
+
+
+def undertryck(flode: float, n: int) -> float:
+    """Undertrycket inomhus [Pa] när flödet [l/s] kommer in genom n uteluftsdon med den ekvivalenta arean
+    UTELUFT_AREA (en skarpkantad öppning med Cd 0,61: q = 0,61 · A · √(2 Δp / ρ), ρ = 1,2 kg/m³)."""
+    a = 0.61 * n * UTELUFT_AREA * 1e-6
+    return 0.6 * (flode / 1000.0 / a) ** 2 if a > 0 else math.inf
 
 
 def hastighet(flode: float, typ: Kanaltyp) -> float:
@@ -132,10 +140,18 @@ class Ventilation:
         kok_ = [g for g in self.grenar.values() if isinstance(g.kedja[0], Don) and isinstance(g.kedja[0].typ,
                                                                                                Koksflakttyp)]
         summa = sum(g.flode for g in self.grenar.values())
-        if kok_:
-            anm.append(f"köksfläkten forcerar {kok_[0].flode:g} l/s ({kok_[0].flode * 3.6:.0f} m³/h) och frånluften är "
-                       f"sammanlagt {summa:g} l/s utan tilluft i modellen: ersättningsluft (uteluftsdon eller spjäll "
-                       "som öppnar med fläkten) behövs, särskilt med kaminen i huset (undertryck)")
+        normal = sum(g.flode_normal for g in self.grenar.values())
+        alla = {o.kod for lst in OPPNINGAR.values() for o in lst}
+        fel += [f"uteluftsdonet i {k}: fönstret finns inte" for k in UTELUFT_FONSTER if k not in alla]
+        for namn, q in (("normalt", normal), ("med köksfläkten forcerad", summa)):
+            dp = undertryck(q, len(UTELUFT_FONSTER))
+            txt = (f"ersättningsluften {namn}: {q:g} l/s genom {len(UTELUFT_FONSTER)} ventiler i fönsterkarmarna "
+                   f"(VELFAC, {UTELUFT_AREA:g} mm² ekvivalent area): {dp:.0f} Pa undertryck")
+            if dp > UNDERTRYCK_MAX:
+                anm.append(f"{txt}, mer än {UNDERTRYCK_MAX:g} Pa (kaminen, dörrarna): spjäll som öppnar med "
+                           "köksfläkten, eller ett fönster på glänt när den forceras")
+            elif namn == "normalt" and kok_:
+                anm.append(txt)
         for g in self.grenar.values():
             a = g.kedja[-1]
             if not isinstance(a, Avluft):

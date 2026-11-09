@@ -96,7 +96,7 @@ vald     = "VELFAC 200 ENERGY"
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "tatt"
-anm      = "Mått, kulörer och glas i modellen (byggdelar/velfac.py)."
+anm      = "Mått, kulörer och glas i modellen (byggdelar/velfac.py). Ventil (click vent) i överkarmen i 18 fönster för ersättningsluften (#108)."
 
 [[produkt]]
 kod      = "YTTERDORRAR"
