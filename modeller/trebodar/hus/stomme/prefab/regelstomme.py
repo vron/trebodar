@@ -10,7 +10,9 @@
   till hammarbandet. En rasterregel utgår där reglarna intill den står högst CC isär utan den (rastret behålls där
   inga takbalkar vilar på väggen), utom en regel under en elementskarv;
 - vid varje öppning (oppningar.py): karmreglar på båda sidor (dubbla där väggen anger det), överstycke i öppningens
-  överkant (enkelt, med avväxling under hammarbandet eller dubbelt), bröstningsregel under fönster och kortlingar
+  överkant (enkelt, med avväxling under hammarbandet, dubbelt eller med dubbelt hammarband: ett andra hammarband under
+  det första från karmregel till karmregel, som karmreglarna slutar under, så att de två bär var sin halva av en
+  takbalk över öppningen utan att fästas till ett tvärsnitt), bröstningsregel under fönster och kortlingar
   ovanför överstycket och under bröstningen, med lägen från öppningens början;
 - stolpar av flera reglar sida vid sida (K-03) och dalbalkarnas upplag på gavlarna: en sänkt liggande under balkens
   ände, regelstycken upp till hammarbandets nivå intill balkens sida och reglar under liggaren;
@@ -42,7 +44,7 @@ SANKT = 695.0                # den sänkta liggande under en dalbalks ände på 
 
 KORTLING_Z = 2200.0          # kortlingarnas underkant i innerväggarna under takfallen
 
-ENKELT, AVVAXLING, DUBBELT = "enkelt", "avväxling", "dubbelt"
+ENKELT, AVVAXLING, DUBBELT, DUBBELT_HB = "enkelt", "avväxling", "dubbelt", "dubbelt hammarband"
 LODRAT, VINKELRAT = "lodrät", "vinkelrät"
 
 
@@ -50,7 +52,8 @@ LODRAT, VINKELRAT = "lodrät", "vinkelrät"
 class Karm:
     """Utförandet vid en öppning."""
     dubbel: bool = False                     # en karmregel till utanför varje karmregel
-    overstycke: str = ENKELT                 # ENKELT, AVVAXLING (också en liggande under hammarbandet) eller DUBBELT
+    overstycke: str = ENKELT                 # ENKELT, AVVAXLING (också en liggande under hammarbandet), DUBBELT eller
+    #                                          DUBBELT_HB (ett andra hammarband över karmreglarna)
     kortlingar: tuple[float, ...] = ()       # kortlingarnas läge (u) från öppningens början
 
 
@@ -148,8 +151,11 @@ def oppning(v: Plan, o: Oppning, k: Karm = Karm(), uppe: Sequence[float] = ()) -
     staende = [(o.u0 - R, o.u0), (o.u1, o.u1 + R)]
     if k.dubbel:
         staende += [(o.u0 - 2 * R, o.u0 - R), (o.u1 + R, o.u1 + 2 * R)]
+    dhb = k.overstycke == DUBBELT_HB
     for a, _ in staende:
-        v.regel(a)
+        v.regel(a, z1=v.hojd - 2 * R if dhb else None)
+    if dhb:
+        v.liggande(min(a for a, _ in staende), max(b for _, b in staende), v.hojd - 2 * R, typ="H")
     topp = o.z1 + R
     v.liggande(o.u0, o.u1, o.z1)
     if k.overstycke == DUBBELT:
@@ -158,6 +164,8 @@ def oppning(v: Plan, o: Oppning, k: Karm = Karm(), uppe: Sequence[float] = ()) -
     tak = v.hojd - R
     if k.overstycke == AVVAXLING:
         v.liggande(o.u0, o.u1, v.hojd - 2 * R)
+        tak -= R
+    elif dhb:
         tak -= R
     fonster = o.z0 > 0.0
     if fonster:

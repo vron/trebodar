@@ -175,8 +175,10 @@ def _krafter_langs(F: np.ndarray, q: np.ndarray, L: np.ndarray) -> dict[str, np.
     My = np.zeros(f.shape[:2])
     Mz = np.zeros(f.shape[:2])
     for x in punkter + [np.clip(xy, 0, L), np.clip(xz, 0, L)]:
-        My = np.maximum(My, np.abs(-f[..., 4] + x * f[..., 2] + x ** 2 * qz / 2))
-        Mz = np.maximum(Mz, np.abs(-f[..., 5] - x * f[..., 1] - x ** 2 * qy / 2))
+        # momentet ur elementets ändkrafter i början (krafterna på elementet) och den utbredda lasten:
+        # M_y(x) = M_y,i + x V_z,i + q_z x²/2, M_z(x) = M_z,i − x V_y,i − q_y x²/2 (i x = L lika med ändens moment)
+        My = np.maximum(My, np.abs(f[..., 4] + x * f[..., 2] + x ** 2 * qz / 2))
+        Mz = np.maximum(Mz, np.abs(f[..., 5] - x * f[..., 1] - x ** 2 * qy / 2))
     Vy = np.maximum(np.abs(f[..., 1]), np.abs(f[..., 7]))
     Vz = np.maximum(np.abs(f[..., 2]), np.abs(f[..., 8]))
     T = np.maximum(np.abs(f[..., 3]), np.abs(f[..., 9]))

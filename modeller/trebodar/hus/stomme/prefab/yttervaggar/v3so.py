@@ -7,10 +7,10 @@ hörnstolpar, öppningarna (karmreglar, överstycken, bröstningar, kortlingar) 
 from modellering import Montage
 
 from trebodar.byggdelar.regelvagg import regelvagg
-from trebodar.hus.stomme.prefab.regelstomme import vagg
+from trebodar.hus.stomme.prefab.regelstomme import DUBBELT_HB, Karm, vagg
 
 
 def montage() -> Montage:
     v = regelvagg("3SO")
-    vagg(v, "3SO")
+    vagg(v, "3SO", karmar={"D1": Karm(overstycke=DUBBELT_HB)})
     return v.montage()
