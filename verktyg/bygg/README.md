@@ -37,7 +37,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | `gjutning` | `./mod gjutning ritning` (installationernas data och modellens snitt) | AR-03 och AR-04 i `ritningar/` |
 | E-01, E-02, VS-01, VS-02, VS-03, VV-01, VL-01 | `./mod <installation> ritning` (installationernas data och modellens snitt) | installationsritningen i `ritningar/` |
 
-Efter stegen skriver `./bygg` (utan valda steg) webbplatsens startsida, `docs/index.html` ([`startsida.py`](startsida.py) med mallen [`startsida.html`](startsida.html)), och kopierar bygglovet, rapporterna, ritningarna och kameraplanen till `docs/handlingar/`. Startsidan byggs ur det som redan är byggt:
+Efter stegen skriver `./bygg` (utan valda steg) webbplatsens startsida, `docs/index.html` ([`startsida.py`](startsida.py) med mallen [`startsida.html`](startsida.html)), och kopierar bygglovet, rapporterna, ritningarna och kameraplanen till `docs/handlingar/`, med alla handlingarna samlade för utskrift i en pdf med A4-sidorna och en med A3-sidorna i förteckningens ordning, med ett bokmärke per handling (`docs/handlingar/samlade/`, [`samlade.py`](samlade.py) med pymupdf via `uv run --with`). Startsidan byggs ur det som redan är byggt:
 
 - projektets uppgifter och handlingsförteckningen (med status) ur registret i F-01:s `indata.toml`: alla handlingar, avsnitt för avsnitt efter seriernas avsnitt (`[[serie]]`: tekniskt samråd, installationsritningar, arbetsritningar, utredningar, inköp, illustrationer), och bygglovets beslut och handlingar ur `bygglov/handlingar.toml`;
 - rapporternas revision och datum och ritningsbladens nummer, titel, skala, revision och datum (bladens JSON);

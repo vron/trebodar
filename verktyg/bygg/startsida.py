@@ -21,6 +21,7 @@ import json
 import math
 import re
 import shutil
+import subprocess
 import tomllib
 import unicodedata
 import urllib.parse
@@ -144,7 +145,34 @@ def handlingar(rot: Path, rapporter: dict[str, dict], ut: Path) -> tuple[list[tu
     ovrigt = [rad(nr, nfc(p.stem).split(" ", 1)[-1], "klar") for nr, p in list(filer.items())]
     if ovrigt:
         grupper.append(("Övrigt", "", ovrigt))
+    if samlade := _samlade(ut, [(f"{r['nr']} {r['namn']}", ut.parent / urllib.parse.unquote(r["fil"]["href"]))
+                                for _, _, rader in grupper for r in rader if r["fil"]]):
+        grupper.insert(0, ("Allt för utskrift", "Alla handlingarna nedan i en fil per pappersformat, i förteckningens "
+                           "ordning och med ett bokmärke per handling.", samlade))
     return grupper, f01
+
+
+def _samlade(ut: Path, filer: list[tuple[str, Path]]) -> list[dict]:
+    """Handlingarna samlade i en pdf med A4-sidorna och en med A3-sidorna (samlade.py, med pymupdf), som rader i
+    förteckningen; inga rader om det inte går (t.ex. utan uv)."""
+    mapp = ut / "samlade"
+    mapp.mkdir(parents=True, exist_ok=True)
+    lista = mapp / "handlingar.json"
+    lista.write_text(json.dumps([[t, str(p)] for t, p in filer], ensure_ascii=False), encoding="utf-8")
+    a4, a3 = mapp / "Trebodar alla handlingar A4.pdf", mapp / "Trebodar alla handlingar A3.pdf"
+    try:
+        subprocess.run(["uv", "run", "--no-project", "--quiet", "--python", "3.12", "--with", "pymupdf", "python",
+                        str(Path(__file__).with_name("samlade.py")), str(a4), str(a3), str(lista)], check=True)
+    except (OSError, subprocess.CalledProcessError) as fel:
+        print(f"  samlade pdf:er gjordes inte: {fel}")
+        return []
+    finally:
+        lista.unlink(missing_ok=True)
+    idag = datetime.date.today().isoformat()
+    return [{"nr": fmt, "namn": namn, "status": "klar", "rev": "", "datum": idag, "notering": "", "blad": [],
+             "fil": {"href": _lank(f"handlingar/samlade/{p.name}"), "storlek": _mb(p)}}
+            for fmt, namn, p in (("A4", "Rapporterna och bygglovet, alla A4-sidor", a4),
+                                 ("A3", "Ritningarna, alla A3-sidor", a3))]
 
 
 def _status(s: str) -> str:
