@@ -12,7 +12,6 @@ BADRUM = Polygon([(65.0, 3655.0), (2560.0, 3655.0), (2560.0, 5230.0), (3310.0, 5
                   (2095.0, 8220.0), (2095.0, 7150.0), (65.0, 7150.0)])
 
 
-# kaminens murade skorsten (hus/kamin/kamin.py, #102): mot 2C:s yta mot allrummet (y 6 020), 684 bred som insatsen
-# Rais 600:3 och 700 djup, med mitten i x 6 455, så att skorstenen går upp genom taket mellan takfallets stålband
-# T2SO-B05 och takbalken vid y 6 550
-KAMINMUR = Polygon([(6113.0, 6020.0), (6797.0, 6020.0), (6797.0, 6720.0), (6113.0, 6720.0)])
+# kaminens murade skorsten (hus/kamin/kamin.py, #102, #109): mot 2C:s yta mot allrummet (y 6 020), 684 bred som insatsen
+# Rais 600:3 och 700 djup, mitt under nocken (x 6 905)
+KAMINMUR = Polygon([(6563.0, 6020.0), (7247.0, 6020.0), (7247.0, 6720.0), (6563.0, 6720.0)])

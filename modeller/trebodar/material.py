@@ -75,11 +75,12 @@ DORRBLAD = Material("Dörrblad", "Dörrbladets kärna, plywood", 550, "#c9a878",
 # ------------------------------------------------------------------ skivor och folier
 HDF = Material("Hårdboard", "Hårdboard (masonit) 3 mm", 950, "#6b4a2f", 0.7, enhet="m2", cad="#6b4a2f")
 UTEGIPS = Material("Utegips", "Utegips 10 mm", 750, "#d4cdb2", 0.9, enhet="m2", cad="#c5d3b4")
-GIPS = Material("Gips", "Gipsskiva, målad", 720, "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
+GIPS = Material("Gips", "Gipsskiva, målad Jotun 1624 Letthet (#109)", 720, "#f2f1e8", 0.88, textur="gips", enhet="m2",
+                cad="#f2f2ee")
 OSB = Material("OSB", "OSB/3", 620, "#c8a46c", 0.8, enhet="m2", cad="#c59a5f")
 PLYWOOD = Material("Plywood", "Plywood (våtrum)", 520, "#d2b383", 0.7, enhet="m2", cad="#d8a679")
-VATRUMSFARG = Material("Våtrumsfärg", "Tätskikt (rollat) och våtrumsfärg vit på gips (badrummets målade väggar, #105)", 1400,
-                      "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
+VATRUMSFARG = Material("Våtrumsfärg", "Tätskikt (rollat) och våtrumsfärg Jotun 1624 Letthet på gips (badrummets målade "
+                      "väggar, #105, #109)", 1400, "#f2f1e8", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
 TATSKIKT = Material("Tätskikt", "Tätskikt och fix (våtrum)", 1400, "#4f6d8a", 0.6, enhet="m2", cad="#4f7fc0")
 # badrummets kakel och klinker (ärende #52): Bricmate Jura Select Classic Honed, samma som köksbänkarnas skivor;
 # väggarna 60 × 120 stående, golvet 60 × 60, ljus kalksten med svag skiftning per platta och ljusgrå fog
@@ -106,8 +107,8 @@ KALCIUMSILIKAT_MALAD = Material("Kalciumsilikat målad", "Kalciumsilikatskiva, m
                                 450, "#eceae4", 0.88, textur="gips", enhet="m2", cad="#f2f2ee")
 LATTBETONG = Material("Lättbetong", "Lättbetongblock 100, murade (kaminens skorsten, #102)", 500, "#d9d6cf", 0.9,
                       enhet="m3", cad="#d9d6cf")
-KALKPUTS = Material("Kalkputs", "Kalkputs 10 på nät, kalkad (kaminens skorsten, #102)", 1600, "#efede6", 0.92,
-                    textur="gips", enhet="m2", cad="#f3f1ea")
+KALKPUTS = Material("Kalkputs", "Kalkputs 10 på nät, kalkad Jotun 1563 Mørk strandsand (kaminens skorsten, #109)", 1600,
+                    "#cdc6b4", 0.92, textur="gips", enhet="m2", cad="#cdc6b4")
 KAMIN = Material("Kamin", "Kamininsats, svart stål", 7850, "#232426", 0.6, 0.8, cad="#3a3d42")
 ROSTFRITT = Material("Rostfritt", "Rostfritt stål (skorsten)", 7900, "#c4c8cc", 0.3, 1.0, cad="#b4bcc6")
 ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,
