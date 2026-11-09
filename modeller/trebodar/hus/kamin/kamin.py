@@ -7,7 +7,7 @@ och på båda sidorna, rökstos Ø150 överst, 188 mm bakom fronten (antaget som
 (golvet till dörrens underkant minst 300). Den står på två stöd av kalciumsilikat och sitter i liv med skorstenens
 front och sidor, så att glaset syns på tre sidor.
 
-Skorstenen (rum.KAMINMUR): 684 bred som insatsens ram, 700 djup och 1 900 hög, mot 2C:s gips, med ett lock av
+Skorstenen (rum.KAMINMUR): 684 bred som insatsens ram och 1 680 hög, mot 2C:s gips, med ett lock av
 lättbetong. Sidorna och baksidan är murade av
 lättbetong 100 (värmemotstånd 0,9 m²K/W, minst som 50 mm Skamotec 225 enligt manualen), fronten ovanför och under
 insatsen är 50 mm kalciumsilikat (Skamotec 225; tunnare än murverket, så att den isolerade skorstenen ryms över
@@ -15,7 +15,7 @@ stosen). Utsidan är kalkputs 10 på nät, kalkad i Jotun 1563 Mørk strandsand.
 till skivorna 50) och ryms i hålet (minst 678 × 615 × 375); hålet är 2 mm större än ramen runt om, eftersom stålet
 utvidgar sig. Konvektionsöppningar i sidorna (inte i fronten, #109): 320 cm² under och 550 cm² över insatsen (minst
 250 och 500), och
-direkt över den övre en obrännbar plåt av kalciumsilikat 50 (manualen), 1 600 över golvet; innertaket är minst 500
+direkt över den övre en obrännbar plåt av kalciumsilikat 50 (manualen), 1 500 över golvet; innertaket är minst 500
 över öppningen och 1 000 över dörrens överkant. Golvet är betong (mellanbjälklaget), så golvplåt behövs inte.
 Möbler minst 950 framför dörren och 500 från sidoglasen.
 
@@ -67,14 +67,14 @@ Y_FRONT = MY1                               # insatsens front i liv med putsen
 KONV_UNDER, KONV_OVER = (200.0, 80.0), (250.0, 110.0)    # 2 × 160 = 320 och 2 × 275 = 550 cm² (minst 250 och 500)
 Z_KONV_UNDER = 250.0
 Y_KONV = 6080.0                             # öppningarnas bakre kant (i skorstenens synliga del, framför 2C)
-H_KASSE = 1600.0                            # plåten över den övre konvektionsöppningen
+H_KASSE = 1500.0                            # plåten över den övre konvektionsöppningen
 STOD_B = 60.0
 STOD_IN = 60.0                              # stöden så långt in från sidorna: luften från de nedre öppningarna
 # rökröret och skorstenen
 SKORSTEN_D, SKORSTEN_INRE = 250.0, 150.0
 FRI = 50.0                                  # avstånd till brännbart vid genomföringen
-Z_MUR = 1900.0                              # skorstenens murade del upp till halva höjden (#109)
-Z_BOJ = 1150.0                              # skorstenen svänger 45° snett bakåt, genom nischen in i garderoben
+Z_MUR = 1680.0                              # skorstenens överkant: så lågt som skorstenen genom nischen tillåter (#109)
+Z_BOJ = 1110.0                              # skorstenen svänger 45° snett bakåt, genom nischen in i garderoben
 Y_GARDEROB = 5710.0                         # förbränningsluftens kanal i garderoben
 X_SK, Y_SK = 6635.0, 5635.0                 # och lodrätt genom taket väster om nockbalken NB3 (50 till trä), i facket
 #                                            mellan takbalken T09 (y 5 460) och takstolen 2C (5 905), 50 till trä
@@ -210,8 +210,8 @@ def _skorstenen(m: Montage) -> None:
         ("BAK", f"Baksida kalciumsilikat {BAK:g}", _upp(ix0, ix1, MY0, MY0 + BAK)
          - _ror_genom(skorstenens_vag(), SKORSTEN_D) - stang(_luftvag()[2], _luftvag()[3], LUFT_D + 20.0),
          KALCIUMSILIKAT),
-        ("MUR-T", "Murverk lättbetong 100, locket", box(iu0, iu1, MY0 + BAK, yf - KS_T, Z_MUR - MUR, Z_MUR),
-         LATTBETONG),
+        ("LOCK", f"Lock kalciumsilikat {KS_T:g}", box(iu0, iu1, MY0 + BAK, yf - KS_T, Z_MUR - KS_T, Z_MUR),
+         KALCIUMSILIKAT),
     ]
     front: Form = (box(ix0, ix1, yf - KS_T, yf, 0.0, Z_SIDA) | box(iu0, iu1, yf - KS_T, yf, Z_SIDA, Z_MUR)) - hal
     delar.append(("FRONT", f"Front kalciumsilikat {KS_T:g}", front, KALCIUMSILIKAT))

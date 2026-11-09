@@ -254,4 +254,4 @@ INNEROPPNINGAR = (("L21", 165.0, 2025.0, 0.0, 2100.0, "hallens garderob, fyra d�
 # nischer i innerväggarna: (vägg, sida (−1 w < 0, 1 w > tjockleken), u0, u1, z0, z1, vad): genom stommen och skikten på
 # den sidan; skikten på den andra sidan är kvar. Kaminens skorsten (#109) står i 2C:s nisch mot allrummet, med
 # baksidan mot skikten mot garderoben (x 6 563–7 247, rum.KAMINMUR)
-NISCHER = (("2C", 1, 2146.0, 2830.0, 0.0, 1910.0, "kaminens skorsten (#109)"),)
+NISCHER = (("2C", 1, 2146.0, 2830.0, 0.0, 1690.0, "kaminens skorsten (#109)"),)
