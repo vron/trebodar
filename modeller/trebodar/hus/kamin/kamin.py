@@ -7,7 +7,7 @@ och på båda sidorna, rökstos Ø150 överst, 188 mm bakom fronten (antaget som
 (golvet till dörrens underkant minst 300). Den står på två stöd av kalciumsilikat och sitter i liv med skorstenens
 front och sidor, så att glaset syns på tre sidor.
 
-Skorstenen (rum.KAMINMUR): 684 bred som insatsens ram, 700 djup och 2 400 hög, mot 2C:s gips, med ett lock av
+Skorstenen (rum.KAMINMUR): 684 bred som insatsens ram, 700 djup och 1 900 hög, mot 2C:s gips, med ett lock av
 lättbetong. Sidorna och baksidan är murade av
 lättbetong 100 (värmemotstånd 0,9 m²K/W, minst som 50 mm Skamotec 225 enligt manualen), fronten ovanför och under
 insatsen är 50 mm kalciumsilikat (Skamotec 225; tunnare än murverket, så att den isolerade skorstenen ryms över
@@ -57,6 +57,8 @@ SPEL = 2.0                                  # runt ramen i hålet
 MX0, MY0, MX1, MY1 = KAMINMUR.bounds        # putsens utsida; MY0 är 2C:s yta mot allrummet
 X_MITT = (MX0 + MX1) / 2
 PUTS, MUR, KS_T = 10.0, 100.0, 50.0         # kalkputs, lättbetong, kalciumsilikat
+BAK = KS_T                                  # baksidan mot 2C: kalciumsilikat 50 (Rais: mot brännbar vägg)
+LUFT_BAK = 50.0                             # luften mellan insatsen och baksidan (Rais: 50)
 Y_FRONT = MY1                               # insatsens front i liv med putsen
 KONV_UNDER, KONV_OVER = (440.0, 70.0), (440.0, 125.0)    # bredd, höjd (308 och 550 cm²)
 Z_KONV_UNDER = 250.0
@@ -65,8 +67,8 @@ STOD_B = 60.0
 # rökröret och skorstenen
 SKORSTEN_D, SKORSTEN_INRE = 250.0, 150.0
 FRI = 50.0                                  # avstånd till brännbart vid genomföringen
-Z_MUR = 2400.0                              # skorstenens murade del upp till halva höjden (#109)
-Z_BOJ = 1300.0                              # skorstenen svänger 45° bakåt, genom 2C in i garderoben
+Z_MUR = 1900.0                              # skorstenens murade del upp till halva höjden (#109)
+Z_BOJ = 1150.0                              # skorstenen svänger 45° bakåt, genom 2C in i garderoben
 Y_GARDEROB = 5710.0                         # och där 45° västerut, mellan 2C och takbalken vid y 5 415
 X_SK, Y_SK = 6590.0, Y_GARDEROB             # och lodrätt genom taket väster om nockbalken NB3, i facket
 OVER_NOCK = 800.0
@@ -74,15 +76,15 @@ OVER_NOCK = 800.0
 LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
 LUFT_ISOL = 20.0                            # kanalens isolering
 LUFT_Z = 200.0                              # slangen under insatsen
-Y_LUFT_BAK = MY0 + MUR + LUFT_D / 2 + LUFT_ISOL         # kanalen bakom insatsen, mitt bakom den
-Z_LUFT_BOJ = 1100.0                         # kanalen svänger 45° bakåt under skorstenen, genom 2C
+X_SLANG, Y_SLANG = 6800.0, 5800.0          # slangen rakt bakåt under insatsen, genom 2C in i garderoben
 X_LUFT, Y_LUFT = 6275.0, Y_GARDEROB         # och lodrätt genom taket väster om skorstenen
 LUFT_FRI = 5.0                              # hålen runt kanalen
 HUV_OVER = 300.0                            # kanalens ände över taket, under huven
 
-assert abs(MY0 - (S.INNERVAGGAR["2C"].origo[1] + S.INNERVAGGAR["2C"].tjocklek + 25.0)) < 0.5, "mot 2C:s gips"
+assert abs(MY0 - S.INNERVAGGAR["2C"].origo[1]) < 0.5, "i 2C:s nisch, mot skikten på garderobens sida"
 assert abs(MX1 - MX0 - RAM[0]) < 0.5, "skorstenen är lika bred som insatsens ram"
 assert abs(X_MITT - S.BALKAR["NB3"].x) < 0.5, "kaminen mitt under nocken (#109)"
+assert abs(MY1 - MY0 - (BAK + LUFT_BAK + KROPP[1] + RAM[2])) < 0.5, "skorstenen så grund som insatsen tillåter (#109)"
 
 
 def _z_tak(x: float) -> float:
@@ -117,7 +119,8 @@ def luftkanalens_hal() -> tuple[Form, tuple[float, float, float, float, float, f
 def _luftvag() -> list[tuple[float, float, float]]:
     """Förbränningsluftens flexslang: från anslutningen under insatsen till kanalen bakom insatsen."""
     y = Y_FRONT - LUFT_FRAN_FRONT
-    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (X_MITT, Y_LUFT_BAK, LUFT_Z), (X_MITT, Y_LUFT_BAK, LUFT_Z + 150.0)]
+    return [(X_MITT, y, Z_INSATS), (X_MITT, y, LUFT_Z), (X_SLANG, y - 150.0, LUFT_Z),
+            (X_SLANG, Y_SLANG + LUFT_D / 2 + LUFT_ISOL, LUFT_Z)]                     # in i kanalens ände
 
 
 def skorstenens_vag() -> list[tuple[float, float, float]]:
@@ -131,23 +134,26 @@ def skorstenens_vag() -> list[tuple[float, float, float]]:
 
 
 def kanalens_vag() -> list[tuple[float, float, float]]:
-    """Förbränningsluftens isolerade kanal: bakom insatsen lodrätt, 45° bakåt genom 2C (under skorstenen), 45°
-    västerut och lodrätt genom taket."""
-    b = (X_MITT, Y_GARDEROB, Z_LUFT_BOJ + (Y_LUFT_BAK - Y_GARDEROB))
-    c = (X_LUFT, Y_LUFT, b[2] + (X_MITT - X_LUFT))
-    return [(X_MITT, Y_LUFT_BAK, LUFT_Z + 150.0), (X_MITT, Y_LUFT_BAK, Z_LUFT_BOJ), b, c, (X_LUFT, Y_LUFT, _z_luft_ut())]
+    """Förbränningsluftens isolerade kanal: från slangens ände i garderoben längs golvet och lodrätt genom garderobens
+    tak och taket."""
+    return [(X_SLANG, Y_SLANG, LUFT_Z), (X_LUFT, Y_LUFT, LUFT_Z), (X_LUFT, Y_LUFT, _z_luft_ut())]
 
 
 def genomforingar() -> list[tuple[Form, tuple[float, float, float, float, float, float], tuple[str, ...]]]:
     """Hålen för skorstenen och kanalen genom 2C:s skikt och isolering och garderobens tak (de sneda delarna, med
     avståndet FRI till brännbart), med lådan och montagen de skär (hus.py)."""
     ut: list[tuple[Form, tuple[float, float, float, float, float, float], tuple[str, ...]]] = []
-    for vag, r in ((skorstenens_vag(), SKORSTEN_D / 2 + FRI), (kanalens_vag(), LUFT_D / 2 + LUFT_ISOL + LUFT_FRI)):
-        for a, b in zip(vag[1:3], vag[2:4]):
-            lo = [min(a[i], b[i]) - r * 1.5 for i in range(3)]
-            hi = [max(a[i], b[i]) + r * 1.5 for i in range(3)]
-            ut.append((stang(a, b, 2 * r), (lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]),
-                       ("Invändigt", "Isolering", "Inredning")))
+    sv, lv = skorstenens_vag(), _luftvag()
+    z_tak = 2145.0                                               # garderobens tak (inredning/garderob.py)
+    rs, rl = SKORSTEN_D / 2 + FRI, LUFT_D / 2 + LUFT_FRI
+    for a, b, r in ((sv[1], sv[2], rs), (sv[2], sv[3], rs), ((sv[3][0], sv[3][1], z_tak - 200.0),
+                                                             (sv[3][0], sv[3][1], z_tak + 200.0), rs),
+                    (lv[2], lv[3], rl), ((X_LUFT, Y_LUFT, z_tak - 200.0), (X_LUFT, Y_LUFT, z_tak + 200.0),
+                                         LUFT_D / 2 + LUFT_ISOL + LUFT_FRI)):
+        lo = [min(a[i], b[i]) - r * 1.5 for i in range(3)]
+        hi = [max(a[i], b[i]) + r * 1.5 for i in range(3)]
+        ut.append((stang(a, b, 2 * r), (lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]),
+                   ("Invändigt", "Isolering", "Inredning")))
     return ut
 
 
@@ -183,9 +189,10 @@ def _skorstenen(m: Montage) -> None:
     delar: list[tuple[str, str, Form, Material]] = [
         ("MUR-V", "Murverk lättbetong 100, västra sidan", _upp(MX0 + PUTS, ix0, MY0, yf) - hal, LATTBETONG),
         ("MUR-O", "Murverk lättbetong 100, östra sidan", _upp(ix1, MX1 - PUTS, MY0, yf) - hal, LATTBETONG),
-        ("MUR-B", "Murverk lättbetong 100, baksidan", _upp(ix0, ix1, MY0, MY0 + MUR)
-         - _ror_genom(skorstenens_vag(), SKORSTEN_D) - _ror_genom(kanalens_vag(), LUFT_D + 2 * LUFT_ISOL), LATTBETONG),
-        ("MUR-T", "Murverk lättbetong 100, locket", box(ix0, ix1, MY0 + MUR, yf - KS_T, Z_MUR - MUR, Z_MUR),
+        ("BAK", f"Baksida kalciumsilikat {BAK:g}", _upp(ix0, ix1, MY0, MY0 + BAK)
+         - _ror_genom(skorstenens_vag(), SKORSTEN_D) - stang(_luftvag()[2], _luftvag()[3], LUFT_D + 20.0),
+         KALCIUMSILIKAT),
+        ("MUR-T", "Murverk lättbetong 100, locket", box(ix0, ix1, MY0 + BAK, yf - KS_T, Z_MUR - MUR, Z_MUR),
          LATTBETONG),
     ]
     front: Form = _upp(ix0, ix1, yf - KS_T, yf) - hal
@@ -201,8 +208,7 @@ def _skorstenen(m: Montage) -> None:
         artikel = "Skamotec 225, 50 mm" if mat is KALCIUMSILIKAT else None
         m.lagg(Del(namn, form, mat, artikel=artikel), Placering(), f"KM-{kod}")
     # plåten över den övre konvektionsöppningen, med hål för skorstenen och kanalen
-    plat = box(ix0, ix1, MY0 + MUR, yf - KS_T, H_KASSE - KS_T, H_KASSE) \
-        - _ror_genom(skorstenens_vag(), SKORSTEN_D) - _ror_genom(kanalens_vag(), LUFT_D + 2 * LUFT_ISOL)
+    plat = box(ix0, ix1, MY0 + BAK, yf - KS_T, H_KASSE - KS_T, H_KASSE) - _ror_genom(skorstenens_vag(), SKORSTEN_D)
     m.lagg(Del(f"Plåt över konvektionsöppningen, kalciumsilikat {KS_T:g}", plat, KALCIUMSILIKAT,
                artikel="Skamotec 225, 50 mm"), Placering(), "KM-PLAT")
     yb = Y_FRONT - RAM[2] - KROPP[1]
@@ -212,19 +218,18 @@ def _skorstenen(m: Montage) -> None:
                Placering(), f"KM-STOD{i}")
 
 
-# skyddet runt skorstenen och kanalen i garderoben (#109): kalciumsilikat 50 under och framför dem och på sidorna,
-# från 2C:s skikt till garderobens tak, så att kläderna håller avstånd
-HOLJE = (6100.0, 7130.0, 5520.0, 1250.0)       # x0, x1, framsidans y, bottnens underkant
+# skyddet runt skorstenen och kanalen i garderoben (#109): kalciumsilikat 50 framför dem och på sidorna, från golvet
+# och 2C:s skikt till garderobens tak, så att kläderna håller avstånd
+HOLJE = (6100.0, 7130.0, 5520.0, 0.0)          # x0, x1, framsidans y, underkant
 
 
 def _holjet(m: Montage) -> None:
     x0, x1, yf, zb = HOLJE
     y_2c = S.INNERVAGGAR["2C"].origo[1] - 25.0                  # 2C:s gips mot sovrummet
     z_tak = 2145.0                                               # garderobens tak (inredning/garderob.py)
-    for kod, f in (("BOTTEN", box(x0, x1, yf, y_2c, zb, zb + KS_T)),
-                   ("FRAM", box(x0, x1, yf, yf + KS_T, zb + KS_T, z_tak)),
-                   ("V", box(x0, x0 + KS_T, yf + KS_T, y_2c, zb + KS_T, z_tak)),
-                   ("O", box(x1 - KS_T, x1, yf + KS_T, y_2c, zb + KS_T, z_tak))):
+    for kod, f in (("FRAM", box(x0, x1, yf, yf + KS_T, zb, z_tak)),
+                   ("V", box(x0, x0 + KS_T, yf + KS_T, y_2c, zb, z_tak)),
+                   ("O", box(x1 - KS_T, x1, yf + KS_T, y_2c, zb, z_tak))):
         m.lagg(Del(f"Skydd runt skorstenen i garderoben, kalciumsilikat {KS_T:g}", f, KALCIUMSILIKAT,
                    artikel="Skamotec 225, 50 mm"), Placering(), f"KM-SKYDD-{kod}")
 

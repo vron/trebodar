@@ -38,7 +38,7 @@ from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
 from trebodar.byggdelar import virke
 from trebodar.byggdelar.regelvagg import Plan
-from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR
+from trebodar.hus.fonster_och_dorrar.oppningar import INNERDORRAR, INNEROPPNINGAR, NISCHER
 from trebodar.hus.badrum import KAKELZON
 from trebodar.hus.rum import BADRUM
 
@@ -317,6 +317,7 @@ def _skikt() -> _Skikt:
         for sida in (-1, 1):
             w_yta = 0.0 if sida < 0 else v.tjocklek
             segment = _skivor(v, sida)
+            nisch = [box(u0, z0, u1, z1) for vagg, s_, u0, u1, z0, z1, _ in NISCHER if vagg == kod and s_ == sida]
             for i, (a, b, skivor) in enumerate(segment):
                 tjock = sum(t for _, t, _, _ in skivor)
                 wa, wb = sorted((w_yta, w_yta + sida * tjock))
@@ -330,7 +331,7 @@ def _skikt() -> _Skikt:
                     band = _band(v, ua, ub, w0, w1)
                     hal, urtag = _i_skiktet(v, band, w0, w1, hinder)
                     omrade = _yta(_topp(v, ua, ub, wa, wb, hogst=tak is not None)).difference(
-                        unary_union(dorrar + hal))
+                        unary_union(dorrar + nisch + hal))
                     delar = [(namn, typ, mat, omrade)]
                     if namn == "OSB" and not fickzon.is_empty:
                         delar = [(namn, typ, mat, omrade.difference(fickzon)),

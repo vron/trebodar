@@ -250,3 +250,7 @@ INNERDORRAR = (
 # öppningar i innerväggarna utan dörr: (vägg, u0, u1, z0, z1, vad), hål i väggarnas skikt. Hallens garderob (#96,
 # hus/inredning/hallgarderob.py): öppningen i fronten L21 mellan ändreglarna, med dörrarna i liv med väggen
 INNEROPPNINGAR = (("L21", 45.0, 955.0, 0.0, 2100.0, "hallens garderob, två dörrar i liv med väggen"),)
+# nischer i innerväggarna: (vägg, sida (−1 w < 0, 1 w > tjockleken), u0, u1, z0, z1, vad): genom stommen och skikten på
+# den sidan; skikten på den andra sidan är kvar. Kaminens skorsten (#109) står i 2C:s nisch mot allrummet, med
+# baksidan mot skikten mot garderoben (x 6 563–7 247, rum.KAMINMUR)
+NISCHER = (("2C", 1, 2146.0, 2830.0, 0.0, 1910.0, "kaminens skorsten (#109)"),)
