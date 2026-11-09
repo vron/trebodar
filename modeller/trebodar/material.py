@@ -214,7 +214,8 @@ BANKSKIVA = Material("Bänkskiva", "Bänkskiva Bricmate Jura, granitkeramik 12 m
                      0.5, textur="kalksten", rendering=rendering(farg2="#b9ad9a", farg3="#8b8070", skala=3.0),
                      cad="#cfc4ae")
 EVA_RAM = Material("Eva ram", "Betsad björk och böjlimmad ek, brun, vaxolja (fåtöljerna Eva hög, #103)", 680, "#6b4a32",
-                   0.45, textur="virke", cad="#6b4a32")
+                   0.45, textur="virke", rendering=rendering(art="ek_brun", yta="olja", riktning="x", tvars="y"),
+                   cad="#6b4a32")
 LINNEGJORD = Material("Linnegjord", "Flätad sadelgjord av lin, naturell (fåtöljerna Eva hög, #103)", 500, "#cdbf9f", 0.9,
                       cad="#cdbf9f")
 SANGKLADER = Material("Sängkläder", "Madrass och sängkläder, vitt linne (sängen i sovrummet)", 250, "#ebe9e3", 0.95,

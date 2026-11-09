@@ -189,6 +189,10 @@ ARTER: dict[str, dict[str, object]] = {
             "kvistar": 0.0, "kvist": 8.0, "kvistfarg": "#6e5638", "karnandel": 0.3, "karnradie": (0.05, 0.16),
             "karnfarg": "#9c8f7b", "ringtyp": "ringporig", "porband": 0.7, "sommarved": 0.22, "kontrast": 0.8,
             "variation": 0.09, "varmfarg": "#cab59a"},
+    # betsad ek, brun (Mathssons Eva, #103): ringporig som asken, betsen mörkar vårveden mer än porbanden
+    "ek_brun": {"farg": "#8a6646", "farg2": "#4e3522", "arsring": 2.8, "marg": (0.12, 0.45), "lutning": 2.5,
+                "kvistar": 0.0, "kvist": 8.0, "kvistfarg": "#3e2a18", "karnandel": 0.0, "ringtyp": "ringporig",
+                "porband": 0.7, "sommarved": 0.25, "kontrast": 0.6, "variation": 0.07, "varmfarg": "#7a5638"},
 }
 
 # ytbehandlingar: grovhet, mörkning (exponent på färgen: oljan fördjupar och mättar), gulning (oljans och lackens
@@ -214,7 +218,7 @@ def virke(g: Graf, p: dict) -> None:
     porer i vårveden, som syns som mörka streck längs fibrerna. Kvistar som grenar från märgen, med egna ringar och
     mörk kant, och fibrerna som böjer runt dem; kärnved; fibrer och färgskiftning per bit; ytbehandling.
 
-    Parametrar: art (gran, furu, lark, ask) och dess värden (ARTER), riktning (fibrerna) och tvars, lamell (axel) och
+    Parametrar: art (gran, furu, lark, ask, ek_brun) och dess värden (ARTER), riktning (fibrerna) och tvars, lamell (axel) och
     lamelltjocklek [mm] för limträ och lamellskivor, yta (YTOR), variation. Färgerna kommer ur arten: materialets
     färg (farg, för webbvisaren) används inte."""
     d = {**ARTER[str(p.get("art", "gran"))], **{k: v for k, v in p.items() if k != "farg"}}
