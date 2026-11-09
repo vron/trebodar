@@ -93,13 +93,31 @@ def _vaggar() -> list[dict[str, Any]]:
             for kod, v in S.VAGGAR.items()]
 
 
+def _latta_reglar(rot: Montage) -> list[dict[str, Any]]:
+    """De lätta väggarnas reglar (inte i K-04:s balkmodell): väggen och den omslutande lådan (x0, y0, z0, x1, y1, z1)
+    i huset. En lätt vägg som möter en bärande vägg stagar den ut ur dess plan, där deras reglar ligger an mot
+    varandra (hörnstolparna i 1B:s ändar)."""
+    ut = []
+    for vag, m, p in rot.montage():
+        if vag.endswith("/Lätta väggar"):
+            for dv, d, q in m.platta(p):
+                namn = dv.rsplit("/", 1)[-1]
+                k = re.fullmatch(r"(L\d+)-R\d+", namn)
+                bb = omslutande(d.form)
+                if k and bb is not None:
+                    hornen = np.array([q.punkt((x, y, z)) for x in bb[0::3] for y in bb[1::3] for z in bb[2::3]])
+                    ut.append({"vagg": k.group(1), "namn": namn,
+                               "lada": [round(float(v), 4) for v in (*hornen.min(axis=0), *hornen.max(axis=0))]})
+    return ut
+
+
 def utdrag(rot: Montage) -> dict[str, Any]:
     stomme, p = rot.hitta("Hus/Stomme")
     assert isinstance(stomme, Montage)
     return {"version": VERSION, "z_bjalklag": 0.0, "h_vagg": S.H_VAGG,
             "huskroppar": [{"nr": k.nr, "x0": k.x0, "x1": k.x1, "y0": k.y0, "y1": k.y1, "nock": k.nock}
                            for k in S.HUSKROPPAR.values()],
-            "delar": _delar(stomme, p), "takytor": _takytor(), "vaggar": _vaggar(),
+            "delar": _delar(stomme, p), "takytor": _takytor(), "vaggar": _vaggar(), "latta_reglar": _latta_reglar(rot),
             # förankringen (inte i K-04:s balkmodell; R-02 visar den): betongbultarna genom syllarna
             "bultar": {"d": forankring.D, "djup": forankring.DJUP, "over": forankring.OVER,
                        "lagen": [{"vagg": k, "x": x, "y": y} for k, x, y in forankring.bultar()]}}

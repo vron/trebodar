@@ -213,8 +213,10 @@ sok = [4420, 10992]
 gamla = "G"
 [[stolpe]]
 namn = "LN5_1"
-sok = [2140, 8220]
-gamla = "E"
+sok = [2095, 7160]      # hörnet 1A–1B: två reglar i 1B och 1A:s ändregel (stagad åt båda håll av väggarna)
+[[stolpe]]
+namn = "LN5_3"
+sok = [2095, 9280]      # 1B:s ände mot den lätta väggen L20: två reglar i 1B
 [[stolpe]]
 namn = "LN5_2"
 sok = [2075, 11000]

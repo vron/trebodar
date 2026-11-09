@@ -7,7 +7,7 @@ V19 (kärnborrning mellan dess lodräta järn) till källarens vänstra del, lä
 rör går upp i bjälklaget norr om kanalen), och upp i den bärande innerväggen 1C mellan badrummet och hallen
 (y 8 220):
 
-- i 1C i regelfacket mellan reglarna 1C-R01 och 1C-R02 (x 2 532–3 088), som platt kanal 204 × 60 i stommen 45 × 70
+- i 1C i regelfacket mellan reglarna 1C-R03 och 1C-R04 (x 2 532–3 088), som platt kanal 204 × 60 i stommen 45 × 70
   (samma tvärsnitt som Ø125), genom en ursparing i mellanbjälklaget och genom syll och hammarband;
 - ovanför innertakets ångbroms i facket mellan takbalkarna i y 7 850–8 405 (takfallet 1NV), som isolerad kanal Ø125
   rakt upp till en takhuv 650 mm (i plan) nedanför nocken, 1,6 m från dalen mot mittre huskroppen.
@@ -26,7 +26,7 @@ from ..katalog import (FRANLUFTSDON_125, ISOLERAD_125, KANALFLAKT_125, PLATT_125
                        SPIRO_125, TAKHUV_125)
 
 Y = S.INNERVAGGAR["1C"].origo[1] + S.INNERVAGGAR["1C"].tjocklek / 2       # väggen 1C:s mitt
-X_STIG = 2980.0                             # i regelfacket 1C-R01–1C-R02:s östra del (duschens blandare i den västra, #97)
+X_STIG = 2980.0                             # i regelfacket 1C-R03–1C-R04:s östra del (duschens blandare i den västra, #97)
 X_DON, Y_DON = 4950.0, 10400.0              # rummets sydvästra hörn
 Y_FLAKT = 9700.0                            # i rummet, längs västra väggen
 Z = KALLARTAK - 155.0                       # kanalens mitt under taket (fläkten 30 mm under betongen)
@@ -56,7 +56,7 @@ GREN = Gren("FF3", "Källarrummet", "Källarrummet", 10.0, (
     Avluft("FF3-A1", TAKHUV_125, pa_tak(X_STIG, Y)),
 ), flode_normal=10.0, beskrivning=(
     "Kanalen går under källarens tak genom V19 (kärnborrning) och längs V3 och upp i den bärande innerväggen 1C mellan "
-    "badrummet och hallen, som platt kanal 204 × 60 i regelfacket mellan reglarna 1C-R01 och 1C-R02, så att den inte syns på "
+    "badrummet och hallen, som platt kanal 204 × 60 i regelfacket mellan reglarna 1C-R03 och 1C-R04, så att den inte syns på "
     "plan 1.",
     f"Över innertaket går kanalen isolerad mellan takbalkarna (y {_mm(FACK[0])}–{_mm(FACK[1])}) till takhuven; "
     "ångbromsen tätas runt kanalen med manschett.",

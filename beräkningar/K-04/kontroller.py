@@ -107,17 +107,56 @@ class Material:
         return np.where(lr <= 0.3, 1.0, 1 / (k + np.sqrt(np.maximum(k ** 2 - lr ** 2, 0.0))))
 
 
+HORN_Z = 0.5             # en regel i ett hörn är stagad där en vinkelrät väggs regel ligger an längs minst så stor del
+#                          av dess höjd
+
+
+def _lada(b: Bar) -> tuple[np.ndarray, np.ndarray]:
+    return b.c - np.abs(b.E.T) @ b.halv, b.c + np.abs(b.E.T) @ b.halv
+
+
+def stagade_i_horn(N: Natverk) -> set[int]:
+    """Stående delar i väggarna (reglar och stolpar) som en vinkelrät väggs regel ligger an mot (ihopspikade) längs
+    minst HORN_Z av deras höjd: den andra väggen är styv i sitt plan, som är delens riktning ut ur dess vägg, och
+    stagar delen åt det hållet (hörnen, som stolparna i 1B:s ändar och 1A:s ändregel mot varandra och mot den lätta
+    väggen L20). Den andra väggens regel: en bärande väggs (en annan vägg) eller en lätt väggs (utdragets
+    latta_reglar), vars tjockleksriktning är vinkelrät mot delens."""
+    st = [b for b in N.delar if b.slag == "balk" and abs(b.ex[2]) > 0.9 and b.grupp in ("yttervagg", "innervagg")]
+    andra: list[tuple[str, np.ndarray, np.ndarray, int]] = []
+    for b in st:
+        lo, hi = _lada(b)
+        andra.append((b.element, lo, hi, int(np.argmax(np.abs(b.ez[:2])))))
+    for r in N.ytor.get("latta_reglar", []):
+        lo, hi = np.array(r["lada"][:3]), np.array(r["lada"][3:])
+        andra.append((r["vagg"], lo, hi, int(np.argmax((hi - lo)[:2]))))
+    ut = set()
+    for b in st:
+        lo, hi = _lada(b)
+        k = int(np.argmax(np.abs(b.ez[:2])))             # ut ur väggens plan (x eller y)
+        for el, lo2, hi2, k2 in andra:
+            if el == b.element or k2 == k:
+                continue
+            glapp = np.maximum(lo2[:2] - hi[:2], lo[:2] - hi2[:2])        # > 0: isär, ≤ 0: överlapp
+            an = bool(np.all(glapp <= 1.0) and np.any(glapp >= -1.0) and np.any(glapp < -10.0))
+            hojd = min(hi[2], hi2[2]) - max(lo[2], lo2[2])
+            if an and hojd >= HORN_Z * (hi[2] - lo[2]):
+                ut.add(b.nr)
+                break
+    return ut
+
+
 def _knacklangd(N: Natverk) -> tuple[np.ndarray, np.ndarray]:
     """Knäcklängderna (Ly kring den styva axeln, h; Lz kring den veka, b) per del; 0 = stagad."""
     Ly = np.zeros(len(N.delar))
     Lz = np.zeros(len(N.delar))
+    horn = stagade_i_horn(N)
     for b in N.delar:
         if b.slag != "balk" or b.grupp == "balk":
             continue
         if b.grupp == "stolpe":
             Ly[b.nr] = Lz[b.nr] = b.langd                   # fristående: båda hållen (stolparna kontrolleras som helhet)
         elif b.grupp in ("yttervagg", "innervagg") and b.typ in ("R", "") or b.stolpe:
-            Ly[b.nr] = b.langd                          # reglar och stolpar i väggen: ut ur väggens plan
+            Ly[b.nr] = 0.0 if b.nr in horn else b.langd     # reglar och stolpar i väggen: ut ur väggens plan
         elif b.grupp == "takstol" or b.grupp == "takbalk" and b.typ == "T":
             Ly[b.nr] = b.langd                          # takbalkarna och takstolarnas delar i sitt plan
     return Ly, Lz

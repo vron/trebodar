@@ -206,5 +206,5 @@ platar      = [[1940, 7480]]
 namn        = "Nockbalk 5"
 typ         = "nock"
 total       = 12370
-spann       = [4580, 2700, 4900]
+spann       = [3505, 2120, 1655, 4900]   # stolparna LN5_1 och LN5_3 i 1B:s hörn (y 7 160, 9 280) och LN5_2
 platar      = [[0, 4825], [7225, 12370]]

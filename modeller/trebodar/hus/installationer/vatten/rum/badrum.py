@@ -6,7 +6,7 @@ badkaret, WC:n) och genom golvet till golvdosan (tvättstället, i skåpet under
 Tvättmaskinen i skåpet i nischen (#51, förberedd) har en egen väggdosa på L10 i glipan bredvid maskinerna, med kallt
 från underfördelaren UF2 under badrummet, som också matar WC:n (underfordelare.py); de andra kommer från stråket S.
 
-Duschens blandare sitter mitt i nischen, i regelfacket mellan reglarna 1C-R01 och 1C-R02, väster om ventilationens
+Duschens blandare sitter mitt i nischen, i regelfacket mellan reglarna 1C-R03 och 1C-R04, väster om ventilationens
 kanal FF3 i samma fack. WC:ns väggdosa sitter vid sidan av cisternen i regelfacket mellan L9-R02 och
 L9-R03. Golvdosorna står i golvets färdiga yta (klinkern över fallavjämningen) och dosornas höjd räknas från golvet.
 """

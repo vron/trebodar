@@ -112,7 +112,7 @@ YTTERVAGGAR = {v.kod: v for v in (
 INNERVAGGAR = {v.kod: v for v in (
     Vaggdef("1A", (65.0, 7115.0), _PX, 1995.0, 70.0, "vänstra huskroppen, y 7 150, från långsidan till nocken"),
     Vaggdef("1B", (2130.0, 7115.0), _PY, 2210.0, 70.0, "vänstra huskroppen, under nockbalk 5, y 7 115–9 325"),
-    Vaggdef("1C", (2060.0, 8185.0), _PX, 1285.0, 70.0, "vänstra huskroppen, y 8 220, med stolpen LN5_1"),
+    Vaggdef("1C", (2060.0, 8185.0), _PX, 1285.0, 70.0, "vänstra huskroppen, y 8 220, från 1B under nockbalk 5"),
     Vaggdef("1D", (65.0, 10952.5), _PX, 2078.0, 95.0, "vänstra huskroppen, y 11 000, med stolpen LN5_2"),
     Vaggdef("2A", (6917.0, 2152.5), _PX, 2453.0, 95.0, "mittre huskroppen, y 2 200, med stolpen LN3_1"),
     Vaggdef("2B", (9440.0, 1065.0), _PY, 6297.0, 70.0, "under dalbalk 2, med stolparna LD2_1–LD2_3"),

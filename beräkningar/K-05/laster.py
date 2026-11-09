@@ -56,7 +56,8 @@ STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K
 STOLPLAGEN = {
     "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
     "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),
-    "LD4_1": (4475, 5843), "LD4_2": (4392, 10992), "LN5_1": (2152, 8220), "LN5_2": (2053, 11000),
+    "LD4_1": (4475, 5843), "LD4_2": (4392, 10992), "LN5_1": (2072, 7160), "LN5_2": (2053, 11000),
+    "LN5_3": (2095, 9280),
     "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
     "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
 }
@@ -73,8 +74,8 @@ K01 = {
     "N3": dict(typ="nock", stod={"A": (85, 8.2, -3.3), "B": (2185, 24.5, -6.6), "C": (5985, 37.6, -8.6),
                                   "D": (10985, 19.4, -5.8)}),
     "D4": dict(typ="dal", stod={"A": (90, 14.2, -4.0), "B": (2340, 55.1, -8.3), "C": (7390, 31.4, -5.6)}),
-    "N5": dict(typ="nock", stod={"A": (95, 17.9, -5.7), "B": (4675, 31.7, -6.5), "C": (7375, 33.4, -6.8),
-                                  "D": (12275, 19.1, -6.0)}),
+    "N5": dict(typ="nock", stod={"A": (95, 13.8, -4.6), "B": (3600, 28.9, -6.6), "C": (5720, 12.0, -9.9),
+                                  "D": (7375, 35.6, -7.8), "E": (12275, 19.1, -5.9)}),
 }
 # Balkarnas last per meter i K-01 (G och S, kN/m): ger fördelningen G/S av en reaktion
 K01_LAST = {"nock": (2.17, 3.75), "dal": (2.08, 7.13)}
@@ -175,8 +176,9 @@ def punktlaster():
                     "dalbalk 4, stöd B + ½ nockbalk 3, stöd C via mittakstolen"), yta=STOLPE_B),
         _summa([(1, stod("D4", "C")), (0.5, stod("N3", "D"))], *pos("D4 stöd C"), "LD4_2",
                "dalbalk 4, stöd C + ½ nockbalk 3, stöd D (gaveltakstol)", strip_a=aD, takfot=False, kropp="M"),
-        _summa([(1, stod("N5", "B"))], *pos("N5 stöd B"), "LN5_1", "nockbalk 5, stöd B"),
-        _summa([(1, stod("N5", "C"))], *pos("N5 stöd C"), "LN5_2", "nockbalk 5, stöd C"),
+        _summa([(1, stod("N5", "B"))], *STOLPLAGEN["LN5_1"], "LN5_1", "nockbalk 5, stöd B (hörnet 1A–1B)"),
+        _summa([(1, stod("N5", "D"))], *STOLPLAGEN["LN5_2"], "LN5_2", "nockbalk 5, stöd D"),
+        _summa([(1, stod("N5", "C"))], *STOLPLAGEN["LN5_3"], "LN5_3", "nockbalk 5, stöd C (1B:s ände vid L20)"),
     ]
     e = VAGG_IN
     hörn = [  # (x, y, delar, a, text)
@@ -189,8 +191,8 @@ def punktlaster():
          "vänstra huskroppen, nedre gaveln + dalbalk 4, stöd A"),
         (9500 + e, 12510 - e, [(0.5, stod("N1", "E"))], aL, "högra huskroppen, övre gaveln"),
         (13810 - e, 12510 - e, [(0.5, stod("N1", "E"))], aL, "högra huskroppen, övre gaveln"),
-        (0 + e, 15900 - e, [(0.5, stod("N5", "D"))], aL, "vänstra huskroppen, övre gaveln"),
-        (4310 - e, 15900 - e, [(0.5, stod("N5", "D"))], aL, "vänstra huskroppen, övre gaveln"),
+        (0 + e, 15900 - e, [(0.5, stod("N5", "E"))], aL, "vänstra huskroppen, övre gaveln"),
+        (4310 - e, 15900 - e, [(0.5, stod("N5", "E"))], aL, "vänstra huskroppen, övre gaveln"),
     ]
     for i, (x, y, d, a, t) in enumerate(hörn, 1):
         kr = "M" if "mittre" in t else ("H" if "högra" in t else "V")

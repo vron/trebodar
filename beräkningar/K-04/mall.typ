@@ -69,7 +69,7 @@ Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från
   ..r.modell.grupper.map(g => ([#g.namn], [#g.antal], [#g.dim], [#g.mat])).flatten(),
 )
 
-*Förutsättningar.* Reglarna och stolparna i väggarna och takbalkarna knäcker bara i sin styva riktning: skivorna och läkten håller dem i den veka (de räknas inte för stabiliseringen). Fristående stolpar av flera reglar är ihopskruvade och verkar som ett tvärsnitt (som K-03). Klimatklass 1, säkerhetsklass 2 ($gamma_d$ = #r.kombination.gamma_d).
+*Förutsättningar.* Reglarna och stolparna i väggarna och takbalkarna knäcker bara i sin styva riktning: skivorna och läkten håller dem i den veka (de räknas inte för stabiliseringen). I ett hörn, där en vinkelrät väggs regel ligger an längs minst halva höjden (också en lätt väggs), är regeln eller stolpen stagad åt båda hållen. Fristående stolpar av flera reglar är ihopskruvade och verkar som ett tvärsnitt (som K-03). Klimatklass 1, säkerhetsklass 2 ($gamma_d$ = #r.kombination.gamma_d).
 
 = Laster
 

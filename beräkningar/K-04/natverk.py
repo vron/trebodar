@@ -643,5 +643,6 @@ def bygg(fil: Path, material: dict[str, dict[str, float]]) -> Natverk:
                      b_e=np.array([w for _, w, _ in bind]).reshape(-1, 3), b_k=np.full(len(bind), K_BIND))
     sekundara = sorted(b.namn for b in delar if b.slag == "utgar")
     return Natverk(delar, X, np.array(eldel)[sel], np.array(els)[sel], stationer_ut, mod, band, nod_delar,
-                   {k: data[k] for k in ("takytor", "vaggar", "huskroppar", "h_vagg", "z_bjalklag")}, utelamnade,
+                   {**{k: data[k] for k in ("takytor", "vaggar", "huskroppar", "h_vagg", "z_bjalklag")},
+                    "latta_reglar": data.get("latta_reglar", [])}, utelamnade,
                    sekundara, linjer, [el for el, *_ in bind])
