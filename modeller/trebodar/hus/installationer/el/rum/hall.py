@@ -1,10 +1,11 @@
-"""Hallen: två tubspotar som lyser upp mot väggen 1B och snedtaket, dimmern vid entrédörren och ett uttag på väggen
-1D (belysningsplanen i ärende #8).
+"""Hallen: två tubspotar som lyser upp mot garderobens front framför väggen 1B och snedtaket, dimmern vid
+entrédörren och ett uttag på väggen 1D (belysningsplanen i ärende #8).
 
 Tube Mini R en bit upp på takfallet 1SO (två läktfack högre än vid takfoten), mitt emellan installationsskiktets läkt,
-vinklade upp mot 1B:s övre del (väggen under nocken skymmer det motsatta takfallet). Dimmern sitter på 1SO:s insida
-bredvid entrédörren 1SO-D1; röret går upp i väggen och längs raden i installationsskiktet. Uttaget på 1D (hallsidan) är
-ett av planens uttag ovanför fönster, men här finns inget fönster: höjden är tills vidare densamma som ovanför fönstren.
+vinklade upp mot den övre delen av garderobens front framför 1B (väggen under nocken skymmer det motsatta takfallet).
+Dimmern sitter på 1SO:s insida bredvid entrédörren 1SO-D1; röret går upp i väggen och längs raden i
+installationsskiktet. Uttaget på 1D (hallsidan) är ett av planens uttag ovanför fönster, men här finns inget fönster:
+höjden är tills vidare densamma som ovanför fönstren.
 """
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ RUM = Rum("HA", "Hall", plan=1)
 NAMN = RUM.namn
 
 X, Y = 1000.0, (7875.0, 8920.0)              # önskat läge, flyttas till mitt mellan läkten
-MAL_X = 2040.0                                # 1B:s yta mot hallen (ungefär)
+MAL_X = 1535.0                                # garderobens front framför 1B, mot hallen (ungefär, #96)
 U_B = 6235.0                                  # dimmern längs 1SO: söder om entrédörren (u 5 080–6 080)
 
 TANDGRUPPER = [Tandgrupp("HA-T1", "Hall, tubspotar")]

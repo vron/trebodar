@@ -91,10 +91,11 @@ LATTA = (
              syll=False),
     Lattvagg("L6", (7348.0, 4989.5), _PX, 9370.0 - 7348.0, "trapphålets norra sida, mot sovrummet"),
     Lattvagg("L7", (7348.0, 4989.5), _PY, 5900.0 - 4989.5, "trapphålets västra sida, mot garderoben"),
-    # hallens garderob (#96): väggbiten vid 1B:s ände, 500 från 1B:s yta mot hallen till frontens yta, och fronten
-    # från 1C till väggbiten med öppningen för dörrarna (oppningar.INNEROPPNINGAR, hus/inredning/hallgarderob.py)
-    Lattvagg("L20", (2130.0, 9255.0), _PX, 500.0, "hallens garderob, väggbiten vid 1B:s ände"),
-    Lattvagg("L21", (2630.0, 8255.0), _PY, 1000.0, "hallens garderob, fronten med dörrarna"),
+    # hallens garderob (#96), i hallen väster om 1B: väggbiten vid 1B:s ände mot väster, 500 från 1B:s yta mot hallen
+    # till frontens yta, och fronten från 1A till väggbiten med öppningen för dörrarna (oppningar.INNEROPPNINGAR,
+    # hus/inredning/hallgarderob.py)
+    Lattvagg("L20", (1560.0, 9255.0), _PX, 500.0, "hallens garderob, väggbiten vid 1B:s ände"),
+    Lattvagg("L21", (1630.0, 7185.0), _PY, 9255.0 - 7185.0, "hallens garderob, fronten med dörrarna"),
     Lattvagg("GC", (_G_X, 5900.0), _NY, 5900.0 - (_G_Y + _G_HORN), "garderoben, vid stolpen LD4_1", grupp=GARDEROB),
     Lattvagg("GB", (_G_X, _G_Y + _G_HORN), _DIAG, _G_HORN * math.sqrt(2.0), "garderobens sneda hörn",
              grupp=GARDEROB),
