@@ -15,7 +15,7 @@ namn        = "Fritidshus Trebodar, Resö, Tanum"
 objekt      = "Inköpslista"
 dokument    = "IN-01"
 revision    = "A"
-datum       = "2026-11-05"
+datum       = "2026-11-12"
 upprattad   = "Viktor Ogeman"
 granskad    = ""
 
@@ -33,6 +33,18 @@ byggherre = "Byggherren"
 bygg      = "Byggentreprenören"
 el        = "Elektrikern"
 vvs       = "VVS-entreprenören"
+
+# ------------------------------------------------------------------ gjutning
+
+[[produkt]]
+kod        = "SPRAYFARG"
+grupp      = "Gjutning"
+namn       = "Röd sprayfärg (markeringsfärg) till gjutningarna"
+status     = "att välja"
+ansvarig   = "byggherre"
+fas        = "grund"
+omfattning = "några burkar"
+anm        = "Till gjutningarna 1–3 (TP-01)."
 
 # ------------------------------------------------------------------ stomme
 
