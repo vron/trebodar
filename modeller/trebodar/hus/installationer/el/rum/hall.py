@@ -19,7 +19,7 @@ NAMN = RUM.namn
 
 X, Y = 1000.0, (7875.0, 8920.0)              # önskat läge, flyttas till mitt mellan läkten
 MAL_X = 1535.0                                # garderobens front framför 1B, mot hallen (ungefär, #96)
-U_B = 6235.0                                  # dimmern längs 1SO: söder om entrédörren (u 5 080–6 080)
+U_B = 6185.0                                  # dimmern längs 1SO: söder om entrédörren (u 5 030–6 030)
 
 TANDGRUPPER = [Tandgrupp("HA-T1", "Hall, tubspotar")]
 

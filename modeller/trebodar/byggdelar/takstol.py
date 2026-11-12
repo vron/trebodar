@@ -9,8 +9,8 @@ En takstol står på väggens överkant (sätet) under en nockbalk och följer t
   plant i balkens underkant, så att balken ligger tätt mellan ytterbalkarna;
 - en underram (U) mellan diagonalernas fötter, med ändarna längs diagonalernas underkant;
 - ståndare 45×95 (R) c/c 600 från nocken, en mitt under balken och två på var sida, på underramen och genom väggens
-  tjocklek bredvid den. Diagonalerna har ett vågrätt säte, halva ståndarens bredd, på varje ståndare: på
-  mittståndaren i diagonalernas skärning, annars i ståndarens mitt;
+  tjocklek bredvid den (på 145-väggarna 45×145). Diagonalerna har ett vågrätt säte, halva ståndarens bredd, på varje
+  ståndare: på mittståndaren i diagonalernas skärning, annars i ståndarens mitt;
 - spikreglar 45×95 (X) på insidan där stolen har dem, med underkanten i takbalkarnas underkant;
 - toppklossar 45 mm (K), lika höga som diagonalerna och 600 mm långa, på sidan av toppen: gavelstolarna har en kloss
   på insidan (utsidan är fasad) och mittstolen 2C en på den nordöstra sidan, inne i väggens tjocklek (på den
@@ -40,7 +40,7 @@ T = 45.0                     # delarnas tjocklek (w)
 YTTERBALK_H = 95.0           # ytterbalkens höjd, vinkelrätt mot takplanet
 DIAGONAL_H = 220.0
 STANDARE_B = 45.0
-STANDARE_D = 95.0            # ståndarens djup (w) från stolens sida: genom väggens tjocklek
+STANDARE_D = 95.0            # ståndarens djup (w) från stolens sida: genom väggens tjocklek (minst)
 STANDARE_CC = 600.0
 STANDARE_ANTAL = 2           # ståndare på var sida om mittståndaren
 SPIKREGEL_B = 95.0
@@ -224,7 +224,8 @@ def takstol(kod: str, balk: str, utsida: bool = True, klossar: tuple[int, ...] =
     ua, ub = ([_dar(sd.diagonal_uk, z) for z in (sate, zu)] for sd in sidor)
     t._del(Polygon([(ua[0], sate), (ub[0], sate), (ub[1], zu), (ua[1], zu)]), *ww, "U")
     t.knutar = [_dar(sd.diagonal_uk, sate + underram / 2) for sd in sidor]
+    d = max(STANDARE_D, v.tjocklek)                    # genom väggens tjocklek
     for a, z in saten:
-        t.tvarprofil([(w0, zu), (w0 + T, zu), (w0 + T, sate), (w0 + STANDARE_D, sate), (w0 + STANDARE_D, z), (w0, z)],
+        t.tvarprofil([(w0, zu), (w0 + T, zu), (w0 + T, sate), (w0 + d, sate), (w0 + d, z), (w0, z)],
                      a, a + STANDARE_B)
     return t

@@ -58,19 +58,22 @@ class Losning:
     R: np.ndarray               # (k, upplag, 3) upplagsreaktionerna
     u: np.ndarray               # (k, 6n) förskjutningarna
     bindning: np.ndarray        # (k, c) bindningarnas kraft
+    skiva: np.ndarray           # (k, p) skjuvskivornas kraft Q (skjuvkraften Q / h)
     iter: np.ndarray            # (k,) iterationer för banden
 
 
-def los(a: fem.Analys, fall: list[Lastfall], komb: list[Kombination]) -> Losning:
+def los(a: fem.Analys, fall: list[Lastfall], komb: list[Kombination],
+        Q_max: Any = None) -> Losning:
+    """Lösningarna per kombination; Q_max(kombination) ger skjuvskivornas bärförmåga (None: inga eller elastiska)."""
     namn = [f.namn for f in fall]
     fv = np.array([a.nodlaster(f.q) for f in fall])
     qv = np.array([f.q for f in fall])
-    F, Q, B, R, U, It, Fj = [], [], [], [], [], [], []
+    F, Q, B, R, U, It, Fj, Sk = [], [], [], [], [], [], [], []
     for k in komb:
         c = np.array([k.faktorer.get(n, 0.0) for n in namn])
         f = c @ fv
         qg = np.einsum("c,cij->ij", c, qv)
-        u, aktiv, it = a.los(f)
+        u, aktiv, it = a.los(f, Q_max(k) if Q_max else None)
         F.append(a.balkkrafter(u, qg))
         Q.append(np.einsum("eij,ej->ei", a.Lam, qg))
         B.append(a.stangkrafter(u, aktiv))
@@ -78,4 +81,6 @@ def los(a: fem.Analys, fall: list[Lastfall], komb: list[Kombination]) -> Losning
         U.append(u)
         It.append(it)
         Fj.append(a.bindningskrafter(u))
-    return Losning(komb, np.array(F), np.array(Q), np.array(B), np.array(R), np.array(U), np.array(Fj), np.array(It))
+        Sk.append(a.skivkrafter(u))
+    return Losning(komb, np.array(F), np.array(Q), np.array(B), np.array(R), np.array(U), np.array(Fj), np.array(Sk),
+                   np.array(It))

@@ -5,6 +5,8 @@ Brytpunkterna i husets koordinater (installationernas gemensamma montering.py).
 """
 from __future__ import annotations
 
+import warnings
+
 from trebodar import skelett as S
 from trebodar.hus.invandigt.skikt import LAKT
 from trebodar.hus.invandigt.vaggar import vaggdef
@@ -81,8 +83,12 @@ def upp_ur_bjalklaget(p: Punkt, niva: str = "MB", d: float = D_ROR) -> tuple[Vek
     vagg = p.lage.yta == "vagg" and p.lage.ref in _VAGGAR
     i = i_vaggen_vid(p.lage, 0.0) if vagg else (X_ON_ROR, a[1], a[2]) if p.lage.ref == "Ön" else a
     langs = _langs(p.lage) if vagg else None
-    dx, dy = mellan_jarnen([i[:2]], BJALKLAG[niva], PLAN[1], d / 2, langs=langs,
-                           tvars=_tvars(p.lage.ref, d) if vagg else 0.0)
+    try:
+        dx, dy = mellan_jarnen([i[:2]], BJALKLAG[niva], PLAN[1], d / 2, langs=langs,
+                               tvars=_tvars(p.lage.ref, d) if vagg else 0.0)
+    except ValueError as fel:               # tätare tilläggsjärn (K-05) än röret får plats mellan: röret står kvar,
+        warnings.warn(f"elröret upp till {p.id}: {fel}; röret står kvar under dosan")    # läget bestäms senare
+        dx, dy = 0.0, 0.0
     x, y = i[0] + dx, i[1] + dy
     return (x, y, BJALKLAG[niva]), (x, y, a[2])
 

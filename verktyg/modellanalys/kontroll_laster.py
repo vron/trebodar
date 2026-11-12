@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 HERE = Path(__file__).parent
@@ -177,9 +177,15 @@ for x, y in [(7000, -600), (5000, -600), (14400, 2000), (14400, 7000), (-600, 45
     if r:
         markniva.append(r[1])
 h = (nock + 75 - min(markniva)) / 1000
-rad("Vind", "referenshöjd z (nock över mark)", "7,0 m (F-01, K-01)",
-    f"ca {h:.1f} m (nock {nock / 1000:.2f} m + ca 0,08 taktäckning över färdigt golv, mark {min(markniva) / 1000:.2f} m)",
-    "på säker sida")
+z_f01 = float(re.search(r"^z\s*=\s*([\d.]+)", (ROT / "beräkningar" / "F-01" / "indata.toml").read_text(
+    encoding="utf-8").split("[vind]")[1], re.M).group(1))
+z_k01 = float(re.search(r"^z\s*=\s*([\d.]+)", (ROT / "beräkningar" / "K-01" / "indata.toml").read_text(
+    encoding="utf-8").split("[vind]")[1], re.M).group(1))
+modell_z = (f"ca {h:.1f} m (nock {nock / 1000:.2f} m + ca 0,08 taktäckning över färdigt golv, "
+            f"mark {min(markniva) / 1000:.2f} m)")
+for namn, z_h in (("F-01, K-04", z_f01), ("K-01", z_k01)):
+    rad("Vind", "referenshöjd z (nock över mark)", f"{z_h:.1f} m ({namn})".replace(".", ","), modell_z,
+        "stämmer" if abs(z_h - h) < 0.05 else "på säker sida" if z_h > h else "AVVIKER")
 rad("Vind", "e = min(b, 2h), vind längs nocken", "12 m (K-01)",
     f"b = {bredd / 1000:.1f} m (takfot–takfot), 2h ≈ {2 * h:.1f} m → e ≈ {min(bredd / 1000, 2 * h):.1f} m",
     "K-01 på säker sida")
@@ -188,19 +194,11 @@ rad("Vind", "e = min(b, 2h), vind längs nocken", "12 m (K-01)",
 hal = Polygon(G05["hal"])
 sl = plansnitt(-75, "#" + str(_pl.id))
 hm = Polygon(sl.interiors[0]) if sl.interiors else None
-# vid plattan på marks fria kanter börjar betongen vid L-elementens rygg, L_BEN från väggens ytterliv (K-06), K-05:s
-# platta går till plattkanten
+# betongen går fram till plattkanten, också vid plattan på marks fria kanter (L-elementens rygg är kantisoleringen)
 ytter = Polygon(sl.exterior)
-kant = kontur.difference(ytter)
-_k = kontur.exterior.coords
-_mitt = [Point((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) for p, q in zip(_k, _k[1:])]   # plattkantens raka delar
-bredd = {round(ytter.exterior.distance(c)) for c in _mitt if kant.buffer(1.0).contains(c)}
-_ok = (ytter.difference(kontur).area < 1e3 and kant.difference(Polygon(G05["mark"])).area < 1e3
-       and bredd == {round(K06.L_BEN - K06.KI)})
+avv = ytter.symmetric_difference(kontur).area
 rad("Bjälklag", "plattans area utan trapphål", f"{(kontur.area - hal.area) / 1e6:.2f} m² (K-05: 157 m²)",
-    f"{sl.area / 1e6:.2f} m²: vid plattan på marks fria kanter börjar betongen "
-    f"{' / '.join(map(str, sorted(bredd)))} mm innanför plattkanten, vid L-elementens rygg ({kant.area / 1e6:.2f} m²)",
-    "stämmer (K-05 räknar plattan till kanten)" if _ok else "AVVIKER")
+    f"{sl.area / 1e6:.2f} m², betongen till plattkanten", "stämmer" if avv < 1e3 else f"AVVIKER ({avv / 1e6:.3f} m²)")
 rad("Bjälklag", "plattans tjocklek", "150 mm", f"{_pl.storlek[2]:.0f} mm", "stämmer")
 if hm is not None:
     x0, y0, x1, y1 = hm.bounds

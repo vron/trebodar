@@ -163,6 +163,10 @@ BETONGBULT = Material("Betongbult", "Betongbult genom syllen i mellanbjälklaget
 ARMERING = Material("Armering", "Armeringsstål B500B (R-04, R-05, R-06)", 7850, "#5e4a3e", 0.7, 0.6, enhet="kg",
                     cad="#b8462e")
 SPIKPLAT = Material("Spikplåt", "Spikplåt S250GD+Z 2,0 mm", 7850, "#b8bcc2", 0.4, 1.0, enhet="st", cad="#b8c2cf")
+VINKELBESLAG = Material("Vinkelbeslag", "Vinkelbeslag ABR10525 105×105×90×2,5 S350GD+Z (förankringen, K-03, K-04)",
+                        7850, "#b8bcc2", 0.4, 1.0, enhet="st", cad="#b8c2cf")
+FORANKRINGSBESLAG = Material("Förankringsbeslag", "Förankringsbeslag WHT340, kolstål 3 mm, förzinkat (K-04)", 7850,
+                             "#b8bcc2", 0.4, 1.0, enhet="st", cad="#b8c2cf")
 STALBAND = Material("Stålband", "Stålband 40×2,0 mm S350GD+Z275, infällt (K-04)", 7850, "#b8bcc2", 0.4, 1.0,
                     enhet="st", cad="#3f6fb5")
 

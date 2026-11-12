@@ -305,13 +305,24 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
                 andar[nod].append((d, int(e[0])))
     best = None
     antal_upplag = 0
+    def landar(stå: Bar, ligg: Bar) -> bool:
+        """Den stående delen står på eller under den liggande: de överlappar i plan och möts i höjd (inte en del som
+        bara står bredvid syllens eller hammarbandets ände, på bjälklaget eller under en balk). Lådorna är delarnas,
+        med systemlinjernas förlängning till knutpunkten."""
+        lo1, hi1 = _lada(stå)
+        lo2, hi2 = _lada(ligg)
+        plan = np.minimum(hi1[:2], hi2[:2]) - np.maximum(lo1[:2], lo2[:2])
+        return bool(np.all(plan > 1.0) and lo1[2] <= hi2[2] + 5.0 and hi1[2] >= lo2[2] - 5.0)
+
     for nod, ds in andar.items():
         lig = [delar[d] for d in N.nod_delar[nod] if delar[d].slag == "balk" and abs(delar[d].ex[2]) < 0.3
                and delar[d].typ in ("S", "H")]
         st = [(d, e) for d, e in ds if abs(delar[d].ex[2]) > 0.9]
-        if not lig or not st:
+        par = [(lg, [(d, e) for d, e in st if landar(delar[d], lg)]) for lg in lig]
+        par = [(lg, s_) for lg, s_ in par if s_]
+        if not par:
             continue
-        lig_ = lig[0]
+        lig_, st = par[0]
         antal_upplag += 1
         Nc = np.zeros(len(kn))
         l_ = 0.0

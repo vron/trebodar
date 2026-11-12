@@ -27,6 +27,7 @@ from .planritning import Blad, Vy, blad, svm
 
 SERIE = "R-02"
 TITEL = "Trästomme"
+INSIDA_DJUP = 40.0             # stålband längre in än så från väggens utsida sitter i stommens insida
 FYLL = {"C24": "mark", "GL30c": "limtra", "Stålband": "stal", "Spikplåt": "stal", "S235": "stal", "S355": "stal"}
 KROPPAR = ("1", "2", "3")
 INNERVAGGAR = ("1A", "1B", "1C", "1D", "2A", "2B", "2C")
@@ -113,6 +114,7 @@ class Element:
     oppningar: list[tuple[float, float, float, float]]
     nr: str = ""
     bultar: list[float] | None = None          # betongbultarnas lägen längs väggen (u), väggarna
+    beslag: list[tuple[str, float, float, float]] | None = None    # förankringens beslag: (slag, u, z, normalen i u)
 
     def uv(self, p: np.ndarray) -> np.ndarray:
         q = np.atleast_2d(p) - self.origo
@@ -208,6 +210,11 @@ def element(utdrag: dict, alla: list[Del]) -> list[Element]:
         dl = [d for d in alla if d.element == kod and d.grupp == "balk"]
         o, u, v_ = plan_av(dl)
         ut.append(Element(kod, f"{'Nockbalk' if kod.startswith('NB') else 'Dalbalk'} {kod}", "balk", dl, o, u, v_, []))
+    for e in ut:                                # förankringens beslag vid väggarnas och stolparnas fot (K-04)
+        if e.slag in ("vägg", "stolpe"):
+            e.beslag = sorted((b["slag"], float((np.array([b["x"], b["y"], b["z"]]) - e.origo) @ e.eu), float(b["z"]),
+                               float(np.array([*b["normal"], 0.0]) @ e.eu))
+                              for b in utdrag.get("beslag", []) if b["element"] == e.kod)
     for i, e in enumerate(ut, start=2):
         e.nr = f"{SERIE}.{i}"
     return ut
@@ -227,6 +234,12 @@ def _kapplista(e: Element) -> list[list[str]]:
     return rader
 
 
+def _pa_insidan(e: Element, d: Del) -> bool:
+    """Ett stålband infällt i väggens insida (sett utifrån bakom stommen): mer än INSIDA_DJUP bakom väggens utsida."""
+    n = np.cross(e.eu, e.ev)
+    return e.slag == "vägg" and d.material == "Stålband" and float(np.mean((d.horn() - e.origo) @ n)) < -INSIDA_DJUP
+
+
 def _elementblad(e: Element) -> Blad:
     ytor = {d.namn: _yta(e, d) for d in e.delar}
     alla_ytor = [g for g in ytor.values() if not g.is_empty]
@@ -243,7 +256,10 @@ def _elementblad(e: Element) -> Blad:
             g = ytor[d.namn]
             if g.is_empty or not hasattr(g, "exterior"):
                 continue
-            v.polygon(list(g.exterior.coords)[:-1], FYLL.get(d.material, "mark"), "tunn")
+            if _pa_insidan(e, d):                         # bakom stommen: streckad
+                v.polygon(list(g.exterior.coords)[:-1], None, "dold")
+            else:
+                v.polygon(list(g.exterior.coords)[:-1], FYLL.get(d.material, "mark"), "tunn")
     with v.lager("oppningar"):
         for a, b, c, d_ in e.oppningar:
             v.polygon([(a, c), (b, c), (b, d_), (a, d_)], None, "dold")
@@ -252,6 +268,15 @@ def _elementblad(e: Element) -> Blad:
             for b in e.bultar:
                 v.linje([(b, -60.0), (b, 70.0)], "grov")
                 v.cirkel(b, 22.0, 0.6, fyll="svart", stil=None)
+    if e.beslag:
+        with v.lager("beslag"):
+            for slag, ub, zb, nu in e.beslag:
+                h, d_, b_ = BESLAG[slag]
+                if abs(nu) > 0.5:                       # på en sida längs vyn: L-formen i profil
+                    v.linje([(ub, zb + h), (ub, zb), (ub + nu * d_, zb)], "grov")
+                else:                                   # på insidan: plåten framifrån
+                    v.polygon([(ub - b_ / 2, zb), (ub + b_ / 2, zb), (ub + b_ / 2, zb + h), (ub - b_ / 2, zb + h)],
+                              None, "grov")
     with v.lager("id"):
         for d in e.delar:
             g = ytor[d.namn]
@@ -324,9 +349,12 @@ def _elementblad(e: Element) -> Blad:
             "totalmått; i höjd till de liggande delarnas kanter och öppningarna.",
             "Mått i mm. Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
             *(["Stålet i nock- och dalbalkarna (plåtar, distansreglar): se R-01."] if e.slag == "balk" else []),
+            *(["Streckade stålband sitter infällda i stommens insida (under ångbromsen), de andra i utsidan."]
+              if any(_pa_insidan(e, d) for d in e.delar) else []),
             *([f"Förankringen: {len(e.bultar)} betongbultar M{BULT[0]:g} genom syllen, {BULT[1]:g} mm ned i "
                "mellanbjälklaget (#88; lägena längs syllen i måttkedjan \"bultar\", i plan på AR-03.4). Borras efter "
                "gjutningen, fria från rören i plattan."] if e.bultar else []),
+            *([_beslagstext(e.beslag)] if e.beslag else []),
         ]),
     ]
     return blad(e.nr, ["Trästomme", e.titel], f"1:{skala:g}", "Modellen", kol, [v], block)
@@ -393,7 +421,8 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
             "nock- och dalbalkarna. Varje element är märkt med sin kod och sitt blad.",
             "Bladen följer byggordningen: väggarna (ytterväggarna huskropp för huskropp, sedan de bärande "
             "innerväggarna), stolparna, takstolarna, takfallen och nock- och dalbalkarna.",
-            "Stommens förankring i mellanbjälklaget: betongbultar genom syllarna (AR-03).",
+            "Stommens förankring i mellanbjälklaget: betongbultar genom syllarna, vinkelbeslag och förankringsbeslag "
+            "vid reglarnas och stolparnas fot (K-04, AR-03.4).",
             "Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
         ]),
     ]
@@ -401,6 +430,17 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
 
 
 BULT = [12.0, 100.0]                        # betongbultarna: diameter, djup i betongen (ur utdraget)
+# beslagen i vyn: höjd, den liggande skänkelns djup och bredd (byggdelar/beslag.py)
+BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 60.0, 60.0)}
+
+
+def _beslagstext(beslag: list[tuple[str, float, float, float]]) -> str:
+    n = {s: sum(1 for b in beslag if b[0] == s) for s in BESLAG}
+    delar = [f"{n['ABR10525']} vinkelbeslag ABR10525"] if n["ABR10525"] else []
+    delar += [f"{n['WHT340']} förankringsbeslag WHT340"] if n["WHT340"] else []
+    return ("Beslagen (K-04): " + " och ".join(delar) + " vid foten, ritade som L i profil eller som plåten "
+            "framifrån. De skruvas (spikas) fullt i regeln eller stolpen, med betongbultar M12 genom beslaget och "
+            "syllen (WHT340: ankare M16). Lägena i plan på AR-03.4.")
 
 
 def ritningar(utdrag: dict, mapp: Path, pdf: Path) -> Path:

@@ -368,6 +368,13 @@ Ns = F_strava_ax / HS["strava_lager"]
 kcS = min(C24.kc(HS["strava_L"], HS["strava_h"])[0], C24.kc(HS["strava_L"], HS["strava_b"])[0])
 u_strava = Ns * 1e3 / (kcS * HS["strava_b"] * HS["strava_h"] * C24.fc0d)
 u_topregel = HS["F_strava"] * 1e3 / (HS["strava_lager"] * HS["strava_b"] * HS["strava_h"]) / (C24.kh(HS["strava_h"]) * C24.ft0d)
+# förankringen vid foten mot lyftet: två vinkelbeslag och en betongbult genom vart
+HF = IN["huvudstolpe_fot"]
+lyft_H = -PL["LN1_3"]["Wd"]
+R1d_H = HF["R1_k"] * KL["k_mod_vind"] / HF["gamma_M"]
+R1d_H_spik = HF["R1_k_spik"] * KL["k_mod_vind"] / HF["gamma_M"]
+u_fot = lyft_H / R1d_H
+N_bult = lyft_H / HF["n_beslag"] * HF["bandning"]
 l_topregel = HS["F_strava"] * 1e3 / (HS["strava_lager"] * HS["strava_b"] * 1.5 * C24.fc90d)
 n_spik_H = math.ceil(Ns / 2 / Fv_spik_d)
 print(f"huvudstolpen: {nH} st 45×{hH:.0f}, b {bH:.0f}, L {HS['L']} kc {kcH:.2f}: N {HS['N_d']} M {HS['M_d']} -> {u_H:.0%}; "
@@ -479,7 +486,10 @@ R = {
     "hs": dict(N=fmt(HS["N_d"], 1), M=fmt(HS["M_d"], 2), L=fmt(HS["L"], 0), n=str(nH), h=fmt(hH, 0), b=fmt(bH, 0), kc=fmt(kcH, 2),
                lr=fmt(lrH, 2), u=pct(u_H), F=fmt(HS["F_strava"], 1), Fax=fmt(F_strava_ax, 1), Ns=fmt(Ns, 1), us=pct(u_strava),
                ut=pct(u_topregel), lt=fmt(l_topregel, 0), spik=str(n_spik_H), e=fmt(HS["e"], 0),
-               lyft=fmt(-PL["LN1_3"]["Wd"], 1)),
+               lyft=fmt(lyft_H, 1), beslag=HF["beslag"], n_beslag=str(HF["n_beslag"]), skruv=HF["skruv"],
+               R1k=fmt(HF["R1_k"], 1), R1d=fmt(R1d_H, 1), R1d_spik=fmt(R1d_H_spik, 1), ufot=pct(u_fot),
+               bult=f"M{HF['bult_d']:.0f}", bult_djup=fmt(HF["bult_djup"], 0), Nb=fmt(N_bult, 1),
+               Nb0=fmt(lyft_H / HF["n_beslag"], 1), band=fmt(HF["bandning"], 1)),
     "stolpar": rader, "uS": pct(uS),
     "B": dict(u=pct(B["u"]), utf=B["utf"], e=fmt(SI["LD4_1"]["e"], 0), N=fmt(B["Nd"], 1),
               M=fmt(B["Nd"] * SI["LD4_1"]["e"] / 1000, 2)),

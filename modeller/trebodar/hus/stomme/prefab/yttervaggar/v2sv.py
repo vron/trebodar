@@ -1,9 +1,10 @@
 """Yttervägg 2SV: mittre huskroppens gavel mot SV, upp till dalbalkarnas underkant, med skjutdörren D1 mellan
 stolparna LD2_4 och LD4_2 (K-03) under dalbalk 2:s och dalbalk 4:s ände.
 
-Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["2SV"]), byggt med reglerna i regelstomme.py: syll (bruten vid
-dörren), ändreglar och stolparna intill dörröppningen. Hammarbandet går över dörren; över varje stolpe ligger en
-stålplåt S235 i ett urtag i hammarbandets underkant, och stolpens reglar under plåten går upp till den.
+Regelverk 145 mm C24 (45×145, K-04) i väggens system (skelett.VAGGAR["2SV"]), byggt med reglerna i regelstomme.py:
+syll (bruten vid dörren), ändreglar och stolparna intill dörröppningen. Hammarbandet går över dörren; över varje
+stolpe ligger en stålplåt S235 i ett urtag i hammarbandets underkant, och stolpens reglar under plåten går upp till
+den.
 """
 from modellering import Montage
 

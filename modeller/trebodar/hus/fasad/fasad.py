@@ -73,8 +73,9 @@ def fasad_u(kod: str, djup: tuple[float, float] = PANEL_DJUP) -> tuple[float, fl
         inne = STOMMENS_UTSIDA.contains(Point(pl.punkt((u + r * 10.0, -10.0, 0.0))[:2]))     # huset fortsätter
         if kod in GAVLAR:
             d = -(S.T_STOMME + b) if inne else b
-        else:
-            d = -a if inne else S.T_STOMME + a
+        else:                                    # i ytterhörnet förbi gavelns stomme (1SV och 2SV: 145)
+            g = S.ytterstomme_vid(*pl.punkt((u + r * 1.0, 1.0, 0.0))[:2])
+            d = -a if inne else (S.t_stomme(g) if g else S.T_STOMME) + a
         ut.append(u + r * d)
     return ut[0], ut[1]
 

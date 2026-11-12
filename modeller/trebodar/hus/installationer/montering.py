@@ -15,7 +15,8 @@ from trebodar.byggdelar import taklager as L
 from trebodar.hus.armering.armering import bottenplattans_mellanrum, mellanbjalklagets_mellanrum
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.invandigt.kallare import GIPS_T
-from trebodar.hus.invandigt.skikt import FOLIE, LAKT, SKIVA, innertak_vid, innertakets_fall, insida_t
+from trebodar.hus.invandigt.skikt import (FOLIE, LAKT, SKIVA, innertak_vid, innertakets_fall, insidans_yta,
+                                         installationsskikt)
 from trebodar.hus.invandigt.vaggar import skiktets_tjocklek, vaggdef
 
 Vek = tuple[float, float, float]
@@ -98,7 +99,7 @@ def _ytan(kod: str, u: float, sida: int) -> tuple[float, float, float]:
     """Väggens färdiga yta vid u: (w, och väggens riktning w som x, y), för ytterväggar insidan."""
     if kod in S.YTTERVAGGAR:
         v = S.YTTERVAGGAR[kod]
-        return S.T_STOMME + insida_t(kod, u), v.w[0], v.w[1]
+        return insidans_yta(kod, u), v.w[0], v.w[1]
     v = vaggdef(kod)
     w = v.tjocklek + skiktets_tjocklek(kod, 1, u) if sida > 0 else -skiktets_tjocklek(kod, -1, u)
     return w, v.w[0], v.w[1]
@@ -157,6 +158,7 @@ def langs_vaggen(kod: str, p: Vek) -> float:
 def i_vagg(kod: str, u: float, z: float, plan: int = 1) -> Vek:
     """I väggen vid u och z över golvet: i regelfacket (innerväggar) eller i ytterväggens installationsskikt."""
     v = S.YTTERVAGGAR[kod] if kod in S.YTTERVAGGAR else vaggdef(kod)
+    assert kod not in S.YTTERVAGGAR or installationsskikt(kod), f"{kod} har inget installationsskikt (#110)"
     w = S.T_STOMME + FOLIE + LAKT / 2 if kod in S.YTTERVAGGAR else v.tjocklek / 2
     return vek((v.origo[0] + v.u[0] * u + v.w[0] * w, v.origo[1] + v.u[1] * u + v.w[1] * w, PLAN[plan] + z))
 

@@ -6,9 +6,11 @@ mellan i balkarnas underkant), kantbalk och balkar under innerväggarna 450 × 3
 rören, alla på 100 mm cellplast S300, och L-element S300 höjd 400 längs kanten (ytterkanten i väggarnas ytterliv,
 betongen börjar 100 mm innanför, i kärnans yttre yta). Plattan på mark på plan 1 (bakom V3 och V20, AR-02):
 mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast 350 under
-plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan. L-elementens rygg är avfasad 45° i
-ovankant, FAS bred upptill, och betongen fyller fasen; vid plattan på marks fria hörn är ryggen urtagen i plattans
-tjocklek och betongen gjuten ut i urtagen (R-06 detalj F). Fasadstenen (AR-01) i fasadsten.py.
+plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan. Bottenplattans L-element har ryggen
+avfasad 45° i ovankant, FAS bred upptill, och betongen fyller fasen. Plattan på marks L-element har ryggen urtagen i
+mellanbjälklagets tjocklek utom de yttersta RYGG_KVAR, som kantisoleringen ovanpå källarväggarna, så att betongen går
+fram till plattans kant och ytterväggarnas syll står på betongen som i resten av huset (K-05, R-06). Fasadstenen
+(AR-01) i fasadsten.py.
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ from pathlib import Path
 
 from typing import Any
 
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 
 from modellering import Del, Montage, Placering, box, minus
@@ -35,7 +37,7 @@ Z_BP = S.Z_BOTTENPLATTA
 H_PLATTA, H_BALK, H_L = 100.0, 300.0, 400.0      # plattan, balkarna med plattan, L-elementen (K-06 L400)
 B_BALK = 450.0                   # kantbalk och balkar under innerväggarna
 L_BEN, B_L = 100.0, 600.0        # L-elementets rygg (betongen börjar vid dess insida) och bredd
-FAS = 50.0                       # ryggen avfasad 45° i ovankant: FAS bred upptill, betongen fyller fasen
+FAS = 50.0                       # bottenplattans rygg avfasad 45° i ovankant: FAS bred upptill, betongen fyller fasen
 INRE_BALKAR = ("V15", "V19")     # balkar under innerväggarna, och linjen V4–V6 mellan dem (K-06)
 # plattan på mark (AR-02): L-element 500 med fot 100, cellplast 100 + 250 under plattan, makadam 150
 H_L_MARK, T_FOT_MARK, T_MAKADAM = 500.0, 100.0, 150.0
@@ -43,9 +45,8 @@ SCHAKT_UT = 100.0                # bergschaktet runt plattan på mark, utanför 
 MARK_UK = -2315.0                # markens underkant (berget och uppfyllnaden i mark/marken.json)
 MARK_PLATTA = ((0.0, 9205.0), (4545.0, 9205.0), (4545.0, 11010.0), (4310.0, 11010.0), (4310.0, 15900.0),
                (0.0, 15900.0))   # plattan på mark på plan 1 (K-05)
-# plattan på marks fria hörn (LA9, LA10): ryggen urtagen HORN_UTKAP längs var kant från hörnet utom RYGG_KVAR närmast
-# ytterkanten, i plattans tjocklek (R-06 detalj F, samma regel som R-05:s kallare.py)
-HORN_UTKAP, RYGG_KVAR = 400.0, 30.0
+# plattan på mark: ryggen i mellanbjälklagets tjocklek, ut till plattans kant (samma regel som R-05:s kallare.py)
+RYGG_KVAR = S.STOMME_UT
 
 
 @lru_cache(maxsize=1)
@@ -126,19 +127,11 @@ def markplatta() -> tuple[Polygon, Any, Polygon, Polygon]:
 
 
 @lru_cache(maxsize=1)
-def hornutkap() -> Any:
-    """Urtagen i L-elementens rygg vid plattan på marks fria hörn, de konvexa hörnen där båda kanterna är fria (R-06
-    detalj F). Mellanbjälklagets betong fyller dem."""
-    p, fri, rygg, _ = markplatta()
-    c = list(p.exterior.coords)[:-1]
-    hornen = []
-    for i, b in enumerate(c):
-        a, d = c[i - 1], c[(i + 1) % len(c)]
-        konvex = ((b[0] - a[0]) * (d[1] - b[1]) - (b[1] - a[1]) * (d[0] - b[0]) > 0) == p.exterior.is_ccw
-        if konvex and all(LineString(k).difference(fri.buffer(1.0)).length < 1.0 for k in ((a, b), (b, d))):
-            hornen.append(Point(b).buffer(HORN_UTKAP, cap_style="square"))
-    kvar = fri.buffer(RYGG_KVAR, cap_style="flat", join_style="mitre")
-    return unary_union(hornen).intersection(rygg).difference(kvar)
+def kantrygg() -> Any:
+    """L-elementens rygg vid plattan på marks fria kanter i mellanbjälklagets tjocklek, RYGG_KVAR bred: plattans kant
+    ligger där."""
+    p, fri, _, _ = markplatta()
+    return fri.buffer(RYGG_KVAR, cap_style="flat", join_style="mitre").intersection(p)
 
 
 def markschakt() -> Polygon:
@@ -153,16 +146,9 @@ def platta_pa_mark() -> Montage:
     p, fri, rygg, fot = markplatta()
     z_uk, z_mak = -H_L_MARK, -H_L_MARK - T_MAKADAM
     z_fot = z_uk + T_FOT_MARK
-    # fasen i L-elementens rygg: mellanbjälklagets betong fyller den (betongen når FAS från ytterkanten i överkant)
-    utan_rygg = p.difference(rygg)
-    fas = stympad(utan_rygg, p.difference(fri.buffer(L_BEN - FAS, cap_style="flat", join_style="mitre")), -FAS, 0.0,
-                  FAS * 1.5)
-    urtag = [prisma_ur(g, -S.H_BJALKLAG, 0.0) for g in polygoner(hornutkap())]   # mellanbjälklagets betong
     m.lagg(Del(f"L-element S300 höjd {H_L_MARK:.0f}",
-               minus(prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, 0.0), [fas, *urtag]), CELLPLAST_S300),
-           Placering(), "PM-L")
-    m.lagg(Del(f"Betong i L-elementens fas {FAS:.0f}", minus(fas, [prisma_ur(utan_rygg, -FAS, 0.0), *urtag]), BETONG),
-           Placering(), "PM-FAS")
+               prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, -S.H_BJALKLAG)
+               | prisma_ur(kantrygg(), -S.H_BJALKLAG, 0.0), CELLPLAST_S300), Placering(), "PM-L")
     for i, g in enumerate(polygoner(p.difference(fot), 1e4)):
         m.lagg(Del("Cellplast S100 100, undre lagret", prisma_ur(g, z_uk, z_fot), CELLPLAST), Placering(),
                "PM-C1" + (f"-{i + 1}" if i else ""))

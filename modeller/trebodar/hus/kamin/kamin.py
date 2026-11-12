@@ -172,7 +172,7 @@ def _halet() -> Form:
 
 def _konvektion() -> list[Form]:
     """Konvektionsöppningarna genom sidorna (murverket och putsen), under och över insatsen."""
-    ut = []
+    ut: list[Form] = []
     for (b, h), z in ((KONV_UNDER, Z_KONV_UNDER), (KONV_OVER, H_KASSE - KS_T - KONV_OVER[1] - 50.0)):
         for x0, x1 in ((MX0 - 1.0, MX0 + PUTS + MUR + 1.0), (MX1 - PUTS - MUR - 1.0, MX1 + 1.0)):
             ut.append(box(x0, x1, Y_KONV, Y_KONV + b, z, z + h))

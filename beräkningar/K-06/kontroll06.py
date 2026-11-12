@@ -295,17 +295,6 @@ def kontroll(utf):
     vals = np.ma.filled(ip(px[inne], py[inne]), np.nan)
     w_ = rr.ravel()[inne]                                          # ytvikt i polära koordinater
     ok = ~np.isnan(vals)
-    # ytterväggarna vid plattan på marks fria kanter (K-05: qY8–qY10): syllen står I.B_SYLL - I.FAS på fasens betong
-    # och resten på L-elementens rygg. På säker sida går hela väggens linjelast genom ryggens överkant, I.FAS bred.
-    import laster as LA05
-    vm = [v for v in LA05.alla()["vaggar"] if v["L_mark"] > 500.0]      # inte hörnen mot källaren
-    gk, sk = max(v["gk_max"] for v in vm), max(v["sk_max"] for v in vm)
-    q_uls = max(cg * gk + cs * sk for cg, _, cs in ULS.values())
-    q_qp = gk + 0.1 * sk
-    out["syll"] = dict(vaggar=[v["namn"] for v in vm], gk=gk, sk=sk, q_uls=q_uls, q_qp=q_qp, b=I.FAS,
-                       pa_betong=I.B_SYLL - I.FAS, p_uls=q_uls / I.FAS * 1e3, p_qp=q_qp / I.FAS * 1e3,
-                       fdM=eps_fd("S300", "M"), kryp=I.EPS["S300"]["kryp2"],
-                       utn=max(q_uls / I.FAS * 1e3 / eps_fd("S300", "M"), q_qp / I.FAS * 1e3 / I.EPS["S300"]["kryp2"]))
     out["mark"] = dict(uls=max(m["uls"] for m in mark.values()), qp=mark["lång"]["qp"], fdM=eps_fd("S100", "M"),
                        kryp=I.EPS["S100"]["kryp2"], uls_xy=xm[i].tolist(),
                        uls_medel=float((vals[ok] * w_[ok]).sum() / w_[ok].sum()))

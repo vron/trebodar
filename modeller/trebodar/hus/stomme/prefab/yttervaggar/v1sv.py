@@ -1,7 +1,8 @@
 """Yttervägg 1SV: vänstra huskroppens gavel mot SV.
 
-Regelverk 95 mm C24 i väggens system (skelett.VAGGAR["1SV"]), byggt med reglerna i regelstomme.py: plattor,
-hörnstolpar, öppningarna (karmreglar, överstycken, bröstningar, kortlingar) och fria reglar.
+Regelverk 145 mm C24 (45×145, utan installationsskikt) i väggens system (skelett.VAGGAR["1SV"]), byggt med
+reglerna i regelstomme.py: plattor, hörnstolpar, öppningarna (karmreglar, överstycken, bröstningar, kortlingar) och
+fria reglar.
 """
 from modellering import Montage
 

@@ -296,7 +296,7 @@ Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.
 
 *Plattan på mark på plan 1* (K-05, #M.eps_mark mm S100): största tryck i brottgränstillstånd är #P3.mark.uls kPa, i plattans fria hörn under hörnstolparna LA9 och LA10. Det är en lokal topp; i medel inom $r$ = 150 mm är det #P3.mark.medel kPa mot $f_d$ = #P3.mark.fdM kPa (som under balkarna), och ytterst ligger L-elementens S300. Långtid är det #P3.mark.qp kPa mot #P3.mark.kryp kPa, alltså #P3.mark.utn. S100 räcker där. Tjockleken bestäms av värmeisoleringen, inte av tryckklassen.
 
-*Plattan på marks fria kanter:* L-elementen (höjd #M.l_mark) står med ytterkanten i väggens ytterliv, och betongen går fram till ryggen och fyller dess fas (AR-02, R-06). Ytterväggarnas syll står där #P3.syll.betong mm på betongen och resten på ryggens cellplast. På säker sida går hela väggens last (#P3.syll.vaggar: #P3.syll.gk kN/m permanent och #P3.syll.sk kN/m snö, K-05) genom ryggens överkant, #P3.syll.b mm bred: #P3.syll.q kN/m ger #P3.syll.p kPa i brottgränstillstånd mot $f_d$ = #P3.syll.fdM kPa för S300, och #P3.syll.qqp kN/m ger #P3.syll.pqp kPa långtid mot #P3.syll.kryp kPa, alltså #P3.syll.utn.
+*Plattan på marks fria kanter:* L-elementen (höjd #M.l_mark) står med ytterkanten i väggens ytterliv. I plattans tjocklek är ryggen urtagen utom de yttersta 30 mm, som kantisoleringen ovanpå källarväggarna, så att betongen går fram till plattans kant och ytterväggarnas syll står på betongen som i resten av huset (AR-02, R-06).
 
 == Platta, balkar och plintar
 

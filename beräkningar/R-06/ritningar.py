@@ -69,9 +69,9 @@ KONTUR = Polygon(G["kontur"])
 HAL = Polygon(G["hal"])
 PLATTA = KONTUR.difference(HAL)
 MARK = Polygon(G["mark"])
-RYGG_MARK = KAL.platta_pa_mark()[2]         # L-elementens rygg vid plattan på marks fria kanter, urtagen i hörnen
-BETONG = PLATTA.difference(RYGG_MARK)        # betongen: vid plattan på marks fria kanter fram till ryggen
-NATYTA = PLATTA.difference(KAL.platta_pa_mark(urtag=False)[2])   # näten slutar vid ryggen, också vid hörnens urtag
+RYGG_MARK = KAL.platta_pa_mark()[2]         # L-elementens rygg vid plattan på marks fria kanter, i plattans tjocklek
+BETONG = PLATTA.difference(RYGG_MARK)        # betongen: fram till plattans kant, också vid plattan på mark
+NATYTA = PLATTA.difference(KAL.platta_pa_mark(urtag=False)[2])   # näten slutar vid ryggen under plattan
 XMAX, YMAX = KONTUR.bounds[2], KONTUR.bounds[3]   # 13 810, 15 900
 YCUT = 12450.0                              # plattan på mark bryts här i planerna 1:50
 VIKT = {8: 0.395, 10: 0.617, 12: 0.888}     # kg/m
@@ -80,7 +80,7 @@ VIKT = {8: 0.395, 10: 0.617, 12: 0.888}     # kg/m
 # överkantsnätet) och väggens skikt (Kub 350-150)
 POS14 = dict(d=10, s=200, ben=650, in_=500)
 # plattan på marks fria hörn (LA9, LA10): hörnjärn, n L-järn längs kanterna i underkant (på nätet) och överkant (under
-# nätet), o + k·s från L-elementens ytterkant, så att de ligger innanför ryggen och dess fas också utanför urtaget
+# nätet), o + k·s från L-elementens ytterkant, så att de ligger innanför ryggen under plattan
 POS15 = dict(d=10, n=2, s=50, o=150, ben=700)
 Y15 = (C_UK + 2 * DU + POS15["d"] / 2, H - C_OK - 2 * DO - POS15["d"] / 2)
 VAGG_UTE = 30.0                             # väggens ytterliv 30 mm utanför plattkanten
@@ -211,9 +211,10 @@ def lager_kanter(v):
                 v.polygon(list(p.exterior.coords), fyll=fyll, stil="tunn")
         v.hanvisning((11000.0, 12525.0), (10200.0, 13700.0), "kantisolering 30", a="lm", sz=6.4)
         v.hanvisning((4290.0, 14200.0), (5200.0, 14600.0),
-                     f"L-element S300, höjd {sv(KAL.H_L_MARK)}, ryggen {sv(KAL.L_BEN)}", a="lm", sz=6.4)
+                     f"L-element S300, höjd {sv(KAL.H_L_MARK)}, ryggen {sv(KAL.RYGG_KVAR)} i plattan", a="lm",
+                     sz=6.4)
         (bx, by), _ = hornjarn()[-1]
-        v.hanvisning((bx - 150, by - 65), (5200.0, 15500.0), "urtag i ryggen vid hörnen, detalj F (R-06.4)", a="lm",
+        v.hanvisning((bx - 150, by - 65), (5200.0, 15500.0), "hörnjärn vid de fria hörnen, detalj F (R-06.4)", a="lm",
                      sz=6.4)
 
 
@@ -657,13 +658,13 @@ def detalj_e():
 
 
 def detalj_f():
-    """F: plattan på marks fria hörn vid LA9 i plan (vid LA10 spegelvänt): urtaget i L-elementens rygg och hörnjärnen
-    (pos 15). Verkliga koordinater; hörnet i L-elementens ytterkant. 1:20"""
+    """F: plattan på marks fria hörn vid LA9 i plan (vid LA10 spegelvänt): L-elementens rygg, urtagen i plattans
+    tjocklek, och hörnjärnen (pos 15). Verkliga koordinater; hörnet i L-elementens ytterkant. 1:20"""
     (bx, by), jarn = hornjarn()[0]
     v = Vy(x=196, y=94, w=64, h=72, skala=20, X0=bx - 200, Y1=by + 160)
     x1, y0 = bx + 980, by - 930                                       # vyns kanter (brott)
     W = box(bx, y0, x1, by)
-    u = KAL.HORN_UTKAP
+    kv = KAL.RYGG_KVAR
     with v.lager("betong"):
         for g in getattr(BETONG.intersection(W), "geoms", [BETONG.intersection(W)]):
             v.polygon(list(g.exterior.coords), fyll="betong", stil=None)
@@ -680,17 +681,18 @@ def detalj_f():
         for a_, q, c in jarn:
             v.linje([a_, q, c], "uk")
     with v.lager("matt"):
-        v.matt((bx, by), (bx + u, by), 2.5, sz=6.2)
-        v.matt((bx, by - u), (bx, by), 2.5, sz=6.2)
+        v.matt((bx, by), (bx + kv, by), 2.5, sz=6.2)
+        v.matt((bx, by - kv), (bx, by), 2.5, sz=6.2)
         _, q, c = jarn[-1]
         v.matt(q, c, 3.0, sida=-1, sz=6.2, txt=svm(POS15["ben"]))
         xm = x1 + 20
         v.matt((xm, by), (xm, jarn[0][1][1]), 2.0, sz=6.0, txt=svm(POS15["o"]))
         v.matt((xm, jarn[0][1][1]), (xm, jarn[-1][1][1]), 2.0, sz=6.0, txt=svm(POS15["s"]), ute="p1")
     with v.lager("text"):
-        v.hanvisning((bx + 300, by - 65), (bx + 420, by - 330),
-                     f"urtag {svm(u)} längs kanterna:\nbetongen i hela tjockleken", a="lm", sz=6.2)
-        v.hanvisning((bx + 750, by - 50), (bx + 500, by - 520), "L-elementens rygg", a="lm", sz=6.2)
+        v.hanvisning((bx + 620, by - kv / 2), (bx + 680, by + 110),
+                     f"ryggen {svm(kv)} i plattan:\nbetongen till plattans kant", a="lm", sz=6.2)
+        v.hanvisning((bx + 820, by - KAL.L_BEN), (bx + 500, by - 520), "L-elementens rygg under plattan (streckad)",
+                     a="lm", sz=6.2)
         v.hanvisning((jarn[0][1][0], by - 690), (bx + 420, by - 720),
                      f"hörnjärn {POS15['n']} + {POS15['n']} Ø{POS15['d']}\ni under- och överkant", bubbla=15, a="lm",
                      sz=6.2)
@@ -704,10 +706,10 @@ def detalj_f():
 
 
 def sektion_f():
-    """F–F: genom urtaget i L-elementens rygg vid plattan på marks fria hörn. x = 0 i L-elementens ytterkant, inåt
-    positivt; y = 0 i plattans underkant. 1:10"""
+    """F–F: genom plattan på marks fria kant vid hörnet, med hörnjärnen: L-elementens rygg urtagen i plattans
+    tjocklek. x = 0 i L-elementens ytterkant, inåt positivt; y = 0 i plattans underkant. 1:10"""
     v = Vy(x=264, y=94, w=62, h=74, skala=10, X0=-90, Y1=340)
-    kv, lb, fas, tf = KAL.RYGG_KVAR, KAL.L_BEN, KAL.FAS, KAL.T_FOT
+    kv, lb, tf = KAL.RYGG_KVAR, KAL.L_BEN, KAL.T_FOT
     eps = KAL.EPS_MARK
     U1, ylo = 440.0, -eps + tf - 40.0                                 # brotten
     with v.lager("cellplast"):
@@ -722,7 +724,6 @@ def sektion_f():
         v.linje([(0, ylo), (0, H)], "normal")
         v.brott((U1, -40), (U1, H + 40), "tunn")
         v.rekt(0, H, KAL.I06.B_SYLL, H + 45, stil="dold")                       # väggens syll
-        v.linje([(lb, 0), (lb, H - fas), (lb - fas, H)], "dold")                # ryggen utanför urtaget
     with v.lager("armering"):
         a0 = lb + C_KANT                                                     # nätens järn slutar vid ryggen
         v.linje([(a0, YU2), (U1, YU2)], "uk"); v.linje([(a0, YO2), (U1, YO2)], "ok")
@@ -736,13 +737,12 @@ def sektion_f():
     with v.lager("matt"):
         v.mattx([0.0, kv, POS15["o"], POS15["o"] + POS15["s"]], H + 70, [H, H, Y15[1], Y15[1]], sz=5.8)
     with v.lager("text"):
-        v.hanvisning((kv / 2, H - 30), (60, 300), f"cellplast {svm(kv)} kvar", a="lm", sz=5.8)
+        v.hanvisning((kv / 2, H - 30), (60, 300), f"ryggen {svm(kv)}", a="lm", sz=5.8)
         v.hanvisning((POS15["o"], Y15[1]), (380, 300), punkt=True)
         v.hanvisning((POS15["o"], Y15[0]), (380, 300), bubbla=15)
         v.text(KAL.I06.B_SYLL / 2, H + 22, "syll", a="cm", sz=5.4, col="gra", i=True)
         v.text(lb / 2, -(eps - tf) / 2, "L-element S300", a="cm", sz=5.6, col="gra", i=True, rot=90)
         v.text((lb + U1) / 2, -70, f"cellplast S100 {svm(eps - tf)}", a="cm", sz=5.6, col="gra", i=True)
-        v.text((lb + U1) / 2, -180, "streckat: ryggen\nutanför urtaget", a="cm", sz=5.6, col="gra", i=True)
     with v.lager("rubrik"):
         v.rubrik(-80, 340 - 72 * 10, "SEKTION F–F", skala=10, sz=9)
     return v
@@ -846,11 +846,10 @@ def blad_oversikt():
             f"Kantisolering {sv(KAL.KI)} mm cellplast utanför plattans kant ovanpå källarväggarna, ut till väggarnas "
             "ytterliv; plattan gjuts mot den (sektion A, R-06.4).",
             f"Plattan på mark: L-element S300, höjd {sv(KAL.H_L_MARK)}, längs de fria kanterna med ytterkanten i "
-            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S100 under plattan (K-06). Betongen går "
-            f"fram till L-elementens rygg, {sv(KAL.L_BEN - KAL.KI)} mm innanför plattans kant, och fyller ryggens fas "
-            f"i överkant, där den når {sv(KAL.FAS - KAL.KI)} mm innanför kanten. Järnen slutar {sv(C_KANT)} mm från "
-            "ryggen. Vid de fria hörnen är ryggen urtagen och betongen gjuts i plattans hela tjocklek, med hörnjärn "
-            "(detalj F, R-06.4)."]),
+            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S100 under plattan (K-06). I plattans "
+            f"tjocklek är ryggen urtagen utom de yttersta {sv(KAL.RYGG_KVAR)} mm, som kantisoleringen, och betongen "
+            f"går fram till plattans kant; under plattan är ryggen {sv(KAL.L_BEN)} mm. Järnen slutar {sv(C_KANT)} mm från "
+            "ryggen under plattan. Vid de fria hörnen hörnjärn (detalj F, R-06.4)."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
@@ -949,9 +948,9 @@ def blad_sektioner():
             "Last under byggtiden högst 5 kN/m², punktlaster över rör eller vägg.",
             "Trägolv limmas först när betongens relativa fuktighet är under golvlimmets gräns (mätt enligt RBK). "
             "Våtrum får sprickupptagande tätskikt.",
-            f"Plattan på marks fria hörn, under hörnstolparna LA9 och LA10 (detalj F): L-elementens rygg urtas "
-            f"{svm(KAL.HORN_UTKAP)} mm längs kanterna från hörnet utom de yttersta {svm(KAL.RYGG_KVAR)} mm, och "
-            f"betongen gjuts där i plattans hela tjocklek. Pos 15 på underkantsnätet och under överkantsnätet.",
+            f"Plattan på mark (detalj F, sektion F–F): L-elementens rygg urtas i plattans tjocklek längs alla fria "
+            f"kanter utom de yttersta {svm(KAL.RYGG_KVAR)} mm, och betongen gjuts fram till plattans kant. Vid de "
+            "fria hörnen, under hörnstolparna LA9 och LA10, pos 15 på underkantsnätet och under överkantsnätet.",
             "Plan: underkant R-06.2, överkant R-06.3."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

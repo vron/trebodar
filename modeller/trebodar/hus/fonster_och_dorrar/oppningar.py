@@ -116,10 +116,10 @@ _R = (
     ("1NO", "fast fönster", 3000, 3600, 0, 2100),
     ("1NV", "vändfönster", 865, 1865, 1100, 2100),
     ("1NV", "fönsterdörr", 3035, 4035, 0, 2100),
-    ("1SO", "fast fönster", 1118, 1718, 1400, 2000),
-    ("1SO", "fast fönster", 2318, 2918, 1400, 2000),
-    ("1SO", "ytterdörr", 5080, 6080, 0, 2100),                    # huvudentrén (planritning 201)
-    ("1SO", "fast fönster", 10718, 11318, 1400, 2000),
+    ("1SO", "fast fönster", 1068, 1668, 1400, 2000),
+    ("1SO", "fast fönster", 2268, 2868, 1400, 2000),
+    ("1SO", "ytterdörr", 5030, 6030, 0, 2100),                    # huvudentrén (planritning 201)
+    ("1SO", "fast fönster", 10668, 11268, 1400, 2000),
     ("1SV", "fast fönster", 1135, 3235, 0, 2186),
     ("2NO", "vändfönster", 645, 1645, 1100, 2100),
     ("2NO", "vändfönster", 2045, 3045, 1100, 2100),

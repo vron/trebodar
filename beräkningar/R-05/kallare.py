@@ -137,21 +137,21 @@ def kantisolering():
 
 def platta_pa_mark(urtag=True):
     """Plattan på mark på plan 1 (bakom V3 och V20) i väggarnas ytterliv, L-elementens ytterkant (AR-02): ytan, de
-    fria kanterna (inte mot källaren) och L-elementens rygg, L_BEN innanför ytterkanten, i plattans tjocklek utom
-    urtagen vid de fria hörnen (hornutkap; urtag=False: hela ryggen, som under plattan). Mellanbjälklagets betong går
-    fram till ryggen och fyller dess fas, FAS från ytterkanten i överkant, och i urtagen ut till RYGG_KVAR från
-    ytterkanten."""
+    fria kanterna (inte mot källaren) och L-elementens rygg, L_BEN innanför ytterkanten, i plattans tjocklek urtagen
+    utom de yttersta RYGG_KVAR (urtag=False: hela ryggen, som under plattan). Mellanbjälklagets betong går där fram
+    till plattans kant, och ryggen är kantisoleringen."""
     p = Polygon(G["mark"]).buffer(KI, join_style=2).difference(KALLARE)
     p = max(getattr(p, "geoms", [p]), key=lambda g: g.area)
     fri = p.exterior.difference(KALLARE)
-    rygg = fri.buffer(L_BEN, cap_style="flat", join_style="mitre").intersection(p)
-    return p, fri, rygg.difference(hornutkap(p, fri, rygg)) if urtag else rygg
+    rygg = fri.buffer(RYGG_KVAR if urtag else L_BEN, cap_style="flat", join_style="mitre").intersection(p)
+    return p, fri, rygg
 
 
-# plattan på marks fria hörn (stolparna LA9 och LA10, ärende #46): L-elementens rygg urtagen HORN_UTKAP längs var kant
-# från hörnet utom RYGG_KVAR närmast ytterkanten (som kantisoleringen ovanpå källarväggarna), och betongen gjuts ut i
-# plattans hela tjocklek; extra L-järn i hörnet (R-06 pos 15). Modellen har samma regel (hus/grund/grund.py).
-HORN_UTKAP, RYGG_KVAR = 400.0, 30.0
+# plattan på mark: L-elementens rygg urtagen i plattans tjocklek utom RYGG_KVAR närmast ytterkanten (som
+# kantisoleringen ovanpå källarväggarna), så att betongen går fram till plattans kant och ytterväggarnas syll står på
+# betongen; vid de fria hörnen (stolparna LA9 och LA10, ärende #46) extra L-järn (R-06 pos 15). Modellen har samma
+# regel (hus/grund/grund.py).
+RYGG_KVAR = KI
 
 
 def fria_horn(p, fri):
@@ -169,15 +169,6 @@ def fria_horn(p, fri):
             e2 = ((d[0] - b[0]) / math.dist(b, d), (d[1] - b[1]) / math.dist(b, d))
             ut.append((b, e1, e2))
     return ut
-
-
-def hornutkap(p, fri, rygg):
-    """Urtagen i ryggen vid de fria hörnen: ryggen HORN_UTKAP längs var kant från hörnet, utom RYGG_KVAR från
-    ytterkanten."""
-    kvar = fri.buffer(RYGG_KVAR, cap_style="flat", join_style="mitre")
-    hornen = [box(b[0] - HORN_UTKAP, b[1] - HORN_UTKAP, b[0] + HORN_UTKAP, b[1] + HORN_UTKAP) for b, _, _ in
-              fria_horn(p, fri)]
-    return unary_union(hornen).intersection(rygg).difference(kvar)
 
 
 for v in VAGGAR:

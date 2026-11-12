@@ -23,6 +23,7 @@ H_KALLARE = 2100.0          # källarens fria höjd: bottenplattans överkant ti
 Z_BOTTENPLATTA = -H_BJALKLAG - H_KALLARE      # bottenplattans överkant, z −2 250
 H_VAGG = 2490.0             # ytterväggarnas höjd: hammarbandets överkant
 T_STOMME = 95.0             # väggstommen 45×95
+T_STOMME_145 = 145.0        # gavlarna 1SV och 2SV: reglar 45×145 (#110)
 STOMME_UT = 30.0            # stommens utsida utanför bjälklagets kant (K-05)
 T_FASAD = 65.0              # utegips 10 + ströläkt 12 + spikläkt 21 + panel 22
 TAKVINKEL = 30.0
@@ -95,12 +96,12 @@ _PX, _NX, _PY, _NY = (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)
 
 YTTERVAGGAR = {v.kod: v for v in (
     Vaggdef("1NO", (-30.0, 3560.0), _PX, 4595.0, T_STOMME, "vänstra huskroppens gavel mot NO"),
-    Vaggdef("1SO", (-30.0, 15835.0), _NY, 12180.0, T_STOMME, "vänstra huskroppens långsida mot SO"),
-    Vaggdef("1SV", (4340.0, 15930.0), _NX, 4370.0, T_STOMME, "vänstra huskroppens gavel mot SV"),
-    Vaggdef("1NV", (4340.0, 11040.0), _PY, 4795.0, T_STOMME, "vänstra huskroppens långsida mot NV"),
+    Vaggdef("1SO", (-30.0, 15785.0), _NY, 12130.0, T_STOMME, "vänstra huskroppens långsida mot SO"),
+    Vaggdef("1SV", (4340.0, 15930.0), _NX, 4370.0, T_STOMME_145, "vänstra huskroppens gavel mot SV"),
+    Vaggdef("1NV", (4340.0, 11040.0), _PY, 4745.0, T_STOMME, "vänstra huskroppens långsida mot NV"),
     Vaggdef("2NO", (4470.0, -30.0), _PX, 4870.0, T_STOMME, "mittre huskroppens gavel mot NO"),
     Vaggdef("2NV", (9340.0, 65.0), _PY, 905.0, T_STOMME, "mittre huskroppens långsida mot NV"),
-    Vaggdef("2SV", (9565.0, 11040.0), _NX, 5320.0, T_STOMME, "mittre huskroppens gavel mot SV"),
+    Vaggdef("2SV", (9565.0, 11040.0), _NX, 5320.0, T_STOMME_145, "mittre huskroppens gavel mot SV"),
     Vaggdef("2SO", (4470.0, 3560.0), _NY, 3495.0, T_STOMME, "mittre huskroppens långsida mot SO"),
     Vaggdef("3NO", (9245.0, 970.0), _PX, 4595.0, T_STOMME, "högra huskroppens gavel mot NO"),
     Vaggdef("3NV", (13840.0, 1065.0), _PY, 11380.0, T_STOMME, "högra huskroppens långsida mot NV"),
@@ -120,6 +121,21 @@ INNERVAGGAR = {v.kod: v for v in (
 )}
 
 VAGGAR = {**YTTERVAGGAR, **INNERVAGGAR}
+
+
+def t_stomme(kod: str) -> float:
+    """Väggens stomme (regelverkets djup w)."""
+    return VAGGAR[kod].tjocklek
+
+
+def ytterstomme_vid(x: float, y: float) -> str | None:
+    """Ytterväggen vars stomme (0 ≤ u ≤ längden, 0 ≤ w ≤ tjockleken) innehåller punkten, eller None."""
+    for v in YTTERVAGGAR.values():
+        dx, dy = x - v.origo[0], y - v.origo[1]
+        u, w = dx * v.u[0] + dy * v.u[1], dx * v.w[0] + dy * v.w[1]
+        if 0.0 <= u <= v.langd and 0.0 <= w <= v.tjocklek:
+            return v.kod
+    return None
 
 
 # ------------------------------------------------------------------ takfall

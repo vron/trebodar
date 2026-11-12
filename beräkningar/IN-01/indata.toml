@@ -84,7 +84,40 @@ status   = "att välja"
 ansvarig = "bygg"
 fas      = "stomme"
 arende   = [88]
-anm      = "M12 (Ø12) genom syllen 45 mm, minst 90 mm i betongen, med bricka och mutter; ETA för sprucken betong och kantavstånd ned till 45 mm (ytterväggarnas syll står 30 mm utanför plattans kant). Högst 300 mm från syllens ändar och 1 200 mm isär, i facken. Borras i det gröna på AR-03.4 (minst 30 mm från rören)."
+anm      = "M12 (Ø12) genom syllen 45 mm (eller vinkelbeslaget och syllen), minst 90 mm i betongen, med bricka 50×50×5 och mutter; ETA för sprucken betong och kantavstånd ned till 35 mm, N_Rd ≥ 8,5 kN och V_Rd ≥ 10 kN (K-04, förankringen) (ytterväggarnas syll står 30 mm utanför plattans kant). Där en lodrät bult inte når betongen borras den snett inåt, 45° eller 60° från lodlinjen, med snedbricka (modellen, K-04). Syllens bultar högst 300 mm från ändarna och 1 200 mm isär, i facken. Borras i det gröna på AR-03.4 (minst 30 mm från rören). Två av dem går genom huvudstolpens vinkelbeslag (VINKELBESLAG-LN1_3) och tar dess lyft, 5,7 kN i drag per bult med beslagets bändning."
+
+[[produkt]]
+kod        = "VINKELBESLAG-STOMME"
+grupp      = "Stomme"
+namn       = "Vinkelbeslag för förankringen av reglarna och stolparna"
+vald       = "Simpson Strong-Tie ABR10525 (105×105×90×2,5, S350GD+Z, ETA-06/0106) med beslagskruv CSA5,0×40"
+status     = "vald"
+ansvarig   = "bygg"
+fas        = "stomme"
+dokument   = "K-04"
+anm        = "Skruv, inte spik: fullt utskruvat i regeln och syllen (databladets fall søjle på bjælke). Lägena i modellen (förankringen) och på R-02."
+
+[[produkt]]
+kod        = "FORANKRINGSBESLAG"
+grupp      = "Stomme"
+namn       = "Förankringsbeslag (hold-down) där två vinkelbeslag inte räcker"
+vald       = "Rothoblaas WHT340 (ETA-23/0813) med 20 LBA Ø4,0×60 och ankare M16×160 i EPO-FIX PLUS"
+status     = "vald"
+ansvarig   = "bygg"
+fas        = "stomme"
+dokument   = "K-04"
+anm        = "Full spikning (20 LBA Ø4,0×60), utan bricka. På en fri sida av regeln, på syllen eller plattan; ankaret borrat efter gjutningen fritt från rören (AR-03.4). Bärförmåga R_1,d minst K-04:s lyft."
+
+[[produkt]]
+kod      = "VINKELBESLAG-LN1_3"
+grupp    = "Stomme"
+namn     = "Vinkelbeslag vid huvudstolpens fot"
+vald     = "Simpson Strong-Tie ABR10525 (105×105×90×2,5, S350GD+Z, ETA-06/0106) med beslagskruv CSA5,0×40"
+status   = "vald"
+ansvarig = "bygg"
+fas      = "stomme"
+dokument = "K-03"
+anm      = "Ett på var syllbit mot stolpens ändar, fullt utskruvat som databladets fall søjle på bjælke (6 + 8 skruvar per beslag, inte spik), och en betongbult M12 genom beslaget och syllen. OSB:n i L4 tas ur 10 mm där beslaget går förbi syllen."
 
 # ------------------------------------------------------------------ fönster och dörrar
 

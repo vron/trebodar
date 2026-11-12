@@ -21,7 +21,9 @@ mu_dal      = 1.6      # takfall mot en dal: μ2 jämnt över hela takfallet (so
 mu_takfot   = 1.0      # takfall mot takfot (som K-03; standarden μ1 = 0,8)
 
 [vind]
-# formfaktorer c_pe,10 (SS-EN 1991-1-4 tabell 7.1 och 7.4a–b, sadeltak 30°), varje huskropp för sig
+# formfaktorer c_pe,10 (SS-EN 1991-1-4 tabell 7.1 och 7.4a–b, sadeltak 30°), varje huskropp för sig; med vinden
+# vinkelrätt mot nockarna (x) som tak med flera skepp (7.2.7, figur 7.10 c), laster.py _cpe_tak
+flerskepp = true
 A = -1.2
 B = -0.8
 C = -0.5
@@ -120,3 +122,71 @@ d = 4.0
 l = 40.0
 fu_spik = 600.0        # tråd [MPa]
 gamma_M_forband = 1.3
+
+[forankring]           # förankringen i bjälklaget (forankring.py): betongbultarna genom syllarna, vinkelbeslagen
+bult_d = 12.0          # betongbulten (IN-01 BETONGBULT-SYLL), genom syllen med bricka
+bult_hal = 14.0        # hålet i syllen och brickan
+bult_fu = 800.0        # bultens stål f_u,k [MPa] (M_y,Rk)
+bult_NRd = 8.5         # krav på betongbulten: N_Rd [kN] i sprucken betong C25/30, h_ef enligt produkten (IN-01)
+bult_VRd = 10.0        # krav på betongbulten: V_Rd [kN] (IN-01)
+bricka = [50.0, 50.0]  # brickan under muttern, 50×50×5
+syll_h = 45.0          # syllens höjd
+skruv_n = 2            # regelns fot i syllen: 2 skruv 5×90 snett genom regeln ned i syllen
+skruv_d = 5.0
+skruv_lef = 40.0       # gängans längd i syllen
+skruv_fax = 11.0       # f_ax,k [MPa] (ETA)
+beslag = "Simpson Strong-Tie ABR10525"
+beslag_R1k_par = 25.5  # R_1,k [kN] för två beslag, CSA5,0×40 (databladet, søjle på bjælke, ETA-06/0106)
+beslag_R23k_par = 14.2 # R_2/3,k [kN] för två beslag i sidled, samma fall
+beslag_gamma_M = 1.35  # förband (databladets exempel)
+bandning = 1.5         # bultens drag av beslagets bändning kring bulten
+halldon = "Rothoblaas WHT340 med 20 LBA Ø4,0×60 och ankare M16 (EPO-FIX PLUS)"   # förankringsbeslaget (hold-down)
+halldon_R1k_tra = 38.6 # R_1,k timber [kN], full spikning 20 LBA Ø4,0×60 (databladet, ETA-23/0813)
+halldon_gamma_M_tra = 1.3
+halldon_R1k_stal = 42.0     # R_1,k steel [kN] utan bricka (databladet)
+halldon_gamma_stal = 1.0    # γ_M0
+halldon_R1d_betong = 29.3   # R_1,d [kN] i sprucken betong, EPO-FIX PLUS M16×160 (databladet)
+
+[utegips]              # utegipsen som skjuvskivor (skivverkan) i ytterväggarnas regelfack, natverk.skjuvskivor
+med = true
+produkt = "Knauf Weatherboard 365, 9 GM-H1 9,5 mm, eller likvärdig vindskyddsskiva med minst samma skruvvärde"
+F_k = 371.0            # skruvförbandets skjuvbärförmåga mot träregel, karakteristisk [N] (produktdatablad 10/2021)
+gamma_M = 1.3          # förband (Gyproc Handbok 10, skivverkan)
+k_mod = { G = 0.2, S = 0.6, W = 1.0 }   # gips: vind 1,0 (Gyproc, korttidslast), snö och egentyngd som gipsskivor i SS-EN 1995-1-1 tabell 3.1
+s = 150.0              # skruvavståndet längs skivans kanter [mm] (c/c 300 längs mellanreglarna), tätare än tillverkarens c/c 200
+K = 268.0              # skivverkans styvhet per meter vägg [N/mm]: skiva 1200 × 2400 med 56 skruv, 200 N/mm per skruv
+
+[osb]                  # OSB direkt på reglarna som skjuvskivor (natverk.skjuvskivor): de bärande innerväggarna, båda sidor, och insidan av 1SV
+med = true
+produkt = "OSB/3 12 mm (mot badrummet plywood 15, räknad som OSB), kamspik 2,5×50 varmförzinkad"
+d = 2.5                # spikens diameter [mm]
+l = 50.0               # spikens längd [mm]
+t = 12.0               # skivans tjocklek [mm]
+f_u = 600.0            # spiktrådens draghållfasthet [MPa] (SS-EN 1995-1-1 8.3.1.1, lägst 600)
+rho_k = 350.0          # reglarnas densitet C24, karakteristisk [kg/m³]
+rho_m_tra = 420.0      # reglarnas densitet C24, medel [kg/m³]
+rho_m_skiva = 550.0    # OSB/3, medel [kg/m³]
+gamma_M = 1.3          # förband
+k_mod = { G = 0.4, S = 0.7, W = 0.9 }   # OSB/3, klimatklass 1 (SS-EN 1995-1-1 tabell 3.1); förbandet sqrt(k_mod,1 k_mod,2)
+s = 100.0              # spikavståndet längs skivans kanter [mm] (största 150, SS-EN 1995-1-1 10.8.1)
+s_mitt = 300.0         # spikavståndet längs mellanreglarna [mm]
+skiva = [1200.0, 2700.0]   # skivans format för styvheten [mm]; skarvar på kortling
+
+# råsponten i takfallen som skjuvskiva (natverk._takskivor): brädor 20 mm vinkelrätt mot takbalkarna, två spikar per
+# bräda och upplag i ströläkten 34×45 på takbalken, spikparets avstånd a i brädans täckande bredd w (kanterna 20 mm,
+# ≥ 7d: 8.3.1.2 tabell 8.2, a4,t), utan not och spont och friktion
+[raspont]
+med = true
+produkt = "Råspont 20×95 (täckande 85), 2 varmförzinkade trådspik 2,8×75 per bräda och ströläkt; ströläkten 34×45 fäst i varje takbalk"
+d = 2.8
+t = 20.0
+t2 = 34.0
+f_u = 600.0
+rho_k = 350.0
+rho_m = 420.0
+gamma_M = 1.3
+w = 85.0
+a = 45.0
+
+[raspont_kanslighet]   # råsponten med FEMA 356:s skjuvstyvhet för enkel rak brädbeklädnad (prov, med friktion och spikarnas fasthållning)
+G_d = 350.0            # G·t [N/mm] (0,35 kN/mm; Brignola, Pampanin och Podestà 2009, NZSEE Bulletin 42(3), tabell 2)

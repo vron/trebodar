@@ -24,7 +24,7 @@ from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, balkens_sida
 from trebodar.hus.rum import BADRUM
 from trebodar.material import ANGBROMS, C24_LAKT, GIPS, TAKPANEL
 
-from .skikt import GIPS_INRE_W, GIPS_YTTRE_W, INSIDA_T, LAKT, LAKT_W, TAK_W
+from .skikt import GIPS_INRE_W, GIPS_YTTRE_W, LAKT, LAKT_W, TAK_W, insida_vanlig_t
 from .vagginsida import badrumsremsor, insidans_plan
 
 CC = 400.0
@@ -116,10 +116,11 @@ def _strackor(kod: str) -> list[list[float]]:
             ut[-1][1] = y1
         else:
             ut.append([y0, y1])
-    # vid gavlarna slutar innertaket vid gavelväggens insida (ångbroms, läkt och gips)
+    # vid gavlarna slutar innertaket vid gavelväggens insida (ångbroms, läkt och skivor; 1SV utan läkt)
     if ut:
-        ut[0][0] += INSIDA_T
-        ut[-1][1] -= INSIDA_T
+        g0, g1 = lagen.GAVELVAGGAR[t.kropp]
+        ut[0][0] += insida_vanlig_t(g0)
+        ut[-1][1] -= insida_vanlig_t(g1)
     return ut
 
 

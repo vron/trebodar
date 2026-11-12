@@ -59,7 +59,7 @@ Handlingen anger de gemensamma förutsättningarna för konstruktionen: objektet
 *Bärande system.* Byggnadskropparna har sadeltak med takvinkel #r.sno.alfa° och ligger bredvid varandra med dalar mellan.
 
 - *Tak:* bandtäckt zink-magnesiumplåt på underlagspapp och råspont, med en ventilerad luftspalt mot isoleringen (U-03). Takbalkar 45×170 C24 c/c 600 spänner mellan nock- och dalbalkar av limträ med stålplåtar (K-01). I gavlarna och i husets mitt bärs nockbalkarna av triangulerade takstolar.
-- *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor. Infällda stålband i kryss i väggarna och i takfallen stabiliserar huset mot horisontella laster; skivorna räknas inte för stabiliseringen (K-04). Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar och limträ, bland dem huvudstolpen med strävor på båda sidor under nockbalk 1 (K-03).
+- *Väggar:* regelstomme 45×95 C24 med skivor på båda sidor och installationsskikt 45 invändigt; gavlarna 1SV och 2SV har reglar 45×145, 1SV med OSB och gips direkt på reglarna, utan installationsskikt och installationer. Karmreglarna vid gavlarnas fönster mot NO och vid 3SV är dubbla. Infällda stålband i kryss i väggarna och i en del av takfallens fält stabiliserar huset mot horisontella laster, tillsammans med utegipsen, OSB:n direkt på reglarna i de bärande innerväggarna och i gaveln 1SV och råsponten i takfallen som skjuvskivor (K-04). Nock- och dalbalkarnas stöd bärs av stolpar av sammansatta reglar och limträ, bland dem huvudstolpen med strävor på båda sidor under nockbalk 1 (K-03).
 - *Bjälklag:* platsgjuten armerad betongplatta, #r.bj.t mm, över källaren.
 - *Källare och grund:* väggar av Sundolitt Kub 350-150: en armerad betongkärna, 150 mm, gjuten i kvarsittande form av cellplast, 100 mm på var sida (K-06). Inne i källaren bärs bjälklaget av rör VKR 80×80×4 i stål (vid P7 två rör tätt intill varandra), svetsade på fotplåtar som är ingjutna i bottenplattans plintar och med topplåtar ingjutna i bjälklaget (K-05). Bottenplatta L400: 100 mm betong på 300 mm cellplast, med kantbalkar i L-element, balkar under innerväggarna och plintar under rören, på makadam på sprängt berg (K-06). Där vänstra huskroppen saknar källare ligger mellanbjälklaget som platta på mark på 350 mm cellplast i L-element 500 (K-06, AR-02).
 
@@ -137,7 +137,7 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
   [Jordtryck], [], [], [], [], [Källarväggar, se K-06],
 )
 
-*Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² blir $q_p = (1 + 7 I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
+*Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² och spetsfaktorn $k_p$ = #r.vind.kp blir $q_p = (1 + 2 k_p I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce), enligt EKS 11 kap. 1.1.4 7 § i stället för uttryck 4.8 i SS-EN 1991-1-4. Referenshöjden $z$ är nockens höjd över marken. Topografin ökar inte vinden på tomten: $c_0$ = 1 (SS-EN 1991-1-4 4.3.3). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
 
 == Bruksgränstillstånd
 

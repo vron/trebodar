@@ -51,6 +51,8 @@ IGNORERADE = {
     frozenset(("Armering",)): "järnen ligger mot varandra i korsningar och skarvar",
 }
 
+UNDER_SKIVAN = "i de smala väggarna går beslaget ut under den inre skivan, som fälls ur (K-04)"
+
 TILLATNA_OVERLAPP = {
     frozenset(("Armering", "Installation")): "golvvärmen och avloppet i betongen: järnen läggs om runt rören",
     frozenset(("Installation", "Betong")): "rör genom bjälklaget eller bottenplattan (genomföring)",
@@ -68,6 +70,18 @@ TILLATNA_OVERLAPP = {
     frozenset(("Betongbult", "Mineralull")): "isoleringen i facket skärs ur kring bultens mutter (#88)",
     frozenset(("Betongbult", "Betong")): "betongbultarna i mellanbjälklaget (#88)",
     frozenset(("Betongbult", "Armering")): "bultens hål borras fritt från järnen (järnsökare, bulten flyttas i facket)",
+    frozenset(("Betongbult", "Vinkelbeslag")): "den sneda bulten går genom vinkelbeslagets hål (K-04)",
+    frozenset(("Betongbult", "Förankringsbeslag")): "ankaret går genom förankringsbeslagets hål (K-04)",
+    frozenset(("Vinkelbeslag", "Träfiberisolering")): "isoleringen i facket skärs ur kring vinkelbeslaget (K-04)",
+    frozenset(("Vinkelbeslag", "Mineralull")): "isoleringen i facket skärs ur kring vinkelbeslaget (K-04)",
+    frozenset(("Förankringsbeslag", "Träfiberisolering")): "isoleringen i facket skärs ur kring förankringsbeslaget "
+                                                           "(K-04)",
+    frozenset(("Förankringsbeslag", "Mineralull")): "isoleringen i facket skärs ur kring förankringsbeslaget (K-04)",
+    frozenset(("Vinkelbeslag", "OSB")): UNDER_SKIVAN,
+    frozenset(("Vinkelbeslag", "Plywood")): UNDER_SKIVAN,
+    frozenset(("Vinkelbeslag", "Bräda")): UNDER_SKIVAN,
+    frozenset(("Stålband", "Vinkelbeslag")): "stålbandet läggs utanpå beslaget vid regelns fot (K-04)",
+    frozenset(("Stålband", "Förankringsbeslag")): "stålbandet läggs utanpå beslaget vid regelns fot (K-04)",
     # plåtarna runt fönstren och fönsterdörrarna (VELFAC) går från karmen upp och ut bakom läkten (läkten skruvas genom dem)
     frozenset(("Anslutningsplåt RAL 3009", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",
     frozenset(("Anslutningsplåt RAL 7012", "Läkt")): "plåten över och vid sidorna av fönstret går upp bakom läkten",

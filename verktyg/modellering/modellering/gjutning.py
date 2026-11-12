@@ -775,11 +775,13 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[str, list[dict]],
               trapphal: list[list[float]], plattor: dict[str, list[dict]], snitt_: dict[str, list[dict]],
               norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict, skap: dict,
-              bultar: Sequence[tuple[str, float, float]] = ()) -> tuple[list[Path], list[str], list[str]]:
+              bultar: Sequence[tuple[str, float, float]] = (), konflikter: Sequence[tuple[str, float, float]] = (),
+              arende: str = "") -> tuple[list[Path], list[str], list[str]]:
     """AR-03 (mellanbjälklaget: elen, tappvattnet, avloppet, golvvärmen, hålen och ingjutningsgodset) och AR-04
     (bottenplattan: golvvärmen, avloppet, hålen och ingjutningsgodset), och kontrollen av deras punkter mot modellen
     (fel och anmärkningar). snitt_: mellanbjälklaget, plan 1, källaren och bottenplattan; bultar: stommens
-    betongbultar genom syllarna (vägg, x, y; #88), som borras i det gröna på AR-03.4."""
+    betongbultar genom syllarna (vägg, x, y; #88), som borras i det gröna på AR-03.4; konflikter: de av dem som står i
+    rörens zon i väntan på att rören dras om (ärendet arende), anmärkningar och inte fel."""
     mb, plan1, kallare, bp = (snitt_[k] for k in ("mb", "plan1", "kallare", "bp"))
     vaggar_1 = unary_union(polygoner(plan1, bara=VAGGAR))
     vaggar_0 = unary_union(polygoner(kallare, bara=("Hus/Grund", "Hus/Invändigt")))
@@ -857,8 +859,13 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
     fel, anm = kontroll(betong_mb, hal["MB"], plattor["MB"],
                         {k: v for k, v in punkter.items() if k.startswith("AR-03")})
     rorzon: Any = _ror_zon(el, vatten, avlopp, golvvarme, MB, 1)
-    fel += [f"betongbulten genom {kod}:s syll ({x:.0f}, {y:.0f}) står under {FRIZON:g} mm från ett rör i plattan"
-            for kod, x, y in bultar if rorzon.contains(Point(x, y).buffer(5.0))]
+    for kod, x, y in bultar:
+        if rorzon.contains(Point(x, y).buffer(5.0)):
+            t = f"betongbulten genom {kod}:s syll ({x:.0f}, {y:.0f}) står under {FRIZON:g} mm från ett rör i plattan"
+            if (kod, x, y) in set(konflikter):
+                anm.append(f"{t} (rören dras om, {arende})")
+            else:
+                fel.append(t)
     nr = [f"{SERIE_BP.split()[0]}.{i}" for i in range(1, 5)]
     b = "Bottenplattan"
     bladen = [

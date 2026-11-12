@@ -161,3 +161,43 @@ def sektion(N: Natverk, delar: list[dict[str, Any]], plan: dict[str, Any], F: np
     fig.tight_layout(pad=0.1)
     fig.savefig(fil)
     plt.close(fig)
+
+
+def forankring(N: Natverk, FA: dict[str, Any], BV: dict[str, Any], fil: Path) -> None:
+    """Förankringen i plan: väggarna, betongbultarna genom syllarna (lodräta och sneda), modellens vinkelbeslag och
+    förankringsbeslag och upplagen där beslag saknas eller inte räcker."""
+    fig, ax = plt.subplots(figsize=(7.2, 5.4))
+    for v in N.ytor["vaggar"]:
+        o, u = np.array(v["origo"]), np.array(v["u"])
+        a, b = o, o + v["langd"] * u
+        ax.plot([a[0], b[0]], [a[1], b[1]], color="#9aa0a6" if v["yttervagg"] else "#c4c8cc",
+                lw=2.4 if v["yttervagg"] else 1.6, solid_capstyle="butt", zorder=1)
+        mitt = o + 0.5 * v["langd"] * u + np.array(v["w"]) * (-300 if v["yttervagg"] else 200)
+        ax.text(mitt[0], mitt[1], v["kod"], fontsize=6.5, ha="center", va="center", color="#333")
+    lodr = [p for p in BV["bultar"]["lagen"] if p.get("lutning", 0.0) < 0.5]
+    sned = [p for p in BV["bultar"]["lagen"] if p.get("lutning", 0.0) >= 0.5]
+    ax.scatter([p["x"] for p in lodr], [p["y"] for p in lodr], s=6, color="#333", zorder=3, linewidths=0)
+    ax.scatter([p["x"] for p in sned], [p["y"] for p in sned], s=9, facecolors="none", edgecolors="#333",
+               linewidths=0.6, zorder=3)
+    stil = {"ABR10525": dict(marker="s", s=14, color=BLA, linewidths=0),
+            "WHT340": dict(marker="D", s=30, color="#b07a2a", linewidths=0)}
+    for slag, st in stil.items():
+        p = [b for b in BV.get("beslag", []) if b["slag"] == slag]
+        if p:
+            ax.scatter([b["x"] for b in p], [b["y"] for b in p], zorder=4, **st)
+    fel = [b for b in FA["beslag"] if not b["eta"] <= 1.0]
+    for b in fel:
+        ax.scatter([b["x"]], [b["y"]], marker="x", s=40, color=ROD, zorder=5, linewidths=1.2)
+        ax.annotate(b["del"], (b["x"], b["y"]), (6, 4), textcoords="offset points", fontsize=6, color=ROD)
+    ax.scatter([], [], s=6, color="#333", label="betongbult genom syllen")
+    ax.scatter([], [], s=9, facecolors="none", edgecolors="#333", linewidths=0.6, label="sned betongbult (inåt)")
+    ax.scatter([], [], label="vinkelbeslag ABR10525", **stil["ABR10525"])
+    ax.scatter([], [], label="förankringsbeslag WHT340", **stil["WHT340"])
+    if fel:
+        ax.scatter([], [], marker="x", s=40, color=ROD, linewidths=1.2, label="beslag saknas eller räcker inte")
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.legend(loc="upper right", frameon=False, fontsize=7)
+    fig.tight_layout(pad=0.1)
+    fig.savefig(fil)
+    plt.close(fig)

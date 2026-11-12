@@ -30,7 +30,7 @@ from trebodar import skelett as S
 from trebodar.byggdelar import ytterdorrar as YD
 from trebodar.byggdelar.polygon import prisma_x
 from trebodar.byggdelar.virke import fmt, virke_i_lada, virke_profil
-from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, insida_t
+from trebodar.hus.invandigt.skikt import INSIDA_VATRUM_T, SKIVOR_T, i_badrum, insida_t, insidans_yta
 from trebodar.hus.rum import BADRUM
 from trebodar.hus.invandigt.vaggar import FICKA_SKENA, skiktets_tjocklek, vaggdef
 from trebodar.byggdelar import velfac as V
@@ -73,8 +73,8 @@ def _ytterdorr(o: Oppning) -> Montage:
         return m
     # smygen i karmens linje från golvet, överstycket över sidorna; smyglisterna i skivornas tjocklek runt den
     ku0, _, ku1, kz1 = o.karm
-    w_yta = S.T_STOMME + insida_t(o.vagg, (o.u0 + o.u1) / 2)    # väggens insida
-    assert w_yta - S.T_STOMME != INSIDA_VATRUM_T, "ytterdörrarna sitter inte i badrummet"
+    w_yta = insidans_yta(o.vagg, (o.u0 + o.u1) / 2)    # väggens insida
+    assert not i_badrum(o.vagg, (o.u0 + o.u1) / 2), "ytterdörrarna sitter inte i badrummet"
     for namn, (u0, u1, z0, z1, fiber) in (("V", (ku0, ku0 + SMYG_T, o.z0, kz1 - SMYG_T, "z")),
                                           ("H", (ku1 - SMYG_T, ku1, o.z0, kz1 - SMYG_T, "z")),
                                           ("O", (ku0, ku1, kz1 - SMYG_T, kz1, "x"))):
@@ -89,10 +89,20 @@ def _ytterdorr(o: Oppning) -> Montage:
     return m
 
 
-# VELFAC: drevningen och den lufttäta fogen i fogen mot regelverket (inifrån: fogen till regelns insida), den lufttäta
-# fogen DREV_V till regelns insida; anslutningsprofilen 16×3,5 på karmen (d från aluminiumets utsida) och plåtarna 1 mm
-# från den ut till utegipsens utsida och upp (vid sidorna ut) bakom läkten PLAT_UPP (PLAT_UT) förbi regelverket
-DREV_V, FOGMASSA_V = (12.0, 75.0), (87.0, S.T_STOMME)
+# VELFAC: drevningen och den lufttäta fogen i fogen mot regelverket (inifrån: fogen till regelns insida, i 145-väggarna
+# drevningen djupare), den lufttäta fogen FOGMASSA_D vid regelns insida; anslutningsprofilen 16×3,5 på karmen (d från
+# aluminiumets utsida) och plåtarna 1 mm från den ut till utegipsens utsida och upp (vid sidorna ut) bakom läkten
+# PLAT_UPP (PLAT_UT) förbi regelverket
+DREV_V0, DREV_FRI, FOGMASSA_D = 12.0, 20.0, 8.0
+
+
+def _fogen(kod: str) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Drevningen och den lufttäta fogen (w0, w1) i väggen kod: fogen FOGMASSA_D vid regelns insida, drevningen från
+    DREV_V0 till DREV_FRI före den (95-väggarna: 12–75 och 87–95)."""
+    t = S.t_stomme(kod)
+    return (DREV_V0, t - DREV_FRI), (t - FOGMASSA_D, t)
+
+
 PROFIL_D, PLAT_T = (41.0, 57.0), 1.0
 PLAT_UPP, PLAT_UT = 60.0, 45.0
 
@@ -139,8 +149,14 @@ def enhet_velfac(o: Oppning) -> Montage:
     if not dorr:
         m.lagg(Del(f"Påföring {fmt(PAFORING_V)}×{fmt(V.DJUP - V.TRA_UT)} {fmt(ku1 - ku0)}",
                    box(ku0, ku1, w_alu + V.TRA_UT, w_karm, kz0 - PAFORING_V, kz0), C24), Placering(), f"{o.kod}-PAF")
-    for namn, (w0, w1), mat, vad in (("DREV", DREV_V, MINERALULL, "Drevning"), ("FOG", FOGMASSA_V, FOGMASSA, "Fog")):
+    drev_v, fog_v = _fogen(o.vagg)
+    # under karmen innanför karmens insida: fönsterbänken, dörrarnas smyg (i 145-väggarna går fogen förbi karmen)
+    under_bank = box(o.u0 - 1.0, o.u1 + 1.0, w_karm, 1e3, o.z0 - 1.0, kz0) if not dorr else \
+        box(ku0, ku1, w_karm, 1e3, o.z0 - 1.0, kz0)
+    for namn, (w0, w1), mat, vad in (("DREV", drev_v, MINERALULL, "Drevning"), ("FOG", fog_v, FOGMASSA, "Fog")):
         f = box(o.u0, o.u1, w0, w1, o.z0, o.z1) - karm
+        if under_bank is not None and w1 > w_karm:
+            f = f - under_bank
         m.lagg(Del(f"{vad} {fmt(o.bredd)}×{fmt(o.hojd)}", f, mat), Placering(), f"{o.kod}-{namn}")
     # anslutningsprofilen på karmen upptill och vid sidorna och plåtarna från den ut och upp (ut) bakom läkten
     sidor = V.SIDOR[o.typ]
@@ -175,7 +191,7 @@ def enhet_velfac(o: Oppning) -> Montage:
         return m
     # invändigt: smygen av ask i karmens linje och fönsterbänken under bottenkarmen
     t = insida_t(o.vagg, (o.u0 + o.u1) / 2)
-    w_yta = S.T_STOMME + t
+    w_yta = S.t_stomme(o.vagg) + t
     _, zi, _, _ = o.inre
     if t == INSIDA_VATRUM_T:
         k = KAKEL_T

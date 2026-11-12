@@ -76,7 +76,9 @@ alfa        = 30      # takvinkel [°]
 vb          = 25      # [m/s]
 z0          = 0.003   # terrängtyp 0 [m]
 z0_II       = 0.05
-z           = 7.0     # referenshöjd, nockens höjd över mark [m]
+z           = 5.6     # referenshöjd: nockens höjd över mark (modellen: nocken 4,05 m och taktäckningen 0,08 m över
+                      # golvet, marken som lägst 1,47 m under golvet; kontroll_laster.py) [m]
+kp          = 3.0     # spetsfaktorn, EKS 11 kap. 1.1.4 7 § (allmänt råd: byggnader utan dynamiska effekter)
 rho         = 1.25    # [kg/m³]
 
 [nedbojning]

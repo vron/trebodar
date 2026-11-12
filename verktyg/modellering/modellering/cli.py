@@ -885,10 +885,11 @@ def main(argv: list[str] | None = None) -> None:
             b, d = pel.plater(n)
             plattor["BP"].append({"namn": f"fotplåt {k}", "mitt": list(fot[k]), "matt": [b, d],
                                   "text": f"{b:g}×{d:g}×{pel.FOT_T:g}"})
+        fa = imp("trebodar.hus.stomme.forankring")
         pdf, fel, anm = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
                                            [list(p) for p in skel.TRAPPHAL], plattor, snitt_, _norr(),
                                            UT / "gjutning", arg.ut, jarn, central, skap,
-                                           imp("trebodar.hus.stomme.forankring").bultar())
+                                           fa.bultar(), fa.rorkonflikter(), fa.ROR_ARENDE)
         for p in pdf:
             print(f"  {p.relative_to(ROT)}")
         for t in anm:

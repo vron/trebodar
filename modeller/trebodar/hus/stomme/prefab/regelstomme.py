@@ -78,11 +78,11 @@ def plattor(v: Plan, langd: float, skarvar: Sequence[float] = (), oppningar: Seq
 def hornstolpe(v: Plan, u: float, inat: int, namn: tuple[str, str], z1: float | None = None
                ) -> list[tuple[float, float]]:
     """Gavelns hörnstolpe vid änden u (inat = +1 i början, −1 i slutet): en regel i änden och en regel 95×45 på
-    insidan (w 50–95) intill den. Ger delarnas u-intervall."""
+    insidan (w 50–95, i 145-väggarna 100–145) intill den, för skivorna. Ger delarnas u-intervall."""
     a = u if inat > 0 else u - R
     v.regel(a, z1=z1, namn=namn[0])
     b = a + R if inat > 0 else a - 95.0
-    v.regel(b, z1=z1, b=95.0, w0=50.0, w1=95.0, namn=namn[1])
+    v.regel(b, z1=z1, b=95.0, w0=v.tjocklek - 45.0, w1=v.tjocklek, namn=namn[1])
     return [(a, a + R), (b, b + 95.0)]
 
 

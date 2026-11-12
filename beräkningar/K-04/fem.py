@@ -11,6 +11,11 @@ står på och är förankrade i betongen och kan inte rulla).
 
 Dragstängerna: styvheten med alla stänger fakturiseras en gång, och stänger som trycks tas bort med Woodburys
 formel (rang = antalet borttagna), tills inga aktiva stänger trycks och inga borttagna förlängs.
+
+Skjuvskivorna (skivverkan): en generaliserad stång per skiva, vars töjning är skivans skjuvvinkel γ ur hörnnodernas
+förskjutningar (termer nod och vektor), med styvheten k (kraften Q = k γ, skjuvkraften Q / h). En skiva är elastisk
+upp till sin bärförmåga Q_max och plastisk där: styvheten tas bort som för en slak stång och kraften hålls vid
+±Q_max som en last; en plastisk skiva som avlastas blir elastisk igen.
 """
 from __future__ import annotations
 
@@ -51,6 +56,11 @@ class Modell:
     b_vikt: np.ndarray = field(default_factory=lambda: np.zeros(0))
     b_e: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
     b_k: np.ndarray = field(default_factory=lambda: np.zeros(0))
+    # skjuvskivor: termerna (skiva, nod, vektor) för skjuvvinkeln γ = Σ vektor · u_nod och styvheten k [N]
+    s_c: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
+    s_nod: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
+    s_v: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
+    s_k: np.ndarray = field(default_factory=lambda: np.zeros(0))
 
 
 def _lokala_axlar(dx: np.ndarray, z: np.ndarray) -> np.ndarray:
@@ -197,6 +207,14 @@ class Analys:
                 Bf[6 * i + a, s] -= self.te[s, a]
         self.Bf = Bf.tocsr()
         self.kt = m.tEA / self.tL if len(m.ti) else np.zeros(0)
+        # skjuvskivorna som generaliserade stänger efter dragstängerna
+        self.ns_band = len(self.kt)
+        nsk = len(m.s_k)
+        Bs = sp.coo_matrix((m.s_v.ravel(), (np.repeat(6 * m.s_nod, 3) + np.tile(np.arange(3), len(m.s_nod)),
+                                            np.repeat(m.s_c, 3))), shape=(6 * n, nsk)).tocsr()
+        self.Bs_full = Bs
+        self.Bf = sp.hstack([self.Bf, Bs]).tocsr()
+        self.kt = np.concatenate([self.kt, m.s_k])
         Kr = self.Tr.T @ K @ self.Tr
         rot = np.zeros(self.n_red, bool)
         rot[self.idx[:, 3:][self.idx[:, 3:] >= 0]] = True
@@ -212,7 +230,7 @@ class Analys:
         self.Kff = Kr[self.fri][:, self.fri].tocsc()
         self.lu = spl.splu(self.Kff)
         self.B = B[self.fri]
-        self.Z = self.lu.solve(self.B.toarray()) if len(m.ti) else np.zeros((len(self.fri), 0))
+        self.Z = self.lu.solve(self.B.toarray()) if self.B.shape[1] else np.zeros((len(self.fri), 0))
         self.BZ = self.B.T @ self.Z
 
     def _transformation(self) -> sp.csr_matrix:
@@ -297,29 +315,50 @@ class Analys:
             f += P.ravel()
         return f
 
-    def los(self, f: np.ndarray, max_iter: int = 40) -> tuple[np.ndarray, np.ndarray, int]:
-        """Förskjutningarna (6n) för lastvektorn f med dragstänger som bara tar drag. Ger u, de aktiva stängerna och
-        antalet iterationer."""
+    def los(self, f: np.ndarray, Q_max: np.ndarray | None = None, max_iter: int = 200
+            ) -> tuple[np.ndarray, np.ndarray, int]:
+        """Förskjutningarna (6n) för lastvektorn f med dragstänger som bara tar drag och skjuvskivor som är plastiska
+        vid Q_max (per skiva; None: elastiska). Ger u, de aktiva stängerna (dragstängerna, sedan skivorna: elastiska)
+        och antalet iterationer. Skivornas krafter: skivkrafter(u)."""
         fr = (self.Tr.T @ f)[self.fri]
         u0 = self.lu.solve(fr)
+        nb = self.ns_band
         ns = len(self.kt)
         aktiv = np.ones(ns, bool)
+        tecken = np.zeros(ns - nb)                  # skivornas plastiska kraft: +1, −1 eller 0 (elastisk)
+        qm = np.full(ns - nb, np.inf) if Q_max is None else np.asarray(Q_max, float)
         u = u0
         for it in range(1, max_iter + 1):
             bort = np.flatnonzero(~aktiv)
+            plast = np.flatnonzero(tecken != 0)
+            ub = u0 + self.Z[:, nb + plast] @ (-tecken[plast] * qm[plast]) if len(plast) else u0
             if len(bort):
                 A = np.diag(1.0 / self.kt[bort]) - self.BZ[np.ix_(bort, bort)]
-                u = u0 + self.Z[:, bort] @ np.linalg.solve(A, self.B[:, bort].T @ u0)
+                u = ub + self.Z[:, bort] @ np.linalg.solve(A, self.B[:, bort].T @ ub)
             else:
-                u = u0
-            d = self.B.T @ u                         # förlängningarna
-            ny = d > 0.0
-            if np.array_equal(ny, aktiv):
+                u = ub
+            d = self.B.T @ u                         # förlängningarna och skivornas skjuvvinkel
+            ny = d[:nb] > 0.0
+            q = self.kt[nb:] * d[nb:]                # skivornas kraft om de vore elastiska
+            nt = np.where(np.abs(q) > qm * (1 + 1e-9), np.sign(q), 0.0)
+            # en plastisk skiva förblir plastisk så länge den inte avlastas
+            nt = np.where((tecken != 0) & (tecken * q >= qm * (1 - 1e-9)), tecken, nt)
+            if np.array_equal(ny, aktiv[:nb]) and np.array_equal(nt, tecken):
                 break
-            aktiv = ny
+            aktiv = np.concatenate([ny, nt == 0])
+            tecken = nt
+        self._sk = (tecken.copy(), qm.copy())
         ur = np.zeros(self.n_red)
         ur[self.fri] = u
         return self.Tr @ ur, aktiv, it
+
+    def skivkrafter(self, u: np.ndarray) -> np.ndarray:
+        """Skjuvskivornas kraft Q (k γ elastiskt, ±Q_max plastiskt) i senaste lösningen u."""
+        if not len(self.kt) - self.ns_band:
+            return np.zeros(0)
+        tecken, qm = self._sk
+        q = self.kt[self.ns_band:] * (self.Bs_full.T @ u)
+        return np.where(tecken != 0, tecken * np.where(np.isfinite(qm), qm, 0.0), q)
 
     # ---------------------------------------------------------------- resultat
     def balkkrafter(self, u: np.ndarray, q_glob: np.ndarray) -> np.ndarray:
@@ -332,8 +371,9 @@ class Analys:
 
     def stangkrafter(self, u: np.ndarray, aktiv: np.ndarray) -> np.ndarray:
         """Normalkraften i dragstängerna (drag positivt; noll för borttagna)."""
-        d = self.Bf.T @ u
-        return np.where(aktiv, self.kt * d, 0.0)
+        nb = self.ns_band
+        d = self.Bf[:, :nb].T @ u
+        return np.where(aktiv[:nb], self.kt[:nb] * d, 0.0)
 
     def bindningskrafter(self, u: np.ndarray) -> np.ndarray:
         """Kraften i bindningarna: den som verkar på noden med vikten 1, mot riktningen e_c (positiv: noden hålls
@@ -342,7 +382,10 @@ class Analys:
 
     def reaktioner(self, u: np.ndarray, f: np.ndarray, aktiv: np.ndarray) -> np.ndarray:
         """Upplagsreaktionerna (antal upplag, 3): krafterna från upplaget på stommen [N]."""
-        r = self.Kfull @ u + self.Bf @ (np.where(aktiv, self.kt, 0.0) * (self.Bf.T @ u)) - f
+        nb = self.ns_band
+        r = self.Kfull @ u + self.Bf[:, :nb] @ (np.where(aktiv[:nb], self.kt[:nb], 0.0) * (self.Bf[:, :nb].T @ u)) - f
+        if len(self.kt) > nb:
+            r = r + self.Bs_full @ self.skivkrafter(u)
         # krafterna i följarna förs över till huvudnoderna (upplagen är huvudnoder)
         rr = self.Tr.T @ r
         return np.array([rr[self.idx[i, :6]] for i in self.m.upplag])

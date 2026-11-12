@@ -27,7 +27,7 @@ B_BALK = 450.0           # kantbalkens bredd, från L-elementets rygg (100 mm fr
 T_FOT = 100.0            # cellplast under kantbalk och plintar (L-elementets fot)
 L_BEN = 100.0            # L-elementets rygg nedtill: L-elementets ytterkant i väggens ytterliv, betongen 100 mm innanför,
                          # så att väggens yttre cellplast står på ryggen och kärnan på kantbalkens yttersta 150 mm
-FAS = 50.0               # ryggen är avfasad i ovankant (45°), 50 mm bred upptill; betongen fyller fasen
+FAS = 50.0               # bottenplattans rygg är avfasad i ovankant (45°), 50 mm bred upptill; betongen fyller fasen
 B_L = 600.0              # L-elementets bredd: L-element S300, höjd 400, 600 × 1200 (t.ex. Finja), fot 100 mm S300
 OMLOTT = B_L - L_BEN - B_BALK    # plattans övre cellplastskikt går 50 mm in över L-elementets fot (fästs med plastspik)
 L_ELEMENT = "L-element S300, höjd 400, 600 × 1200 (t.ex. Finja)"
@@ -53,8 +53,7 @@ LAGER_FYLL = 0.2         # m, största lagertjocklek inom 1 m från väggen
 # bakom V3 och V20: plattan på mark på plan 1 (K-05) i L-element 500 (AR-02): 350 mm cellplast S100 under plattan
 H_L_MARK = 500.0
 EPS_MARK = H_L_MARK - H_MB
-# ytterväggarna på plan 1 vid plattan på marks fria kanter: syllen 95 mm från väggens ytterliv (K-05: centrum 17,5 mm
-# innanför plattans kant), L-elementens ytterkant i väggens ytterliv; betongen fyller ryggens fas, FAS från ytterkanten
+# ytterväggarna på plan 1: syllen 95 mm från väggens ytterliv (K-05: centrum 17,5 mm innanför plattans kant)
 B_SYLL = 95.0
 H_FYLL_MARK = (H_VAGG - EPS_MARK) / 1000            # m, fyllning och makadam upp till cellplastens underkant
 G_MARK = 25 * 0.15 + 0.5 + 0.3 * EPS_MARK / 1000    # kN/m², betong, golv och cellplast

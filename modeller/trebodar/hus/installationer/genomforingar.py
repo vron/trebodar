@@ -19,7 +19,7 @@ from trebodar.byggdelar import taklager as L
 from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.grund.grund import H_PLATTA
 from trebodar.hus.invandigt.kallare import GIPS_T
-from trebodar.hus.invandigt.skikt import INSIDA_T, innertak_vid, innertakets_fall
+from trebodar.hus.invandigt.skikt import innertak_vid, innertakets_fall, insida_vanlig_t
 from trebodar.hus.invandigt.vaggar import LATTA, skiktets_tjocklek, vaggdef
 from trebodar.hus.rum import BADRUM
 from trebodar.hus.stomme import lagen
@@ -89,7 +89,8 @@ def vaggarna() -> dict[str, tuple[Polygon, Polygon, float, bool]]:
     """Plan 1:s väggar: (hela väggen med skikten, stommen, stommens tjocklek, yttervägg)."""
     ut = {}
     for kod in S.YTTERVAGGAR:
-        ut[kod] = (_vaggband(kod, -S.T_FASAD, S.T_STOMME + INSIDA_T), _vaggband(kod, 0.0, S.T_STOMME), S.T_STOMME,
+        t = S.t_stomme(kod)
+        ut[kod] = (_vaggband(kod, -S.T_FASAD, t + insida_vanlig_t(kod)), _vaggband(kod, 0.0, t), t,
                    True)
     for kod in [*S.INNERVAGGAR, *(lv.kod for lv in LATTA)]:
         v = vaggdef(kod)

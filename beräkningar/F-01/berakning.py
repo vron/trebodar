@@ -45,7 +45,7 @@ kr = 0.19 * (v["z0"] / v["z0_II"]) ** 0.07
 cr = kr * math.log(v["z"] / v["z0"])
 Iv = 1 / math.log(v["z"] / v["z0"])                 # kI = 1, c0 = 1
 qb = 0.5 * v["rho"] * v["vb"] ** 2 / 1000
-qp = (1 + 7 * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1000
+qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1000     # EKS 11 kap. 1.1.4 7 §, c0 = 1
 ce = qp / qb
 
 print(f"tak {kg_tak:.1f} kg/m² = {g_tak:.3f} kN/m² takyta ({g_tak_h:.3f} horisontellt)")
@@ -66,7 +66,7 @@ R = {
     "sno": dict(sk=fmt(sn["sk"], 1), Ce=fmt(sn["Ce"], 1), Ct=fmt(sn["Ct"], 1), alfa=alfa,
                 mu1=fmt(mu1, 1), mu2=fmt(mu2, 1), s1=fmt(s1, 2), s2=fmt(s2, 2)),
     "vind": dict(vb=v["vb"], z0=fmt(v["z0"], 3), z=fmt(v["z"], 1), kr=fmt(kr, 3), cr=fmt(cr, 2),
-                 Iv=fmt(Iv, 3), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(ce, 2)),
+                 Iv=fmt(Iv, 3), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(ce, 2), kp=fmt(v["kp"], 1)),
     # registret: bara handlingarna i de serier som lämnas in till tekniskt samråd, och alla serierna
     "handlingar": [h for h in IN["handling"] if SERIE[h["nr"].split("-")[0]]["samrad"]],
     "serier": IN["serie"], "bygglov": IN.get("bygglov", []), "nedb": IN["nedbojning"],

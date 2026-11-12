@@ -12,5 +12,5 @@ from trebodar.hus.stomme.prefab.regelstomme import AVVAXLING, DUBBELT_HB, Karm, 
 def montage() -> Montage:
     v = regelvagg("1NV")
     vagg(v, "1NV", raster_origo=1990.0, utan=(190.0, 4390.0),
-         karmar={"F1": Karm(overstycke=AVVAXLING), "D1": Karm(overstycke=DUBBELT_HB, kortlingar=(155.0,))})
+         karmar={"F1": Karm(dubbel=True, overstycke=AVVAXLING), "D1": Karm(overstycke=DUBBELT_HB, kortlingar=(155.0,))})
     return v.montage()

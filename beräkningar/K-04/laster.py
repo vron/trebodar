@@ -144,7 +144,14 @@ def takrutor(N: Natverk) -> list[Takruta]:
 
 def _cpe_tak(tr: Takruta, kroppar: dict[int, dict[str, Any]], d: np.ndarray, variant: str, h: float,
              cp: dict[str, Any]) -> np.ndarray:
-    """Utvändiga formfaktorer för rutorna i takfallet (SS-EN 1991-1-4 7.2.5, sadeltak 30°, varje kropp för sig)."""
+    """Utvändiga formfaktorer för rutorna i takfallet (SS-EN 1991-1-4 7.2.5, sadeltak 30°, varje kropp för sig).
+
+    Vinden vinkelrätt mot nockarna (θ = 0°) med cp["flerskepp"]: huskropparna står bredvid varandra som ett tak med
+    flera skepp (7.2.7, figur 7.10 c). För varje ruta räknas de kroppar som står uppströms på samma y (n). Zonerna
+    F, G och J bara på den första kroppen i vindens väg (n = 0), H och I på alla (7.2.7 (2)); formfaktorn gånger 0,6
+    på lovartsfallen från den tredje kroppen (n ≥ 2) och på läfallen från den andra (n ≥ 1), annars hel. Sadeltakets
+    formfaktorer (α = +30°) används också bakom en dal, i stället för det tråggformade takets (α = −30°): de ger
+    större vågrät kraft (tryck på lovartsfallen)."""
     k = kroppar[tr.kropp]
     x, y = tr.P[:, 0], tr.P[:, 1]
     ky0, ky1 = k["ty0"], k["ty1"]
@@ -152,15 +159,23 @@ def _cpe_tak(tr: Takruta, kroppar: dict[int, dict[str, Any]], d: np.ndarray, var
     if abs(d[0]) > 0.5:                                     # θ = 0°: vinden vinkelrätt mot nocken
         e = min(ky1 - ky0, 2 * h)
         lovart = tr.riktning == np.sign(d[0])
+        if cp.get("flerskepp"):
+            n = sum(((b["ty0"] <= y) & (y <= b["ty1"])).astype(int) for nr, b in kroppar.items()
+                    if nr != tr.kropp and np.sign(b["nock"] - k["nock"]) == -np.sign(d[0]))
+        else:
+            n = np.zeros(len(y), int)
         if lovart:
             kant = kx0 if d[0] > 0 else kx1
             dx = np.abs(x - kant)
             hornet = np.minimum(y - ky0, ky1 - y) < e / 4
-            zon = np.where(dx < e / 10, np.where(hornet, "F", "G"), "H")
+            zon = np.where((dx < e / 10) & (n == 0), np.where(hornet, "F", "G"), "H")
+            faktor = np.where(n >= 2, 0.6, 1.0)
         else:
             dx = np.abs(x - k["nock"])
-            zon = np.where(dx < e / 10, "J", "I")
+            zon = np.where((dx < e / 10) & (n == 0), "J", "I")
+            faktor = np.where(n >= 1, 0.6, 1.0)
         tab = cp["theta0"][variant]
+        return faktor * np.array([tab[z] for z in zon])
     else:                                                   # θ = 90°: vinden längs nocken
         e = min(kx1 - kx0, 2 * h)
         kant = ky0 if d[1] > 0 else ky1
@@ -258,7 +273,7 @@ def lastfall(N: Natverk, IN: dict[str, Any], f01: dict[str, Any]) -> tuple[list[
     kr = 0.19 * (v["z0"] / v["z0_II"]) ** 0.07
     cr = kr * math.log(v["z"] / v["z0"])
     Iv = 1 / math.log(v["z"] / v["z0"])
-    qp = (1 + 7 * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1e3     # kN/m²
+    qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1e3     # kN/m², som F-01 (EKS 11 1.1.4 7 §)
     h = v["z"] * 1000.0
     # huskropparnas tak i plan (för zonerna)
     kroppar: dict[int, dict[str, Any]] = {}

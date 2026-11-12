@@ -55,11 +55,11 @@ STOLPE_B = (140.0, 140.0)                  # stolpe B (LD4_1), 140×140 GL30h (K
 # LD2_1 och LD2_2 räknas fram vid dörröppningen intill trapphålet (punktlaster()).
 STOLPLAGEN = {
     "LN1_1": (11655, 2795), "LN1_2": (11655, 4686), "LN1_3": (11665, 6602),
-    "LD2_3": (9405, 7294), "LD2_4": (9435, 11015), "LN3_1": (7007, 2200),
-    "LD4_1": (4475, 5843), "LD4_2": (4392, 10992), "LN5_1": (2072, 7160), "LN5_2": (2031, 11000),
+    "LD2_3": (9405, 7294), "LD2_4": (9435, 10990), "LN3_1": (7007, 2200),
+    "LD4_1": (4475, 5843), "LD4_2": (4392, 10968), "LN5_1": (2072, 7160), "LN5_2": (2031, 11000),
     "LN5_3": (2095, 9280),
     "LA1": (4540, 40), "LA2": (9270, 40), "LA3": (9342, 1018), "LA4": (13770, 1040), "LA5": (40, 3630),
-    "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15860), "LA10": (4270, 15860),
+    "LA6": (4495, 3585), "LA7": (9540, 12470), "LA8": (13770, 12470), "LA9": (40, 15835), "LA10": (4270, 15835),
 }
 # Trappan (trä, brant, i trapphålet): står på källarens golv vid hålets västra kortsida och hänger i överkant på den
 # östra, vid väggen 2B; halva trappan på den östra kortsidan.
@@ -80,6 +80,23 @@ K01 = {
 # Balkarnas last per meter i K-01 (G och S, kN/m): ger fördelningen G/S av en reaktion
 K01_LAST = {"nock": (2.17, 3.75), "dal": (2.08, 7.13)}
 GD = 0.91
+# K-04 (trästommens balkmodell): stolplaster som är större än K-01:s stödreaktioner ger, (Gk, Sk, största N_Ed) [kN].
+# Balkmodellen fördelar nock- och dalbalkarnas last mellan stolparna och väggarna under dem på sitt sätt, och med vind
+# som huvudlast får stolparna i stålbandens fält bandens vertikala kraft. Stolpen räknas med det största av K-01 och
+# K-04: Gk och Sk var för sig, och räcker de inte till K-04:s största N_Ed läggs skillnaden till som snö (på säker
+# sida). Förs in för hand från K-04:s tabell över stolparna (K-04 jämför med K-05 och visar det som är större).
+K04 = {
+    "LA10": (3.2, 4.0, 19.6),
+    "LA5": (2.2, 3.6, 10.0),
+    "LA9": (2.6, 2.6, 14.7),
+    "LD2_1": (4.0, 10.4, 20.9),
+    "LD2_3": (7.7, 22.0, 41.4),
+    "LD2_4": (6.2, 11.3, 33.3),
+    "LD4_1": (15.9, 44.4, 83.1),
+    "LN1_2": (1.9, 3.8, 8.1),
+    "LN3_1": (7.9, 14.7, 30.4),
+    "LN5_2": (11.0, 15.7, 36.1),
+}
 # Snö per huskropp (för ojämn snö: snö på en eller två huskroppar). Dalbalkarna bär från båda sidor.
 KROPPAR = ("V", "M", "H")               # vänster, mittre, höger huskropp (figur 1)
 KROPP = {"N1": {"H": 1.0}, "N3": {"M": 1.0}, "N5": {"V": 1.0}, "D2": {"M": 0.5, "H": 0.5}, "D4": {"V": 0.5, "M": 0.5}}
@@ -198,6 +215,17 @@ def punktlaster():
         kr = "M" if "mittre" in t else ("H" if "högra" in t else "V")
         L.append(_summa(d, x, y, f"LA{i}", "hörnstolpe: " + t, strip_a=a, kropp=kr))
     for p in L:
+        if p["namn"] in K04:
+            g4, s4, n4 = K04[p["namn"]]
+            s_ = max(p["Sk"], s4)
+            gk = max(p["Gk"], g4)
+            s_ = max(s_, (n4 / GD - 1.2 * gk) / 1.5)                  # rd(gk, s_) ≥ K-04:s största N_Ed
+            if s_ > p["Sk"] + 1e-9:                                     # snön per huskropp i samma proportion
+                assert p["Sk"] > 0, p["namn"]
+                p["Sb"] = {kr: v * s_ / p["Sk"] for kr, v in p["Sb"].items()}
+            if gk > p["Gk"] + 1e-9 or s_ > p["Sk"] + 1e-9:
+                p["delar"] += " (K-04 större)"
+            p["Gk"], p["Sk"] = gk, s_
         if p["namn"] in STOLPLAGEN:
             p["x"], p["y"] = STOLPLAGEN[p["namn"]]
         p.setdefault("yta", STOLPE)

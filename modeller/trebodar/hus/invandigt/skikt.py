@@ -1,7 +1,7 @@
 """De invändiga skiktens uppbyggnad (F-01), gemensam för ytterväggarnas insida, innertaket, innerväggarna och
-fönstrens smyg: ångbroms, installationsskikt och skivor, med tjocklekar och avstånd från stommen, och innertakets
-underkant (den yttre gipsskivan) som väggarna och kaminen går upp till, med former som går upp till den (för de
-inbyggda väggarna: garderoben och kökets inbyggnad).
+fönstrens smyg: ångbroms, installationsskikt (utom i gaveln 1SV) och skivor, med tjocklekar och avstånd från stommen,
+och innertakets underkant (den yttre gipsskivan) som väggarna och kaminen går upp till, med former som går upp till den
+(för de inbyggda väggarna: garderoben och kökets inbyggnad).
 """
 from __future__ import annotations
 
@@ -49,17 +49,59 @@ def _med_lage(skikt: tuple[tuple[str, float, str, Material], ...], a: float
     return ut
 
 
+# ytterväggarna utan installationsskikt (#110): reglar 45×145 (skelett.T_STOMME_145) med ångbromsen, OSB:n och
+# gipsen direkt på reglarna och inga installationer i väggen (2SV har reglar 45×145 men installationsskikt)
+UTAN_INSTALLATIONSSKIKT = frozenset({"1SV"})
+assert all(S.t_stomme(k) == S.T_STOMME_145 for k in UTAN_INSTALLATIONSSKIKT)
+INSIDA_UTAN_T = FOLIE + SKIVOR_T
+
 # väggarnas skikt med avståndet från stommens insida
 GRUND = _med_lage((("Ångbroms", FOLIE, "AB", ANGBROMS), ("Installationsskikt", LAKT, "IL", C24_LAKT)), 0.0)
 SKIVLAGER = {"vanligt": _med_lage(SKIVOR, FOLIE + LAKT), "vatrum": _med_lage(SKIVOR_VATRUM, FOLIE + LAKT),
              "vatrum_malat": _med_lage(SKIVOR_VATRUM_MALAD, FOLIE + LAKT)}
+GRUND_UTAN = GRUND[:1]
+SKIVLAGER_UTAN = {"vanligt": _med_lage(SKIVOR, FOLIE)}
+
+
+def installationsskikt(kod: str) -> bool:
+    """Om ytterväggen har installationsskikt (liggande läkt 45×45 innanför ångbromsen)."""
+    return kod not in UTAN_INSTALLATIONSSKIKT
+
+
+def grund(kod: str) -> list[tuple[str, float, float, str, Material]]:
+    """Ytterväggens skikt närmast stommen (ångbromsen och installationsskiktet) med avståndet från stommens insida."""
+    return GRUND if installationsskikt(kod) else GRUND_UTAN
+
+
+def skivlager(kod: str) -> dict[str, list[tuple[str, float, float, str, Material]]]:
+    """Ytterväggens skivor med avståndet från stommens insida: vanligt, vatrum och vatrum_malat (utan
+    installationsskikt bara vanligt; badrummet ligger inte mot de väggarna)."""
+    return SKIVLAGER if installationsskikt(kod) else SKIVLAGER_UTAN
+
+
+def i_badrum(kod: str, u: float) -> bool:
+    """Om badrummet ligger mot ytterväggen vid u."""
+    pl = S.YTTERVAGGAR[kod].placering()
+    x, y, _ = pl.punkt((u, S.t_stomme(kod) + 30.0, 0.0))
+    return BADRUM.contains(Point(x, y))
+
+
+def insida_vanlig_t(kod: str) -> float:
+    """Ytterväggens vanliga insida (utanför badrummet): ångbroms, läkt (utom utan installationsskikt) och skivor."""
+    return INSIDA_T if installationsskikt(kod) else INSIDA_UTAN_T
 
 
 def insida_t(kod: str, u: float) -> float:
-    """Ytterväggens insida (ångbroms, läkt och skivor) vid u: tjockare i badrummet."""
-    pl = S.YTTERVAGGAR[kod].placering()
-    x, y, _ = pl.punkt((u, S.T_STOMME + 30.0, 0.0))
-    return INSIDA_VATRUM_T if BADRUM.contains(Point(x, y)) else INSIDA_T
+    """Ytterväggens insida (ångbroms, läkt och skivor) vid u: tjockare i badrummet, tunnare utan installationsskikt."""
+    if not installationsskikt(kod):
+        assert not i_badrum(kod, u), kod
+        return INSIDA_UTAN_T
+    return INSIDA_VATRUM_T if i_badrum(kod, u) else INSIDA_T
+
+
+def insidans_yta(kod: str, u: float) -> float:
+    """Ytterväggens färdiga insida vid u: w från stommens utsida."""
+    return S.t_stomme(kod) + insida_t(kod, u)
 
 
 def innertak_underkant(t: S.Takfall, x: float) -> float:

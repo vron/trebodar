@@ -153,6 +153,7 @@ Takstolarna är trianglar av två diagonaler och ett dragband med spikplåtar i 
     - *Topregeln:* den går i ett stycke över stolpen och tar strävornas vågräta kraft #r.hs.F kN i drag, #r.hs.ut. Under strävans topp krävs minst #r.hs.lt mm upplag mot balken.
     - *Knutpunkter:* spikplåt 100×400 på båda sidor med minst #r.hs.spik ankarspik per plåt och stav.
     - *Lyft:* stolpen förankras för #r.hs.lyft kN uppåt i topp och fot.
+    - *Förankringen vid foten:* stolpen står direkt på bjälklaget, mellan den lätta väggens två syllbitar. På var syllbit sitter ett vinkelbeslag #r.hs.beslag (ETA-06/0106) mot stolpens ände, med #r.hs.skruv i stolpen och syllen, och en betongbult #r.hs.bult genom beslaget och syllen, minst #r.hs.bult_djup mm i plattan och borrad efter gjutningen. Två beslag bär $R_"1,k"$ = #r.hs.R1k kN (databladet, søjle på bjælke), $R_"1,d"$ = #r.hs.R1d kN ($k_"mod"$ 0,9, $gamma_M$ 1,35): #r.hs.ufot. Med beslagsöm i stället för skruv blir det bara #r.hs.R1d_spik kN. Bulten får #r.hs.Nb0 kN, #r.hs.Nb kN i drag med beslagets bändning (#r.hs.band).
   ],
 )
 
@@ -188,4 +189,4 @@ Alla delar klarar brott- och bruksgränstillståndet med utförandet nedan#if r.
 + Takstolar: spikplåt 100×600×2,0 på båda sidor i fötterna och 100×400 i toppen, med ankarspik 4,0×40 enligt tabellen i avsnitt 4. Diagonalerna skruvas till takbalken ovanför innertaket c/c 600. Varje takstol har en toppkloss 45 mm, 600 mm lång, på ena sidan om toppen (gavelstolarna på insidan, mittakstolen på den nordöstra sidan), skruvad enligt tabellen. Fötterna har minst det upplag på hammarbandet som tabellen anger.
 + Huvudstolpen LN1_3: 4 st 45×120 C24 med strävor 45×120 på båda sidor (dubbeltriangel) och en hel topregel över stolpen.
 + Stolpe B (LD4_1): GL30h 140×140. LD4_2: 5 st 45×95 C24 sida vid sida under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. LN1_1 under nockbalk 1:s stöd B: 4 st 45×95 C24 i väggen vid y ≈ 2 795.
-+ Stolpar av flera reglar skruvas ihop, LN3_1 och LN5_2 med helgängade skruvar så att balkens excentriska last fördelas på alla reglarna. Alla stolpar förankras i topp och fot för lyftkraften i tabellen.
++ Stolpar av flera reglar skruvas ihop, LN3_1 och LN5_2 med helgängade skruvar så att balkens excentriska last fördelas på alla reglarna. Alla stolpar förankras i topp och fot för lyftkraften i tabellen. Huvudstolpen förankras vid foten med två vinkelbeslag #r.hs.beslag, fullt utskruvade med skruv (inte spik), och en betongbult #r.hs.bult genom vart (@huvud).

@@ -1,14 +1,16 @@
 # K-04 rev A – Trästomme och stabilisering
 
 Lasterna genom trästommen ovanför bjälklaget och kontrollen av stommens alla delar och stabiliseringen, med en
-balkmodell (FEM) av hela stommen som byggs ur modellen. Skivorna räknas inte: infällda stålband i kryss i väggarna och
-i takfallen tar de horisontella lasterna (modellens `hus/stomme/prefab/stalband/stalband.py`). Nock- och dalbalkarna
+balkmodell (FEM) av hela stommen som byggs ur modellen. Infällda stålband i kryss i väggarna och i takfallen
+(modellens `hus/stomme/prefab/stalband/stalband.py`) och skjuvskivorna (utegipsen, OSB:n direkt på reglarna i de
+bärande innerväggarna och i gaveln 1SV och råsponten i takfallen, `natverk.skjuvskivor`) tar de horisontella
+lasterna. Nock- och dalbalkarna
 kontrolleras i K-01, takets anslutningar i K-03 och bjälklaget i K-05.
 
 | Fil | Innehåll |
 |---|---|
-| `indata.toml` | Projektuppgifter, takets och väggarnas skikt utöver F-01, formfaktorer för vinden, material, kombinationer och kontrollernas faktorer, stålbanden och spiken |
-| `natverk.py` | Balkmodellen ur modellens bärverk: delarna som balkar längs sina systemlinjer (delar som ligger an mot varandra längs en sträcka på en gemensam linje), knutpunkterna där linjerna möts, leder, upplag, takstolarnas ståndare och spikreglar utanför och gavlarnas bindningar i sidled |
+| `indata.toml` | Projektuppgifter, takets och väggarnas skikt utöver F-01, formfaktorer för vinden, material, kombinationer och kontrollernas faktorer, stålbanden och spiken, skjuvskivorna (utegipsen, OSB:n och råsponten med förband) |
+| `natverk.py` | Balkmodellen ur modellens bärverk: delarna som balkar längs sina systemlinjer (delar som ligger an mot varandra längs en sträcka på en gemensam linje), knutpunkterna där linjerna möts, leder, upplag, takstolarnas ståndare och spikreglar utanför och gavlarnas bindningar i sidled; skjuvskivorna i väggarnas regelfack och i takfallens fack |
 | `fem.py` | 3D-ramanalys: Timoshenkobalkar med leder, band som bara tar drag, bindningar mellan nodernas förskjutningar, fasta upplag |
 | `laster.py` | Lastfallen: egentyngd, snö och vind (F-01) fördelade från takens och väggarnas ytor till delarna |
 | `analys.py` | Lastkombinationerna och lösningarna |

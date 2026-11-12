@@ -16,8 +16,11 @@ knutpunkterna där systemlinjerna möts och leder där delar slutar mot andra.
   Noden ligger på den viktigaste delen som går igenom knutpunkten (rang: syll och balk, hammarband, underram och
   fristående stolpar, reglar och diagonaler, takbalkar, övriga), där nästa del som går igenom korsar den; slutar
   alla delar i knutpunkten ligger noden där deras systemlinjer möts. Knutpunkter närmare varandra längs en del än
-  halva delens höjd är en knutpunkt, och takstolarnas fötter och topp (spikplåtarna) är en knutpunkt var. Varje del
-  är rak mellan sina yttersta knutpunkter. En del som slutar i en knutpunkt förlängs eller kortas längs sin axel
+  halva delens höjd är en knutpunkt, och takstolarnas fötter och topp (spikplåtarna) är en knutpunkt var. Två ställen
+  längs en nock- eller dalbalk längre isär än så är aldrig en knutpunkt, också där kontakterna kedjar ihop dem (en
+  vägg som ligger an mot både stolpen under balken och balken vid sidan av den): knutpunkten delas, och de andra
+  delarna går till det närmaste stället. Varje del är rak mellan sina yttersta knutpunkter (en fot på bjälklaget
+  räknas som en). En del som slutar i en knutpunkt förlängs eller kortas längs sin axel
   till noden och har en led där (fria böjrotationer), utom en del som bara sitter i en knutpunkt, som annars kunde
   svänga fritt; där alla delar slutar med leder sitter den viktigaste fast.
 - Gavlarna: väggens överkant och takstolens överram hålls raka i sidled av gavelns och takets skivor (bindningar),
@@ -476,28 +479,106 @@ def bygg(fil: Path, material: dict[str, dict[str, float]]) -> Natverk:
                 return P, d1
         return delar[d1].punkt(s1), d1
 
-    # knutpunkter närmare varandra längs en del än halva delens höjd är samma knutpunkt
+    def tol(d: int) -> float:
+        """Stationer närmare varandra än så längs delen är samma knutpunkt, längre isär aldrig."""
+        return max(SAMMA, 0.5 * delar[d].hojd if delar[d].slag == "balk" else 0.0)
+
+    def for_spridd(ms: list[tuple[int, float, int]]) -> int | None:
+        """Nock- eller dalbalken som knutpunktens nod ligger på (som i nodlage), om knutpunkten har två ställen längs
+        den: stationer med ett mellanrum längre än tol. Längs reglar och hammarband är närliggande ställen alltid en
+        knutpunkt."""
+        bl = [(d, s_) for d, s_, _ in ms if delar[d].slag == "balk"]
+        if not bl:
+            return None
+        genom = [(d, s_) for d, s_ in bl if SAMMA < s_ < delar[d].L - SAMMA]
+        d1 = max(genom or bl, key=vikt)[0]
+        if delar[d1].grupp != "balk":
+            return None
+        v = sorted(s_ for d, s_, _ in ms if d == d1)
+        return d1 if len(v) > 1 and float(np.max(np.diff(v))) > tol(d1) else None
+
+    def dela(ms: list[tuple[int, float, int]]) -> list[list[tuple[int, float, int]]]:
+        """En knutpunkt med två ställen längs delen som noden ligger på (kontakterna har kedjat ihop dem, som en vägg
+        som ligger an mot både en stolpe och balken vid sidan av den): en knutpunkt per ställe, och de andra delarnas
+        stationer i den närmaste."""
+        d0 = for_spridd(ms)
+        if d0 is None:
+            return [ms]
+        sl = sorted(s_ for d, s_, _ in ms if d == d0)
+        kl = [[sl[0]]]
+        for s_ in sl[1:]:
+            if s_ - kl[-1][-1] > tol(d0):
+                kl.append([s_])
+            else:
+                kl[-1].append(s_)
+        centra = np.array([delar[d0].punkt(float(np.mean(v))) for v in kl])
+        ut: list[list[tuple[int, float, int]]] = [[] for _ in kl]
+        per_del: dict[int, list[tuple[int, float, int]]] = defaultdict(list)
+        for t in ms:
+            per_del[t[0]].append(t)
+        for d, ts in per_del.items():
+            ts.sort(key=lambda t: t[1])
+            if d == d0:
+                for t in ts:
+                    ut[next(i for i, v in enumerate(kl) if v[0] <= t[1] <= v[-1])].append(t)
+                continue
+            # delens stationer i följd (mellanrum högst tol) följs åt, till den närmaste knutpunkten
+            foljd = [[ts[0]]]
+            for t in ts[1:]:
+                if t[1] - foljd[-1][-1][1] > tol(d):
+                    foljd.append([t])
+                else:
+                    foljd[-1].append(t)
+            for f in foljd:
+                p = delar[d].punkt(float(np.mean([t[1] for t in f])))
+                ut[int(np.argmin(np.linalg.norm(centra - p, axis=1)))].extend(f)
+        return [g for u in ut for g in dela(u) if g]
+
+    # knutpunkterna som kontakterna har gett, delade där de kedjat ihop ställen längs en del (uf byggs om)
+    grupper_st: dict[int, list[tuple[int, float, int]]] = defaultdict(list)
+    for d, lista in st_del.items():
+        for s_, k in lista:
+            grupper_st[uf.hitta(k)].append((d, s_, k))
+    uf = _Unionfind(len(uf.p))
+    for ms in grupper_st.values():
+        for g in dela(ms):
+            for _, _, k in g[1:]:
+                uf.forena(g[0][2], k)
+
+    # knutpunkter närmare varandra längs en del än halva delens höjd är samma knutpunkt (men inte om det lägger
+    # stationer längre isär än så på en del i samma knutpunkt)
     for _ in range(10):
         medlemmar: dict[int, list[tuple[int, float]]] = defaultdict(list)
         for d, lista in st_del.items():
             for s_, k in lista:
                 medlemmar[uf.hitta(k)].append((d, s_))
         lage = {k: nodlage(ms)[0] for k, ms in medlemmar.items()}
-        samma = [(uf.hitta(k0), uf.hitta(k1), s1 - s0, max(SAMMA, 0.5 * delar[d].hojd if delar[d].slag == "balk" else 0.0))
+        samma = [(uf.hitta(k0), uf.hitta(k1), s1 - s0, tol(d))
                  for d, lista in st_del.items() for (s0, k0), (s1, k1) in zip(lista, lista[1:])]
-        samma = [(p, q) for p, q, ds, tol in samma if p != q and (ds < tol or np.linalg.norm(lage[p] - lage[q]) < tol)]
-        if not samma:
-            break
+        samma = [(p, q) for p, q, ds, t in samma if p != q and (ds < t or np.linalg.norm(lage[p] - lage[q]) < t)]
+        grp = {k: [(d, s_, 0) for d, s_ in ms] for k, ms in medlemmar.items()}
+        sammanslagna = 0
         for p, q in samma:
-            uf.forena(p, q)
+            rp, rq = uf.hitta(p), uf.hitta(q)
+            if rp == rq or for_spridd(grp[rp] + grp[rq]) is not None:
+                continue
+            uf.forena(rp, rq)
+            r = uf.hitta(rp)
+            grp[r] = grp.pop(rp) + grp.pop(rq)
+            sammanslagna += 1
+        if not sammanslagna:
+            break
 
-    # varje del rak mellan sina yttersta knutpunkter: noderna som ligger på delen (inte på en viktigare del) flyttas till
-    # linjen mellan dem, de viktigaste delarna först (en takstols diagonal mellan foten och toppen, en takbalk mellan
-    # upplagen)
+    # varje del rak mellan sina yttersta knutpunkter (eller foten på bjälklaget): noderna som ligger på delen (inte på
+    # en viktigare del) flyttas till linjen mellan dem, de viktigaste delarna först (en takstols diagonal mellan foten
+    # och toppen, en takbalk mellan upplagen)
+    def pa_bjalklaget(ms: list[tuple[int, float]]) -> bool:
+        return any(delar[d].upplagd and delar[d].punkt(s_)[2] < z_b + 100.0 for d, s_ in ms)
+
     agare = {k: nodlage(ms)[1] for k, ms in medlemmar.items()}
     for b in sorted((b for b in delar if b.slag == "balk"), key=lambda b: (-rang(b), b.nr)):
         rr = [uf.hitta(k) for _, k in st_del[b.nr]]
-        ansl = [r for r in rr if len({d for d, _ in medlemmar[r]}) > 1]
+        ansl = [r for r in rr if len({d for d, _ in medlemmar[r]}) > 1 or pa_bjalklaget(medlemmar[r])]
         if len(ansl) < 2:
             continue
         P0, P1 = lage[ansl[0]], lage[ansl[-1]]
@@ -516,7 +597,7 @@ def bygg(fil: Path, material: dict[str, dict[str, float]]) -> Natverk:
         P = lage[k]
         x.append(P)
         nod_delar.append(sorted({dd for dd, _ in ms}))
-        fast.append(any(delar[d].upplagd and delar[d].punkt(s_)[2] < z_b + 100.0 for d, s_ in ms))
+        fast.append(pa_bjalklaget(ms))
     X = np.array(x)
     stationer_ut = {d: [(s_, nod_av[uf.hitta(k)]) for s_, k in lista] for d, lista in st_del.items()}
 
@@ -646,3 +727,236 @@ def bygg(fil: Path, material: dict[str, dict[str, float]]) -> Natverk:
                    {**{k: data[k] for k in ("takytor", "vaggar", "huskroppar", "h_vagg", "z_bjalklag")},
                     "latta_reglar": data.get("latta_reglar", [])}, utelamnade,
                    sekundara, linjer, [el for el, *_ in bind])
+
+
+@dataclass
+class Skiva:
+    """En skjuvskiva (skivverkan i ett regelfack): skiktet (P:s nyckel, "utegips" eller "osb"), väggen och sidan (0:
+    ytterväggens utsida, −1/+1 innerväggens sidor), facket (u0, u1 längs väggen), bredd b och höjd h, segmentets längd
+    och faktor c (SS-EN 1995-1-1 9.2.4.2), styvheten K [N/mm] och bärförmågan per förbandsvärde V_per_F (skjuvkraften
+    per N i förbandets dimensionerande bärförmåga) [mm⁻¹ · mm]."""
+    skikt: str
+    vagg: str
+    sida: int
+    u0: float
+    u1: float
+    b: float
+    h: float
+    l_seg: float
+    c: float
+    K: float
+    V_per_F: float
+
+
+def skivans_styvhet(b: float, h: float, s: float, s_mitt: float, k_f: float) -> float:
+    """Skivverkans styvhet per meter vägg [N/mm per m] för en styv skiva b × h på en ledad regelram, fäst med förband
+    (förskjutningsmodul k_f) c/c s längs kanterna och c/c s_mitt längs mittregeln: förbandens energi när ramen skjuvas
+    och skivan förskjuts och vrids fritt (minsta kvadrat), K = 2E / (γ h)²."""
+    p = {(round(x, 3), y) for x in np.arange(0.0, b + 1e-6, s) for y in (0.0, h)}
+    p |= {(x, round(y, 3)) for y in np.arange(0.0, h + 1e-6, s) for x in (0.0, b)}
+    p |= {(b / 2, round(y, 3)) for y in np.arange(s_mitt, h - 1e-6, s_mitt)}
+    P = np.array(sorted(p)) - [b / 2, h / 2]
+    A = np.zeros((2 * len(P), 3))
+    A[0::2, 0], A[0::2, 2], A[1::2, 1], A[1::2, 2] = 1.0, -P[:, 1], 1.0, P[:, 0]
+    r = np.zeros(2 * len(P))
+    r[0::2] = P[:, 1]                                   # ramen skjuvas γ = 1: (y, 0)
+    res = r - A @ np.linalg.lstsq(A, r, rcond=None)[0]
+    return float(k_f * (res @ res) / h ** 2 / (b / 1000.0))
+
+
+def _fack(N: Natverk, v: dict[str, Any]) -> list[tuple[float, float, int, int, int, int, float, float, float, float]]:
+    """Väggens regelfack mellan två hela reglar eller stolpar (från syllen och minst 1,5 m upp, med fot- och toppnod):
+    (u_a, u_b, fot_a, topp_a, fot_b, topp_b, överkant_a, överkant_b, kant_a, kant_b), minst 100 mm breda; överkanten
+    är delens och kanterna regelns eller stolpens sidor mot facket (med delarna på dess systemlinje)."""
+    X = N.x
+    o, u = np.array([*v["origo"], 0.0]), np.array([*v["u"], 0.0])
+    pa_linjen: dict[int, list[int]] = defaultdict(list)
+    for d, k in N.linjer.items():
+        pa_linjen[k].append(d)
+
+    def u_utbredning(b: Bar) -> tuple[float, float]:
+        us = []
+        for d in (b.nr, *pa_linjen.get(b.nr, [])):
+            c = N.delar[d]
+            uc, hu = float((c.c - o) @ u), float(np.abs(c.E @ u) @ c.halv)
+            us += [uc - hu, uc + hu]
+        return min(us), max(us)
+    reglar: dict[tuple[int, int], tuple[float, float, tuple[float, float]]] = {}
+    for b in N.delar:
+        if b.slag != "balk" or b.element != v["kod"] or abs(b.ex[2]) < 0.9 or b.typ not in ("R", ""):
+            continue
+        if min(b.a0[2], b.b0[2]) > 60.0 or max(b.a0[2], b.b0[2]) < 1500.0 or len(N.stationer.get(b.nr, [])) < 2:
+            continue
+        lista = N.stationer[b.nr]
+        fot, topp = sorted((lista[0][1], lista[-1][1]), key=lambda n_: X[n_][2])
+        reglar[(fot, topp)] = (float((X[fot] - o) @ u), float(max(b.a0[2], b.b0[2])), u_utbredning(b))
+    st = sorted((uu, f, t, zt, ut_) for (f, t), (uu, zt, ut_) in reglar.items())
+    return [(ua, ub, fa, ta, fb, tb, za, zb, ka[1], kb[0]) for (ua, fa, ta, za, ka), (ub, fb, tb, zb, kb)
+            in zip(st, st[1:]) if ub - ua >= 100.0]
+
+
+INDRAG = (35.0, 50.0, 200.0)    # facket för skivans täckning: in från reglarnas mitt, upp från foten, ned från toppen
+SVAGARE_ANDEL = 0.5             # den svagare sidans bärförmåga med olika skivor på väggens sidor (9.2.4.2 (5))
+
+
+def _takskivor(N: Natverk, P: dict[str, Any]) -> list[tuple[Skiva, list[tuple[int, np.ndarray]]]]:
+    """Råsponten som skjuvskivor i takfallen. Brädorna går längs y, vinkelrätt mot takbalkarna, med två spikar per
+    bräda och upplag (i ströläkten på takbalken) på avståndet a: när takfallet skjuvas vrids takbalkarna mot brädorna
+    och varje spikpar tar ett moment, k_r = K a²/2 och M_R = F a (stela brädor, utan friktion och not och spont;
+    Brignola m.fl. 2009, NZSEE). Ett fack mellan två takbalkar (b × L, L längs takfallet) har L/w spikpar
+    (w: brädans täckande bredd), alltså styvheten L k_r / w för skjuvvinkeln och bärförmågan L F a / w. Med G_d i
+    indata (skjuvstyvheten G·t, N/mm) i stället styvheten G_d b L.
+
+    Facket har hörnen i takbalkarnas noder vid upplaget nedtill (hammarbandet, dalbalken eller takstolens fot) och
+    i nocken. Dubbla takbalkar är en; facken över takfönstren ingår inte. Skjuvvinkeln är γ = Δu_y/L + Δu_s/b
+    (s längs takfallet), ur hörnens förskjutningar som i väggarnas skivor."""
+    X = N.x
+    m = N.modell
+    nod_grupp: dict[int, set[str]] = defaultdict(set)
+    for e, d in enumerate(N.element_del):
+        b = N.delar[d]
+        g = "hammarband" if b.grupp in ("yttervagg", "innervagg") and b.typ == "H" else \
+            "dalbalk" if b.grupp == "balk" and b.element.startswith("DB") else b.grupp
+        nod_grupp[int(m.bi[e])].add(g)
+        nod_grupp[int(m.bj[e])].add(g)
+    ut = []
+    for t in N.ytor["takytor"]:
+        x0, x1 = sorted((t["x_insida"], min((r_[3] for r_ in t["regioner"]), key=lambda x: abs(x - t["x_insida"]))))
+        y0, y1 = min(r_[0] for r_ in t["regioner"]), max(r_[1] for r_ in t["regioner"])
+        linjer = []
+        for b in N.delar:
+            if b.slag != "balk" or len(N.stationer.get(b.nr, [])) < 2:
+                continue
+            st = sorted(N.stationer[b.nr])
+            if b.grupp == "takbalk" and b.typ == "T" and b.element == t["kod"]:
+                ned = [n_ for _, n_ in st if nod_grupp[n_] & {"hammarband", "dalbalk"}]
+                if not ned:
+                    continue
+                lo, hi = ned[0], max((n_ for _, n_ in st), key=lambda n_: X[n_][2])
+            elif b.grupp == "takstol" and b.typ == "X":
+                xm, ym = 0.5 * (b.a0[0] + b.b0[0]), 0.5 * (b.a0[1] + b.b0[1])
+                if not (x0 - 50 < xm < x1 + 50 and y0 - 200 < ym < y1 + 200):
+                    continue
+                lo, hi = sorted((st[0][1], st[-1][1]), key=lambda n_: X[n_][2])
+            else:
+                continue
+            if X[hi][2] - X[lo][2] < 300.0:
+                continue
+            linjer.append((0.5 * (b.a0[1] + b.b0[1]), lo, hi))
+        linjer.sort()
+        rena = []
+        for y, lo, hi in linjer:                         # dubbla takbalkar: den första
+            if rena and y - rena[-1][0] < 100.0:
+                continue
+            rena.append((y, lo, hi))
+        for (ya, la, ha), (yb, lb, hb) in zip(rena, rena[1:]):
+            b = yb - ya
+            if b > 1300.0 or any(ya + 1.0 < f[1] and f[0] < yb - 1.0 for f in t.get("fonster", [])):
+                continue
+            es = X[ha] - X[la]
+            Ls = 0.5 * (np.linalg.norm(es) + np.linalg.norm(X[hb] - X[lb]))
+            es = es / np.linalg.norm(es)
+            ey = np.array([0.0, 1.0, 0.0])
+            termer = [(ha, ey / (2 * Ls)), (hb, ey / (2 * Ls)), (la, -ey / (2 * Ls)), (lb, -ey / (2 * Ls)),
+                      (hb, es / (2 * b)), (lb, es / (2 * b)), (ha, -es / (2 * b)), (la, -es / (2 * b))]
+            k = P["G_d"] * b * Ls if P.get("G_d") else Ls * P["K_u"] * P["a"] ** 2 / 2 / P["w"]
+            ut.append((Skiva("raspont", t["kod"], 0, ya, yb, b, Ls, b, 1.0, k, P["a"] / P["w"]), termer))
+    return ut
+
+
+def skjuvskivor(N: Natverk, skikten: dict[str, dict[str, Any]]) -> list[Skiva]:
+    """Skivorna som skjuvskivor (skivverkan) i balkmodellen, per skikt (med = true i indata):
+
+    - utegips: utegipsen på ytterväggarnas utsida, i facken utan öppning;
+    - osb: skivorna direkt på reglarna (OSB, mot badrummet plywood) i de bärande innerväggarna, per sida, och på
+      insidan av ytterväggarna utan installationsskikt (1SV), i facken som skivan täcker (minst 95 % av facket innanför
+      reglarna, INDRAG, eller innanför en bredare stolpes sida, ur modellens skivor: inte dörrarna, fickorna, nischen
+      och facken där en vinkelrät vägg möter mitt i facket). De andra ytterväggarnas invändiga skivor sitter på
+      installationsskiktet 45×45 och ingår inte.
+
+    - raspont: råsponten i takfallen, i facken mellan takbalkarna (och gavlarnas och mittstolens ytterbalkar) från
+      upplaget vid takfoten eller dalbalken till nocken, inte över takfönstren (_takskivor).
+
+    Har ett fack skivor av olika slag på båda sidor (utegips och OSB i 1SV) räknas bara SVAGARE_ANDEL av den
+    svagare sidans bärförmåga (utegipsen; SS-EN 1995-1-1 9.2.4.2 (5): förbanden har olika förskjutningsmodul), men
+    hela styvheten.
+
+    Ett fack mellan två hela reglar är en skiva med hörnen i reglarnas fot- och toppnoder. Facken bildar segment
+    mellan öppningarna och väggens ändar; ett segment kortare än h/4 räknas inte, och ett kortare än h/2 har faktorn
+    c = l / (h/2). Skivans styvhet är K per meter vägg (P["K"]) gånger facket bredd och bärförmågan F_d · b · c / s
+    (P["s"]: förbandens avstånd längs skivkanterna). Skivorna läggs in i N.modell."""
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+    X = N.x
+    ut: list[Skiva] = []
+    termer: list[tuple[int, int, np.ndarray]] = []
+    k_lista: list[float] = []
+    z = np.array([0.0, 0.0, 1.0])
+    for v in N.ytor["vaggar"]:
+        o, u = np.array([*v["origo"], 0.0]), np.array([*v["u"], 0.0])
+        fall: list[tuple[str, int, Any]] = []
+        if v["yttervagg"] and skikten.get("utegips", {}).get("med"):
+            fall.append(("utegips", 0, None))
+        if skikten.get("osb", {}).get("med"):
+            for sida, pl in v.get("skivor", {}).items():
+                fall.append(("osb", int(sida), unary_union([Polygon(p["kontur"], p["hal"]) for p in pl])))
+        if not fall:
+            continue
+        alla = _fack(N, v)
+        for skikt, sida, yta in fall:
+            P = skikten[skikt]
+            fack = []
+            for f in alla:
+                ua, ub, fa, ta, fb, tb, za, zb, ka, kb = f
+                if yta is None:
+                    if any(ua < op[1] and op[0] < ub for op in v["oppningar"]):
+                        continue
+                else:                       # facket innanför reglarnas mitt, från syllen till under överkanten:
+                    # skivan får sluta mot en vinkelrät vägg över en regel, men inte mitt i facket
+                    # (vid en bred stolpe, som gavlarnas hörnstolpar, från stolpens sida)
+                    qa, qb = max(ua + INDRAG[0], ka), min(ub - INDRAG[0], kb)
+                    q = Polygon([(qa, X[fa][2] + INDRAG[1]), (qb, X[fb][2] + INDRAG[1]),
+                                 (qb, zb - INDRAG[2]), (qa, za - INDRAG[2])])
+                    if q.area <= 0 or yta.intersection(q).area < 0.95 * q.area:
+                        continue
+                fack.append(f[:6])
+            seg: list[list[tuple]] = []
+            for f in fack:
+                if seg and abs(seg[-1][-1][1] - f[0]) < 1.0:
+                    seg[-1].append(f)
+                else:
+                    seg.append([f])
+            for s_ in seg:
+                l = s_[-1][1] - s_[0][0]
+                h = float(np.mean([X[t][2] - X[f][2] for _, _, f, t, _, _ in s_]
+                                  + [X[t][2] - X[f][2] for *_, f, t in s_]))
+                if l < h / 4:
+                    continue
+                c = min(1.0, l / (h / 2))
+                for ua, ub, fa, ta, fb, tb in s_:
+                    b = ub - ua
+                    hb = 0.5 * (X[ta][2] - X[fa][2] + X[tb][2] - X[fb][2])
+                    i = len(ut)
+                    for n_, vec in ((ta, u / (2 * hb)), (tb, u / (2 * hb)), (fa, -u / (2 * hb)), (fb, -u / (2 * hb)),
+                                    (fb, z / (2 * b)), (tb, z / (2 * b)), (fa, -z / (2 * b)), (ta, -z / (2 * b))):
+                        termer.append((i, n_, vec))
+                    K = P["K"] * b / 1000.0
+                    k_lista.append(K * hb * hb)
+                    ut.append(Skiva(skikt, v["kod"], sida, ua, ub, b, hb, l, c, K, b * c / P["s"]))
+    if skikten.get("raspont", {}).get("med"):
+        for s_, t_ in _takskivor(N, skikten["raspont"]):
+            i = len(ut)
+            for n_, vec in t_:
+                termer.append((i, n_, vec))
+            k_lista.append(s_.K)
+            ut.append(s_)
+    osb = {(s_.vagg, round(s_.u0), round(s_.u1)) for s_ in ut if s_.skikt == "osb" and s_.sida == 1}
+    for s_ in ut:
+        if s_.skikt == "utegips" and (s_.vagg, round(s_.u0), round(s_.u1)) in osb:
+            s_.V_per_F *= SVAGARE_ANDEL
+    m = N.modell
+    m.s_c = np.array([t[0] for t in termer], int)
+    m.s_nod = np.array([t[1] for t in termer], int)
+    m.s_v = np.array([t[2] for t in termer], float).reshape(-1, 3)
+    m.s_k = np.array(k_lista, float)
+    return ut

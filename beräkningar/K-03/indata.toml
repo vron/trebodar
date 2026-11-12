@@ -235,3 +235,14 @@ strava_b = 45
 strava_h = 120
 strava_lager = 4
 strava_L = 990          # strävans längd mellan knutpunkterna (modellen, 45°)
+
+[huvudstolpe_fot]       # förankringen mot lyft vid foten: 2 vinkelbeslag ABR10525 på syllbitarna, betongbult genom var
+beslag = "ABR10525"     # Simpson Strong-Tie, ETA-06/0106
+R1_k = 25.5             # kN, 2 beslag, søjle på bjælke, fullt utskruvat med CSA5,0×40 (databladet)
+R1_k_spik = 9.4         # kN, samma med beslagsöm CNA4,0×40 (räcker inte)
+gamma_M = 1.35          # förband (databladets exempel)
+n_beslag = 2
+skruv = "6 + 8 st CSA5,0×40 per beslag"
+bult_d = 12             # betongbult genom beslaget och syllen (samma som syllarnas, IN-01 BETONGBULT-SYLL)
+bult_djup = 90
+bandning = 1.5          # bultens drag av beslagets bändning kring bulten (hävarm skänkelns kant)

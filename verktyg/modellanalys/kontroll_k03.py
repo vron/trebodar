@@ -149,7 +149,7 @@ def main():
 
     # ---------------------------------------------------------------- huvudstolpen (LN1_3 med strävor)
     rapport.append("Huvudstolpen")
-    hs = [lada([d]) for d in stomme if d.grupp.endswith("/Stolpe LN1_3") and not re.fullmatch(r"\w+-[PS]\d+", d.namn)]
+    hs = [lada([d]) for d in stomme if d.grupp.endswith("/Stolpe LN1_3") and not re.fullmatch(r"\w+-[PSB]\d+", d.namn)]
     par, _ = para(kalla["huvudstolpe"], hs, lambda s: ((s["y0"] + s["y1"]) / 2, (s["z0"] + s["z1"]) / 2))
     if len(kalla["huvudstolpe"]) != len(hs):
         fel.append(f"huvudstolpen: {len(kalla['huvudstolpe'])} delar i källfilen, {len(hs)} i modellen")

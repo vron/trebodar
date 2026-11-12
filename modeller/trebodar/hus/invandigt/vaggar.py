@@ -46,8 +46,7 @@ from trebodar.material import BRADA
 
 from .lattvaggar import FICKA_SKENA, H_VIRKE, LATTA, T, VAGGAR, Lattvagg, fickor, vaggdef  # noqa: F401
 from .skikt import (FOLIE, GIPS_YTTRE_W, LAKT, SKIVOR, SKIVOR_T, SKIVOR_VATRUM, SKIVOR_VATRUM_MALAD,
-                    SKIVOR_VATRUM_T, innertak_vid,
-                    innertakets_fall)
+                    SKIVOR_VATRUM_T, innertak_vid, innertakets_fall, installationsskikt)
 
 CC = 600.0
 # skiktens ordning: genomgående väggar först, så att skikten på väggarna som möter dem slutar mot dem
@@ -280,7 +279,7 @@ def _ytterskivor() -> list[Hinder]:
     lämnade en springa i hörnet)."""
     ut = []
     for kod, v in S.YTTERVAGGAR.items():
-        w = S.T_STOMME + FOLIE + LAKT
+        w = v.tjocklek + FOLIE + (LAKT if installationsskikt(kod) else 0.0)
         ut.append((_band(v, 0.0, v.langd, w, w + SKIVOR_T), 0.0, 10000.0))
         vat = _band(v, 0.0, v.langd, w, w + SKIVOR_VATRUM_T).intersection(BADRUM)
         if not vat.is_empty:
@@ -293,6 +292,9 @@ class _Skikt:
     montage: dict[str, Montage] = field(default_factory=dict)
     band: dict[str, list[Hinder]] = field(default_factory=dict)
     ytor: list[tuple[str, int, float, Any, Any]] = field(default_factory=list)   # (vägg, sida, w, yta i (u, z), material)
+    # de bärande innerväggarnas skivor direkt på reglarna (OSB, mot badrummet plywood) per sida: (vägg, sida) ->
+    # ytor i (u, z), utan fickorna (brädor)
+    skivor: dict[tuple[str, int], list[Any]] = field(default_factory=dict)
 
 
 @cache
@@ -338,6 +340,8 @@ def _skikt() -> _Skikt:
                                  ("Bräda", "BR", BRADA, omrade.intersection(fickzon))]
                     if (namn, t, typ, mat) == skivor[-1]:             # den synliga ytan (golvlisterna, #100)
                         res.ytor.append((kod, sida, ws + sida * t, omrade, mat))
+                    if (namn, t, typ, mat) == skivor[0] and kod in S.INNERVAGGAR:
+                        res.skivor.setdefault((kod, sida), []).append(delar[0][3])
                     for namn_, typ_, mat_, yta in delar:
                         p = plan.setdefault(namn_, Plan(kod, f"{namn_} {kod}", t, material=mat_))
                         for q in P.polygoner(yta, 100.0):
@@ -354,6 +358,13 @@ def _skikt() -> _Skikt:
                 m.lagg(p.montage())
         res.montage[kod] = m
     return res
+
+
+def barande_skivor() -> dict[tuple[str, int], Any]:
+    """De bärande innerväggarnas skivor direkt på reglarna (OSB 12, mot badrummet plywood 15) per sida (−1, +1):
+    (vägg, sida) -> ytan i väggens (u, z), utan dörrarna, nischerna, fickorna och det som går genom skiktet (för
+    K-04:s skivverkan)."""
+    return {k: unary_union(v) for k, v in _skikt().skivor.items()}
 
 
 def barande_skikt() -> list[Hinder]:

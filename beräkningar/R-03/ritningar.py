@@ -315,8 +315,8 @@ def blad():
             "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot. Skarvarna med minst 200 mm "
             "överlapp, tejpade, och tätade vid genomföringar (R-04).",
             f"Plattan på mark har L-element S300, {K.H_L_MARK:.0f} mm höga, längs de fria kanterna (AR-02, R-06); "
-            "betongen går fram till ryggen och fyller dess fas i överkant, vid de fria hörnen ut i ryggens urtag (R-06 "
-            "detalj F).",
+            "i plattans tjocklek är ryggen urtagen utom de yttersta 30 mm, och betongen går fram till plattans kant "
+            "(R-06 detalj F).",
             "Bilderna är förenklade: armering, fogar och mindre delar visas inte."]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[

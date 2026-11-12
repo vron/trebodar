@@ -4,10 +4,11 @@ takfallen för dem i takets plan till väggarna.
 
 - Väggarna: fältet mellan två stående delar (u ungefär vid deras mitt i väggens system; banden går till den
   närmaste hela regeln eller stolpen), från syllens mitt vid den ena till hammarbandets mitt vid den andra, infällda
-  i stommens yta w 0.
+  i stommens yta w 0; i fälten i INSIDAN också ett kryss infällt i stommens insida (dubbla band).
 - Takfallen: fältet mellan två lägen y (takbalkarnas eller gavelstolarnas mitt), från takfoten (ytterväggens mitt)
   eller dalbalkens sida till nockbalkens sida, infällda i takbalkarnas överkant; inte över takfönstren och
-  ventilationens kanaler genom taket (takhuvar och takfläktar).
+  ventilationens kanaler genom taket (takhuvar och takfläktar). Kryss bara i de fält som K-04 behöver
+  (inte i TAK_UTAN): i de andra tar råsponten skjuvningen.
 
 Fälten är valda i K-04, som räknar stommen med banden: ändras ett fält, räknas K-04 om med ./bygg K-04.
 """
@@ -28,8 +29,8 @@ R = 45.0
 
 # väggarnas fält med kryss: (u, u) i väggens system, ungefär vid de stående delarnas mitt
 VAGGAR: dict[str, tuple[tuple[float, float], ...]] = {
-    "1NO": ((1772.5, 2977.5), (3622.5, 4287.5)),
-    "1SO": ((22.5, 1095.5), (2940.5, 5012.5), (6147.5, 8295.5), (8295.5, 10695.5), (11340.5, 12157.5)),
+    "1NO": ((22.5, 682.5), (1772.5, 2977.5), (3622.5, 4287.5)),
+    "1SO": ((22.5, 1045.5), (2890.5, 4962.5), (6097.5, 8245.5), (8245.5, 10645.5), (11290.5, 12107.5)),
     "1SV": ((22.5, 1112.5), (3257.5, 4347.5)),
     "1NV": ((1887.5, 3012.5),),
     "2NO": ((3067.5, 4222.5),),
@@ -37,17 +38,32 @@ VAGGAR: dict[str, tuple[tuple[float, float], ...]] = {
     "2SO": ((1612.5, 3472.5),),
     "3NO": ((1617.5, 2822.5),),
     "3NV": ((1382.5, 2237.5), (4782.5, 7095.0), (9992.5, 11357.5)),
-    "3SV": ((1717.5, 2752.5),),
+    "3SV": ((22.5, 627.5), (1717.5, 2752.5),),
     "1B": ((22.5, 1002.5), (1207.5, 2187.5)),
     "2B": ((22.5, 1202.5), (1202.5, 2402.5)),
     "2C": ((2841.5, 4285.0),),
 }
 
-# takfallens fält med kryss: längs hela takfallet mellan gavlarna, fält om högst FALT_TAK mellan takbalkarnas eller
+# väggarnas fält med kryss också på stommens insida (under ångbromsen och installationsskiktet)
+INSIDAN: dict[str, tuple[tuple[float, float], ...]] = {
+    "3SV": ((3697.5, 4347.5),),
+}
+
+# takfallens fält: längs hela takfallet mellan gavlarna, fält om högst FALT_TAK mellan takbalkarnas eller
 # gavelstolarnas mitt, inte över takfönstren och kanalerna genom taket (KANAL_MARGINAL från kanalens yta) och delade där
-# dalbalken slutar
+# dalbalken slutar; kryss i de fält som K-04 behöver (alla utom TAK_UTAN)
 FALT_TAK = 2400.0
 KANAL_MARGINAL = 50.0
+# takfallens fält utan kryss (K-04): fälten numreras i ordning längs y från 1, och fält n har banden B(2n − 1) och
+# B(2n). Numren behålls, så att de andra banden har kvar sina namn.
+TAK_UTAN: dict[str, frozenset[int]] = {
+    "1NV": frozenset({1}),
+    "1SO": frozenset({1, 3, 5}),
+    "2NV": frozenset({1, 4}),
+    "2SO": frozenset({5}),
+    "3NV": frozenset({2}),
+    "3SO": frozenset({1, 4}),
+}
 
 
 def staende(kod: str) -> list[tuple[float, float]]:
@@ -75,10 +91,11 @@ def vaggens_band(kod: str) -> Montage:
     st = staende(kod)
     m = Montage(f"Stålband {kod}", kod, f"Stålband i kryss i väggen {kod}")
     i = 0
-    for a, b in VAGGAR[kod]:
+    falt = [(a, b, 0.0, w) for a, b in VAGGAR[kod]] + [(a, b, v.tjocklek, -w) for a, b in INSIDAN.get(kod, ())]
+    for a, b, ww, inat in falt:
         (ua, za), (ub, zb) = (min(st, key=lambda s: abs(s[0] - x)) for x in (a, b))
         for (p, zp), (q, zq) in (((ua, R / 2), (ub, zb + R / 2)), ((ub, R / 2), (ua, za + R / 2))):
-            d, pl = band(o + p * u + np.array([0, 0, zp]), o + q * u + np.array([0, 0, zq]), w)
+            d, pl = band(o + p * u + ww * w + np.array([0, 0, zp]), o + q * u + ww * w + np.array([0, 0, zq]), inat)
             i += 1
             m.lagg(d, pl, f"{kod}-B{i:02d}")
     return m
@@ -135,12 +152,14 @@ def takfallets_band(kod: str) -> Montage:
 
     m = Montage(f"Stålband takfall {kod}", kod, f"Stålband i kryss i takfallet {kod}")
     i = 0
-    for ya, yb in takfallets_falt(kod):
+    for n, (ya, yb) in enumerate(takfallets_falt(kod), 1):
         for (y0, y1) in ((ya, yb), (yb, ya)):
+            i += 1
+            if n in TAK_UTAN.get(kod, ()):
+                continue
             p = np.array([ner(y0), y0, t.z_overkant(ner(y0))])
             q = np.array([upp, y1, t.z_overkant(upp)])
             d, pl = band(p, q, inat)
-            i += 1
             m.lagg(d, pl, f"T{kod}-B{i:02d}")
     return m
 

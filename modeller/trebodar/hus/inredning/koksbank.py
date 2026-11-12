@@ -25,7 +25,7 @@ from trebodar import skelett as S
 from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.invandigt.lattvaggar import K_X1, K_YTA
-from trebodar.hus.invandigt.skikt import INSIDA_T
+from trebodar.hus.invandigt.skikt import insida_vanlig_t
 from trebodar.material import ASK, BANKSKIVA, HALLGLAS, ROSTFRITT, VIT_SKIVA
 
 from . import koksskap as K
@@ -36,7 +36,7 @@ SIDA_T = 20.0                                           # de vita sidorna
 SPARK_IN, SPARK_T = 60.0, 16.0                          # sparklisten: innanför fronterna, tjocklek
 N_LANG, N_KORT = 7, 3
 X_VAGG = K_X1                                           # 3NV:s insida
-Y_SYD = S.YTTERVAGGAR["3SV"].origo[1] - S.T_STOMME - INSIDA_T     # 3SV:s insida
+Y_SYD = S.YTTERVAGGAR["3SV"].origo[1] - S.t_stomme("3SV") - insida_vanlig_t("3SV")     # 3SV:s insida
 X_FRONT = X_VAGG - BANK_DJUP + UTSTICK                  # fronternas yta längs 3NV
 Y_FRONT = Y_SYD - BANK_DJUP + UTSTICK                   # fronternas yta längs 3SV
 # fogarna mellan skåpen (fogbrädornas mitt): längs 3NV från brädan mot inbyggnaden till hörnets fogbräda, med

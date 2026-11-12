@@ -21,8 +21,11 @@ from modellering.form import Diff, Form, Transf
 from modellering.placering import Placering
 
 from trebodar import skelett as S
+from trebodar.byggdelar import polygon as P
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+from trebodar.hus.invandigt import vaggar, vagginsida
 from trebodar.hus.stomme import forankring
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
 from trebodar.hus.tak.takytor import REGIONER
 
 VERSION = 1
@@ -73,23 +76,40 @@ def _delar(stomme: Montage, plac: Placering) -> list[dict[str, Any]]:
 
 
 def _takytor() -> list[dict[str, Any]]:
-    """Takfallen: kroppen, riktningen, takbalkarnas överkant z(x) = z_ref + riktning · tan · (x − x_ref) och
-    regionerna (y0, y1, nedre kant x, nock x) i plan."""
+    """Takfallen: kroppen, riktningen, takbalkarnas överkant z(x) = z_ref + riktning · tan · (x − x_ref),
+    regionerna (y0, y1, nedre kant x, nock x) i plan och takfönstrens öppningar (y0, y1, nedre x, övre x)."""
     ut = []
     for kod, regioner in REGIONER.items():
         t = S.TAKFALL[kod]
         ut.append({"kod": kod, "kropp": t.kropp, "riktning": t.riktning, "lutning": S.TAKVINKEL,
                    "x_insida": t.x_insida, "x_utsida": t.x_utsida, "x_takfot": t.x_takfot,
                    "x_ref": t.x_insida, "z_ref": t.z_overkant(t.x_insida),
-                   "regioner": [[r.y0, r.y1, r.nedre.x, r.nock.x] for r in regioner]})
+                   "regioner": [[r.y0, r.y1, r.nedre.x, r.nock.x] for r in regioner],
+                   "fonster": [[fo.y0, fo.y1, fo.x_ned, fo.x_upp] for fo in FALT[kod].fonster]})
     return ut
 
 
+def _polygoner(yta: Any) -> list[dict[str, Any]]:
+    """Ytan som polygoner: ytterkonturen och hålen, (u, z) i mm."""
+    def ring(r: Any) -> list[list[float]]:
+        return [[round(x, 1), round(y, 1)] for x, y in list(r.coords)[:-1]]
+    return [{"kontur": ring(g.exterior), "hal": [ring(h) for h in g.interiors]} for g in P.polygoner(yta, 1000.0)]
+
+
 def _vaggar() -> list[dict[str, Any]]:
-    """Väggarna: läge, längd, tjocklek, om väggen är en yttervägg och öppningarna (u0, u1, z0, z1)."""
+    """Väggarna: läge, längd, tjocklek, om väggen är en yttervägg, öppningarna (u0, u1, z0, z1) och, för de bärande
+    innerväggarna, skivorna direkt på reglarna per sida (OSB, mot badrummet plywood), och för ytterväggarna utan
+    installationsskikt (1SV) OSB:n på insidan (sida +1); de andra ytterväggarnas invändiga skivor sitter på
+    installationsskiktet och ingår inte: {sida: polygoner i (u, z)}."""
+    skivor = dict(vaggar.barande_skivor())
+    for kod in S.YTTERVAGGAR:
+        yta = vagginsida.barande_skivor(kod)
+        if not yta.is_empty:
+            skivor[(kod, 1)] = yta
     return [{"kod": kod, "origo": list(v.origo), "u": list(v.u), "w": list(v.w), "langd": v.langd,
              "tjocklek": v.tjocklek, "yttervagg": kod in S.YTTERVAGGAR,
-             "oppningar": [[o.u0, o.u1, max(o.z0, 0.0), o.z1] for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0]}
+             "oppningar": [[o.u0, o.u1, max(o.z0, 0.0), o.z1] for o in OPPNINGAR.get(kod, []) if o.z1 > 0.0],
+             "skivor": {str(sida): _polygoner(skivor[(kod, sida)]) for sida in (-1, 1) if (kod, sida) in skivor}}
             for kod, v in S.VAGGAR.items()]
 
 
@@ -118,6 +138,18 @@ def utdrag(rot: Montage) -> dict[str, Any]:
             "huskroppar": [{"nr": k.nr, "x0": k.x0, "x1": k.x1, "y0": k.y0, "y1": k.y1, "nock": k.nock}
                            for k in S.HUSKROPPAR.values()],
             "delar": _delar(stomme, p), "takytor": _takytor(), "vaggar": _vaggar(), "latta_reglar": _latta_reglar(rot),
-            # förankringen (inte i K-04:s balkmodell; R-02 visar den): betongbultarna genom syllarna
+            # förankringen (inte i K-04:s balkmodell; K-04 prövar den och R-02 visar den): betongbultarna genom
+            # syllarna (där de går genom syllen, med lutningen från lodlinjen) och beslagen med sina bultar
             "bultar": {"d": forankring.D, "djup": forankring.DJUP, "over": forankring.OVER,
-                       "lagen": [{"vagg": k, "x": x, "y": y} for k, x, y in forankring.bultar()]}}
+                       "lagen": [_bult(k, b) for k, b in forankring.syllbultar()]},
+            "beslag": [{"nyckel": b.nyckel, "del": b.del_, "element": b.element, "slag": b.slag,
+                        "x": round(float(b.plac.t[0]), 1), "y": round(float(b.plac.t[1]), 1),
+                        "z": round(float(b.plac.t[2]), 1),
+                        "normal": [round(float(v), 4) for v in b.plac.riktning((1.0, 0.0, 0.0))[:2]],
+                        "bultar": [_bult(b.element, bu) for bu in b.bultar]}
+                       for b in forankring.beslag() + forankring.huvudstolpens_beslag()]}
+
+
+def _bult(kod: str, b: Any) -> dict[str, Any]:
+    """Bulten där den går genom ytan som brickan ligger på, och dess lutning från lodlinjen [°]."""
+    return {"vagg": kod, "x": round(b.genom[0], 1), "y": round(b.genom[1], 1), "lutning": round(b.lutning, 1)}

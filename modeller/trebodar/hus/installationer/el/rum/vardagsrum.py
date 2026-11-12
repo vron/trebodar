@@ -42,8 +42,8 @@ PUNKTER = [
     Apparat("VR-B1", DIMMER_2, vagg("1D", U_B, 1050.0, sida=1), styr=("VR-T1", "VR-T2")),
     Apparat("VR-B2", DIMMER_1, vagg("1D", U_B + 80.0, 1050.0, sida=1), styr=("VR-T3",)),
     Apparat("VR-U1", UTTAG_1, ovan_fonstret("1NV", 1000.0)),
-    Apparat("VR-U2", UTTAG_1, ovan_fonstret("1SO", 3445.0)),
-    Apparat("VR-U3", UTTAG_1, ovan_fonstret("1SO", 1645.0)),
+    Apparat("VR-U2", UTTAG_1, ovan_fonstret("1SO", 3395.0)),
+    Apparat("VR-U3", UTTAG_1, ovan_fonstret("1SO", 1595.0)),
 ]
 
 ROR = [
