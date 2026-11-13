@@ -266,7 +266,7 @@ Minimiarmering (9.3.1.1): underkant #D.min.uk mm²/m (finns #D.min.uk_har), öve
 
 *Rör.* VKR 80×80×4 S235 är kallformade (knäckkurva c), ledade i båda ändar och har knäcklängden 2 100 mm. Det ger $overline(lambda)$ = #D.ror.lam, $chi$ = #D.ror.chi och $N_"b,Rd"$ = #D.ror.NbRd kN (SS-EN 1993-1-1 6.3.1). Största rörlast #D.max_VEd kN (#D.max_pel) ger #D.max_knack.
 
-*Vindlyft.* Med styva rör får #D.lyft.namn #D.lyft.Rmin kN, alltså drag. Utan #D.lyft.utan lyfter plattan #D.lyft.w mm vid röret. Största moment är då #D.lyft.ok_u kNm/m i överkant och #D.lyft.uk_u kNm/m i underkant, högst #D.lyft.utn av nätets bärförmåga. Stolparna förankras i topp och fot för sin lyftkraft (K-03).
+*Vindlyft.* #if D.lyft.utan == "" [Inget rör får drag: med styva rör får #D.lyft.namn minst, #D.lyft.Rmin kN tryck. Största moment i överkant är #D.lyft.mox kNm/m, #D.lyft.utn av nätets bärförmåga.] else [Med styva rör får #D.lyft.namn #D.lyft.Rmin kN, alltså drag. Utan #D.lyft.utan lyfter plattan #D.lyft.w mm vid röret. Största moment är då #D.lyft.ok_u kNm/m i överkant och #D.lyft.uk_u kNm/m i underkant, högst #D.lyft.utn av nätets bärförmåga.] Stolparna förankras i topp och fot för sin lyftkraft (K-03).
 
 *Reaktioner på källarväggarna* (underlag för K-06). Karakteristiska summor i kN, med det som står direkt på väggen från plan 1 inräknat. Största dimensionerande last över 1 m (eller hela väggen om den är kortare) är omhyllande för kombinationerna med full nyttig last.
 #liten(

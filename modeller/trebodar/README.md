@@ -459,7 +459,7 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   sidor i en murad, putsad och kalkad skorsten av lättbetong i allrummet, mot 2C mitt under nocken, från golvet till
   halva höjden, med fronten ovanför och under insatsen av kalciumsilikat och konvektionsöppningar i sidorna. Den
   isolerade skorstenen Ø150/Ø250 går från stosen i en förskjutning snett bakåt genom nischen i 2C in i garderoben och
-  lodrätt genom taket väster om nockbalk 3, minst 50 mm från allt brännbart och 800 mm över nocken, sotningsbar
+  lodrätt genom taket väster om nockbalk 3, minst 50 mm från allt brännbart och 1 000 mm över nocken, sotningsbar
   uppifrån; i garderoben står ett skydd av gips med inspektionslucka runt den. Förbränningsluften (AirSystem) går i en
   isolerad kanal samma väg upp genom taket. Måtten och avstånden står i modulens beskrivning.
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400

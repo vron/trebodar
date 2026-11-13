@@ -16,7 +16,7 @@ Stegen körs parallellt: ett steg startar när stegen det bygger på är klara (
 tar ungefär så lång tid som den längsta kedjan (lokalt under en halv minut för de snabba stegen). När flera steg körs
 har deras utdata stegets namn först på raden, och ett steg som misslyckas stoppar bygget när de pågående är klara.
 
-Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/modellanalys/.venv`) skapas och uppdateras med `uv` när de saknas, kravfilerna ändras eller `MILJO_VERSION` höjs, före stegen. Paketens bytekod kompileras då i förväg, så att Python inte kompilerar dem vid varje start där den inte får spara bytekoden (`PYTHONDONTWRITEBYTECODE`, som i Claude Code); stegen själva får spara den (`__pycache__` ignoreras av git). Modellanalysens steg körs genom `./ma` (ma-tjänsten, se [`verktyg/modellanalys`](../modellanalys/)), så att modellen läses en gång. Typsnittet Carlito ska vara installerat eller ligga i `beräkningar/.fonts`.
+Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/modellanalys/.venv`) skapas och uppdateras med `uv` när de saknas, kravfilerna ändras eller `MILJO_VERSION` höjs, före stegen. Paketens bytekod kompileras då i förväg, så att Python inte kompilerar dem vid varje start där den inte får spara bytekoden (`PYTHONDONTWRITEBYTECODE`, som i Claude Code); stegen själva får spara den (`__pycache__` ignoreras av git). Modellanalysens steg körs genom `./ma` (ma-tjänsten, se [`verktyg/modellanalys`](../modellanalys/)), så att modellen läses en gång. Typsnittet Carlito ska vara installerat eller ligga i `beräkningar/.fonts` (versionshanteras inte); saknas det stoppar bygget, så att ingen handling sätts i ett annat typsnitt.
 
 ## Stegen
 

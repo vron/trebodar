@@ -167,7 +167,7 @@ Virket (SS-EN 1995-1-1): normalkraft och böjning (6.17–6.20, med knäckning 6
 #table(
   columns: (1.25fr, 1.1fr, auto, 1.25fr, 1.6fr),
   align: (left, left, right, left, left),
-  [Grupp], [Kontroll], [$eta$], [Del], [Krafter],
+  [Grupp], [Kontroll], [Utn.], [Del], [Krafter],
   ..r.detalj.filter(d => d.kontroll != "Spik i bandets ände").map(d => ([#d.grupp], [#d.kontroll], [#eta(d.eta, d.ok)], liten[#d.del], liten[#if "Nc" in d [N#sub[c] #d.Nc kN ] #if "My" in d [M#sub[y] #d.My, M#sub[z] #d.Mz kNm ] #if "V" in d [V #d.V kN ] #if "N" in d and not ("Nc" in d) [N #d.N kN]  · #d.komb])).flatten(),
 )
 

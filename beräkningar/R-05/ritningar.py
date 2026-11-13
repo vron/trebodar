@@ -596,9 +596,9 @@ def blad_plan():
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),
         dict(typ="rubrik", text="Öppningar i betongen"),
         oppningstabell(),
-        dict(typ="text", sz=6.0, rader=["", "Betongens mått, färdig öppning inom parentes (smyglist 100 mm vid sidorna "
-                                          "och på bröstningen). Överkant i mellanbjälklagets underkant, 2\u00a0100 över "
-                                          "bottenplattan."]),
+        dict(typ="text", sz=6.0, rader=["Betongens mått, färdig öppning inom parentes (smyglist 100 mm vid sidorna "
+                                        "och på bröstningen). Överkant i mellanbjälklagets underkant, 2\u00a0100 över "
+                                        "bottenplattan."]),
         dict(typ="rubrik", text="Rörens lägen (mitt)"),
         rortabell(),
         dict(typ="rubrik", text=f"Ritningsförteckning {NR}"),

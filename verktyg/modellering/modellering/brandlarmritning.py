@@ -141,7 +141,8 @@ def _plan(utdrag: dict, delar: list[dict], plan_nr: int, nummer: str, rubrik: st
             f"En varnare i varje huvudutrymme, högt i taket nära rummets mitt; i snedtaken omkring "
             f"{sv(utdrag['avstand_nock'] / 1000, 1)} m från nocken i planet, mellan installationsskiktets läkt, "
             "eftersom röken tar lång tid till andra rum under de höga taken.",
-            f"Kabeln: {utdrag['kabel']}. Matningen från elcentralen (läget inte bestämt) till matningsdosan D01; "
+            f"Kabeln: {utdrag['kabel']}. Matningen från gruppcentralen, grupp G02 (E-01: röret G02-R2 från allrummets "
+            "dosa AL-B2 ned i väggen L19), till matningsdosan D01; "
             "stammen går under källarens tak, med en stigare per huskropp genom mellanbjälklaget (mellan "
             "armeringens järn) och i en innerväggs regelfack upp till innertakets installationsskikt.",
             "Produkterna är inte valda (allmänna typer med vanliga mått). Ritningen ritas med ./mod brandlarm ritning.",

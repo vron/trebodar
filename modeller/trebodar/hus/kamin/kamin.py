@@ -22,7 +22,7 @@ Möbler minst 950 framför dörren och 500 från sidoglasen.
 Skorstenen är isolerad, Ø150/Ø250 rostfri (ett CE-märkt systemskorsten med 50 mm deklarerat avstånd till brännbart,
 G50), ända ned till stosen (manualen): lodrätt till Z_BOJ och i en enda förskjutning 45° snett bakåt genom nischens
 baksida och 2C:s skikt mot garderoben (i nischen, inga reglar) in i garderoben, och lodrätt genom garderobens tak,
-innertaket och taket till 800 mm över nocken, med regnhuv: två böjar, sotningsbar uppifrån. Genom taket går den väster
+innertaket och taket till 1 000 mm över nocken, med regnhuv: två böjar, sotningsbar uppifrån. Genom taket går den väster
 om nockbalken NB3, mellan takbalken T09 och takstolen 2C. Minst 50 mm till allt brännbart (nischens reglar, skikten,
 läkten, takbalken, nockbalken); ovanför insatsen är skorstenens sidor därför kalciumsilikat 50 i stället för lättbetong.
 Nockbalken ligger rakt ovanför kaminen, så skorstenen kan inte gå rakt upp. I garderoben står ett skydd av gips runt
@@ -79,7 +79,7 @@ Y_GARDEROB = 5710.0                         # förbränningsluftens kanal i gard
 X_SK, Y_SK = 6635.0, 5635.0                 # och lodrätt genom taket väster om nockbalken NB3 (50 till trä), i facket
 #                                            mellan takbalken T09 (y 5 460) och takstolen 2C (5 905), 50 till trä
 Z_SIDA = 1071.0                             # sidornas murverk upp hit (hålets överkant); ovanför kalciumsilikat 50
-OVER_NOCK = 800.0
+OVER_NOCK = 1000.0                          # mynningen över nocken, som bygglovets fasadritning 205 (1,0 m över taket)
 # förbränningsluften
 LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
 LUFT_ISOL = 20.0                            # kanalens isolering

@@ -189,10 +189,11 @@
     }
   } else if k.typ == "tabell" {
     set text(size: k.at("sz", default: 6.8) * 1pt)
-    table(columns: k.at("bredd", default: k.kolumner.map(_ => 0)).map(b => if b == 0 { auto } else { b * 1fr }), stroke: (x, y) => (top: if y == 0 { 0.4pt } else { 0.2pt + luma(180) }, bottom: 0.4pt),
+    // i ett block med luft under, så att en text direkt efter tabellen (en förklaring) inte hamnar på dess nedersta linje
+    block(above: 0mm, below: 1.2mm, table(columns: k.at("bredd", default: k.kolumner.map(_ => 0)).map(b => if b == 0 { auto } else { b * 1fr }), stroke: (x, y) => (top: if y == 0 { 0.4pt } else { 0.2pt + luma(180) }, bottom: 0.4pt),
       inset: (x: 2pt, y: 1.6pt), align: k.at("just", default: k.kolumner.map(_ => left)).map(a => if a == "r" { right } else if a == "c" { center } else { left }),
       table.header(..k.kolumner.map(c => text(weight: "bold", c))),
-      ..k.rader.flatten())
+      ..k.rader.flatten()))
   }
 }
 

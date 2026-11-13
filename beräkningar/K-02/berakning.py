@@ -18,11 +18,15 @@ matplotlib.use("svg")
 import matplotlib.pyplot as plt  # noqa: E402
 import matplotlib.tri as mtri  # noqa: E402
 import numpy as np  # noqa: E402
+from matplotlib import font_manager  # noqa: E402
 from matplotlib.patches import Polygon  # noqa: E402
 
 import termik  # noqa: E402
 
 HERE = Path(__file__).parent
+FONTS = HERE.parent / ".fonts"          # Carlito: systemets typsnitt, eller beräkningar/.fonts om det inte är installerat
+for _f in sorted(FONTS.glob("*.ttf")) if FONTS.is_dir() else []:
+    font_manager.fontManager.addfont(str(_f))
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 g, ma, rd, ls, nat = IN["geometri"], IN["material"], IN["rand"], IN["luftskikt"], IN["nat"]
 
@@ -267,5 +271,5 @@ R = {
 
 import typst  # noqa: E402
 pdf = HERE / f"{IN['projekt']['dokument']}_varmeflode_nockbalk.pdf"
-typst.compile(str(HERE / "mall.typ"), output=str(pdf), font_paths=["/usr/share/fonts"])
+typst.compile(str(HERE / "mall.typ"), output=str(pdf), font_paths=["/usr/share/fonts", str(FONTS)])
 print(f"{pdf.name}: plåtarnas temperaturskillnad {bas['dT']:.1f} K (nät 2: {bas2['dT']:.2f} K), 1D-yta FE {bas['T'][i_end]:.2f} / {T_yta_1d:.2f} °C")

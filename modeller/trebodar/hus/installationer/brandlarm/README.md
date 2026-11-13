@@ -46,7 +46,7 @@ närmare än 500 mm (ljuslinjerna i källaren längs hela den lysande linjen).
 Kabeln är en installationskabel 4G1,5 (fas, nolla, skyddsjord och larmledaren), Ø `KABEL_D`:
 
 - **Stammen** går klammad under källarens tak från matningsdosan D01 (under badrummets väggbit L19, där matningen
-  från grupp G02 kommer ned; centralens läge är inte bestämt) via BV-KT och BV-KN till kopplingsdosan DH, runt
+  från grupp G02 kommer ned, elens rör G02-R2) via BV-KT och BV-KN till kopplingsdosan DH, runt
   ljuslinjerna och förbi källarens elrör (`Y_D01`, `Y_K05`).
 - **Stigarna**: innertakets installationsskikt slutar vid dalbalkarna, så huskropparna förbinds i källaren, med en
   stigare per huskropp, i lätta väggar så att de inte går genom de bärande väggarnas spärrzoner (#114; i en bärande

@@ -25,6 +25,7 @@ KALLARTAK = -150.0                                 # källarens tak: mellanbjäl
 SERIE = "E-01 Elinstallation"
 R_LAMPA, R_APPARAT = 1.5, 0.9                     # symbolernas radie på papperet [mm]
 TABELLER = dict(x=226.0, y=14.0, w=98.0)          # tabellerna till höger om planen [pappersmm]
+RAM_V = 21.5                                      # etiketterna så långt från bladets vänstra kant (ramen 20) [pappersmm]
 NARA = 250.0                                      # apparater närmare än så på samma vägg ritas bredvid varandra [mm]
 SZ_ETIKETT = 5.4                                  # etiketternas textstorlek [pt]
 # etiketternas lägen i tur och ordning (du, dv pappersmm från punkten, ankare): närmast symbolen först
@@ -242,14 +243,16 @@ _LEGEND: dict[str, tuple[Callable[[Vy], None], str]] = {
 
 class _Etiketter:
     """Etiketternas lägen: provar lägen runt punkten tills etiketten inte täcker en symbol eller en tidigare
-    etikett (lådor i modellmått, textens storlek uppskattad ur antalet tecken); med hinder (planens fyllda ytor:
-    väggarna, betongen, trappan) undviker de etiketter som anger det också dem."""
+    etikett (lådor i modellmått, textens storlek uppskattad ur antalet tecken) och ryms innanför bladets vänstra
+    ram; med hinder (planens fyllda ytor: väggarna, betongen, trappan) undviker de etiketter som anger det också
+    dem."""
 
     def __init__(self, v: Vy, hinder: BaseGeometry | None = None):
         self.v = v
         self.lador: list[tuple[float, float, float, float]] = []
         self.hinder = hinder
         self._hinder = prep(hinder) if hinder is not None else None
+        self.x_min = papper(v, RAM_V, 0.0)[0]             # etiketterna innanför bladets vänstra ram
 
     def symbol(self, X: float, Y: float, r: float) -> None:
         self.lador.append((X - self.v.m(r), Y - self.v.m(r), X + self.v.m(r), Y + self.v.m(r)))
@@ -266,7 +269,7 @@ class _Etiketter:
                 y0 = Y + self.v.m(dv * k) - (h if a[1] == "t" else 0.0)
                 lada = (x0, y0, x0 + w, y0 + h)
                 tackt = sum(max(0.0, min(lada[2], b[2]) - max(lada[0], b[0])) * max(0.0, min(lada[3], b[3]) - max(lada[1], b[1]))
-                            for b in self.lador)
+                            for b in self.lador) + max(0.0, self.x_min - lada[0]) * h
                 if (undvik and self.hinder is not None and self._hinder is not None
                         and self._hinder.intersects(yta := lada_yta(*lada))):
                     tackt += self.hinder.intersection(yta).area

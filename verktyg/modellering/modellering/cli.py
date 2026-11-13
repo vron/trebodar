@@ -1111,7 +1111,9 @@ def main(argv: list[str] | None = None) -> None:
             step_fil = UT / "trebodar.step"
             if not step_fil.exists():
                 raise SystemExit(f"{step_fil} saknas: bygg STEP-filen först (./mod bygg)")
-            kallaren = snitt(ROT / "verktyg" / "modellanalys" / "ma", step_fil, -1000.0, UT / "avlopp-kallare.json")
+            skel = importlib.import_module("trebodar.skelett")       # snittet 1,2 m över källargolvet, som de andra
+            kallaren = snitt(ROT / "verktyg" / "modellanalys" / "ma", step_fil, skel.Z_BOTTENPLATTA + 1200.0,
+                             UT / "avlopp-kallare.json")
             arg.ut.mkdir(parents=True, exist_ok=True)
             pdf = avloppsritning.ritningar(utdrag, kallaren, _norr(), UT / "avlopp" / "blad", arg.ut)
             print(f"  {pdf}")

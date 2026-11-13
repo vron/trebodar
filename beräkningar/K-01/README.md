@@ -20,4 +20,4 @@ python berakning.py
 
 Resultat: `nock_och_dalbalkar_K-01.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Konstruktionsritningen R-01 ([`../R-01`](../R-01/)) läser `resultat.json` och hålbilderna och körs efter K-01. Rapporten byggs till `rapporter/` med `./bygg K-01` och publiceras på https://vron.github.io/trebodar/handlingar/.
 
-Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`). Skriptet letar efter typsnitt i `/usr/share/fonts`.
+Typsnittet Carlito läses från systemet eller från `beräkningar/.fonts`.

@@ -21,6 +21,15 @@ IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 GM0 = 1.1                    # EN 1993-1-4, rostfritt stål
 
 
+def hastighetstryck() -> float:
+    """Vindens hastighetstryck q_p [kN/m²] som i F-01 (indata.toml [vind]: EKS avd. C kap. 1.1.4 7 § med spetsfaktorn
+    kp, c0 = 1), vid nockens höjd: på säker sida för källarväggens höjd."""
+    v = tomllib.loads((HERE.parent / "F-01" / "indata.toml").read_text(encoding="utf-8"))["vind"]
+    cr = 0.19 * (v["z0"] / v["z0_II"]) ** 0.07 * math.log(max(v["z"], 1.0) / v["z0"])
+    Iv = 1 / math.log(max(v["z"], 1.0) / v["z0"])
+    return (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1000
+
+
 def lagen():
     """Skiktens lägen i x (mm från betongkärnans yta)."""
     v, s = IN["vagg"], IN["skikt"]
@@ -38,7 +47,7 @@ def laster():
     g = g_sten + g_fast
     qk = g * s["H_max"] / 1000                                            # kN/m på vinkeln
     qd = l["gamma_d"] * l["gamma_G"] * qk
-    wd = l["gamma_d"] * l["gamma_Q"] * vi["cpe"] * vi["qp"]               # kN/m², sug
+    wd = l["gamma_d"] * l["gamma_Q"] * vi["cpe"] * hastighetstryck()      # kN/m², sug
     return dict(g_sten=g_sten, g_fast=g_fast, g=g, qk=qk, qd=qd, wd=wd)
 
 

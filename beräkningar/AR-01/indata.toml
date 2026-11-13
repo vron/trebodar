@@ -83,9 +83,9 @@ cc_x        = 600       # i stenskiftens mitthöjd, förskjutna en halv delning 
 cc_y        = 400
 s_min       = 100       # minsta avstånd till andra infästningar och betongkärnans kanter
 
-# Vind på fasaden. Hastighetstrycket från F-01 (z = 7 m) på säker sida för källarväggens höjd.
+# Vind på fasaden. Hastighetstrycket är F-01:s (berakning.py läser F-01:s indata.toml [vind]), vid nockens höjd: på
+# säker sida för källarväggens höjd.
 [vind]
-qp          = 1.09      # kN/m²
 cpe         = 1.4       # sug, zon A, cpe,1 (små ytor)
 
 [last]

@@ -17,4 +17,4 @@ python berakning.py
 
 Resultat: `F-01_forutsattningar.pdf`. Ändra bara i `indata.toml` för att räkna om, även handlingsförteckningen och dess status. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
 
-Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`). Skriptet letar efter typsnitt i `/usr/share/fonts`.
+Typsnittet Carlito läses från systemet eller från `beräkningar/.fonts`.

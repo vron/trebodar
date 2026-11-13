@@ -6,11 +6,11 @@ röken tar lång tid till andra rum. På plan 1 i köket, sovrummet, vardagsrumm
 från nocken i planet och mellan installationsskiktets läkt (som armaturerna, el/lakt.py); i källaren vid trappan och i
 det öppna rummet norr om den, i betongtaket.
 
-Kabeln (KABEL, rund Ø KABEL_D): från matningsdosan (D01, där matningen från elcentralen kommer in; centralens läge
-är inte bestämt) som en stam klammad under källarens tak med kopplingsdosor, och därifrån i en stigare per huskropp
-upp genom mellanbjälklaget (i hylsa) och i en innerväggs regelfack till innertaket, där den går i installationsskiktets
-övre del (OVER_MITT över skiktets mitt, så att den går över elens rör, som ligger mitt i skiktet) till varnarnas
-takdosor. Innertakets installationsskikt slutar vid dalbalkarna, så huskropparna förbinds i källaren. Stigarna står i
+Kabeln (KABEL, rund Ø KABEL_D): från matningsdosan (D01, matad från grupp G02 i gruppcentralen: elens rör G02-R2 från
+allrummets dosa AL-B2 ned i väggen L19, el/kedjor.py) som en stam klammad under källarens tak med kopplingsdosor, och
+därifrån i en stigare per huskropp upp genom mellanbjälklaget (i hylsa) och i en innerväggs regelfack till innertaket,
+där den går i installationsskiktets övre del (OVER_MITT över skiktets mitt, så att den går över elens rör, som ligger
+mitt i skiktet) till varnarnas takdosor. Innertakets installationsskikt slutar vid dalbalkarna, så huskropparna förbinds i källaren. Stigarna står i
 ett regelfack och går fria från bjälklagets järn och de ingjutna rören (..strak.mellan_jarnen, som
 köldbärarledningarna); vägarna går med monteringens punkter (..montering: vid_tak, i_vagg, under_kallartak) som elens
 rör. Koordinater i mm (K-05), z från plan 1:s golv.
@@ -347,7 +347,7 @@ def kontroll() -> tuple[list[str], list[str]]:
             anm.append(f"{r.id}: kabeln böjer {bj:.0f}° sammanlagt")
     total = sum(langd(r.vag) for r in b.kablar.values()) / 1000.0
     anm.append(f"{len(b.varnare)} brandvarnare, {len(b.dosor)} dosor, {len(b.kablar)} kablar, {total:.1f} m {KABEL}")
-    anm.append("matningen: elcentralens läge är inte bestämt; matningen kommer till matningsdosan D01")
+    anm.append("matningen: grupp G02 i gruppcentralen, elens rör G02-R2 till matningsdosan D01 (E-01)")
     return fel, anm
 
 

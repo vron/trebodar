@@ -18,4 +18,4 @@ python berakning.py
 
 Resultat: `K-02_varmeflode_nockbalk.pdf`. Ändra bara i `indata.toml` för att räkna om. Figurer (`fig_*.svg`), `resultat.json` och PDF skapas i mappen och versionshanteras inte. Rapporten byggs till `rapporter/` med `./bygg K-02` och publiceras på https://vron.github.io/trebodar/handlingar/.
 
-Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`). Skriptet letar efter typsnitt i `/usr/share/fonts`.
+Typsnittet Carlito läses från systemet eller från `beräkningar/.fonts`.

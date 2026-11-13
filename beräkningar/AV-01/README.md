@@ -17,4 +17,4 @@ python bygg.py
 
 Resultat: `AV-01_avfallshanteringsplan.pdf`. Den utgivna rapporten ligger i [`rapporter/`](../../rapporter/).
 
-Typsnittet Carlito måste finnas installerat (Debian/Ubuntu: `fonts-crosextra-carlito`).
+Typsnittet Carlito läses från systemet eller från `beräkningar/.fonts`.

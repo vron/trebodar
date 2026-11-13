@@ -154,7 +154,8 @@ STEG = [
     ritning("R-04", "Bottenplatta", bygger_pa=["R-05", "K-06"]),
     ritning("R-06", "Mellanbjälklag", bygger_pa=["R-05", "K-05", "K-06"]),
     ritning("R-03", "Bärande system i betong", bygger_pa=["R-04", "R-05", "R-06"]),
-    ritning("AR-01", "Fasadsten på källarväggarna", "berakning.py", "ritningar.py"),
+    ritning("AR-01", "Fasadsten på källarväggarna", "berakning.py", "ritningar.py",
+            kallor=[f"{BER}/F-01/indata.toml"]),                                   # vindens hastighetstryck ur F-01
     ritning("AR-02", "Utsättning", bygger_pa=["R-05", "K-05"]),
     # arbetsritningen för gjutningen av mellanbjälklaget ur installationernas data och modellens snitt (#86)
     Steg("gjutning", "verktyg/modellering", [["mod", "gjutning", "ritning"]],
@@ -396,6 +397,16 @@ def ritningskontroll() -> None:
         raise SystemExit(1) from None
 
 
+def typsnitt() -> None:
+    """Typsnittet Carlito ska finnas, installerat eller i beräkningar/.fonts. Saknas det sätter Typst rapporterna och
+    ritningarna i ett annat typsnitt utan att säga till, och de tunga stegens rapporter checkas in så."""
+    mappar = [ROT / BER / ".fonts", Path("/usr/share/fonts"), Path("/Library/Fonts"), Path.home() / "Library" / "Fonts",
+              Path.home() / ".fonts", Path.home() / ".local" / "share" / "fonts"]
+    if not any(next(m.rglob("Carlito-Regular.ttf"), None) for m in mappar if m.is_dir()):
+        raise SystemExit(f"Typsnittet Carlito saknas: installera det (Debian/Ubuntu: fonts-crosextra-carlito) eller "
+                         f"lägg Carlito-*.ttf i {BER}/.fonts.")
+
+
 def tid(t: float) -> str:
     return f"{t / 60:.1f} min" if t >= 60 else f"{t:.0f} s"
 
@@ -436,6 +447,8 @@ def main() -> None:
                              f"källor. Kör ./bygg {' '.join(inaktuella)} lokalt och checka in resultaten och "
                              f"räknat.json.")
     steg = plan(arg.steg or [s.namn for s in STEG if not s.manuell], arg.om, arg.snabb)
+    if steg:
+        typsnitt()
     t0 = time.perf_counter()
     miljoer(steg)
     tider = kor_alla(steg, arg.jobb)
