@@ -78,7 +78,7 @@ Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna 
 - *Material:* konstruktionsvirke C24 ($f_"m,k"$ = #r.mat.C24.fmk, $f_"c,0,k"$ = #r.mat.C24.fc0k, $f_"c,90,k"$ = #r.mat.C24.fc90k, $f_"v,k"$ = #r.mat.C24.fvk MPa, $E_"0,05"$ = #r.mat.C24.E005 MPa, $gamma_M$ = 1,3) och limträ GL30h ($f_"c,0,k"$ = #r.mat.GL30h.fc0k, $f_"m,k"$ = #r.mat.GL30h.fmk MPa, $gamma_M$ = 1,25).
 - *Egenvikt:* tak #r.last.g kN/m² takyta, #r.last.gh kN/m² horisontellt (F-01).
 - *Snö:* $s_k$ = #r.last.sk kN/m². Takfall mot en dal räknas med $mu$ = #r.last.mud jämnt över hela takfallet (#r.last.sd kN/m²). Det är mer än den ansamlade snön enligt SS-EN 1991-1-3 5.3.4, där $mu_2$ = 1,6 bara nås i dalen. Takfall mot takfot räknas med $mu$ = #r.last.mut (#r.last.st kN/m², standarden ger 0,8).
-- *Vind:* vindsug i zon G närmast gaveln, $c_"pe" - c_"pi"$ = #r.last.cpe och $q_p$ = #r.last.qp kN/m² (K-01), ger lyft #r.last.w kN/m². Lastkombination $1,0 G_k + gamma_d 1,5 W_k$.
+- *Vind:* vindsug i zon G närmast gaveln, $c_"pe" - c_"pi"$ = #r.last.cpe och $q_p$ = #r.last.qp kN/m² (F-01, K-01), ger lyft #r.last.w kN/m². Lastkombination $1,0 G_k + gamma_d 1,5 W_k$.
 - *Kombinationer:* 6.10a och 6.10b med $gamma_d$. Snön är huvudlast. Bruksgräns $w_"fin" lt.eq L slash$#r.kl.ned (F-01).
 - *Stolparnas laster* kommer från K-05, som bygger på K-01:s stödreaktioner och gavlarnas takremsor. Huvudstolpens krafter är K-01:s, med stolpen 4 st 45×120.
 

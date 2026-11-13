@@ -115,11 +115,10 @@ psi0_T      = 0.6       # temperatur i byggnader (EKS)
 gamma_d     = 0.91      # säkerhetsklass 2
 nedbojning_krav = 300   # w_fin ≤ L / värde
 
-[vind]   # SS-EN 1991-1-4 med EKS. Vindlyft på taket, vind längs nocken (θ = 90°), takvinkel 30°
-vb          = 25        # referensvindhastighet Tanum [m/s]
-terrang     = 0         # terrängtyp 0: kust mot öppet hav (Resö)
-z           = 7.0       # referenshöjd, nockens höjd över mark [m]
-e           = 12.0      # e = min(b, 2h) [m], b = husets bredd tvärs vinden
+[vind]   # SS-EN 1991-1-4 med EKS. Vindlyft på taket, vind längs nocken (θ = 90°), takvinkel 30°.
+# Hastighetstrycket är F-01:s: referensvindhastigheten, terrängen, referenshöjden och spetsfaktorn läses ur
+# F-01:s indata.toml ([vind]), så att alla handlingar räknar med samma vind.
+e           = 11.2      # e = min(b, 2h) [m]: b = husets bredd tvärs vinden 13,8 m, h = F-01:s referenshöjd 5,6 m
 cpe         = { G = -1.4, H = -0.8, I = -0.5 }   # tabell 7.4b, 30°, zon G intill gaveln (e/10), H till e/2, I därefter
 cpi         = 0.2       # invändigt övertryck, ogynnsamt vid lyft
 

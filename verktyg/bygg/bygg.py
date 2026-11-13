@@ -115,8 +115,8 @@ STEG = [
     Steg("IN-01", f"{BER}/IN-01", [["mod", "inkop", "utdrag"], ["ber", "bygg.py"]],
          kallor=[*MODELL, f"{BER}/TP-01/indata.toml"], bygger_pa=MODELL_PA,
          rapport=("IN-01_inkopslista.pdf", "Inköpslista")),
-    ber("K-01", "berakning.py", rapport=("nock_och_dalbalkar_K-01.pdf", "Nock- och dalbalkar"),
-        incheckat=["halbild_*.csv"]),
+    ber("K-01", "berakning.py", kallor=[f"{BER}/F-01/indata.toml"],            # vindens hastighetstryck ur F-01
+        rapport=("nock_och_dalbalkar_K-01.pdf", "Nock- och dalbalkar"), incheckat=["halbild_*.csv"]),
     ber("K-02", "berakning.py", rapport=("K-02_varmeflode_nockbalk.pdf", "Nockbalk - temperatur i stålplåtarna")),
     ber("U-02", "berakning.py", bygger_pa=["K-01"], kallor=[f"{BER}/K-01/indata.toml"],
         rapport=("U-02_lyft_balkar.pdf", "Nock- och dalbalkar - lyft i två punkter")),

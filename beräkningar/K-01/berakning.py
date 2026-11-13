@@ -52,13 +52,16 @@ m_utan = (2 * b * IN["distans"]["tjocklek"] * IN["distans"]["densitet"] + b * hw
 g_balk = m_balk * 9.81 / 1000                                        # kN/m
 g_utan = m_utan * 9.81 / 1000
 # vind (SS-EN 1991-1-4 med EKS): hastighetstryck, terrängtyp och formfaktorer för tak, vind längs nocken
+# hastighetstrycket som i F-01 (indata.toml [vind]): EKS avd. C kap. 1.1.4 7 § med spetsfaktorn kp, c0 = 1
 vi = IN["vind"]
-z0 = {0: 0.003, 1: 0.01, 2: 0.05, 3: 0.3, 4: 1.0}[vi["terrang"]]
-kr = 0.19 * (z0 / 0.05) ** 0.07
-cr = kr * math.log(max(vi["z"], 1.0) / z0)
-Iv = 1 / math.log(max(vi["z"], 1.0) / z0)
-qb = 0.5 * 1.25 * vi["vb"] ** 2 / 1000                              # kN/m²
-qp = (1 + 7 * Iv) * cr ** 2 * qb
+vf = tomllib.loads((HERE.parent / "F-01" / "indata.toml").read_text(encoding="utf-8"))["vind"]
+z0 = vf["z0"]
+terrang = {0.003: 0, 0.01: 1, 0.05: 2, 0.3: 3, 1.0: 4}[z0]
+kr = 0.19 * (z0 / vf["z0_II"]) ** 0.07
+cr = kr * math.log(max(vf["z"], 1.0) / z0)
+Iv = 1 / math.log(max(vf["z"], 1.0) / z0)
+qb = 0.5 * vf["rho"] * vf["vb"] ** 2 / 1000                         # kN/m²
+qp = (1 + 2 * vf["kp"] * Iv) * cr ** 2 * qb
 cnet = {z: vi["cpe"][z] - vi["cpi"] for z in ("G", "H", "I")}       # sug + invändigt övertryck
 LAST = {}
 for typ in ("nock", "dal"):
@@ -474,7 +477,8 @@ R = {
     "hw": hw, "intr": fmt(sk["langd"] - t, 0), "t_ef": fmt(t_ef, 0), "l_ef": fmt(lef, 0), "gap_spets": fmt(gap_spets, 0),
     "glapp": fmt(sk["hal"] - sk["ansats"], 1), "ganga_start": fmt(sk["langd"] - sk["b_ganga"] - t, 0), "m_balk": fmt(m_balk, 0), "g_tak_h": fmt(g_tak_h, 3), "g_balk": fmt(g_balk, 2), "g_utan": fmt(g_utan, 2), "m_utan": fmt(m_utan, 0),
     "vindlast": {typ: dict(W={z: fmt(v_, 2) for z, v_ in LAST[typ]["W"].items()}, qW={z: fmt(v_, 2) for z, v_ in LAST[typ]["qW"].items()}) for typ in LAST},
-    "vind": dict(vb=fmt(vi["vb"], 0), terrang=vi["terrang"], z=txt(vi["z"]), e=txt(vi["e"]), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(qp / qb, 2),
+    "vind": dict(vb=fmt(vf["vb"], 0), terrang=terrang, z=txt(vf["z"]), e=txt(vi["e"]), qb=fmt(qb, 2), qp=fmt(qp, 2), ce=fmt(qp / qb, 2),
+                 qp_tal=qp,
                  cpe={z: fmt(vi["cpe"][z], 1) for z in cnet}, cpi=fmt(vi["cpi"], 1), cnet={z: fmt(cnet[z], 1) for z in cnet},
                  e10=fmt(vi["e"] / 10, 1), e2=fmt(vi["e"] / 2, 1), gW=fmt(gd * 1.5, 2)),
     "last": {k: {kk: (txt(vv) if kk in ("lastbredd", "snobredd") else fmt(vv, 2) if isinstance(vv, float) else vv)

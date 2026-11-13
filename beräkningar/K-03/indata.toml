@@ -57,7 +57,7 @@ s_k         = 1.5
 mu_dal      = 1.6       # takfall mot en dal: μ2 = 1,6 jämnt över hela takfallet (standarden: från 0 vid nocken)
 mu_takfot   = 1.0       # takfall mot takfot: 1,0 (standarden: μ1 = 0,8)
 utsprang    = 0.2       # takutsprång vid takfot och gavel, horisontellt [m]
-q_p         = 1.09      # hastighetstryck [kN/m²] som K-01 (referenshöjd 7 m; F-01 ger 0,97 vid 5,6 m)
+# hastighetstrycket q_p läses ur K-01:s resultat (F-01:s värde, samma i alla handlingar)
 cpe_cpi_G   = -1.6      # vindsug netto i zon G närmast gaveln (K-01): cpe −1,4, cpi +0,2
 
 # ------------------------------------------------------------------ takbalkar

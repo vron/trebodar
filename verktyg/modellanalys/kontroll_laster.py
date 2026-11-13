@@ -13,6 +13,7 @@ Handlingarnas värden är avskrivna från rapporterna och beräkningsfilerna –
 import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 import numpy as np
@@ -177,18 +178,17 @@ for x, y in [(7000, -600), (5000, -600), (14400, 2000), (14400, 7000), (-600, 45
     if r:
         markniva.append(r[1])
 h = (nock + 75 - min(markniva)) / 1000
-z_f01 = float(re.search(r"^z\s*=\s*([\d.]+)", (ROT / "beräkningar" / "F-01" / "indata.toml").read_text(
-    encoding="utf-8").split("[vind]")[1], re.M).group(1))
-z_k01 = float(re.search(r"^z\s*=\s*([\d.]+)", (ROT / "beräkningar" / "K-01" / "indata.toml").read_text(
-    encoding="utf-8").split("[vind]")[1], re.M).group(1))
+z_f01 = float(tomllib.loads((ROT / "beräkningar" / "F-01" / "indata.toml").read_text(encoding="utf-8"))["vind"]["z"])
+e_k01 = float(tomllib.loads((ROT / "beräkningar" / "K-01" / "indata.toml").read_text(encoding="utf-8"))["vind"]["e"])
 modell_z = (f"ca {h:.1f} m (nock {nock / 1000:.2f} m + ca 0,08 taktäckning över färdigt golv, "
             f"mark {min(markniva) / 1000:.2f} m)")
-for namn, z_h in (("F-01, K-04", z_f01), ("K-01", z_k01)):
-    rad("Vind", "referenshöjd z (nock över mark)", f"{z_h:.1f} m ({namn})".replace(".", ","), modell_z,
-        "stämmer" if abs(z_h - h) < 0.05 else "på säker sida" if z_h > h else "AVVIKER")
-rad("Vind", "e = min(b, 2h), vind längs nocken", "12 m (K-01)",
-    f"b = {bredd / 1000:.1f} m (takfot–takfot), 2h ≈ {2 * h:.1f} m → e ≈ {min(bredd / 1000, 2 * h):.1f} m",
-    "K-01 på säker sida")
+# K-01, K-03 och K-04 läser hastighetstrycket och referenshöjden ur F-01
+rad("Vind", "referenshöjd z (nock över mark)", f"{z_f01:.1f} m (F-01; K-01, K-03 och K-04 läser den)".replace(".", ","),
+    modell_z, "stämmer" if abs(z_f01 - h) < 0.05 else "på säker sida" if z_f01 > h else "AVVIKER")
+e_modell = min(bredd / 1000, 2 * h)
+rad("Vind", "e = min(b, 2h), vind längs nocken", f"{e_k01:.1f} m (K-01)".replace(".", ","),
+    f"b = {bredd / 1000:.1f} m (takfot–takfot), 2h ≈ {2 * h:.1f} m → e ≈ {e_modell:.1f} m",
+    "stämmer" if abs(e_k01 - e_modell) < 0.15 else "K-01 på säker sida" if e_k01 > e_modell else "AVVIKER")
 
 # ---------------------------------------------------------------- bjälklag
 hal = Polygon(G05["hal"])

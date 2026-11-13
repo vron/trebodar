@@ -65,17 +65,18 @@ STOLPLAGEN = {
 # östra, vid väggen 2B; halva trappan på den östra kortsidan.
 TRAPPA = dict(langd=2.07, bredd=0.83, g=1.0, q=2.0)      # horisontell längd [m], bredd [m], kN/m² i plan
 
-# K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (vindlyft 1,0 G + γd 1,5 W) [kN]
+# K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (fältvis snö eller vindlyft 1,0 G + γd 1,5 W) [kN];
+# K-03 stoppar om de inte är K-01:s (./bygg K-03)
 # x från balkens vänstra ände; balkens läge i plan enligt geometri.json (balkar)
 K01 = {
-    "N1": dict(typ="nock", stod={"A": (0, 7.4, -2.8), "B": (1825, 20.2, -6.0), "C": (3716, 9.9, -17.4),
-                                  "D": (5632, 50.8, -11.3), "E": (11570, 22.2, -6.0)}),
-    "D2": dict(typ="dal", stod={"B": (10070, 21.5, -4.3)}, vagg_lyft=-17.2, vagg=(0, 6487)),
-    "N3": dict(typ="nock", stod={"A": (85, 8.2, -3.3), "B": (2185, 24.5, -6.6), "C": (5985, 37.6, -8.6),
-                                  "D": (10985, 19.4, -5.8)}),
-    "D4": dict(typ="dal", stod={"A": (90, 14.2, -4.0), "B": (2340, 55.1, -8.3), "C": (7390, 31.4, -5.6)}),
-    "N5": dict(typ="nock", stod={"A": (95, 13.8, -4.6), "B": (3600, 28.9, -6.6), "C": (5720, 12.0, -9.9),
-                                  "D": (7375, 35.6, -7.8), "E": (12275, 19.1, -5.9)}),
+    "N1": dict(typ="nock", stod={"A": (0, 7.4, -2.3), "B": (1825, 20.2, -4.7), "C": (3716, 9.9, -17.4),
+                                  "D": (5632, 50.8, -8.0), "E": (11570, 22.2, -4.7)}),
+    "D2": dict(typ="dal", stod={"B": (10070, 21.5, -3.3)}, vagg_lyft=-13.4, vagg=(0, 6487)),
+    "N3": dict(typ="nock", stod={"A": (85, 8.2, -2.7), "B": (2185, 24.5, -5.2), "C": (5985, 37.6, -6.4),
+                                  "D": (10985, 19.4, -4.5)}),
+    "D4": dict(typ="dal", stod={"A": (90, 14.2, -4.0), "B": (2340, 55.1, -6.2), "C": (7390, 31.4, -4.3)}),
+    "N5": dict(typ="nock", stod={"A": (95, 13.8, -3.6), "B": (3600, 28.9, -5.0), "C": (5720, 12.0, -9.9),
+                                  "D": (7375, 35.6, -5.6), "E": (12275, 19.1, -4.6)}),
 }
 # Balkarnas last per meter i K-01 (G och S, kN/m): ger fördelningen G/S av en reaktion
 K01_LAST = {"nock": (2.17, 3.75), "dal": (2.08, 7.13)}

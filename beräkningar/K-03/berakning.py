@@ -24,10 +24,10 @@ import laster as L05  # noqa: E402
 IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 GEO = json.load(open(HERE / "geometri.json", encoding="utf-8"))
 G05 = json.load(open(HERE.parent / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
-KL, LA, TB, UP = IN["klass"], IN["last"], IN["takbalk"], IN["upplag"]
-
 # ------------------------------------------------------------------ K-01:s resultat
 K01 = json.loads((HERE.parent / "K-01" / "resultat.json").read_text(encoding="utf-8"))
+KL, TB, UP = IN["klass"], IN["takbalk"], IN["upplag"]
+LA = dict(IN["last"], q_p=K01["vind"]["qp_tal"])            # hastighetstrycket som i K-01 och F-01
 
 
 def _tal(s):
