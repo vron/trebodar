@@ -314,6 +314,8 @@ for nr, B in enumerate(IN["balk"], 1):
         lef_s = FE / (b * tr["k_c90"] * fc90d)
         stolpe["l_strava"] = next(l_ for l_ in range(1, 2000) if l_ + 2 * min(30.0, l_) >= lef_s)
         stolpe["txt"]["l_strava"] = fmt(stolpe["l_strava"], 0)
+        # talen som K-03 dimensionerar huvudstolpen med (kN, kNm, mm)
+        stolpe["txt"]["tal"] = dict(Nd=Nd / 1e3, Md=Md / 1e6, FE=FE / 1e3, e=float(stolpe["e"]), Nmin=Nmin / 1e3)
         print(f"  stolpe: N_min {Nmin/1e3:.1f} kN, F_strava {FE/1e3:.1f} kN, N_d {Nd/1e3:.1f} kN, M_d {Md/1e6:.2f} kNm, kc {kc:.2f}, utn {u_st:.2f}")
     # bruksgräns per fält: lim (k_lim) och, som jämförelse, enbart skruv; temperatur ψ0·w_T läggs till
     brg = []

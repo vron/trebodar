@@ -43,7 +43,13 @@ ROT = Path(__file__).resolve().parents[2]
 STAMPAR = ROT / ".bygg"
 BER = "beräkningar"
 MALL = f"{BER}/ritningsmall"
-MODELL = ["modeller/trebodar", "verktyg/modellering"]
+# Modellens källor: geometriskripten och ramverket, och det modellen läser ur handlingarna: armeringen ur ritningarnas
+# skript (R-04, R-05, R-06), fasadstenens och utsättningens indata och nock- och dalbalkarnas indata. Den läser också
+# resultaten av K-01 (hålbilderna), K-05 och K-06 (zonernas tilläggsjärn, plintarna), som stegen ur modellen därför
+# bygger på (MODELL_PA).
+MODELL = ["modeller/trebodar", "verktyg/modellering", f"{BER}/R-04", f"{BER}/R-05", f"{BER}/R-06",
+          f"{BER}/AR-01/indata.toml", f"{BER}/AR-02/indata.toml", f"{BER}/K-01/indata.toml"]
+MODELL_PA = ["K-01", "K-05", "K-06"]
 PYTHON = "3.12"
 MILJO_VERSION = "2"            # höj när miljöerna ska byggas om (2: bytekoden kompileras i förväg)
 
@@ -90,8 +96,9 @@ def installation(nr: str, titel: str, system: str) -> Steg:
 STEG = [
     Steg("modell", "modeller/trebodar", [["mod", "bygg", "--format", "step"]],
          kallor=[*MODELL, "verktyg/modellanalys/modell.py"],             # modellanalysens cache skrivs också
+         bygger_pa=MODELL_PA,
          utdata=["modeller/trebodar/ut/trebodar.step"]),
-    Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL,
+    Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL, bygger_pa=MODELL_PA,
          utdata=["docs/modell/index.html", "docs/modell/vyer.json", "docs/modell/trebodar.glb"]),
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
          bygger_pa=["modell"], miljoer=["ma"],
@@ -106,20 +113,22 @@ STEG = [
     ber("TP-01", "bygg.py", kallor=[f"{BER}/IN-01/indata.toml"],
         rapport=("TP-01_tidsplan.pdf", "Tidsplan och organisation")),
     Steg("IN-01", f"{BER}/IN-01", [["mod", "inkop", "utdrag"], ["ber", "bygg.py"]],
-         kallor=[*MODELL, f"{BER}/TP-01/indata.toml"], rapport=("IN-01_inkopslista.pdf", "Inköpslista")),
+         kallor=[*MODELL, f"{BER}/TP-01/indata.toml"], bygger_pa=MODELL_PA,
+         rapport=("IN-01_inkopslista.pdf", "Inköpslista")),
     ber("K-01", "berakning.py", rapport=("nock_och_dalbalkar_K-01.pdf", "Nock- och dalbalkar"),
         incheckat=["halbild_*.csv"]),
-    ber("K-02", "berakning.py", rapport=("K-02_varmeflode_nockbalk.pdf", "Nocklbalk - temperatur i stålplåtarna")),
+    ber("K-02", "berakning.py", rapport=("K-02_varmeflode_nockbalk.pdf", "Nockbalk - temperatur i stålplåtarna")),
     ber("U-02", "berakning.py", bygger_pa=["K-01"], kallor=[f"{BER}/K-01/indata.toml"],
         rapport=("U-02_lyft_balkar.pdf", "Nock- och dalbalkar - lyft i två punkter")),
     ber("K-05", "laster.py", "berakning.py", "validering/konvergens.py", "validering/vaggande.py", "rapport.py",
         tung=True, rapport=("rapport/K-05_mellanbjalklag.pdf", "Mellanbjälklag och källarpelare"),
         incheckat=["resultat.json", "konvergens.json", "vaggande.json"], lokalt=["falt.npz", "nedb.npz"]),
-    ber("K-03", "berakning.py", bygger_pa=["K-05"],
+    ber("K-03", "berakning.py", bygger_pa=["K-01", "K-05"],
         rapport=("K-03_takbalkar_takstolar_stolpar.pdf", "Takbalkar, takstolar och stolpar")),
     # balkmodellen ur modellens bärverk (./mod barverk): följer modellen vid varje bygge
+    # läser K-03:s och K-05:s resultat (takstolarnas och stolparnas laster att jämföra med)
     Steg("K-04", f"{BER}/K-04", [["mod", "barverk"], ["ber", "berakning.py"]],
-         kallor=[*MODELL, f"{BER}/F-01/indata.toml", f"{BER}/K-05/resultat.json"],
+         kallor=[*MODELL, f"{BER}/F-01/indata.toml"], bygger_pa=["K-03", *MODELL_PA],
          rapport=("K-04_trastomme.pdf", "Trästomme och stabilisering")),
     ber("K-06", "berakning06.py", "berakning.py", "validering/natkonvergens.py", "rapport.py", bygger_pa=["K-05"],
         tung=True, rapport=("rapport/K-06_grund.pdf", "Bottenplatta och källarväggar"),
@@ -134,7 +143,7 @@ STEG = [
          kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"], tung=True,
          manuell=True, rapport=("U-04_ljusplaner.pdf", "Ljusplaner - belysningsstyrka med all belysning tänd")),
     # konstruktionsritningen av trästommen ur modellens bärverk, samma utdrag som K-04 (#91)
-    Steg("R-02", "verktyg/modellering", [["mod", "stomme", "ritning"]], kallor=[*MODELL, MALL],
+    Steg("R-02", "verktyg/modellering", [["mod", "stomme", "ritning"]], kallor=[*MODELL, MALL], bygger_pa=MODELL_PA,
          utdata=["ritningar/R-02 Trästomme.pdf"]),
     ritning("R-01", "Nock- och dalbalkar", bygger_pa=["K-01", "K-03", "K-05"], kallor=["modeller/balkplattor"]),
     ritning("R-05", "Källarstomme", bygger_pa=["K-05", "K-06"]),
@@ -372,6 +381,17 @@ def webbplats() -> None:
                    git("rev-parse", "--short", "HEAD").decode().strip())
 
 
+def ritningskontroll() -> None:
+    """Ingen text utanför bladens ram i de byggda ritningarna (ritningskontroll.py, med pymupdf); stoppar bygget."""
+    try:
+        subprocess.run(["uv", "run", "--no-project", "--quiet", "--python", PYTHON, "--with", "pymupdf", "python",
+                        str(Path(__file__).with_name("ritningskontroll.py")), str(ROT / "ritningar")], check=True)
+    except OSError as fel:
+        print(f"  ritningskontrollen kördes inte: {fel}")
+    except subprocess.CalledProcessError:
+        raise SystemExit(1) from None
+
+
 def tid(t: float) -> str:
     return f"{t / 60:.1f} min" if t >= 60 else f"{t:.0f} s"
 
@@ -416,6 +436,7 @@ def main() -> None:
     miljoer(steg)
     tider = kor_alla(steg, arg.jobb)
     if not arg.steg:
+        ritningskontroll()
         webbplats()
     if tider:
         print(f"\nTid {tid(time.perf_counter() - t0)} (stegen sammanlagt {tid(sum(t for _, t in tider))}): "

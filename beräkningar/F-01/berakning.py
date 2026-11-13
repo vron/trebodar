@@ -45,7 +45,7 @@ kr = 0.19 * (v["z0"] / v["z0_II"]) ** 0.07
 cr = kr * math.log(v["z"] / v["z0"])
 Iv = 1 / math.log(v["z"] / v["z0"])                 # kI = 1, c0 = 1
 qb = 0.5 * v["rho"] * v["vb"] ** 2 / 1000
-qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1000     # EKS 11 kap. 1.1.4 7 §, c0 = 1
+qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1000     # EKS avd. C kap. 1.1.4 7 §, c0 = 1
 ce = qp / qb
 
 print(f"tak {kg_tak:.1f} kg/m² = {g_tak:.3f} kN/m² takyta ({g_tak_h:.3f} horisontellt)")

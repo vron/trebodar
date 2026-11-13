@@ -226,7 +226,9 @@ for u in I.UTFORANDEN:
         svinn=f(p["svinn"]["m_max"]),
         mark=dict(uls=f(p["mark"]["uls"], 1), medel=f(p["mark"]["uls_medel"], 1), fdM=f(p["mark"]["fdM"], 1),
                   qp=f(p["mark"]["qp"], 0), kryp=f(p["mark"]["kryp"], 0),
-                  utn=pr(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"]))),
+                  utn=pr(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"])),
+                  u_uls=pr(p["mark"]["uls_medel"] / p["mark"]["fdM"]), u_qp=pr(p["mark"]["qp"] / p["mark"]["kryp"]),
+                  ok=bool(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"]) <= 1.0)),
     )
 p3 = P[I.UTF]
 D["plintar"] = [dict(namn=x["namn"], b=mm(x["b"]), N=f(x["N"]), p=f(x["p"], 0), stans=pr(x["utn_stans"]),
@@ -235,7 +237,9 @@ ror = p3["ror"]
 okade = [x for x in ror if x["kvot"] > 1.0]
 D["ror"] = dict(max_kvot=pr(max(x["kvot"] for x in ror) - 1), namn=max(ror, key=lambda x: x["kvot"])["namn"],
                 okade=", ".join(f"{x['namn']} {f(x['N'], 0)}/{f(x['N05'], 0)}" for x in okade),
-                lag=pr(max(x["lag"] for x in ror)), lag_namn=max(ror, key=lambda x: x["lag"])["namn"])
+                lag=pr(max(x["lag"] for x in ror)), lag_namn=max(ror, key=lambda x: x["lag"])["namn"],
+                utn=pr(max(x["utn"] for x in ror)), utn_namn=max(ror, key=lambda x: x["utn"])["namn"],
+                ok=bool(max(x["utn"] for x in ror) <= 0.95 and max(x["lag"] for x in ror) <= 1.0))
 vg = p3["vaggar"]
 D["vagglast"] = dict(storre=", ".join(x["namn"] for x in vg if x["q"] > x["q05"] + 0.05) or "inga")
 gl = R["glidning"]

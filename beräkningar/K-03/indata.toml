@@ -2,7 +2,8 @@
 # Indata – K-03 Takbalkar, takstolar och stolpar
 # Ändra värden här och kör:  python berakning.py
 # Geometrin (takbalkar, takfönster, takstolar, stolpar och väggar) står i geometri.json, som är K-03:s egen
-# källfil och kontrolleras mot modellen med verktyg/modellanalys/kontroll_k03.py. Stolparnas laster kommer från K-05 (laster.py), som bygger på K-01:s stödreaktioner.
+# källfil och kontrolleras mot modellen med verktyg/modellanalys/kontroll_k03.py. Stolparnas laster kommer från K-05
+# (laster.py), som bygger på K-01:s stödreaktioner; beräkningen stoppar om K-05:s reaktioner inte är K-01:s.
 # Enheter: mm, kN, MPa (N/mm²) om inget annat anges. x, y och z som i K-05 (z från bjälklagets överkant).
 # ------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ s_k         = 1.5
 mu_dal      = 1.6       # takfall mot en dal: μ2 = 1,6 jämnt över hela takfallet (standarden: från 0 vid nocken)
 mu_takfot   = 1.0       # takfall mot takfot: 1,0 (standarden: μ1 = 0,8)
 utsprang    = 0.2       # takutsprång vid takfot och gavel, horisontellt [m]
-q_p         = 1.09      # hastighetstryck [kN/m²] (F-01)
+q_p         = 1.09      # hastighetstryck [kN/m²] som K-01 (referenshöjd 7 m; F-01 ger 0,97 vid 5,6 m)
 cpe_cpi_G   = -1.6      # vindsug netto i zon G närmast gaveln (K-01): cpe −1,4, cpi +0,2
 
 # ------------------------------------------------------------------ takbalkar
@@ -224,13 +225,10 @@ gamla = "D"
 e = 71          # nockbalk 5 vilar på stolpens östra 83 av 225 mm (#45): lastens mitt x 2 101,5, stolpens 2 030,5
 
 # Huvudstolpen (LN1_3): stolpe med dubbeltriangel under nockbalk 1, stöd D, strävor på båda sidor om stolpen.
-# Krafterna kommer ur K-01:s balkmodell, där stolpens böjstyvhet ingår.
+# Krafterna (N_d, M_d, strävornas lodräta kraft) och strävans fäste i balken läses ur K-01:s resultat (resultat.json:
+# balkmodellen, där stolpens böjstyvhet ingår), så att de följer K-01.
 [huvudstolpe]
 L = 2900                # golv till strävornas fäste (K-01)
-N_d = 49.3              # K-01, stolpe 4 st 45×120
-M_d = 2.68              # K-01
-F_strava = 43.6         # strävornas största lodräta kraft mot balken (K-01)
-e = 770                 # strävans fäste i balken från stolpen (K-01)
 strava_b = 45
 strava_h = 120
 strava_lager = 4

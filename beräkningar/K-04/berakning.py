@@ -170,7 +170,11 @@ for s in sorted(set(stolpar) | set(k05), key=lambda n: (n[:2], n)):
                      "Nmax": fmt(stolpar[s][str_].max() / 1e3, 1),
                      "K05": fmt(k05[s] / 1e3, 1) if s in k05 else "–",
                      "kvot": pct(Ned / k05[s]) if s in k05 else "–",
-                     "over": bool(s in k05 and Ned > 1.05 * k05[s])})
+                     "over": bool(s in k05 and Ned > 1.05 * k05[s]),
+                     # det största N_Ed i alla kombinationer mot K-05:s last (förd in för hand med en decimal)
+                     "over_max": bool(s in k05 and stolpar[s][str_].max() > k05[s] + 60.0),
+                     "k05_rad": (round(stolpar[s][Fk["G (k)"]] / 1e3, 1), round(stolpar[s][Fk["S1 (k)"]] / 1e3, 1),
+                                 round(stolpar[s][str_].max() / 1e3 + 0.049, 1))})
 
 # takstolarna mot K-03: diagonalens tryck och dragbandets drag mitt på (summan av delarna på systemlinjen), snö som
 # huvudlast
@@ -201,8 +205,10 @@ for el in sorted({b.element for b in N.delar if b.grupp == "takstol" and b.typ =
         continue
     Nd = max((-linjekraft(d, 0.5 * (d.a0 + d.b0)))[sno].max() for d in D)
     Hd = linjekraft(U, 0.5 * (U.a + U.b))[sno].max()
+    tal03 = {k: float(st[k].replace(",", ".").replace("−", "-")) for k in ("N", "H")}
     takstolar.append({"namn": el + (" (L2M)" if el == "2C" else ""), "N": fmt(Nd / 1e3, 1), "N03": st["N"],
-                      "H": fmt(Hd / 1e3, 1), "H03": st["H"]})
+                      "H": fmt(Hd / 1e3, 1), "H03": st["H"],
+                      "N_over": bool(Nd / 1e3 > tal03["N"] + 0.05), "H_over": bool(Hd / 1e3 > tal03["H"] + 0.05)})
 
 # gavlarna: skivornas kraft där de håller gavelns överkant och takstolens överram i sidled
 Bk = np.abs(L.bindning[str_]) if L.bindning.size else np.zeros((len(str_), 0))
@@ -490,3 +496,12 @@ typst.compile(str(HERE / "mall.typ"), output=str(pdf), font_paths=["/usr/share/f
 print(f"{len(komb)} kombinationer, {len(m.bi)} element, {len(N.band)} band, {tid:.1f} s; alla OK: {alla_ok} -> {pdf.name}")
 for r in sammanf:
     print(f"  {r['eta']:>6} {r['grupp']:40} {r['kontroll']:28} {r['del']} ({r['komb']})")
+for t in takstolar:
+    if t["N_over"] or t["H_over"]:
+        print(f"  takstol {t['namn']}: balkmodellen ger mer än K-03 (N {t['N']} mot {t['N03']}, H {t['H']} mot {t['H03']} kN)")
+# stolparna som balkmodellen ger mer last än K-05 räknar bjälklaget för: K-05 ska räknas om med dem
+over = [s for s in stolptab if s["over"] or s["over_max"]]
+if over:
+    raise SystemExit("K-04: balkmodellen ger större stolplaster än K-05 räknar med. För in raderna i K-05/laster.py (K04) "
+                     "och räkna om K-05 och det som bygger på det (./bygg K-05 K-06 U-01):\n" +
+                     "\n".join(f'    "{s["namn"]}": {s["k05_rad"]},' for s in over))

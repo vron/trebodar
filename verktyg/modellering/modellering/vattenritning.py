@@ -219,7 +219,7 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
     rader_g = [[x["del"], x["atgard"].replace(" (R-06)", ""), x["element"], svm(round(x["punkt"][0])),
                 svm(round(x["punkt"][1]))] for x in utdrag["genomforingar"]]
     block = [
-        dict(x=24.0, y=under, w=96.0, innehall=[
+        dict(x=24.0, y=under, w=80.0, innehall=[
             dict(typ="rubrik", text="Tappställen"),
             dict(typ="tabell", kolumner=["Id", "Tappställe", "Rum", "KV", "VV", "Rör", "Utg.", "s"],
                  bredd=(0.75, 1.0, 0.7, 0.32, 0.32, 0.5, 0.32, 0.32), just=["l", "l", "l", "r", "r", "l", "r", "r"],
@@ -227,14 +227,16 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
             dict(typ="text", sz=5.8, rader=["KV, VV: normflöden (l/s). Rör: PEX och skyddsrör (mm). Utg.: utgången "
                                             "på kallvattnets och varmvattnets fördelare. s: tiden till varmvatten "
                                             "vid normflödet."]),
+        ]),
+        dict(x=24.0 + 80.0 + 6.0, y=under, w=68.0, innehall=[
             dict(typ="rubrik", text="Rör"),
             dict(typ="tabell", kolumner=["Rör", "Media", "Mått", "Från", "m", "l"],
-                 bredd=(0.95, 0.4, 0.5, 0.75, 0.35, 0.4), just=["l", "l", "l", "l", "r", "r"], sz=5.8, rader=rader_r),
+                 bredd=(0.95, 0.4, 0.5, 0.75, 0.35, 0.4), just=["l", "l", "l", "l", "r", "r"], sz=5.6, rader=rader_r),
         ]),
-        dict(x=126.0, y=under, w=196.0, innehall=[
+        dict(x=184.0, y=under, w=138.0, innehall=[
             dict(typ="rubrik", text="Genomföringar och rör ut ur bjälklaget"),
-            dict(typ="tabell", kolumner=["Byggdel", "Åtgärd", "Rör", "x", "y"], bredd=(0.8, 2.9, 0.75, 0.35, 0.35),
-                 just=["l", "l", "l", "r", "r"], sz=5.6, rader=rader_g),
+            dict(typ="tabell", kolumner=["Byggdel", "Åtgärd", "Rör", "x", "y"], bredd=(0.75, 2.6, 0.7, 0.3, 0.3),
+                 just=["l", "l", "l", "r", "r"], sz=5.4, rader=rader_g),
         ]),
     ]
     kol = _anvisningar(utdrag, ovriga, "Plan 1:s väggar är streckade och källarväggarna tunna. Lägen x, y i mm "

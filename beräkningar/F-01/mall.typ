@@ -137,7 +137,7 @@ Karakteristiska värden. Lastkombinationer enligt SS-EN 1990 med EKS: ekvation 6
   [Jordtryck], [], [], [], [], [Källarväggar, se K-06],
 )
 
-*Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² och spetsfaktorn $k_p$ = #r.vind.kp blir $q_p = (1 + 2 k_p I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce), enligt EKS 11 kap. 1.1.4 7 § i stället för uttryck 4.8 i SS-EN 1991-1-4. Referenshöjden $z$ är nockens höjd över marken. Topografin ökar inte vinden på tomten: $c_0$ = 1 (SS-EN 1991-1-4 4.3.3). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
+*Vind.* Terrängtyp 0 med $z_0$ = #r.vind.z0 m: $k_r$ = #r.vind.kr, $c_r$ = #r.vind.cr, $I_v$ = #r.vind.Iv. Med $q_b$ = #r.vind.qb kN/m² och spetsfaktorn $k_p$ = #r.vind.kp blir $q_p = (1 + 2 k_p I_v) dot 1/2 rho (c_r v_b)^2$ = #r.vind.qp kN/m² ($c_e$ = #r.vind.ce), enligt EKS avd. C kap. 1.1.4 7 § i stället för uttryck 4.8 i SS-EN 1991-1-4. Referenshöjden $z$ är nockens höjd över marken. Topografin ökar inte vinden på tomten: $c_0$ = 1 (SS-EN 1991-1-4 4.3.3). Formfaktorer för tak och väggar tas fram i respektive detaljhandling.
 
 == Bruksgränstillstånd
 

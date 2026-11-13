@@ -68,7 +68,7 @@ Det som flera system behöver står i en egen modul, så att systemen inte beror
 | [`hus/stomme/lagen.py`](hus/stomme/lagen.py) | Stommens delar och lägen ur montagen, takets stomme som tvärsnitt, takets fack mellan takbalkarna | tak, fasad, isolering, invändigt, mark |
 | [`hus/tak/takytor.py`](hus/tak/takytor.py) | Takfallens regioner, takfotens kant, takytan och dalarnas ändar | tak, takkanter, dalar, stommens balkar, fasad, invändigt |
 | [`hus/fonster_och_dorrar/oppningar.py`](hus/fonster_och_dorrar/oppningar.py) | Öppningarna i ytterväggarna och innerdörrarna | fönster och dörrar, fasad, isolering, invändigt, mark |
-| [`hus/rum.py`](hus/rum.py) | Badrummet och kaminkåpan | invändigt, kamin |
+| [`hus/rum.py`](hus/rum.py) | Badrummet och kaminens murade skorsten i plan | invändigt, inredning, golvvärme, kamin |
 | [`hus/badrum.py`](hus/badrum.py) | Badrummets planering: väggarnas färdiga ytor, inredningens lägen och golvets fall mot golvbrunnen | inredning, invändigt (golvet), installationer (vatten, avlopp, el) |
 | [`hus/fasad/markniva.py`](hus/fasad/markniva.py) | Marken vid fasaderna (genererad tabell) | fasad, takkanter, dalar |
 | [`hus/invandigt/skikt.py`](hus/invandigt/skikt.py) | De invändiga skiktens uppbyggnad och innertakets underkant | invändigt, fönster och dörrar, kamin |
@@ -183,7 +183,7 @@ Trebodar
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
     │                           från dräneringens och dagvattnets ledningar), lucka och trappsteg
-    ├── Kamin                   Rais 600 i väggen 2C, rökrör och isolerad skorsten genom taket
+    ├── Kamin                   Rais 600:3 i en murad skorsten mot 2C, isolerad skorsten genom garderoben och taket
     ├── Isolering               takets träfiber och väggarnas mineralull
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
     │                           innerväggarna: lätta väggar L1–L14 och L19 och skikten på alla innerväggar, kökets
@@ -453,15 +453,14 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   dörren, tre lika steghöjder till sovrumsavsatsen. Källartrappan går från avsatsen framför D1 upp till husets östra
   fasad.
 - **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
-  (K-05 räknar med en 3,0 m lång trappa).
-- **Kaminen** enligt planritning 201 och Rais måttritning och monteringsanvisning (11-6520): insatsen i öppningen i 2C
-  mot allrummet, inbyggd i en innbyggingskasse av 50 mm kalciumsilikat (kåpan av de lätta väggarna L7, L13 och L14 och
-  fronten i öppningen, minst 920 × 498 × 1 600) med konvektionsöppningar 300 och 550 cm² och plåt över den övre;
-  skorstenens isolerade del börjar i kassen och går genom plåten. Förbränningsluften (AirSystem) går upp genom taket:
-  flexslang Ø100 från anslutningen under insatsen till kåpans västra del (kåpan 220 mm bredare mot väster än
-  planritningen), genom plåten, och isolerad kanal Ø100/Ø160 bredvid skorstenen genom innertaket och taket, med huv
-  på stag; ca 4,7 m (anvisningen: Ø100 upp till 5 m). Underkanten 450 över golvet och skorstenen 800 mm över nocken
-  (antaget).
+  (K-05 räknar med trappans last på trapphålets östra kortsida).
+- **Kaminen** (hus/kamin/kamin.py, ärende #102 och #109; inte som planritning 201): Rais 600:3 med glas på tre
+  sidor i en murad, putsad och kalkad skorsten av lättbetong i allrummet, mot 2C mitt under nocken, från golvet till
+  halva höjden, med fronten ovanför och under insatsen av kalciumsilikat och konvektionsöppningar i sidorna. Den
+  isolerade skorstenen Ø150/Ø250 går från stosen i en förskjutning snett bakåt genom nischen i 2C in i garderoben och
+  lodrätt genom taket väster om nockbalk 3, minst 50 mm från allt brännbart och 800 mm över nocken, sotningsbar
+  uppifrån; i garderoben står ett skydd av gips med inspektionslucka runt den. Förbränningsluften (AirSystem) går i en
+  isolerad kanal samma väg upp genom taket. Måtten och avstånden står i modulens beskrivning.
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.

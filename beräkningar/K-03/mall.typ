@@ -57,7 +57,7 @@ Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna 
   [Takfönster], [#r.fon.len()], [3.3], [Takbalken bredvid öppningen], [#r.sammanf.at(1).u],
   [Takstolar], [#r.st.len()], [4], [Mittakstolen L2M under nockbalk 3, stöd C], [#r.sammanf.at(2).u],
   [*Huvudstolpen LN1_3*], [1], [5.1], [Stolpe med dubbeltriangel under nockbalk 1], [*#r.hs.u*],
-  [Övriga stolpar], [#r.stolpar.len()], [5.2–5.3], [Varje stolpe i tabellen, hörnen LA1–LA10 i en rad], [#r.uS],
+  [Övriga stolpar], [#r.sammanf.last().antal], [5.2–5.3], [Varje stolpe i tabellen, hörnen LA1–LA10 i en rad], [#r.uS],
 )
 
 #if r.brister.len() > 0 [
@@ -98,10 +98,10 @@ Takbalkarna är fritt upplagda mellan balkarnas centrumlinjer eller till ytterv�
 
 == Upplag mot nock- och dalbalkarna och förankring
 
-#figure(image("fig_upplag.svg", width: 80%), caption: [Takbalkarnas upplag mot nockbalken, snitt tvärs balken. Vid dalbalken på samma sätt, spegelvänt.])
+#figure(image("fig_upplag.svg", width: 80%), caption: [Takbalkarnas upplag mot nockbalken, snitt tvärs balken. Vid dalbalken på samma sätt, spegelvänt, med takbalken och upplagsregeln högre upp på balkens sida.])
 
 #[
-    Takbalkens överkant ligger i balkens överkant, i isoleringens nivå (K-02). Takbalken är #r.tb.h_lod mm hög i lodled, balken #r.tb.balk_h mm. Takbalken vilar med ett hak på en upplagsregel 45×45 C24 längs balkens sida, ovanför underplåten. Sätet ligger #r.tb.z_sate mm över balkens underkant.
+    Vid nockbalken ligger takbalkens överkant i balkens överkant, i isoleringens nivå (K-02). Takbalken är #r.tb.h_lod mm hög i lodled, balken #r.tb.balk_h mm. Takbalken vilar med ett hak på en upplagsregel 45×45 C24 längs balkens sida, ovanför underplåten. Sätet ligger #r.tb.z_sate mm över balkens underkant. Vid dalbalken möts takplanen i balkens överkant, så att luftspalten går fri över balken (U-03): takbalken ligger där högre på balkens sida, upplagsregeln sitter så högt att haket får fullt säte, och haket blir grundare än vid nocken. Haket kontrolleras med nockens mått för båda ändarna, på säker sida.
 
     - *Hak:* dimensionerande för typ #r.tb.dim, #r.tb.umax.
     - *Upplagsregeln:* tryck vinkelrätt fibrerna #r.tb.ureg. Skruv Ø6×100 genom regeln in i limträet bär #r.tb.Fv kN var (8.6, enkelskäriga trä–trä). Det krävs #r.tb.n_skruv skruv per takbalk.
@@ -188,5 +188,5 @@ Alla delar klarar brott- och bruksgränstillståndet med utförandet nedan#if r.
 + Takfönster: kortlingar 45×170 c/c 600 ovanför och nedanför fönstret, burna av avväxlingar 45×170 mellan takbalkarna vid sidorna.
 + Takstolar: spikplåt 100×600×2,0 på båda sidor i fötterna och 100×400 i toppen, med ankarspik 4,0×40 enligt tabellen i avsnitt 4. Diagonalerna skruvas till takbalken ovanför innertaket c/c 600. Varje takstol har en toppkloss 45 mm, 600 mm lång, på ena sidan om toppen (gavelstolarna på insidan, mittakstolen på den nordöstra sidan), skruvad enligt tabellen. Fötterna har minst det upplag på hammarbandet som tabellen anger.
 + Huvudstolpen LN1_3: 4 st 45×120 C24 med strävor 45×120 på båda sidor (dubbeltriangel) och en hel topregel över stolpen.
-+ Stolpe B (LD4_1): GL30h 140×140. LD4_2: 5 st 45×95 C24 sida vid sida under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. LN1_1 under nockbalk 1:s stöd B: 4 st 45×95 C24 i väggen vid y ≈ 2 795.
++ Stolpe B (LD4_1): GL30h 140×140. LD4_2: #r.stolpar.find(s => s.namn == "LD4_2").utf sida vid sida under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. LN1_1 under nockbalk 1:s stöd B: #r.stolpar.find(s => s.namn == "LN1_1").utf i väggen vid y ≈ 2 795.
 + Stolpar av flera reglar skruvas ihop, LN3_1 och LN5_2 med helgängade skruvar så att balkens excentriska last fördelas på alla reglarna. Alla stolpar förankras i topp och fot för lyftkraften i tabellen. Huvudstolpen förankras vid foten med två vinkelbeslag #r.hs.beslag, fullt utskruvade med skruv (inte spik), och en betongbult #r.hs.bult genom vart (@huvud).

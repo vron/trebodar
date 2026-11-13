@@ -679,7 +679,7 @@ def punktforteckning(punkter: list[list[str]], nummer: str, bjalklaget: str) -> 
     return blad(nummer, ["Elinstallation", "Rör i mellanbjälklaget, punkterna"], "–", "Modellen", kol, [], block)
 
 
-ROR_PA_BLADET = 95                  # så många rör ryms i förteckningens tabell med full textstorlek
+ROR_PA_BLADET = 95                  # så många rör ryms i en spalt i förteckningens tabell med full textstorlek
 
 
 def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
@@ -694,16 +694,19 @@ def forteckning(utdrag: dict, nummer: str, elplanen: str) -> Blad:
            for k, r in utdrag["ror"].items()
            if (r["fran"] in punkter or r["till"] in punkter) and all(q[2] > -1.0 for q in r["vag"])]
     block: list[dict] = [
-        dict(x=24.0, y=14.0, w=165.0, innehall=[
+        dict(x=24.0, y=14.0, w=138.0, innehall=[
             dict(typ="rubrik", text="Apparater och dosor, plan 1"),
             dict(typ="tabell", kolumner=["Id", "Typ", "Montering", "Över golv", "Styr"],
-                 bredd=(0.6, 2.6, 0.9, 0.7, 1.1), just=["l", "l", "l", "r", "l"], sz=6.4, rader=apparater)]),
-        dict(x=200.0, y=14.0, w=120.0, innehall=[
-            dict(typ="rubrik", text="Rör i väggar och innertak, plan 1"),
-            dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "Längd (m)", "Böjar"],
-                 bredd=(0.8, 0.6, 0.6, 0.6, 0.7, 0.6), just=["l", "l", "l", "l", "r", "r"],
-                 sz=min(6.4, 6.4 * ROR_PA_BLADET / max(len(ror), 1)), rader=ror)]),
+                 bredd=(0.6, 2.6, 0.9, 0.7, 1.1), just=["l", "l", "l", "r", "l"], sz=6.0, rader=apparater)]),
     ]
+    # rören i två spalter, så att tabellen ryms på bladet också när rören blir fler
+    halva = (len(ror) + 1) // 2
+    for i, x in enumerate((168.0, 246.0)):
+        block.append(dict(x=x, y=14.0, w=74.0, innehall=[
+            dict(typ="rubrik", text="Rör i väggar och innertak, plan 1" if i == 0 else "\u00a0"),
+            dict(typ="tabell", kolumner=["Rör", "Typ", "Från", "Till", "m", "Böjar"],
+                 bredd=(0.8, 0.55, 0.65, 0.65, 0.35, 0.45), just=["l", "l", "l", "l", "r", "r"],
+                 sz=min(6.0, 6.0 * ROR_PA_BLADET / max(halva, 1)), rader=ror[i * halva:(i + 1) * halva])]))
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=7.0, rader=[

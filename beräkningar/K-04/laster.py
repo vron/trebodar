@@ -273,7 +273,7 @@ def lastfall(N: Natverk, IN: dict[str, Any], f01: dict[str, Any]) -> tuple[list[
     kr = 0.19 * (v["z0"] / v["z0_II"]) ** 0.07
     cr = kr * math.log(v["z"] / v["z0"])
     Iv = 1 / math.log(v["z"] / v["z0"])
-    qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1e3     # kN/m², som F-01 (EKS 11 1.1.4 7 §)
+    qp = (1 + 2 * v["kp"] * Iv) * 0.5 * v["rho"] * (cr * v["vb"]) ** 2 / 1e3     # kN/m², som F-01 (EKS avd. C kap. 1.1.4 7 §)
     h = v["z"] * 1000.0
     # huskropparnas tak i plan (för zonerna)
     kroppar: dict[int, dict[str, Any]] = {}

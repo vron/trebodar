@@ -40,7 +40,7 @@ CC_TAKBALK = 0.6          # takbalkarnas delning [m]
 G_TAKSTOL = 0.25          # gaveltakstolens egenvikt per fot [kN] (2 × 45×220 och underramstycke ≈ 45 kg)
 VAGG_IN = 17.5            # ytterväggens centrum innanför plattans kant [mm]: stommen 95 mm står från 30 mm utanför
                           # till 65 mm innanför kanten, över källarväggens yttre cellplast, 52,5 mm utanför
-                          # betongkärnan (Onshape-modellen)
+                          # betongkärnan (modellen)
 
 # Dalbalk 2:s bärande vägg (träregelverk med gips på båda sidor): egentyngd utöver 0,7 kN/m² för lätta väggar.
 # Väggen har en dörröppning mot trappan vid trapphålet; karmstolparna står vid hålets två långsidor.
@@ -89,7 +89,7 @@ K04 = {
     "LA10": (3.2, 4.0, 19.6),
     "LA5": (2.2, 3.6, 10.0),
     "LA9": (2.6, 2.6, 14.7),
-    "LD2_1": (4.0, 10.4, 20.9),
+    "LD2_1": (4.5, 11.5, 23.2),
     "LD2_3": (7.7, 22.0, 41.4),
     "LD2_4": (6.2, 11.3, 33.3),
     "LD4_1": (15.9, 44.4, 83.1),

@@ -4,7 +4,8 @@ K-03: takbalkar, takstolar och stolpar enligt EKS 12 och SS-EN 1995-1-1.
     python berakning.py      # -> K-03_takbalkar_takstolar_stolpar.pdf
 
 Läser indata.toml, geometri.json (K-03:s egen geometri, kontrollerad mot modellen med
-verktyg/modellanalys/kontroll_k03.py) och stolparnas laster ur K-05 (laster.py, som bygger på K-01).
+verktyg/modellanalys/kontroll_k03.py), stolparnas laster ur K-05 (laster.py, som bygger på K-01) och huvudstolpens
+krafter ur K-01:s resultat. Stoppar om K-05:s stödreaktioner (laster.K01, förda in för hand) inte är K-01:s.
 Räknar takbalkarna per typ, takfönstren, upplagen mot nock- och dalbalkarna, takstolarna och stolparna, ritar
 figurer (figurer03.py) och sätter ihop PDF via Typst (mall.typ).
 """
@@ -24,6 +25,45 @@ IN = tomllib.loads((HERE / "indata.toml").read_text(encoding="utf-8"))
 GEO = json.load(open(HERE / "geometri.json", encoding="utf-8"))
 G05 = json.load(open(HERE.parent / "K-05" / "bild" / "geometri.json", encoding="utf-8"))
 KL, LA, TB, UP = IN["klass"], IN["last"], IN["takbalk"], IN["upplag"]
+
+# ------------------------------------------------------------------ K-01:s resultat
+K01 = json.loads((HERE.parent / "K-01" / "resultat.json").read_text(encoding="utf-8"))
+
+
+def _tal(s):
+    """Talet i en formaterad text ur K-01:s resultat ("−17,4", "5 632")."""
+    return float(s.replace("−", "-").replace(",", ".").replace(" ", "").replace("\u00a0", ""))
+
+
+def _mot_k01():
+    """K-05:s stödreaktioner (laster.K01) mot K-01:s resultat: avvikelserna."""
+    fel = []
+    for b in K01["balkar"]:
+        kod = ("N" if b["typ"] == "nock" else "D") + str(b["nr"])
+        k05 = L05.K01[kod]
+        stod = {s_["bok"]: s_ for s_ in b["stod"]}
+        for bok, (x, Rmax, Rmin) in k05["stod"].items():
+            s_ = stod.get(bok)
+            if s_ is None or s_["vagg"]:
+                fel.append(f"{kod} {bok}: stödet finns inte i K-01")
+            elif abs(_tal(s_["x"]) - x) > 0.5 or abs(_tal(s_["Rmax"]) - Rmax) > 0.05 \
+                    or abs(_tal(s_["Rmin"]) - Rmin) > 0.05:
+                fel.append(f"{kod} {bok}: K-05 x {x}, Rmax {Rmax}, Rmin {Rmin}; K-01 x {s_['x']}, Rmax {s_['Rmax']}, "
+                           f"Rmin {s_['Rmin']}")
+        saknas = [bok for bok, s_ in stod.items() if not s_["vagg"] and bok not in k05["stod"]]
+        if saknas:
+            fel.append(f"{kod}: K-01:s stöd {', '.join(saknas)} saknas i K-05")
+        vagg = next((s_ for s_ in b["stod"] if s_["vagg"]), None)
+        if vagg is not None and abs(_tal(vagg["Rvagg_lyft"]) + k05["vagg_lyft"]) > 0.05:
+            fel.append(f"{kod}: väggens lyft K-05 {k05['vagg_lyft']}, K-01 −{vagg['Rvagg_lyft']}")
+        if abs(_tal(b["G"]) - L05.K01_LAST[b["typ"]][0]) > 0.005 or abs(_tal(b["S"]) - L05.K01_LAST[b["typ"]][1]) > 0.005:
+            fel.append(f"{kod}: balkens last K-05 {L05.K01_LAST[b['typ']]}, K-01 G {b['G']}, S {b['S']}")
+    return fel
+
+
+if fel := _mot_k01():
+    raise SystemExit("K-05:s stödreaktioner (K-05/laster.py: K01) är inte K-01:s. För in K-01:s värden och räkna om "
+                     "K-05 (./bygg K-05):\n  " + "\n  ".join(fel))
 GD, KMOD, KDEF = KL["gamma_d"], KL["k_mod"], KL["k_def"]
 ALFA = math.radians(LA["takvinkel"])
 CA, SA = math.cos(ALFA), math.sin(ALFA)
@@ -274,7 +314,9 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
 PL = {p["namn"]: p for p in L05.punktlaster()}
 SG = {s["namn"]: s for s in GEO["stolpar"]}
 SI = {s["namn"]: s for s in IN["stolpe"]}
-HS = IN["huvudstolpe"]
+# huvudstolpen: krafterna och strävans fäste ur K-01:s balkmodell (resultat.json)
+_hs = next(b["stolpe"]["tal"] for b in K01["balkar"] if b.get("stolpe"))
+HS = dict(IN["huvudstolpe"], N_d=_hs["Nd"], M_d=_hs["Md"], F_strava=_hs["FE"], e=_hs["e"])
 
 
 def stolpe(namn):
@@ -377,7 +419,7 @@ u_fot = lyft_H / R1d_H
 N_bult = lyft_H / HF["n_beslag"] * HF["bandning"]
 l_topregel = HS["F_strava"] * 1e3 / (HS["strava_lager"] * HS["strava_b"] * 1.5 * C24.fc90d)
 n_spik_H = math.ceil(Ns / 2 / Fv_spik_d)
-print(f"huvudstolpen: {nH} st 45×{hH:.0f}, b {bH:.0f}, L {HS['L']} kc {kcH:.2f}: N {HS['N_d']} M {HS['M_d']} -> {u_H:.0%}; "
+print(f"huvudstolpen: {nH} st 45×{hH:.0f}, b {bH:.0f}, L {HS['L']} kc {kcH:.2f}: N {HS['N_d']:.1f} M {HS['M_d']:.2f} -> {u_H:.0%}; "
       f"strävor {Ns:.1f} kN/lager -> {u_strava:.0%}; topregel drag {u_topregel:.0%}, upplag {l_topregel:.0f} mm; spik {n_spik_H}")
 
 # ------------------------------------------------------------------ brister i modellen (det som inte räcker eller saknas)

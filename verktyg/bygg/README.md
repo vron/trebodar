@@ -46,7 +46,7 @@ Efter stegen skriver `./bygg` (utan valda steg) webbplatsens startsida, `docs/in
 
 Beskrivningen av huset står i mallen. GitHub Pages publicerar hela `docs/`: startsidan på https://vron.github.io/trebodar/, modellen på https://vron.github.io/trebodar/modell/ och renderingarna på https://vron.github.io/trebodar/renderingar/ (`handlingar/` leder till förteckningen på startsidan). Renderingarnas bilder byggs inte här: de renderas lokalt och publiceras i releasen `bilder` (`renderingar/publicera.sh`, se [`renderingar/README.md`](../../renderingar/README.md)), och GitHub Actions hämtar dem till `docs/renderingar/bilder/` före `./bygg --snabb`, så att startsidan visar dem. Lokalt syns nya bilder på startsidan efter nästa `./bygg`.
 
-Beroendena står i `STEG` i `bygg.py`. Läser ett steg en ny mapp eller ett nytt resultat: lägg till det i stegets `kallor` eller `bygger_pa`.
+Beroendena står i `STEG` i `bygg.py`. Läser ett steg en ny mapp eller ett nytt resultat: lägg till det i stegets `kallor` eller `bygger_pa`. Modellen läser också ur handlingarna (armeringen ur R-04, R-05 och R-06:s `ritningar.py`, K-01:s indata och hålbilder, K-06:s plintar, AR-01:s och AR-02:s indata): de står i `MODELL` och `MODELL_PA`, som alla steg ur modellen har som källor. K-04 läser K-03:s och K-05:s resultat och byggs efter dem.
 
 ## Aktuellt
 

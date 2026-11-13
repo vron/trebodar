@@ -53,7 +53,7 @@ Luftspalten mellan råsponten och vindskivan (hård träfiberskiva) går obruten
 + Spalten: ströläkten #R.spalt mm (F-01); spalten går fri också över nock- och dalbalkarna.
 + Omluftning vid varje takfönster: uppehåll i ströläkten, minst #R.omluft mm och gärna 600 mm fritt per läktlinje ovanför och under fönstret (@fig-omluft).
 + Inga öppningar i gavlarna. Alla takfötter öppna med insektsnät.
-+ Dalbalkarnas överkant i takplanens skärning, inte i takbalkarnas överkant; K-03 ändras.
++ Dalbalkarnas överkant i takplanens skärning, inte i takbalkarnas överkant (som i modellen och K-03).
 + Vindskiva med deklarerat Sd, gärna högst ca 0,3 m. Intello Plus, helt lufttät, också över badrummet.
 + Står huset tomt på vintern: håll hellre 15 än 10 °C inne.
 
@@ -115,7 +115,7 @@ Klimatet är ERA5 för Resö (#k.T °C, RF #k.RF %, vind #k.U m/s i medel på 10
 
 + *Omluftning vid takfönstren* (och skorstenen om den hamnar i taket), @fig-omluft. Ovanför och under varje fönster får ströläkten på avväxlingarna och på kortlingen uppehåll, så att luften i de två brutna facken går åt sidan till grannfacken. Fri längd minst #R.omluft mm och gärna 600 mm per läktlinje inom 1 m från fönstret, i uppehåll om högst 200 mm som förskjuts mellan intilliggande linjer så att råsponten alltid bärs. Sidoöppningen blir då minst #R.omluft × #R.spalt = #R.oppning mm² per linje. Vid mycket svag vind (en fjärdedel av vindtrycket) ger #R.omluft mm M #S.rek_vind025.M i fönsterfacken och 600 mm #S.vind025.M.
 + *Spalten, #R.spalt mm*: ströläktens höjd (F-01). Vid platsens vind betyder spalthöjden lite, vid svag vind mer: med en fjärdedel av vindtrycket ger #R.spalt mm #S.vind025.M och 36 mm #S.s36_vind025.M, och 25 mm ger för lite luft bakom takfönstren redan vid full vind (#S.s25.M). Spalten går fri över alla nock- och dalbalkar till nästa takfall. SINTEF anger 36 mm som minimum för korta takfall och mer för längre vägar, för att undvika snösmältning; den långa vägen här ligger utanför tabellen och bedöms med beräkningen.
-+ *Dalbalkarna.* Dalbalkens överkant ska ligga i takplanens skärning, ca 55 mm under takbalkarnas överkant vid balkens sidor, som i husets 3D-modell, eller dalens botten byggas plan med spaltens fria höjd över balken. K-03 anger i dag överkanten i takbalkarnas överkant, vilket stänger spalten vid dalarna, och ska ändras.
++ *Dalbalkarna.* Dalbalkens överkant ska ligga i takplanens skärning, ca 55 mm under takbalkarnas överkant vid balkens sidor, som i husets 3D-modell, eller dalens botten byggas plan med spaltens fria höjd över balken. Ligger överkanten i takbalkarnas överkant stängs spalten vid dalarna.
 + *Takfötterna* öppnas längs alla takfötter, också vid förskjutningarna. Insektsnätet ska ha minst 60 % fri öppning och kunna rensas. Inga öppningar i gavlarna. Extra öppningar vid nockarna har inte prövats och behövs inte.
 + *Plåten* hålls blank, utan organisk beläggning eller färg: den strålar då ut lite värme mot natthimlen och kyler inte råsponten.
 + *Vindskivan* ska ha ett deklarerat Sd, gärna högst ca 0,3 m. Beräkningen påverkas lite av Sd, men en ångöppen skiva låter isoleringen torka utåt om den blir fuktig. Oljehärdad board saknar deklarerat Sd och har troligen 0,3–0,6 m. Ett tunt alternativ med dokumenterade värden är hård träfiberskiva godkänd som vindskydd under en luftspalt, t.ex. 3,2 mm enligt SINTEF TG 2245 (Sd ≤ 0,28–0,36 m).

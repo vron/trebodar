@@ -86,21 +86,21 @@ Lasterna läggs på stommens ytor och förs till de bärande delarna: taket i ru
 
 == Vertikala laster till bjälklaget
 
-Reaktionerna i upplagen är lika med lasterna (jämvikt). Stolparna bär enligt balkmodellen: karakteristiska G och S1, dimensionerande $N_"Ed"$ med snö som huvudlast jämfört med lasten som K-05 dimensionerar bjälklaget för, och det största $N_"Ed"$ i alla kombinationer (med vind som huvudlast får stolparna i stålbandens fält bandens vertikala kraft). Väggar som står under nock- och dalbalkarna bär en del av balkarnas last, som K-01 och K-05 lägger på stolparna och takstolarna. Rött: stolpar där balkmodellen ger mer än K-05.
+Reaktionerna i upplagen är lika med lasterna (jämvikt). Stolparna bär enligt balkmodellen: karakteristiska G och S1, dimensionerande $N_"Ed"$ med snö som huvudlast jämfört med lasten som K-05 dimensionerar bjälklaget för, och det största $N_"Ed"$ i alla kombinationer (med vind som huvudlast får stolparna i stålbandens fält bandens vertikala kraft). Väggar som står under nock- och dalbalkarna bär en del av balkarnas last, som K-01 och K-05 lägger på stolparna och takstolarna. Rött: stolpar där balkmodellen ger mer än K-05 räknar bjälklaget för (beräkningen stoppar då, tills K-05 har räknats om med dem) och takstolar där den ger mer än K-03.
 
 #grid(columns: (1.35fr, 1fr), gutter: 10pt,
   table(
     columns: (auto, auto, auto, auto, auto, auto, auto),
     align: (left, right, right, right, right, right, right),
     [Stolpe], [G], [S1], [$N_"Ed"$], [K-05], [Kvot], [Max],
-    ..r.stolpar.map(s => ([#s.namn], [#s.G], [#s.S], [#s.Ned], [#s.K05], [#if s.over { text(fill: rod, weight: "bold", s.kvot) } else { s.kvot }], [#s.Nmax])).flatten(),
+    ..r.stolpar.map(s => ([#s.namn], [#s.G], [#s.S], [#s.Ned], [#s.K05], [#if s.over { text(fill: rod, weight: "bold", s.kvot) } else { s.kvot }], [#if s.over_max { text(fill: rod, weight: "bold", s.Nmax) } else { s.Nmax }])).flatten(),
   ),
   [
     #table(
       columns: (auto, auto, auto, auto, auto),
       align: (left, right, right, right, right),
       table.header([Takstol], [$N_"d"$], [K-03], [$H_"d"$], [K-03]),
-      ..r.takstolar.map(t => ([#t.namn], [#t.N], [#t.N03], [#t.H], [#t.H03])).flatten(),
+      ..r.takstolar.map(t => ([#t.namn], [#if t.N_over { text(fill: rod, weight: "bold", t.N) } else { t.N }], [#t.N03], [#if t.H_over { text(fill: rod, weight: "bold", t.H) } else { t.H }], [#t.H03])).flatten(),
     )
     #liten[Takstolarna: tryckkraften i diagonalen och dragkraften i underramen (kN, snö som huvudlast) i balkmodellen och i K-03, där takstolen ensam bär nockbalkens stöd och takremsan till fötterna. Krafterna i stolparna i kN.]
   ],
