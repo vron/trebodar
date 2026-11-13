@@ -85,6 +85,7 @@ Beräkningarna läser aldrig modellen. De har sina koordinater i sina egna käll
 ./ma kontroll_r045.py         # R-04/R-05: öppningar, bröstningar, bottenplattans kontur, väggarnas höjd
 ./ma kontroll_laster.py       # lastgeometrin i F-01, K-01, K-05 och K-06
 ./ma kontroll_balkplattor.py  # balkplåtarnas skärfiler mot K-01
+./ma kontroll_u05.py          # U-05:s mängder: väggarnas och takets areor och virkesandelar, karmar, gavlar, installationsskikt, mark
 ```
 
 `./ma skript.py` kör skriptet i tjänsten (med modellen redan inläst); `.venv/bin/python skript.py` fungerar också.
@@ -122,4 +123,6 @@ V, F = m.nat(platta)           # triangelnät
 | `kontroll_laster.py` | Kontroll av lastgeometrin i F-01, K-01, K-05 och K-06 mot modellen (lastbredder, lastytor, höjder, fyllning) |
 | `marknivaer.py` | Marken vid fasaderna (tabellen `MARKNIVA` i `hus/fasad/markniva.py`) ur den byggda modellen |
 | `kontroll_balkplattor.py` | Kontroll av balkplåtarnas skärfiler (`modeller/balkplattor`, STEP och DXF) mot K-01: hålens lägen och diameter och plåtarnas mått |
+| `kontroll_u05.py` | Kontroll av U-05:s mängder (`beräkningar/U-05/indata.toml`) mot modellen: ytterväggarnas areor, takfallens omfång i plan, virkesandelarna, karmarnas mått, takfönstren, gavelspetsarnas och installationsskiktens isolering och marknivåerna vid fasaderna |
+| `varmebild_u05.py` | Värmebild av huset ur U-05 (`./ma varmebild_u05.py`): värmeflödets täthet [W/m²] genom husets yttre ytor vid 0 °C ute, som 3D-bilder från fyra håll utan marken, i `ut/`. Husets nedre del ur 3D-modellens temperaturfält, plan 1 ur byggdelarnas U, fönstrens lägen ur modellen. Underlaget räknas av `varmebild_u05_data.py` med beräkningarnas Python-miljö (ungefär en minut) |
 | `granskning/` | Redovisade granskningar, t.ex. [`lastgeometri.md`](granskning/lastgeometri.md) |

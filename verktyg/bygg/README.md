@@ -30,7 +30,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | TP-01 | `bygg.py` (läser också IN-01:s indata: specialprodukterna per fas) | tidsplanen i `rapporter/` |
 | IN-01 | `./mod inkop utdrag` (modellens specialprodukter) och `bygg.py` (faserna ur TP-01) | inköpslistan i `rapporter/` |
 | K-04 | `./mod barverk` (modellens bärverk) och `berakning.py` (balkmodellen, några sekunder) | rapporten i `rapporter/` |
-| **K-05, K-06, U-01, U-03** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
+| **K-05, K-06, U-01, U-03, U-05** (tunga) | beräkningen, valideringen och rapporten | resultaten, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | **U-04** (tungt, manuellt) | `./mod ljusplan` (renderingen i Blender) | ljusplanerna, `räknat.json` och rapporten i `rapporter/` (incheckade) |
 | R-01, R-03, R-04, R-05, R-06, AR-01, AR-02 | `ritningar.py` | ritningsserien i `ritningar/` |
 | `R-02` | `./mod stomme ritning` (modellens bärverk, samma utdrag som K-04) | R-02 i `ritningar/` |
@@ -54,7 +54,7 @@ Ett steg är aktuellt när dess kontrollsumma är oförändrad sedan det byggdes
 
 ## Tunga steg
 
-K-05 (cirka 2 min), K-06 (under en halv minut), U-01 (cirka 2 min) och U-03 (cirka 15 min) räknas lokalt: U-01 och U-03 räknar sina fall i parallella processer, och tillsammans tar stegen för lång tid för GitHub Actions (fyra kärnor). Rapporterna för K-05, K-06 och U-03 ritas ur stora mellanresultat (FE-fält, `*.npz`, `*.pkl`) som inte versionshanteras. Det som checkas in:
+K-05 (cirka 2 min), K-06 (under en halv minut), U-01 (cirka 2 min), U-03 (cirka 15 min) och U-05 (cirka 10 min, 3D-modellen av marken) räknas lokalt: U-01 och U-03 räknar sina fall i parallella processer, och tillsammans tar stegen för lång tid för GitHub Actions (fyra kärnor). Rapporterna för K-05, K-06 och U-03 ritas ur stora mellanresultat (FE-fält, `*.npz`, `*.pkl`) som inte versionshanteras. Det som checkas in:
 
 - `räknat.json`: kontrollsumman för källorna som resultaten räknades med;
 - resultaten som andra steg läser (K-05 och K-06: `resultat.json`; K-05 också valideringarnas `konvergens.json` och `vaggande.json`);

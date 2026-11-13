@@ -1,4 +1,5 @@
-"""Innertaket (F-01): ångbroms, installationsskikt och gips 2 × 12,5 under takbalkarna; i badrummet (BADRUM) är den
+"""Innertaket (F-01): ångbroms, installationsskikt (utan isolering, U-03; skikt.ULL_I_INNERTAKET) och gips 2 × 12,5
+under takbalkarna; i badrummet (BADRUM) är den
 yttre skivan en spontad panel av gran, vitmålad, med brädorna längs takfallet (ärende #52).
 
 Innertaket följer takfallen (snedtak) från ytterväggens insida upp till nocken, och ned till dallinjen där takfallet
@@ -13,18 +14,20 @@ from __future__ import annotations
 from functools import cache
 
 from shapely.geometry import LineString, Polygon
+from shapely.ops import unary_union
 
 from modellering import Montage
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
+from trebodar.byggdelar.polygon import polygoner
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.hus.stomme import lagen
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, balkens_sida
 from trebodar.hus.rum import BADRUM
-from trebodar.material import ANGBROMS, C24_LAKT, GIPS, TAKPANEL
+from trebodar.material import ANGBROMS, C24_LAKT, GIPS, MINERALULL, TAKPANEL
 
-from .skikt import GIPS_INRE_W, GIPS_YTTRE_W, LAKT, LAKT_W, TAK_W, insida_vanlig_t
+from .skikt import GIPS_INRE_W, GIPS_YTTRE_W, LAKT, LAKT_W, TAK_W, ULL_I_INNERTAKET, insida_vanlig_t
 from .vagginsida import badrumsremsor, insidans_plan
 
 CC = 400.0
@@ -150,7 +153,7 @@ def _badrummet(s0: float, s1: float, k0: L.Kant, k1: L.Kant) -> list[tuple[float
 
 
 Profil = tuple[tuple[tuple[float, float], ...], float, float, str]
-MATERIAL = {"folie": ANGBROMS, "gips": GIPS, "lakt": C24_LAKT, "panel": TAKPANEL}
+MATERIAL = {"folie": ANGBROMS, "gips": GIPS, "lakt": C24_LAKT, "panel": TAKPANEL, "isolering": MINERALULL}
 
 
 @cache
@@ -158,10 +161,10 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
     """Innertakets skikt under takfallet som profiler, utan delar: (profilens punkter (x, z), y0, y1, typ) per bit,
     för ångbromsen ("folie"), gipsen ("gips") och installationsskiktets läkt ("lakt"), i byggordning. Delarna byggs
     av takfall; elinstallationen läser läkten härifrån (armaturerna mellan läkten). I badrummet är den yttre skivan
-    panel ("panel")."""
+    panel ("panel"). "isolering" är mineralullen i facken mellan läkten, om skiktet isoleras (skikt.py)."""
     t = S.TAKFALL[kod]
     f = FALT[kod]
-    ut: dict[str, list[Profil]] = {"folie": [], "gips": [], "lakt": [], "panel": []}
+    ut: dict[str, list[Profil]] = {"folie": [], "gips": [], "lakt": [], "panel": [], "isolering": []}
 
     def lagg(skikt: str, q: list[tuple[float, float]], a: float, b: float, typ: str) -> None:
         ut[skikt].append((tuple((float(x), float(z)) for x, z in q), float(a), float(b), typ))
@@ -226,6 +229,7 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
                 x_lo, x_hi = ys.bounds[0], ys.bounds[2]
                 langd = (x_hi - x_lo) / S.COS
                 n = int(langd // CC)
+                tackt: list[Polygon] = []                 # läktens och mineralullens profiler i skiktet
                 for i in range(n + 1):
                     s = min(i * CC, langd - LAKT)
                     # läktens läge: s mm upp längs planet från den nedre kanten
@@ -238,6 +242,7 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
                     lp = Polygon(pl).intersection(ys)
                     if lp.area <= 100:
                         continue
+                    tackt.append(lp)
                     bx0, bx1 = lp.bounds[0], lp.bounds[2]
                     bitar = [(ls0, ls1)]
                     for hx0, hx1, hy0, hy1 in hinder_s:
@@ -246,14 +251,28 @@ def skikten(kod: str) -> dict[str, tuple[Profil, ...]]:
                                      if d[1] - d[0] > 1.0]
                     for c, e in bitar:
                         lagg("lakt", [(float(x), float(z)) for x, z in list(lp.exterior.coords)[:-1]], c, e, "IL")
+                # mineralull i skiktet utom läkten, om skiktet isoleras: facken mellan läkten och skiktets ändar,
+                # avbruten vid hindren som läkten
+                for fp in (polygoner(ys.difference(unary_union(tackt).buffer(1e-6)), 45.0 * 20.0)
+                           if ULL_I_INNERTAKET else ()):
+                    bx0, bx1 = fp.bounds[0], fp.bounds[2]
+                    bitar = [(ls0, ls1)]
+                    for hx0, hx1, hy0, hy1 in hinder_s:
+                        if hx0 < bx1 and bx0 < hx1:
+                            bitar = [d for c, e in bitar for d in ((c, min(e, hy0)), (max(c, hy1), e))
+                                     if d[1] - d[0] > 1.0]
+                    for c, e in bitar:
+                        lagg("isolering", [(float(x), float(z)) for x, z in list(fp.exterior.coords)[:-1]], c, e, "II")
     return {k: tuple(v) for k, v in ut.items()}
 
 
 def takfall(kod: str) -> Montage:
-    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45 och gips 2 × 12,5 under takbalkarna "
-                                                "(i badrummet gips och panel)")
+    m = Montage(f"Innertak {kod}", beskrivning="Ångbroms, installationsskikt 45" +
+                (" med mineralull" if ULL_I_INNERTAKET else "") + " och gips 2 × 12,5 under takbalkarna (i badrummet "
+                "gips och panel)")
     lager = {"folie": Plan(kod, f"Ångbroms tak {kod}", 1.0, material=ANGBROMS),
              "lakt": Plan(kod, f"Installationsskikt tak {kod}", LAKT, material=C24_LAKT),
+             "isolering": Plan(kod, f"Isolering i installationsskiktet tak {kod}", LAKT, material=MINERALULL),
              "gips": Plan(kod, f"Gips tak {kod}", 1.0, material=GIPS),
              "panel": Plan(kod, f"Panel tak {kod}", 1.0, material=TAKPANEL)}
     for skikt, bitar in skikten(kod).items():

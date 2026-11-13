@@ -331,6 +331,10 @@ nr = "U-04"
 namn = "Ljusplaner – belysningsstyrka med all belysning tänd"
 status = "klar"
 [[handling]]
+nr = "U-05"
+namn = "Värmeförluster och energibehov"
+status = "klar"
+[[handling]]
 nr = "IN-01"
 namn = "Inköpslista, specialprodukterna"
 status = "klar"

@@ -1,12 +1,14 @@
-"""Isoleringen: träfiber mellan takbalkarna (F-01: 170 mm) och mineralull i ytterväggarnas regelfack (95 mm).
+"""Isoleringen: träfiber mellan takbalkarna (F-01: 170 mm) och mineralull i ytterväggarnas regelfack (95 mm) och i
+gavelspetsarna. Mineralullen i installationsskikten hör till de invändiga skikten (vagginsida.py och innertak.py).
 
 Taket: i varje fack mellan takbalkar (och takstolarnas ytterbalkar), från isolerstoppet vid takfoten till
-nockbalkens eller dalbalkens sida, mellan takbalkarnas över- och underkant (vågrätt avskuren i hammarbandets
-överkant) och utanför takfönstrens öppningar och avväxlingar. Isolerstoppet är en regel 45 mm, bultad på
+nockbalkens eller dalbalkens sida (vid balken ovanför upplagsregeln), mellan takbalkarnas över- och underkant
+(vågrätt avskuren i hammarbandets överkant) och utanför takfönstrens öppningar och avväxlingar. Isolerstoppet är en regel 45 mm, bultad på
 hammarbandet i ytterväggens liv i varje fack vid takfoten, upp till takbalkarnas överkant och kapad efter takplanet;
 hårdboarden slutar på den. Där en innerväggs övre hammarband (1A-H02) går upp mellan takbalkarna börjar isoleringen
 över det. Väggarna: regelfacken, dvs. väggens yta minus alla reglar och
-öppningar, genom hela stommen.
+öppningar, genom hela stommen. Gavelspetsarna (U-05): gavelstolens fack från väggens överkant upp till takbalkarnas
+överkant, genom väggens tjocklek och skuret kring stommens delar.
 """
 from __future__ import annotations
 
@@ -18,11 +20,15 @@ from modellering import Del, Montage, i_foraldern, omslutande
 from trebodar import skelett as S
 from trebodar.hus.stomme import lagen
 from trebodar.byggdelar import polygon as P
+from trebodar.byggdelar import takbalk as TB
 from trebodar.byggdelar import taklager as L
+from trebodar.byggdelar.genomforing import genomfor_alla
 from trebodar.byggdelar.regelvagg import Plan
 from trebodar.byggdelar.virke import fmt
 from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, balkens_sida
+from trebodar.hus.stomme.prefab.takstolar.takstolar import STOLAR
+from trebodar.hus.tak.takytor import tak_underkant
 from trebodar.hus.stomme.prefab.yttervaggar.yttervaggar import VAGGAR as VAGGMODULER
 from trebodar.material import C24, MINERALULL, TRAFIBER
 
@@ -74,6 +80,20 @@ def tak(kod: str) -> Montage:
                 km = 0.5 * (fo.y0 + fo.y1)
                 bitar = [(nedre, a, y0, km - 22.5), (nedre, a, km + 22.5, y1),
                          (b, ovre, y0, km - 22.5), (b, ovre, km + 22.5, y1)]
+        # mellan upplagsregeln och balken går isoleringen fram till balken ovanför regeln
+        vid_balk = [(f.nock, ovre)] + ([(dal.kod, nedre)] if dal and dal.y0 <= ym <= dal.y1 else [])
+        for balk, kant in vid_balk:
+            xs = balkens_sida(balk, t)
+            zr = TB.regel_ok(t, balk, xs, 1 if xs > S.BALKAR[balk].x else -1)
+            q = L.profil(t, -S.TAKBALK_H, 0.0, L.Kant("lodratt", xs), kant)
+            if not q:
+                continue
+            ovan = Polygon(q).intersection(box(-1e5, zr, 1e5, 1e5))
+            if ovan.geom_type != "Polygon" or ovan.area < 100:
+                continue
+            for a0, a1 in sorted({(a0, a1) for k0, k1, a0, a1 in bitar if kant in (k0, k1)}):
+                p.profil([(float(x), float(z)) for x, z in list(ovan.exterior.coords)[:-1]], a0, a1, typ="TI",
+                         material=TRAFIBER)
         hb = _hammarband_i_facken(t)
         for k0, k1, a0, a1 in bitar:
             # remsorna i y: över innerväggarnas hammarband börjar isoleringen över dem
@@ -111,9 +131,46 @@ def vagg(kod: str) -> Montage:
     return p.montage()
 
 
+def gavelspets(kod: str) -> Montage:
+    """Mineralull i gavelspetsen: gavelstolens fack från väggens överkant (stolens säte) upp till takbalkarnas
+    överkant, genom väggens tjocklek. Där gaveln går förbi en dal ligger grannkroppens takfall över den, med sin egen
+    isolering mellan takbalkarna; där slutar gavelspetsens isolering i takbalkarnas underkant. Stommens delar
+    (stolen, balkarna, takbalkarna och deras upplag) skärs ur."""
+    v = S.YTTERVAGGAR[kod]
+    pl = v.placering()
+    t = v.tjocklek
+    sate = min(d.lada[2] for d in lagen.takstol(kod) if d.typ == "U")      # underramen står på sätet
+    nock = S.HUSKROPPAR[int(kod[0])].nock
+    dalar = [b.x for b in S.BALKAR.values() if b.typ == "dal"]
+    # husets egen kropp: mellan dalarna närmast nocken
+    x_lo = max([x for x in dalar if x < nock], default=-1e9)
+    x_hi = min([x for x in dalar if x > nock], default=1e9)
+
+    def z(u: float, sida: float) -> float:
+        """Isoleringens överkant vid u; i en dal på sidan sida (−1 eller 1) om dallinjen."""
+        x, y, _ = pl.punkt((u, t / 2, 0.0))
+        zt = tak_underkant(x, y)
+        if zt is None:
+            return sate
+        return zt if x_lo < x + sida * v.u[0] * 1e-3 < x_hi else zt - S.TAKBALK_HV
+    us = sorted({0.0, v.langd} | {u for u in ((x - v.origo[0]) * v.u[0] for x in [nock, *dalar]) if 0.0 < u < v.langd})
+    ovre = [(u, z(u, sida)) for u in us for sida in (-1.0, 1.0) if 0.0 <= u + sida <= v.langd]
+    yta = Polygon([(0.0, sate), (v.langd, sate)] + ovre[::-1]).buffer(0).intersection(box(-1e5, sate, 1e5, 1e5))
+    p = Plan(kod, f"Gavelisolering {kod}", t, beskrivning=MINERALULL.beskrivning, material=MINERALULL)
+    for g in P.polygoner(yta, 45 * 45):
+        p.skiva(P.kontur(g), P.hal(g), 0.0, t, "GI", MINERALULL, f"Mineralull {t:.0f} gavelspets {kod}")
+    m = p.montage()
+    horn = [pl.punkt((u, w, zz)) for u in (0.0, v.langd) for w in (0.0, t) for zz in (sate, yta.bounds[3])]
+    xs, ys, zs = ([h[i] for h in horn] for i in range(3))
+    # bara delar som går in i gavelspetsen (1 mm), inte de som ligger an mot den
+    genomfor_alla(m, lagen.former((min(xs) + 1.0, min(ys) + 1.0, min(zs) + 1.0, max(xs) - 1.0, max(ys) - 1.0,
+                                   max(zs) - 1.0)), pl)
+    return m
+
+
 def montage() -> Montage:
     m = Montage("Isolering", beskrivning="Träfiber 170 mellan takbalkarna, mineralull 95 i ytterväggarna (145 i "
-                                         "gavlarna 1SV och 2SV)")
+                                         "gavlarna 1SV och 2SV) och i gavelspetsarna")
     t = Montage("Tak")
     for kod in S.TAKFALL:
         t.lagg(tak(kod))
@@ -122,4 +179,9 @@ def montage() -> Montage:
     for kod in S.YTTERVAGGAR:
         v.lagg(vagg(kod), S.YTTERVAGGAR[kod].placering())
     m.lagg(v)
+    g = Montage("Gavelspetsar")
+    for kod in STOLAR:
+        if kod in S.YTTERVAGGAR:
+            g.lagg(gavelspets(kod), S.YTTERVAGGAR[kod].placering())
+    m.lagg(g)
     return m

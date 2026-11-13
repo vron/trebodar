@@ -184,8 +184,8 @@ Trebodar
     ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
     │                           från dräneringens och dagvattnets ledningar), lucka och trappsteg
     ├── Kamin                   Rais 600:3 i en murad skorsten mot 2C, isolerad skorsten genom garderoben och taket
-    ├── Isolering               takets träfiber och väggarnas mineralull
-    ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt, OSB och gips),
+    ├── Isolering               takets träfiber och mineralullen i väggarna och gavelspetsarna
+    ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt med mineralull, OSB och gips),
     │                           innerväggarna: lätta väggar L1–L14 och L19 och skikten på alla innerväggar, kökets
     │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler), ändbrädor av ask
     │                           där väggarna slutar fritt, badrummets golv (fallavjämning, tätskikt och klinker),

@@ -18,6 +18,9 @@ from trebodar.hus.tak.takytor import REGIONER
 from trebodar.material import ANGBROMS, C24_LAKT, GIPS, KAKEL, OSB, PLYWOOD, TATSKIKT, VATRUMSFARG
 
 FOLIE, LAKT = 0.4, 45.0                        # ångbroms och installationsskikt 45×45
+# mineralull mellan installationsläkten: i ytterväggarna (U-05) men inte i innertaket (U-03: installationsskiktet
+# under takets fuktadaptiva ångbroms isoleras inte, TG 20557; om det ändå ska isoleras: #130)
+ULL_I_VAGGARNA, ULL_I_INNERTAKET = True, False
 # skivorna på väggarna, från reglarna eller installationsläkten och utåt: OSB och gips, i badrummet plywood, gips,
 # tätskikt med fix och kakel (namn, tjocklek, typ, material)
 SKIVOR = (("OSB", 12.0, "OS", OSB), ("Gips", 13.0, "GI", GIPS))

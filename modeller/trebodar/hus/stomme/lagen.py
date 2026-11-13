@@ -13,10 +13,11 @@ from typing import NamedTuple
 
 from shapely.geometry import Polygon, box
 
+from modellering import Form, Montage, Prisma, i_foraldern, omslutande
 from modellering import Lada as Ratblock
-from modellering import Montage, Prisma, i_foraldern, omslutande
 
 from trebodar import skelett as S
+from trebodar.hus.stomme.nock_och_dalbalkar import nock_och_dalbalkar as _balkar
 from trebodar.hus.stomme.prefab.innervaggar import innervaggar as _innerv
 from trebodar.hus.stomme.prefab.stolpar import stolpar as _stolpar
 from trebodar.hus.stomme.prefab.takbalkar import takbalkar
@@ -107,6 +108,25 @@ def stolpar() -> tuple[Lage, ...]:
 def takstolar() -> tuple[Lage, ...]:
     """Takstolarnas delar."""
     return _per_element(T.montage())
+
+
+@cache
+def _former() -> tuple[tuple[Form, Lada], ...]:
+    ut = []
+    for m in (_ytterv.montage(), _innerv.montage(), T.montage(), _stolpar.montage(), takbalkar.montage(),
+              _balkar.montage()):
+        for _, d, p in m.platta():
+            b = omslutande(d.form)
+            if b is not None:
+                ut.append((d.form.placerad(p), i_foraldern(b, p)))
+    return tuple(ut)
+
+
+def former(lada: Lada) -> list[tuple[Form, Lada]]:
+    """Stommens delar som når lådan (ytterväggar, bärande innerväggar, takstolar, stolpar, takbalkar och nock- och
+    dalbalkar): formen i husets system och dess omslutande låda. För skikt som skärs ur kring stommen
+    (gavelspetsarnas isolering)."""
+    return [(f, b) for f, b in _former() if all(b[i] < lada[i + 3] and lada[i] < b[i + 3] for i in range(3))]
 
 
 def prefab() -> tuple[Lage, ...]:

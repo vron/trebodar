@@ -1,0 +1,451 @@
+# ------------------------------------------------------------------
+# Indata – U-05 Värmeförluster och energibehov
+# Ändra värden här och kör:  python berakning.py
+# Längder i mm (om inget annat anges), λ i W/(m·K), R i m²K/W, U i W/(m²K), ψ i W/(m·K), temperaturer i °C.
+# Mängderna (areor, virkesandelar, öppningar) är mätta i modellen och kontrolleras mot den med
+# verktyg/modellanalys/kontroll_u05.py.
+# ------------------------------------------------------------------
+
+[projekt]
+namn        = "Fritidshus Trebodar, Resö, Tanum"
+objekt      = "Värmeförluster och energibehov"
+dokument    = "U-05"
+revision    = "A"
+datum       = "2026-11-13"
+upprattad   = "Viktor Ogeman"
+granskad    = ""
+underlag    = "Modellen (modeller/trebodar), F-01 rev A, K-05 (källarväggarna), K-06 rev A (bottenplattan), K-01 (nock- och dalbalkarna), VL-01, U-03 (klimatfilen), BBR 29, BEN"
+
+# ------------------------------------------------------------------ material
+# λ: deklarerade eller tabellerade värden (SS-EN ISO 10456 där inget annat anges). rc: värmekapacitet [MJ/(m³K)].
+[material]
+gips       = { lam = 0.25,  rc = 0.75, anm = "gipsskiva, ISO 10456" }
+osb        = { lam = 0.13,  rc = 1.0,  anm = "OSB/3, ISO 10456" }
+plywood    = { lam = 0.13,  rc = 0.8,  anm = "plywood, ISO 10456" }
+tra        = { lam = 0.13,  rc = 0.8,  anm = "konstruktionsvirke C24 tvärs fibrerna, ISO 10456" }
+limtra     = { lam = 0.13,  rc = 0.8,  anm = "limträ, ISO 10456" }
+mineralull = { lam = 0.037, rc = 0.03, anm = "mineralullsskiva i väggarna; produkten inte vald, vanlig 37-skiva" }
+trafiber   = { lam = 0.038, rc = 0.1,  anm = "Hunton Nativo träfiberlösull, deklarerat (K-02)" }
+hardboard  = { lam = 0.18,  rc = 1.3,  anm = "hård träfiberskiva 3 mm (K-02)" }
+utegips    = { lam = 0.25,  rc = 0.75, anm = "utegips 10 mm" }
+eps        = { lam = 0.036, rc = 0.03, anm = "cellplast EPS S100/S300 och Sundolitt Kub ovan mark och inomhus" }
+eps_mark   = { lam = 0.038, rc = 0.03, anm = "cellplast mot mark och under plattor (något fuktig)" }
+betong     = { lam = 1.7,   rc = 2.1,  anm = "armerad betong 2 300 kg/m³, ISO 10456 (U-01)" }
+stal       = { lam = 50.0,  rc = 3.6,  anm = "konstruktionsstål" }
+sten       = { lam = 2.8,   rc = 2.2,  anm = "fasadsten, granit, med fogbruk" }
+makadam    = { lam = 0.7,   rc = 1.5,  anm = "dränerad makadam (U-01)" }
+fyllning   = { lam = 2.0,   rc = 2.0,  anm = "fyllning, sand och grus, ISO 13370 tabell 7 (U-01)" }
+berg       = { lam = 3.5,   rc = 2.2,  anm = "granit (berg), ISO 13370 tabell 7" }
+
+# Luftskikt (ISO 6946 tabell 8, ytor med ε = 0,9): R för slutna, oventilerade skikt [m²K/W]
+[luftskikt]
+d          = [0, 5, 7, 10, 15, 25, 50, 100, 300]
+R_vagrat   = [0.0, 0.11, 0.13, 0.15, 0.17, 0.18, 0.18, 0.18, 0.18]   # värmeflöde vågrätt
+R_uppat    = [0.0, 0.11, 0.13, 0.15, 0.16, 0.16, 0.16, 0.16, 0.16]   # uppåt
+
+# Ytmotstånd (ISO 6946 tabell 7) och golvvärmens yta (SS-EN 1264: 10,8 W/m²K med strålning)
+[ytmotstand]
+Rsi_vagrat = 0.13
+Rsi_uppat  = 0.10
+Rsi_nedat  = 0.17
+Rse        = 0.04
+R_golvvarme = 0.0926      # 1 / 10,8, golvvärmens yta mot rummet (SS-EN 1264-2)
+# Ventilerad luftspalt bakom fasaden och i taket: skikten utanför spalten räknas inte, och spalten får samma
+# ytmotstånd som insidan (ISO 6946 6.9.4).
+Rse_ventilerad_vagg = 0.13
+Rse_ventilerad_tak  = 0.10
+
+# ------------------------------------------------------------------ uppbyggnader
+# Skikten inifrån och ut [mm]. Installationsskiktet är liggande läkt 45×45 c/c 600 innanför ångbromsen, med mineralull
+# mellan läkten (modellen, beställaren). Regelstommen: reglar 45 c/c 600; virkesandelen per vägg mäts i modellen
+# (se [[vagg]]).
+[vaggtyp.v95]
+namn       = "Yttervägg 45×95 med installationsskikt"
+skikt      = [["gips", 13], ["osb", 12], ["installation", 45], ["stomme", 95], ["utegips", 10]]
+[vaggtyp.v145]
+namn       = "Gavel 45×145 med installationsskikt (2SV)"
+skikt      = [["gips", 13], ["osb", 12], ["installation", 45], ["stomme", 145], ["utegips", 10]]
+[vaggtyp.v145u]
+namn       = "Gavel 45×145 utan installationsskikt (1SV)"
+skikt      = [["gips", 13], ["osb", 12], ["stomme", 145], ["utegips", 10]]
+[installation]
+isolerad   = true         # mineralull mellan läkten i ytterväggarnas installationsskikt (modellen)
+lakt_b     = 45
+lakt_cc    = 600
+[stomme]
+regel_b    = 45
+regel_cc   = 600
+
+# Taket mellan takbalkarna (F-01, U-03): gips 2 × 12,5, installationsskikt 45 (läkt 45×45 c/c 400, utan isolering:
+# U-03 anger att installationsskiktet under takets fuktadaptiva ångbroms inte isoleras), ångbroms, takbalkar 45×170
+# c/c 600 med träfiber 170, hård träfiberskiva 3 och luftspalten (ventilerad, U-03).
+[tak]
+skikt      = [["gips", 25], ["installation", 45], ["stomme", 170], ["hardboard", 3]]
+balk_b     = 45
+balk_cc    = 600
+lakt_cc    = 400          # installationsskiktets läkt i innertaket (modellen)
+installation_isolerad = false   # mineralull mellan läkten i innertaket (modellen och U-03: nej)
+lutning    = 30
+
+# Gavelspetsarna ovanför hammarbandet (z > 2 490): gavelstolarna med gips, OSB, ångbroms, installationsskikt (utom
+# 1SV), stolens fack, utegips och panel. Facken är lika djupa som väggens regelstomme (95, i 1SV och 2SV 145) och
+# isolerade med mineralull som väggen under (modellen).
+[gavelspets]
+isolerad   = true         # mineralull i gavelstolarnas fack (modellen)
+virkesandel = 0.12        # ståndare, underram och diagonaler i gavelns plan
+
+# Källarväggarna: Sundolitt Kub 350-150 (K-06), gips 12,5 invändigt
+[kallarvagg]
+skikt      = [["gips", 12.5], ["eps", 100], ["betong", 150], ["eps_mark", 100]]
+
+# Bottenplattan L400 (K-06, R-04): betong 100 på cellplast 300; kantbalk 450 × 300 på cellplast 100 (L-elementets fot)
+[bottenplatta]
+betong     = 100
+eps        = 300
+kantbalk_b = 450
+kantbalk_h = 300
+fot_eps    = 100
+rygg_eps   = 100
+makadam    = 150
+
+# Mellanbjälklaget (K-05): betong 150, kantisolering 30 (cellplast), golvvärmen PE-RT 16 × 2 c/c 300 (badrummet 200)
+# med centrum 68 mm under överkant (modellen: I_BETONGEN), slingorna 150 mm från väggarna.
+[bjalklag]
+h          = 150
+kant_eps   = 30
+ror_z      = 68
+ror_d      = 16
+ror_cc     = 300
+marginal   = 150
+
+# Plattan på mark (AR-02): mellanbjälklaget på cellplast 100 + 250, L-element 500 med rygg 100 och fot 100, makadam 150
+[platta_pa_mark]
+eps        = 350
+rygg       = 100
+fot        = 100
+makadam    = 150
+kontur     = [[0, 9205], [4545, 9205], [4545, 11010], [4310, 11010], [4310, 15900], [0, 15900]]
+
+# Nock- och dalbalkarna (K-01): limträ 190 × 180 med stålplåt 10 i över- och underkant (där plåtarna finns),
+# upplagsreglar 45 på båda sidor.
+[balkar]
+b          = 190
+h          = 200
+plat_t     = 10
+upplag_b   = 45
+nockar     = [{ namn = "NB1", x = 11655, y = [970, 12540], plat = 6038 },
+              { namn = "NB3", x = 6905,  y = [-30, 11040], plat = 5235 },
+              { namn = "NB5", x = 2155,  y = [3560, 15930], plat = 9970 }]
+dalar      = [{ namn = "DB2", x = 9405, y = [970, 11040], plat = 3733 },
+              { namn = "DB4", x = 4405, y = [3560, 11040], plat = 5540 }]
+
+# ------------------------------------------------------------------ mängder ur modellen (2026-11-13)
+# Per yttervägg: invändig area (ångbromsens area, utan fönster och dörrar, med gavelspetsen) [m²], stommens
+# virkesandel i regelfacken mellan syll och hammarband (virkets volym / (virke + mineralull)), vägglängden i
+# stommens utsida [mm], husets kropp (för gavelspetsen) och om väggen är gavel.
+[mangder]
+vagg = [
+  { kod = "1NO", typ = "v95", A = 11.40, f_tra = 0.212, kropp = 1, gavel = true },
+  { kod = "1SO", typ = "v95", A = 25.81, f_tra = 0.150, kropp = 1, gavel = false },
+  { kod = "1SV", typ = "v145u", A = 8.47, f_tra = 0.210, kropp = 1, gavel = true },
+  { kod = "1NV", typ = "v95", A = 8.80, f_tra = 0.177, kropp = 1, gavel = false },
+  { kod = "2NO", typ = "v95", A = 12.61, f_tra = 0.192, kropp = 2, gavel = true },
+  { kod = "2NV", typ = "v95", A = 2.42, f_tra = 0.149, kropp = 2, gavel = false },
+  { kod = "2SV", typ = "v145", A = 5.23, f_tra = 0.30, kropp = 2, gavel = true },   # modellen 0,86: mest dörr, små fält
+  { kod = "2SO", typ = "v95", A = 6.45, f_tra = 0.180, kropp = 2, gavel = false },
+  { kod = "3NO", typ = "v95", A = 11.15, f_tra = 0.212, kropp = 3, gavel = true },
+  { kod = "3NV", typ = "v95", A = 23.85, f_tra = 0.138, kropp = 3, gavel = false },
+  { kod = "3SV", typ = "v95", A = 9.85, f_tra = 0.217, kropp = 3, gavel = true },
+  { kod = "3SO", typ = "v95", A = 1.94, f_tra = 0.352, kropp = 3, gavel = false },
+]
+
+# Taket: takfallens invändiga mått i plan [mm, K-05]: rektanglar (x0, x1, y0, y1) från ytterväggens insida eller
+# dalens mittlinje till nockens mittlinje, mellan gavlarnas insidor. Arean i takets lutning är planarean / cos 30°,
+# med takfönstren, och summan av planareorna är plan 1:s invändiga area. Takbalkarnas andel av isoleringsskiktet
+# (takbalkar, avväxlingar och kortlingar; upplagsreglarna vid nock och dal räknas i skarvarna) är mätt i modellen.
+takfall = [
+  { kod = "1SO", plan = [[135, 2155, 3725, 15765]], f_tra = 0.104, takfonster = 2 },
+  { kod = "1NV", plan = [[2155, 4405, 3725, 10875], [2155, 4175, 10875, 15765]], f_tra = 0.072 },
+  { kod = "2SO", plan = [[4405, 6905, 3725, 10875], [4635, 6905, 135, 3725]], f_tra = 0.073 },
+  { kod = "2NV", plan = [[6905, 9175, 135, 1135], [6905, 9405, 1135, 10875]], f_tra = 0.073 },
+  { kod = "3SO", plan = [[9405, 11655, 1135, 10875], [9635, 11655, 10875, 12375]], f_tra = 0.086, takfonster = 1 },
+  { kod = "3NV", plan = [[11655, 13675, 1135, 12375]], f_tra = 0.074 },
+]
+
+# Husets kroppar: nockens x, stommens utsida och invändig halvbredd vid innertaket (från nocken till väggens
+# insida) och innertakets höjd vid ytterväggens insida (modellen) [mm]
+kropp = [
+  { nr = 1, nock = 2155, halvbredd = 2019.6, z_innertak = 2459.4 },
+  { nr = 2, nock = 6905, halvbredd = 2269.6, z_innertak = 2459.4 },
+  { nr = 3, nock = 11655, halvbredd = 2019.6, z_innertak = 2459.4 },
+]
+
+# Ytterväggarnas lägen (skelett.YTTERVAGGAR): stommens utsida, origo [mm], riktning och längd [mm]
+lage = [
+  { kod = "1NO", o = [-30, 3560],    u = [1, 0],  L = 4595 },
+  { kod = "1SO", o = [-30, 15785],   u = [0, -1], L = 12130 },
+  { kod = "1SV", o = [4340, 15930],  u = [-1, 0], L = 4370 },
+  { kod = "1NV", o = [4340, 11040],  u = [0, 1],  L = 4745 },
+  { kod = "2NO", o = [4470, -30],    u = [1, 0],  L = 4870 },
+  { kod = "2NV", o = [9340, 65],     u = [0, 1],  L = 905 },
+  { kod = "2SV", o = [9565, 11040],  u = [-1, 0], L = 5320 },
+  { kod = "2SO", o = [4470, 3560],   u = [0, -1], L = 3495 },
+  { kod = "3NO", o = [9245, 970],    u = [1, 0],  L = 4595 },
+  { kod = "3NV", o = [13840, 1065],  u = [0, 1],  L = 11380 },
+  { kod = "3SV", o = [13840, 12540], u = [-1, 0], L = 4370 },
+  { kod = "3SO", o = [9470, 12445],  u = [0, -1], L = 1405 },
+]
+
+# Öppningarna i ytterväggarna (oppningar.py): regelverkets öppning [mm]. Karmens yttermått: VELFAC 15 fog vid
+# sidorna och upptill, fog och påföring 18 under fönstren och bädd 10 under dörrarna; ytterdörrarna med panel drev 10.
+# vaning: 1 = plan 1, 0 = källaren.
+[oppningar]
+fog = 15
+paforing = 18
+badd = 10
+drev = 10
+lista = [
+  ["1NO-F1", "vändfönster",  1000, 1000, 1, "1NO"], ["1NO-F2", "fast fönster", 600, 2100, 1, "1NO"],
+  ["1NV-F1", "vändfönster",  1000, 1000, 1, "1NV"], ["1NV-D1", "fönsterdörr", 1000, 2100, 1, "1NV"],
+  ["1SO-F1", "fast fönster",  600,  600, 1, "1SO"], ["1SO-F2", "fast fönster", 600,  600, 1, "1SO"],
+  ["1SO-D1", "ytterdörr",    1000, 2100, 1, "1SO"], ["1SO-F3", "fast fönster", 600,  600, 1, "1SO"],
+  ["1SV-F1", "fast fönster", 2100, 2186, 1, "1SV"], ["2NO-F1", "vändfönster", 1000, 1000, 1, "2NO"],
+  ["2NO-F2", "vändfönster",  1000, 1000, 1, "2NO"], ["2SO-D1", "fönsterdörr", 1100, 2100, 1, "2SO"],
+  ["2SV-D1", "skjutdörr",    4800, 2359, 1, "2SV"], ["3NO-F1", "fast fönster", 600, 2100, 1, "3NO"],
+  ["3NO-F2", "vändfönster",  1000, 1000, 1, "3NO"], ["3NV-F1", "vändfönster",  800,  800, 1, "3NV"],
+  ["3NV-F2", "vändfönster",   800,  800, 1, "3NV"], ["3NV-F3", "vändfönster",  800,  800, 1, "3NV"],
+  ["3NV-F4", "vändfönster",  1000, 1000, 1, "3NV"], ["3NV-F5", "vändfönster", 1000, 1000, 1, "3NV"],
+  ["3SO-D1", "fönsterdörr",   900, 2100, 1, "3SO"], ["3SV-F1", "vändfönster", 1000, 1000, 1, "3SV"],
+  ["3SV-F2", "fast fönster",  900, 2100, 1, "3SV"],
+  ["F1", "vändfönster", 800, 600, 0, "2NO"], ["F2", "vändfönster", 800, 600, 0, "2NO"],
+  ["F3", "vändfönster", 600, 1200, 0, "2NO"], ["D1", "pardörr", 1500, 2100, 0, "3NO"],
+]
+
+# Fönstren: VELFAC 200 ENERGY (byggdelar/velfac.py), isolerruta 3-glas 4-18-4-18-4 med två lågemissionsskikt och
+# argon, siktlinjen (karmens ytterkant till glaskanten) 54 mm. VELFAC anger Uw ned till 0,80 för referensfönstret
+# 1 230 × 1 480 (SS-EN ISO 10077-1). Ug och ψg är antagna typvärden; Uf är bestämt så att referensfönstret får 0,80.
+[velfac]
+Ug         = 0.50
+psi_g      = 0.040
+Uw_ref     = 0.80
+ref_b      = 1230
+ref_h      = 1480
+siktlinje  = 54
+mittpost   = 108          # skjutdörrens möte och kopplingarna mellan partierna: två siktlinjer
+g          = 0.50         # isolerrutans g-värde (3-glas med två lågemissionsskikt, typvärde)
+# skjutdörren 2SV-D1: fyra partier (två skjutbara mellan två fasta), fönsterdörrarna och fönstren ett
+partier    = { "skjutdörr" = 4, "pardörr" = 2 }
+
+# Ytterdörrarna med panel (huvudentrén 1SO-D1 och källarens pardörr D1): produkten är inte vald (IN-01)
+[ytterdorr]
+U          = 1.0
+
+# Takfönstren TF1–TF3: öppningen 1 200 × 1 200 i takets plan, produkten inte vald (IN-01). 3-glas, Uw i takets
+# lutning, och anslutningen mot taket (isoleringskrage).
+[takfonster]
+b          = 1200
+h          = 1200
+Uw         = 1.10
+psi        = 0.10
+g          = 0.45
+antal      = 3
+takfall    = ["1SO", "1SO", "3SO"]
+
+# ------------------------------------------------------------------ mark och grund
+# Markytans nivå utanför grunden per fasad [mm, z från bjälklagets överkant], förenklat ur modellens marknivåer
+# (hus/fasad/markniva.py, MARKEN): (u längs väggen från väggens början, z).
+[mark]
+djup       = 20000        # nätets djup under bottenplattan [mm]
+utbredning = 2.0          # nätets utbredning åt sidorna i husets största bredd
+berg_z     = -2650        # berget under fyllningen och makadamen (bottenplattans underkant, sprängt)
+[mark.niva]
+"1NO" = [[0, -739], [4500, -739]]
+"1SO" = [[0, -222], [2500, -223], [4510, -682], [7440, -684], [7450, -926], [11420, -1312], [12260, -1338]]
+"1SV" = [[0, -398], [2275, -223], [4435, -222]]
+"1NV" = [[0, -409], [4930, -394]]
+"2NO" = [[0, -1449], [4875, -1449], [4935, -2247]]
+"2NV" = [[0, -2247], [905, -2247]]
+"2SV" = [[0, -679], [1195, -694], [5015, -409], [5320, -409]]
+"2SO" = [[0, -739], [3410, -841], [3420, -1441], [3630, -1448]]
+"3NO" = [[0, -2247], [2885, -2247], [4655, -1447]]
+"3NV" = [[0, -1417], [11472, -1062], [11512, -960]]
+"3SV" = [[0, -959], [4385, -662], [4435, -773]]
+"3SO" = [[0, -762], [992, -762], [1002, -679], [1402, -679]]
+
+# ------------------------------------------------------------------ drift och brukare
+# BEN (BFS 2016:12 med ändringar t.o.m. BFS 2017:6) tabell 2:1, nya småhus: 21 °C, hushållsel 30 kWh/m² Atemp och
+# år varav 70 % tillgodo, personvärme 80 W i 14 h/d enligt tabell 2:3 (5 rum och kök: 3,51 personer), tappvarmvatten
+# 20 kWh/m² Atemp och år, vädring 4 kWh/m² (allmänt råd), solavskärmning 0,71.
+[drift]
+T_inne     = 20.0         # lägst 20 °C inne (beställaren); BEN:s 21 °C räknas som ett fall för BBR:s primärenergital
+T_vadring  = 24.0         # vädring (mer uteluft) när rummet blir varmare
+hushallsel = 30.0
+hushallsel_internlast = 0.70
+personer   = 3.51
+person_W   = 80.0
+person_h   = 14.0
+tappvarmvatten = 20.0
+vadring    = 4.0
+solavskarmning = 0.71
+# Närvaron (beställaren): huset används helgerna, fredag 18 till söndag 18 (svensk normaltid). Då gäller BEN:s
+# internlast och grundflödena; resten av veckan står huset tomt, med frånluften nere (se [ventilation]) och bara
+# grundlasten som internlast. Tappvarmvattnet och vädringen räknas efter andelen av tiden som någon är hemma.
+# "alltid": helårsboende enligt BEN (så räknas BBR:s primärenergital). Inne hålls minst T_inne hela tiden.
+narvaro    = "helg"
+helg       = [[4, 18], [6, 18]]     # från och till: veckodag (måndag 0) och timme
+grundlast_W = 50.0        # när huset står tomt: kyl, frys och standby (uppskattat), allt blir värme
+
+# Ventilationen (VL-01): frånluft utan värmeåtervinning, uteluften genom ventilerna i fönstren. Grundflöden; köksfläkten
+# forceras 30 min/dygn (BEN) till 111 l/s när någon är hemma. BBR 6:251: minst 0,35 l/s·m² golvarea när någon vistas i
+# bostaden; när ingen gör det får flödet gå ned till 0,10 l/s·m². När huset står tomt (se drift.narvaro) går alla
+# fläktarna ned i samma proportion till tomt_flode.
+[ventilation]
+FF1        = 56.0         # köket, normalt
+FF1_forcerad = 111.0
+forcering_min = 30.0
+FF2        = 10.0         # badrummet
+FF3        = 10.0         # källarrummet
+flaktel_W  = 60.0         # fläktarnas el, grundflöde (uppskattat)
+tomt_flode = 0.10         # frånluften när huset står tomt [l/s·m² Atemp]
+tomt_sank  = true         # sänk frånluften när huset står tomt (fallet utan: grundflödena hela tiden)
+
+# Lufttäthet och infiltration: q50 är antaget (ingen provtryckning ännu). Infiltrationen räknas med LBL-modellen
+# (ASHRAE Fundamentals kap. 16) ur q50 och läggs ihop med frånluften kvadratiskt (Q = √(Q_frånluft² + Q_inf²)).
+[infiltration]
+q50        = 0.6          # l/s per m² omslutande area vid 50 Pa
+n          = 0.65
+Cs         = 0.000290     # stigkraft, två våningar [(l/s)²/(cm⁴K)] -> se dynamik.py
+Cw         = 0.000420     # vind, två våningar, skärmningsklass 1 (öppet kustläge)
+
+# Trapphålet mellan plan 1 och källaren (K-05): öppet, luften blandas mellan våningarna (dubbelriktat flöde)
+[trapphal]
+b          = 2070
+l          = 828
+Cd         = 0.6
+reduktion  = 0.5          # trappan och räcket i öppningen
+
+# Värmepumpen (IN-01): bergvärmepump NIBE S1256-13 (eller CTC GSi 612) med borrhål ca 200 m. Värmefaktorn räknas
+# varje timme ur kondensorns och förångarens temperaturer: COP = η · T_kond / (T_kond − T_förång) [K], med η
+# bestämt så att COP blir NIBE:s 5,06 vid B0/W35 (SS-EN 14511, 5,12 kW). Kondensorn: golvvärmens framledning, som
+# är golvvärmeplanets temperatur plus rörens motstånd mot betongen (PE-RT 16 × 2 c/c 300) och halva temperaturfallet,
+# plus 2 K. Förångaren: köldbärarens medeltemperatur i borrhålet minus halva temperaturfallet och 2 K. Köldbäraren:
+# ostörd berggrund minus borrhålets motstånd gånger uttaget per meter och bergets motstånd gånger uttaget i tre
+# tidsskalor (6 timmar, 30 dygn och medeluttaget under driftåren; linjekällan, bergets λ och värmekapacitet ur
+# [material]).
+[varmepump]
+COP_B0W35  = 5.06         # NIBE S1256-13, SS-EN 14511, B0/W35
+lyft_min   = 28.0         # minsta temperaturlyft mellan förångning och kondensering som räknas [K] (antaget:
+                          # kompressorns minsta tryckförhållande; ger värmefaktorn högst ca 7,4)
+approach   = 2.0          # kondensor och förångare mot vattnet och köldbäraren [K]
+dT_vatten  = 5.0          # golvvärmens temperaturfall [K]
+dT_koldbarare = 3.0       # köldbärarens temperaturfall [K]
+R_ror      = 0.089        # rören mot golvvärmeplanet [m²K/W]: (c/(2πλ_b)) ln(c/(π d_y)) + c ln(d_y/d_i)/(2πλ_PE)
+T_berg     = 8.5          # ostörd berggrund, medel över borrhålet [°C] (typvärde för kusten i Bohuslän)
+borrhal_L  = 200.0        # [m] (IN-01: 1 borrhål, ca 200 m)
+R_borrhal  = 0.08         # borrhålets motstånd, enkel U-slinga i grundvattenfyllt hål [m·K/W]
+borrhal_d  = 115          # borrhålets diameter [mm]
+driftar    = 10           # år av drift som bergets långsamma avkylning räknas för
+COP_tvv    = 3.0          # tappvarmvatten, tappprofil XL (SS-EN 16147), typvärde för bergvärmepumpar
+pumpel_W   = 60.0         # köldbärar- och golvvärmepumparna när värmepumpen går (uppskattat)
+
+# Elpriset, de rörliga delarna [öre/kWh med moms], för kostnaden i kronor. Spotpriset är månadsmedel i elområde SE3
+# för åren i ar (Nord Pool, dagen före-marknaden; boio.se/el/elpris-historik, hämtat 2026-11-13), januari–december.
+# De fasta avgifterna (elnätets och elhandelns abonnemang) ingår inte: de betalas oavsett.
+[elpris]
+ar         = [2023, 2024, 2025]
+spot       = [[115.7, 103.3, 100.9, 86.1, 49.0, 66.3, 47.1, 46.2, 30.4, 41.3, 102.7, 99.0],
+              [100.3, 63.0, 74.4, 70.4, 29.6, 34.1, 25.9, 10.7, 20.6, 28.7, 83.6, 72.8],
+              [79.3, 96.3, 63.6, 46.9, 53.7, 28.5, 46.3, 60.7, 65.4, 78.5, 87.1, 64.6]]
+paslag     = 7.0          # elhandlarens påslag och elcertifikat (antaget)
+energiskatt = 45.0        # 2026: 36,0 öre/kWh utan moms (Skatteverket)
+elnat      = 26.0         # överföringsavgift, Ellevio säkringsabonnemang 16–63 A från 2026-06-01 (Tanum hör till
+                          # Ellevios kommuner; nätägaren på Resö är inte kontrollerad)
+
+# BBR 29 (BFS 2020:4) avsnitt 9:2: småhus > 130 m² Atemp, Tanum
+[bbr]
+EP_krav    = 90
+Um_krav    = 0.30
+VF_el      = 1.8
+Fgeo       = 0.9
+effekt_bas = 4.5
+
+# Skarvar som inte räknas i 2D (uppskattade, typvärden med invändiga mått)
+[uppskattade_skarvar]
+kallarfonster = 0.05      # källarens fönster och dörr i Kub-väggen [W/(m·K)]
+gavelkant = 0.05          # gavelns takkant (takets isolering mot gavelstolen) [W/(m·K)]
+
+# Timsimuleringen
+[dynamik]
+rumshojd_plan1 = 3.0          # medelhöjd under det lutande innertaket [m]
+lattvikt_kJ_m2K = 40.0        # plan 1: gips, OSB, innerväggar och möbler per m² golv
+lattvikt_kallare_kJ_m2K = 20.0
+skuggning = 0.9               # takfot, smyg och omgivning (utöver BEN:s solavskärmning)
+sol_till_golv = 0.5           # andel av solen genom fönstren som träffar golvet (bjälklaget)
+P_max = 13.0                  # värmepumpens största värmeeffekt [kW]
+styr_horisont_h = 12          # golvvärmens styrning: rummets temperatur så många timmar framåt
+
+# ------------------------------------------------------------------ klimat
+[klimat]
+fil        = "../U-03/klimat_era5.csv.gz"   # ERA5 2013-07 – 2023-12, timvärden (U-03)
+ar         = [2014, 2023]                   # hela år som räknas
+markreflektion = 0.2
+azimut_x   = 318.0                          # husets +x mot geografiska norr (AR-02, U-03)
+lat        = 58.80
+lon        = 11.25
+
+# ------------------------------------------------------------------ nät
+[nat]
+h_2d       = 2.5          # cellstorlek i 2D-snitten nära skarvarna [mm]
+h_3d       = 50           # cellstorlek i 3D-modellen vid väggarna och plattornas kanter [mm]
+h_3d_max   = 3000
+
+# ------------------------------------------------------------------ fall
+# Varje fall ändrar grundfallets värden (nycklarna som i avsnitten ovan, med punkt).
+[[fall]]
+namn = "Grundfall"
+[[fall]]
+namn = "Gavelspetsarna oisolerade"
+"gavelspets.isolerad" = false
+[[fall]]
+namn = "Installationsskiktet i väggarna oisolerat"
+"installation.isolerad" = false
+[[fall]]
+namn = "Installationsskiktet i taket isolerat (mot U-03)"
+"tak.installation_isolerad" = true
+[[fall]]
+namn = "Värmeåtervinning (FTX, 80 %)"
+ftx = 0.80
+[[fall]]
+namn = "Uteluft 0,35 l/s·m² Atemp (BBR 6:251)"
+"ventilation.FF1" = 71.4     # köket ökat så att frånluften blir 0,35 × 264 = 92 l/s
+[[fall]]
+namn = "Grundflödena också när huset står tomt"
+"ventilation.tomt_sank" = false
+[[fall]]
+namn = "Helårsboende (BEN), 20 °C"
+"drift.narvaro" = "alltid"
+[[fall]]
+namn = "Tätare: q50 = 0,3"
+"infiltration.q50" = 0.3
+[[fall]]
+namn = "Otätare: q50 = 1,5"
+"infiltration.q50" = 1.5
+[[fall]]
+namn = "Fyra gånger så stort luftutbyte i trapphålet"
+"trapphal.reduktion" = 2.0
+[[fall]]
+namn = "Helårsboende, inne 21 °C (BEN; så räknas BBR:s primärenergital)"
+"drift.T_inne" = 21.0
+"drift.narvaro" = "alltid"
+[[fall]]
+namn = "Inne 21 °C"
+"drift.T_inne" = 21.0
+[[fall]]
+namn = "Inne 22 °C"
+"drift.T_inne" = 22.0
+[[fall]]
+namn = "Inne 15 °C"
+"drift.T_inne" = 15.0
+[[fall]]
+namn = "Utan sol genom fönstren (solens nytta)"
+utan_sol = true

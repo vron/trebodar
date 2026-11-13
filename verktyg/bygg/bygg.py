@@ -137,6 +137,10 @@ STEG = [
         rapport=("U-01_bottenplatta_fukt.pdf", "Bottenplattan - temperatur och fukt under året")),
     ber("U-03", "berakning.py", tung=True,
         rapport=("U-03_takets_luftspalt.pdf", "Takets luftspalt - luftflöde, fukt och mögelrisk")),
+    # husets värmeförluster (3D-modellen av marken och källaren, några minuter) och energibehovet över året
+    ber("U-05", "berakning.py", bygger_pa=["K-05", "K-06"], tung=True,
+        kallor=[f"{BER}/U-03/klimat_era5.csv.gz", f"{BER}/K-05/bild/geometri.json", f"{BER}/K-06/resultat.json"],
+        rapport=("U-05_varmeforluster.pdf", "Värmeförluster och energibehov")),
     # ljusplanerna renderas i Blender (med tillverkarnas fotometrifiler i lokalt/el) ur hela modellen: manuellt
     Steg("U-04", f"{BER}/U-04", [["mod", "ljusplan", "plan1-golv", "plan1-bord", "kok-bank", "kallare-golv",
                                   "--projekt", f"../../{BER}/U-04/indata.toml", "--ut", f"../../{BER}/U-04"]],

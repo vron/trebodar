@@ -1,4 +1,5 @@
-"""Ytterväggarnas insida (F-01): ångbroms, liggande installationsläkt 45×45 c/c 600, OSB 12 och gips 13, i badrummet
+"""Ytterväggarnas insida (F-01): ångbroms, liggande installationsläkt 45×45 c/c 600 med mineralull mellan läkten
+(U-05; skikt.ULL_I_VAGGARNA), OSB 12 och gips 13, i badrummet
 plywood 15, gips 12, tätskikt och kakel; i gaveln 1SV (reglar 45×145) ångbroms, OSB och gips direkt på
 reglarna, med OSB:n fram till långsidornas stomme i hörnen (skjuvskiva i K-04) och långsidornas skikt mot den.
 
@@ -29,9 +30,10 @@ from trebodar.hus.fonster_och_dorrar.oppningar import DORRAR, OPPNINGAR
 from trebodar.hus.rum import BADRUM
 from trebodar.hus.stomme import lagen
 from trebodar.hus.tak.takytor import tak_underkant
+from trebodar.material import MINERALULL
 
 from . import vaggar
-from .skikt import (INSIDA_T, INSIDA_VATRUM_T, LAKT, grund, i_badrum, innertak_underkant, insida_vanlig_t,
+from .skikt import (INSIDA_T, INSIDA_VATRUM_T, LAKT, ULL_I_VAGGARNA, grund, i_badrum, innertak_underkant, insida_vanlig_t,
                     installationsskikt, skivlager)
 
 @cache
@@ -188,8 +190,10 @@ def insida(kod: str) -> Montage:
     v = S.YTTERVAGGAR[kod]
     T = v.tjocklek
     lager = skivlager(kod)
-    m = Montage(f"Insida {kod}", beskrivning="Ångbroms, installationsskikt 45, OSB 12 och gips 13 (i badrummet plywood "
-                                             "15, gips 12, tätskikt och kakel)" if installationsskikt(kod) else
+    m = Montage(f"Insida {kod}", beskrivning="Ångbroms, installationsskikt 45" +
+                (" med mineralull" if ULL_I_VAGGARNA else "") + ", OSB 12 och gips 13 (i badrummet plywood 15, gips 12, "
+                "tätskikt och kakel)"
+                if installationsskikt(kod) else
                 "Ångbroms, OSB 12 och gips 13 direkt på reglarna")
     # skiktens utbredning längs väggen (_u_granser)
     granser = {(a, b): _u_granser(kod, a, b) for _, a, b, _, _ in grund(kod) + [x for ls in lager.values() for x in ls]}
@@ -247,6 +251,15 @@ def insida(kod: str) -> Montage:
             for r in ram:
                 for q in P.polygoner(r.intersection(yta).difference(oppet), 45 * 100):
                     p.profil(P.kontur(q), T + a, T + b, typ=typ, material=mat)
+            # mineralull mellan läkten (U-05): skiktets yta utom läkten
+            lakt = unary_union([box(ua, z, ub, z + LAKT) for z in rader] + ram)
+            ull = Plan(kod, f"Isolering i installationsskiktet {kod}", b - a, material=MINERALULL)
+            for q in (P.polygoner(yta.difference(oppet).difference(lakt), 45 * 100) if ULL_I_VAGGARNA else ()):
+                ull.skiva(P.kontur(q), P.hal(q), T + a, T + b, "II", MINERALULL, f"Mineralull {b - a:.0f} {kod}")
+            m.lagg(p.montage())
+            if ull.bitar:
+                m.lagg(ull.montage())
+            continue
         else:
             for q in P.polygoner(yta.difference(oppet)):
                 p.skiva(P.kontur(q), P.hal(q), T + a, T + b, typ, mat, f"{namn} {kod}")
