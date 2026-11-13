@@ -4,7 +4,8 @@ K-06: samverkande FE-modell av mellanbjälklaget (K-05) och bottenplattan.
     mellanbjälklaget (K-05:s nät och laster)
         |  källarväggarna (Kub 350-150): betongkärnan som fjäder E·t/h längs K-05:s upplagslinjer   rör: E·A/L
     bottenplattan 100 mm med kantbalkar, balkar under innerväggarna och plintar under rören
-        |  cellplast: bädd E/t (under plattan två skikt i serie, under balkar och plintar det undre skiktet)
+        |  cellplast: bädd E/t per element (under plattan två skikt i serie, under balkar och plintar det undre
+        |  skiktet; kvaliteten per zon, indata)
     berg/makadam (styvt)
 
 Laster som står över en källarvägg (K-05: plats "vägg") går direkt ned i väggen och läggs på bottenplattan.
@@ -17,6 +18,7 @@ import os
 import sys
 
 import numpy as np
+import shapely
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from shapely.geometry import LineString, Point, Polygon, box
@@ -83,8 +85,29 @@ def _ring_coords(g):
 
 
 # ------------------------------------------------------------------ mellanbjälklaget
-def topp(hmax=200.0, k_mark=None):
-    """K-05:s nät utan väggar och rör som stöd. Platta på mark (plan 1) på bädd k_mark [N/mm³]."""
+def i_zoner(zoner, cen):
+    """Punkterna cen (n, 2) som ligger i någon av rektanglarna (x0, y0, x1, y1)."""
+    x, y = cen.T
+    inne = np.zeros(len(cen), bool)
+    for x0, y0, x1, y1 in zoner:
+        inne |= (x > x0) & (x < x1) & (y > y0) & (y < y1)
+    return inne
+
+
+def badd(P, k):
+    """Cellplast som bädd: k [N/mm³] per element (0 utan bädd), fördelat på noderna efter area. Sparar k_el, k_nod
+    [N/mm] och a_nod [mm²], bäddens yta per nod."""
+    kn, an = np.zeros(P.nn), np.zeros(P.nn)
+    for j in range(3):
+        np.add.at(kn, P.tri[:, j], k * P.area / 3)
+        np.add.at(an, P.tri[:, j], (k > 0) * P.area / 3)
+    P.springs = {3 * int(n): kn[n] for n in np.flatnonzero(kn)}
+    P.k_el, P.k_nod, P.a_nod = k, kn, an
+
+
+def topp(hmax=200.0, ke=1.0):
+    """K-05:s nät utan väggar och rör som stöd. Plattan på mark (plan 1) ligger på I.EPS_MARK mm cellplast med
+    E = ke · E_k: I.EPS_MARK_GRAD, och I.EPS_STARK i de fria hörnen (I.EPS_MARK_ZON)."""
     LASTER = M05.LASTER
     linjer = list(STODLIN) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
@@ -94,7 +117,9 @@ def topp(hmax=200.0, k_mark=None):
                finare=[(x, y, 1.5 * M05.PLAT, 50 * M05.FIN) for x, y in PEL] +
                       [(x, y, 300.0, 80.0 * M05.FIN) for pl in STODLIN for x, y in pl] +
                       [(x, y, 400.0, 60.0 * M05.FIN) for x, y in stolpar])
-    P.stod_mark("mark", G["mark"], M05.K_EPS if k_mark is None else k_mark)
+    mark = MplPath(np.asarray(G["mark"], float)).contains_points(P.cen)
+    P.grad = np.where(i_zoner(I.EPS_MARK_ZON, P.cen), I.EPS_STARK, I.EPS_MARK_GRAD)
+    badd(P, np.where(mark, ke * np.array([I.EPS[g]["Ek"] for g in P.grad]) * 1e-3 / I.EPS_MARK, 0.0))
     return P
 
 
@@ -118,6 +143,9 @@ def botten(utf, plint, hmax=200.0):
         i_tjock |= ins
     P.h_el = np.where(i_tjock, utf["h_balk"], I.H_PLATTA)
     P.tjock = i_tjock
+    # det undre skiktets kvalitet: L-elementens fot under kantbalken och zonerna I.EPS_STARK, annars I.EPS_UNDRE
+    stark = shapely.contains_xy(kant, *cen.T) | i_zoner(I.EPS_ZON, cen)
+    P.grad = np.where(stark, I.EPS_STARK, I.EPS_UNDRE)
     P.geo06 = dict(poly=poly, kant=kant, inre=inre, plint=pl, tjock=tjock)
     return P
 
@@ -126,23 +154,6 @@ def styvheter(Pt, Pb, E_betong):
     Pt.styvhet(Dmat(E_betong * M05.H ** 3 / 12 / (1 - NU ** 2), NU))
     D = np.array([Dmat(E_betong * h ** 3 / 12 / (1 - NU ** 2), NU) for h in Pb.h_el])
     Pb.styvhet(D)
-
-
-def badd(Pb, k_falt, k_balk):
-    """Cellplast: k [N/mm³] per element (fördelat på noderna), under tjocka delar (balkar och plintar) k_balk, annars
-    k_falt."""
-    Pb.springs = {}
-    k = np.where(Pb.tjock, k_balk, k_falt)
-    kn = np.zeros(Pb.nn)
-    for j in range(3):
-        np.add.at(kn, Pb.tri[:, j], k * Pb.area / 3)
-    for n in range(Pb.nn):
-        Pb.springs[3 * n] = kn[n]
-    Pb.k_nod = kn                                      # N/mm per nod
-    an = np.zeros(Pb.nn)
-    for j in range(3):
-        np.add.at(an, Pb.tri[:, j], Pb.area / 3)
-    Pb.a_nod = an                                      # mm² per nod
 
 
 # ------------------------------------------------------------------ kopplingar
@@ -318,19 +329,19 @@ def svinn(kopp, ndof, eps):
 class System:
     """Hela modellen för ett utförande (indata.UTFORANDEN) och en styvhetsvariant."""
 
-    def __init__(self, utf, plint, eps_falt, eps_balk, variant, hmax=200.0, k_mark=None):
+    def __init__(self, utf, plint, variant, hmax=200.0):
         self.utf = I.UTFORANDEN[utf] if isinstance(utf, str) else utf
-        self.Pt = topp(hmax, k_mark)
-        self.Pb = botten(self.utf, plint, hmax)
         lang = variant == "lång"
+        ke = I.EPS_KS if lang else 1.0                         # cellplast: 0,4 E_k långtid, E_k korttid
+        self.Pt = topp(hmax, ke)
+        self.Pb = Pb = botten(self.utf, plint, hmax)
         Ec = B.Ecm / (1 + 2.8) if lang else B.Ecm             # betong: långtid med φ ≈ 2,8 (K-05)
         Ev = BV.Ecm / (1 + I.KRYP_V) if lang else BV.Ecm     # väggarnas kärna, C30/37
-        ke = I.EPS_KS if lang else 1.0                         # cellplast: 0,4 E_k långtid, E_k korttid
-        Ef, Eb = I.EPS[eps_falt]["Ek"] * 1e-3 * ke, I.EPS[eps_balk]["Ek"] * 1e-3 * ke   # MPa
-        # under plattan två skikt i serie: det övre (eps_falt) på det undre (eps_balk, T_FOT, som under balkarna)
-        self.k_falt = 1.0 / ((self.utf["t_eps"] - I.T_FOT) / Ef + I.T_FOT / Eb)
-        self.k_balk = Eb / I.T_FOT
-        badd(self.Pb, self.k_falt, self.k_balk)                              # före styvheten
+        # balkar och plintar står på det undre skiktet (T_FOT); under plattan ligger det övre skiktet på det undre,
+        # två skikt i serie
+        Eo = I.EPS[I.EPS_OVRE]["Ek"] * 1e-3 * ke                                # MPa
+        Eu = np.array([I.EPS[g]["Ek"] for g in Pb.grad]) * 1e-3 * ke
+        badd(Pb, np.where(Pb.tjock, Eu / I.T_FOT, 1.0 / ((self.utf["t_eps"] - I.T_FOT) / Eo + I.T_FOT / Eu)))
         styvheter(self.Pt, self.Pb, Ec)
         self.kopp = kopplingar(self.Pt, self.Pb, Ev)
         nt, nb = self.Pt.ndof, self.Pb.ndof
@@ -338,7 +349,7 @@ class System:
         K = sp.block_diag([self.Pt.K, self.Pb.K]).tocsr() + kopplingsmatris(self.kopp, self.ndof)
         self.K = K
         self.lu = spla.splu(K.tocsc())
-        self.variant, self.eps = variant, (eps_falt, eps_balk)
+        self.variant = variant
 
     def los(self, f):
         return self.lu.solve(f)
@@ -370,12 +381,12 @@ if __name__ == "__main__":
     import time
     utf = sys.argv[1] if len(sys.argv) > 1 else I.UTF
     t0 = time.time()
-    S_ = System(utf, [1000.0] * len(PEL), I.EPS_FALT, I.EPS_BALK, "lång")
+    S_ = System(utf, [1000.0] * len(PEL), "lång")
     print(f"topp {S_.Pt.ne} el, botten {S_.Pb.ne} el, dof {S_.ndof}, {time.time() - t0:.0f} s")
     F, mon = laster(S_.Pt, S_.Pb)
     for k in ("G", "S", "Qb"):
         u = S_.los(F[k])
-        Rb = (S_.Pb.k_nod * u[S_.nt:][0::3]).sum() + (np.array([S_.Pt.springs.get(3 * n, 0) for n in range(S_.Pt.nn)]) * u[:S_.nt][0::3]).sum()
+        Rb = (S_.Pb.k_nod * u[S_.nt:][0::3]).sum() + (S_.Pt.k_nod * u[:S_.nt][0::3]).sum()
         print(f"{k}: last {F[k][0::3].sum() / 1e3:7.1f} kN, reaktion {Rb / 1e3:7.1f} kN")
     u = S_.los(F["G"])
     kr = S_.krafter(u)

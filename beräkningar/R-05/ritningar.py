@@ -960,7 +960,7 @@ Z_NAT_UK = -K.H_PLATTA + 30 + 3         # underkantsnätet, nedre lagret (centru
 
 
 def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
-    """Bottenplattan (K-06, L400) i sektion mellan xa och xb: platta 100 på 300 cellplast (det undre skiktet 100 S300 i
+    """Bottenplattan (K-06, L400) i sektion mellan xa och xb: platta 100 på 300 cellplast (det undre skiktet 100 S200 i
     hela ytan, plastfolien på det i balkarnas underkant, och 200 S100 ovanpå under plattan), balkar (x0, x1) 300 höga
     på det undre skiktet. Näten går genom balkarna. kant: plattans kant
     vid xa (annars avbrott). balkarm:
@@ -981,9 +981,9 @@ def bottenplatta_snitt(v, xa, xb, balkar, kant=False, balkarm=True, fas=0.0):
         topp = [(xa - fas, 0.0), (xa, -fas)] if fas else [(xa, 0.0)]
         poly = topp + [(prof[0][0], prof[0][1])] + prof[1:] + [(xb, prof[-1][1]), (xb, 0.0)]
         v.polygon(poly, fyll="betong", stil="normal")
-        # cellplast: det undre skiktet S300 i hela ytan (lika tjockt som L-elementens fot), plastfolien på det i
+        # cellplast: det undre skiktet S200 i hela ytan (lika tjockt som L-elementens fot), plastfolien på det i
         # balkarnas underkant, och det övre skiktet S100 under plattan mellan balkarna
-        v.rekt(xa, -HB - K.T_FOT, xb, -HB, fyll="eps2", stil="tunn")
+        v.rekt(xa, -HB - K.T_FOT, xb, -HB, fyll="eps3", stil="tunn")
         cur = xa
         for b0, b1 in sorted(balkar):
             if b0 > cur:
@@ -1070,7 +1070,8 @@ def sektion_a():
             (K.X_START, 350), None),
            (f"L-element S300, höjd {sv(HB + K.T_FOT)}, bredd {sv(K.B_L)}", (50, -150), None),
            (f"kantbalk {sv(K.B_BALK)} × {sv(HB)} (R-04)", (300, -100), None),
-           (f"cellplast S100 {sv(EPS_PL - K.T_FOT)}, {sv(K.OMLOTT)} in över foten, på S300 {sv(K.T_FOT)} i hela ytan",
+           (f"cellplast {K.EPS_OVRE} {sv(EPS_PL - K.T_FOT)}, {sv(K.OMLOTT)} in över foten, på {K.EPS_UNDRE} {sv(K.T_FOT)} i hela "
+            "ytan",
             (575, -HB / 2 - K.H_PLATTA / 2), None)]
     with v.lager("text"):
         v.hanvisning((15, H + 135), (-70, H + 270), "kantisolering 30", a="rm", sz=5.8)
@@ -1286,7 +1287,8 @@ def blad_sektioner():
             dict(form="yta", fyll="karna", stil="tunn", text="betongkärna, Kub 350-150"),
             dict(form="yta", fyll="betong", stil="tunn", text="betong, bottenplatta och mellanbjälklag"),
             dict(form="yta", fyll="eps", stil="tunn", text="cellplast"),
-            dict(form="yta", fyll="eps2", stil="tunn", text="cellplast S300 (L-element, det undre skiktet)"),
+            dict(form="yta", fyll="eps3", stil="tunn", text=f"cellplast {K.EPS_UNDRE}, det undre skiktet (R-04)"),
+            dict(form="yta", fyll="eps2", stil="tunn", text="cellplast S300 (L-element)"),
             dict(form="linje", stil="folie", text="plastfolie i hela ytan (R-04)"),
             dict(form="punkt", r=0.4, text="vågräta järn Ø10 (21)"),
             dict(form="linje", stil="ok", text="vinkeljärn, lodräta järn i väggen"),

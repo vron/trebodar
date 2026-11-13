@@ -39,7 +39,8 @@ ind = R["indata"]
 VP = I.VIBROPLATTA
 D["mat"] = dict(K0=f(ind["K0"], 2), KA=f(ind["KA"], 2), fi=f(ind["fi"], 0), gamma=f(ind["gamma"], 0), q=f(ind["q"]),
                 H=mm(ind["H"]), Ls=f(ind["Ls"], 3), hfm=f(ind["h_fyll_mark"], 2), gmark=f(ind["g_mark"]),
-                qmark=f(ind["q_mark"]), eps_mark=mm(I.EPS_MARK), eps_mark_grad=I.EPS_MARK_GRAD, komp=f(ind["sig_komp"], 0), P=f(ind["P_platta"], 0),
+                qmark=f(ind["q_mark"]), eps_mark=mm(I.EPS_MARK), eps_mark_grad=I.EPS_MARK_GRAD, eps_ovre=I.EPS_OVRE, eps_undre=I.EPS_UNDRE,
+                eps_stark=I.EPS_STARK, zon=f(I.EPS_ZON_SIDA / 1000, 1), komp=f(ind["sig_komp"], 0), P=f(ind["P_platta"], 0),
                 vp_m=mm(VP["massa"]), vp_F=f(VP["F"], 0), vp_b=f(VP["b"], 1), lager=f(I.LAGER_FYLL, 1),
                 gbygg=f(ind["g_bygg"], 2), qbygg=f(ind["q_bygg"], 2), e=mm(ind["e_topp"] * 1000),
                 e_ut=f(ind["e_topp"] * 1000 - I.T_KARNA / 2, 1), fck=f(I.FCK_V, 0), kryp=f(I.KRYP_V, 1),
@@ -181,6 +182,19 @@ def jarn_balk(bk, lager):
     return f"{a['n']} Ø{a['dia']}"
 
 
+def _eps(e, medel=False):
+    """Cellplastens tryck i en zon; medel: brottgränsen räknas med toppens medel inom r = 150 mm."""
+    utn = max((e["uls_medel"] if medel else e["uls"]) / e["fdM"], e["perm"] / e["fdP"], e["qp"] / e["kryp"])
+    return dict(uls=f(e["uls"], 0), medel=f(e["uls_medel"], 0), fdM=f(e["fdM"], 0), perm=f(e["perm"], 0),
+                fdP=f(e["fdP"], 0), qp=f(e["qp"], 0), kryp=f(e["kryp"], 0), utn=pr(utn))
+
+
+def _mark(e):
+    return dict(uls=f(e["uls"], 1), medel=f(e["uls_medel"], 1), fdM=f(e["fdM"], 1), qp=f(e["qp"], 0),
+                kryp=f(e["kryp"], 0), utn=pr(e["utn"]), u_uls=pr(e["uls_medel"] / e["fdM"]),
+                u_qp=pr(e["qp"] / e["kryp"]))
+
+
 P = R["platta"]
 D["platta"] = {}
 for u in I.UTFORANDEN:
@@ -193,14 +207,7 @@ for u in I.UTFORANDEN:
     t = p["topp"]
     D["platta"][u] = dict(
         h=mm(p["h"]),
-        eps_b=dict(uls=f(e["balk"]["uls"], 0), medel=f(e["balk"]["uls_medel"], 0), fdM=f(e["balk"]["fdM"], 0),
-                   perm=f(e["balk"]["perm"], 0), fdP=f(e["balk"]["fdP"], 0), qp=f(e["balk"]["qp"], 0),
-                   kryp=f(e["balk"]["kryp"], 0), utn=pr(max(e["balk"]["uls_medel"] / e["balk"]["fdM"],
-                                                            e["balk"]["perm"] / e["balk"]["fdP"],
-                                                            e["balk"]["qp"] / e["balk"]["kryp"]))),
-        eps_f=dict(uls=f(e["falt"]["uls"], 0), fdM=f(e["falt"]["fdM"], 0), perm=f(e["falt"]["perm"], 0),
-                   fdP=f(e["falt"]["fdP"], 0), qp=f(e["falt"]["qp"], 0), kryp=f(e["falt"]["kryp"], 0),
-                   utn=pr(e["falt"]["utn"])),
+        eps_b=_eps(e["stark"], True), eps_u=_eps(e["undre"]), eps_f=_eps(e["falt"]),
         w=dict(max=f(p["sattning"]["wmax"], 1), min=f(p["sattning"]["wmin"], 1),
                ror=f"{f(p['sattning']['ror_min'], 1)}–{f(p['sattning']['ror_max'], 1)}",
                vagg=f"{f(p['sattning']['vagg_min'], 1)}–{f(p['sattning']['vagg_max'], 1)}",
@@ -224,11 +231,9 @@ for u in I.UTFORANDEN:
         kant_d=dict(uk=mm(kant[0]["d_uk"]), ok=mm(kant[0]["d_ok"])),
         topp=dict(ok=pr(t["u_ok"]), uk=pr(t["u_uk"]), ok5=pr(t["u5_ok"]), uk5=pr(t["u5_uk"])),
         svinn=f(p["svinn"]["m_max"]),
-        mark=dict(uls=f(p["mark"]["uls"], 1), medel=f(p["mark"]["uls_medel"], 1), fdM=f(p["mark"]["fdM"], 1),
-                  qp=f(p["mark"]["qp"], 0), kryp=f(p["mark"]["kryp"], 0),
-                  utn=pr(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"])),
-                  u_uls=pr(p["mark"]["uls_medel"] / p["mark"]["fdM"]), u_qp=pr(p["mark"]["qp"] / p["mark"]["kryp"]),
-                  ok=bool(max(p["mark"]["uls_medel"] / p["mark"]["fdM"], p["mark"]["qp"] / p["mark"]["kryp"]) <= 1.0)),
+        mark=dict(s=_mark(p["mark"]["stark"]), f=_mark(p["mark"]["falt"]),
+                  utn=pr(max(x["utn"] for x in p["mark"].values())),
+                  ok=bool(max(x["utn"] for x in p["mark"].values()) <= 1.0)),
     )
 p3 = P[I.UTF]
 D["plintar"] = [dict(namn=x["namn"], b=mm(x["b"]), N=f(x["N"]), p=f(x["p"], 0), stans=pr(x["utn_stans"]),
@@ -262,8 +267,8 @@ pk = 10.0
 ys = np.linspace(0, VG.LS, 2001)
 Mh = pk * VG.LS ** 2 / 8
 D["valid"].update(Ms=f(Mh, 2))
-e3 = p3["eps"]["balk"]
-Ed = I.EPS_KS * I.EPS[I.EPS_BALK]["Ek"] / 1000      # MPa
+e3 = p3["eps"]["stark"]
+Ed = I.EPS_KS * I.EPS[I.EPS_STARK]["Ek"] / 1000      # MPa
 D["valid"].update(w_hand=f(e3["qp"] * 1e-3 * I.T_FOT / Ed + 0, 2), w_fe=f(p3["sattning"]["wmax"], 2),
                   sig=f(e3["qp"], 0), Ed=f(Ed * 1000, 0))
 # hållfasthetstillväxt: β_cc(7) för N-cement (SS-EN 1992-1-1 3.1.2), och mognadsfaktorn vid 10 °C

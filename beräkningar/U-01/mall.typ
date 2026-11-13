@@ -48,9 +48,9 @@ Bottenplattan i källaren har golvvärme från #r.dr.fran till #r.dr.till och in
 #figure(image("fig_sektion.svg", width: 100%), caption: [Sektion A–A med beräkningsmodellens geometri. Koordinater som i K-05. z räknas från bottenplattans överkant.])
 
 Sektion A–A ligger vid y = #s.y mm, tvärs husets största bredd, #s.B mm mellan ytterliven på #s.vv och #s.vo. Väggarnas och rörens lägen och markytans nivå, +#s.mark_v m utanför #s.vv och +#s.mark_o m utanför #s.vo, är tagna ur modellen. Sektionen går genom plintarna #s.plintar. Uppbyggnaden är K-06:s:
-- 100 mm platta på #s.t_eps mm cellplast i två skikt, #s.t_ovre mm S100 ovanpå och #s.t_fot mm S300 underst i hela ytan;
+- 100 mm platta på #s.t_eps mm cellplast i två skikt, #s.t_ovre mm S100 ovanpå och #s.t_fot mm S200 underst i hela ytan;
 - åldringsbeständig plastfolie i ett plan över hela ytan, #s.h_balk mm under plattans överkant: mellan cellplastskikten och direkt under balkar och plintar, ut över L-elementens fot (R-04);
-- kantbalkar #s.h_balk mm i L-element (höjd #s.h_l, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Båda på 100 mm S300;
+- kantbalkar #s.h_balk mm i L-element (höjd #s.h_l, bredd 600), med L-elementets ytterkant i väggens ytterliv och betongen 100 mm innanför; ryggen är avfasad i ovankant och fasen fylls med betong. Plintar med samma höjd. Kantbalken står på L-elementets fot, 100 mm S300, och plintarna på det undre skiktet;
 - källarväggar av Sundolitt Kub 350-150 (cellplast 100 + betongkärna 150 + cellplast 100), gjutna direkt på kantbalken;
 - makadam på berg.
 
@@ -61,7 +61,7 @@ Modellen är tvådimensionell. Huset blir då oändligt långt, och plintarna bl
   align: (left, right, right, left),
   [Material], [λ (W/mK)], [ρc (MJ/m³K)], [Underlag],
   [Betong (plattor och väggarnas kärna)], [#r.mat.betong.lam], [#r.mat.betong.rc], [SS-EN ISO 10456, 2 300 kg/m³],
-  [Cellplast (S100, S300, väggarnas EPS 120)], [#r.mat.cellplast.lam], [#r.mat.cellplast.rc], [Deklarerat 0,033–0,036 (Kub: 0,035). Högre värde för fuktig miljö],
+  [Cellplast (S100, S200, S300, väggarnas EPS 120)], [#r.mat.cellplast.lam], [#r.mat.cellplast.rc], [Deklarerat 0,033–0,036 (Kub: 0,035). Högre värde för fuktig miljö],
   [Makadam], [#r.mat.makadam.lam], [#r.mat.makadam.rc], [Dränerad. Lågt värde],
   [Fyllning och mark], [#r.mat.mark.lam], [#r.mat.mark.rc], [SS-EN ISO 13370 tabell 7, sand och grus. Huset står på berg (3,5), se @kansl],
 )

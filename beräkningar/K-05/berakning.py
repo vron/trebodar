@@ -18,9 +18,10 @@ Rören är fjädrar med rörets axialstyvhet E A / L över 200 × 200 mm (röret
 långtidsstyvhet, t = 150 mm, h = 2,1 m). Mjuka rör ger störst moment i plattan, styva rör störst rörlaster; alla
 resultat är det ogynnsammaste av de tre, väggarnas reaktioner tas ur modellerna med stela väggar. Plattan på mark:
 bäddmodul 0,01 N/mm³ (E/t); en mjuk bädd ger störst moment (0,02 och 0,05 N/mm³ minskar stödmomentet vid hörnet mot
-källaren, övriga resultat ändras inte). Cellplasten, 350 mm S300, ger 0,026 N/mm³ korttid och 0,010 långtid; med dem
-räknar K-06 plattan i den samverkande modellen och kontrollerar den mot armeringen här. Laster: utbredda på element,
-punktlaster i noder, linjelaster längs nätets linjer; laster över källarväggarna på närmaste upplagslinje.
+källaren, övriga resultat ändras inte). Cellplasten, 350 mm S100, ger 0,009 N/mm³ korttid och 0,003 långtid (S300 i
+de fria hörnen); med dem räknar K-06 plattan i den samverkande modellen och kontrollerar den mot armeringen här.
+Laster: utbredda på element, punktlaster i noder, linjelaster längs nätets linjer; laster över källarväggarna på
+närmaste upplagslinje.
 
 Böjning: Wood–Armer, toppar utjämnade över BAND (ungefär 2d) tvärs momentets riktning. EC2 har ingen uttrycklig
 regel för att jämna ut toppar i en FE-lösning; bredden tar bara bort de lokala topparna under punktlaster och vid

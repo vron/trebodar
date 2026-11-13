@@ -262,9 +262,10 @@ handlingarnas källfiler har dem (K-03).
   KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
 - **Bottenplattan** (K-06, L400): BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1
   plinten under röret P1 osv., BP-FAS betongen i L-elementens fas, BP-L L-elementen, BP-C1 cellplastens undre lager
-  (S300 100 i hela ytan, lika tjockt som L-elementens fot, också under balkar och plintar) och BP-C2 det övre (S100 200).
-- **Plattan på mark**: PM-L L-elementen, PM-FAS betongen i L-elementens fas, PM-C1 och PM-C2 cellplasten S300 (undre och
-  övre lagret), PM-M makadamen, PM-F den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 och FK-V9
+  (S200 100 i hela ytan, lika tjockt som L-elementens fot, också under balkar och plintar), BP-CS dess del i S300 (hörnet
+  där balkarna under V4–V6 och V15 möts) och BP-C2 det övre lagret (S100 200).
+- **Plattan på mark**: PM-L L-elementen, PM-FAS betongen i L-elementens fas, PM-C1 och PM-C2 cellplasten S100 (undre och
+  övre lagret), PM-CS1 och PM-CS2 cellplasten S300 i de två fria hörnen, PM-M makadamen, PM-F den dränerande fyllningen. **Marken**: MA-1, MA-2 makadamen mellan L-elementen och schaktets kant, FK-V2 och FK-V9
   återfyllningen mot källarväggen; entréavsatsen E-DS (dörrsteget), E-AV (avsatsen), E-S1–E-S3 (trappstegen);
   bänktrappan BT-B1, BT-B2 (bänkens plank), BT-BB1–BT-BB6 (bänkens ben), BT-S1, BT-S2 (stegets plank),
   BT-SB1–BT-SB4 (stegets ben).

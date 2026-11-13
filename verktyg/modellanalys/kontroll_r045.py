@@ -11,6 +11,8 @@ modellen (modeller/trebodar/ut/trebodar.step) och jämför:
     - bottenplattans kantbalk, balkar under innerväggarna och plintar (R-04.1) och L-elementen i plan;
     - bottenplattans höjder (K-06:s utförande): plattan, cellplasten i fält med skiktgränsen (plastfolien) i balkarnas
       underkant, kantbalken på L-elementens fot och L-elementens rygg med fasen, som betongen fyller;
+    - cellplastens zoner med den starkare kvaliteten (K-06): det undre skiktet under bottenplattan och plattan på marks
+      fria hörn;
     - väggarnas höjd (betongkärnan från bottenplattans överkant till mellanbjälklagets underkant);
     - rörens tvärsnitt och antal, matkällarens golv och att kärnorna går ihop i hörn och anslutningar.
 
@@ -21,7 +23,7 @@ import os
 import sys
 
 import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -142,6 +144,20 @@ ut_in = [(round(abs(t0), 1), round(abs(t1), 1), d.namn[:5])
                                         np.r_[xu - w["ute"] * 200.0, yk, z_t] + O)]
 jamfor_z("L-elementens rygg 10 mm under överkant: cellplast, fasens betong, plattan (mm från ytterlivet)",
          [(a, b) for a, b, _ in sorted(ut_in)], [(0.0, K.FAS + 10.0), (K.FAS + 10.0, K.L_BEN), (K.L_BEN, 200.0)])
+
+# ---------------------------------------------------------------- cellplastens zoner med den starkare kvaliteten
+def i_plan(namn):
+    """Delarnas omskrivna rektanglar i plan (x0, y0, x1, y1), K-05:s koordinater."""
+    return sorted((round(float(d.bbox[0] - O[0]), 1), round(float(d.bbox[1] - O[1]), 1),
+                   round(float(d.bbox[3] - O[0]), 1), round(float(d.bbox[4] - O[1]), 1)) for d in m.valj(namn))
+
+
+jamfor_z("det undre skiktets zon med den starkare cellplasten (BP-CS; K-06 EPS_ZON)", i_plan("BP-CS"),
+         sorted(tuple(z) for z in K.EPS_ZON))
+_pm, _, _rygg = K.platta_pa_mark(urtag=False)               # plattan på mark och L-elementens rygg under plattan
+jamfor_z("plattan på marks zoner med den starkare cellplasten, innanför L-elementens rygg (PM-CS*; K-06 EPS_MARK_ZON)",
+         i_plan("PM-CS*"), sorted(tuple(round(v, 1) for v in box(*z).intersection(_pm.difference(_rygg)).bounds)
+                                  for z in K.EPS_MARK_ZON))
 
 # ---------------------------------------------------------------- väggarnas höjd
 w = K.VAGG["V21"]

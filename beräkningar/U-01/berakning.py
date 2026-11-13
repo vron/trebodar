@@ -162,7 +162,7 @@ def main():
                 ("plastfolie", (0.80, g["zfolie"]), (0.70, -0.36)),
                 ("golvvärme", (0.62, g["gv"][2]), (0.66, 0.08)),
                 (f"platta {P['h_platta'] * 1000:.0f} på cellplast\nS100 {(P['t_eps'] - P['t_fot']) * 1000:.0f} + "
-                 f"S300 {P['t_fot'] * 1000:.0f}", (0.95, -0.05), (0.80, 0.25))]
+                 f"S200 {P['t_fot'] * 1000:.0f}", (0.95, -0.05), (0.80, 0.25))]
         for txt, p, q in etik:
             ax.annotate(txt, p, q, fontsize=6.3, ha="center", va="center", arrowprops=dict(arrowstyle="-", lw=0.35, color=INK),
                         bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))

@@ -174,6 +174,7 @@ PLAC = dict(
     pos14=dict(y=(9000.0, 9600.0, 10200.0), bubbla=(12500.0, 9900.0)),
     fri_text=((10390.0, 1000.0), (11500.0, 450.0)),       # fri kant mot det fria: från kanten till texten
     mark_text=(2700.0, 11250.0),
+    mark_zon=(450.0, 13950.0),                  # texten till cellplastens zoner i plattan på marks fria hörn
     snitt=dict(A=((12950, 8000), (13870, 8000), -1), B=((11660, 7150), (11660, 6100), -1),
                C=((8700, 6300), (8700, 5780), -1), D=((9150, 9300), (10150, 9300), -1)),
     rubrik=(150.0, 2750.0), skalstock=(150.0, 1450.0),
@@ -213,6 +214,12 @@ def lager_kanter(v):
         v.hanvisning((4290.0, 14200.0), (5200.0, 14600.0),
                      f"L-element S300, höjd {sv(KAL.H_L_MARK)}, ryggen {sv(KAL.RYGG_KVAR)} i plattan", a="lm",
                      sz=6.4)
+        for i, (x0, y0, x1, y1) in enumerate(KAL.EPS_MARK_ZON):          # cellplastens starkare kvalitet i de fria hörnen
+            v.linje([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)], "zon_kant")
+            if i == 0:
+                v.hanvisning((x1 - 150, y0 + 150), PLAC["mark_zon"],
+                             f"{KAL.EPS_STARK} under plattan, {sv(x1 - x0)} × {sv(y1 - y0)}",
+                             a="lm", sz=6.4)
         (bx, by), _ = hornjarn()[-1]
         v.hanvisning((bx - 150, by - 65), (5200.0, 15500.0), "hörnjärn vid de fria hörnen, detalj F (R-06.4)", a="lm",
                      sz=6.4)
@@ -742,7 +749,7 @@ def sektion_f():
         v.hanvisning((POS15["o"], Y15[0]), (380, 300), bubbla=15)
         v.text(KAL.I06.B_SYLL / 2, H + 22, "syll", a="cm", sz=5.4, col="gra", i=True)
         v.text(lb / 2, -(eps - tf) / 2, "L-element S300", a="cm", sz=5.6, col="gra", i=True, rot=90)
-        v.text((lb + U1) / 2, -70, f"cellplast S300 {svm(eps - tf)}", a="cm", sz=5.6, col="gra", i=True)
+        v.text((lb + U1) / 2, -70, f"cellplast {KAL.EPS_STARK} {svm(eps - tf)}", a="cm", sz=5.6, col="gra", i=True)
     with v.lager("rubrik"):
         v.rubrik(-80, 340 - 72 * 10, "SEKTION F–F", skala=10, sz=9)
     return v
@@ -846,7 +853,8 @@ def blad_oversikt():
             f"Kantisolering {sv(KAL.KI)} mm cellplast utanför plattans kant ovanpå källarväggarna, ut till väggarnas "
             "ytterliv; plattan gjuts mot den (sektion A, R-06.4).",
             f"Plattan på mark: L-element S300, höjd {sv(KAL.H_L_MARK)}, längs de fria kanterna med ytterkanten i "
-            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S300 under plattan (K-06). I plattans "
+            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast {KAL.EPS_MARK_GRAD} under plattan, "
+            f"{KAL.EPS_STARK} inom {sv(KAL.EPS_ZON_SIDA)} mm från de två fria hörnen (streckat, K-06). I plattans "
             f"tjocklek är ryggen urtagen utom de yttersta {sv(KAL.RYGG_KVAR)} mm, som kantisoleringen, och betongen "
             f"går fram till plattans kant; under plattan är ryggen {sv(KAL.L_BEN)} mm. Järnen slutar {sv(C_KANT)} mm från "
             "ryggen under plattan. Vid de fria hörnen hörnjärn (detalj F, R-06.4)."]),
@@ -854,6 +862,8 @@ def blad_oversikt():
         dict(typ="symboler", rader=[
             dict(form="linje", stil="kontur", text="plattans kant"),
             dict(form="linje", stil="dold", text="källarvägg under plattan"),
+            dict(form="linje", stil="zon_kant", text=f"cellplast {KAL.EPS_STARK} under plattan på mark, annars "
+                 f"{KAL.EPS_MARK_GRAD}"),
             dict(form="yta", fyll="eps2", stil="tunn", text="kantisolering 30"),
             dict(form="yta", fyll="eps", stil="tunn", text=f"L-elementens rygg, plattan på mark (höjd {sv(KAL.H_L_MARK)})"),
             dict(form="ruta", fyll="stal", text="stålrör VKR 80×80×4 (K-05)")]),

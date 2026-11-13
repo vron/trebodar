@@ -5,12 +5,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import indata as I
 import modell06 as M
-from berakning06 import k_mark
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 plint = json.load(open(os.path.join(HERE, "kontroll06.json")))[I.UTF]["plint"]
 out = []
 for hmax in (200.0, 140.0):
-    S = M.System(I.UTF, plint, I.EPS_FALT, I.EPS_BALK, "lång", hmax=hmax, k_mark=k_mark("lång"))
+    S = M.System(I.UTF, plint, "lång", hmax=hmax)
     F, _ = M.laster(S.Pt, S.Pb)
     f = F["G"] + 0.481 * (sum(F["Q"]) + F["Qb"]) + 0.1 * F["S"]
     u = S.los(f)

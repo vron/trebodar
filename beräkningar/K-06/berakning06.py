@@ -25,15 +25,8 @@ from laster import KROPPAR
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PSI2_Q, PSI2_S = 0.3, 0.1
-EPS_FALT, EPS_BALK = I.EPS_FALT, I.EPS_BALK
 P_MAL = 30.0             # kPa: plintarnas storlek väljs för ungefär samma långtidstryck som under väggarna
 BAND = 250.0
-
-
-def k_mark(variant):
-    """Plattan på mark på plan 1: I.EPS_MARK mm cellplast I.EPS_MARK_GRAD."""
-    ke = I.EPS_KS if variant == "lång" else 1.0
-    return ke * I.EPS[I.EPS_MARK_GRAD]["Ek"] * 1e-3 / I.EPS_MARK
 
 
 def plintar(N_qp):
@@ -54,7 +47,7 @@ def lastfall(S, F, variant):
 
 def analys(utf, plint, variant, spara=True):
     t0 = time.time()
-    S = M.System(utf, plint, EPS_FALT, EPS_BALK, variant, k_mark=k_mark(variant))
+    S = M.System(utf, plint, variant)
     F, monster = M.laster(S.Pt, S.Pb)
     U = lastfall(S, F, variant)
     nq = len(F["Q"])
@@ -131,7 +124,7 @@ def analys(utf, plint, variant, spara=True):
                p_k=kar(p_eps), kr_qp={n: kvasi({k: kr[n] for k, kr in krafter.items()}) for n in krafter["G"]})
     lf = dict(mt=mt, mb=mb, p=p_eps, w_t=w_t, w_b=w_b, kr=krafter)
     # jämvikt: last = cellplastens reaktion under bottenplattan + bädden under plattan på mark (plan 1)
-    km = np.array([S.Pt.springs.get(3 * n, 0.0) for n in range(S.Pt.nn)])
+    km = S.Pt.k_nod
     env["jamvikt"] = {k: dict(last=float(F[k][0::3].sum() / 1e3) if k in F else None,
                               reaktion=float((S.Pb.k_nod * U[k][S.nt:][0::3]).sum() + (km * U[k][:S.nt][0::3]).sum()) / 1e3)
                       for k in ("G", "S_V", "S_M", "S_H", "Qb")}
@@ -151,7 +144,8 @@ def spara(S, env, sls, lf, kr, plint, namn):
     import pickle
     pickle.dump(dict(env=env, sls=sls, kr=kr, plint=plint, xy_t=S.Pt.xy, tri_t=S.Pt.tri, xy_b=S.Pb.xy,
                      tri_b=S.Pb.tri, tjock=S.Pb.tjock, h_el=S.Pb.h_el, a_nod=S.Pb.a_nod,
-                     k=(S.k_falt, S.k_balk), lf_p=lf["p"], lf_kr=lf["kr"],
+                     k_el=S.Pb.k_el, k_nod=S.Pb.k_nod, grad=S.Pb.grad, km_el=S.Pt.k_el, km_nod=S.Pt.k_nod,
+                     am_nod=S.Pt.a_nod, grad_mark=S.Pt.grad, lf_p=lf["p"], lf_kr=lf["kr"],
                      mt_SV=lf["mt"].get("SV"), mt_G=lf["mt"]["G"], wt=lf["w_t"], wb=lf["w_b"]),
                 open(os.path.join(HERE, namn), "wb"))
 

@@ -128,6 +128,8 @@ MINERALULL = Material("Mineralull", "Mineralullsskiva", 30, "#e8d27a", 1.0, text
                       rendering=rendering(farg2="#cdb55e"), cad="#f2b6c6")
 CELLPLAST = Material("Cellplast", "Cellplast EPS S100", 20, "#f3ecef", 0.95, textur="cellplast", enhet="m3",
                      rendering=rendering(farg2="#e2d8dc"), cad="#c6d6e8")
+CELLPLAST_S200 = Material("Cellplast S200", "Cellplast EPS S200", 25, "#f3d7e1", 0.95, textur="cellplast",
+                          enhet="m3", rendering=rendering(farg2="#e1c2cd"), cad="#adc3df")
 CELLPLAST_S300 = Material("Cellplast S300", "Cellplast EPS S300", 30, "#f2bfd2", 0.95, textur="cellplast",
                           enhet="m3", rendering=rendering(farg2="#e0aabe"), cad="#93b0d6")
 

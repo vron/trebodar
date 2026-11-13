@@ -30,7 +30,7 @@
 #let TAND = ("#2c4a6e", "#b5463a", "#4f7d3a", "#7a4f8f", "#a8701a", "#2f7f7f", "#8a3a5c", "#5a6b2a").map(rgb)
 #let FYLL = (
   betong: rgb("#ecebe7"), mark: rgb("#f4ecdc"), karna: rgb("#b9b3a9"), isol: rgb("#f7f3df"), stal: rgb("#5a5f66"),
-  eps: rgb("#f3f6fa"), eps2: rgb("#dde6f0"), vit: white, svart: INK, zon: rgb("#f6e3df"), hal: white,
+  eps: rgb("#f3f6fa"), eps2: rgb("#dde6f0"), eps3: rgb("#e9eef5"), vit: white, svart: INK, zon: rgb("#f6e3df"), hal: white,
   jord: tiling(size: (2.2mm, 2.2mm))[#place(line(start: (0%, 100%), end: (100%, 0%), stroke: 0.15mm + rgb("#a89a7c")))],
   grus: tiling(size: (1.6mm, 1.6mm))[#place(dx: 0.5mm, dy: 0.5mm, circle(radius: 0.18mm, fill: rgb("#8f8a80")))],
   papp: rgb("#7d7466"), limtra: rgb("#ecdcb8"), distans: rgb("#f7f0e1"),

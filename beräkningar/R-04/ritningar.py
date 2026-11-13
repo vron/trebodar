@@ -5,8 +5,8 @@ R-04 Konstruktionsritning bottenplatta (F-01), A3 med ../ritningsmall:
     R-04.2  Armering                                          1:50
     R-04.3  Sektioner, detaljer och förteckningar             1:10, 1:20
 
-Bottenplatta L400 (K-06): 100 mm betong C30/37 på 300 mm cellplast (det undre skiktet 100 S300 i hela ytan,
-plastfolien på det, och 200 S100 ovanpå under plattan), kantbalkar i L-element och balkar under innerväggarna
+Bottenplatta L400 (K-06): 100 mm betong C30/37 på 300 mm cellplast (det undre skiktet 100 S200 i hela ytan, S300
+i hörnet där innerväggarnas balkar möts, plastfolien på det, och 200 S100 ovanpå under plattan), kantbalkar i L-element och balkar under innerväggarna
 450 × 300 och plintar under rören, alla på det undre skiktet eller L-elementens fot.
 L-elementen har ytterkanten i väggarnas ytterliv och betongen börjar 100 mm innanför. Geometrin ur
 ../R-05/kallare.py (K-05:s geometri.json, K-06:s indata och resultat). Koordinater som K-05 (mm, origo i
@@ -110,6 +110,7 @@ def under(namn):
 PLAC = dict(
     rubrik=(-200.0, 2500.0), skalstock=(-200.0, 1550.0),
     natsymbol=(900.0, 4360.0, 1600.0),          # hörnet där järnen i nätsymbolen möts och järnens längd
+    cellplastzon=(8450.0, 8250.0),              # texten till zonen med den starkare cellplasten
     snitt=dict(A=((13150.0, 6100.0), (13990.0, 6100.0), -1), B=((9150.0, 9900.0), (10150.0, 9900.0), -1),
                C=((6200.0, 2190.0), (7780.0, 2190.0), -1)),
     # mått till plintarnas och innerbalkarnas mitt från bottenplattans ytterkant (väggarnas ytterliv): (riktning,
@@ -219,6 +220,16 @@ def lager_snitt(v):
     with v.lager("snitt"):
         for namn, (p0, p1, sida) in PLAC["snitt"].items():
             v.snittpil(p0, p1, namn, sida=sida)
+
+
+def lager_cellplastzon(v):
+    """Zonen där det undre cellplastskiktet har den starkare kvaliteten (K-06): streckad ruta från balkarnas hörn."""
+    s = v.s
+    with v.lager("cellplast"):
+        for x0, y0, x1, y1 in K.EPS_ZON:
+            v.linje([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)], "zon_kant")
+            v.hanvisning((x0 + 150, y1 - 150), PLAC["cellplastzon"],
+                         f"det undre skiktet {K.EPS_STARK}, {sv(x1 - x0)} × {sv(y1 - y0)}", a="rm", sz=6.0)
 
 
 # ---------------------------------------------------------------- armering i plan (R-04.2)
@@ -440,7 +451,8 @@ def sektion_a():
            (f"Ø{NAT[0]} s{NAT[1]} i underkant, täckskikt {C_UK:.0f}", (700, -HP + C_UK + 3), POS["uk_x"]),
            (f"L-element S300, höjd {sv(HB + TF)}, bredd {sv(K.B_L)} (t.ex. Finja), ryggen avfasad till {sv(K.FAS)}",
             (520, -HB - 70), None),
-           (f"cellplast S100 {sv(EPS - TF)}, {sv(K.OMLOTT)} in över L-elementets fot, på S300 {sv(TF)} i hela ytan",
+           (f"cellplast {K.EPS_OVRE} {sv(EPS - TF)}, {sv(K.OMLOTT)} in över L-elementets fot, på {K.EPS_UNDRE} {sv(TF)} i hela "
+            "ytan",
             (780, -HP - (EPS - TF) / 2), None),
            ("makadam på sprängt berg", (650, -HP - EPS - 60), None),
            ("plastfolie i hela ytan, ut över foten till ryggen (radon)", (820, -HB), None)]
@@ -472,7 +484,7 @@ def sektion_b():
            (f"{jarn(BALK_ARM['ok'])} i överkant", (165, -41), POS["balk_ok"]),
            ("U-byglar Ø6 s600", (180, -110), POS["bygel"]),
            (f"{jarn(BALK_ARM['uk'])} i underkant", (165, -HB + 41), POS["balk_uk"]),
-           ("cellplast S300, 100, det undre skiktet i hela ytan", (100, -HB - 50), None)]
+           (f"cellplast {K.EPS_UNDRE}, {sv(TF)}, det undre skiktet", (100, -HB - 50), None)]
     etiketter(v, lst, 600.0, 800.0, 6.0, sz=6.0)
     with v.lager("rubrik"):
         v.rubrik(-540, -HP - EPS - 120 - 7.0 * s, "SEKTION B–B  Balk under innervägg (V15)", skala=20, sz=9)
@@ -510,7 +522,7 @@ def sektion_c():
            (f"4 svetsbultar Ø{K.SVETSBULT[0]:.0f}, L = {K.SVETSBULT[1]:.0f}", (60, -60), None),
            (f"plint: Ø{PLINT_ARM[0]} s{PLINT_ARM[1]} i underkant, båda riktningarna", (b / 2 - 100, -HB + 34),
             POS["plint"]),
-           ("cellplast S300, 100, det undre skiktet i hela ytan", (b / 2 - 100, -HB - 50), None)]
+           (f"cellplast {K.EPS_UNDRE}, {sv(TF)}, det undre skiktet i hela ytan", (b / 2 - 100, -HB - 50), None)]
     etiketter(v, lst, b / 2 + 330, 650.0, 4.8, sz=6.0)
     with v.lager("rubrik"):
         v.rubrik(-b / 2 - 290, -HP - EPS - 120 - 7.0 * s, f"SEKTION C–C  Plint under rör (P18, {sv(b)})",
@@ -614,12 +626,15 @@ def stalforteckning(mangd=False):
 
 
 def cellplastlista():
-    """Cellplast under bottenplattan: det undre skiktet S300 i hela ytan, det övre S100 under plattan, och L-element
-    längs kanten, med fot av S300."""
-    rader = [["S100", f"{sv(EPS - TF)} mm, övre skiktet", f"under plattan, {sv(K.OMLOTT)} in över L-elementens fot; "
-                                                          "urtag för balkar och plintar"],
-             ["S300", f"{sv(TF)} mm, undre skiktet", "hela ytan innanför L-elementens fot, utan urtag; plastfolie "
-                                                     "ovanpå (radon)"],
+    """Cellplast under bottenplattan: det undre skiktet i hela ytan, med den starkare kvaliteten i zonen, det övre
+    under plattan, och L-element längs kanten, med fot av S300."""
+    sida = sv(K.EPS_ZON_SIDA)
+    rader = [[K.EPS_OVRE, f"{sv(EPS - TF)} mm, övre skiktet", f"under plattan, {sv(K.OMLOTT)} in över L-elementens "
+                                                              "fot; urtag för balkar och plintar"],
+             [K.EPS_UNDRE, f"{sv(TF)} mm, undre skiktet", "hela ytan innanför L-elementens fot, utan urtag; "
+                                                          "plastfolie ovanpå (radon)"],
+             [K.EPS_STARK, f"{sv(TF)} mm, undre skiktet", f"{sida} × {sida} i hörnet där balkarna under V4–V6 och "
+                                                          "V15 möts (plan), två skivor 600 × 1 200"],
              ["L-element", K.L_ELEMENT.replace("L-element ", ""), "längs hela kanten, ytterkant i väggarnas ytterliv"]]
     return dict(typ="tabell", kolumner=["", "Utförande", "Anm"], bredd=(0, 1, 1), rader=rader,
                 just=["l", "l", "l"], sz=6.2)
@@ -657,7 +672,8 @@ def planvy():
 def anvisningar():
     return [
         f"Bottenplatta {K.I06.UTF}: {sv(HP)} mm betong C30/37 på {sv(EPS)} mm cellplast i två skikt: det undre, "
-        f"{sv(TF)} mm S300, i hela ytan utan urtag, och {sv(EPS - TF)} mm S100 ovanpå under plattan. Kantbalkar "
+        f"{sv(TF)} mm {K.EPS_UNDRE}, i hela ytan utan urtag, och {sv(EPS - TF)} mm {K.EPS_OVRE} ovanpå under plattan. I "
+        f"hörnet där balkarna under V4–V6 och V15 möts är det undre skiktet {K.EPS_STARK} (streckad ruta). Kantbalkar "
         f"{sv(BB)} × {sv(HB)} längs hela kanten i {K.L_ELEMENT}, med foten av S300; balkar under innerväggarna "
         f"{sv(BB)} × {sv(HB)} och plintar under rören, lika höga, på det undre skiktet.",
         f"Mot radon: åldringsbeständig plastfolie i ett plan över hela ytan, {sv(HB)} mm under överkant: mellan "
@@ -679,6 +695,7 @@ def blad_plan():
     lager_balkmatt(v)
     lager_plintmatt(v)
     lager_snitt(v)
+    lager_cellplastzon(v)
     R4.lager_origo(v)
     lager_rubrik(v, "PLAN – BALKAR, PLINTAR OCH CELLPLAST")
     kol = [
@@ -689,8 +706,10 @@ def blad_plan():
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="yta", fyll="zon", stil="tunn", text=f"kantbalk i L-element S300, balk och plint, {sv(HB)} "
-                 "hög, på 100 S300"),
-            dict(form="yta", fyll="betong", stil="tunn", text=f"platta {sv(HP)} på {sv(EPS - TF)} S100 och {sv(TF)} S300"),
+                 "hög"),
+            dict(form="yta", fyll="betong", stil="tunn", text=f"platta {sv(HP)} på {sv(EPS - TF)} {K.EPS_OVRE} och "
+                 f"{sv(TF)} {K.EPS_UNDRE}"),
+            dict(form="linje", stil="zon_kant", text=f"det undre skiktet {K.EPS_STARK} i stället för {K.EPS_UNDRE}"),
             dict(form="linje", stil="axel", text="innerbalkarnas mitt"),
             dict(form="linje", stil="dold", text="väggarna (R-05)"),
             dict(form="ruta", fyll="stal", text="fotplåt (R-05.5)")]),
@@ -747,10 +766,11 @@ def blad_sektioner():
     kol = [
         dict(typ="rubrik", text="Anvisningar"),
         dict(typ="lista", sz=6.8, rader=[
-            "Lägg L-elementen (fot S300) med ytterkanten i väggarnas ytterliv och det undre skiktet, S300, i hela "
-            "ytan innanför foten, utan urtag. Lägg plastfolien över hela ytan, med minst 200 mm tejpade överlapp och "
-            f"ut till L-elementens rygg. Lägg det övre skiktet, S100, som går {sv(K.OMLOTT)} mm in över L-elementens "
-            "fot och fästs med plastspik, med urtag för balkarna och plintarna.",
+            f"Lägg L-elementen (fot S300) med ytterkanten i väggarnas ytterliv och det undre skiktet, {K.EPS_UNDRE}, i "
+            f"hela ytan innanför foten, utan urtag, med två skivor {K.EPS_STARK} i hörnet där balkarna under V4–V6 och "
+            "V15 möts (R-04.1). Lägg plastfolien över hela ytan, med minst 200 mm tejpade överlapp och "
+            f"ut till L-elementens rygg. Lägg det övre skiktet, {K.EPS_OVRE}, som går {sv(K.OMLOTT)} mm in över "
+            "L-elementens fot och fästs med plastspik, med urtag för balkarna och plintarna.",
             "Armera och fixera fotplåtarna i läge och höjd. Gjut bottenplattan med balkar och plintar i en gjutning; "
             "fotplåtarna gjuts in kant i kant med plintarnas överkant. Rugga ytan under väggarna.",
             "Kontrollera före gjutning: armeringens läge och täckskikt (distanser), plintarnas läge och storlek, "
@@ -760,8 +780,9 @@ def blad_sektioner():
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="yta", fyll="betong", stil="tunn", text="betong C30/37"),
-            dict(form="yta", fyll="eps", stil="tunn", text="cellplast S100"),
-            dict(form="yta", fyll="eps2", stil="tunn", text="L-element (fot S300) och det undre skiktet, S300"),
+            dict(form="yta", fyll="eps", stil="tunn", text=f"cellplast {K.EPS_OVRE}, det övre skiktet"),
+            dict(form="yta", fyll="eps3", stil="tunn", text=f"cellplast {K.EPS_UNDRE}, det undre skiktet"),
+            dict(form="yta", fyll="eps2", stil="tunn", text="L-element (fot S300)"),
             dict(form="linje", stil="folie", text="plastfolie i hela ytan, överlapp minst 200"),
             dict(form="yta", fyll="karna", stil="tunn", text="väggens betongkärna (R-05)"),
             dict(form="linje", stil="uk", text="armering")]),

@@ -22,7 +22,7 @@ H, HMB = K.H_VAGG, K.H_MB                         # 2 100, 150
 Z1 = H + HMB                                      # plan 1:s golv
 HB, TF, HP = K.UTF["h_balk"], K.T_FOT, K.H_PLATTA # 300, 100, 100
 
-FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s300="#c6d6e8", stal="#55667a", smyg="#e6d9b8",
+FARG = dict(betong="#d9d6ce", karna="#b7b1a6", eps="#f1f4f7", s200="#dfe8f1", s300="#c6d6e8", stal="#55667a", smyg="#e6d9b8",
             kantisol="#dfe7f0", folie="#cfdcb8")
 FOLIE = dict(bredd=2000.0, overlapp=200.0)        # plastfolien i våder längs y, schematiskt
 
@@ -33,7 +33,7 @@ KONTUR, HAL = Polygon(K.G["kontur"]), Polygon(K.G["hal"])
 
 
 def grund(s, kapa=None, folie=None):
-    """Bottenplattan: L-elementen (rygg och fot), cellplasten (det undre skiktet S300 i hela ytan, S100 ovanpå),
+    """Bottenplattan: L-elementen (rygg och fot), cellplasten (det undre skiktet S200 i hela ytan, S300 i zonen, och S100 ovanpå),
     plastfolien mellan skikten, balkarna och plintarna och plattan; kapa: plattan tas bort där, så att balkarna och
     plintarna syns; folie: där tas också det övre cellplastskiktet bort, så att plastfolien syns, i våder med
     överlapp."""
@@ -41,7 +41,9 @@ def grund(s, kapa=None, folie=None):
     fot = KALLARE.difference(KALLARE.buffer(-K.B_L, join_style=2)).difference(rygg)
     s.prisma(rygg, -HB - TF, 0.0, FARG["s300"])
     s.prisma(fot, -HB - TF, -HB, FARG["s300"])
-    s.prisma(KALLARE.buffer(-K.B_L, join_style=2), -HB - TF, -HB, FARG["s300"])        # det undre skiktet
+    undre, zon = KALLARE.buffer(-K.B_L, join_style=2), unary_union([box(*z) for z in K.EPS_ZON])
+    s.prisma(undre.difference(zon), -HB - TF, -HB, FARG["s200"])                       # det undre skiktet
+    s.prisma(undre.intersection(zon), -HB - TF, -HB, FARG["s300"])
     falt = BETONG.difference(TJOCK)
     s.prisma(falt if folie is None else falt.difference(folie), -HB, -HP, FARG["eps"])
     if folie is not None:
@@ -113,5 +115,7 @@ def bjalklag(s, kapa=None):
     s.prisma(hel, Z1 - K.H_L_MARK, H, FARG["s300"])
     s.prisma(rygg, H, Z1, FARG["s300"])
     s.prisma(fot.difference(hel), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
-    s.prisma(pm.difference(hel).difference(fot), Z1 - K.H_L_MARK, H, FARG["s300"])
-    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK + TF, H, FARG["s300"])
+    zon = unary_union([box(*z) for z in K.EPS_MARK_ZON])          # de fria hörnen: S300 i hela tjockleken
+    for g, z0 in ((pm.difference(hel).difference(fot), Z1 - K.H_L_MARK), (fot.difference(hel), Z1 - K.H_L_MARK + TF)):
+        s.prisma(g.difference(zon), z0, H, FARG["eps"])
+        s.prisma(g.intersection(zon), z0, H, FARG["s300"])

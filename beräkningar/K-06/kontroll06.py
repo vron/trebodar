@@ -97,6 +97,12 @@ def stans(netto_kN, d, u, a, rho):
     return v, vr
 
 
+def _area(xy, tri):
+    """Trianglarnas area."""
+    (ax, ay), (bx, by) = (xy[tri[:, 1]] - xy[tri[:, 0]]).T, (xy[tri[:, 2]] - xy[tri[:, 0]]).T
+    return 0.5 * np.abs(ax * by - ay * bx)
+
+
 def kontroll(utf):
     L, K = las(utf, "lång"), las(utf, "kort")
     h = I.UTFORANDEN[utf]["h_balk"]
@@ -104,22 +110,32 @@ def kontroll(utf):
     tn = np.zeros(len(xy), bool); tn[np.unique(tri[tjock_el])] = True
     out = dict(utf=utf, h=h, plint=L["plint"])
     # ---------------------------------------------------------------- cellplast
-    pmax = np.maximum(L["env"]["p_max"], K["env"]["p_max"])
-    pperm = np.maximum(L["env"]["p_perm"], K["env"]["p_perm"])
-    pqp = L["sls"]["p_qp"]
+    # Trycket per element och nod (element, 3): elementets bädd gånger nodens sättning. Modellens nodtryck är medel av
+    # bäddarna kring noden (k_nod w / a_nod), så sättningen är nodtrycket · a_nod / k_nod.
+    def tryck(storhet):
+        return [R_["k_el"][:, None] * (storhet(R_) * R_["a_nod"] / R_["k_nod"])[tri] for R_ in (L, K)]
+    pmax = np.maximum(*tryck(lambda R_: R_["env"]["p_max"]))
+    pperm = np.maximum(*tryck(lambda R_: R_["env"]["p_perm"]))
+    pmin = np.minimum(*tryck(lambda R_: R_["env"]["p_min"]))
+    pqp = tryck(lambda R_: R_["sls"]["p_qp"])[0]
+    area = _area(xy, tri)
+    # zoner: balkar och plintar på det undre skiktet, per kvalitet, och plattan på det övre skiktet (samma tryck går
+    # genom det undre skiktet, som är starkare)
+    grad = L["grad"]
+    zoner = [("stark", tjock_el & (grad == I.EPS_STARK), I.EPS_STARK),
+             ("undre", tjock_el & (grad == I.EPS_UNDRE), I.EPS_UNDRE), ("falt", ~tjock_el, I.EPS_OVRE)]
     eps = {}
-    zoner = [("balk", tn, I.EPS_BALK), ("falt", ~tn, I.EPS_FALT)]
-    for zon, m, grad in zoner:
-        i = int(np.argmax(np.where(m, pmax, -1)))
-        eps[zon] = dict(grad=grad, uls=float(pmax[m].max()), uls_xy=xy[i].tolist(), perm=float(pperm[m].max()),
-                        qp=float(pqp[m].max()), fdM=eps_fd(grad, "M"), fdP=eps_fd(grad, "P"),
-                        kryp=I.EPS[grad]["kryp2"], min=float(min(L["env"]["p_min"][m].min(), K["env"]["p_min"][m].min())))
-        e = eps[zon]
+    for zon, m, kval in zoner:
+        j, n = np.unravel_index(int(np.argmax(np.where(m[:, None], pmax, -1.0))), pmax.shape)
+        e = eps[zon] = dict(grad=kval, uls=float(pmax[m].max()), uls_xy=xy[tri[j, n]].tolist(),
+                            perm=float(pperm[m].max()), qp=float(pqp[m].max()), fdM=eps_fd(kval, "M"),
+                            fdP=eps_fd(kval, "P"), kryp=I.EPS[kval]["kryp2"], min=float(pmin[m].min()))
         e["utn"] = max(e["uls"] / e["fdM"], e["perm"] / e["fdP"], e["qp"] / e["kryp"])
-        # andel av ytan med tryck över hållfastheten
-        e["over_M"] = float((pmax[m] > e["fdM"]).mean())
-    # punkter där balkarnas och plintarnas cellplast överskrids
-    eps["over_noder"] = xy[tn & (pmax > eps["balk"]["fdM"])].tolist()
+        # andel av zonens yta med tryck över hållfastheten, och största trycket som medel inom r = 150 mm från toppen
+        # (lokal hörntopp), ytviktat över zonens element
+        e["over_M"] = float(area[m & (pmax.max(axis=1) > e["fdM"])].sum() / area[m].sum())
+        nara = m & (np.hypot(*(xy[tri].mean(axis=1) - xy[tri[j, n]]).T) < 150.0)
+        e["uls_medel"] = float((pmax[nara].mean(axis=1) * area[nara]).sum() / area[nara].sum())
     out["eps"] = eps
     out["sattning"] = dict(wmax=float(L["sls"]["wb_qp"].max()), wmin=float(L["sls"]["wb_qp"].min()),
                            wt_max=float(L["sls"]["wt_qp"].max()))
@@ -255,49 +271,38 @@ def kontroll(utf):
     out["falt"].update(mu_ra=float(mu[fd].max()) / 1e3, mo_ra=float(mo[fd].max()) / 1e3,
                        utn_ra=float(max(mu[fd].max() / MRu, mo[fd].max() / MRo)), d=float(d_uk),
                        topp_mu=float(mu[falt_n].max()) / 1e3, topp_xy=xy[falt_n][np.argmax(mu[falt_n])].tolist())
-    # cellplastens största tryck medelvärdesbildat inom r = 150 mm (lokal hörntopp)
-    trb = cKDTree(xy)
-    zb = tn
-    i = int(np.argmax(np.where(zb, pmax, 0)))
-    g = [j for j in trb.query_ball_point(xy[i], 150.0) if zb[j]]
-    out["eps"]["balk"]["uls_medel"] = float((pmax[g] * L["a_nod"][g]).sum() / L["a_nod"][g].sum())
-    # plattan på mark på plan 1 (K-05): tryck mot cellplasten, I.EPS_MARK mm I.EPS_MARK_GRAD
-    from matplotlib.path import Path as MplPath
+    # plattan på mark på plan 1 (K-05): tryck mot cellplasten per kvalitet, I.EPS_MARK mm; per element som ovan
     from omhyllande import ULS, SNO, falt
-    mk = MplPath(np.asarray(I.G05["mark"], float)).contains_points(xt)
-    mark, topp_mark = {}, np.zeros(mk.sum())
+    _, monster = falt()
+    ar_t = _area(xt, tt)
+    pm_uls, pm_qp = 0.0, None
     for var, R_ in (("lång", L), ("kort", K)):
-        km = (I.EPS_KS if var == "lång" else 1.0) * I.EPS[I.EPS_MARK_GRAD]["Ek"] * 1e-3 / I.EPS_MARK
-        w = R_["wt"]
-        pk = {k: km * v[mk] * 1e3 for k, v in w.items()}
+        pk = {k: R_["km_el"][:, None] * v[tt] * 1e3 for k, v in R_["wt"].items()}       # kPa per element och nod
         nq = len([k for k in pk if k.startswith("Q") and k != "Qb"])
-        _, monster = falt()
-        best = np.zeros(mk.sum())
+        best = np.zeros_like(pk["G"])
         for (cg, cq, cs) in ULS.values():
             for mask in monster.values():
                 for sn in SNO:
                     p_ = cg * pk["G"] + cq * (sum(m_ * pk[f"Q{j}"] for j, m_ in enumerate(mask)) + pk["Qb"]) + \
                          cs * sum((pk["S_" + k] for k in sn), 0 * pk["G"]) + (pk["SV"] if "SV" in pk else 0)
                     best = np.maximum(best, p_)
-        qp = pk["G"] + 0.481 * (sum(pk[f"Q{j}"] for j in range(nq)) + pk["Qb"]) + 0.1 * (pk["S_V"] + pk["S_M"] + pk["S_H"])
-        mark[var] = dict(uls=float(best.max()), qp=float(qp.max()))
-        topp_mark = np.maximum(topp_mark, best)
-    # största trycket ligger i plattans fria hörn under hörnstolparna (en lokal topp i FE-lösningen, där
-    # L-elementens S300 ligger ytterst): medel inom r = 150 mm, ytviktat (interpolerat i en polär grid), som under
-    # balkarna
-    i = int(np.argmax(topp_mark))
-    xm = xt[mk]
-    full = np.zeros(len(xt)); full[mk] = topp_mark
-    ip = LinearTriInterpolator(Triangulation(xt[:, 0], xt[:, 1], tt), full)
-    rr, vv = np.meshgrid(np.linspace(5, 150, 30), np.linspace(0, 2 * np.pi, 72, endpoint=False))
-    px, py = xm[i, 0] + (rr * np.cos(vv)).ravel(), xm[i, 1] + (rr * np.sin(vv)).ravel()
-    inne = MplPath(np.asarray(I.G05["mark"], float)).contains_points(np.column_stack([px, py]))
-    vals = np.ma.filled(ip(px[inne], py[inne]), np.nan)
-    w_ = rr.ravel()[inne]                                          # ytvikt i polära koordinater
-    ok = ~np.isnan(vals)
-    out["mark"] = dict(uls=max(m["uls"] for m in mark.values()), qp=mark["lång"]["qp"], fdM=eps_fd(I.EPS_MARK_GRAD, "M"),
-                       kryp=I.EPS[I.EPS_MARK_GRAD]["kryp2"], grad=I.EPS_MARK_GRAD, uls_xy=xm[i].tolist(),
-                       uls_medel=float((vals[ok] * w_[ok]).sum() / w_[ok].sum()))
+        pm_uls = np.maximum(pm_uls, best)
+        if var == "lång":
+            pm_qp = pk["G"] + 0.481 * (sum(pk[f"Q{j}"] for j in range(nq)) + pk["Qb"]) + \
+                0.1 * (pk["S_V"] + pk["S_M"] + pk["S_H"])
+    i_mark = L["km_el"] > 0
+    out["mark"] = {}
+    for zon, kval in (("stark", I.EPS_STARK), ("falt", I.EPS_MARK_GRAD)):
+        m = i_mark & (L["grad_mark"] == kval)
+        j, n = np.unravel_index(int(np.argmax(np.where(m[:, None], pm_uls, -1.0))), pm_uls.shape)
+        # största trycket ligger i plattans fria hörn under hörnstolparna (en lokal topp i FE-lösningen): medel inom
+        # r = 150 mm, ytviktat över zonens element, som under balkarna
+        nara = m & (np.hypot(*(xt[tt].mean(axis=1) - xt[tt[j, n]]).T) < 150.0)
+        e = out["mark"][zon] = dict(
+            grad=kval, uls=float(pm_uls[m].max()), uls_xy=xt[tt[j, n]].tolist(), qp=float(pm_qp[m].max()),
+            fdM=eps_fd(kval, "M"), kryp=I.EPS[kval]["kryp2"],
+            uls_medel=float((pm_uls[nara].mean(axis=1) * ar_t[nara]).sum() / ar_t[nara].sum()))
+        e["utn"] = max(e["uls_medel"] / e["fdM"], e["qp"] / e["kryp"])
     return out
 
 
@@ -308,11 +313,13 @@ if __name__ == "__main__":
         res[utf] = r
         e = r["eps"]
         print(f"== {utf}: plintar {r['plint']}")
-        for z in ("balk", "falt"):
+        for z in ("stark", "undre", "falt"):
             x = e[z]
-            print(f"  cellplast {z} {x['grad']}: ULS {x['uls']:.0f} ({x['fdM']:.0f}) vid {np.round(x['uls_xy'])}, perm {x['perm']:.0f} ({x['fdP']:.0f}), "
+            print(f"  cellplast {z} {x['grad']}: ULS {x['uls']:.0f} (medel {x['uls_medel']:.0f}, f_d {x['fdM']:.0f}) vid {np.round(x['uls_xy'])}, perm {x['perm']:.0f} ({x['fdP']:.0f}), "
                   f"qp {x['qp']:.0f} ({x['kryp']:.0f}) -> {x['utn']*100:.0f} %, andel över {x['over_M']*100:.1f} %")
-        print(f"  balkarnas cellplast överskrids i {len(e['over_noder'])} noder")
+        for z, x in r["mark"].items():
+            print(f"  plattan på mark {z} {x['grad']}: ULS {x['uls']:.1f} (medel {x['uls_medel']:.1f}, f_d {x['fdM']:.1f}) vid "
+                  f"{np.round(x['uls_xy'])}, qp {x['qp']:.1f} ({x['kryp']:.0f}) -> {x['utn']*100:.0f} %")
         f = r["falt"]
         print(f"  fält: mu {f['mu']:.1f} mo {f['mo']:.1f} kNm/m (MRd {f['MRu']:.1f}/{f['MRo']:.1f}) {f['utn']*100:.0f} %; övergång {f['overgang_u']:.1f}/{f['overgang_o']:.1f}")
         for b in r["balkar"]:

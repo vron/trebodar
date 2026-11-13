@@ -39,7 +39,11 @@ KI = I06.KI                     # mellanbjälklagets kant 30 mm innanför vägge
 SKIFT = 600.0                   # Kub-elementens höjd; det översta skiftet är ett halvt element, 300
 C_IN, C_UT = I06.C_IN, I06.C_UT  # täckskikt till de vågräta järnen: insida 25, utsida 30
 UTF = I06.UTFORANDEN[I06.UTF]   # bottenplattan L400: H 400, cellplast 300, kantbalk 300 (inklusive plattan)
-H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (S300 under balkarna), 450
+H_PLATTA, T_FOT, B_BALK = I06.H_PLATTA, I06.T_FOT, I06.B_BALK       # 100, 100 (det undre cellplastskiktet), 450
+# cellplasten (K-06): det övre skiktet under plattan, det undre skiktet, L-elementen och zonerna med den starkare
+# kvaliteten (rektanglar x0, y0, x1, y1), och plattan på mark på plan 1
+EPS_OVRE, EPS_UNDRE, EPS_STARK, EPS_MARK_GRAD = I06.EPS_OVRE, I06.EPS_UNDRE, I06.EPS_STARK, I06.EPS_MARK_GRAD
+EPS_ZON, EPS_MARK_ZON, EPS_ZON_SIDA = I06.EPS_ZON, I06.EPS_MARK_ZON, I06.EPS_ZON_SIDA
 L_BEN = I06.L_BEN               # L-elementets rygg nedtill, 100: ytterkanten i väggens ytterliv, betongen 100 mm innanför
 FAS = I06.FAS                   # ryggens avfasning i ovankant, 50 (betongen fyller fasen)
 B_L = I06.B_L                   # L-elementets bredd, 600
