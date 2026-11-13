@@ -96,8 +96,10 @@ STEG = [
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
          bygger_pa=["modell"], miljoer=["ma"],
          utdata=["renderingar/kameraplan.pdf", "docs/renderingar/index.html", "docs/renderingar/plan.json"]),
-    Steg("granskning", "verktyg/modellanalys", [["ma", "kontroll_laster.py"]],
-         kallor=[f"{BER}/{nr}" for nr in ("F-01", "K-01", "K-05", "K-06")], bygger_pa=["modell"],
+    # balkplåtarnas skärfiler mot K-01:s hålbilder: stoppar bygget om de inte har genererats om efter K-01
+    Steg("granskning", "verktyg/modellanalys", [["ma", "kontroll_laster.py"], ["ma", "kontroll_balkplattor.py"]],
+         kallor=[*(f"{BER}/{nr}" for nr in ("F-01", "K-01", "K-05", "K-06")), "modeller/balkplattor"],
+         bygger_pa=["modell"],
          utdata=["verktyg/modellanalys/granskning/ytterväggens_läge.png"]),
     ber("F-01", "berakning.py", rapport=("F-01_forutsattningar.pdf", "Förutsättningar, referenser och laster")),
     ber("AV-01", "bygg.py", rapport=("AV-01_avfallshanteringsplan.pdf", "Avfallshanteringsplan")),

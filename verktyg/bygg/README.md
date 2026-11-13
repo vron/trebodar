@@ -25,7 +25,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 | `modell` | `./mod bygg --format step` | `modeller/trebodar/ut/trebodar.step` och modellanalysens cache för den |
 | `webb` | `./mod webb` | `docs/modell/` (webbvisaren) |
 | `kameraplan` | `./mod kameraplan` | `renderingar/kameraplan.pdf`, `docs/renderingar/` (renderingarna på planerna) |
-| `granskning` | `kontroll_laster.py` | `verktyg/modellanalys/granskning/ytterväggens_läge.png` |
+| `granskning` | `kontroll_laster.py` och `kontroll_balkplattor.py` (stoppar bygget om balkplåtarnas skärfiler inte följer K-01:s hålbilder) | `verktyg/modellanalys/granskning/ytterväggens_läge.png` |
 | F-01, AV-01, K-01, K-02, K-03, U-02 | beräkningen och rapporten (se mappens README) | rapporten i `rapporter/` |
 | TP-01 | `bygg.py` (läser också IN-01:s indata: specialprodukterna per fas) | tidsplanen i `rapporter/` |
 | IN-01 | `./mod inkop utdrag` (modellens specialprodukter) och `bygg.py` (faserna ur TP-01) | inköpslistan i `rapporter/` |

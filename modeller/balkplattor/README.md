@@ -36,8 +36,8 @@ Generera om efter ändring i K-01: `pip install cadquery ezdxf` och `python gene
 | `NB1-1-U` | Nockbalk 1 | 1 | underplåt | 6038 | 5532–11570 | 82 | 89,2 |
 | `NB3-1-O` | Nockbalk 3 | 1 | överplåt | 5235 | 5835–11070 | 55 | 77,5 |
 | `NB3-1-U` | Nockbalk 3 | 1 | underplåt | 5235 | 5835–11070 | 55 | 77,5 |
-| `NB5-1-O` | Nockbalk 5 | 1 | överplåt | 4825 | 0–4825 | 45 | 71,5 |
-| `NB5-1-U` | Nockbalk 5 | 1 | underplåt | 4825 | 0–4825 | 45 | 71,5 |
-| `NB5-2-O` | Nockbalk 5 | 2 | överplåt | 5145 | 7225–12370 | 58 | 76,1 |
-| `NB5-2-U` | Nockbalk 5 | 2 | underplåt | 5145 | 7225–12370 | 58 | 76,1 |
-| **Summa** | | | | **61032** | | **750** | **902** |
+| `NB5-1-O` | Nockbalk 5 | 1 | överplåt | 4825 | 0–4825 | 34 | 71,6 |
+| `NB5-1-U` | Nockbalk 5 | 1 | underplåt | 4825 | 0–4825 | 34 | 71,6 |
+| `NB5-2-O` | Nockbalk 5 | 2 | överplåt | 5145 | 7225–12370 | 57 | 76,1 |
+| `NB5-2-U` | Nockbalk 5 | 2 | underplåt | 5145 | 7225–12370 | 57 | 76,1 |
+| **Summa** | | | | **61032** | | **726** | **903** |
