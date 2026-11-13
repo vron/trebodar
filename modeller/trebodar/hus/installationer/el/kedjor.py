@@ -5,22 +5,28 @@ apparatdosorna. Vägarna (dragning.py):
 - mellan dosor på olika väggar upp i väggen, i innertakets installationsskikt och ned i den andra väggen;
 - mellan dosor intill varandra eller på samma vägg och höjd rakt i väggen (regelfacket eller installationsskiktet);
 - köksbänkens uttag i ytterväggens installationsskikt, under och över fönstren och runt hörnet mellan 3NV och 3SV;
-- öns uttag och brandlarmets matningsdosa genom mellanbjälklaget, raka och sneda med mjuka böjar runt
-  grupprören och deras stigare (bjalklag/ingjutna.py).
+- öns uttag genom mellanbjälklaget, raka och sneda med mjuka böjar runt grupprören och deras stigare
+  (bjalklag/ingjutna.py); brandlarmets matningsdosa upp i innertaket, ned i en lätt vägg och rakt ned genom
+  bjälklaget (inte under en bärande vägg, #114);
+- gruppernas rör från dragdosan i innertaket, dit röret från centralen kommer (bjalklag/mellanbjalklag.UPP_I_TAKET),
+  till gruppens första punkt.
 
 Får ett rör genom innertaket (här och i rummens moduler) mer än BOJAR_MAX böjar delas det i en dragdosa i innertaket
 (katalog.DRAGDOSA_TAK, #87):
 i den brytpunkt i installationsskiktet där böjarna delas jämnast, mitt i läktens fack, och vid behov igen; dosorna
-heter efter rummet vid den närmaste änden (t.ex. BA-DD1) och rörens delar a, b, c … i ordning.
+heter efter rummet vid den närmaste änden som inte är en dragdosa (t.ex. BA-DD1) och rörens delar a, b, c … i ordning.
 """
 from __future__ import annotations
 
 import math
 from dataclasses import replace
 
-from ..montering import BJALKLAG, Vek, i_tak, i_vagg, langs_taket, langs_vaggen, tak, vid_tak
+from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
+
+from ..montering import BJALKLAG, Vek, i_tak, i_vagg, langs_taket, langs_vaggen, tak, vagg, vid_tak
 from . import lakt
-from .dragning import upp_till_dosan, via_taket
+from .dragning import upp_i_vaggen, upp_till_dosan, via_taket
+from .grupper import GRUPP
 from .katalog import DRAGDOSA_TAK, FXP16
 from .punkter import Dosa, Punkt, Ror, anslutning, bojar
 from .rum import allrum, badrum, gang, gastrum, hall, kok, kontor, kontor_litet, sovrum, sovrum_litet, vardagsrum
@@ -68,6 +74,19 @@ def _genom_bjalklaget(rid: str, a: str, b: str) -> Ror:
     return ro
 
 
+def _ned_i_vaggen(rid: str, a: str, kod: str, sida: int, b: str) -> Ror:
+    """Röret från dosan a upp i innertaket, i installationsskiktet till väggen kod på sidan sida och ned i den, genom
+    bjälklaget till punkten b i källarens tak rakt under (inte genom en bärande väggs spärrzon, #114)."""
+    m = _P[b].lage.punkt
+    u = langs_vaggen(kod, m)
+    ta = via_taket(_P[a].lage, vagg(kod, u, 0.0, sida))
+    s0, _ = upp_i_vaggen(kod, u, 0.0)
+    ro = _ING.dra(rid, FXP16, a, b, s0[:2], (m[0], m[1]), fore=(*ta[:3], (s0[0], s0[1], ta[3][2])))
+    r = FXP16.ytterdiameter / 2                  # och rakt ned i källarens tak
+    _ING.stigare.append((m[0], m[1], r, m[2], ro.via[-1][2] + r))
+    return ro
+
+
 _Z_HOG = 2300.0                                  # köksbänkens rör över fönstren (uttagen ovanför dem)
 _Y = {k: _P[k].lage.punkt[1] for k in ("KO-U8", "KO-U9")}
 _X10 = _P["KO-U10"].lage.punkt[0]
@@ -80,12 +99,12 @@ ROR = [
     _tak("G01", 1, "HA-B1", "VR-B1", ((400.0, 10850.0),)),          # runt takfönstret TF3
     _rakt("G01", 2, "VR-B1", "VR-B2"),
     _rakt("G02", 1, "AL-B1", "AL-B2"),
-    _genom_bjalklaget("G02-R2", "AL-B2", "BL-D01"),
+    _ned_i_vaggen("G02-R2", "AL-B2", "L19", 1, "BL-D01"),       # brandlarmets matning ned i badrummets L19
     _tak("G02", 3, "AL-B1", "GA-B1"),
     _rakt("G02", 4, "GA-B1", "KO-B1"),
     _rakt("G02", 5, "KO-B1", "KO-B2"),
-    _tak("G03", 1, "SV-B1", "SV-U1"),
-    _tak("G03", 2, "SV-B1", "KT-B1"),
+    _tak("G03", 1, "KT-B1", "SV-B1"),
+    _tak("G03", 2, "SV-B1", "SV-U1"),
     _tak("G04", 1, "GR-B1", "KL-B1"),
     _rakt("G04", 2, "KL-B1", "SL-B1"),
     _tak("G04", 3, "GR-B1", "GR-U1"),
@@ -111,6 +130,18 @@ ROR = [
         via=(*via_taket(_P["KO-U5"].lage, _P["KO-U13"].lage)[:2], *_vid_flakten[::-1],
              _i_ytterväggen("3NV", _Y_FLAKT, _P["KO-U13"].lage.punkt[2]))),
 ]
+# gruppernas rör från dragdosan i innertaket, dit röret från centralen kommer upp i en lätt vägg
+# (bjalklag/mellanbjalklag.UPP_I_TAKET, #114), till gruppens första punkt; hällens ned i 3NV strax söder om fönstret
+# F4, före kåpans skorsten och köksfläktens kanal, och i väggen till dosan under bänken
+_U_HALLEN = next(o for o in OPPNINGAR["3NV"] if o.kod == "3NV-F4").u1 + 100.0
+_FORBI = {"G06": ((1850.0, 10850.0),)}           # öster om takfönstret TF3
+for _g, _upp in MB.UPP_I_TAKET.items():
+    _did = _upp[2]
+    _f = GRUPP[_g].punkter[0]
+    _via = (via_taket(_P[_f].lage, _P[_f].lage)[2:] if _g != "G10" else
+            (*vid_tak("3NV", _U_HALLEN)[::-1], i_vagg("3NV", _U_HALLEN, _P[_f].lage.punkt[2])))
+    _via = (*(i_tak(x, y) for x, y in _FORBI.get(_g, ())), *_via)
+    ROR.append(Ror(f"{_g}-R0", MB.GROVA.get(_g, (FXP16, "MB"))[0], _did, _f, via=_via))
 BOJAR_MAX = 270.0
 SAMMA = 150.0                   # en dragdosa så nära en annan blir samma
 LANG = 1500.0                   # och på så långa sträckor i skiktet kan den sitta mitt på
@@ -145,7 +176,7 @@ def _med_dragdosa(r: Ror) -> list[Ror]:
     if bojar(pts) <= BOJAR_MAX:
         return [r]
     bast = None
-    dragdosa = {d.id for d in PUNKTER}
+    dragdosa = {k for k, p in _P.items() if isinstance(p, Dosa) and p.typ is DRAGDOSA_TAK}
     k0 = 1 if r.fran in dragdosa else 2                 # brytpunkterna i installationsskiktet (inte väggarnas)
     k1 = len(pts) - (1 if r.till in dragdosa else 2)
     for k in range(k0, k1):
@@ -168,9 +199,10 @@ def _med_dragdosa(r: Ror) -> list[Ror]:
     _, k, x, y, finns = bast
     if finns is not None:
         did = finns.id
-    else:                                               # i rummet vid den närmaste änden (förteckningen per rum)
-        rum = min((r.fran, r.till), key=lambda q: math.dist(anslutning(_P[q])[:2], (x, y))).split("-")[0]
-        did = f"{rum}-DD{sum(1 for p in PUNKTER if p.id.startswith(rum + '-DD')) + 1}"
+    else:                                   # i rummet vid den närmaste änden som inte är en dragdosa (förteckningen per rum)
+        ander = [q for q in (r.fran, r.till) if q not in dragdosa] or [r.fran, r.till]
+        rum = min(ander, key=lambda q: math.dist(anslutning(_P[q])[:2], (x, y))).split("-")[0]
+        did = f"{rum}-DD{sum(1 for p in _P if p.startswith(rum + '-DD')) + 1}"
         PUNKTER.append(Dosa(did, DRAGDOSA_TAK, tak(x, y)))
         _P[did] = PUNKTER[-1]
     ansl = anslutning(_P[did])

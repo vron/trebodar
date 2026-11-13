@@ -57,12 +57,18 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   huvudbrytare, överspänningsskydd och en personskyddsautomat (typ A 30 mA) per grupp. Varje grupp har sina punkter
   (apparater och dosor, lamporna matas genom brytarna) i rörens ordning: ett rör från centralen till den första
   ([`bjalklag/mellanbjalklag.py`](bjalklag/mellanbjalklag.py), `Gnn-M`, ingjutet i mellanbjälklaget) och därifrån rör
-  mellan punkterna ([`kedjor.py`](kedjor.py), `Gnn-Rn`): i väggarna och innertaket, förgrenat i apparatdosorna.
+  mellan punkterna ([`kedjor.py`](kedjor.py), `Gnn-Rn`): i väggarna och innertaket, förgrenat i apparatdosorna. De
+  grupper vars första punkt sitter i en bärande vägg (`UPP_I_TAKET`: G01, G02, G03, G06 och köket G10–G12) går inte
+  in under väggen, genom stommens spärrzon (#114), utan upp i en lätt vägg (hallgarderobens L20, kökets inbyggnad
+  L15) till en dragdosa i innertaket (HA-DD1–4, KO-DD1–3, i garderoben och skafferiet), och därifrån i innertaket
+  till punkten (`Gnn-R0`).
 - **Rören i mellanbjälklaget** (#87): raka och sneda direkt från punkt till punkt, med mjuka böjar med stor radie
   (upp till 600 mm) runt det de inte får gå genom, inga räta vinklar i plattan
   ([`../plattan.py`](../plattan.py), [`bjalklag/ingjutna.py`](bjalklag/ingjutna.py)). Två nivåer
   (`../montering.BJALKLAG`): plan 1:s klena rör (Ø16) i den övre, över tappvattnet och golvvärmen, och hällens (Ø20)
-  och källarens i den undre, runt tappvattnets och avloppets rör. Rören går utanför pelarnas kontrollsnitt för
+  och källarens i den undre, runt tappvattnets och avloppets rör. De håller 200 mm från stommens bultar
+  (`stomme/forankring.sparrzon`, #114) och går inte under de bärande väggarna (passagerna i
+  [`../passager.py`](../passager.py) är till för tappvattnet och golvvärmen). Rören går utanför pelarnas kontrollsnitt för
   genomstansning (2d) och helst utanför genomstansningszonen (6d), genom banden av vinkeljärn vid väggarna bara mellan
   järnen, mellan källarväggarnas lodräta järn och runt allt som går lodrätt genom nivån (andra rörs stigare, hylsor,
   ventilationen, golvbrunnen). De dras i tur och ordning och går helst inte genom de rör som redan är dragna: korsar
@@ -80,7 +86,7 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
 - **Dragdosor i innertaket** ([`kedjor.py`](kedjor.py), #87): ett rör mellan två punkter genom innertaket som får
   mer än 270° böjar delas i en dragdosa i innertaket (`DRAGDOSA_TAK`, infälld i gipsen med vitt blindlock, mitt i
   läktens fack), i den brytpunkt där böjarna delas jämnast, och vid behov igen; dosorna heter efter rummet vid den
-  närmaste änden (t.ex. BA-DD1), två rör nära varandra delar dosa, och rörens delar heter a, b, c … i ordning.
+  närmaste änden som inte är en dragdosa (t.ex. BA-DD1), två rör nära varandra delar dosa, och rörens delar heter a, b, c … i ordning.
   Böjarna räknas i `punkter.bojar`: rörets ände i en dosa (högst 100 mm från dosans mitt) räknas som en kort S-böj in
   genom dosans hål, inte som en rät böj.
 - **Källarens arbetsrum** ([`rum/kallare.py`](rum/kallare.py), #51): paneler som ansluts i ingjutna dosor ovanför sig
@@ -191,7 +197,8 @@ kanalen och diffusorn.
   dosa och skarpare hörn (mer än 270° är svårt att dra), och för sig de mjuka svepen i bjälklaget (radie minst 300 mm,
   `installation.MJUK_RADIE`; anmärkning över 270°), och att varje punkt har ett rör;
 - rören i bjälklaget: att de inte går i varandra (mittlinjerna i 3D minst radierna isär, utom där två rör möts i
-  samma dosa) eller genom en armaturs ingjutna dosa;
+  samma dosa) eller genom en armaturs ingjutna dosa; två rör som bara korsar varandra är en anmärkning (det ena läggs
+  över det andra, det finns plats mellan armeringsnäten);
 - grupperna: varje apparat och dosa (utom lamporna, centralen och ingjutningsdosorna) i en grupp, ett rör från
   centralen till gruppens första punkt, gruppens punkter hopkopplade med rör, och högst tio uttag på en grupp 10 A;
 - krockarna (modellen byggs): rören och dosorna mot armeringsjärnen och de andra installationerna är fel (köksfläktens

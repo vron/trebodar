@@ -34,6 +34,7 @@ class Lattvagg:
     beskrivning: str
     syll: bool = True
     grupp: str = ""                      # inredningen: byggs av sin egen modul
+    flyttade: tuple[tuple[float, float], ...] = ()   # rasterreglar som flyttas: (u i rastret, nytt u)
 
     @property
     def vagg(self) -> S.Vaggdef:
@@ -78,7 +79,9 @@ _L11 = (3345.0, 5195.0)
 _ID1 = next(d for d in INNERDORRAR if d.kod == "ID1")
 _L19_Y = _L11[1] + _ID1.u0 + DORRSMYG_T - SKIVOR_VATRUM_T - T
 LATTA = (
-    Lattvagg("L1", (9440.0, 2760.0), _PX, X_3NV - 9440.0, "mellan sovrummet och kontoret i höger huskropp"),
+    # L1-R07 15 mm från rastret: plats för vinkelbeslaget på stolpen LN1_1:s östra sida (stomme/forankring.py, #113)
+    Lattvagg("L1", (9440.0, 2760.0), _PX, X_3NV - 9440.0, "mellan sovrummet och kontoret i höger huskropp",
+             flyttade=((2400.0, 2415.0),)),
     Lattvagg("L2", (11050.0, 2830.0), _PY, 6612.0 - 2830.0, "korridoren i höger huskropp"),
     Lattvagg("L3", (11050.0, 4651.0), _PX, X_3NV - 11050.0, "mellan kontoren (på stolpen LN1_2:s syll)", syll=False),
     Lattvagg("L4", (11050.0, 6542.0), _PX, X_3NV - 11050.0, "mellan kontoret och köket (på huvudstolpens syll)",

@@ -60,7 +60,7 @@ class Rum:
 class Tappstalle:
     """Ett tappställe: dosans mitt på ytan (normalen ut i rummet), rörtypen från fördelarna, för golvdosor riktningen
     från varmvattnet till kallvattnet (standard x) och punkter i plan som rören går förbi efter stråket (via, per
-    media eller för båda; None i en koordinat: anslutningens). En underfördelares inlopp (underfordelare.py) har
+    media eller för båda, en punkt eller flera i följd; None i en koordinat: anslutningens). En underfördelares inlopp (underfordelare.py) har
     rörens ändar i anslutningar: stammarnas början per media, rakt under där rören kommer ned ur bjälklaget; ett
     tappställe med hylsor kopparrörens ändar ovanför golvet (hylsorna rakt under dem, flyttade längs kallt)."""
     id: str
@@ -69,7 +69,7 @@ class Tappstalle:
     lage: Montering
     ror: Rortyp
     kallt: Vek | None = None
-    via: Via | dict[str, Via] | None = None
+    via: Via | tuple[Via, ...] | dict[str, Via | tuple[Via, ...]] | None = None
     anslutningar: tuple[tuple[str, Vek], ...] = ()
 
 
@@ -218,7 +218,8 @@ def till_tappstallet(t: Tappstalle, media: str) -> tuple[tuple[tuple[float, floa
     genom: tuple[tuple[float, float], ...] = ((a[0], a[1]),)
     via = t.via.get(media) if isinstance(t.via, dict) else t.via
     if via:
-        genom = ((a[0] if via[0] is None else via[0], a[1] if via[1] is None else via[1]), *genom)
+        pts: tuple[Via, ...] = via if isinstance(via[0], tuple) else (via,)  # type: ignore[assignment]
+        genom = (*((a[0] if p[0] is None else p[0], a[1] if p[1] is None else p[1]) for p in pts), *genom)
     return genom, slut
 
 

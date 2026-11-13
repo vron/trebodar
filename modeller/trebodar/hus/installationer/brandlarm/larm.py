@@ -38,9 +38,10 @@ from trebodar.hus.stomme import lagen
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import TF3
 
 from ..genomforingar import Genomforing, Stycke, genomforingar, vaggarna
+from ..passager import PASSAGER
 from ..golvvarme.system import golvvarme
-from ..montering import (I_TAKET, KALLARTAK, PLAN, Montering, Vek, flytt, i_vagg, kallartak, tak, under_kallartak,
-                        vid_tak)
+from ..montering import (I_TAKET, KALLARTAK, PLAN, Montering, Vek, flytt, i_tak, i_vagg, kallartak, langs_taket,
+                        tak, under_kallartak, vid_tak)
 from ..strak import mellan_jarnen
 from ..vatten.system import vatten
 
@@ -137,21 +138,24 @@ def _ingjutna() -> BaseGeometry:
     return unary_union(ytor)
 
 
-def stigaren(kod: str, x: float) -> tuple[float, float]:
-    """Stigarens läge (u, w) i väggen: i regelfacket närmast x (så nära x som facket tillåter), förskjutet längs och
-    tvärs väggen så att kabeln går fritt från bjälklagets järn (mellan_jarnen) och stannar i facket och väggen."""
+def stigaren(kod: str, p: tuple[float, float]) -> tuple[float, float]:
+    """Stigarens läge (u, w) i väggen: i regelfacket närmast punkten p (så nära som facket tillåter), förskjutet längs och
+    tvärs väggen så att kabeln går fritt från bjälklagets järn (mellan_jarnen) och stannar i facket och väggen. I en
+    bärande vägg bara i dess installationspassager (../passager.py), där inga bultar borras (#114)."""
     v = vaggdef(kod)
-    assert abs(v.u[0]) > 0.5, f"{kod}: stigarna står i väggar längs x"
-    u_onskat = (x - v.origo[0]) * v.u[0]
+    u_onskat = (p[0] - v.origo[0]) * v.u[0] + (p[1] - v.origo[1]) * v.u[1]
     reglar = [(0.0, 0.0), *_reglar(kod), (v.langd, v.langd)]
     fri = KABEL_D / 2 + SPEL_REGEL
     fack = [(a[1], b[0]) for a, b in zip(reglar, reglar[1:]) if b[0] - a[1] > 2 * fri]
+    if kod in S.INNERVAGGAR:
+        fack = [(max(f0, p.u0), min(f1, p.u1)) for f0, f1 in fack for p in PASSAGER.get(kod, ())
+                if min(f1, p.u1) - max(f0, p.u0) > 2 * fri]
     tvars = (v.tjocklek - KABEL_D) / 2 - 5.0                # i väggens tjocklek, 5 mm från skikten
     for f0, f1 in sorted(fack, key=lambda f: abs(min(max(u_onskat, f[0] + 100.0), f[1] - 100.0) - u_onskat)):
         c = min(max(u_onskat, f0 + fri), f1 - fri)
-        p = i_vagg(kod, c, 0.0)
+        q = i_vagg(kod, c, 0.0)
         try:
-            dx, dy = mellan_jarnen([(p[0], p[1])], -S.H_BJALKLAG, 0.0, KABEL_D / 2, langs=v.u, tvars=tvars,
+            dx, dy = mellan_jarnen([(q[0], q[1])], -S.H_BJALKLAG, 0.0, KABEL_D / 2, langs=v.u, tvars=tvars,
                                    undvik=_ingjutna(), langst=min(300.0, (f1 - f0) / 2))
         except ValueError:
             continue
@@ -159,7 +163,7 @@ def stigaren(kod: str, x: float) -> tuple[float, float]:
         w = v.tjocklek / 2 + dx * v.w[0] + dy * v.w[1]
         if f0 + fri <= u <= f1 - fri:
             return u, w
-    raise ValueError(f"{kod}: inget regelfack nära x {x:g} där stigaren går fri från järnen")
+    raise ValueError(f"{kod}: inget regelfack nära ({p[0]:g}, {p[1]:g}) där stigaren går fri från järnen")
 
 
 @dataclass(frozen=True)
@@ -172,10 +176,18 @@ class Brandlarm:
         return (self.varnare[id_] if id_ in self.varnare else self.dosor[id_]).lage
 
 
-def _upp(kod: str, x: float, sida: int, mal: Montering) -> tuple[float, tuple[Vek, ...]]:
-    """Stigaren i väggen kod nära x: dosans x under den och vägen från dosan upp genom bjälklaget, i regelfacket till
-    innertaket på sidan sida och rakt i installationsskiktet (mellan läkten) till varnarens dosa (mal)."""
-    u, w = stigaren(kod, x)
+def _hogt(x: float, y: float) -> Vek:
+    """I installationsskiktets övre del, över elens rör (som ligger mitt i skiktet) som kabeln korsar."""
+    m = tak(x, y)
+    return flytt(m.punkt, m.normal, -(I_TAKET + OVER_ROREN))
+
+
+def _upp(kod: str, p: tuple[float, float], sida: int, mal: Montering,
+         forbi: tuple[tuple[float, float], ...] = ()) -> tuple[float, tuple[Vek, ...]]:
+    """Stigaren i väggen kod nära punkten p: vägen från källarens tak under den upp genom bjälklaget, i regelfacket
+    till innertaket på sidan sida och rakt i installationsskiktet (mellan läkten, över nocken, förbi punkterna forbi i
+    plan) till varnarens dosa (mal)."""
+    u, w = stigaren(kod, p)
     v = vaggdef(kod)
     dw = (w - v.tjocklek / 2) * v.w[0], (w - v.tjocklek / 2) * v.w[1]      # stigaren förskjuten tvärs väggen
     golv = i_vagg(kod, u, 0.0)
@@ -184,7 +196,9 @@ def _upp(kod: str, x: float, sida: int, mal: Montering) -> tuple[float, tuple[Ve
     skikt = flytt(skikt, tak(skikt[0], skikt[1]).normal, -OVER_MITT)          # i skiktets övre del
     vagg_tak = (vagg_tak[0] + dw[0], vagg_tak[1] + dw[1], skikt[2])
     a = anslutning(mal)
-    vag = (under_kallartak(golv[0], golv[1], D_UNDER), golv, vagg_tak, skikt, a)
+    genom = [i_tak(skikt[0], skikt[1]), *(i_tak(x, y) for x, y in forbi), i_tak(a[0], a[1])]
+    mellan = [_hogt(q[0], q[1]) for b, c in zip(genom, genom[1:]) for q in langs_taket(b, c)[1:]][:-1]
+    vag = (under_kallartak(golv[0], golv[1], D_UNDER), golv, vagg_tak, skikt, *mellan, a)
     return u, vag
 
 
@@ -206,11 +220,12 @@ def _rensa(vag: Sequence[Vek]) -> tuple[Vek, ...]:
     return tuple(ut)
 
 
-# kablarna under källarens tak runt ljuslinjerna (el/rum/kallare.py): K02 från trapphallens varnare västerut till
-# X_K02 och därifrån söderut, väster om trapphallens linje; K08 från DM söderut till Y_K08 och därifrån österut, söder
-# om linjerna i rummet norr om trapphallen
-X_K02 = 4700.0
-Y_K08 = 4400.0                  # mellan pelarna P16 och P14 i KL5, norr om P15 i det stora rummet
+# K05 under källarens tak från rummet norr om trapphallen söderut till Y_K05 och därifrån österut, söder om
+# ljuslinjerna i det rummet (el/rum/kallare.py)
+Y_K05 = 4400.0                  # mellan pelarna P16 och P14 i KL5, norr om P15 i det stora rummet
+Y_D01 = 150.0                   # K01 och K07 från D01 först norrut, förbi elröret KA-B2-LC upp i bjälklaget
+# K02 över nocken söder om badrummets elrör G07-R1 och i hallens tak väster om garderoben (elens dragdosor i dess tak)
+FORBI_HALLEN = ((2500.0, 7300.0), (1450.0, 7600.0))
 
 
 @cache
@@ -225,38 +240,35 @@ def brandlarm() -> Brandlarm:
         Varnare("BV-KT", "Källaren vid trappan", 0, kallartak(6600.0, 5600.0)),
         Varnare("BV-KN", "Källaren, rummet norr om trappan", 0, kallartak(6600.0, 2700.0)),
     )}
-    # stigarna: hallen och vardagsrummet genom 1A, sovrummet genom 2A och köket genom L4, nära varnarnas x
-    u_v, upp_v = _upp("1A", varnare["BV-HA"].lage.punkt[0], 1, varnare["BV-HA"].lage)
-    u_m, upp_m = _upp("2A", varnare["BV-SV"].lage.punkt[0], 1, varnare["BV-SV"].lage)
-    u_h, upp_h = _upp("L4", varnare["BV-KO"].lage.punkt[0], 1, varnare["BV-KO"].lage)
-    (xv, yv, _), (xm, _, _), (xh, yh, _) = upp_v[0], upp_m[0], upp_h[0]
-    y_stam = varnare["BV-KN"].lage.punkt[1]                         # stammen österut i källaren
+    # stigarna, i lätta väggar (inte genom de bärande väggarnas spärrzoner, #114): hallen och vardagsrummet genom
+    # badrummets väggbit L19 bredvid matningsdosan (vänstra huskroppen, över badrummet och nocken till hallen),
+    # sovrummet genom garderobens sneda hörn GB och köket genom L4, nära varnarnas x
+    gb = vaggdef("GB")
+    u_v, upp_v = _upp("L19", (BRANDLARM_D01[0] - 200.0, BRANDLARM_D01[1]), 1, varnare["BV-HA"].lage,
+                      forbi=FORBI_HALLEN)
+    u_m, upp_m = _upp("GB", (gb.origo[0] + gb.u[0] * gb.langd * 0.85, gb.origo[1] + gb.u[1] * gb.langd * 0.85), -1,
+                      varnare["BV-SV"].lage)
+    u_h, upp_h = _upp("L4", (varnare["BV-KO"].lage.punkt[0], vaggdef("L4").origo[1]), 1, varnare["BV-KO"].lage)
+    (xv, _, _), (xm, _, _), (xh, yh, _) = upp_v[0], upp_m[0], upp_h[0]
     dosor = {d.id: d for d in (
         Dosa("D01", "Matningsdosa: matningen från elcentralen, grupp G02 (el/grupper.py)", kallartak(*BRANDLARM_D01)),
-        Dosa("DV", "Kopplingsdosa under stigaren till hallen och vardagsrummet (1A)", kallartak(xv, yv)),
-        Dosa("DM", "Kopplingsdosa vid stigaren till sovrummet (2A)", kallartak(xm, y_stam)),
         Dosa("DH", "Kopplingsdosa under stigaren till köket (L4)", kallartak(xh, yh)),
     )}
     a = {k: anslutning(v.lage) for k, v in varnare.items()} | {k: anslutning(d.lage) for k, d in dosor.items()}
     z = KALLARTAK - D_UNDER
     kt, kn = a["BV-KT"], a["BV-KN"]
+    y_d01 = a["D01"][1] - Y_D01                                    # norr om D01, förbi källarens elrör KA-B2-LC
     x_tf3 = (TF3.x_upp + nb5) / 2                                  # förbi takfönstret TF3, mellan det och nocken,
-
-    def hogt(x: float, y: float) -> Vek:
-        """I installationsskiktets övre del, över elens rör (som ligger mitt i skiktet) som kabeln korsar."""
-        m = tak(x, y)
-        return flytt(m.punkt, m.normal, -(I_TAKET + OVER_ROREN))
+    hogt = _hogt
     kablar = [
-        Kabel("K01", "D01", "BV-KT", (a["D01"], (kt[0], a["D01"][1], z), kt)),
-        Kabel("K02", "BV-KT", "DV", (kt, (X_K02, kt[1], z), (X_K02, yv, z), a["DV"])),
-        Kabel("K03", "DV", "BV-HA", upp_v),
-        Kabel("K04", "BV-HA", "BV-VR", (a["BV-HA"], hogt(x_tf3, a["BV-HA"][1]), hogt(x_tf3, a["BV-VR"][1]),
+        Kabel("K01", "D01", "BV-KT", (a["D01"], (a["D01"][0], y_d01, z), (kt[0], y_d01, z), kt)),
+        Kabel("K02", "D01", "BV-HA", (a["D01"], (xv, a["D01"][1], z), *upp_v)),
+        Kabel("K03", "BV-HA", "BV-VR", (a["BV-HA"], hogt(x_tf3, a["BV-HA"][1]), hogt(x_tf3, a["BV-VR"][1]),
                                          a["BV-VR"])),
-        Kabel("K05", "BV-KT", "BV-KN", (kt, kn)),
-        Kabel("K06", "BV-KN", "DM", (kn, a["DM"])),
-        Kabel("K07", "DM", "BV-SV", (a["DM"], *upp_m)),
-        Kabel("K08", "DM", "DH", (a["DM"], (a["DM"][0], Y_K08, z), (xh, Y_K08, z), a["DH"])),
-        Kabel("K09", "DH", "BV-KO", upp_h),
+        Kabel("K04", "BV-KT", "BV-KN", (kt, kn)),
+        Kabel("K05", "BV-KN", "DH", (kn, (kn[0], Y_K05, z), (xh, Y_K05, z), a["DH"])),
+        Kabel("K06", "DH", "BV-KO", upp_h),
+        Kabel("K07", "D01", "BV-SV", (a["D01"], (a["D01"][0], y_d01, z), (xm, y_d01, z), *upp_m)),
     ]
     return Brandlarm(varnare, dosor, {k.id: Kabel(k.id, k.fran, k.till, _rensa(k.vag)) for k in kablar})
 

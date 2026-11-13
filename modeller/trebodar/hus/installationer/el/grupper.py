@@ -21,8 +21,10 @@ JORDFEL = "personskyddsautomat typ A 30 mA"
 JORDFEL_VP = "enligt värmepumpens tillverkare (typ B om den kräver det)"
 OVERSPANNINGSSKYDD = "typ 2"
 HUVUDBRYTARE = "3 × 63 A"
-# brandlarmets matningsdosa D01 i källarens tak (brandlarm/larm.py), matad från grupp G02: mellan underkantsnätets järn
-BRANDLARM_D01 = (6200.0, 5125.0)
+# brandlarmets matningsdosa D01 i källarens tak (brandlarm/larm.py), matad från grupp G02: under badrummets väggbit
+# L19, där röret kommer ned i väggen från innertaket (inte genom en bärande väggs spärrzon, #114), mellan båda nätens
+# järn och golvvärmens och tappvattnets rör
+BRANDLARM_D01 = (3025.0, 6154.0)
 
 
 @dataclass(frozen=True)
@@ -44,7 +46,7 @@ GRUPPER = [
     Grupp("G01", "Belysning hall och vardagsrum", 10, 1, 1.5, ("HA-B1", "VR-B1", "VR-B2")),
     Grupp("G02", "Belysning allrum, gång och kök, brandlarmet", 10, 1, 1.5,
           ("AL-B1", "AL-B2", "BL-D01", "GA-B1", "KO-B1", "KO-B2")),
-    Grupp("G03", "Sovrum och kontor i mittre huskroppen, belysning och uttag", 10, 1, 1.5, ("SV-B1", "SV-U1", "KT-B1")),
+    Grupp("G03", "Sovrum och kontor i mittre huskroppen, belysning och uttag", 10, 1, 1.5, ("KT-B1", "SV-B1", "SV-U1")),
     Grupp("G04", "Gästrum, kontor och sovrum i högra huskroppen, belysning och uttag", 10, 1, 1.5,
           ("GR-B1", "KL-B1", "SL-B1", "GR-U1", "KL-U1", "SL-U1")),
     Grupp("G05", "Belysning och fläkten FF2, badrum", 10, 1, 1.5, ("BA-B1", "BA-D2")),

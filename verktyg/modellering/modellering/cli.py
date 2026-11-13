@@ -37,6 +37,13 @@ def _norr() -> tuple[float, float]:
     return math.cos(az), math.cos(az - math.pi / 2)
 
 
+def _passager() -> list[tuple[str, list[tuple[float, float]], str]]:
+    """Installationspassagerna under de bärande väggarna (#114): (vägg, hörnen i plan, vad som går igenom)."""
+    pa = importlib.import_module("trebodar.hus.installationer.passager")
+    return [(kod, list(pa.rektangel(kod, p).exterior.coords)[:-1], p.vad) for kod, ps in pa.PASSAGER.items()
+            for p in ps]
+
+
 def valj(rot: Montage, vag: str | None) -> Montage:
     if not vag:
         return rot
@@ -889,7 +896,8 @@ def main(argv: list[str] | None = None) -> None:
         pdf, fel, anm = gjutning.ritningar(el.utdrag(), vat.utdrag(), avu, gv.utdrag(), hal,
                                            [list(p) for p in skel.TRAPPHAL], plattor, snitt_, _norr(),
                                            UT / "gjutning", arg.ut, jarn, central, skap,
-                                           fa.bultar(), fa.rorkonflikter(), fa.ROR_ARENDE)
+                                           fa.bultar(), fa.sparrzon(), _passager(),
+                                           fa.FRITT)
         for p in pdf:
             print(f"  {p.relative_to(ROT)}")
         for t in anm:
@@ -1172,6 +1180,8 @@ def main(argv: list[str] | None = None) -> None:
               f"({r.sekunder:.1f} s) -> {fil}")
         for x, y, v in sorted(r.krockar, key=lambda q: -q[2])[:15]:
             print(f"    KROCK {x} / {y}: {v:.0f} mm³")
+        for namn in ogiltiga[:15]:
+            print(f"    OGILTIG {namn}")
         if hasattr(regler, "LEDNINGAR"):
             from . import vagar
             vg = vagar.kontrollera(rot, karna, regler)

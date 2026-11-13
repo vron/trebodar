@@ -2,8 +2,9 @@
 bottenplattan (AR-04) före gjutningen, ett blad per tema, ur samma data som installationernas ritningar (el,
 tappvatten, avlopp, golvvärme, ventilation, köldbärare): elens ingjutna rör och var de går upp och ned, tappvattnets
 rör-i-rör, stigare och hylsor, avloppets genomföringar och golvbrunnar, golvvärmens slingor och tillopp (och var man
-får borra eller skruva), alla hål och ursparingar och ingjutningsgodset (pelarnas topp- och fotplåtar). Plattornas
-egen konstruktion och armering står på R-03–R-06.
+får borra eller skruva), alla hål och ursparingar, ingjutningsgodset (pelarnas topp- och fotplåtar) och stommens
+bultar med spärrzonerna runt dem, där inga rör går (#114). Plattornas egen konstruktion och armering står på
+R-03–R-06.
 
 Varje blad har plattans snitt, väggarna på plattan streckade (och källarens tunna under mellanbjälklaget),
 punkterna numrerade och måttsatta från närmaste fasta referens (plattans kant, hålets kant, källarväggens liv; i rad
@@ -76,23 +77,23 @@ def _vagratt(vag: list[list[float]], z: Z) -> list[list[tuple[float, float]]]:
     return ut
 
 
-def _ror_zon(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, z: Z, plan_: int) -> object:
-    """Rören i plattan (alla installationernas, vågräta och lodräta) med FRIZON runt om: där borrar och skruvar man
-    inte."""
+def _ror_zon(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, z: Z, plan_: int, fri: float = FRIZON) -> object:
+    """Rören i plattan (alla installationernas, vågräta och lodräta) med fri runt om (FRIZON: där borrar och skruvar
+    man inte; 0: rören själva)."""
     g: list[object] = []
     for ror, d in ((el["ror"], "diameter"), (vatten["ror"], None), (avlopp["ledningar"], "d")):
         for r in ror.values():
-            r_ = (r[d] if d else 20.0) / 2 + FRIZON
+            r_ = (r[d] if d else 20.0) / 2 + fri
             g += [LineString(f).buffer(r_) for f in _vagratt(r["vag"], z)]
             g += [Point(a[0], a[1]).buffer(r_) for a, b in zip(r["vag"], r["vag"][1:])
                   if math.hypot(b[0] - a[0], b[1] - a[1]) < 1.0 and min(a[2], b[2]) < z[1] and max(a[2], b[2]) > z[0]]
     for h in vatten.get("hylsor", []):
-        g.append(Point(*h["punkt"]).buffer(h["d"] / 2 + FRIZON))
+        g.append(Point(*h["punkt"]).buffer(h["d"] / 2 + fri))
     for kr in golvvarme["kretsar"].values():
         if kr["plan"] == plan_:
             pts = [(q[0], q[1]) for q in kr["vag"] if z[0] < q[2] < z[1]]
             if len(pts) > 1:
-                g.append(LineString(pts).buffer(10.0 + FRIZON))
+                g.append(LineString(pts).buffer(10.0 + fri))
     return unary_union(g)
 
 
@@ -709,19 +710,32 @@ def _ovrigt(v: Vy, plattor: list[dict]) -> list[Punkt]:
     return punkter
 
 
-def _bultar(v: Vy, bultar: Sequence[tuple[str, float, float]]) -> list[Punkt]:
-    """Stommens betongbultar genom syllarna (#88): de borras i det gröna efter gjutningen."""
+SPARR = "#f3a59c"                     # spärrzonerna runt bultarna (AR-03.7)
+
+
+def _sparr(v: Vy, bultar: Sequence[tuple[str, float, float, float]], sparrzon: Any,
+           passager: Sequence[tuple[str, list[tuple[float, float]], str]], roren: Any) -> list[Punkt]:
+    """Stommens betongbultar och ankare (#88), som borras efter gjutningen, spärrzonerna runt dem där inga rör går
+    (röda), installationspassagerna under väggarna (#114), där rören går samlade och inga bultar borras, och rören i
+    plattan tunt."""
     punkter: list[Punkt] = []
-    with v.lager("golvvarme"):
-        for kod, x, y in bultar:
+    with v.lager("sparr"):
+        if sparrzon is not None:
+            rita_ytor(v, sparrzon, SPARR, "zon")
+        if roren is not None:
+            rita_ytor(v, roren, None, "fin")
+        for _, horn, _ in passager:
+            xs, ys = [p[0] for p in horn], [p[1] for p in horn]
+            v.rekt(min(xs), min(ys), max(xs), max(ys), None, "zon_kant")
+        for kod, x, y, d in bultar:
             v.cirkel(x, y, R_PUNKT * 0.8, fyll="svart", stil=None)
-            punkter.append(("", f"betongbult {kod}", x, y, "M12"))
+            punkter.append(("", f"{'ankare' if d > 12.5 else 'betongbult'} {kod}", x, y, f"M{d:g}"))
     return punkter
 
 
 def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], ovan: object, under: object,
           vaggarna: str, referenser: tuple[str, tuple[list[Kant], list[Kant]], object],
-          rita: Callable[[Vy], list[Punkt]], tecken: list[tuple[str, str]], anvisning: str,
+          rita: Callable[[Vy], list[Punkt]], tecken: Sequence[tuple[str, str] | dict], anvisning: str,
           norr: tuple[float, float], detaljer: Sequence[tuple[Omrade, Detalj]] = (),
           tabellen: tuple[float, float, float] | None = None) -> tuple[Blad, list[Punkt]]:
     """Ett blad: plattans snitt, väggarna på plattan (streckade) och under den (tunna), temats rör och punkter med
@@ -753,7 +767,8 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
             "Ritas ur modellen med ./mod gjutning ritning; lägena är installationernas egna (E-01, VS-01, VS-02, VV-01).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
-        dict(typ="symboler", rader=[dict(form="linje", stil=st, text=t) for st, t in tecken]),
+        dict(typ="symboler", rader=[t if isinstance(t, dict) else dict(form="linje", stil=t[0], text=t[1])
+                                    for t in tecken]),
     ]
 
     def tabell(rad: list[list[str]], sz: float, matt: float = 0.6) -> dict:
@@ -775,17 +790,20 @@ def _blad(nummer: str, platta: str, tema: str, prefix: str, snitt_: list[dict], 
 def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[str, list[dict]],
               trapphal: list[list[float]], plattor: dict[str, list[dict]], snitt_: dict[str, list[dict]],
               norr: tuple[float, float], arbete: Path, ut: Path, jarn: list[dict], central: dict, skap: dict,
-              bultar: Sequence[tuple[str, float, float]] = (), konflikter: Sequence[tuple[str, float, float]] = (),
-              arende: str = "") -> tuple[list[Path], list[str], list[str]]:
+              bultar: Sequence[tuple[str, float, float, float]] = (), sparrzon: object = None,
+              passager: Sequence[tuple[str, list[tuple[float, float]], str]] = (), fritt: float = FRIZON
+              ) -> tuple[list[Path], list[str], list[str]]:
     """AR-03 (mellanbjälklaget: elen, tappvattnet, avloppet, golvvärmen, hålen och ingjutningsgodset) och AR-04
     (bottenplattan: golvvärmen, avloppet, hålen och ingjutningsgodset), och kontrollen av deras punkter mot modellen
     (fel och anmärkningar). snitt_: mellanbjälklaget, plan 1, källaren och bottenplattan; bultar: stommens
-    betongbultar genom syllarna (vägg, x, y; #88), som borras i det gröna på AR-03.4; konflikter: de av dem som står i
-    rörens zon i väntan på att rören dras om (ärendet arende), anmärkningar och inte fel."""
+    betongbultar och ankare (vägg, x, y, diameter; #88), sparrzon: spärrzonerna (enkla rektanglar som täcker allt inom
+    fritt från dem), där rören inte går (stomme/forankring.py), och passager: installationspassagerna (vägg, hörnen,
+    vad; #114); AR-03.7 visar dem."""
     mb, plan1, kallare, bp = (snitt_[k] for k in ("mb", "plan1", "kallare", "bp"))
     vaggar_1 = unary_union(polygoner(plan1, bara=VAGGAR))
     vaggar_0 = unary_union(polygoner(kallare, bara=("Hus/Grund", "Hus/Invändigt")))
     fritt_1 = vaggar_1.difference(_ror_zon(el, vatten, avlopp, golvvarme, MB, 1))
+    roren_1: Any = _ror_zon(el, vatten, avlopp, golvvarme, MB, 1, 0.0)
     fritt_0 = vaggar_0.difference(_ror_zon(el, vatten, avlopp, golvvarme, BP, 0))
     grund = unary_union(polygoner(kallare, bara=("Hus/Grund",)))
     betong_mb = unary_union(polygoner(mb, bara=("Hus/Mellanbjälklag/MB-B",)))
@@ -813,7 +831,7 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
         return nummer, bl
 
     pdf = []
-    nr = [f"{SERIE.split()[0]}.{i}" for i in range(1, 7)]
+    nr = [f"{SERIE.split()[0]}.{i}" for i in range(1, 8)]
     m = "Mellanbjälklaget"
     bladen = [
         gor(nr[0], m, "el", "E", mb, *m_vagg, lambda v: _el(v, el, MB),
@@ -841,10 +859,11 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "gjuts in med flänsen i plattans överkant. Diskmaskinens pumpade avlopp gjuts in i tappvattnets nivå.",
             norr),
         gor(nr[3], m, "golvvärme", "G", mb, *m_vagg,
-            lambda v: _golvvarme(v, golvvarme, fritt_1, MB, 1) + _bultar(v, bultar),
-            [("gv", "golvvärmens slinga och tillopp (z −68)"), ("normal", "betongbult genom syllen (●)")],
-            "Golvvärmens rör läggs på underkantsnätets järn i slingorna. " + borra.format("plan 1:s") +
-            " Stommens betongbultar genom syllarna (#88) borras efter gjutningen där punkterna visar.", norr),
+            lambda v: _golvvarme(v, golvvarme, fritt_1, MB, 1),
+            [("gv", "golvvärmens slinga och tillopp (z −68)")],
+            "Golvvärmens rör läggs på underkantsnätets järn i slingorna; där ett rör korsar sig självt eller ett "
+            "annat läggs det ena över det andra mellan armeringsnäten. " + borra.format("plan 1:s") +
+            " Stommens bultar och spärrzonerna runt dem: AR-03.7.", norr),
         gor(nr[4], m, "hål och ursparingar", "H", mb, *m_vagg, lambda v: _hal(v, hal["MB"], trapphal),
             [("normal", "hål eller ursparing")],
             "Alla genomföringar i plattan: hål som sparas ur eller hylsor som gjuts in, med måttet (håltagningen), "
@@ -853,19 +872,35 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
         gor(nr[5], m, "ingjutningsgods", "Ö", mb, *m_vagg, lambda v: _ovrigt(v, plattor["MB"]),
             [("normal", "stålplåt ingjuten i plattans underkant")],
             "Källarpelarnas topplåtar gjuts in i plattans underkant, mitt över pelarna (K-05, R-05).", norr),
+        gor(nr[6], m, "stommens bultar och spärrzoner", "B", mb, *m_vagg,
+            lambda v: _sparr(v, bultar, sparrzon, passager, roren_1),
+            [dict(form="yta", fyll=SPARR, stil="zon", text=f"spärrzon: inga rör (minst {fritt:g} mm från bultarna)"),
+             dict(form="punkt", r=0.6, text="betongbult M12 eller ankare M16 (●)"),
+             ("zon_kant", "installationspassage: rören samlade under väggen, inga bultar"),
+             ("fin", "rören i plattan (AR-03.1–03.4)")],
+            "Stommens betongbultar genom syllarna och beslagen och förankringsbeslagens ankare borras efter "
+            "gjutningen där punkterna visar (stomme/forankring.py, K-04). Inga rör, dosor eller hylsor gjuts in i "
+            f"de röda spärrzonerna: rektanglar längs väggarna, ±{fritt:g} mm från bultlinjen från den första till den "
+            "sista bulten, och runt stolparnas bultar. Under väggarna går rören samlade i installationspassagerna "
+            "(ramarna), där inga bultar borras.", norr, tabellen=TABELL_EL),
     ]
     pdf.append(ut / f"{SERIE}.pdf")
     kompilera(bladen, arbete / "AR-03", pdf[-1])
     fel, anm = kontroll(betong_mb, hal["MB"], plattor["MB"],
                         {k: v for k, v in punkter.items() if k.startswith("AR-03")})
-    rorzon: Any = _ror_zon(el, vatten, avlopp, golvvarme, MB, 1)
-    for kod, x, y in bultar:
-        if rorzon.contains(Point(x, y).buffer(5.0)):
-            t = f"betongbulten genom {kod}:s syll ({x:.0f}, {y:.0f}) står under {FRIZON:g} mm från ett rör i plattan"
-            if (kod, x, y) in set(konflikter):
-                anm.append(f"{t} (rören dras om, {arende})")
-            else:
-                fel.append(t)
+    roren: Any = roren_1
+    for kod, x, y, d_ in bultar:
+        if roren.distance(Point(x, y)) < fritt + d_ / 2 - 0.5:
+            fel.append(f"betongbulten genom {kod}:s syll ({x:.0f}, {y:.0f}) står under {fritt:g} mm från ett rör i "
+                       "plattan")
+    for zon, t in ((sparrzon, "går i en spärrzon (inom " + f"{fritt:g} mm från stommens bultar)"),):
+        if zon is None:
+            continue
+        i: Any = roren.intersection(zon)
+        for g in getattr(i, "geoms", [i]):
+            if not g.is_empty and g.area > 1.0:
+                c = g.representative_point()
+                fel.append(f"ett rör i plattan {t} vid ({c.x:.0f}, {c.y:.0f})")
     nr = [f"{SERIE_BP.split()[0]}.{i}" for i in range(1, 5)]
     b = "Bottenplattan"
     bladen = [

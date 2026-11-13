@@ -112,7 +112,8 @@ PUNKTER = [
     Apparat("KO-U1", UTTAG_1, ovan_fonstret("3NV", 7215.0)),
     Apparat("KO-U2", UTTAG_1, ovan_fonstret("3NV", 9025.0)),
     Apparat("KO-U3", UTTAG_1, ovan_fonstret("3SV", 1745.0)),
-    Apparat("KO-U4", UTTAG_1, vagg("L4", 250.0, Z_UTTAG, sida=1)),       # kylen (x 11 300)
+    Apparat("KO-U4", UTTAG_1, vagg("L4", 200.0, Z_UTTAG, sida=1)),       # kylen (x 11 250; röret upp minst 200 mm
+    #                                                                       från huvudstolpens bultar, #114)
     Apparat("KO-U5", UTTAG_1, vagg("L4", 1040.0, Z_UTTAG, sida=1)),      # frysen (x 12 090)
     Apparat("KO-D1", ANSLUTNING_3FAS, _3nv(Y_HALL, Z_HALL)),
     Apparat("KO-U6", UTTAG_1, _3nv(Y_SKAFFERI, Z_SKAFFERI)),

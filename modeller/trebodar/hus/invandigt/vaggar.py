@@ -391,16 +391,18 @@ def _spann(lv: Lattvagg) -> tuple[list[tuple[float, float]], list[float]]:
 
 
 def _reglarnas_u(lv: Lattvagg, spann: list[tuple[float, float]]) -> list[float]:
-    """Reglarnas u: vid ändarna, vid dörrarnas sidor och c/c 600; ändarna först, och en regel vid en dörr eller ficka
-    som skulle överlappa en annan utgår."""
+    """Reglarnas u: vid ändarna, vid dörrarnas sidor och c/c 600 (utom de flyttade); ändarna först, och en regel vid en
+    dörr eller ficka som skulle överlappa en annan utgår."""
     L = lv.langd
     lagen_u: list[float] = []
     for u in [0.0, L - H_VIRKE] + sorted({a - H_VIRKE for a, _ in spann} | {b for _, b in spann}):
         if all(abs(u - v) >= H_VIRKE for v in lagen_u):
             lagen_u.append(u)
+    flyttade = dict(lv.flyttade)
     for k in range(1, int(L // CC) + 1):
-        if all(abs(k * CC - u) >= H_VIRKE for u in lagen_u):
-            lagen_u.append(k * CC)
+        u = flyttade.get(k * CC, k * CC)
+        if all(abs(u - v) >= H_VIRKE for v in lagen_u):
+            lagen_u.append(u)
     return [u for u in sorted(lagen_u) if 0.0 <= u <= L - H_VIRKE + 1e-6]
 
 

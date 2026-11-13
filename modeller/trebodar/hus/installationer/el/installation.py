@@ -66,6 +66,9 @@ class Kretsresultat:
                 "ror": list(self.ror)}
 
 
+KORSNING = 300.0      # två rör i bjälklaget som är intill varandra högst så långt korsar varandra [mm]
+
+
 @dataclass(frozen=True)
 class Installation:
     rum: dict[str, Rum]
@@ -241,7 +244,8 @@ class Installation:
                 anm.append(f"{p.id}: inget rör ansluter till punkten")
         g_fel, g_anm = self._grupperna()
         k_fel, k_anm = self._kretsarna()
-        return fel + g_fel + k_fel + self._i_bjalklaget(), anm + g_anm + k_anm
+        b_fel, b_anm = self._i_bjalklaget()
+        return fel + g_fel + k_fel + b_fel, anm + g_anm + k_anm + b_anm
 
     def _kretsarna(self) -> tuple[list[str], list[str]]:
         """Ljuslinjerna och 24 V-kretsarna: varje ljuslinje i en krets och nådd med 24 V-rör från drivdonet,
@@ -310,15 +314,18 @@ class Installation:
                         fel.append(f"{ro.id}: röret slutar inte i taket under {pid}:s profil")
         return fel, anm
 
-    def _i_bjalklaget(self) -> list[str]:
+    def _i_bjalklaget(self) -> tuple[list[str], list[str]]:
         """Rören i mellanbjälklaget som går i varandra (mittlinjerna närmare än radierna, utom där två rör möts i
-        samma punkt) eller genom en armaturs ingjutna dosa."""
+        samma punkt) eller genom en armaturs ingjutna dosa: fel, utom där två rör bara korsar varandra (högst
+        KORSNING mm intill varandra), som är anmärkningar: det ena läggs över det andra, det finns plats mellan
+        armeringsnäten."""
         bitar = [(r.id, r.fran, r.till, a, b, r.typ.ytterdiameter / 2) for r in self.ror.values()
                  for a, b in zip(self.mittlinje(r), self.mittlinje(r)[1:])
                  if max(a[2], b[2]) > KALLARTAK + 1.0 and min(a[2], b[2]) < PLAN[1] - 1.0]
         dosor = [(p.id, p.lage.punkt, p.typ.dosa.diameter / 2) for p in self.punkter.values()
                  if isinstance(p, Lampa) and p.typ.dosa is not None]
         ut: set[str] = set()
+        par: dict[tuple[str, str], float] = {}
         for i, (ra, fa, ta, a0, a1, rad_a) in enumerate(bitar):
             for rb, fb, tb, b0, b1, rad_b in bitar[i + 1:]:
                 if ra == rb or (max(a0[0], a1[0]) + 60.0 < min(b0[0], b1[0]) or max(b0[0], b1[0]) + 60.0 < min(a0[0], a1[0])
@@ -329,7 +336,7 @@ class Installation:
                 gemensam = {fa, ta} & {fb, tb}
                 if d < rad_a + rad_b - 0.5 and not any(math.dist(q[:2], anslutning(self.punkter[g])[:2]) < 150.0
                                                        for g in gemensam):
-                    ut.add(f"{ra} och {rb} går i varandra i bjälklaget ({d:.0f} mm mellan mittlinjerna)")
+                    par.setdefault((ra, rb), d)
             for pid, c, r in dosor:
                 if pid in (fa, ta):
                     continue
@@ -337,7 +344,21 @@ class Installation:
                                                else Point(a0[0], a0[1]))
                 if d < r + rad_a and min(a0[2], a1[2]) < c[2] + 70.0:
                     ut.add(f"{ra} går genom {pid}:s ingjutna dosa ({d:.0f} mm från dess mitt)")
-        return sorted(ut)
+        anm: list[str] = []
+        for (ra, rb), d in par.items():
+            a_, b_ = self.mittlinje(self.ror[ra]), self.mittlinje(self.ror[rb])
+            r_ = (self.ror[ra].typ.ytterdiameter + self.ror[rb].typ.ytterdiameter) / 2
+            langs = 0.0
+            for z in {round(p[2]) for p in a_}:
+                la = [p[:2] for p in a_ if abs(p[2] - z) < 1.0]
+                lb = [p[:2] for p in b_ if abs(p[2] - z) < 1.0]
+                if len(la) > 1 and len(lb) > 1:
+                    langs = max(langs, LineString(la).intersection(LineString(lb).buffer(r_)).length)
+            if langs <= KORSNING:
+                anm.append(f"{ra} och {rb} korsar varandra i bjälklaget (det ena läggs över det andra)")
+            else:
+                ut.add(f"{ra} och {rb} går i varandra i bjälklaget ({d:.0f} mm mellan mittlinjerna)")
+        return sorted(ut), sorted(anm)
 
     def _grupperna(self) -> tuple[list[str], list[str]]:
         """Grupperna (grupper.py): varje apparat och dosa utom lamporna och centralen i en grupp, gruppens punkter
@@ -369,7 +390,15 @@ class Installation:
             grannar.setdefault(r.fran, set()).add(r.till)
             grannar.setdefault(r.till, set()).add(r.fran)
         for g in GRUPPER:
-            if not g.punkter or g.punkter[0] not in grannar.get(central, set()):
+            # från centralen till den första punkten, direkt eller genom dragdosor (mellanbjalklag.UPP_I_TAKET)
+            nadda_c: set[str] = set()
+            kvar_c = [central]
+            while kvar_c:
+                for q in grannar.get(kvar_c.pop(), set()) - nadda_c:
+                    nadda_c.add(q)
+                    if q in fria:
+                        kvar_c.append(q)
+            if not g.punkter or g.punkter[0] not in nadda_c:
                 fel.append(f"{g.id}: inget rör från centralen till gruppens första punkt {g.punkter[0]}")
             # gruppens punkter nås från den första genom gruppens egna punkter (förgrenat i dosorna)
             egna, nadda, kvar = set(g.punkter) | fria, {g.punkter[0]}, [g.punkter[0]]

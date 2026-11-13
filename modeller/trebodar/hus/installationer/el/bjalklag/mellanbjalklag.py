@@ -16,8 +16,9 @@ golvvärmen (montering.BJALKLAG "MB"), hällens grova rör (Ø20) för sig i den
 rör ("MB-UK").
 
 Rören går upp ur bjälklaget lodrätt under punktens dosa, mellan överkantsnätets järn, och därifrån rakt in i dosan
-underifrån (../dragning.py). Brandlarmets matningsdosa D01 (BL-D01, ../../brandlarm) matas från allrummets dimmer genom
-bjälklaget (../kedjor.py).
+underifrån (../dragning.py). Är punkten i en bärande vägg går röret i stället upp i en lätt vägg till en dragdosa i
+innertaket (UPP_I_TAKET), så att inget rör går under stommens bultar (#114). Brandlarmets matningsdosa D01 (BL-D01,
+../../brandlarm) matas från allrummets dimmer genom innertaket och en lätt vägg (../kedjor.py).
 """
 from __future__ import annotations
 
@@ -27,15 +28,16 @@ from collections.abc import Sequence
 from shapely.geometry import LineString, Point
 from shapely.geometry.base import BaseGeometry
 
-from ...montering import BJALKLAG, KALLARTAK, PLAN, Vek, kallartak
+from ...montering import BJALKLAG, KALLARTAK, PLAN, Vek, kallartak, langs_vaggen, tak, vagg, vid_tak
 from ...plattan import Karta, Punkt, ledning
 from ...strak import fri
 from ...teknikrum import GRUPPCENTRAL, Z_GC_TOPP
-from ..dragning import upp_till_dosan
+from .. import lakt
+from ..dragning import upp_i_vaggen, upp_till_dosan
 from ..grupper import BRANDLARM_D01, GRUPPER
-from ..katalog import BRANDLARM_MATNING, FXP16, FXP20
+from ..katalog import BRANDLARM_MATNING, DRAGDOSA_TAK, FXP16, FXP20
 from ..punkter import Dosa, Punkt as ElPunkt, Ror
-from ..rum import allrum, badrum, gastrum, hall, kallarens_punkter as KP, kok, sovrum
+from ..rum import allrum, badrum, gastrum, hall, kallarens_punkter as KP, kok, kontor, sovrum
 from .ingjutna import KALLAREN, NIVAER, PLAN1, Ingjutning, Ror3, hinder, ingjutet, kartor_el, knippe
 
 NAMN = "Mellanbjälklag"
@@ -67,11 +69,46 @@ def _rad(y: float, z: float, r: float = 8.0, over_v3: Sequence[float] = ()) -> l
 _RADER = {"A": (RAD_A, _rad(RAD_A, BJALKLAG["MB"])),
           "B": (RAD_B, _rad(RAD_B, BJALKLAG["MB"], over_v3=(BJALKLAG["MB"], BJALKLAG["MB-UK"])))}
 
-_PUNKT: dict[str, ElPunkt] = {p.id: p for m in (allrum, badrum, gastrum, hall, kok, sovrum) for p in m.PUNKTER}
+_PUNKT: dict[str, ElPunkt] = {p.id: p for m in (allrum, badrum, gastrum, hall, kok, kontor, sovrum) for p in m.PUNKTER}
 # hällens grova rör i den undre nivån, de andra i den övre
-_GROVA = {"G10": (FXP20, "MB-UK")}
+GROVA = {"G10": (FXP20, "MB-UK")}
 # grupperna på plan 1: gruppens rör från centralen till dess första punkt
 _PLAN1 = [(g.id, g.punkter[0]) for g in GRUPPER if g.punkter[0] in _PUNKT]
+
+# grupperna vars första punkt sitter i en bärande vägg (#114): röret från centralen går inte in under väggen (genom
+# bultarnas spärrzon, ../../passager.py) utan upp i en lätt vägg till en dragdosa i innertaket, och därifrån i
+# innertakets installationsskikt till punkten (../kedjor.py). Hallens grupper går upp i hallgarderobens väggbit L20,
+# väster om 1B:s spärrzon, kökets i inbyggnadens front L15 nära 3NV (utanför plattans kantband); dosorna sitter inne
+# i garderoben och skafferiet. grupp: (väggen, u längs den, dragdosan)
+UPP_I_TAKET: dict[str, tuple[str, float, str]] = {
+    "G01": ("L20", 90.0, "HA-DD1"),
+    "G02": ("L20", 140.0, "HA-DD2"),
+    "G03": ("L20", 190.0, "HA-DD3"),
+    "G06": ("L20", 240.0, "HA-DD4"),
+    "G10": ("L15", 2445.0, "KO-DD1"),
+    "G11": ("L15", 2345.0, "KO-DD2"),
+    "G12": ("L15", 2245.0, "KO-DD3"),
+}
+DOSORNA_UT, DOSORNA_CC = 100.0, 160.0       # dosorna från väggen in i garderoben och skafferiet, och emellan
+
+
+def _upp_i_taket(g: str) -> tuple[Punkt, tuple[Vek, ...], Dosa]:
+    """Gruppens stigare i den lätta väggen (mellan överkantsnätets järn), vägen därifrån upp i väggen och in i
+    installationsskiktet, och dragdosan (ut från väggen, de följande längre ut)."""
+    kod, u, did = UPP_I_TAKET[g]
+    typ, niva = GROVA.get(g, (FXP16, "MB"))
+    a, _ = upp_i_vaggen(kod, u, 0.0, niva, typ.ytterdiameter)
+    topp, skikt = vid_tak(kod, langs_vaggen(kod, a), sida=-1)
+    n = vagg(kod, u, 0.0, sida=-1).normal
+    j = [h for h in UPP_I_TAKET if UPP_I_TAKET[h][0] == kod].index(g)
+    ut = DOSORNA_UT + j * DOSORNA_CC - 100.0            # vid_tak går 100 mm ut i skiktet
+    x, y = skikt[0] + ut * n[0], skikt[1] + ut * n[1]
+    m = tak(x, y)
+    dosa = Dosa(did, DRAGDOSA_TAK, tak(lakt.mellan_lakten(m.ref, x, y), y))
+    return (a[0], a[1]), ((a[0], a[1], topp[2]), skikt), dosa
+
+
+_TAKET = {g: _upp_i_taket(g) for g in UPP_I_TAKET}
 
 
 
@@ -87,9 +124,10 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
     """Gruppernas rör från centralen (plan 1:s och källarens som går genom bjälklaget): raden efter var punkten
     ligger, knippena efter riktningen, och vart och ett från där det lämnar sitt knippe till punkten genom elrörens
     nivåer. Ger rören och stigarna genom bjälklaget (hinder för de andra rören)."""
-    mal = {g: _malet(p, _GROVA.get(g, (FXP16, "MB"))) for g, p in _PLAN1}
+    mal = {g: _malet(p, GROVA.get(g, (FXP16, "MB"))) if g not in _TAKET else _TAKET[g][:2] for g, p in _PLAN1}
     mal |= {g: (b, efter) for g, (_, b, efter) in KP.FRAN_CENTRALEN.items()}
-    till = dict(_PLAN1) | {g: p for g, (p, _, _) in KP.FRAN_CENTRALEN.items()}
+    till = (dict(_PLAN1) | {g: p for g, (p, _, _) in KP.FRAN_CENTRALEN.items()}
+            | {g: d.id for g, (_, _, d) in _TAKET.items()})
     # källarens punkter i ett band av vinkeljärn i den övre nivån (fläktens anslutning i V20:s cellplast): röret når
     # dem genom ledningen ut ur bandet, som knippet går mot (inte mot stigaren bakom den)
     ovre = kartor_el(FXP16.ytterdiameter / 2)[0]
@@ -102,16 +140,16 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
                         (x, y, 8.0, KALLARTAK, BJALKLAG["MB"] + 8.0) for g, ((x, y), _) in mal.items()]
 
     def nivaer(g: str) -> tuple[str, ...]:
-        return ("MB-UK",) if g in _GROVA else NIVAER
+        return ("MB-UK",) if g in GROVA else NIVAER
 
     def kost(g: str) -> tuple[float, float]:
         return KALLAREN if g in KP.FRAN_CENTRALEN else PLAN1
 
     def kartorna(g: str) -> tuple[Karta, ...]:
-        return kartor_el(_GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2)
+        return kartor_el(GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2)
 
     def hindren(g: str, s: Punkt) -> tuple[list[BaseGeometry], ...]:
-        return hinder(_GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2, list(alla), KP.DOSOR, utom=(s, mal[g][0]))
+        return hinder(GROVA.get(g, (FXP16, "MB"))[0].ytterdiameter / 2, list(alla), KP.DOSOR, utom=(s, mal[g][0]))
     # raden: den bakre (söderut över V3) för punkterna söder om V3, den främre (norrut) för de andra; förslaget till
     # väg (för riktningen ut ur bandet) från en punkt utanför bandet mitt för raden
     val: dict[str, tuple[str, Sequence[Vek]]] = {}
@@ -134,7 +172,7 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
         return math.atan2(b_.x - a_.x, abs(b_.y - a_.y))
     knippen: dict[str, list[str]] = {}
     for g in val:
-        if g in _GROVA:
+        if g in GROVA:
             continue
         namn = val[g][0]
         knippen.setdefault(namn + ("O" if riktning(g) > math.radians(40.0) else "V") if namn == "A" else
@@ -142,7 +180,7 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
     stigare: dict[str, Punkt] = {}
     vagar: dict[str, tuple[list[Punkt], list[float]]] = {}
     for namn, (y, xs) in _RADER.items():
-        grova = [g for g in _GROVA if val[g][0] == namn]
+        grova = [g for g in GROVA if val[g][0] == namn]
         delar = [knippen[n] for n in (f"{namn}V", f"{namn}O") if n in knippen]
         antal = sum(len(d) for d in delar) + len(grova)
         if antal > len(xs):
@@ -166,7 +204,7 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
     # rören i tur och ordning: de som inte går i ett knippe först, sedan i ordning efter var de lämnar sitt knippe
     bestallningar: list[dict[str, object]] = []
     for g in sorted(stigare, key=lambda g_: (g_ in vagar, LineString(vagar[g_][0]).length if g_ in vagar else 0.0)):
-        typ = _GROVA.get(g, (FXP16, "MB"))[0]
+        typ = GROVA.get(g, (FXP16, "MB"))[0]
         s_ = stigare[g]
         z = BJALKLAG["MB"]
         upp = (s_[0], s_[1], Z_GC_TOPP)
@@ -184,10 +222,12 @@ def _grupprören() -> tuple[list[Ror], list[Ror3]]:
     return sorted(ut, key=lambda r: r.id), ing.stigare
 
 
-# brandlarmets matningsdosa D01 (../../brandlarm/larm.py): en punkt utan egen geometri, matad från allrummets dimmer
+# brandlarmets matningsdosa D01 (../../brandlarm/larm.py): en punkt utan egen geometri, matad från allrummets dimmer;
+# och dragdosorna i innertaket för UPP_I_TAKET
 D01 = BRANDLARM_D01
 PUNKTER = [
     Dosa("BL-D01", BRANDLARM_MATNING, kallartak(*D01)),
+    *(d for _, _, d in _TAKET.values()),
 ]
 
 # gruppernas rör från centralen, och alla stigare genom bjälklaget (upp ur centralen, upp till plan 1 och ned till

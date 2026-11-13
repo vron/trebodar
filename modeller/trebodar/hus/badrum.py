@@ -154,10 +154,12 @@ def pa_golvet(form: Form, x0: float, x1: float, y0: float, y1: float) -> Form:
 
 # ------------------------------------------------------------------ inredningen
 
-# duschen: två glasdörrar 8 mm i Y_DUSCH mellan 1B och L11, hängda i väggarna, utåtgående; blandaren på 1C (där
-# tappvattnets väggdosa sitter, vatten/rum/badrum.py) och takduschen och handduschen på en stång ovanför
+# duschen: två glasdörrar 8 mm i Y_DUSCH mellan 1B och L11, hängda i väggarna, utåtgående; blandaren på den lätta väggen
+# L11 (där tappvattnets väggdosa sitter, vatten/rum/badrum.py; rören upp i en lätt vägg, inte i den bärande 1C, #114)
+# och takduschen och handduschen på en stång ovanför
 DUSCHDORR_T, DUSCHDORR_H, DUSCHDORR_SPEL = 8.0, 2000.0, 8.0
-X_DUSCHBLANDARE = (X_1B + X_L11) / 2       # blandarens mitt på 1C, mitt i nischen (#97; kanalen FF3 öster om den)
+Y_DUSCHBLANDARE = 7355.0                   # blandarens mitt på L11: mitt i regelfacket u 1 920–2 400 (nischens främre del,
+#                                             bort från drivdonsskåpets stigare vid y 7 813)
 Z_DUSCHBLANDARE = 1000.0
 Z_TAKDUSCH = 2150.0                         # takduschens underkant över golvet
 

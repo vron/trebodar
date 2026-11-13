@@ -8,7 +8,7 @@
 - **Badkaret** fristående och ovalt av mineralkomposit, förenklat som en avsmalnande ellips med karet urtaget, och en
   golvstående blandare med handdusch vid änden mot 1A.
 - **WC:n** golvstående med S-lås, förenklad: fot och skål, sits och lock och cistern, med baksidan mot L9.
-- **Duschen**: två glasdörrar 8 mm i nischens öppning, hängda i väggprofiler på 1B och L11 och utåtgående, och på 1C
+- **Duschen**: två glasdörrar 8 mm i nischens öppning, hängda i väggprofiler på 1B och L11 och utåtgående, och på L11
   en termostatblandare med stång, takdusch och handdusch.
 - **Skåpet** i nischen mellan L10 och L19: stomme av björkplywood med hyllor och två höga dörrar av fräst ask i L9:s
   yta; ovanför skåpet är nischen öppen upp till innertaket.
@@ -196,7 +196,7 @@ def _wc() -> Montage:
 
 
 def _duschen() -> Montage:
-    """Duschens två glasdörrar i nischens öppning (stängda) med väggprofilerna, och duschsetet på 1C."""
+    """Duschens två glasdörrar i nischens öppning (stängda) med väggprofilerna, och duschsetet på L11."""
     m = Montage("Duschen", beskrivning="Två glasdörrar 8 mm i nischen, termostatblandare med takdusch och handdusch")
     p, q = PROFIL
     z0 = B.Z_DUSCH + B.DUSCHDORR_SPEL
@@ -216,19 +216,19 @@ def _duschen() -> Montage:
     for namn, (a, c) in (("V", (B.X_1B, xa)), ("O", (xb, B.X_L11))):
         m.lagg(Del("Duschdörrarnas väggprofil", box(a, c, y - q / 2, y + q / 2, z0, z1), KROM), Placering(),
                f"BA-DUSCH-PROFIL-{namn}")
-    # duschsetet på 1C: blandaren 60 mm ut från kaklet, stången upp till armen och takduschen ut i duschen
+    # duschsetet på L11: blandaren 60 mm ut från kaklet, stången upp till armen och takduschen ut i duschen (västerut)
     ds = Montage("Duschset", beskrivning="Termostatblandare med stång, takdusch och handdusch", produkt="DUSCHSET")
-    xd, yd = B.X_DUSCHBLANDARE, B.Y_1C - 60.0
+    xd, yd = B.X_L11 - 60.0, B.Y_DUSCHBLANDARE
     zg = B.golvniva(xd, yd)
     zb, zt = zg + B.Z_DUSCHBLANDARE, zg + B.Z_TAKDUSCH
-    ds.lagg(Del("Termostatblandare dusch", svep([(xd - 160.0, yd, zb), (xd + 160.0, yd, zb)], 30.0, 0.0), KROM),
+    ds.lagg(Del("Termostatblandare dusch", svep([(xd, yd - 160.0, zb), (xd, yd + 160.0, zb)], 30.0, 0.0), KROM),
             Placering(), "BA-DUSCH-BLANDARE")
     arm = 350.0
-    ds.lagg(Del("Duschstång med arm", svep([(xd, yd, zb + 30.0), (xd, yd, zt + 120.0), (xd, yd - arm, zt + 120.0),
-                                         (xd, yd - arm, zt + 12.0)], 12.0, 40.0), KROM),
+    ds.lagg(Del("Duschstång med arm", svep([(xd, yd, zb + 30.0), (xd, yd, zt + 120.0), (xd - arm, yd, zt + 120.0),
+                                         (xd - arm, yd, zt + 12.0)], 12.0, 40.0), KROM),
             Placering(), "BA-DUSCH-STANG")
-    ds.lagg(Del("Takdusch Ø250", cylinder(125.0, 12.0, (xd, yd - arm, zt)), KROM), Placering(), "BA-DUSCH-TAKDUSCH")
-    ds.lagg(Del("Handdusch", cylinder(18.0, 240.0, (xd + 30.0, yd, zb + 330.0)), KROM), Placering(),
+    ds.lagg(Del("Takdusch Ø250", cylinder(125.0, 12.0, (xd - arm, yd, zt)), KROM), Placering(), "BA-DUSCH-TAKDUSCH")
+    ds.lagg(Del("Handdusch", cylinder(18.0, 240.0, (xd, yd + 30.0, zb + 330.0)), KROM), Placering(),
             "BA-DUSCH-HANDDUSCH")
     m.lagg(ds)
     return m

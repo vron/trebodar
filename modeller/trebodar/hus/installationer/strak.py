@@ -25,16 +25,39 @@ from .montering import Vek
 
 @dataclass(frozen=True)
 class Strak:
-    """En gemensam väg (punkter i plan, från fördelaren), med en fil per rör."""
+    """En gemensam väg (punkter i plan, från fördelaren), med en fil per rör. skala: filernas avstånd per sträcka
+    (benen i ordning) i förhållande till den första, för ett stråk som smalnar av där rören kan ligga tätare (#114)."""
     id: str
     punkter: tuple[tuple[float, float], ...]
+    skala: tuple[float, ...] = ()
 
     def fil(self, p: tuple[float, ...]) -> LineString:
         """Filen genom punkten p: stråket förskjutet i sidled (åt vänster positivt) så att dess första sträcka går
-        genom p."""
+        genom p, på varje sträcka med dess skala."""
         linje = LineString(self.punkter)
         d = self.sida(p)
-        return linje.offset_curve(d, join_style="mitre") if abs(d) > 1e-6 else linje
+        if abs(d) < 1e-6:
+            return linje
+        if not self.skala:
+            return linje.offset_curve(d, join_style="mitre")
+        sk = list(self.skala) + [self.skala[-1]] * (len(self.punkter) - 1 - len(self.skala))
+        bitar = []                                       # varje sträcka förskjuten: punkt och riktning
+        for (a, b), k in zip(zip(self.punkter, self.punkter[1:]), sk):
+            ux, uy = b[0] - a[0], b[1] - a[1]
+            n = math.hypot(ux, uy)
+            ux, uy = ux / n, uy / n
+            off = d * k
+            bitar.append(((a[0] - uy * off, a[1] + ux * off), (b[0] - uy * off, b[1] + ux * off), (ux, uy)))
+        pts = [bitar[0][0]]
+        for (a0, a1, ua), (b0, _, ub) in zip(bitar, bitar[1:]):
+            kors = ua[0] * ub[1] - ua[1] * ub[0]
+            if abs(kors) < 1e-9:                         # i linje: rakt över
+                pts += [a1, b0]
+            else:                                        # där de förskjutna sträckorna möts
+                t = ((b0[0] - a0[0]) * ub[1] - (b0[1] - a0[1]) * ub[0]) / kors
+                pts.append((a0[0] + ua[0] * t, a0[1] + ua[1] * t))
+        pts.append(bitar[-1][1])
+        return LineString(pts)
 
     def sida(self, p: tuple[float, ...]) -> float:
         """Punktens avstånd åt vänster från stråkets första sträcka."""

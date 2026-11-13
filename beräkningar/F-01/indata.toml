@@ -308,7 +308,7 @@ namn = "Arbetsritning utsättning, koordinater och höjder"
 status = "klar"
 [[handling]]
 nr = "AR-03"
-namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål, ingjutningsgods"
+namn = "Arbetsritning gjutning av mellanbjälklaget: el, tappvatten, avlopp, golvvärme, hål, ingjutningsgods, bultar och spärrzoner"
 status = "klar"
 [[handling]]
 nr = "AR-04"

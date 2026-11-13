@@ -21,6 +21,7 @@ from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as INNERVAGGAR
 from trebodar.hus.rum import KAMINMUR
+from trebodar.hus.stomme.forankring import sparrzon
 
 from ..avlopp.ledningar import golvbrunnar
 from ..avlopp.ledningar import ledningar as avloppets
@@ -149,8 +150,9 @@ def _i_nivan(a: Vek, b: Vek, z0: float, z1: float) -> Point | LineString | None:
 def _hinder(plan: int) -> Polygon:
     """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens rör
     där de går genom slingornas nivå (lodrätt, där de byter nivå och där de går under eller över ett annat rör, #87) och
-    avloppets rör och golvbrunn genom det (plan 1), utrustningen på källarens golv och rören genom bottenplattan
-    (servisen, köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
+    avloppets rör och golvbrunn genom det och stommens bultar (forankring.sparrzon, #114; plan 1), utrustningen på
+    källarens golv och rören genom bottenplattan (servisen, köldbärarens skyddsrör och avloppets rör ned till
+    grundledningen, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
@@ -167,6 +169,7 @@ def _hinder(plan: int) -> Polygon:
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < 0.0 and max(a[2], b[2]) > -S.H_BJALKLAG]
         delar += [Point(x, y).buffer(FRITT + d / 2) for x, y, d, z in golvbrunnar().values() if z > -S.H_BJALKLAG]
+        delar.append(sparrzon().buffer(GOLVVARMEROR.d / 2 + MARGINAL_STOMME))
     else:
         delar += [Point(k.vag[0][0], k.vag[0][1]).buffer(FRITT + KB_D / 2) for k in kollektorns().values()]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
@@ -192,6 +195,22 @@ def _fordelare(plan: int, mod: ModuleType, filer_: dict[tuple[str, str], int]) -
     return ut
 
 
+MARGINAL_STOMME = 10.0          # slingorna så långt utanför stommens spärrzon (forankring.sparrzon)
+
+
+def _ut_till_kanten(yta: Polygon, i: Polygon, cc: float, riktning: str, start: tuple[float, float]) -> Polygon:
+    """Raderna där slingan går genom något (i, med rörets radie och MARGINAL_STOMME), kortade från det ut till ytans
+    kant längs raderna bort från slingans start (raderna går längs x om riktning är "x", annars längs y), så att
+    tilloppet till slingans början inte går genom det: en remsa över radernas bredd och en rad till på var sida."""
+    x0, y0, x1, y1 = yta.bounds
+    ix0, iy0, ix1, iy1 = i.buffer(GOLVVARMEROR.d / 2 + MARGINAL_STOMME, join_style="mitre").bounds
+    if riktning == "x":                            # raderna längs x: remsan i y över i, i x ut till kanten
+        a, b = (ix0, x1 + 1.0) if start[0] < (ix0 + ix1) / 2 else (x0 - 1.0, ix1)
+        return box(a, iy0 - cc, b, iy1 + cc)
+    a, b = (iy0, y1 + 1.0) if start[1] < (iy0 + iy1) / 2 else (y0 - 1.0, iy1)
+    return box(ix0 - cc, a, ix1 + cc, b)
+
+
 def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, Fordelare], list[str]]:
     """Kretsarna och fördelarna på en våning: slingorna i zonerna (där en slinga skulle gå genom ett hål i ytan slutar
     raderna vid hålet), filerna och tilloppen; zonernas ytor utan tilloppen (andra varvet)."""
@@ -205,10 +224,16 @@ def _vaning(plan: int, mod: ModuleType) -> tuple[dict[str, Krets], dict[str, For
                 band)
             yta = max(getattr(yta, "geoms", [yta]), key=lambda g: g.area) if not yta.is_empty else Polygon()
             s = slinga(yta, z.cc, z.riktning, z.start) if not yta.is_empty else None
-            for _ in range(4):                     # slingan runt hålen i ytan (rör genom nivån mitt i zonen)
-                if s is None or not (hal := _genom_hal(yta, s, z.riktning)):
+            for _ in range(8):
+                # slingan runt hålen i ytan (rör genom nivån mitt i zonen): raderna slutar vid hålet
+                if s is not None and (hal := _genom_hal(yta, s, z.riktning)):
+                    yta = yta.difference(hal)
+                # slingan förbi stommens spärrzon vid ytans kant (#114): raderna dit tas bort
+                elif (s is not None and plan == 1 and not (i := LineString([*s[0], *s[1]]).buffer(
+                        GOLVVARMEROR.d / 2).intersection(sparrzon())).is_empty and i.area >= 1.0):
+                    yta = yta.difference(_ut_till_kanten(yta, i, z.cc, z.riktning, z.start))
+                else:
                     break
-                yta = yta.difference(hal)
                 yta = max(getattr(yta, "geoms", [yta]), key=lambda g: g.area)
                 s = slinga(yta, z.cc, z.riktning, z.start)
             if s is None:
@@ -276,8 +301,9 @@ def golvvarme() -> Golvvarme:
 
 
 def kontroll(g: Golvvarme) -> tuple[list[str], list[str]]:
-    """Fel och anmärkningar: zonerna utan slinga, kretsarnas längd, fördelarnas kretsar, rör som går i varandra eller
-    i sig själva (i plan, i betongen) och rör mot järnen i sin nivå."""
+    """Fel och anmärkningar: zonerna utan slinga, kretsarnas längd, fördelarnas kretsar, rör som går i varandra (fel)
+    eller korsar varandra eller sig själva (anmärkningar: det ena läggs över det andra, det finns plats mellan
+    armeringsnäten) i plan, i betongen, och rör mot järnen i sin nivå."""
     fel, anm = list(g.fel) + g.genomforingar()[1], []
     for k in g.kretsar.values():
         if k.langd > GOLVVARMEROR.max_langd:
@@ -295,11 +321,13 @@ def kontroll(g: Golvvarme) -> tuple[list[str], list[str]]:
         for i, a in enumerate(ider):
             for b in ider[i + 1:]:
                 d = linjer[a].distance(linjer[b])
-                if d < 2 * r + SPEL:
+                if d < 2 * r + SPEL and linjer[a].crosses(linjer[b]):
+                    anm.append(f"{a} och {b} korsar varandra (det ena läggs över det andra, mellan armeringsnäten)")
+                elif d < 2 * r + SPEL:
                     fel.append(f"{a} och {b} går i varandra ({d:.0f} mm)")
         for k_id, linje in linjer.items():
             if not linje.is_simple:
-                fel.append(f"{k_id}: röret går i sig själv")
+                anm.append(f"{k_id}: röret korsar sig själv (läggs över sig självt, mellan armeringsnäten)")
             for jarn, dj in jarnen(plan):
                 if linje.distance(jarn) < r + dj / 2 + SPEL:
                     p = jarn.representative_point()

@@ -242,8 +242,9 @@ LINJER: dict[str, list[tuple[str, float, tuple[float, float], tuple[float, float
     # och brandvarnaren BV-KT); var sitt rör från drivdonet
     "KA-T1": [("KA-L01", 3080.0, (6650.0, 6650.0), (1.0, 0.0)), ("KA-L02", 1430.0, (7130.0, 5870.0), (0.0, -1.0))],
     # tvättstugan: en linje längs hallen och en över bänken längs V21 med tvätthoet, tvättmaskinen och torktumlaren
-    # (över bänkens främre halva, 600 djup: ljuset på bänken framför den som står där)
-    "KA-T2": [("KA-L03", 3080.0, (2400.0, 6545.0), (-1.0, 0.0)), ("KA-L04", 1580.0, (760.0, 8150.0), (0.0, 1.0))],
+    # (över bänkens främre halva, 600 djup: ljuset på bänken framför den som står där); dess rörände i söder minst
+    # 200 mm från 1A:s bultar (#114)
+    "KA-T2": [("KA-L03", 3080.0, (2400.0, 6545.0), (-1.0, 0.0)), ("KA-L04", 1500.0, (760.0, 8150.0), (0.0, 1.0))],
     # rummen söder om V4–V6: en linje mitt i vardera delen, längs rummen
     "KA-T3": [("KA-L05", 2480.0, (5920.0, 9190.0), (0.0, 1.0))],
     "KA-T4": [("KA-L06", 2480.0, (8280.0, 9190.0), (0.0, 1.0))],
@@ -319,7 +320,7 @@ def _med_dragdosa(did: str, id_: str, fran: str, till: str, a: tuple[float, floa
 # det stora rummet (G17): gruppens rör från centralen till kopplingsdosan KA-D1 i rummets tak, därifrån till brytaren
 # på KL7 (stigarna norr om brytaren, i regelfacket bort från dörren KD5) och till panelerna, i rader
 _B5 = BRYTARE["KA-B5"]
-_S5 = stigarna(_B5, [D_STORA, panelens(PANELER[2])], -100.0)          # från KA-D1, till KA-P03
+_S5 = stigarna(_B5, [D_STORA, panelens(PANELER[2])], -20.0)    # från KA-D1, till KA-P03; i 2B:s passage (#114)
 _P01, _P02, _P03, _P04, _P05, _P06, _P07, _P08 = (panelens(p) for p in PANELER)
 # de små rummen (G18): gruppens rör från centralen ned i KL1 till det västra rummets brytare, därifrån till dess panel och
 # till det östra rummets brytare, och därifrån till dess panel och vidare till dimrarna

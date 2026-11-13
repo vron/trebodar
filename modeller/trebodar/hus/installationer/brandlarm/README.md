@@ -45,17 +45,19 @@ närmare än 500 mm (ljuslinjerna i källaren längs hela den lysande linjen).
 
 Kabeln är en installationskabel 4G1,5 (fas, nolla, skyddsjord och larmledaren), Ø `KABEL_D`:
 
-- **Stammen** går klammad under källarens tak från matningsdosan D01 (där matningen från elcentralen kommer in;
-  centralens läge är inte bestämt) via BV-KT och BV-KN och kopplingsdosorna DV, DM och DH, runt ljuslinjerna
-  (`X_K02`, `Y_K08`).
+- **Stammen** går klammad under källarens tak från matningsdosan D01 (under badrummets väggbit L19, där matningen
+  från grupp G02 kommer ned; centralens läge är inte bestämt) via BV-KT och BV-KN till kopplingsdosan DH, runt
+  ljuslinjerna och förbi källarens elrör (`Y_D01`, `Y_K05`).
 - **Stigarna**: innertakets installationsskikt slutar vid dalbalkarna, så huskropparna förbinds i källaren, med en
-  stigare per huskropp: genom väggen 1A till hallen och vardagsrummet, 2A till sovrummet och L4 till köket. Stigaren
-  går genom mellanbjälklaget i en hylsa, fri från armeringens järn och de ingjutna rören (tappvattnet, golvvärmen och
-  elens rör), och upp i ett regelfack i väggen (`stigaren`).
+  stigare per huskropp, i lätta väggar så att de inte går genom de bärande väggarnas spärrzoner (#114; i en bärande
+  vägg bara i en installationspassage): från D01 genom L19 till hallen och vardagsrummet (över nocken, väster om
+  hallgarderoben, `FORBI_HALLEN`), från D01 genom garderobens sneda hörn GB till sovrummet och från DH genom L4 till
+  köket. Stigaren går genom mellanbjälklaget i en hylsa, fri från armeringens järn och de ingjutna rören
+  (tappvattnet, golvvärmen och elens rör), och upp i ett regelfack i väggen (`stigaren`).
 - **I innertaket** går kabeln i installationsskiktets övre del, `OVER_MITT` över skiktets mitt, så att den går över
   elens rör, som ligger mitt i skiktet, och raka vägen till varnarnas takdosor.
 
-Kablarnas id är K01–K09 (från, till och väg i `brandlarm()`).
+Kablarnas id är K01–K07 (från, till och väg i `brandlarm()`).
 
 ## Kontrollen
 

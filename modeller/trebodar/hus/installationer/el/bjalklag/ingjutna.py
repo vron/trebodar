@@ -1,9 +1,10 @@
 """Elrören ingjutna i mellanbjälklaget (#87): kartorna över elrörens två nivåer och rörens vägar i dem, raka och
 sneda, direkt från punkt till punkt med mjuka böjar (../../plattan.py).
 
-Rören går runt hålen och bjälklagets kanter (KANT), utanför pelarnas kontrollsnitt för genomstansning
-(GENOMSTANSNING_KARNA, 2d från pelarens kant, K-05) och helst utanför genomstansningszonen (GENOMSTANSNING, 6d, där en
-meter räknas som ZON_FAKTOR meter), genom banden av vinkeljärn vid kanterna och väggarna bara mellan järnen och längs
+Rören går runt hålen och bjälklagets kanter (KANT), minst 200 mm från stommens bultar (stomme/forankring.sparrzon;
+under väggarna samlade i installationspassagerna, ../../passager.py, där inga bultar borras), utanför
+pelarnas kontrollsnitt för genomstansning (GENOMSTANSNING_KARNA, 2d från pelarens kant, K-05) och helst utanför
+genomstansningszonen (GENOMSTANSNING, 6d, där en meter räknas som ZON_FAKTOR meter), genom banden av vinkeljärn vid kanterna och väggarna bara mellan järnen och längs
 dem, mellan källarväggarnas lodräta järn och runt det som går lodrätt genom nivån: tappvattnets och avloppets rör,
 hylsorna, golvbrunnen, ventilationens kanaler och de andra elrörens stigare. I den undre nivån, tappvattnets, går de
 också runt tappvattnets och avloppets rör i den och de ingjutna dosorna i källarens tak. I golvvärmens stråk (plan 1)
@@ -29,6 +30,7 @@ from shapely.ops import nearest_points, unary_union
 from shapely.strtree import STRtree
 
 from trebodar.hus.grund.pelare import PELARE
+from trebodar.hus.stomme.forankring import sparrzon
 
 from ...avlopp.ledningar import golvbrunnar, ledningar as avloppets
 from ...genomforingar import bjalklaget
@@ -36,7 +38,7 @@ from ...golvvarme import plan1 as GV1
 from ...golvvarme.katalog import GOLVVARMEROR
 from ...golvvarme.punkter import FIL as GV_FIL
 from ...montering import BJALKLAG, KALLARTAK, PLAN, Vek
-from ...plattan import MINSTA_RADIE, Karta, Punkt, bage_punkter, jarnfri, kartor, ledning, rundad_linje, vag2
+from ...plattan import MINSTA_RADIE, Dragning, Karta, Punkt, bage_punkter, jarnfri, kartor, ledning, rundad_linje, vag2
 from ...vatten.system import vatten
 from ...ventilation.system import ventilation
 from ..punkter import Ror
@@ -74,6 +76,8 @@ def genom_nivan(z0: float, z1: float) -> tuple[Stigare, ...]:
     return tuple(ut)
 
 
+MARGINAL_STOMME = 10.0                       # rören så långt utanför stommens spärrzon
+GROV = 50.0                                  # det som går lodrätt genom nivån med större radie ritas runt cirkeln
 FORENKLA = 12.0                              # tappvattnets svep förenklade så mycket i kartorna [mm]
 
 
@@ -97,6 +101,13 @@ def i_nivan(z0: float, z1: float) -> tuple[tuple[LineString, float], ...]:
         if len(linje) > 1:
             ut.append((LineString(linje).simplify(FORENKLA), r + FORENKLA))
     return tuple(ut)
+
+
+@cache
+def golvvarmens_stigare() -> tuple[Stigare, ...]:
+    """Golvvärmens rör upp ur plan 1:s fördelare under plattan (genom den undre nivån), i varje fil."""
+    n = 2 * len(GV1.ZONER)
+    return tuple((GV1.X0 + i * GV_FIL, y, GOLVVARMEROR.d / 2) for i in range(n) for y in GV1.Y_FD.values())
 
 
 @cache
@@ -125,16 +136,22 @@ Ror3 = tuple[float, float, float, float, float]      # något lodrätt genom bj�
 def kartor_el(r: float, hojd: float | None = None) -> tuple[Karta, ...]:
     """Kartorna för elrör med radien r (i plan; hojd: den halva höjden, om den är mindre, för ett knippe rör sida vid
     sida) i den övre och den undre nivån (NIVAER), med gemensamma noder så att vägen kan byta nivå: runt pelarna och
-    det som går lodrätt genom nivån, och i den undre nivån runt tappvattnets och avloppets rör. Andra elrör, deras
-    stigare och de ingjutna dosorna är hinder för varje väg för sig (hinder)."""
+    det som går lodrätt genom nivån, stommens bultar (sparrzon) och tappvattnets och avloppets rör i nivån (i
+    den undre nivån tappvattnet, i båda avloppets lutande rör där de går genom den). Andra elrör, deras stigare och de ingjutna dosorna är hinder för varje väg för sig (hinder)."""
     h_ = hojd or r
     hinder: list[list[BaseGeometry]] = []
+    sparr = sparrzon().buffer(MARGINAL_STOMME)
+    stommen = list(getattr(sparr, "geoms", [sparr]))
     karnor = [Point(x, y).buffer(GENOMSTANSNING_KARNA, quad_segs=2) for x, y in PELARE.values()]
     for niva in NIVAER:
         z = BJALKLAG[niva]
-        h: list[BaseGeometry] = [Point(x, y).buffer(rr, quad_segs=1) for x, y, rr in genom_nivan(z - h_, z + h_)]
+        # de grova (golvbrunnen, kanalerna) som en åttahörning runt cirkeln, de klena som en romb
+        h: list[BaseGeometry] = [Point(x, y).buffer(rr / math.cos(math.pi / 8), quad_segs=2) if rr > GROV
+                                 else Point(x, y).buffer(rr, quad_segs=1) for x, y, rr in genom_nivan(z - h_, z + h_)]
+        h += stommen
         if niva == "MB-UK":
-            h += [g.buffer(rr, quad_segs=1) for g, rr in i_nivan(z - h_, z + h_)]
+            h += [Point(x, y).buffer(rr, quad_segs=1) for x, y, rr in golvvarmens_stigare()]
+        h += [g.buffer(rr, quad_segs=1) for g, rr in i_nivan(z - h_, z + h_)]
         hinder.append(h)
     zoner = [(x, y, GENOMSTANSNING) for x, y in PELARE.values()]
     # en stigare i en pelares kontrollsnitt (en dosa på en vägg över pelaren) leds rakt ut ur det
@@ -590,8 +607,9 @@ def knippe(kartor_: Sequence[Karta], stigare: Sequence[Punkt], ut: Punkt, mal: d
     radierna), till där det lämnar knippet. lager: knippets nivå (index i NIVAER)."""
     k = kartor_[lager]
     m = len(mal)
-    bredd = (m - 1) * CC_KNIPPE
     c = ((stigare[0][0] + stigare[-1][0]) / 2, (stigare[0][1] + stigare[-1][1]) / 2)
+    # knippets bredd: filerna går i stigarnas avstånd i raden, minst CC_KNIPPE isär
+    bredd = max((m - 1) * CC_KNIPPE, max(math.dist(q, c) for q in stigare) * 2)
     # knippets mitt: rakt ut ur raden (genom bandet) och vidare mot slut med knippets bredd
     kb = kartor_el(round(bredd / 2 + k.r, 1), k.r)
     # rakt ut ur raden (varje fil mellan järnen i ett band längs den) till det fria
@@ -600,11 +618,15 @@ def knippe(kartor_: Sequence[Karta], stigare: Sequence[Punkt], ut: Punkt, mal: d
                 *(math.dist(q, (led_ or [q])[-1]) for q in stigare for led_ in [ledning(k, q, slut, ut)])])
 
     def ute(karta: Karta, langd: float, langst: float) -> Punkt | None:
-        while langd <= langst:
-            q = (c[0] + ut[0] * langd, c[1] + ut[1] * langd)
-            if karta.marg.contains(Point(q)):
-                return q
-            langd += 20.0
+        """Den första punkten rakt ut som ligger i det fria med marginalen, annars i det fria (#114: trångt mellan
+        V3:s band och 1C:s spärrzon)."""
+        for zon in (karta.marg, karta.fritt):
+            la = langd
+            while la <= langst:
+                q = (c[0] + ut[0] * la, c[1] + ut[1] * la)
+                if zon.contains(Point(q)):
+                    return q
+                la += 20.0
         return None
 
     def slutet(karta: Karta, fran_: Punkt) -> Punkt:
@@ -618,16 +640,16 @@ def knippe(kartor_: Sequence[Karta], stigare: Sequence[Punkt], ut: Punkt, mal: d
                 return q
         return e_
     d = None
-    for karta_ in (kb, kartor_):                   # hela knippet som ett brett rör, annars dess mitt som ett rör
-        a_ = ute(karta_[lager], tunn, tunn + 600.0)
-        if a_ is None:
-            continue
-        try:                                       # det breda mitt i glipan mellan två järn; mitten av det smala
-            d = vag2(karta_, c, slutet(karta_[lager], a_), [lager], [lager], hinder_, {lager: [a_]}, {lager: []},
-                     kost_niva=kost, glipor_=karta_ is kb)    # (en nödlösning) där det blir
-            break
+    a_ = ute(kb[lager], tunn, tunn + 600.0)        # hela knippet som ett brett rör, mitt i glipan mellan två järn
+    if a_ is not None:
+        try:
+            d = vag2(kb, c, slutet(kb[lager], a_), [lager], [lager], hinder_, {lager: [a_]}, {lager: []},
+                     kost_niva=kost, glipor_=True)
         except ValueError:
-            continue
+            d = None
+    if d is None and (a_ := ute(kartor_[lager], tunn, tunn + 600.0)) is not None:
+        # ryms knippet inte (#114): bara rakt ut ur raden, och därifrån går rören var för sig
+        d = Dragning(((c[0], c[1], k.z), (a_[0], a_[1], k.z)), (0.0, 0.0))
     if d is None:
         raise ValueError(f"ingen väg för knippet från ({c[0]:.0f}, {c[1]:.0f}) mot ({slut[0]:.0f}, {slut[1]:.0f})")
     mitt = [(q[0], q[1]) for q in d.punkter if abs(q[2] - k.z) < 1.0]
@@ -681,6 +703,8 @@ def knippe(kartor_: Sequence[Karta], stigare: Sequence[Punkt], ut: Punkt, mal: d
         filerna[g] = (fil, frad)
         lamnar[g] = min(max(t - min(math.dist((q_.x, q_.y), mal[g]), SNETT_MAX) / math.tan(AVVIK),
                             fl.project(Point(fil[1]))), fl.length)
+        while lamnar[g] < fl.length and not k.fritt.contains(fl.interpolate(lamnar[g])):    # inte i ett hinder
+            lamnar[g] = min(lamnar[g] + 20.0, fl.length)
     # på varje sida lämnar ett rör knippet efter dem som ligger utanför det (CC_KNIPPE längre fram), så att det inte
     # går ut genom deras filer
     for sida in (filer[:len(vanster)], filer[len(vanster):][::-1]):

@@ -7,7 +7,8 @@ och gips 13, upp till innertaket (snett som taket); inuti gips 13 upp till garde
 skikten slutar mot stolpen, L7:s skikt och L6:s skikt, som går runt L7:s ände. Fronten har två öppningar (deras
 smyg vitmålad furu 15) med par av dörrar, blad 22 i trä i liv med väggen. Garderobens tak, gips 13 på överstyckenas
 höjd, stänger den uppåt; ovanför är ett tomrum upp till innertaket. Insidan bakom är de befintliga väggarnas skikt
-(2C och L7); kaminen står på allrummets sida av 2C (#102).
+(2C och L7); kaminen står på allrummets sida av 2C (#102). Stolpen LD4_1 förankras med ett vinkelbeslag på GC:s syll
+i facket vid stolpen (stomme/forankring.py, #112): insidans gips är urtagen runt det vid golvet (URTAG).
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from shapely.geometry import box as plan_box
 
 from modellering import Del, Form, Kapad, Montage, Placering, box, prisma
 
+from trebodar.byggdelar.beslag import ABR_A, ABR_B
 from trebodar.byggdelar.virke import fmt, virke_i_lada
 from trebodar.hus.invandigt.lattvaggar import GARDEROB, H_VIRKE, LATTA, T
 from trebodar.hus.invandigt.skikt import under_taket, upp_till_taket, vid_nocken
@@ -29,6 +31,7 @@ SPEL = 3.0                                                            # mellan b
 H_OPPNING = 2100.0                                                    # öppningarnas höjd
 TAK_Z = H_OPPNING + H_VIRKE                                           # garderobens tak på överstyckena
 POST_NORR = LD4_1[1] - LD4_1_B / 2                                    # stolpens norra sida (mot sovrummet)
+URTAG = (ABR_B + 10.0, H_VIRKE + ABR_A + 10.0)                         # GC:s insida vid stolpen: längs väggen och höjd
 # frontens öppningar i GA:s u, med två reglar emellan
 OPPNINGAR = ((90.0, 1038.0), (1128.0, 2158.0))
 REGLAR = {"GC": (236.0,), "GB": (60.0, 400.0, 744.0), "GA": (0.0, 45.0, 1038.0, 1083.0, 2158.0, 2203.0)}
@@ -125,6 +128,9 @@ def _skikt() -> Montage:
         if lv.kod == "GA":
             for hal in _halen(ga.origo[1] + T, ga.origo[1] + T + GIPS_T):
                 insida = insida - hal
+        if lv.kod == "GC":                       # runt stolpens vinkelbeslag
+            x0, _, x1, _ = yta.bounds
+            insida = insida - box(x0 - 1.0, x1 + 1.0, POST_NORR - URTAG[0], POST_NORR + 1.0, -1.0, URTAG[1])
         m.lagg(Del(f"Gips {fmt(GIPS_T)} garderob {lv.kod} insida", insida, GIPS), Placering(), f"{lv.kod}-GI02")
     # garderobens tak: inuti, mellan insidans gips och de befintliga väggarnas skikt
     inre = _offset(T + GIPS_T)

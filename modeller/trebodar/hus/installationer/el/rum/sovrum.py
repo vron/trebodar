@@ -3,7 +3,8 @@ fönstret i 1NO (belysningsplanen i ärende #8).
 
 Globen hänger med underkanten 2,1 m över golvet. Dimmern sitter på garderobens vägg GC vid stolpen LD4_1, mot
 fickdörren ID6 (fickan går in i 2C, där dimmern satt förut); röret går upp i väggen och i installationsskiktet till
-takkoppen.
+takkoppen. Gruppens rör kommer till dimmern ovanifrån, från kontorets dimmer: i facket under den står stolpens
+vinkelbeslag (#112).
 """
 from __future__ import annotations
 

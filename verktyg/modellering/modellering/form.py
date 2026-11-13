@@ -224,6 +224,25 @@ def minus(form: Form, verktyg: Iterable[Form]) -> Form:
 Lada6 = tuple[float, float, float, float, float, float]
 
 
+def kapad_lada(b: Lada6 | None, punkt: Vek, normal: Vek) -> Lada6 | None:
+    """Lådan b kapad av planet (punkt, normal), utan halvrummet på normalens sida (som Kapad): lådan runt det som är
+    kvar."""
+    if b is None:
+        return None
+    horn = np.array([[x, y, z] for x in (b[0], b[3]) for y in (b[1], b[4]) for z in (b[2], b[5])])
+    n = np.array(normal, dtype=float)
+    s = (horn - np.array(punkt, dtype=float)) @ n
+    kvar = [horn[i] for i in range(8) if s[i] <= 1e-9]
+    for i in range(8):
+        for j in range(i + 1, 8):
+            if int(np.sum(horn[i] != horn[j])) == 1 and s[i] * s[j] < 0:       # en kant genom planet
+                kvar.append(horn[i] + (horn[j] - horn[i]) * s[i] / (s[i] - s[j]))
+    if not kvar:
+        return b
+    K = np.array(kvar)
+    return tuple(float(v) for v in (*K.min(0), *K.max(0)))  # type: ignore[return-value]
+
+
 def omslutande(f: Form) -> Lada6 | None:
     """Receptets omslutande låda (x0, y0, z0, x1, y1, z1) i dess eget system, utan kärnan: exakt för rätblock,
     prismor och cylindrar, annars en låda som säkert omsluter formen."""
