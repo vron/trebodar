@@ -45,7 +45,7 @@ def las(utf, var):
 
 def eps_fd(grad, varaktighet):
     e = I.EPS[grad]
-    kr = I.EPS_KR[varaktighet][1 if int(grad[1:]) >= 200 else 0]      # deklarerad hållfasthet (σ10)
+    kr = I.EPS_KR[varaktighet][1 if e["fck"] >= 200 else 0]            # k_r efter f_ck (under eller minst 200 kPa)
     return kr * e["fck"] / I.EPS_GAMMA_M
 
 
@@ -261,13 +261,13 @@ def kontroll(utf):
     i = int(np.argmax(np.where(zb, pmax, 0)))
     g = [j for j in trb.query_ball_point(xy[i], 150.0) if zb[j]]
     out["eps"]["balk"]["uls_medel"] = float((pmax[g] * L["a_nod"][g]).sum() / L["a_nod"][g].sum())
-    # plattan på mark på plan 1 (K-05): tryck mot cellplasten, I.EPS_MARK mm S100
+    # plattan på mark på plan 1 (K-05): tryck mot cellplasten, I.EPS_MARK mm I.EPS_MARK_GRAD
     from matplotlib.path import Path as MplPath
     from omhyllande import ULS, SNO, falt
     mk = MplPath(np.asarray(I.G05["mark"], float)).contains_points(xt)
     mark, topp_mark = {}, np.zeros(mk.sum())
     for var, R_ in (("lång", L), ("kort", K)):
-        km = (I.EPS_KS if var == "lång" else 1.0) * I.EPS["S100"]["Ek"] * 1e-3 / I.EPS_MARK
+        km = (I.EPS_KS if var == "lång" else 1.0) * I.EPS[I.EPS_MARK_GRAD]["Ek"] * 1e-3 / I.EPS_MARK
         w = R_["wt"]
         pk = {k: km * v[mk] * 1e3 for k, v in w.items()}
         nq = len([k for k in pk if k.startswith("Q") and k != "Qb"])
@@ -295,8 +295,8 @@ def kontroll(utf):
     vals = np.ma.filled(ip(px[inne], py[inne]), np.nan)
     w_ = rr.ravel()[inne]                                          # ytvikt i polära koordinater
     ok = ~np.isnan(vals)
-    out["mark"] = dict(uls=max(m["uls"] for m in mark.values()), qp=mark["lång"]["qp"], fdM=eps_fd("S100", "M"),
-                       kryp=I.EPS["S100"]["kryp2"], uls_xy=xm[i].tolist(),
+    out["mark"] = dict(uls=max(m["uls"] for m in mark.values()), qp=mark["lång"]["qp"], fdM=eps_fd(I.EPS_MARK_GRAD, "M"),
+                       kryp=I.EPS[I.EPS_MARK_GRAD]["kryp2"], grad=I.EPS_MARK_GRAD, uls_xy=xm[i].tolist(),
                        uls_medel=float((vals[ok] * w_[ok]).sum() / w_[ok].sum()))
     return out
 

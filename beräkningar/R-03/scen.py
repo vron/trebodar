@@ -33,7 +33,7 @@ KONTUR, HAL = Polygon(K.G["kontur"]), Polygon(K.G["hal"])
 
 
 def grund(s, kapa=None, folie=None):
-    """Bottenplattan: L-elementen (rygg och fot), cellplasten (S100 i två skikt, S300 under balkar och plintar),
+    """Bottenplattan: L-elementen (rygg och fot), cellplasten (det undre skiktet S300 i hela ytan, S100 ovanpå),
     plastfolien mellan skikten, balkarna och plintarna och plattan; kapa: plattan tas bort där, så att balkarna och
     plintarna syns; folie: där tas också det övre cellplastskiktet bort, så att plastfolien syns, i våder med
     överlapp."""
@@ -41,9 +41,8 @@ def grund(s, kapa=None, folie=None):
     fot = KALLARE.difference(KALLARE.buffer(-K.B_L, join_style=2)).difference(rygg)
     s.prisma(rygg, -HB - TF, 0.0, FARG["s300"])
     s.prisma(fot, -HB - TF, -HB, FARG["s300"])
-    s.prisma(unary_union([INRE] + list(PLINTAR.values())).difference(KANT), -HB - TF, -HB, FARG["s300"])
+    s.prisma(KALLARE.buffer(-K.B_L, join_style=2), -HB - TF, -HB, FARG["s300"])        # det undre skiktet
     falt = BETONG.difference(TJOCK)
-    s.prisma(falt.intersection(KALLARE.buffer(-K.B_L, join_style=2)), -HB - TF, -HB, FARG["eps"])
     s.prisma(falt if folie is None else falt.difference(folie), -HB, -HP, FARG["eps"])
     if folie is not None:
         x0, _, x1, _ = BETONG.bounds
@@ -114,5 +113,5 @@ def bjalklag(s, kapa=None):
     s.prisma(hel, Z1 - K.H_L_MARK, H, FARG["s300"])
     s.prisma(rygg, H, Z1, FARG["s300"])
     s.prisma(fot.difference(hel), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
-    s.prisma(pm.difference(hel).difference(fot), Z1 - K.H_L_MARK, H, FARG["eps"])
-    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK + TF, H, FARG["eps"])
+    s.prisma(pm.difference(hel).difference(fot), Z1 - K.H_L_MARK, H, FARG["s300"])
+    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK + TF, H, FARG["s300"])

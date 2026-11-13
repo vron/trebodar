@@ -742,7 +742,7 @@ def sektion_f():
         v.hanvisning((POS15["o"], Y15[0]), (380, 300), bubbla=15)
         v.text(KAL.I06.B_SYLL / 2, H + 22, "syll", a="cm", sz=5.4, col="gra", i=True)
         v.text(lb / 2, -(eps - tf) / 2, "L-element S300", a="cm", sz=5.6, col="gra", i=True, rot=90)
-        v.text((lb + U1) / 2, -70, f"cellplast S100 {svm(eps - tf)}", a="cm", sz=5.6, col="gra", i=True)
+        v.text((lb + U1) / 2, -70, f"cellplast S300 {svm(eps - tf)}", a="cm", sz=5.6, col="gra", i=True)
     with v.lager("rubrik"):
         v.rubrik(-80, 340 - 72 * 10, "SEKTION F–F", skala=10, sz=9)
     return v
@@ -846,7 +846,7 @@ def blad_oversikt():
             f"Kantisolering {sv(KAL.KI)} mm cellplast utanför plattans kant ovanpå källarväggarna, ut till väggarnas "
             "ytterliv; plattan gjuts mot den (sektion A, R-06.4).",
             f"Plattan på mark: L-element S300, höjd {sv(KAL.H_L_MARK)}, längs de fria kanterna med ytterkanten i "
-            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S100 under plattan (K-06). I plattans "
+            f"väggarnas ytterliv (AR-02), på {sv(KAL.EPS_MARK)} mm cellplast S300 under plattan (K-06). I plattans "
             f"tjocklek är ryggen urtagen utom de yttersta {sv(KAL.RYGG_KVAR)} mm, som kantisoleringen, och betongen "
             f"går fram till plattans kant; under plattan är ryggen {sv(KAL.L_BEN)} mm. Järnen slutar {sv(C_KANT)} mm från "
             "ryggen under plattan. Vid de fria hörnen hörnjärn (detalj F, R-06.4)."]),

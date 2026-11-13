@@ -110,7 +110,7 @@ def hanvisningar(nr):
             (f"kantbalk {K.B_BALK:.0f} × {S.HB:.0f} under ytterväggarna", (300.0, 4300.0, -100.0)),
             ("plint under varje rör, fotplåt i överkant", (x8, y8, -100.0)),
             (f"balk {K.B_BALK:.0f} × {S.HB:.0f} under innerväggarna", (6000.0, 7515.0, -100.0)),
-            ("cellplast S100, S300 under balkar och plintar", (5500.0, 6700.0, -100.0)),
+            ("cellplast: S300 underst i hela ytan, S100 ovanpå under plattan", (5500.0, 6700.0, -100.0)),
             ("åldringsbeständig plastfolie i hela ytan, tejpade överlapp minst 200 (radon)",
              (1300.0, 4400.0, -S.HB + 3.0)),
             ("bottenplatta 100", (10500.0, 9000.0, 0.0)),
@@ -140,7 +140,7 @@ def hanvisningar(nr):
         ("mellanbjälklag 150", (2500.0, Y_SNITT, Z1 - 75.0)),
         ("Kub-väggen bär bjälklaget och jordtrycket", (145.0, Y_SNITT, 1500.0)),
         ("kantbalk i L-element under väggen", (250.0, Y_SNITT, -150.0)),
-        ("cellplast S100 under plattan", (1100.0, Y_SNITT, -200.0)),
+        ("cellplast S100 på S300 under plattan", (1100.0, Y_SNITT, -200.0)),
         ("rör på fotplåt i plinten", (x8, y8, 900.0)),
         (f"plint {S.HB:.0f} på S300", (x8, Y_SNITT, -S.HB / 2)),
         ("innervägg på balk", (4545.0, 8000.0, 1500.0)),
@@ -309,7 +309,7 @@ def blad():
             "Rören står på fotplåtar som gjuts in i plintarnas överkant. Väggarna står på kantbalken i L-elementen "
             "och på balkarna under innerväggarna.",
             "Bottenplattan, 100 mm, gjuts i en gjutning med kantbalkarna, balkarna och plintarna. De fördelar lasten "
-            "på cellplasten, S300 under balkar och plintar och S100 under plattan, som ligger på makadam på "
+            "på cellplasten, S300 i hela det undre skiktet och S100 ovanpå under plattan, som ligger på makadam på "
             "sprängt berg (K-06).",
             f"Mot radon: åldringsbeständig plastfolie i ett plan över hela bottenplattan, {S.HB:.0f} mm under överkant: mellan "
             "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot. Skarvarna med minst 200 mm "
@@ -322,8 +322,8 @@ def blad():
         dict(typ="symboler", rader=[
             dict(form="yta", fyll=S.FARG["betong"], stil="tunn", text="betong: bottenplatta, balkar, plintar, bjälklag"),
             dict(form="yta", fyll=S.FARG["karna"], stil="tunn", text="Kub-väggarnas betongkärna"),
-            dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under plattan"),
-            dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element, under balkar och plintar"),
+            dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under källarens platta"),
+            dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element, det undre skiktet, plattan på mark"),
             dict(form="yta", fyll=S.FARG["smyg"], stil="tunn", text="smyglist vid fönster och dörrar"),
             dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30"),
             dict(form="yta", fyll=S.FARG["folie"], stil="tunn", text="plastfolie i våder med överlapp (schematiskt)"),

@@ -3,10 +3,10 @@ fasadstenen.
 
 Bottenplattan (K-06 utförande L400, R-04) med överkanten z −2 250: betong 100 på cellplast 300 (100 + 200, plastfolien
 mellan i balkarnas underkant), kantbalk och balkar under innerväggarna 450 × 300 (med plattan) och plintar under
-rören, alla på 100 mm cellplast S300, och L-element S300 höjd 400 längs kanten (ytterkanten i väggarnas ytterliv,
+rören, alla på det undre skiktet, 100 mm cellplast S300 i hela ytan, och L-element S300 höjd 400 längs kanten (ytterkanten i väggarnas ytterliv,
 betongen börjar 100 mm innanför, i kärnans yttre yta). Plattan på mark på plan 1 (bakom V3 och V20, AR-02):
-mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast 350 under
-plattan, makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan. Bottenplattans L-element har ryggen
+mellanbjälklaget i L-element 500 längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast S300 350 under
+plattan (K-06: S100 räcker inte under hörnstolparna), makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan. Bottenplattans L-element har ryggen
 avfasad 45° i ovankant, FAS bred upptill, och betongen fyller fasen. Plattan på marks L-element har ryggen urtagen i
 mellanbjälklagets tjocklek utom de yttersta RYGG_KVAR, som kantisoleringen ovanpå källarväggarna, så att betongen går
 fram till plattans kant och ytterväggarnas syll står på betongen som i resten av huset (K-05, R-06). Fasadstenen
@@ -97,20 +97,19 @@ def bottenplatta() -> Montage:
     fas = stympad(betong, kontur.buffer(-(L_BEN - FAS), join_style=2), Z_BP - FAS, Z_BP, FAS * 1.5)
     m.lagg(Del(f"Betong i L-elementens fas {FAS:.0f}", minus(fas, [prisma_ur(betong, Z_BP - FAS, Z_BP)]), BETONG),
            Placering(), "BP-FAS")
-    # cellplasten: L-elementen längs kanten, S300 under balkarna och plintarna, S100 i två lager under plattan, det
-    # undre lika tjockt som L-elementens fot och plastfolien mellan dem i balkarnas underkant
+    # cellplasten: L-elementen längs kanten, det undre lagret S300 i hela ytan innanför deras fot (lika tjockt som
+    # foten, också under balkarna och plintarna, utan urtag), plastfolien på det i balkarnas underkant och det övre
+    # lagret S100 under plattan mellan balkarna och plintarna (K-06)
     m.lagg(Del(f"L-element S300 höjd {H_L:.0f}",
                minus(prisma_ur(l_fot, z_fot, z_balk) | prisma_ur(kontur.difference(betong), z_balk, Z_BP), [fas]),
                CELLPLAST_S300), Placering(), "BP-L")
     under = unary_union([inre] + list(pl.values())).intersection(betong)
-    for i, q in enumerate(polygoner(under.difference(l_fot), 1e4), 1):
-        m.lagg(Del("Cellplast S300 100 under balk och plint", prisma_ur(q, z_fot, z_balk), CELLPLAST_S300),
-               Placering(), f"BP-CS{i}")
-    for i, (namn, q, z0, z1) in enumerate((("undre", kontur.buffer(-B_L, join_style=2), z_fot, z_balk),
-                                          ("övre", betong.buffer(-B_BALK, join_style=2), z_balk, Z_BP - H_PLATTA)), 1):
-        for k, g in enumerate(polygoner(q.difference(under), 1e4)):
-            m.lagg(Del(f"Cellplast S100 {z1 - z0:.0f}, {namn} lagret", prisma_ur(g, z0, z1), CELLPLAST), Placering(),
-                   f"BP-C{i}" + (f"-{k + 1}" if k else ""))
+    for k, g in enumerate(polygoner(kontur.buffer(-B_L, join_style=2), 1e4)):
+        m.lagg(Del(f"Cellplast S300 {z_balk - z_fot:.0f}, undre lagret", prisma_ur(g, z_fot, z_balk), CELLPLAST_S300),
+               Placering(), "BP-C1" + (f"-{k + 1}" if k else ""))
+    for k, g in enumerate(polygoner(betong.buffer(-B_BALK, join_style=2).difference(under), 1e4)):
+        m.lagg(Del(f"Cellplast S100 {Z_BP - H_PLATTA - z_balk:.0f}, övre lagret",
+                   prisma_ur(g, z_balk, Z_BP - H_PLATTA), CELLPLAST), Placering(), "BP-C2" + (f"-{k + 1}" if k else ""))
     return m
 
 
@@ -150,10 +149,10 @@ def platta_pa_mark() -> Montage:
                prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, -S.H_BJALKLAG)
                | prisma_ur(kantrygg(), -S.H_BJALKLAG, 0.0), CELLPLAST_S300), Placering(), "PM-L")
     for i, g in enumerate(polygoner(p.difference(fot), 1e4)):
-        m.lagg(Del("Cellplast S100 100, undre lagret", prisma_ur(g, z_uk, z_fot), CELLPLAST), Placering(),
+        m.lagg(Del("Cellplast S300 100, undre lagret", prisma_ur(g, z_uk, z_fot), CELLPLAST_S300), Placering(),
                "PM-C1" + (f"-{i + 1}" if i else ""))
     for i, g in enumerate(polygoner(p.difference(rygg), 1e4)):
-        m.lagg(Del("Cellplast S100 250, övre lagret", prisma_ur(g, z_fot, -S.H_BJALKLAG), CELLPLAST), Placering(),
+        m.lagg(Del("Cellplast S300 250, övre lagret", prisma_ur(g, z_fot, -S.H_BJALKLAG), CELLPLAST_S300), Placering(),
                "PM-C2" + (f"-{i + 1}" if i else ""))
     schakt = markschakt()
     m.lagg(Del("Makadam 150", prisma_ur(schakt, z_mak, z_uk), MAKADAM), Placering(), "PM-M")

@@ -4,7 +4,7 @@ K-06: samverkande FE-modell av mellanbjälklaget (K-05) och bottenplattan.
     mellanbjälklaget (K-05:s nät och laster)
         |  källarväggarna (Kub 350-150): betongkärnan som fjäder E·t/h längs K-05:s upplagslinjer   rör: E·A/L
     bottenplattan 100 mm med kantbalkar, balkar under innerväggarna och plintar under rören
-        |  cellplast: bädd E/t (olika under plattan och under balkar och plintar)
+        |  cellplast: bädd E/t (under plattan två skikt i serie, under balkar och plintar det undre skiktet)
     berg/makadam (styvt)
 
 Laster som står över en källarvägg (K-05: plats "vägg") går direkt ned i väggen och läggs på bottenplattan.
@@ -327,9 +327,11 @@ class System:
         Ev = BV.Ecm / (1 + I.KRYP_V) if lang else BV.Ecm     # väggarnas kärna, C30/37
         ke = I.EPS_KS if lang else 1.0                         # cellplast: 0,4 E_k långtid, E_k korttid
         Ef, Eb = I.EPS[eps_falt]["Ek"] * 1e-3 * ke, I.EPS[eps_balk]["Ek"] * 1e-3 * ke   # MPa
-        badd(self.Pb, Ef / self.utf["t_eps"], Eb / I.T_FOT)                 # före styvheten
+        # under plattan två skikt i serie: det övre (eps_falt) på det undre (eps_balk, T_FOT, som under balkarna)
+        self.k_falt = 1.0 / ((self.utf["t_eps"] - I.T_FOT) / Ef + I.T_FOT / Eb)
+        self.k_balk = Eb / I.T_FOT
+        badd(self.Pb, self.k_falt, self.k_balk)                              # före styvheten
         styvheter(self.Pt, self.Pb, Ec)
-        self.k_falt, self.k_balk = Ef / self.utf["t_eps"], Eb / I.T_FOT
         self.kopp = kopplingar(self.Pt, self.Pb, Ev)
         nt, nb = self.Pt.ndof, self.Pb.ndof
         self.nt, self.ndof = nt, nt + nb

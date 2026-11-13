@@ -257,7 +257,7 @@ def rita_detalj(path, arm, balk=("2 Ø10", "2 Ø10")):
     _rekt(ax, -1500, ybot - 150, 3250, 150, DRAN, z=0)
     # L-elementets rygg (100) och bredd (600) från ytterlivet, kantbalkens inre kant (550), ryggens avfasning (50)
     lb, bl, bk, fas = I.L_BEN, I.B_L, I.L_BEN + I.B_BALK, I.FAS
-    _rekt(ax, bl, ybot, 1750 - bl, t_fot, EPSF)                      # undre skiktet, lika tjockt som L-elementets fot
+    _rekt(ax, bl, ybot, 1750 - bl, t_fot, EPS2)                      # undre skiktet, S300 som L-elementets fot
     _rekt(ax, bk, yb, 1750 - bk, -hp - yb, EPSF)                     # övre skiktet, in över foten
     ax.plot([bk, 1750], [yb] * 2, color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)     # plastfolien
     _rekt(ax, 0, ybot, bl, t_fot, EPS2)                  # L-elementets fot, S300
@@ -351,8 +351,8 @@ def rita_detalj(path, arm, balk=("2 Ø10", "2 Ø10")):
            (f"kantbalk 450 × {sv(h_balk)}: {balk[0]} uk + {balk[1]} ök, U-byglar Ø6 s600", (509, yb + 41),
             (700, yb - 60)),
            ("platta 100: Ø6 s150 i över- och underkant", (1300, -hp + 33), (1450, 200)),
-           (f"cellplast S100 {sv(t_eps)}: {sv(t_eps - t_fot)} över plastfolien, det övre skiktet {sv(I.OMLOTT)} mm in över "
-            f"L-elementets fot, och {sv(t_fot)} under", (1300, (yb - hp) / 2), (1600, -230)),
+           (f"cellplast: S100 {sv(t_eps - t_fot)} över plastfolien, {sv(I.OMLOTT)} mm in över L-elementets fot, och "
+            f"S300 {sv(t_fot)} under, i hela ytan", (1300, (yb - hp) / 2), (1600, -230)),
            (f"L-element S300, höjd {sv(h_balk + t_fot)}, bredd {sv(I.B_L)} (t.ex. Finja): ryggen under väggens cellplast, "
             "avfasad upptill, fot 100 mm S300", (275, ybot + 50), (300, ybot - 230)),
            ("grundmursskiva, knopparna mot väggen, list upptill", (-6, 1100), (-400, 1150)),
@@ -412,7 +412,7 @@ def rita_lokala(path, plint=(600.0, 1200.0), balk=("2 Ø10", "2 Ø10")):
 
     def grund(ax, x0, x1, a, b):
         R(ax, x0, ybot, x1 - x0, -hp - ybot, EPSF, z=1)
-        R(ax, a, ybot, b - a, tf, EPS2, z=1)
+        R(ax, x0, ybot, x1 - x0, tf, EPS2, z=1)                           # det undre skiktet, S300 i hela ytan
         ax.plot([x0, x1], [yb, yb], color=BLA, lw=0.8, ls=(0, (4, 2)), zorder=3)   # plastfolien, skiktens gräns
         P(ax, [(x0, -hp), (a, -hp), (a, yb), (b, yb), (b, -hp), (x1, -hp), (x1, 0), (x0, 0)], BETONG)
         ax.plot([x0, x1], [-28, -28], color=INK, lw=0.55, zorder=5)
@@ -449,8 +449,8 @@ def rita_lokala(path, plint=(600.0, 1200.0), balk=("2 Ø10", "2 Ø10")):
           ("4 svetsbultar Ø13, L = 75 mm", (-60, -70), (-420, 160)),
           ("platta 100: Ø6 s150 i över- och underkant", (-700, -28), (-700, 200)),
           ("plint: Ø8 s150 i underkant, båda riktningarna", (300, yb + 34), (650, 160)),
-          (f"cellplast S300, {sv(tf)} mm under plinten", (200, yb - 50), (650, ybot + 70)),
-          (f"cellplast S100, {sv(t_eps)} mm, plastfolien {sv(t_eps - tf)} mm under betongen", (-700, (yb - hp) / 2),
+          (f"cellplast S300, {sv(tf)} mm, det undre skiktet i hela ytan", (200, yb - 50), (650, ybot + 70)),
+          (f"cellplast S100, {sv(t_eps - tf)} mm, på plastfolien", (-700, (yb - hp) / 2),
            (-700, ybot + 70))]
     nummer(ax, la)
     lista(0.1, 3.6, "a) Plint under rör", la)
@@ -473,7 +473,7 @@ def rita_lokala(path, plint=(600.0, 1200.0), balk=("2 Ø10", "2 Ø10")):
           (f"{balk[1]} i överkant", (165, -42), (520, 160)),
           ("U-byglar Ø6 s600", (175, -110), (520, -20)),
           (f"{balk[0]} i underkant", (165, yb + 41), (520, ybot + 70)),
-          (f"cellplast S300, {sv(tf)} mm under balken", (-120, yb - 50), (-520, ybot + 70))]
+          (f"cellplast S300, {sv(tf)} mm, det undre skiktet", (-120, yb - 50), (-520, ybot + 70))]
     nummer(ax, ld)
     lista(0.1, 0.8, "b) Balk under innervägg", ld)
 

@@ -50,7 +50,8 @@ VIBROPLATTA = dict(massa=100.0, F=15.0, b=0.5)     # kg, kN, m: lätt vibroplatt
 P_PLATTA = (VIBROPLATTA["massa"] * 9.81e-3 + VIBROPLATTA["F"]) / VIBROPLATTA["b"]     # kN/m
 SIG_KOMP = math.sqrt(2 * P_PLATTA * GAMMA_JORD / math.pi)                          # kPa
 LAGER_FYLL = 0.2         # m, största lagertjocklek inom 1 m från väggen
-# bakom V3 och V20: plattan på mark på plan 1 (K-05) i L-element 500 (AR-02): 350 mm cellplast S100 under plattan
+# bakom V3 och V20: plattan på mark på plan 1 (K-05) i L-element 500 (AR-02): 350 mm cellplast under plattan
+# (EPS_MARK_GRAD)
 H_L_MARK = 500.0
 EPS_MARK = H_L_MARK - H_MB
 # ytterväggarna på plan 1: syllen 95 mm från väggens ytterliv (K-05: centrum 17,5 mm innanför plattans kant)
@@ -121,9 +122,14 @@ EPS = {
     "S200": dict(fck=180.0, Ek=6000.0, kryp2=60.0),
     "S300": dict(fck=280.0, Ek=9000.0, kryp2=90.0),
 }
-# Cellplast: S100 under plattan, S300 under alla balkar och plintar (L-elementens fot under kantbalken, där väggens
-# kärna står på balkens yttersta 150 mm). Bara två kvaliteter.
+# Cellplast under källarens bottenplatta: hela det undre skiktet (T_FOT, lika tjockt som L-elementens fot) är S300
+# (EPS_BALK), under plattan, balkarna och plintarna, så att skivorna läggs hela och inget kapas ur för balkar och
+# plintar; S200 räcker inte under innerväggarnas balkar. Det övre skiktet, bara under plattan, är S100 (EPS_FALT).
+# Plattan på mark på plan 1 har S300 i hela tjockleken (EPS_MARK_GRAD): S100 räcker inte under hörnstolparna (#117).
+# L-elementens fot under kantbalken är också S300 (väggens kärna står på balkens yttersta 150 mm). Bara två
+# kvaliteter.
 EPS_FALT, EPS_BALK = "S100", "S300"
+EPS_MARK_GRAD = "S300"
 EPS_GAMMA_M = 1.3        # med tillverkningskontroll
 EPS_KR = {"P": (0.40, 0.45), "M": (0.50, 0.55), "S": (0.60, 0.65)}   # k_r för f_k < 200 resp. ≥ 200 kPa
 EPS_KS = 0.40            # styvhet i bruksgränstillstånd för långtidslast (P, L)

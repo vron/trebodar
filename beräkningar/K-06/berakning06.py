@@ -31,9 +31,9 @@ BAND = 250.0
 
 
 def k_mark(variant):
-    """Plattan på mark på plan 1: I.EPS_MARK mm S100."""
+    """Plattan på mark på plan 1: I.EPS_MARK mm cellplast I.EPS_MARK_GRAD."""
     ke = I.EPS_KS if variant == "lång" else 1.0
-    return ke * I.EPS["S100"]["Ek"] * 1e-3 / I.EPS_MARK
+    return ke * I.EPS[I.EPS_MARK_GRAD]["Ek"] * 1e-3 / I.EPS_MARK
 
 
 def plintar(N_qp):
