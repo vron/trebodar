@@ -18,8 +18,10 @@ eller bland vinkeljärnen vid en ytterväggs kant) leds först rakt ut till det 
 Där vägen går över en rad lodräta järn läggs den mitt i glipan mellan två järn (glipor). Hörnen rundas (rundad) med den
 största radien upp till BOJ_RADIE som håller rörets mittlinje i det fria och fri från järnen och det som är upptaget.
 
-Kartorna byggs en gång per nivå och rör (cache hos den som bygger dem); en väg tar några millisekunder. Koordinater i
-mm (K-05).
+Kartorna byggs en gång per nivå och rör (cache hos den som bygger dem). Synlighetsgrafen och vägarna är dyra (en dryg
+halv minut för alla elrören) och rena funktioner av sina indata, så de sparas i ramverkets minne (modellering.minne)
+under en kontrollsumma över indata och den här filen: oförändrade kartor och punkter ger vägarna direkt, och en ändring
+i indata eller koden räknar om dem. Koordinater i mm (K-05).
 """
 from __future__ import annotations
 
@@ -36,11 +38,14 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 from shapely.strtree import STRtree
 
+from modellering import minne
+
 from trebodar.hus.armering.armering import jarnen_i_nivan
 
 from .genomforingar import kallarvaggarna
 
 Punkt = tuple[float, float]
+_KOD = minne.kod(__file__)     # minnets nyckel: den här filen och bibliotekens versioner
 
 BOJ_RADIE = 600.0              # böjarnas största radie i plan
 MINSTA_RADIE = 60.0            # och den minsta (FXP16:s minsta böjradie): i trängre hörn bryts röret skarpt
@@ -73,6 +78,7 @@ class Karta:
     enskilda: tuple[BaseGeometry, ...] = ()          # hindren var för sig (förstorade), utom de som släpper ut
     enskilda_trad: STRtree | None = None
     ej_byte: BaseGeometry | None = None              # där vägen inte byter nivå (t.ex. golvvärmens stråk)
+    nyckel: str = ""                                 # kontrollsumman över kartans indata (minnet, vag2)
 
 
 @dataclass(frozen=True)
@@ -269,8 +275,10 @@ def _graf(y: _Yta, N: np.ndarray, ej_byte: BaseGeometry | None = None) -> Karta:
     grannar: list[list[tuple[int, float]]] = [[] for _ in range(len(N))]
     if len(N) > 1:
         i, j = np.triu_indices(len(N), 1)
-        linjer = shapely.linestrings(np.stack([N[i], N[j]], axis=1))
-        ok = shapely.contains(y.fritt, linjer)
+        ok = np.unpackbits(minne.sparad(
+            minne.summa("synlighet", _KOD, y.fritt, N),
+            lambda: np.packbits(shapely.contains(y.fritt, shapely.linestrings(np.stack([N[i], N[j]], axis=1))))),
+            count=len(i)).astype(bool)
         kost = _kostnad(N[i[ok]], N[j[ok]], y.zon, y.faktor)
         for a, b_, c in zip(i[ok], j[ok], kost):
             grannar[int(a)].append((int(b_), float(c)))
@@ -282,9 +290,11 @@ def _graf(y: _Yta, N: np.ndarray, ej_byte: BaseGeometry | None = None) -> Karta:
         c = float(_kostnad(np.array([p]), np.array([q]), y.zon, y.faktor)[0])
         grannar[ip].append((iq, c))
         grannar[iq].append((ip, c))
+    nyckel = minne.summa("karta", _KOD, y.r, y.z, y.fritt, y.marg, y.delar, y.zon, y.faktor, N, y.passager, y.staver,
+                         y.lodrata, y.band, y.slappa, y.enskilda, ej_byte)
     return Karta(y.r, y.z, y.fritt, y.marg, y.delar, STRtree(list(y.delar)), y.zon, y.faktor, N,
                  tuple(tuple(g) for g in grannar), y.staver, y.lodrata, y.jarntrad, y.band, y.slappa, y.enskilda,
-                 STRtree(list(y.enskilda)) if y.enskilda else None, ej_byte)
+                 STRtree(list(y.enskilda)) if y.enskilda else None, ej_byte, nyckel)
 
 
 
@@ -591,7 +601,22 @@ def vag2(kartor: Sequence[Karta], a: Punkt, b: Punkt, fran: Sequence[int], till:
     som är upptaget i en nivå (andra rörs stigare) och helst inte genom de mjuka hindren (andra rör: KORS per hinder,
     så att vägen hellre byter nivå eller går runt). kost_niva: extra kostnad per mm i varje nivå (t.ex. för att hålla
     sig i en). extra_noder: fler noder per nivå för den här vägen (t.ex. bredvid andra rör, så att den kan gå jämsides
-    med dem i stället för att korsa dem). dyr_korsning: där vägen helst inte korsar ett annat rör (KORS_DYR)."""
+    med dem i stället för att korsa dem). dyr_korsning: där vägen helst inte korsar ett annat rör (KORS_DYR).
+
+    Resultatet sparas i minnet under en kontrollsumma över kartorna och alla argumenten."""
+    return minne.sparad(
+        minne.summa("vag2", [k.nyckel for k in kartor], a, b, fran, till, upptaget, led_a, led_b, kost_niva, mjuka,
+                    radie_a, extra_noder, glipor_, dyr_korsning),
+        lambda: _vag2(kartor, a, b, fran, till, upptaget, led_a, led_b, kost_niva, mjuka, radie_a, extra_noder,
+                      glipor_, dyr_korsning))
+
+
+def _vag2(kartor: Sequence[Karta], a: Punkt, b: Punkt, fran: Sequence[int], till: Sequence[int],
+          upptaget: Sequence[Sequence[BaseGeometry]], led_a: dict[int, Sequence[Punkt]] | None,
+          led_b: dict[int, Sequence[Punkt]] | None, kost_niva: Sequence[float],
+          mjuka: Sequence[Sequence[BaseGeometry]], radie_a: float | None,
+          extra_noder: Sequence[Sequence[Punkt]], glipor_: bool, dyr_korsning: BaseGeometry | None) -> Dragning:
+    """vag2 utan minnet."""
     nyckel = tuple(id(k) for k in kartor)
     if nyckel not in _BYTEN:
         _BYTEN[nyckel] = _bytespunkter(kartor)

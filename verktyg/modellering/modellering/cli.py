@@ -15,6 +15,7 @@ import sys
 import time
 from pathlib import Path
 
+from . import minne
 from .karna import ROT, Karna
 from .modell import Montage
 
@@ -28,6 +29,7 @@ def ladda(modul: str = "trebodar.trebodar") -> Montage:
     m = importlib.import_module(modul)
     rot = m.montage()
     assert isinstance(rot, Montage)
+    minne.stada()
     return rot
 
 

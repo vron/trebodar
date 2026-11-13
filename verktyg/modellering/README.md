@@ -70,6 +70,10 @@ egen modell (t.ex. för beställning). Utdata:
 - **Kärna** (`karna.py`): OCCT via OCP. Varje unikt recept byggs en gång; B-rep, egenskaper och triangelnät sparas i
   `.cache/former.sqlite`. Saknade recept byggs i parallella processer (alla kärnor). Hela huset byggs från tom cache
   på några sekunder, därefter på bråkdelen av en sekund.
+- **Minne** (`minne.py`): dyra, rena beräkningar i modellens skript sparas under en kontrollsumma över sina indata
+  och koden som räknar (`minne.sparad`, `.cache/minne/`), så att de inte räknas om när ingenting de beror på har
+  ändrats. Elrörens vägval i bjälklagen (`hus/installationer/plattan.py`: synlighetsgrafen och `vag2`) tar en dryg
+  halv minut och ligger där: modellen laddas på några sekunder när plattornas indata är oförändrade.
 - **Export** (`export/`): STEP AP242 (OCCT XCAF; varje placerad del en egen produkt med instansens namn, eller
   delade produkter med `--delade`; utan 2D-kurvor på ytorna, som läsarna räknar fram), GLB (eget skrivprogram: hierarki, delade nät, material i CAD-färgerna med det verkliga
   utseendet i `extras`, UV i delens system så att träets fibrer följer delens x, metadata i `extras`), materiallista och index.
