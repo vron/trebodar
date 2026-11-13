@@ -51,7 +51,7 @@ P_PLATTA = (VIBROPLATTA["massa"] * 9.81e-3 + VIBROPLATTA["F"]) / VIBROPLATTA["b"
 SIG_KOMP = math.sqrt(2 * P_PLATTA * GAMMA_JORD / math.pi)                          # kPa
 LAGER_FYLL = 0.2         # m, största lagertjocklek inom 1 m från väggen
 # bakom V3 och V20: plattan på mark på plan 1 (K-05) i L-element 500 (AR-02): 350 mm cellplast under plattan
-# (EPS_MARK_GRAD, i de fria hörnen EPS_STARK)
+# (EPS_MARK_GRAD, i de fria hörnen EPS_MARK_STARK)
 H_L_MARK = 500.0
 EPS_MARK = H_L_MARK - H_MB
 # ytterväggarna på plan 1: syllen 95 mm från väggens ytterliv (K-05: centrum 17,5 mm innanför plattans kant)
@@ -127,11 +127,12 @@ EPS = {
 # det: EPS_UNDRE, och EPS_STARK bara i EPS_ZON, hörnet där innerväggarnas balkar under V4–V6 och V15 möts (två
 # skivor 600 × 1200). Det övre skiktet, bara under plattan, är EPS_OVRE. Kantbalken står på L-elementens fot,
 # EPS_STARK.
-# Plattan på mark på plan 1: EPS_MARK_GRAD i hela tjockleken, och EPS_STARK i EPS_MARK_ZON, de två fria hörnen under
-# hörnstolparna (#117). Zonerna är rektanglar (x0, y0, x1, y1) i K-05:s koordinater, EPS_ZON_SIDA från hörnet:
-# balkarnas yttre hörn i källaren, väggarnas ytterliv (L-elementens ytterkant) på plan 1.
+# Plattan på mark på plan 1: EPS_MARK_GRAD i hela tjockleken, och EPS_MARK_STARK i EPS_MARK_ZON, de två fria hörnen
+# under hörnstolparna (#117); dess L-element är också EPS_MARK_STARK. Zonerna är rektanglar (x0, y0, x1, y1) i
+# K-05:s koordinater, EPS_ZON_SIDA från hörnet: balkarnas yttre hörn i källaren, väggarnas ytterliv (L-elementens
+# ytterkant) på plan 1.
 EPS_OVRE, EPS_UNDRE, EPS_STARK = "S100", "S200", "S300"
-EPS_MARK_GRAD = "S100"
+EPS_MARK_GRAD, EPS_MARK_STARK = "S100", "S200"
 EPS_ZON_SIDA = 1200.0
 _xb, _yb = G05["vagg"][14][1] + B_BALK / 2, G05["vagg"][3][1] - B_BALK / 2          # V15 och V4: balkarnas hörn
 EPS_ZON = [(_xb - EPS_ZON_SIDA, _yb, _xb, _yb + EPS_ZON_SIDA)]

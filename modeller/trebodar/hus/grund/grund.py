@@ -5,9 +5,9 @@ Bottenplattan (K-06 utförande L400, R-04) med överkanten z −2 250: betong 10
 mellan i balkarnas underkant), kantbalk och balkar under innerväggarna 450 × 300 (med plattan) och plintar under
 rören, alla på det undre skiktet, 100 mm cellplast S200 i hela ytan (S300 i hörnet där balkarna under V4–V6 och V15
 möts, K-06), och L-element S300 höjd 400 längs kanten (ytterkanten i väggarnas ytterliv, betongen börjar 100 mm
-innanför, i kärnans yttre yta). Plattan på mark på plan 1 (bakom V3 och V20, AR-02): mellanbjälklaget i L-element 500
-längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast S100 350 under plattan (S300 i de två fria
-hörnen, under hörnstolparna, K-06), makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan.
+innanför, i kärnans yttre yta). Plattan på mark på plan 1 (bakom V3 och V20, AR-02): mellanbjälklaget i L-element S200
+höjd 500 längs de fria kanterna (ytterkanten i väggarnas ytterliv), cellplast S100 350 under plattan (S200 i de två
+fria hörnen, under hörnstolparna, K-06), makadam 150 och dränerande fyllning i ett schakt 100 mm utanför plattan.
 Bottenplattans L-element har ryggen avfasad 45° i ovankant, FAS bred upptill, och betongen fyller fasen. Plattan på
 marks L-element har ryggen urtagen i mellanbjälklagets tjocklek utom de yttersta RYGG_KVAR, som kantisoleringen ovanpå
 källarväggarna, så att betongen går fram till plattans kant och ytterväggarnas syll står på betongen som i resten av
@@ -40,9 +40,9 @@ B_BALK = 450.0                   # kantbalk och balkar under innerväggarna
 L_BEN, B_L = 100.0, 600.0        # L-elementets rygg (betongen börjar vid dess insida) och bredd
 FAS = 50.0                       # bottenplattans rygg avfasad 45° i ovankant: FAS bred upptill, betongen fyller fasen
 INRE_BALKAR = ("V15", "V19")     # balkar under innerväggarna, och linjen V4–V6 mellan dem (K-06)
-# cellplast S300 lokalt (K-06: EPS_ZON, EPS_MARK_ZON), en kvadrat med sidan ZON_S300 från hörnet: det undre skiktet i
-# hörnet där balkarna under V4–V6 och V15 möts, och hela tjockleken i plattan på marks två fria hörn
-ZON_S300 = 1200.0
+# starkare cellplast lokalt (K-06: EPS_ZON, EPS_MARK_ZON), en kvadrat med sidan ZON_SIDA från hörnet: S300 i det undre
+# skiktet i hörnet där balkarna under V4–V6 och V15 möts, och S200 i hela tjockleken i plattan på marks två fria hörn
+ZON_SIDA = 1200.0
 # plattan på mark (AR-02): L-element 500 med fot 100, cellplast 100 + 250 under plattan, makadam 150
 H_L_MARK, T_FOT_MARK, T_MAKADAM = 500.0, 100.0, 150.0
 SCHAKT_UT = 100.0                # bergschaktet runt plattan på mark, utanför L-elementen
@@ -73,21 +73,21 @@ def _inre_balkar(betong: Polygon) -> Polygon:
 
 
 def zon_bottenplatta() -> Polygon:
-    """Det undre skiktets zon med S300: ZON_S300 i kvadrat från det yttre hörnet där balkarna under V4–V6 och V15
+    """Det undre skiktets zon med S300: ZON_SIDA i kvadrat från det yttre hörnet där balkarna under V4–V6 och V15
     möts."""
     v = {w.namn: w for w in kallarvaggar.VAGGAR}
     x, y = v["V15"].c + B_BALK / 2, v["V4"].c - B_BALK / 2
-    return Polygon.from_bounds(x - ZON_S300, y, x, y + ZON_S300)
+    return Polygon.from_bounds(x - ZON_SIDA, y, x, y + ZON_SIDA)
 
 
 def zoner_mark() -> list[Polygon]:
-    """Plattan på marks zoner med S300: ZON_S300 i kvadrat från de två fria hörnen längst från källaren, under
+    """Plattan på marks zoner med S200: ZON_SIDA i kvadrat från de två fria hörnen längst från källaren, under
     hörnstolparna (L-elementens ytterkant)."""
     p = markplatta()[0]
     x0, _, _, y1 = p.bounds
     x1 = max(x for x, y in p.exterior.coords if abs(y - y1) < 1.0)
-    return [Polygon.from_bounds(x0, y1 - ZON_S300, x0 + ZON_S300, y1).intersection(p),
-            Polygon.from_bounds(x1 - ZON_S300, y1 - ZON_S300, x1, y1).intersection(p)]
+    return [Polygon.from_bounds(x0, y1 - ZON_SIDA, x0 + ZON_SIDA, y1).intersection(p),
+            Polygon.from_bounds(x1 - ZON_SIDA, y1 - ZON_SIDA, x1, y1).intersection(p)]
 
 
 def bottenplatta() -> Montage:
@@ -170,9 +170,9 @@ def platta_pa_mark() -> Montage:
     p, fri, rygg, fot = markplatta()
     z_uk, z_mak = -H_L_MARK, -H_L_MARK - T_MAKADAM
     z_fot = z_uk + T_FOT_MARK
-    m.lagg(Del(f"L-element S300 höjd {H_L_MARK:.0f}",
+    m.lagg(Del(f"L-element S200 höjd {H_L_MARK:.0f}",
                prisma_ur(fot, z_uk, z_fot) | prisma_ur(rygg, z_fot, -S.H_BJALKLAG)
-               | prisma_ur(kantrygg(), -S.H_BJALKLAG, 0.0), CELLPLAST_S300), Placering(), "PM-L")
+               | prisma_ur(kantrygg(), -S.H_BJALKLAG, 0.0), CELLPLAST_S200), Placering(), "PM-L")
     zoner = zoner_mark()
     zon = unary_union(zoner)
     for i, g in enumerate(polygoner(p.difference(fot).difference(zon), 1e4)):
@@ -181,10 +181,10 @@ def platta_pa_mark() -> Montage:
     for i, g in enumerate(polygoner(p.difference(rygg).difference(zon), 1e4)):
         m.lagg(Del("Cellplast S100 250, övre lagret", prisma_ur(g, z_fot, -S.H_BJALKLAG), CELLPLAST), Placering(),
                "PM-C2" + (f"-{i + 1}" if i else ""))
-    for i, g in enumerate(zoner, 1):           # hörnen under hörnstolparna: S300 i båda lagren, innanför L-elementet
-        m.lagg(Del("Cellplast S300 350 i plattans fria hörn",
+    for i, g in enumerate(zoner, 1):           # hörnen under hörnstolparna: S200 i båda lagren, innanför L-elementet
+        m.lagg(Del("Cellplast S200 350 i plattans fria hörn",
                    prisma_ur(g.difference(fot), z_uk, z_fot) | prisma_ur(g.difference(rygg), z_fot, -S.H_BJALKLAG),
-                   CELLPLAST_S300), Placering(), f"PM-CS{i}")
+                   CELLPLAST_S200), Placering(), f"PM-CS{i}")
     schakt = markschakt()
     m.lagg(Del("Makadam 150", prisma_ur(schakt, z_mak, z_uk), MAKADAM), Placering(), "PM-M")
     m.lagg(Del("Dränerande fyllning", prisma_ur(schakt, MARK_UK, z_mak), FYLLNING), Placering(), "PM-F")

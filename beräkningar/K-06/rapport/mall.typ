@@ -69,7 +69,7 @@ Regler: SS-EN 1990, SS-EN 1991-1-1, SS-EN 1991-1-6, SS-EN 1992-1-1, SS-EN 1992-1
   [Bottenplatta #U.namn, cellplast], [#M.eps_stark under kantbalken och i hörnet under innerväggarnas balkar #P3.eps_b.utn. #M.eps_undre i det undre skiktet, under innerväggarnas balkar och plintarna #P3.eps_u.utn. #M.eps_ovre i det övre skiktet under plattan #P3.eps_f.utn],
   [Bottenplatta #U.namn, betong], [Kantbalk 450 × #U.h_balk med #P3.kant.uk_txt i underkant och #P3.kant.ok_txt i överkant (#P3.kant.utnM). Platta Ø6 s150 i båda lagren (#P3.falt.utn). Plintar #D.plint_bredd mm, genomstansning högst #P3.plint.max],
   [Mellanbjälklaget (K-05) med sättningar], [Överkant #P3.topp.ok och underkant #P3.topp.uk av K-05:s armering. K-05:s modell ger #P3.topp.ok5 och #P3.topp.uk5],
-  [Plattan på mark (plan 1), #M.eps_mark mm cellplast], [#M.eps_mark_grad #P3.mark.f.utn. #M.eps_stark i de två fria hörnen #P3.mark.s.utn],
+  [Plattan på mark (plan 1), #M.eps_mark mm cellplast], [#M.eps_mark_grad #P3.mark.f.utn. #M.eps_mark_stark i de två fria hörnen #P3.mark.s.utn],
   [Glidning], [#D.glid.utn],
 )
 
@@ -208,7 +208,7 @@ Lasten i väggens topp är det största av K-05:s värde över 1 m (med det som 
 + Gjut bottenplattan (@botten) med startjärnen ingjutna och uppruggad yta under väggarna.
 + Montera Kub-elementen med armering, vinkeljärn i hörnen och staga väggarna.
 + Gjut de tre hela skiften (#M.gjut1 mm) i alla väggar.
-+ Fyll bakom V3 och V20 till #M.hfm m, överst makadam, när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan #M.eps_mark mm cellplast för plattan på mark, #M.eps_mark_grad och #M.eps_stark i de två fria hörnen.
++ Fyll bakom V3 och V20 till #M.hfm m, överst makadam, när betongen har nått $f_"ck" (t)$ ≥ #BY.regel MPa (@hardning). Lagren ska vara högst #M.lager m, packade med lätt vibroplatta inom 1 m från väggen. Lägg sedan #M.eps_mark mm cellplast för plattan på mark, #M.eps_mark_grad och #M.eps_mark_stark i de två fria hörnen.
 + Montera väggarnas översta halva skift, rören, bjälklagets form och armering samt vinkeljärnen. Gjut det översta skiftet och mellanbjälklaget i samma gjutning.
 + Fyll mot övriga väggar när bjälklaget och det översta skiftet har nått $f_"ck" (t)$ ≥ #BY.regel MPa. Väggarna under har då härdat längre. Bjälklagets stämp får stå kvar; de påverkar inte väggarna.
 + Riv formen under bjälklaget enligt R-06.
@@ -265,7 +265,7 @@ Dygn efter gjutning, minst 3. Frost: dygn tills $f_"ck" (t)$ = 5 MPa, då betong
 == Beräkningsmodell
 
 - *Bottenplattan:* plattelement (DKT) med verklig tjocklek, 100 mm i fält och #U.h_balk mm i balkar och plintar. Plattan står på en bädd $k = E slash t$, med $E_k$ eller $0,4 E_k$ och tjocklek och kvalitet per element: under balkar och plintar det undre skiktet, under plattan de två skikten i serie. Trycket mot cellplasten är elementets bädd gånger sättningen och kontrolleras per kvalitet.
-- *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på #M.eps_mark mm #M.eps_mark_grad, och #M.eps_stark inom #M.zon m från de två fria hörnen.
+- *Mellanbjälklaget:* K-05:s nät och laster. Plattan på mark (plan 1) ligger på #M.eps_mark mm #M.eps_mark_grad, och #M.eps_mark_stark inom #M.zon m från de två fria hörnen.
 - *Väggarna:* kärnan som fjäder $E t slash h$ med $t$ = 150 mm längs K-05:s upplagslinjer i kärnans mitt.
 - *Rören:* fjädrar $E A slash L$ mellan plåtarna i de två plattorna.
 - *Styvheter, två omgångar:*
@@ -298,9 +298,9 @@ Betongväggarna med fasadsten väger cirka 8–11 kN/m. Kärnan står på kantba
 
 Mellanbjälklagets stöd sätter sig långtid #P3.w.ror mm vid rören och #P3.w.vagg mm vid väggarna. Väggarna sätter sig alltså cirka #P3.w.skillnad mm mer än rören. Kärnans krympning ensam ger högst #P3.svinn kNm/m i mellanbjälklaget. Effekten finns med i kontrollen i @samverkan.
 
-*Plattan på mark på plan 1* (K-05, #M.eps_mark mm cellplast i två skikt) ligger på #M.eps_mark_grad, och på #M.eps_stark inom #M.zon m från de två fria hörnen, under hörnstolparna LA9 och LA10, där trycket är störst. Största tryck i brottgränstillstånd är #P3.mark.s.uls kPa, ytterst i hörnet. Det är en lokal topp; i medel inom $r$ = 150 mm är det #P3.mark.s.medel kPa mot $f_d$ = #P3.mark.s.fdM kPa (som under balkarna), alltså #P3.mark.s.u_uls. Långtid är det #P3.mark.s.qp kPa mot #P3.mark.s.kryp kPa, alltså #P3.mark.s.u_qp. Utanför hörnen är trycket mot #M.eps_mark_grad högst #P3.mark.f.medel kPa mot #P3.mark.f.fdM kPa (#P3.mark.f.u_uls) och långtid #P3.mark.f.qp kPa mot #P3.mark.f.kryp kPa (#P3.mark.f.u_qp). #if P3.mark.ok [Cellplasten räcker; #M.eps_mark_grad ensam gör det inte i hörnen. Tjockleken bestäms av värmeisoleringen.] else [*Cellplasten räcker inte.*]
+*Plattan på mark på plan 1* (K-05, #M.eps_mark mm cellplast i två skikt) ligger på #M.eps_mark_grad, och på #M.eps_mark_stark inom #M.zon m från de två fria hörnen, under hörnstolparna LA9 och LA10, där trycket är störst. Största tryck i brottgränstillstånd är #P3.mark.s.uls kPa, ytterst i hörnet. Det är en lokal topp; i medel inom $r$ = 150 mm är det #P3.mark.s.medel kPa mot $f_d$ = #P3.mark.s.fdM kPa (som under balkarna), alltså #P3.mark.s.u_uls. Långtid är det #P3.mark.s.qp kPa mot #P3.mark.s.kryp kPa, alltså #P3.mark.s.u_qp. Utanför hörnen är trycket mot #M.eps_mark_grad högst #P3.mark.f.medel kPa mot #P3.mark.f.fdM kPa (#P3.mark.f.u_uls) och långtid #P3.mark.f.qp kPa mot #P3.mark.f.kryp kPa (#P3.mark.f.u_qp). #if P3.mark.ok [Cellplasten räcker; #M.eps_mark_grad ensam gör det inte i hörnen. Tjockleken bestäms av värmeisoleringen.] else [*Cellplasten räcker inte.*]
 
-*Plattan på marks fria kanter:* L-elementen (höjd #M.l_mark) står med ytterkanten i väggens ytterliv. I plattans tjocklek är ryggen urtagen utom de yttersta 30 mm, som kantisoleringen ovanpå källarväggarna, så att betongen går fram till plattans kant och ytterväggarnas syll står på betongen som i resten av huset (AR-02, R-06).
+*Plattan på marks fria kanter:* L-elementen (#M.eps_mark_stark, höjd #M.l_mark) står med ytterkanten i väggens ytterliv. I plattans tjocklek är ryggen urtagen utom de yttersta 30 mm, som kantisoleringen ovanpå källarväggarna, så att betongen går fram till plattans kant och ytterväggarnas syll står på betongen som i resten av huset (AR-02, R-06).
 
 == Platta, balkar och plintar
 

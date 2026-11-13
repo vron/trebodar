@@ -292,7 +292,7 @@ def kontroll(utf):
                 0.1 * (pk["S_V"] + pk["S_M"] + pk["S_H"])
     i_mark = L["km_el"] > 0
     out["mark"] = {}
-    for zon, kval in (("stark", I.EPS_STARK), ("falt", I.EPS_MARK_GRAD)):
+    for zon, kval in (("stark", I.EPS_MARK_STARK), ("falt", I.EPS_MARK_GRAD)):
         m = i_mark & (L["grad_mark"] == kval)
         j, n = np.unravel_index(int(np.argmax(np.where(m[:, None], pm_uls, -1.0))), pm_uls.shape)
         # största trycket ligger i plattans fria hörn under hörnstolparna (en lokal topp i FE-lösningen): medel inom

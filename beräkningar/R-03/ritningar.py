@@ -315,8 +315,8 @@ def blad():
             f"Mot radon: åldringsbeständig plastfolie i ett plan över hela bottenplattan, {S.HB:.0f} mm under överkant: mellan "
             "cellplastskikten, under balkarna och plintarna och ut över L-elementens fot. Skarvarna med minst 200 mm "
             "överlapp, tejpade, och tätade vid genomföringar (R-04).",
-            f"Plattan på mark har L-element S300, {K.H_L_MARK:.0f} mm höga, längs de fria kanterna (AR-02, R-06), och "
-            f"ligger på {K.EPS_MARK_GRAD}, i de två fria hörnen på {K.EPS_STARK} (R-06); "
+            f"Plattan på mark har L-element {K.EPS_MARK_STARK}, {K.H_L_MARK:.0f} mm höga, längs de fria kanterna (AR-02, R-06), "
+            f"och ligger på {K.EPS_MARK_GRAD}, i de två fria hörnen på {K.EPS_MARK_STARK} (R-06); "
             "i plattans tjocklek är ryggen urtagen utom de yttersta 30 mm, och betongen går fram till plattans kant "
             "(R-06 detalj F).",
             "Bilderna är förenklade: armering, fogar och mindre delar visas inte."]),
@@ -325,8 +325,8 @@ def blad():
             dict(form="yta", fyll=S.FARG["betong"], stil="tunn", text="betong: bottenplatta, balkar, plintar, bjälklag"),
             dict(form="yta", fyll=S.FARG["karna"], stil="tunn", text="Kub-väggarnas betongkärna"),
             dict(form="yta", fyll=S.FARG["eps"], stil="tunn", text="cellplast: väggarna och S100 under plattorna"),
-            dict(form="yta", fyll=S.FARG["s200"], stil="tunn", text="cellplast S200: det undre skiktet i källaren"),
-            dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: L-element och lokalt i hörn"),
+            dict(form="yta", fyll=S.FARG["s200"], stil="tunn", text="cellplast S200: undre skiktet i källaren, plattan på marks L-element och hörn"),
+            dict(form="yta", fyll=S.FARG["s300"], stil="tunn", text="cellplast S300: källarens L-element och hörnet V4–V6/V15"),
             dict(form="yta", fyll=S.FARG["smyg"], stil="tunn", text="smyglist vid fönster och dörrar"),
             dict(form="yta", fyll=S.FARG["kantisol"], stil="tunn", text="kantisolering 30"),
             dict(form="yta", fyll=S.FARG["folie"], stil="tunn", text="plastfolie i våder med överlapp (schematiskt)"),

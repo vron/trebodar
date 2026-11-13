@@ -112,10 +112,10 @@ def bjalklag(s, kapa=None):
     ki = kantisolering()
     s.prisma(ki if kapa is None else ki.difference(kapa), H, Z1, FARG["kantisol"])
     fot = fri.buffer(K.B_L, cap_style="flat", join_style="mitre").intersection(pm)
-    s.prisma(hel, Z1 - K.H_L_MARK, H, FARG["s300"])
-    s.prisma(rygg, H, Z1, FARG["s300"])
-    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s300"])
-    zon = unary_union([box(*z) for z in K.EPS_MARK_ZON])          # de fria hörnen: S300 i hela tjockleken
+    s.prisma(hel, Z1 - K.H_L_MARK, H, FARG["s200"])
+    s.prisma(rygg, H, Z1, FARG["s200"])
+    s.prisma(fot.difference(hel), Z1 - K.H_L_MARK, Z1 - K.H_L_MARK + TF, FARG["s200"])
+    zon = unary_union([box(*z) for z in K.EPS_MARK_ZON])          # de fria hörnen: S200 i hela tjockleken
     for g, z0 in ((pm.difference(hel).difference(fot), Z1 - K.H_L_MARK), (fot.difference(hel), Z1 - K.H_L_MARK + TF)):
         s.prisma(g.difference(zon), z0, H, FARG["eps"])
-        s.prisma(g.intersection(zon), z0, H, FARG["s300"])
+        s.prisma(g.intersection(zon), z0, H, FARG["s200"])

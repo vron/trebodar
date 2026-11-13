@@ -107,7 +107,7 @@ def badd(P, k):
 
 def topp(hmax=200.0, ke=1.0):
     """K-05:s nät utan väggar och rör som stöd. Plattan på mark (plan 1) ligger på I.EPS_MARK mm cellplast med
-    E = ke · E_k: I.EPS_MARK_GRAD, och I.EPS_STARK i de fria hörnen (I.EPS_MARK_ZON)."""
+    E = ke · E_k: I.EPS_MARK_GRAD, och I.EPS_MARK_STARK i de fria hörnen (I.EPS_MARK_ZON)."""
     LASTER = M05.LASTER
     linjer = list(STODLIN) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
@@ -118,7 +118,7 @@ def topp(hmax=200.0, ke=1.0):
                       [(x, y, 300.0, 80.0 * M05.FIN) for pl in STODLIN for x, y in pl] +
                       [(x, y, 400.0, 60.0 * M05.FIN) for x, y in stolpar])
     mark = MplPath(np.asarray(G["mark"], float)).contains_points(P.cen)
-    P.grad = np.where(i_zoner(I.EPS_MARK_ZON, P.cen), I.EPS_STARK, I.EPS_MARK_GRAD)
+    P.grad = np.where(i_zoner(I.EPS_MARK_ZON, P.cen), I.EPS_MARK_STARK, I.EPS_MARK_GRAD)
     badd(P, np.where(mark, ke * np.array([I.EPS[g]["Ek"] for g in P.grad]) * 1e-3 / I.EPS_MARK, 0.0))
     return P
 

@@ -18,7 +18,7 @@ from figurer import INK, BETONG, KARNA, EPS, STAL, FRI, HALO, sv  # noqa: E402
 G = I.G05
 MARKF = "#efe6d2"
 EPSF = "#f3f6fa"
-EPS2 = "#dde6f0"               # S300: L-elementen och de lokala zonerna
+EPS2 = "#dde6f0"               # S300: L-elementen och zonen i källaren
 EPSU = "#e9eef5"               # det undre skiktet
 JORD = "#d9cbb0"
 DRAN = "#c7c2b8"
