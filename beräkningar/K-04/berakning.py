@@ -469,7 +469,8 @@ if RS.get("med"):
                "deta": fmt(100 * max(abs(varianter[a_][1].get(v, 0.0) - varianter["utan"][1].get(v, 0.0))
                                      for v in VAGGAR_X for a_ in ("med", "fema")), 0)}
 
-skivor_ut = {"ug": {"F_k": fmt(UG.get("F_k", 0.0), 0), "s": fmt(UG.get("s", 0.0), 0), "K": fmt(UG.get("K", 0.0), 0)},
+skivor_ut = {"ug": {"F_k": fmt(UG.get("F_k", 0.0), 0), "s": fmt(UG.get("s", 0.0), 0), "K": fmt(UG.get("K", 0.0), 0),
+                    "produkt": UG.get("produkt", "")},
              "osb": {k: fmt(OSB[k], 0) for k in ("F_k", "K_ser", "K") if k in OSB} | {
                  "s": fmt(OSB.get("s", 0.0), 0), "s_mitt": fmt(OSB.get("s_mitt", 0.0), 0),
                  "produkt": OSB.get("produkt", "")},
@@ -480,7 +481,7 @@ R_ut = {"projekt": IN["projekt"], "raspont": raspont, "skivor": skivor_ut, "mode
         "stolpar": stolptab, "G_tot": fmt(G_tot, 1),
         "takstolar": takstolar, "gavel": gavel,
         "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank,
-        "bruks": bruks, "alla_ok": alla_ok, "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
+        "bruks": bruks, "alla_ok": alla_ok, "forband_h02": IN["forband_h02"], "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
                                                             for k, v in IN["kombination"].items()
                                                             if not isinstance(v, (list, dict))},
         "kmod": {k: fmt(v, 1) for k, v in IN["kombination"]["k_mod"].items()},

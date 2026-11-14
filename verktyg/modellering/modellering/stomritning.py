@@ -3,7 +3,8 @@ balkmodell), så att bladen, ID:na, kapplistorna och måtten följer stommen nä
 
 Bladen i byggordning: först en översikt i 3D med varje element märkt med sitt blad, och förteckningen över bladen;
 sedan väggarna, en per blad (ytterväggarna huskropp för huskropp, sedan de bärande innerväggarna), stolparna,
-takstolarna, takfallen (takbalkarna och stålbanden) och nock- och dalbalkarna (stålet på R-01).
+takstolarna, takfallen (takbalkarna och stålbanden) och nock- och dalbalkarna (stålet på R-01), och sist ett blad
+som samlar stommens förband i en tabell, med K-03:s figurer av takbalkens upplag och yttertakets randzoner.
 
 Förbanden skrivs av ur beräkningarnas resultat (K-03: yttertakets infästning med randzonerna, takbalkarnas upplag
 och takstolarnas spikplåtar; K-04: stålbandens spik och reglarnas skruv), så att de följer beräkningarna.
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -476,7 +478,7 @@ def _iso(P: np.ndarray) -> np.ndarray:
     return np.column_stack([(P[:, 0] - P[:, 1]) * c, (P[:, 0] + P[:, 1]) * s + P[:, 2]])
 
 
-def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
+def _oversikt(elementen: list[Element], alla: list[Del], sist: list[list[str]]) -> Blad:
     proj = {d.namn: _iso(d.horn()) for d in alla}
     P = np.vstack(list(proj.values()))
     x0, y0 = P.min(axis=0)
@@ -516,7 +518,7 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
             c = (Q.min(axis=0) + Q.max(axis=0)) / 2
             vp.text(c[0], c[1], f"{e.kod} · {e.nr.split('.')[1]}", a="cm", sz=4.8, b=True, bg=True)
         vp.text(px0, py0 - 4.0 * ps, "Väggarna i plan, 1:250 (blad R-02.n)", a="lt", sz=6.0, i=True)
-    forteckning = [[f"{SERIE}.1", "Översikt och förteckning"], *([e.nr, e.titel] for e in elementen)]
+    forteckning = [[f"{SERIE}.1", "Översikt och förteckning"], *([e.nr, e.titel] for e in elementen), *sist]
     halv = (len(forteckning) + 1) // 2
     block = [dict(x=25.0 + i * 100.0, y=214.0, w=96.0, innehall=[
         dict(typ="rubrik", text="Bladen i byggordning" if i == 0 else "Bladen, forts."),
@@ -528,7 +530,8 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
             "Trästommen ovanför mellanbjälklaget i 3D: väggarna, stolparna, takstolarna, takbalkarna, stålbanden och "
             "nock- och dalbalkarna. Varje element är märkt med sin kod och sitt blad.",
             "Bladen följer byggordningen: väggarna (ytterväggarna huskropp för huskropp, sedan de bärande "
-            "innerväggarna), stolparna, takstolarna, takfallen och nock- och dalbalkarna.",
+            "innerväggarna), stolparna, takstolarna, takfallen och nock- och dalbalkarna. Sista bladet samlar "
+            "stommens förband.",
             "Stommens förankring i mellanbjälklaget: betongbultar genom syllarna, vinkelbeslag och förankringsbeslag "
             "vid reglarnas och stolparnas fot (K-04, AR-03.4).",
             "Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
@@ -553,6 +556,103 @@ def _beslagstext(beslag: list[tuple[str, float, float, float]]) -> str:
             "syllen (WHT340: ankare M16). Lägena i plan på AR-03.4.")
 
 
+FORBAND_TITEL = "Förband och infästningar"
+K03_FIGURER = (("fig_upplag.svg", "Takbalkens upplag mot nock- och dalbalken (K-03)."),
+               ("fig_vindsug.svg", "Ströläktens linjer i plan: röda delar ligger i randzonerna (K-03)."))
+
+
+def _svg_matt(fil: Path) -> tuple[float, float]:
+    """Figurens bredd och höjd (pt) ur svg-filens huvud."""
+    m = re.search(r'<svg[^>]*?width="([\d.]+)pt"[^>]*?height="([\d.]+)pt"', fil.read_text(encoding="utf-8")[:2000], re.S)
+    if m is None:
+        raise SystemExit(f"{fil}: bredd och höjd saknas i svg-filens huvud")
+    return float(m.group(1)), float(m.group(2))
+
+
+def _forbandsrader(utdrag: dict) -> list[list[str]]:
+    """Stommens förband: förband, fästdon, antal och delning, underlag. Ur K-03:s och K-04:s resultat och utdraget."""
+    k3, k4 = FORBAND["K-03"], FORBAND["K-04"]
+    fo, bd, sk, y, tb, fb, hs, h2 = (k4["forankring"], k4["band"], k4["skivor"], k3["yt"], k3["tb"], k3["fb"], k3["hs"],
+                                     k4["forband_h02"])
+    band = {b["grupp"]: b for b in bd["rader"]}
+
+    def stor(t: str) -> str:
+        return t[:1].upper() + t[1:]
+    n_beslag = {slag: sum(1 for b in utdrag.get("beslag", []) if b["slag"] == slag) for slag in BESLAG}
+    kod = {v: k for k, v in K03_TAKSTOL.items()}
+    st = [(kod.get(r["namn"], r["namn"]), r) for r in k3["st"]]
+    rader = [
+        ["Syll mot mellanbjälklaget", f"Betongbult M{BULT[0]:g} med bricka {fo['bricka']}, {BULT[1]:g} mm i plattan",
+         f"{len(utdrag.get('bultar', {}).get('lagen', []))} st, lägena i måttkedjan \"bultar\" på väggarnas blad och "
+         "i plan på AR-03.4", "K-04"],
+        ["Regelns fot i syllen", f"{fo['skruv']} snett genom regeln ned i syllen", "Varje regel", "K-04"],
+        ["Vinkelbeslag vid regelns eller stolpens fot",
+         f"{fo['beslag']}, fullt utskruvat med CSA5,0×40 i regeln och syllen, betongbult M{BULT[0]:g} genom beslaget",
+         f"{n_beslag['ABR10525']} st, ritade på väggarnas och stolparnas blad", "K-04"],
+        ["Förankringsbeslag vid regelgruppens fot", fo["halldon_namn"],
+         f"{n_beslag['WHT340']} st, ritade på väggarnas blad", "K-04"],
+        *([f"Stålband {bd['b']}×{bd['t']} i {'väggarna' if 'vägg' in g else 'takfallen'}", bd["spik"],
+           f"I varje del bandet korsar och {b['n']} spik i varje ände", "K-04"] for g, b in band.items()),
+        ["Utegips på ytterväggarna (skjuvskiva)", sk["ug"]["produkt"], f"Skruv c/c {sk['ug']['s']} längs skivans kanter",
+         "K-04"],
+        ["OSB på de bärande innerväggarna och på insidan av gaveln 1SV (skjuvskiva)", sk["osb"]["produkt"],
+         f"Spik c/c {sk['osb']['s']} längs skivans kanter och c/c {sk['osb']['s_mitt']} längs mellanreglarna", "K-04"],
+        [f"Regeln {h2['regel']} mot takbalken {h2['takbalk']}", f"{stor(h2['ned'])}; {h2['in']}",
+         f"{h2['antal']} skruv i varje förband", "K-04"],
+        ["Takbalk mot nock- och dalbalk", f"Upplagsregel {fb['regel']} längs balkens sida, skruv {fb['regel_skruv']} genom "
+         f"regeln in i limträet. Förankring: skruv {fb['lyft_skruv']} snett genom takbalken in i balken",
+         f"{tb['n_skruv']} skruv i regeln per takbalk, en förankringsskruv per takbalksände", "K-03"],
+        ["Takstolarnas fötter och topp", f"Spikplåt ({fb['plat']}) på båda sidor, {fb['spik']}",
+         "Spik per plåt och stav: " + ", ".join(f"{k} {r['spik']}" for k, r in st), "K-03"],
+        ["Takstolarnas toppkloss", f"Kloss {fb['kloss']} på ena sidan om toppen, skruv {fb['kloss_skruv']}",
+         "Skruv: " + ", ".join(f"{k} {r['nk']}" for k, r in st if r["kloss"] != "0"), "K-03"],
+        ["Huvudstolpen LN1_3", f"Knutpunkterna: spikplåt på båda sidor, {fb['spik']}. Foten: {hs['n_beslag']} vinkelbeslag "
+         f"{hs['beslag']} med {hs['skruv']} och betongbult {hs['bult']} genom vart",
+         f"Minst {hs['spik']} spik per plåt och stav", "K-03"],
+        [f"Ströläkt {y['lakt']} på takbalk och takstol", y["skruv"],
+         f"c/c {y['cc_rand']} i randzonerna ({y['rand']} m från gavelkanter och fria takfötter), c/c {y['cc_ovrigt']} i övrigt",
+         "K-03"],
+        ["Råspont på ströläkt", f"{stor(y['spik'])}; i mellanläkten {y['spik_mellan']}",
+         f"{y['spik_n']} spik per bräda i varje läkt", "K-03"],
+        ["Takplåtens klammer", "Dimensioneras av plåtslagaren",
+         "Dimensionerande vindsug: " + ", ".join(f"{z['namn'].lower()} {z['wd']}" for z in y["zoner"]) + " kN/m²",
+         "K-03"],
+    ]
+    return rader
+
+
+def _forbandsblad(nr: str, utdrag: dict) -> Blad:
+    """Bladet som samlar stommens förband: tabellen och K-03:s figurer."""
+    v = Vy(0.0, 0.0, 420.0, 297.0, 1.0, 0.0, 0.0)          # pappersmm, y nedåt = −Y
+    x, y_, b = 228.0, 18.0, 96.0
+    with v.lager("figurer"):
+        for fil, text in K03_FIGURER:
+            src = ROT / "beräkningar" / "K-03" / fil
+            if not src.exists():
+                raise SystemExit(f"{src} saknas: räkna K-03 först (./bygg K-03)")
+            w, h = _svg_matt(src)
+            hojd = b * h / w
+            v.bild(x, -y_, b, hojd, "/" + src.relative_to(ROT).as_posix())
+            v.text(x, -(y_ + hojd + 1.5), text, a="lt", sz=6.4, i=True)
+            y_ += hojd + 12.0
+    block = [dict(x=25.0, y=16.0, w=196.0, innehall=[
+        dict(typ="rubrik", text="Stommens förband"),
+        dict(typ="tabell", kolumner=["Förband", "Fästdon", "Antal och delning", "Underlag"], bredd=(1.25, 2.2, 1.75, 0.42),
+             just=["l", "l", "l", "l"], sz=7.4, rader=_forbandsrader(utdrag))])]
+    kol: list[dict] = [
+        dict(typ="rubrik", text="Anvisningar"),
+        dict(typ="lista", sz=7.0, rader=[
+            "Bladet samlar förbanden i trästommen och yttertaket. Fästdonen, antalen och delningarna är skrivna ur "
+            "beräkningarna K-03 och K-04 och ur modellen, och följer dem.",
+            "Samma uppgifter står på elementens blad: väggarna (bultar, beslag, reglarnas skruv, stålbanden), takstolarna "
+            "(spikplåtarna och toppklossen), takfallen (ströläkten med randzonerna, råsponten, upplagsreglarna) och nock- "
+            "och dalbalkarna.",
+            "Stålet i nock- och dalbalkarna och deras skruv: se R-01. Förankringen i plan: se AR-03.4.",
+        ]),
+    ]
+    return blad(nr, ["Trästomme", FORBAND_TITEL], "–", "K-03, K-04, modellen", kol, [v], block)
+
+
 def ritningar(utdrag: dict, forband: dict[str, dict], mapp: Path, pdf: Path) -> Path:
     b = utdrag.get("bultar", {})
     BULT[:] = [float(b.get("d", BULT[0])), float(b.get("djup", BULT[1]))]
@@ -560,7 +660,9 @@ def ritningar(utdrag: dict, forband: dict[str, dict], mapp: Path, pdf: Path) -> 
     FORBAND.update(forband)
     alla = delar(utdrag)
     elementen = element(utdrag, alla)
-    bladen = [(f"{SERIE}.1", _oversikt(elementen, alla))] + [(e.nr, _elementblad(e)) for e in elementen]
+    nr_forband = f"{SERIE}.{len(elementen) + 2}"
+    bladen = ([(f"{SERIE}.1", _oversikt(elementen, alla, [[nr_forband, FORBAND_TITEL]]))]
+              + [(e.nr, _elementblad(e)) for e in elementen] + [(nr_forband, _forbandsblad(nr_forband, utdrag))])
     mapp.mkdir(parents=True, exist_ok=True)
     pdfer = [mapp / f"{nr}.pdf" for nr, _ in bladen]
 
@@ -578,4 +680,5 @@ def ritningar(utdrag: dict, forband: dict[str, dict], mapp: Path, pdf: Path) -> 
 
 
 def blad_nummer(utdrag: dict) -> Sequence[str]:
-    return [f"{SERIE}.1", *(e.nr for e in element(utdrag, delar(utdrag)))]
+    elementen = element(utdrag, delar(utdrag))
+    return [f"{SERIE}.1", *(e.nr for e in elementen), f"{SERIE}.{len(elementen) + 2}"]

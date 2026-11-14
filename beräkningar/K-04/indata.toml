@@ -147,6 +147,13 @@ halldon_R1k_stal = 42.0     # R_1,k steel [kN] utan bricka (databladet)
 halldon_gamma_stal = 1.0    # γ_M0
 halldon_R1d_betong = 29.3   # R_1,d [kN] i sprucken betong, EPO-FIX PLUS M16×160 (databladet)
 
+[forband_h02]          # regeln på innerväggen 1A:s hammarband som för takfallets kraft i x till väggen (mall.typ, R-02)
+regel   = "1A-H02"
+takbalk = "1SO-T07"
+ned     = "skruv 5×90 c/c 200 ned i hammarbandet 1A-H01"
+in      = "skruv 5×140 c/c 200 vågrätt genom regeln in i takbalken, förborrat"
+antal   = 10           # skruv i varje förband
+
 [utegips]              # utegipsen som skjuvskivor (skivverkan) i ytterväggarnas regelfack, natverk.skjuvskivor
 med = true
 produkt = "Knauf Weatherboard 365, 9 GM-H1 9,5 mm, eller likvärdig vindskyddsskiva med minst samma skruvvärde"
