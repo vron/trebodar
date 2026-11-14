@@ -513,8 +513,9 @@ def elplan(utdrag: dict, delar: list[dict], norr: tuple[float, float], nummer: s
         "Apparaternas höjd är centrum över färdigt golv. Gruppcentralen sitter på V3 i teknikrummet; grupperna och "
         f"deras rör: {grupperna}. Uttagen i teknikrummet och tvättstugan matas ur centralens baksida.",
         "Dimrarna vid ingångarna (vanliga vriddimrar, bakkant) dimrar drivdonen: den dimrade fasen går i ett eget rör "
-        "till drivdonsskåpet mitt emot centralen, där ett drivdon per tändgrupp matar ljuslinjerna. Fläkten FF3 "
-        "ansluts vid fläkten på V20 (KA-D2).",
+        "till drivdonsskåpet mitt emot centralen, där ett drivdon per tändgrupp matar ljuslinjerna. Fläktarna "
+        "ansluts på väggen mitt för fläkten: FF3 i det stora rummet på V14 (KA-D6) och FF4 i tvättstugan på V21 "
+        "(KA-D7).",
     ] if kallare else None)
     kol: list[dict] = [
         dict(typ="rubrik", text="Anvisningar"),

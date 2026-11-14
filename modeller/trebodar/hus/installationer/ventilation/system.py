@@ -19,10 +19,10 @@ from ..genomforingar import Genomforing, Stycke, genomforingar
 from ..montering import KALLARTAK, Vek
 from .katalog import UNDERTRYCK_MAX, UTELUFT_AREA, UTELUFT_FONSTER
 from .delar import Avluft, Don, Element, Flakt, Gren, Kanal, Overgang, kanalernas_vagar
-from .grenar import badrum, kallare, kok
+from .grenar import badrum, kok, stora_rummet, tvattstuga
 from .typer import Dontyp, Kanaltyp, Koksflakttyp, Vaggflakttyp
 
-MODULER: tuple[ModuleType, ...] = (kok, badrum, kallare)
+MODULER: tuple[ModuleType, ...] = (kok, badrum, stora_rummet, tvattstuga)
 
 V_MAX, V_ANM = 7.0, 5.0        # lufthastighet i kanalerna [m/s]: fel över V_MAX, anmärkning över V_ANM
 LAMBDA, ZETA_90 = 0.02, 0.3    # tryckfallet: friktionstal (spirokanal) och engångsförlust per 90° böj
@@ -106,8 +106,8 @@ class Ventilation:
                     fel.append(f"{e.id}: id ska börja med grenens ({g.id}-)")
             flaktar = [e for e in k if isinstance(e, Flakt) or isinstance(e, Don) and
                        isinstance(e.typ, (Koksflakttyp, Vaggflakttyp))]
-            if len(flaktar) != 1:
-                fel.append(f"{g.id}: {len(flaktar)} fläktar (en per gren)")
+            if len(flaktar) != (0 if g.overluft else 1):
+                fel.append(f"{g.id}: {len(flaktar)} fläktar (en per gren, ingen i en överluft)")
             for f in flaktar:
                 if g.flode > f.typ.flode + 1e-6:
                     fel.append(f"{g.id}: flödet {g.flode:g} l/s är större än fläkten {f.id}:s {f.typ.flode:g} l/s")
@@ -139,8 +139,8 @@ class Ventilation:
         # ventilationen som helhet
         kok_ = [g for g in self.grenar.values() if isinstance(g.kedja[0], Don) and isinstance(g.kedja[0].typ,
                                                                                                Koksflakttyp)]
-        summa = sum(g.flode for g in self.grenar.values())
-        normal = sum(g.flode_normal for g in self.grenar.values())
+        summa = sum(g.flode for g in self.grenar.values() if not g.overluft)
+        normal = sum(g.flode_normal for g in self.grenar.values() if not g.overluft)
         alla = {o.kod for lst in OPPNINGAR.values() for o in lst}
         fel += [f"uteluftsdonet i {k}: fönstret finns inte" for k in UTELUFT_FONSTER if k not in alla]
         for namn, q in (("normalt", normal), ("med köksfläkten forcerad", summa)):
@@ -194,7 +194,7 @@ class Ventilation:
                           "ref": e.lage.ref}
                 element[e.id] = d
         return {"grenar": {g.id: {"namn": g.namn, "rum": g.rum, "flode": g.flode, "flode_normal": g.flode_normal,
-                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g),
+                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g), "overluft": g.overluft,
                                   "beskrivning": list(g.beskrivning)}
                            for g in self.grenar.values()},
                 "element": element, "typer": typer,
@@ -246,5 +246,6 @@ def tryckfall(g: Gren) -> float:
 
 @cache
 def ventilation() -> Ventilation:
-    return Ventilation({mod.GREN.id: mod.GREN for mod in MODULER})
+    grenar = [g for mod in MODULER for g in (mod.GREN, *([mod.OVERLUFT] if hasattr(mod, "OVERLUFT") else []))]
+    return Ventilation({g.id: g for g in grenar})
 

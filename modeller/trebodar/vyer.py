@@ -86,19 +86,19 @@ VYER = {
                     "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": {"VR-T3": 1.0}},
     "detalj-glob": {"kamera": [5300, 4900, 1550], "mal": [7055, 3425, 2200], "lins": 35, "ljus": (12, 21, "18:00", "sol"),
                     "lodrat": False, "inne": True, "tand": {"SV-T1": 1.0}},
-    # ventilationen (hus/installationer/ventilation): källarrummets kanal och fläkt under källarens tak, kanalen upp
-    # i väggen 1C (skikten dolda), takhuven och köksfläktens galler
-    "detalj-kallarkanal": {"kamera": [1500, 9000, Z_KALLARE + 1400], "mal": [3700, 8220, -330], "lins": 24,
+    # ventilationen (hus/installationer/ventilation): det stora källarrummets don och fläkt under källarens tak (FF3),
+    # tvättstugans kanal i hörnet i hallens garderob (FF4, sedd inifrån garderoben), takhuven och köksfläktens takfläkt
+    "detalj-kallarkanal": {"kamera": [10900, 8400, Z_KALLARE + 1300], "mal": [12600, 6700, -420], "lins": 28,
                            "ljus": (12, 21, "18:00", "sol"), "lodrat": False, "inne": True, "tand": KALLAREN},
-    "detalj-1c": {"kamera": [2600, 9700, 1300], "mal": [2810, 8220, 1700], "lins": 24, "ljus": (9, 15, "12:00", "mulet"),
-                  "lodrat": False, "inne": True, "dolj": ["Hus/Invändigt/Innerväggar/Innerväggarnas skikt/Skikt 1C"]},
+    "detalj-1c": {"kamera": [1840, 8900, 1500], "mal": [1905, 7300, 1350], "lins": 24, "ljus": (9, 15, "12:00", "mulet"),
+                  "lodrat": False, "inne": True},
     # köket (ärende #21): bänken längs 3NV med lådskåpen, hällen och diskhon, och ön
     "detalj-koket": {"kamera": [10700, 11900, 1550], "mal": [13300, 8700, 950], "lins": 22,
                    "ljus": (9, 15, "12:00", "mulet"), "inne": True},
     # kökets inbyggnad (ärende #20): kyl, frys och skafferi bakom en vägg till innertaket, luckan till förrådet ovanför
     "detalj-inbyggnad": {"kamera": [10150, 9900, 1550], "mal": [12000, 7300, 1650], "lins": 20,
                          "ljus": (9, 15, "12:00", "mulet"), "inne": True},
-    "detalj-takhuv": {"kamera": [7800, 9800, 6600], "mal": [2810, 8220, 3700], "lins": 50,
+    "detalj-takhuv": {"kamera": [-3600, 5200, 6800], "mal": [1905, 7300, 3900], "lins": 50,
                       "ljus": (6, 21, "10:00", "sol"), "lodrat": False},
     "detalj-takflakt": {"kamera": [17800, 7200, 5200], "mal": [13555, 9664, 3050], "lins": 50,
                         "ljus": (9, 15, "12:00", "mulet")},
@@ -124,8 +124,9 @@ TEXTER = {
     "detalj-spot": "Spotlights i allrummets tak",
     "detalj-tubspot": "Spotlights i köket", "detalj-ph5": "PH 5 över matbordet", "detalj-stav": "Pendlarna över köksön",
     "detalj-vl45": "VL45 i vardagsrummet", "detalj-glob": "Glob i sovrummet",
-    "detalj-kallarkanal": "Ventilationen i källaren", "detalj-1c": "Ventilationskanalen i väggen 1C",
-    "detalj-takhuv": "Takhuven", "detalj-takflakt": "Köksfläktens takfläkt",
+    "detalj-kallarkanal": "Frånluften i det stora källarrummet",
+    "detalj-1c": "Tvättstugans frånluftskanal i hörnet i hallens garderob",
+    "detalj-takhuv": "Tvättstugans takhuv", "detalj-takflakt": "Köksfläktens takfläkt",
     "detalj-teknikrum": "Teknikrummet", "stomme": "Stommen",
     "detalj-inbyggnad": "Kyl, frys och skafferi i köket, förråd ovanför",
     "detalj-koket": "Köket: lådor av fräst ask och bänkskiva av granitkeramik",

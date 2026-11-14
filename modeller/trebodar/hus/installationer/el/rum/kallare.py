@@ -1,4 +1,4 @@
-"""Källaren (#51): belysningen, uttagen i alla rum, tvättstugans maskiner och fläkten FF3:s anslutning, efter
+"""Källaren (#51): belysningen, uttagen i alla rum, tvättstugans maskiner och fläktarnas anslutningar, efter
 användarens indelning av rummen, 3000 K.
 
 Belysningen:
@@ -41,7 +41,7 @@ KL-väggarnas regelfack, vågrätt i golvzonen (Z_GOLVZON, under tappställenas 
 - de små rummen norr om KL1, rummet norr om trapphallen och trapphallen (G23): ur centralens baksida västerut i V3:s,
   norrut i V21:s och österut i V7:s cellplast, runt hörnet in i V18:s, och upp i V7:s och in i KL3:s och KL4:s
   regelfack, över dörren KD3;
-- det stora rummet, rummen vid V2 och fläkten FF3 (G24): gruppens rör genom bjälklaget till fläktens anslutning på
+- det stora rummet, rummen vid V2 och fläkten FF3 (G24): gruppens rör genom bjälklaget till kopplingsdosan KA-D2 på
   V20, därifrån genom bjälklaget till V15 och i V15:s, V16:s, V1:s och V14:s cellplast mellan det stora rummets uttag
   (under det stora rummets uttag), och i V20:s och V2:s till rummen vid V2.
 
@@ -80,7 +80,7 @@ from ..punkter import Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, a
 from . import kallarens_punkter as KP
 from .kallarens_punkter import (BRYTARE, D_STORA, DOSOR, KL_GIPSYTA, PANELER, S6, S_D2, SMA_O, SMA_V, SPEL,
                                 STORA_RUMMET, UTTAG_KS, UTTAG_SMA, UTTAG_STORA, UTTAG_V2, V_GIPSYTA, X_TVATT_UTTAG,
-                                X_UTTAG_KL4, Y_FF3, Y_MASKINER, Y_UTTAG_KL3, Z_BRYTARE, Z_FF3, Z_GOLVZON, dosans_lage,
+                                X_UTTAG_KL4, Y_D2, Y_FLAKT_STORA, Y_FLAKT_TVATT, Y_MASKINER, Y_UTTAG_KL3, Z_BRYTARE, Z_D2, Z_GOLVZON, dosans_lage,
                                 ned_i_dosan, pa_kl, panelens, stigarna, ur_dosan, vaggens_c, xy)
 
 RUM, NAMN = KP.RUM, KP.NAMN
@@ -117,6 +117,7 @@ def _i_cellplasten(v: str, s_: float) -> tuple[float, float]:
 
 _V3_EPS, _V21_EPS, _V7_EPS = _eps("V3"), _eps("V21"), _eps("V7")      # mitt i cellplasten bakom gipsen
 _ZU = teknikrum.Z_UTTAG + PLAN[0]
+_ZF = Z_D2 + PLAN[0]                                     # fläktarnas anslutningar och kopplingsdosan KA-D2
 _X_UT = X_GC - GC_MATT[0] / 2                            # centralens västra ände
 
 
@@ -181,9 +182,12 @@ def _stora_uttagen() -> list[Ror]:
     # rummen vid V2: från fläktens anslutning ned i V20:s cellplast till golvzonen, söderut och runt hörnet österut i
     # V2:s till uttagen (i golvzonen)
     v20, v2 = _eps("V20"), _eps("V2")
-    ut.append(_ror("G24-R5", "KA-D2", "KA-U15", ((v20, Y_FF3 - 30.0, PLAN[0] + Z_FF3), (v20, Y_FF3 - 30.0, _ZG),
+    ut.append(_ror("G24-R5", "KA-D2", "KA-U15", ((v20, Y_D2 - 30.0, PLAN[0] + Z_D2), (v20, Y_D2 - 30.0, _ZG),
                                                  (v20, v2, _ZG), (UTTAG_V2[0][1], v2, _ZG))))
     ut.append(_ror("G24-R6", "KA-U15", "KA-U16", ((UTTAG_V2[0][1], v2, _ZG), (UTTAG_V2[1][1], v2, _ZG))))
+    # fläkten FF3:s anslutning på V14: från uttaget söder om den upp i V14:s cellplast och norrut
+    v14, y12, zf = _eps("V14"), UTTAG_STORA[3][1] + 30.0, PLAN[0] + Z_D2
+    ut.append(_ror("G24-R7", "KA-U12", "KA-D6", ((v14, y12, _ZU), (v14, y12, zf), (v14, Y_FLAKT_STORA, zf))))
     return ut
 
 
@@ -194,6 +198,10 @@ ROR: list[Ror] = [
     # under uttagen (torktumlaren 50 mm, tvättmaskinen 100 mm, så att rören inte korsar varandra vid V21)
     _ror("G20-M", "GC", "KA-U1", (*teknikrum.bakifran(_X_UT + 20.0, _ZU), (X_TVATT_UTTAG[0], _V3_EPS, _ZU))),
     _ror("G20-R1", "KA-U1", "KA-U2", ((X_TVATT_UTTAG[0], _V3_EPS, _ZU), (X_TVATT_UTTAG[1], _V3_EPS, _ZU))),
+    # fläkten FF4:s anslutning på V21: från uttaget söder om den (det västra arbetsrummets, G23) upp i V21:s cellplast
+    # och norrut, så att röret inte korsar tappvattnets rör till tvätthoet och tvättmaskinen norr om fläkten
+    _ror("G23-R8", "KA-U5", "KA-D7", ((_V21_EPS, UTTAG_SMA[0][1] + 30.0, _ZU), (_V21_EPS, UTTAG_SMA[0][1] + 30.0, _ZF),
+                                      (_V21_EPS, Y_FLAKT_TVATT, _ZF))),
     _ror("G21-M", "GC", "KA-U3", _tvatten(0, _X_UT + 40.0, 100.0)),
     _ror("G22-M", "GC", "KA-U4", _tvatten(1, _X_UT + 60.0, 50.0)),
 ]
@@ -328,7 +336,7 @@ _B6, _B7 = BRYTARE["KA-B6"], BRYTARE["KA-B7"]
 _D = DIMRAR
 _S6 = S6                                                             # från centralen, till KA-P07, till KA-B7
 _S7 = stigarna(_B7, [xy(_B6), _P08, xy(_D["KA-B4"])], -40.0)      # från KA-B6, till KA-P08, till KA-B4
-# det stora rummets uttag och fläkten FF3 (G24): gruppens rör från centralen ned i V20:s cellplast till fläktens
+# det stora rummets uttag (G24): gruppens rör från centralen ned i V20:s cellplast till kopplingsdosans
 # anslutning, och därifrån till det första uttaget på V15
 _D2 = _PK["KA-D2"]
 _U9 = _PK["KA-U9"]

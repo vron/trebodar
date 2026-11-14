@@ -2,7 +2,7 @@
 baksida i V3:s cellplast), gruppcentralen (..teknikrum.GRUPPCENTRAL, på V3 väster om vattenmätaren) som punkten
 GC, där varje grupps rör börjar på centralens ovansida (bjalklag/mellanbjalklag.py), och värmepumpens fasta
 anslutning (TK-D1) på V19 ovanför värmepumpen, med röret från centralens östra ände i källarväggarnas cellplast
-bakom gipsen (fräst spår): i V3 och V19 under ventilationens kanal FF3-K2, som går framför V3.
+bakom gipsen (fräst spår), i V3 och V19.
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ PUNKTER = [
 ]
 
 _X_UT = _TOPP[0] + GC_MATT[0] / 2 - 20.0     # röret ur centralens ovansida i dess östra ände, mot väggen
-_Z = Z_GC_TOPP + 20.0                        # i väggarna strax över centralens överkant, under kanalen FF3-K2
+_Z = Z_GC_TOPP + 20.0                        # i väggarna strax över centralens överkant
 _Z_U = PLAN[0] + Z_UTTAG                     # uttagens höjd: rören i V3:s cellplast i den höjden
 _BAK = GRUPPCENTRAL.lage.punkt[1]            # centralens baksida mot väggens gips
 

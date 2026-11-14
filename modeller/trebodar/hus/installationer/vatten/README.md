@@ -47,8 +47,7 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
   matad från fördelarskåpet med ett rör per media som ett tappställe i `ORDNING` (rören rakt ned ur bjälklaget till
   stammarnas början, utgång 0), med egna utgångar till sina tappställen. UF1 under köket på V14 (diskbänken och
   diskmaskinen i ön, #50, med kopparrör till hylsor, #83) och UF2 under badrummet på KL1 (WC:n och tvättmaskinen i
-  skåpet, #51, i ett eget stråk): fördelarskåpets filer räcker inte till fler rör (ett sjuttonde krockar med
-  ventilationens kanal FF3-K2).
+  skåpet, #51, i ett eget stråk): fördelarskåpets filer räcker inte till fler rör.
 - **Hylsor** (dosans slag `hylsa`, #83): köket har inga golvdosor och inga rör i bjälklaget. Kopparrör 15 går från
   UF1:s utgångar rakt upp till under källarens tak (`Z_TAKET`, varmvattnet överst), där först i x och sedan i y till
   under sin hylsa och rakt upp genom den: Ø50 (PP-avloppsrör), en per rör, ingjuten mellan armeringsjärnen
@@ -67,7 +66,7 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
 - Rören går ur fördelarskåpets öppna ovansida upp i mellanbjälklaget och gjuts in mellan armeringsnäten (R-06), alla
   i en nivå närmast underkantsnätet (`Z_ROR`; golvvärmen går ovanför), en fil per rör c/c 50 som nätens maskor:
   kallt och varmt bredvid varandra. Varmvattnets fördelare sitter bakom kallvattnets, och utgångarna sitter i sina
-  rörs filer, mellan underkantsnätets järn och norr om ventilationens kanal FF3.
+  rörs filer, mellan underkantsnätets järn.
 - Där rören går upp eller ned genom bjälklaget går de mellan armeringsjärnen (`forskjutning`, med
   `../strak.mellan_jarnen`): golvdosan flyttas så lite som behövs (fri från väggarna), och rören i väggen flyttas längs
   väggen (och tvärs den inom regelfacket eller cellplasten) och går därifrån till väggdosan.

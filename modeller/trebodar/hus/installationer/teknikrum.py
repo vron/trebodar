@@ -8,7 +8,7 @@ YTA är den del av källaren som pekats ut för utrustningen.
   anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till golvvärmen (golvvarme/, fördelarna på
   V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
 - Tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
-  går ut genom skåpets öppna ovansida, norr om ventilationens kanal FF3 under taket längs V3. Kort
+  går ut genom skåpets öppna ovansida. Kort
   varmvattenledning från beredaren.
 - Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
   väg till huset är inte bestämd.
@@ -62,7 +62,7 @@ VARMEPUMP = Utrustning(
      "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)},
     produkt="VARMEPUMP")
 
-# tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, norr om ventilationens kanal FF3 längs V3
+# tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
                           kallarvagg("V19", 8510.0, 1250.0, -1), (1000.0, 120.0, 600.0), {})
 
@@ -76,9 +76,7 @@ VATTENMATARE = Utrustning("TK-VM", "Vattenmätare med huvudavstängning och back
                            "ut": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] + 125.0)})
 
 # elcentralen (gruppcentralen, #51) på V3 väster om vattenmätaren, x 2 400–3 000, med FRITT_FRAMFOR fritt framför;
-# ventilationens kanal FF3-K2 går längs V3 under taket från V19 till x 2 810 och där bort från väggen, över
-# centralens östra del, så centralen sitter lägre (överkanten Z_GC_TOPP under kanalen) och rören går upp ur ovansidans
-# västra del, väster om kanalen, rakt in i mellanbjälklaget (el/grupper.py, el/bjalklag/mellanbjalklag.py)
+# rören går upp ur ovansidans västra del rakt in i mellanbjälklaget (el/grupper.py, el/bjalklag/mellanbjalklag.py)
 X_GC = 2700.0
 FRITT_FRAMFOR = 800.0
 GC_MATT = (600.0, 130.0, 900.0)                 # bredd, djup, höjd

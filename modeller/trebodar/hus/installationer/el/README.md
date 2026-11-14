@@ -116,7 +116,7 @@ En ny rum- eller bjälklagsmodul läggs till i `MODULER` i `installation.py`.
   ljuslinje (koppar 0,0183 Ω mm²/m, kabeln 300 mm längre än röret i varje ände) och väljer den minsta arean (1,5 eller
   2,5 mm²) som håller det under 3 %; resultatet står på E-01.6.
 - **Källarens uttag** ([`rum/kallare.py`](rum/kallare.py), [`rum/teknikrum.py`](rum/teknikrum.py), #51): i alla
-  rum, tvättmaskinen och torktumlaren i tvättstugan och fläkten FF3:s anslutning. Rören går i källarväggarnas cellplast
+  rum, tvättmaskinen och torktumlaren i tvättstugan och fläktarna FF3:s och FF4:s anslutningar (KA-D6 på V14 och KA-D7 på V21). Rören går i källarväggarnas cellplast
   bakom gipsen och i KL-väggarnas regelfack, vågrätt i golvzonen (250 mm över golvet, under tappställenas rör) och upp
   eller ned till uttagen; de flesta grupperna kommer ur centralens baksida (`teknikrum.bakifran`), det stora rummets
   och fläktens (G24) genom bjälklaget till V20.

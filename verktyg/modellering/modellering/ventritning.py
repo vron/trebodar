@@ -1,6 +1,6 @@
 """Ventilationsritningar ur modellens ventilation (utdraget ur trebodar.hus.installationer.ventilation), i
 ritningsmallen (A3): planerna för plan 1 och källaren (kanalerna med frånluft, stigarledningarna, donen, fläktarna,
-avluftsdonen och flödena) och en sektion längs källarrummets kanal upp genom väggen 1C till taket, med
+avluftsdonen och flödena) och en sektion längs varje kanal som går upp genom mellanbjälklaget till taket, med
 genomföringarna. Planerna och sektionen ur modellens snitt (STEP-filen).
 """
 from __future__ import annotations
@@ -26,9 +26,13 @@ Pkt = tuple[float, float]
 # ------------------------------------------------------------------ symboler (pappersmått)
 
 def flakt(v: Vy, X: float, Y: float, riktning: Pkt = (1.0, 0.0)) -> None:
-    """Fläkt (SS-EN 12792): cirkel med en triangel som pekar i luftens riktning."""
+    """Fläkt (SS-EN 12792): cirkel med en triangel som pekar i luftens riktning; en lodrät fläkt (riktningen noll i
+    planet) har en punkt i mitten."""
     v.cirkel(X, Y, R_FLAKT, fyll="vit", stil="normal")
     d = np.asarray(riktning, float)
+    if float(np.hypot(*d)) < 1e-6:
+        v.cirkel(X, Y, 0.5, fyll="svart", stil=None)
+        return
     d = d / float(np.hypot(*d))
     n = np.array([-d[1], d[0]])
     c = np.array([X, Y])
@@ -204,14 +208,15 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
                 visade.add(k)
             elif e["slag"] == "don" and _i_vaningen(p[2], vaning):
                 frandon(v, p[0], p[1], typ["front_d"])
-                v.ptext(p[0], p[1], 2.2, 1.2, f"{k} frånluftsdon\n{flode[e['gren']]}", a="lb", sz=5.4, bg=True)
+                slag = "överluftsdon" if utdrag["grenar"][e["gren"]].get("overluft") else "frånluftsdon"
+                v.ptext(p[0], p[1], 2.2, 1.2, f"{k} {slag}\n{flode[e['gren']]}", a="lb", sz=5.4, bg=True)
                 visade.add(k)
             elif e["slag"] == "flakt" and _i_vaningen(p[2], vaning):
                 r = np.array(e["riktning"][:2])
                 flakt(v, p[0], p[1], tuple(r))
                 v.ptext(p[0], p[1], 0.0, -R_FLAKT - 1.0, f"{k} kanalfläkt", a="ct", sz=5.4, bg=True)
                 visade.add(k)
-            elif e["slag"] == "avluft" and typ["slag"] == "galler" and vaning[0] >= -1.0:
+            elif e["slag"] == "avluft" and typ["slag"] == "galler" and _i_vaningen(p[2], vaning):
                 n = np.array(e["normal"][:2])
                 avluft(v, p[0], p[1], tuple(n))
                 q = np.array(p[:2]) + n * v.m(5.0)

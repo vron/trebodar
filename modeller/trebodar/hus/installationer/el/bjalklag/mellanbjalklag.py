@@ -4,7 +4,7 @@ teknikrummet till gruppens första punkt på plan 1 (../grupper.py), och därifr
 
 Rören går upp ur centralens ovansida in i bjälklaget, i två rader mellan underkantsnätets järn: den främre (RAD_A)
 ovanför centralen och den bakre (RAD_B) i V3:s cellplast bakom gipsen (rören går snett in i väggen ur centralens
-ovansida). Där finns plats för dem väster om ventilationens kanal FF3-K2, som går över centralens östra del. Den
+ovansida). Den
 bakre raden har punkterna söder om V3, den främre de andra. Ovanför centralen ligger V3:s vinkeljärn (R-06) i elrörens
 övre nivå, så rören går i knippen (ingjutna.knippe): rakt ut ur bandet mellan järnen, den främre raden norrut och den
 bakre söderut över V3, och därifrån som ett brett rör med en fil per rör, raka och sneda med mjuka böjar runt det som

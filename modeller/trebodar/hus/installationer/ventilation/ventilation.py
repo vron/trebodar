@@ -205,7 +205,8 @@ def _avluft(e: Avluft) -> Montage:
     t, m = e.typ, e.lage
     mm = Montage(e.id, beskrivning=t.namn, produkt=t.produkt or None)
     if t.slag == "galler":
-        alu = ALUMINIUM[int(m.ref[0])]                  # fönstrens aluminium på huskroppen
+        # på fasaden i fönstrens aluminium på huskroppen; inne (överluft i en källarvägg) som donen
+        alu = ALUMINIUM[int(m.ref[0])] if m.ref[:1].isdigit() else VENTILATIONSDON
         sys = _vagg(m)
         mm.lagg(Del(f"{t.namn}, ram {t.b:g} × {t.h:g}", box(-t.b / 2, t.b / 2, -t.h / 2, t.h / 2, 0.0, 4.0), alu),
                 sys, f"{e.id}-RAM")

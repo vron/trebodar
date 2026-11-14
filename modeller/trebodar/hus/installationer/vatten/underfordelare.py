@@ -8,8 +8,7 @@ läckage syns och rinner till golvbrunnen.
   under taket och genom hylsor i bjälklaget (rum/kok.py, #83), utan stråk. Matningen kommer i stråket O och ned till
   stammarnas början.
 - UF2 i rummet öster om KL2 under badrummet, på KL1: kallt till WC:n BA-WC1 och till tvättmaskinen BA-TM1 i skåpet i
-  badrummet, var sin utgång. Huvudfördelarnas filer räcker inte till ett rör till: det sjuttonde krockar med
-  ventilationens kanal FF3-K2 (#50).
+  badrummet, var sin utgång. Huvudfördelarnas filer räcker inte till ett rör till (#50).
 
 Stammarna som i fördelarskåpet: varmvattnet bakom och högre, kallvattnet framför, utgångarna uppåt c/c FIL i rörens
 filer, och rören rakt upp i mellanbjälklaget mellan underkantsnätets järn: underfördelaren flyttas längs väggen så

@@ -301,7 +301,7 @@ def _kanal(vent: dict | None) -> tuple[list[tuple[list[float], list[float], floa
 def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | None, nummer: str,
                ovriga: str) -> Blad:
     """Teknikrummet (1:20): planen och vyn mot V19 med fördelarskåpet, fördelarna, rören upp till källarens tak,
-    matarledningarna, värmepumpen och ventilationens kanal FF3. Vyerna klipps vid sina ramar; rubrikerna, filernas
+    matarledningarna, värmepumpen och ventilationens kanaler och fläktar där de går i rummet. Vyerna klipps vid sina ramar; rubrikerna, filernas
     namn och skalstocken i en vy över hela bladet."""
     ror, niv = utdrag["ror"], utdrag["nivaer"]
     kanaler, flaktar = _kanal(vent)
@@ -319,7 +319,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
         for f in flaktar:
             q = f["punkt"]
             p.rekt(q[0] - f["langd"] / 2, q[1] - f["d"] / 2, q[0] + f["langd"] / 2, q[1] + f["d"] / 2, "vit", "dold")
-            p.ptext(q[0], q[1], 0.0, 0.0, "FF3", a="cm", sz=5.0, col="gra")
+            p.ptext(q[0], q[1], 0.0, 0.0, f["gren"], a="cm", sz=5.0, col="gra")
     _utrustning(p, utdrag, etiketter=False)
     with p.lager("fordelare"):
         for f in utdrag["fordelare"].values():
@@ -373,7 +373,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
             q = f["punkt"]
             if q[0] - f["langd"] / 2 > X_VY:
                 e.rekt(-(q[1] + f["d"] / 2), q[2] - f["d"] / 2, -(q[1] - f["d"] / 2), q[2] + f["d"] / 2, None, "dold")
-                e.ptext(-q[1], q[2], 0.0, 0.0, "FF3", a="cm", sz=5.0, col="gra")
+                e.ptext(-q[1], q[2], 0.0, 0.0, f["gren"], a="cm", sz=5.0, col="gra")
     with e.lager("fordelare"):
         for k, f in utdrag["fordelare"].items():
             ya, yb, z = f["start"][1], f["slut"][1], f["start"][2]
@@ -411,8 +411,8 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
     kol = _anvisningar(
         utdrag,
         "Fördelarskåpet på V19 med varmvattnets fördelare bakom och kallvattnets framför: rören går upp ur skåpets "
-        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 50) mellan underkantsnätets järn och norr "
-        "om ventilationens kanal FF3. Matarledningarna över värmepumpen; kallvattnet in i fördelarens södra ände och "
+        "öppna ovansida in i mellanbjälklaget, varje rör i sin fil (c/c 50) mellan underkantsnätets järn. "
+        "Matarledningarna över värmepumpen; kallvattnet in i fördelarens södra ände och "
         "vidare genom den till beredaren.",
         "Skåpet får läckageindikering till golvbrunnen i teknikrummet (Säker Vatten); avloppet ritas senare. "
         "Servisens väg till huset är inte bestämd.",
@@ -420,7 +420,6 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
             (lambda w: stigare(w, 0.0, 0.0, "VV"), "lodrätt rör, varmvatten"),
             (lambda w: stigare(w, 0.0, 0.0, "KV"), "lodrätt rör, kallvatten"),
             (dict(form="yta", fyll="betong", stil="tunn"), "betong"),
-            ("dold", "ventilationens kanal och fläkt (FF3)"),
         ])]
     return blad(nummer, ["Tappvatten", "Teknikrummet"], f"1:{s:g}", "Modellen", kol, [p, hela, e, ev], block)
 

@@ -17,6 +17,8 @@ ISOLERAD_125 = Kanaltyp("ISO125", "Spirokanal Ø125, isolerad 50 mm mineralull m
 # vid 111 l/s)
 ISOLERAD_200 = Kanaltyp("ISO200", "Spirokanal Ø200, isolerad 50 mm mineralull med folie", "rund", 200.0, 200.0,
                         isolering=50.0)
+ISOLERAD_100 = Kanaltyp("ISO100", "Spirokanal Ø100, isolerad 50 mm mineralull med folie", "rund", 100.0, 100.0,
+                        isolering=50.0)
 # genom ytterväggen: isolerad hylsa (kondens)
 VAGGHYLSA_100 = Kanaltyp("VH100", "Väggenomföring Ø100, isolerad 20 mm", "rund", 100.0, 100.0, isolering=20.0)
 # i en lätt vägg (stomme 45 × 70): platt kanal med samma tvärsnitt som Ø125
@@ -29,6 +31,10 @@ RUND_150_200 = Overgangstyp("OV150-200", "Övergång Ø150 – Ø200, isolerad",
 # ------------------------------------------------------------------ don och fläktar
 
 FRANLUFTSDON_125 = Dontyp("FD125", "Frånluftsdon Ø125, vitlackerat (ej valt)", 125.0, 190.0, 40.0, 20.0)
+
+FRANLUFTSDON_100 = Dontyp("FD100", "Frånluftsdon Ø100, vitlackerat (ej valt)", 100.0, 160.0, 40.0, 20.0)
+# överluften mellan två rum i källaren: don på den ena sidan av väggen och galler på den andra
+OVERLUFTSDON_100 = Dontyp("OD100", "Överluftsdon Ø100, vitlackerat (ej valt)", 100.0, 160.0, 40.0, 20.0)
 
 # vägghängd köksfläkt utan egen fläkt (takfläkten nedan): en kåpa av vit pulverlackerad rostfri plåt från ramen
 # 698 × 500 i underkanten upp till innertaket, avsmalnande med samma vinkel på bredden och djupet till 180 × 240 vid
@@ -46,6 +52,9 @@ VAGGFLAKT_100 = Vaggflakttyp("VF100", "Badrumsfläkt för vägg Ø100, fuktstyrd
 KANALFLAKT_125 = Kanalflakttyp("KAF125", "Kanalfläkt Ø125, rund (ej vald)", "", "", anslutning=125.0, d=250.0,
                                langd=230.0, flode=50.0)
 
+KANALFLAKT_100 = Kanalflakttyp("KAF100", "Kanalfläkt Ø100, rund, tyst (ej vald)", "", "", anslutning=100.0, d=220.0,
+                               langd=200.0, flode=40.0)
+
 # ------------------------------------------------------------------ avluftsdon
 
 # takfläkten till köksfläkten: bottenplattan Ø439, huset Ø364, höjden 187 (Systemairs måttabell); 216 l/s fritt
@@ -55,6 +64,10 @@ TAKFLAKT_200 = Avluftstyp("TFSR200", "Takfläkt Systemair TFSR 200 EC Sileo med 
                           187.0, backspjall=True, hus=364.0, sockel=200.0, sockel_d=300.0, produkt="TAKFLAKT")
 GALLER_100 = Avluftstyp("YG100", "Ytterväggsgaller Ø100, aluminium, svart (ej valt)", "galler", 100.0, 160.0, 160.0,
                         djup=35.0)
+TAKHUV_100 = Avluftstyp("TH100", "Takhuv Ø100 för bandtäckt plåttak, zink-magnesium (ej vald)", "takhuv", 100.0,
+                        250.0, 320.0)
+OVERLUFTSGALLER_100 = Avluftstyp("OG100", "Överluftsgaller Ø100, vitlackerat (ej valt)", "galler", 100.0, 160.0, 160.0,
+                                 djup=20.0)
 TAKHUV_125 = Avluftstyp("TH125", "Takhuv Ø125 för bandtäckt plåttak, zink-magnesium (ej vald)", "takhuv", 125.0,
                         280.0, 350.0)
 

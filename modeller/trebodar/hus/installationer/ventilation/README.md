@@ -20,7 +20,7 @@ cd verktyg/modellering
 |---|---|
 | [`typer.py`](typer.py) | Produkttyperna: `Kanaltyp` (rund eller platt, med isolering), `Dontyp` (frånluftsdon), `Koksflakttyp` (med egen fläkt eller för en extern), `Vaggflakttyp`, `Kanalflakttyp`, `Overgangstyp` (rund–platt, rund–rund) och `Avluftstyp` (galler, takhuv, takfläkt) |
 | [`katalog.py`](katalog.py) | Produkterna, tills vidare allmänna typer med vanliga mått och flöden (ej valda) |
-| [`delar.py`](delar.py) | Grenen (`Gren`) och dess element i luftens riktning: `Don`, `Kanal`, `Flakt`, `Overgang`, `Avluft`; hur kanalernas vägar följer av kedjan |
+| [`delar.py`](delar.py) | Grenen (`Gren`, också överluften mellan två rum) och dess element i luftens riktning: `Don`, `Kanal`, `Flakt`, `Overgang`, `Avluft`; hur kanalernas vägar följer av kedjan |
 | `grenar/<gren>.py` | En gren: dess element, lägen och flöden |
 | [`system.py`](system.py) | Allt ur grenarna (`MODULER`), genomföringarna, kontrollen och utdraget för ritningarna |
 | [`ventilation.py`](ventilation.py) | Geometrin, ett montage per gren under `Hus/Installationer/Ventilation` |
@@ -50,12 +50,13 @@ Elementens id börjar med grenens: D don, K kanal, FL fläkt, O övergång, A av
 |---|---|---|---|
 | FF1 | Köket | 111 l/s forcerat (400 m³/h), 56 l/s normalt | Kåpan Fjäråskupan Carisma 70, vit, utan egen fläkt, mitt emellan fönstren 3NV-F4 och 3NV-F5, 650 över hällen; utloppet Ø150 upp i skorstenskåpan mot takbalksfackets mitt, genom innertaket och ångbromsen, och isolerad Ø200 lodrätt genom taket till takfläkten Systemair TFSR 200 EC Sileo på en sockel Ø300 i takplåten |
 | FF2 | Badrummet | 15 l/s forcerat, 10 l/s grund (fuktstyrd) | Väggfläkt i gaveln 1NO mellan fönstret 1NO-F1 och väggen L9, 2 300 över golvet, röret genom väggen och galler |
-| FF3 | Källarrummet (mellan V19/V20, V2, V15 och V4–V6) | 10 l/s | Frånluftsdon i rummets sydvästra hörn; kanalen under källarens tak genom V19 till kanalfläkten i källarens vänstra del; upp genom mellanbjälklaget i den bärande innerväggen 1C (mellan badrummet och hallen) som platt kanal 204 × 60 mellan reglarna 1C-R03 och 1C-R04; över innertaket isolerad mellan takbalkarna och ut genom takhuven på takfallet 1NV, 650 mm nedanför nocken |
+| FF3 | Stora källarrummet (under högra huskroppen) | 10 l/s, 5 l/s grund | Frånluftsdon och kanalfläkt under källarens tak; kanalen Ø100 lodrätt genom mellanbjälklaget och upp i kökets inbyggnad, i skafferiets inre hörn mot L4 och L18; över innertaket isolerad mellan takbalkarna och ut genom en takhuv på takfallet 3NV |
+| FF4 | Tvättstugan (under hallen och badrummet) | 15 l/s forcerat (fuktstyrd), 5 l/s grund | Frånluftsdon och kanalfläkt under källarens tak; kanalen Ø100 lodrätt genom mellanbjälklaget och upp längst in i hörnet i hallens garderob, mot 1A och 1B; över innertaket isolerad och ut genom en takhuv på takfallet 1SO |
+| OL1 | Källarrummet (mellan V19/V20, V2, V15 och V4–V6) | överluft, 5 l/s | Överluftsöppning Ø100 genom källarväggen V15, med don och galler: rummets luft går ut i det stora rummet och vidare till FF3 |
 
-Källarrummet har inga väggar ovanför på plan 1 (allrummet), och dess ytterväggar står mot marken. Väggen 1C ligger
-rakt väster om rummet (samma y), ovanför källarens vänstra del, och har ett fritt regelfack utan stolpe eller dörr;
-takbalkarna ovanför har ett fritt fack i samma läge (y 7 850–8 405). Den lätta väggen L11 har badrummets fickdörr där
-den ligger ovanför rummet, och ytterväggarnas installationsskikt (45 mm) rymmer ingen kanal.
+Kanalerna från källaren går lodrätt och syns på plan 1 bara inne i skafferiet och i hallens garderob (#134, #136).
+En överluft (`Gren(..., overluft=True)`) har ingen fläkt, och dess flöde räknas inte till frånluften. Källarens
+fläktar ansluts på väggen mitt för fläkten (elen: KA-D6 på V14 och KA-D7 på V21).
 
 ## Genomföringarna och kontrollen
 
@@ -81,5 +82,5 @@ den ligger ovanför rummet, och ytterväggarnas installationsskikt (45 mm) rymme
 
 - **VL-01.1 plan 1** och **VL-01.2 källaren** (1:75): kanalerna med frånluft i skala, lodräta kanaler genom
   bjälklaget, donen, fläktarna, avluftsdonen och flödena, med tabeller över grenarna, kanalerna och produkterna;
-- **VL-01.3 sektionen** (1:50) längs källarrummets kanal upp genom väggen 1C till takhuven, med genomföringarna och
+- **VL-01.3 och VL-01.4 sektionerna** (1:50) längs det stora rummets och tvättstugans kanaler upp till takhuvarna, med genomföringarna och
   deras mått, och tabellen över alla genomföringar.

@@ -161,11 +161,16 @@ Z_GOLVZON = 250.0                             # rören mellan dem i väggarnas c
 UTTAG_SMA = [("V21", 4800.0, 1), ("V7", 1500.0, 1), ("V7", 3200.0, 1), ("V7", 4100.0, 1)]
 UTTAG += [Apparat(f"KA-U{i + 5}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
           for i, (v, s_, sida) in enumerate(UTTAG_SMA)]
-# det stora rummet: fyra dubbla uttag, på V15, V1 och två på V14, i uttagshöjden; och fläkten FF3:s anslutning på V20
-# vid fläkten (ventilation, FF3-FL1), 1 900 mm över golvet (G24)
-Y_FF3, Z_FF3 = 9800.0, 1900.0
+# det stora rummet: fyra dubbla uttag, på V15, V1 och två på V14, i uttagshöjden; kopplingsdosan KA-D2 på V20, där
+# gruppens rör från centralen kommer ned ur bjälklaget, 1 900 mm över golvet (G24); och fläktarnas anslutningar
+# (ventilation), lika högt: FF3 i det stora rummet på V14 mitt för fläkten (G24) och FF4 i tvättstugan på V21 mitt för
+# fläkten (G23)
+Y_FLAKT_STORA, Y_FLAKT_TVATT = 6700.0, 7300.0
+Y_D2, Z_D2 = 9800.0, 1900.0
 UTTAG_STORA = [("V15", 9830.0, 1), ("V1", 11600.0, -1), ("V14", 10000.0, -1), ("V14", 5000.0, -1)]
-UTTAG += [Apparat("KA-D2", ANSLUTNING, kallarvagg("V20", Y_FF3, Z_FF3, 1))]
+UTTAG += [Apparat("KA-D2", ANSLUTNING, kallarvagg("V20", Y_D2, Z_D2, 1)),
+          Apparat("KA-D6", ANSLUTNING, kallarvagg("V14", Y_FLAKT_STORA, Z_D2, -1)),
+          Apparat("KA-D7", ANSLUTNING, kallarvagg("V21", Y_FLAKT_TVATT, Z_D2, 1))]
 UTTAG += [Apparat(f"KA-U{i + 9}", UTTAG_2, kallarvagg(v, s_, teknikrum.Z_UTTAG, sida))
           for i, (v, s_, sida) in enumerate(UTTAG_STORA)]
 # rummet norr om trapphallen (på V18, G23) och rummen vid V2 (på V2, G24): två dubbla uttag i vardera, 250 mm över
@@ -249,7 +254,7 @@ def xy(p: Punkt) -> tuple[float, float]:
 
 # gruppernas rör från centralen genom bjälklaget till källaren (../bjalklag/mellanbjalklag.py): gruppen, punkten dit
 # röret går, var det går ned ur bjälklaget och vägen därifrån in i punktens dosa (G17: den ingjutna kopplingsdosan i
-# det stora rummets tak; G18: det västra lilla rummets brytare på KL1; G24: fläkten FF3:s anslutning på V20)
+# det stora rummets tak; G18: det västra lilla rummets brytare på KL1; G24: kopplingsdosan KA-D2 på V20)
 _GC = (X_GC, GRUPPCENTRAL.anslutningar["topp"][1])
 _PK: dict[str, Punkt] = {p.id: p for p in PUNKTER}
 S6 = stigarna(BRYTARE["KA-B6"], [_GC, panelens(PANELER[6]), xy(BRYTARE["KA-B7"])], -40.0)   # centralen, KA-P07, KA-B7

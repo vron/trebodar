@@ -881,8 +881,7 @@ def main(argv: list[str] | None = None) -> None:
         jarn = [{"linje": [list(g.coords[0])] if g.geom_type == "Point" else [list(c) for c in g.coords], "d": d}
                 for g, d in arm.jarnen_i_nivan(-150.0, -51.0) if any(g.intersects(o) for o in omr)]
         gc = tk.GRUPPCENTRAL
-        central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1],
-                   "kanal": [2810.0 - 62.5, 8936.0 - 62.5, 4950.0, 8936.0 + 62.5]}
+        central = {"topp": list(gc.anslutningar["topp"]), "matt": [gc.matt[0], gc.matt[1]], "vagg": gc.lage.punkt[1]}
         lc = tk.DRIVDONSSKAP
         skap = {"topp": list(lc.anslutningar["topp"]), "matt": [lc.matt[0], lc.matt[1]], "vagg": lc.lage.punkt[1]}
         plattor: dict[str, list[dict]] = {"MB": [], "BP": []}

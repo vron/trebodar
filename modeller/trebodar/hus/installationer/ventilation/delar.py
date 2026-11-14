@@ -67,8 +67,8 @@ Element = Don | Flakt | Overgang | Avluft | Kanal
 
 @dataclass(frozen=True)
 class Gren:
-    """En frånluft med egen fläkt: kedjan av element i luftens riktning, rummet, flödena och en beskrivning av vägen
-    (anvisningar på ritningarna)."""
+    """En frånluft med egen fläkt, eller en överluft mellan två rum (overluft): kedjan av element i luftens riktning,
+    rummet, flödena och en beskrivning av vägen (anvisningar på ritningarna)."""
     id: str
     namn: str
     rum: str
@@ -76,6 +76,7 @@ class Gren:
     kedja: tuple[Element, ...]
     flode_normal: float = 0.0   # grundflöde [l/s]
     beskrivning: tuple[str, ...] = ()
+    overluft: bool = False      # överluft mellan två rum: utan fläkt, och flödet räknas inte till frånluften
 
 
 def fri(p: Vek, normal: Vek, ref: str = "") -> Montering:

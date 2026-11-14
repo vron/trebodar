@@ -631,7 +631,7 @@ def _hal_element(hal: list[dict], o: Omrade) -> list[Element]:
 
 def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Detalj:
     """Detalj 1:10 ovanför gruppcentralen: rörens stigare i de två raderna (den bakre i V3:s cellplast) mellan
-    underkantsnätets järn och V3:s vinkeljärn, kanalen FF3-K2 och måtten från centralens västra kant (den främre
+    underkantsnätets järn och V3:s vinkeljärn och måtten från centralens västra kant (den främre
     raden under ramen, den bakre över)."""
     x0, x1, y0, y1 = DETALJ
     s = SKALA_DETALJ
@@ -644,8 +644,6 @@ def _detalj_centralen(el: dict, jarn: list[dict], central: dict) -> Detalj:
             v.rekt(cx - b / 2, cy - d / 2, cx + b / 2, cy + d / 2, "#efefec", "normal")
             v.linje([(x0, central["vagg"]), (x1, central["vagg"])], "normal")
             _jarnen(v, jarn)
-            k = central["kanal"]
-            v.rekt(k[0], k[1], k[2], k[3], None, "dold")
         rader: dict[float, list[float]] = {}
         with v.lager("stigare"):
             for nr, r in el["ror"].items():

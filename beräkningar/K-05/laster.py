@@ -93,10 +93,10 @@ GD = 0.91
 # K-04: Gk och Sk var för sig, och räcker de inte till K-04:s största N_Ed läggs skillnaden till som snö (på säker
 # sida). Förs in för hand från K-04:s tabell över stolparna (K-04 jämför med K-05 och visar det som är större).
 K04 = {
-    "LA10": (3.2, 4.0, 19.6),
+    "LA10": (3.3, 4.3, 21.1),
     "LA5": (2.2, 3.6, 10.0),
     "LA9": (2.6, 2.6, 14.7),
-    "LD2_1": (4.5, 11.5, 23.2),
+    "LD2_1": (4.6, 11.8, 23.6),
     "LD2_3": (7.7, 22.0, 41.4),
     "LD2_4": (6.2, 11.3, 33.3),
     "LD4_1": (15.9, 44.4, 83.1),
