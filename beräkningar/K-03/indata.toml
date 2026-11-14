@@ -58,7 +58,64 @@ mu_dal      = 1.6       # takfall mot en dal: μ2 = 1,6 jämnt över hela takfal
 mu_takfot   = 1.0       # takfall mot takfot: 1,0 (standarden: μ1 = 0,8)
 utsprang    = 0.2       # takutsprång vid takfot och gavel, horisontellt [m]
 # hastighetstrycket q_p läses ur K-01:s resultat (F-01:s värde, samma i alla handlingar)
-cpe_cpi_G   = -1.6      # vindsug netto i zon G närmast gaveln (K-01): cpe −1,4, cpi +0,2
+
+# ------------------------------------------------------------------ vindsug på taket och yttertakets infästning
+# Formfaktorer för sadeltak 30° (SS-EN 1991-1-4 7.2.5, tabell 7.4a och 7.4b): cpe1 för lastytor upp till 1 m²
+# (infästningar), cpe10 från 10 m², logaritmiskt däremellan (figur 7.2). Zonernas djup e/10 med e = min(b; 2h) = 2h.
+# under: trycket under den lastade delen, som läggs till suget.
+[yttertak]
+h_ref     = 5.6         # referenshöjden [m] (F-01)
+g_over    = 0.15        # råspont, underlagspapp och plåt per m² takyta [kN/m²], gynnsam: 8,4 + 2,5 + 4,7 kg/m² med
+                        # trä 420 kg/m³ (F-01 räknar 18 kg/m² med trä 500 kg/m³, på säker sida för last nedåt)
+rand      = 1.3         # randzonen på ritningen: från gavelkanter och fria takfötter, längs takytan [m] (minst e/10 / cos 30°)
+cc_rand   = 300         # ströläktens skruv i randzonerna, c/c [mm]
+cc_ovrigt = 600         # ströläktens skruv i övrigt, c/c [mm]
+
+[[yttertak.zon]]        # vind längs nockarna, zon G (tabell 7.4b); zon F i hörnen har lägre värden och räknas som G
+namn  = "Gavelzon"
+text  = "Vid gavelkanterna, vind längs nockarna (zon G)"
+cpe1  = -2.0
+cpe10 = -1.4
+under = 0.2             # inre tryck c_pi (K-01)
+rand  = true
+[[yttertak.zon]]        # vind mot takfoten, zon F och G (tabell 7.4a); under takfoten och i luftspaltens mynning
+namn  = "Takfotszon"    # lovartväggens tryck (7.2.1: zon D, c_pe,10)
+text  = "Vid fria takfötter, vind mot takfoten (zon F och G)"
+cpe1  = -1.5
+cpe10 = -0.5
+under = 0.8
+rand  = true
+[[yttertak.zon]]        # vind längs nockarna, zon H (tabell 7.4b), till e/2 från gavlarna: resten av taket
+namn  = "Innerzon"
+text  = "Resten av taket, vind längs nockarna (zon H)"
+cpe1  = -1.2
+cpe10 = -0.8
+under = 0.2
+rand  = false
+
+[yttertak.lakt]         # ströläkten 34×45 på hårdboard 3 mm, på varje takbalk och takstol (bär yttertaket)
+h         = 34.0
+b         = 45.0
+hardboard = 3.0
+skruv     = "Rothoblaas HBS EVO 5×90"   # försänkt träskruv, C4 EVO, bruksklass 3, ETA-11/0030 (databladet)
+d         = 5.0
+L         = 90.0
+b_ganga   = 45.0        # gängans längd
+d_huvud   = 10.0
+f_head    = 10.5        # f_head,k [MPa] vid 350 kg/m³
+f_ax      = 11.7        # f_ax,k [MPa] vid 350 kg/m³
+f_tens    = 7.9         # f_tens,k [kN]
+
+[yttertak.raspont]      # råsponten 20×95 (täckande 85), två spik per bräda i läkten på varje takbalk (K-04)
+t         = 20.0
+w         = 85.0        # täckande bredd
+n         = 2           # spik per bräda och läkt
+spik      = "varmförzinkad trådspik 2,8×75"
+d         = 2.8
+L         = 75.0
+d_huvud   = 5.6         # minst 2 d (styr inte)
+spik_mellan = "varmförzinkad trådspik 2,0×50"   # i de två mellanläkten per fack: går inte igenom hårdboarden
+L_mellan  = 50.0
 
 # ------------------------------------------------------------------ takbalkar
 [takbalk]

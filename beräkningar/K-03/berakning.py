@@ -6,8 +6,8 @@ K-03: takbalkar, takstolar och stolpar enligt EKS 12 och SS-EN 1995-1-1.
 Läser indata.toml, geometri.json (K-03:s egen geometri, kontrollerad mot modellen med
 verktyg/modellanalys/kontroll_k03.py), stolparnas laster ur K-05 (laster.py, som bygger på K-01) och huvudstolpens
 krafter ur K-01:s resultat. Stoppar om K-05:s stödreaktioner (laster.K01, förda in för hand) inte är K-01:s.
-Räknar takbalkarna per typ, takfönstren, upplagen mot nock- och dalbalkarna, takstolarna och stolparna, ritar
-figurer (figurer03.py) och sätter ihop PDF via Typst (mall.typ).
+Räknar takbalkarna per typ, takfönstren, upplagen mot nock- och dalbalkarna, yttertakets infästning mot vindsug,
+takstolarna och stolparna, ritar figurer (figurer03.py) och sätter ihop PDF via Typst (mall.typ).
 """
 import json
 import math
@@ -134,6 +134,22 @@ def johansen(t1, t2, d, fh1, fh2, My):
                1.15 * math.sqrt(2 * b / (1 + b)) * math.sqrt(2 * My * fh1 * d))
 
 
+# ------------------------------------------------------------------ vindsug (SS-EN 1991-1-4 7.2)
+YT = IN["yttertak"]
+ZON = {z["namn"]: z for z in YT["zon"]}
+
+
+def cpe(zon, A=1.0):
+    """Formfaktorn för lastytan A [m²]: c_pe,1 upp till 1 m², c_pe,10 från 10 m², logaritmiskt emellan (figur 7.2)."""
+    z = ZON[zon]
+    return z["cpe1"] + (z["cpe10"] - z["cpe1"]) * min(1.0, max(0.0, math.log10(A)))
+
+
+def sug(zon, A=1.0):
+    """Karakteristiskt vindsug netto [kN/m²] vinkelrätt takytan: yttre sug och trycket under."""
+    return (abs(cpe(zon, A)) + ZON[zon]["under"]) * LA["q_p"]
+
+
 # ------------------------------------------------------------------ takbalkar
 b_tb, h_tb, cc = TB["b"], TB["h"], TB["cc"] / 1000
 A_tb, W_tb, I_tb = b_tb * h_tb, b_tb * h_tb ** 2 / 6, b_tb * h_tb ** 3 / 12
@@ -190,8 +206,8 @@ fh_regel = 0.082 * C24.rhok * d_s ** -0.3
 fh_balk = 0.082 * UP["rho_balk"] * d_s ** -0.3
 Fv_skruv = johansen(UP["regel_b"], UP["skruv_L"] - UP["regel_b"], d_s, fh_regel, fh_balk, UP["skruv_My"]) / 1000
 Fv_skruv_d = KMOD * Fv_skruv / C24.gamma_M
-# vindlyft per takbalksände (zon G), förankring med skruv snett genom takbalken in i balken
-w_sug = abs(LA["cpe_cpi_G"]) * LA["q_p"]
+# vindlyft per takbalksände i gavelzonen, med formfaktorn för takbalkens lastyta; förankring med skruv snett genom
+# takbalken in i balken
 Fax_d = KL["k_mod_vind"] * UP["skruv_fax"] * d_s * UP["lyft_skruv_lef"] * (UP["rho_balk"] / 350) ** 0.8 / 1000 / C24.gamma_M
 
 TYPER = []
@@ -206,15 +222,54 @@ for T in IN["typ"]:
              uv=tau / (kv * C24.fvd), tau=tau,
              usate=r["Rb"] * 1000 / (b_tb * UP["regel_b"] * f_sate),
              uregel=r["Rb"] * 1000 / ((b_tb + 60) * UP["regel_b"] * C24.fc90d),
-             n_skruv=math.ceil(r["Rb"] / Fv_skruv_d),
-             lyft=(1.5 * GD * w_sug - 1.0 * G_H) * cc * (L + a) / 2)
+             n_skruv=math.ceil(r["Rb"] / Fv_skruv_d), A_lyft=cc * (L + a) / CA)
+    r["lyft"] = (1.5 * GD * sug("Gavelzon", r["A_lyft"]) - 1.0 * G_H) * cc * (L + a) / 2
     r["u"] = max(r["um"], r["uv"], r["uw"], r["usate"])
     TYPER.append(r)
     print(f"takbalk {T['namn']:4s} {len(rs):3d} st L {L:.3f} a {a:.2f} μ {r['mu']}: M {r['M']:.2f} kNm ({r['um']:.0%}), "
           f"skjuv vid hak {r['uv']:.0%}, w {r['wfin']:.1f}/{r['wkrav']:.1f} ({r['uw']:.0%}), säte {r['usate']:.0%}, R {r['Rb']:.2f} kN, "
           f"skruv {r['n_skruv']} st, lyft {r['lyft']:.2f} kN")
 TB_DIM = max(TYPER, key=lambda r: r["u"])
+TB_LYFT = max(TYPER, key=lambda r: r["lyft"])
 print(f"  hak: h_ef {h_ef:.0f} mm, α {a_n:.2f}, kv {kv:.2f}; skruv Ø{d_s:.0f} F_v,Rd {Fv_skruv_d:.2f} kN; förankring F_ax,Rd {Fax_d:.2f} kN")
+
+# ------------------------------------------------------------------ yttertakets infästning mot vindsug
+# Lastvägen uppifrån: plåten i klammer i råsponten (plåtslagaren, för sugen här), råsponten spikad i ströläkten på
+# takbalkarna, läkten skruvad genom hårdboarden i takbalken. Mellanläkten i facken bär inget. Lokala formfaktorer.
+LK, RS = YT["lakt"], YT["raspont"]
+e_zon = 2 * YT["h_ref"]                                  # e = min(b; 2h): huset är bredare än 2h i båda riktningarna
+if YT["rand"] < e_zon / 10 / CA:
+    raise SystemExit(f"Randzonen {YT['rand']} m är smalare än e/10 längs takytan, {e_zon / 10 / CA:.2f} m.")
+g_over = YT["g_over"] * CA                               # egentyngden ovanför läkten vinkelrätt takytan, gynnsam
+k_rho = (C24.rhok / 350) ** 0.8
+l_ef_lakt = min(LK["b_ganga"], LK["L"] - LK["h"] - LK["hardboard"])       # gängan i takbalken
+R_head_k = LK["f_head"] * LK["d_huvud"] ** 2 * k_rho / 1000               # huvudets genomdragning i läkten
+R_ax_k = LK["f_ax"] * LK["d"] * l_ef_lakt * k_rho / 1000                  # gängans utdrag ur takbalken
+R_lakt_d = min(KL["k_mod_vind"] * min(R_head_k, R_ax_k) / C24.gamma_M, LK["f_tens"] / 1.25)
+# råspontens släta spik i läkten (8.3.2): utdrag på spetssidan och huvudets genomdragning, bara kortvarig last
+fax_spik, fhead_spik = 20e-6 * C24.rhok ** 2, 70e-6 * C24.rhok ** 2
+t_pen = min(RS["L"] - RS["t"], LK["h"])                  # spetsen i läkten (resten går genom hårdboarden i takbalken)
+k_pen = 1.0 if t_pen >= 12 * RS["d"] else max(0.0, t_pen / (4 * RS["d"]) - 2)
+R_spik_k = min(fax_spik * RS["d"] * t_pen * k_pen,
+               fax_spik * RS["d"] * RS["t"] + fhead_spik * RS["d_huvud"] ** 2) / 1000
+R_spik_d = KL["k_mod_vind"] * R_spik_k / C24.gamma_M
+if RS["L_mellan"] > RS["t"] + LK["h"]:
+    raise SystemExit("Mellanläktens spik går igenom läkten och hårdboarden.")
+YTZ = []
+for z in YT["zon"]:
+    wk = sug(z["namn"])
+    wd = GD * 1.5 * wk                                   # på plåten (klammern), utan egentyngd
+    q_lakt = (wd - g_over) * cc                          # per meter läkt på takbalk
+    c_val = (YT["cc_rand"] if z["rand"] else YT["cc_ovrigt"]) / 1000
+    F_spik = (wd - g_over) * RS["w"] / 1000 * cc / RS["n"]
+    YTZ.append(dict(z, wk=wk, wd=wd, q=q_lakt, cc_max=R_lakt_d / q_lakt, cc=c_val, u_skruv=q_lakt * c_val / R_lakt_d,
+                    F_spik=F_spik, u_spik=F_spik / R_spik_d))
+    print(f"yttertak {z['namn']:10s}: c_pe,1 {z['cpe1']} + {z['under']}: w_k {wk:.2f}, w_d {wd:.2f} kN/m²; läkt {q_lakt:.2f} kN/m, "
+          f"skruv c/c ≤ {R_lakt_d / q_lakt * 1000:.0f}, vald {c_val * 1000:.0f} ({q_lakt * c_val / R_lakt_d:.0%}); "
+          f"spik {F_spik * 1000:.0f} N ({F_spik / R_spik_d:.0%})")
+print(f"  läktskruv {LK['skruv']}: huvud {R_head_k:.2f}, gänga {R_ax_k:.2f} kN -> R_d {R_lakt_d:.2f} kN; "
+      f"spik {RS['d']}×{RS['L']:.0f}: R_k {R_spik_k * 1000:.0f} N, R_d {R_spik_d * 1000:.0f} N; e {e_zon:.1f} m")
+YT_DIM = max(YTZ, key=lambda z: max(z["u_skruv"], z["u_spik"]))
 
 # ------------------------------------------------------------------ takfönster
 FON = []
@@ -461,6 +516,7 @@ L2M = next(t for t in ST if t["namn"] == "Stol L2M")
 F.BALK = dict(b=UP["balk_b"], h=UP["balk_h"])
 F.oversikt(HERE / "fig_oversikt.svg", GEO, G05, ST, STOLPAR, huvud, BRIST_STOLPAR)
 F.upplag(HERE / "fig_upplag.svg", UP, TB, h_ef)
+F.vindsug(HERE / "fig_vindsug.svg", GEO, ST, e_zon / 10 * 1000, YT["cc_rand"], YT["cc_ovrigt"])
 F.takstol(HERE / "fig_takstol.svg", L2M, L2M["P"], L2M["H"], L2M["V"])
 F.huvudstolpe(HERE / "fig_huvudstolpe.svg", GEO, HS, kcH, u_H)
 
@@ -494,8 +550,7 @@ R = {
     "projekt": IN["projekt"],
     "modell": dict(fil=GEO["kalla"]["fil"], hash=GEO["kalla"]["hash"]),
     "last": dict(g=fmt(LA["g_tak"], 2), gh=fmt(G_H, 2), sk=fmt(LA["s_k"], 1), mud=fmt(LA["mu_dal"], 1), mut=fmt(LA["mu_takfot"], 1),
-                 sd=fmt(LA["mu_dal"] * LA["s_k"], 2), st=fmt(LA["mu_takfot"] * LA["s_k"], 2), qp=fmt(LA["q_p"], 2),
-                 w=fmt(w_sug, 2), cpe=fmt(LA["cpe_cpi_G"], 1)),
+                 sd=fmt(LA["mu_dal"] * LA["s_k"], 2), st=fmt(LA["mu_takfot"] * LA["s_k"], 2), qp=fmt(LA["q_p"], 2)),
     "mat": {k: {kk: fmt(v, 1) for kk, v in IN["material"][k].items()} for k in IN["material"]},
     "kl": dict(gd=fmt(GD, 2), kmod=fmt(KMOD, 1), kmodw=fmt(KL["k_mod_vind"], 1), kdef=fmt(KDEF, 1), kcr=fmt(KL["k_cr"], 2),
                ned=str(KL["nedbojning"])),
@@ -503,12 +558,34 @@ R = {
                h_ef=fmt(h_ef, 0), alfa=fmt(a_n, 2), kv=fmt(kv, 2), x=fmt(x_n, 0), z_sate=fmt(z_sate, 0),
                h_lod=fmt(h_tb / math.cos(ALFA), 0), balk_h=fmt(UP["balk_h"], 0), balk_b=fmt(UP["balk_b"], 0),
                fsate=fmt(f_sate, 2), Fv=fmt(Fv_skruv_d, 2), n_skruv=str(max(t["n_skruv"] for t in TYPER)),
-               Fax=fmt(Fax_d, 2), lyft=fmt(max(t["lyft"] for t in TYPER), 2),
-               ulyft=pct(max(t["lyft"] for t in TYPER) / Fax_d), ureg=pct(max(t["uregel"] for t in TYPER)),
+               Fax=fmt(Fax_d, 2), lyft=fmt(TB_LYFT["lyft"], 2), lyft_typ=TB_LYFT["namn"], lyft_A=fmt(TB_LYFT["A_lyft"], 1),
+               lyft_cpe=fmt(cpe("Gavelzon", TB_LYFT["A_lyft"]), 2), lyft_w=fmt(sug("Gavelzon", TB_LYFT["A_lyft"]), 2),
+               ulyft=pct(TB_LYFT["lyft"] / Fax_d), ureg=pct(max(t["uregel"] for t in TYPER)),
                umax=pct(TB_DIM["u"])),
     "typer": [dict(namn=t["namn"], text=t["text"], antal=str(t["antal"]), L=fmt(t["L"], 2), a=fmt(t["a"], 2), mu=fmt(t["mu"], 1),
                    q=fmt(t["q"], 2), M=fmt(t["M"], 2), R=fmt(t["Rb"], 2), um=pct(t["um"]), uv=pct(t["uv"]), us=pct(t["usate"]),
                    w=f"{fmt(t['wfin'], 1)} / {fmt(t['wkrav'], 1)}", uw=pct(t["uw"]), dim=t is TB_DIM) for t in TYPER],
+    # förbandens fästdon som text, för R-02
+    "fb": dict(regel=f"{UP['regel_b']}×{UP['regel_h']} C24", regel_skruv=f"Ø{fmt(d_s, 0)}×{UP['skruv_L']}",
+               lyft_skruv=f"Ø{fmt(d_s, 0)}×{UP['lyft_skruv_L']}", spik=f"ankarspik {fmt(SP['spik_d'], 1)}×{SP['spik_L']}",
+               plat=f"{SP['bredd']} mm bred, {fmt(SP['t'], 1)} mm", kloss=f"{TK['t']} mm",
+               kloss_skruv=f"Ø{fmt(TK['skruv_d'], 0)}×{TK['skruv_L']}"),
+    # yttertakets infästning; talen utan formatering (rand_mm, cc_rand, cc_ovrigt) läses av R-02
+    "yt": dict(e=fmt(e_zon, 1), e10=fmt(e_zon / 10, 2), e10s=fmt(e_zon / 10 / CA, 2), rand=fmt(YT["rand"], 1),
+               rand_mm=round(YT["rand"] * 1000), cc_rand=YT["cc_rand"], cc_ovrigt=YT["cc_ovrigt"], cc_lakt=TB["cc"],
+               g=fmt(YT["g_over"], 2), gn=fmt(g_over, 2),
+               lakt=f"{LK['h']:.0f}×{LK['b']:.0f}", skruv=LK["skruv"], d=fmt(LK["d"], 0), dh=fmt(LK["d_huvud"], 0),
+               lef=fmt(l_ef_lakt, 0), fhead=fmt(LK["f_head"], 1), fax=fmt(LK["f_ax"], 1), Rhead=fmt(R_head_k, 2),
+               Rax=fmt(R_ax_k, 2), Rd=fmt(R_lakt_d, 2), a2=fmt(b_tb / 2, 1), a2krav=fmt(4 * LK["d"], 0),
+               spik=RS["spik"], spik_n=str(RS["n"]), spik_mellan=RS["spik_mellan"], tpen=fmt(t_pen, 0),
+               tpen_d=fmt(t_pen / RS["d"], 1), fax_spik=fmt(fax_spik, 2), Rspik_k=fmt(R_spik_k * 1000, 0),
+               Rspik_d=fmt(R_spik_d * 1000, 0), u_spik23=pct(max(z["u_spik"] for z in YTZ) * 1.5), rasp_w=fmt(RS["w"], 0),
+               ut_mellan=fmt(RS["L"] - RS["t"] - LK["h"], 0), dim=YT_DIM["namn"],
+               umax=pct(max(YT_DIM["u_skruv"], YT_DIM["u_spik"])),
+               zoner=[dict(namn=z["namn"], text=z["text"], rand=z["rand"], cpe1=fmt(z["cpe1"], 1), cpe10=fmt(z["cpe10"], 1),
+                           under=fmt(z["under"], 1), wk=fmt(z["wk"], 2), wd=fmt(z["wd"], 2), q=fmt(z["q"], 2),
+                           cc_max=fmt(z["cc_max"] * 1000, 0), cc=fmt(z["cc"] * 1000, 0), us=pct(z["u_skruv"]),
+                           F=fmt(z["F_spik"] * 1000, 0), usp=pct(z["u_spik"])) for z in YTZ]),
     "fon": [dict(nr=str(f["nr"]), y=f"{fmt(f['y0'], 0)}–{fmt(f['y1'], 0)}", typ=f["typ"],
                  trim=" / ".join(str(n) for n in f["trimmer"]), utrim=" / ".join(pct(u) for u in f["u_trim"]),
                  uavv=pct(f["u_avv"]), kort=str(f["kortlingar"]), w=fmt(f["w_rasspont"], 1)) for f in FON],
@@ -539,6 +616,10 @@ R = {
     "sammanf": [
         dict(del_="Takbalkar 45×170 c/c 600", antal=str(len(GEO["takbalkar"])), dim=f"{TB_DIM['namn']}, hak", u=pct(TB_DIM["u"])),
         dict(del_="Takfönster", antal=str(len(FON)), dim="takbalk bredvid öppningen", u=pct(max(max(f["u_trim"]) for f in FON))),
+        dict(del_="Yttertakets infästning", antal="–",
+             dim=f"{YT_DIM['namn']}en, " + (f"ströläktens skruv c/c {YT_DIM['cc'] * 1000:.0f}"
+                                            if YT_DIM["u_skruv"] >= YT_DIM["u_spik"] else "råspontens spik"),
+             u=pct(max(YT_DIM["u_skruv"], YT_DIM["u_spik"]))),
         dict(del_="Takstolar", antal=str(len(ST)), dim="L2M, diagonal och topp med kloss",
              u=pct(max(max(t["u_diag"], t["u_band"], t["u_plat"], t["u_topp"]) for t in ST))),
         dict(del_="Huvudstolpen LN1_3", antal="1", dim="knäckning och moment", u=pct(u_H)),

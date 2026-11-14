@@ -400,7 +400,7 @@ start      = "2027-12-06"
 slut       = "2027-12-17"
 ansvarig   = "bygg"
 prel       = true
-anm        = "Hårdboard, ströläkt, råspont och fullvärdig underlagspapp, väderskydd tills plåten ligger (U-03)."
+anm        = "Hårdboard, ströläkt, råspont och fullvärdig underlagspapp, väderskydd tills plåten ligger (U-03). Ströläkten skruvas tätare i randzonerna och råsponten spikas enligt K-03 avsnitt 3.4 (R-02, takfallens blad)."
 
 # ------------------------------------------------------------------ tätt hus
 
@@ -421,7 +421,7 @@ slut       = "2028-02-11"
 ansvarig   = "plat"
 inblandade = ["bygg"]
 prel       = true
-anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggning vintertid avstäms med plåtslagaren."
+anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggning vintertid avstäms med plåtslagaren. Plåtslagaren dimensionerar klammerns delning för vindsuget per zon i K-03 avsnitt 3.4."
 
 [[steg]]
 fas        = "tatt"

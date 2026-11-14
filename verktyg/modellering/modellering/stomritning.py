@@ -5,6 +5,9 @@ Bladen i byggordning: först en översikt i 3D med varje element märkt med sitt
 sedan väggarna, en per blad (ytterväggarna huskropp för huskropp, sedan de bärande innerväggarna), stolparna,
 takstolarna, takfallen (takbalkarna och stålbanden) och nock- och dalbalkarna (stålet på R-01).
 
+Förbanden skrivs av ur beräkningarnas resultat (K-03: yttertakets infästning med randzonerna, takbalkarnas upplag
+och takstolarnas spikplåtar; K-04: stålbandens spik och reglarnas skruv), så att de följer beräkningarna.
+
 Varje element ritas i sin egen vy: väggar, takstolar, stolpar och balkar i elevation (väggarna sedda utifrån,
 innerväggarna från sidan w < 0), takfallen vinkelrätt mot takytan. Delarna är märkta med sitt ID (utan elementets
 kod); längderna står bara i kapplistan på bladet (ID, tvärsnitt och material, längd, vinkelkap). Måtten är lägen som
@@ -13,14 +16,17 @@ i höjd till de liggande delarna och öppningarna.
 """
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from shapely.geometry import MultiPoint, Polygon
+from shapely.ops import unary_union
 
 from .karna import ROT
 from .planritning import Blad, Vy, blad, svm
@@ -114,6 +120,7 @@ class Element:
     oppningar: list[tuple[float, float, float, float]]
     nr: str = ""
     bultar: list[float] | None = None          # betongbultarnas lägen längs väggen (u), väggarna
+    tak: dict | None = None                    # takfallets yta ur utdraget (regionerna), takfallen
     beslag: list[tuple[str, float, float, float]] | None = None    # förankringens beslag: (slag, u, z, normalen i u)
 
     def uv(self, p: np.ndarray) -> np.ndarray:
@@ -205,7 +212,7 @@ def element(utdrag: dict, alla: list[Del]) -> list[Element]:
         ev = np.array([r * math.cos(a), 0.0, math.sin(a)])
         eu = np.array([0.0, -r, 0.0]) if r > 0 else np.array([0.0, 1.0, 0.0])
         eu = eu if np.cross(eu, ev) @ np.array([-r * math.sin(a), 0.0, math.cos(a)]) > 0 else -eu
-        ut.append(Element(kod, f"Takfall {kod}: takbalkar och stålband", "takfall", dl, np.zeros(3), eu, ev, []))
+        ut.append(Element(kod, f"Takfall {kod}: takbalkar och stålband", "takfall", dl, np.zeros(3), eu, ev, [], tak=t))
     for kod in sorted({d.element for d in alla if d.grupp == "balk"}):
         dl = [d for d in alla if d.element == kod and d.grupp == "balk"]
         o, u, v_ = plan_av(dl)
@@ -240,6 +247,94 @@ def _pa_insidan(e: Element, d: Del) -> bool:
     return e.slag == "vägg" and d.material == "Stålband" and float(np.mean((d.horn() - e.origo) @ n)) < -INSIDA_DJUP
 
 
+def las_forband(ber: Path) -> dict[str, dict]:
+    """Förbanden ur beräkningarnas resultat (K-03 och K-04), som bladen skriver av."""
+    ut = {}
+    for nr in ("K-03", "K-04"):
+        fil = ber / nr / "resultat.json"
+        if not fil.exists():
+            raise SystemExit(f"{fil} saknas: räkna {nr} först (./bygg {nr})")
+        ut[nr] = json.loads(fil.read_text(encoding="utf-8"))
+    return ut
+
+
+def _randzoner(e: Element) -> tuple[list[Polygon], list[Polygon]]:
+    """Takfallets randzoner i vyn: från gavelkanterna och de fria takfötterna, där ströläkten skruvas tätare (K-03),
+    med bredden mätt längs takytan; och takytans kontur (till gavelkanterna, takfoten, nocken och dalen)."""
+    t = e.tak
+    if t is None:
+        return [], []
+    rand = float(FORBAND["K-03"]["yt"]["rand_mm"])
+    a, r = math.radians(t["lutning"]), t["riktning"]
+
+    def uv(x: float, y: float) -> tuple[float, float]:
+        q = e.uv(np.array([x, y, t["z_ref"] + r * (x - t["x_ref"]) * math.tan(a)]))[0]
+        return float(q[0]), float(q[1])
+
+    y_min, y_max = min(g[0] for g in t["regioner"]), max(g[1] for g in t["regioner"])
+    ytor, tak = [], []
+    for y0, y1, x_nedre, x_nock in t["regioner"]:
+        def rekt(ya: float, yb: float, xa: float, xb: float) -> Polygon:
+            return Polygon([uv(xa, ya), uv(xa, yb), uv(xb, yb), uv(xb, ya)])
+        tak.append(rekt(y0, y1, x_nedre, x_nock))
+        if y0 < y_min + rand:
+            ytor.append(rekt(y0, min(y1, y_min + rand), x_nedre, x_nock))
+        if y1 > y_max - rand:
+            ytor.append(rekt(max(y0, y_max - rand), y1, x_nedre, x_nock))
+        if abs(x_nedre - t["x_takfot"]) < 1.0:              # fri takfot (inte en dal)
+            ytor.append(rekt(y0, y1, x_nedre, x_nedre + r * rand * math.cos(a)))
+    def ytorna(g: Any) -> list[Polygon]:
+        return [q for q in getattr(g, "geoms", [g]) if q.area > 1.0]
+    return ytorna(unary_union(ytor)), ytorna(unary_union(tak))
+
+
+def _forbandstext(e: Element) -> list[str]:
+    """Bladets anvisningar om förbanden, ur K-03:s och K-04:s resultat."""
+    k3, k4 = FORBAND["K-03"], FORBAND["K-04"]
+    band = {b["grupp"]: b for b in k4["band"]["rader"]}
+    har_band = any(d.material == "Stålband" for d in e.delar)
+
+    def bandtext(grupp: str) -> list[str]:
+        b = band.get(grupp)
+        if not (har_band and b):
+            return []
+        return [f"Stålbanden {k4['band']['b']}×{k4['band']['t']}: {k4['band']['spik'].lower()} i varje del bandet korsar "
+                f"och {b['n']} spik i varje ände (K-04)."]
+
+    if e.slag == "vägg":
+        return [f"Reglarnas fot: {k4['forankring']['skruv']} snett genom regeln ned i syllen (K-04).",
+                *bandtext("Stålband i väggarna")]
+    if e.slag == "takfall":
+        y, tb, fb = k3["yt"], k3["tb"], k3["fb"]
+        return [f"Ströläkten {y['lakt']} skruvas i varje takbalk och takstol med {y['skruv']}: c/c {y['cc_rand']} i "
+                f"randzonerna (röda fält, {y['rand']} m från gavelkanter och fria takfötter, längs takytan) och c/c "
+                f"{y['cc_ovrigt']} i övrigt (K-03).",
+                f"Råsponten: {y['spik_n']} spik per bräda ({y['spik']}) i varje läkt på takbalk eller takstol; i de två "
+                f"mellanläkten per fack {y['spik_mellan']}, som inte går igenom hårdboarden.",
+                f"Takbalkarna vilar med hak på upplagsregeln {fb['regel']} längs nock- och dalbalken (delarna UR). "
+                f"Regeln skruvas med {tb['n_skruv']} skruv {fb['regel_skruv']} per takbalk, och varje takbalksände "
+                f"förankras med en skruv {fb['lyft_skruv']} snett in i balken (K-03).",
+                *bandtext("Stålband i takfallen")]
+    if e.slag == "takstol":
+        fb = k3["fb"]
+        rad = next((r for r in k3["st"] if r["namn"] == K03_TAKSTOL.get(e.kod, e.kod)), None)
+        if rad is None:
+            return []
+        return [f"Spikplåtar ({fb['plat']}) på båda sidor i fötterna och i toppen: {fb['spik']}, minst {rad['spik']} per "
+                "plåt och stav (K-03).",
+                *([f"Toppkloss {fb['kloss']} på ena sidan om toppen, fäst med {rad['nk']} skruv {fb['kloss_skruv']}."]
+                  if rad["kloss"] != "0" else []),
+                f"Foten har minst {rad['lfot']} mm upplag på hammarbandet."
+                + (" Ytterbalkarna (X) skruvas i diagonalerna c/c 600 (K-03)." if any(d.typ == "X" for d in e.delar)
+                   else "")]
+    if e.slag == "balk":
+        tb, fb = k3["tb"], k3["fb"]
+        return [f"Upplagsregel {fb['regel']} längs balkens båda sidor, ovanför underplåten: {tb['n_skruv']} skruv "
+                f"{fb['regel_skruv']} per takbalk genom regeln in i limträet. Varje takbalksände förankras med en skruv "
+                f"{fb['lyft_skruv']} snett in i balken (K-03)."]
+    return []
+
+
 def _elementblad(e: Element) -> Blad:
     ytor = {d.namn: _yta(e, d) for d in e.delar}
     alla_ytor = [g for g in ytor.values() if not g.is_empty]
@@ -251,6 +346,12 @@ def _elementblad(e: Element) -> Blad:
     x = rx + 20.0 + (rb - 20.0 - bredd / skala) / 2
     y = ry + 12.0
     v = Vy(0.0, 0.0, 420.0, 297.0, skala, u0 - x * skala, v1 + y * skala)
+    zoner, takyta = _randzoner(e)
+    with v.lager("zon"):                                # under delarna: takytans kontur och randzonerna
+        for g in zoner:
+            v.polygon(list(g.exterior.coords)[:-1], "zon", "zon_kant")
+        for g in takyta:
+            v.polygon(list(g.exterior.coords)[:-1], None, "fin")
     with v.lager("delar"):
         for d in sorted(e.delar, key=lambda d: (d.material in ("Stålband", "Spikplåt"), d.namn)):
             g = ytor[d.namn]
@@ -349,6 +450,8 @@ def _elementblad(e: Element) -> Blad:
             "totalmått; i höjd till de liggande delarnas kanter och öppningarna.",
             "Mått i mm. Ritningen ritas ur modellens stomme (./mod stomme ritning), samma underlag som K-04.",
             *(["Stålet i nock- och dalbalkarna (plåtar, distansreglar): se R-01."] if e.slag == "balk" else []),
+            *(["Den tunna linjen är takytans kant: gavelkanterna, takfoten, nocken och dalen."] if takyta else []),
+            *_forbandstext(e),
             *(["Streckade stålband sitter infällda i stommens insida (under ångbromsen), de andra i utsidan."]
               if any(_pa_insidan(e, d) for d in e.delar) else []),
             *([f"Förankringen: {len(e.bultar)} betongbultar M{BULT[0]:g} genom syllen, {BULT[1]:g} mm ned i "
@@ -357,7 +460,12 @@ def _elementblad(e: Element) -> Blad:
             *([_beslagstext(e.beslag)] if e.beslag else []),
         ]),
     ]
-    return blad(e.nr, ["Trästomme", e.titel], f"1:{skala:g}", "Modellen", kol, [v], block)
+    if zoner:
+        y = FORBAND["K-03"]["yt"]
+        kol += [dict(typ="rubrik", text="Teckenförklaring"),
+                dict(typ="symboler", rader=[dict(form="yta", fyll="zon", stil="zon_kant",
+                                                 text=f"Randzon: ströläktens skruv c/c {y['cc_rand']}")])]
+    return blad(e.nr, ["Trästomme", e.titel], f"1:{skala:g}", "Modellen, K-03, K-04", kol, [v], block)
 
 
 # ------------------------------------------------------------------ översikten
@@ -430,6 +538,8 @@ def _oversikt(elementen: list[Element], alla: list[Del]) -> Blad:
 
 
 BULT = [12.0, 100.0]                        # betongbultarna: diameter, djup i betongen (ur utdraget)
+FORBAND: dict[str, dict] = {}               # K-03:s och K-04:s resultat (las_forband), sätts av ritningar
+K03_TAKSTOL = {"2C": "L2M"}                 # takstolens kod i modellen -> namnet i K-03
 # beslagen i vyn: höjd, den liggande skänkelns djup och bredd (byggdelar/beslag.py)
 BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 60.0, 60.0)}
 
@@ -443,9 +553,11 @@ def _beslagstext(beslag: list[tuple[str, float, float, float]]) -> str:
             "syllen (WHT340: ankare M16). Lägena i plan på AR-03.4.")
 
 
-def ritningar(utdrag: dict, mapp: Path, pdf: Path) -> Path:
+def ritningar(utdrag: dict, forband: dict[str, dict], mapp: Path, pdf: Path) -> Path:
     b = utdrag.get("bultar", {})
     BULT[:] = [float(b.get("d", BULT[0])), float(b.get("djup", BULT[1]))]
+    FORBAND.clear()
+    FORBAND.update(forband)
     alla = delar(utdrag)
     elementen = element(utdrag, alla)
     bladen = [(f"{SERIE}.1", _oversikt(elementen, alla))] + [(e.nr, _elementblad(e)) for e in elementen]

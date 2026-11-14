@@ -828,7 +828,9 @@ def main(argv: list[str] | None = None) -> None:
         if str(MODELLMAPP) not in sys.path:
             sys.path.insert(0, str(MODELLMAPP))
         utdrag = importlib.import_module("trebodar.hus.stomme.barverk").utdrag(rot)
-        pdf = stomritning.ritningar(utdrag, UT / "stomme" / "blad", arg.ut / f"{stomritning.SERIE} {stomritning.TITEL}.pdf")
+        forband = stomritning.las_forband(ROT / "beräkningar")
+        pdf = stomritning.ritningar(utdrag, forband, UT / "stomme" / "blad",
+                                    arg.ut / f"{stomritning.SERIE} {stomritning.TITEL}.pdf")
         print(f"  {pdf}")
     elif arg.kommando == "gjutning":
         from . import gjutning

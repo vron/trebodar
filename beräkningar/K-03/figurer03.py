@@ -1,4 +1,4 @@
-"""K-03: figurer – översikt i plan, takbalkens upplag, takstolen och huvudstolpen. Mått i mm."""
+"""K-03: figurer – översikt i plan, takbalkens upplag, vindsugets zoner, takstolen och huvudstolpen. Mått i mm."""
 import math
 from pathlib import Path
 
@@ -81,6 +81,48 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
     ax.tick_params(labelsize=6.3, length=2)
     ax.set_xlabel("x (mm)", fontsize=6.5, labelpad=1); ax.set_ylabel("y (mm)", fontsize=6.5, labelpad=1)
     ax.grid(lw=0.25, color="#d6d6d6", zorder=-1)
+    _spara(fig, path)
+
+
+def vindsug(path, GEO, ST, e10, cc_rand, cc_ovrigt):
+    """Plan: ströläktens linjer (takbalkar och takstolar) med randzonerna, e10 [mm] i plan från gavelkanter och fria
+    takfötter, där läkten skruvas tätare."""
+    fig, ax = plt.subplots(figsize=(8.4 * CM, 10.6 * CM))
+    vid_balk = lambda x, y: any(abs(x - b["x"]) < 160 and b["y0"] - 50 <= y <= b["y1"] + 50 for b in GEO["balkar"])
+    linjer = [(r["x0"], r["x1"], r["y"]) for r in GEO["takbalkar"]]
+    for t in ST:                                          # takstolarnas diagonaler bär också läkt
+        linjer += [(d["x0"], d["x1"], t["y"]) for d in t["staver"] if "diag" in d["namn"]]
+    # gavelkanterna per takfall: ytterst bland takfallets linjer (takfallet = linjerna mot samma nockbalk på samma sida)
+    nock = [b["x"] for b in GEO["balkar"] if b["namn"].startswith("N")]
+    fall = {}
+    for x0, x1, y in linjer:
+        n = min(nock, key=lambda v: min(abs(x0 - v), abs(x1 - v)))
+        fall.setdefault((n, (x0 + x1) / 2 < n), []).append((x0, x1, y))
+    for (n, _), ls in fall.items():
+        y0, y1 = min(l[2] for l in ls), max(l[2] for l in ls)
+        xa, xe = min(l[0] for l in ls), max(l[1] for l in ls)
+        ax.add_patch(Rectangle((xa, y0 - 120), xe - xa, y1 - y0 + 240, fc="#f3f1ec", ec="none", zorder=0))
+        for x0, x1, y in ls:
+            if y - y0 < e10 - 120 or y1 - y < e10 - 120:  # gavelzonen
+                ax.plot([x0, x1], [y, y], color=ROD, lw=0.9, zorder=3, solid_capstyle="butt")
+                continue
+            ax.plot([x0, x1], [y, y], color=BLA, lw=0.45, zorder=2, solid_capstyle="butt")
+            for xe_, s in ((x0, 1), (x1, -1)):            # fri takfot: änden som inte ligger vid en balk
+                if not vid_balk(xe_, y):
+                    ax.plot([xe_, xe_ + s * e10], [y, y], color=ROD, lw=0.9, zorder=3, solid_capstyle="butt")
+    for b in GEO["balkar"]:
+        ax.plot([b["x"]] * 2, [b["y0"], b["y1"]], color=INK, lw=0.7, ls=(0, (6, 2, 1, 2)) if b["namn"][0] == "N" else "-",
+                zorder=4)
+    for f in GEO["fonster"]:
+        ax.add_patch(Rectangle((f["x0"], f["y0"]), f["x1"] - f["x0"], f["y1"] - f["y0"], fc="white", ec=INK, lw=0.5, zorder=5))
+    h = [plt.Line2D([], [], color=ROD, lw=1.6), plt.Line2D([], [], color=BLA, lw=0.8),
+         plt.Line2D([], [], color=INK, lw=0.7, ls=(0, (6, 2, 1, 2))), plt.Line2D([], [], color=INK, lw=0.7)]
+    ax.legend(h, [f"randzon: läktens skruv c/c {cc_rand}", f"innerzon: c/c {cc_ovrigt}", "nockbalk", "dalbalk"], loc="upper right",
+              fontsize=6.3, frameon=True, framealpha=0.95, edgecolor="none", handlelength=2.0, borderpad=0.3)
+    ax.set_xlim(-500, 14300); ax.set_ylim(-500, 18400); ax.set_aspect("equal")
+    ax.set_xticks(range(0, 14001, 2000)); ax.set_yticks(range(0, 16001, 2000))
+    ax.tick_params(labelsize=6.0, length=2)
+    ax.set_xlabel("x (mm)", fontsize=6.3, labelpad=1); ax.set_ylabel("y (mm)", fontsize=6.3, labelpad=1)
     _spara(fig, path)
 
 

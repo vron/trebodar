@@ -42,7 +42,7 @@
 
 = Konstruktion och omfattning
 
-Taket bärs så här: råspont på takbalkar 45×170 c/c 600 som spänner mellan nock- och dalbalkarna (K-01) eller till ytterväggen vid takfot. Nock- och dalbalkarna vilar på takstolar i gavlarna och i mittre huskroppens mitt och på stolpar ner till bjälklaget (K-05). Handlingen omfattar takbalkarna med takfönstren och deras upplag, de sju takstolarna och alla stolpar under nock- och dalbalkar och takstolar, däribland *huvudstolpen* LN1_3. Väggarnas reglar, hammarband och avväxlingar under takbalkarna vid takfot och den horisontella stabiliseringen redovisas i K-04.
+Taket bärs så här: råspont på ströläkt på takbalkar 45×170 c/c 600 som spänner mellan nock- och dalbalkarna (K-01) eller till ytterväggen vid takfot. Nock- och dalbalkarna vilar på takstolar i gavlarna och i mittre huskroppens mitt och på stolpar ner till bjälklaget (K-05). Handlingen omfattar takbalkarna med takfönstren och deras upplag, yttertakets infästning mot vindsug, de sju takstolarna och alla stolpar under nock- och dalbalkar och takstolar, däribland *huvudstolpen* LN1_3. Väggarnas reglar, hammarband och avväxlingar under takbalkarna vid takfot och den horisontella stabiliseringen redovisas i K-04.
 
 Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna har samma beteckningar som lasterna i K-05: LN för nockbalkar, LD för dalbalkar och LA för hörnen under gavlarnas takstolar. Den äldre beräkningens beteckningar (A–H) står inom parentes.
 
@@ -55,7 +55,8 @@ Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna 
   [Takbalkar 45×170 c/c 600], [#r.tb.antal], [3.1], [Typ #r.tb.dim, #r.tb.dimtext: tvärkraft vid haket], [#r.tb.umax],
   [Upplag och förankring], [#r.tb.antal], [3.2], [Samma typ: hak, säte, skruv och lyft], [#r.tb.umax],
   [Takfönster], [#r.fon.len()], [3.3], [Takbalken bredvid öppningen], [#r.sammanf.at(1).u],
-  [Takstolar], [#r.st.len()], [4], [Mittakstolen L2M under nockbalk 3, stöd C], [#r.sammanf.at(2).u],
+  [Yttertakets infästning], [–], [3.4], [#r.sammanf.at(2).dim], [#r.sammanf.at(2).u],
+  [Takstolar], [#r.st.len()], [4], [Mittakstolen L2M under nockbalk 3, stöd C], [#r.sammanf.at(3).u],
   [*Huvudstolpen LN1_3*], [1], [5.1], [Stolpe med dubbeltriangel under nockbalk 1], [*#r.hs.u*],
   [Övriga stolpar], [#r.sammanf.last().antal], [5.2–5.3], [Varje stolpe i tabellen, hörnen LA1–LA10 i en rad], [#r.uS],
 )
@@ -78,7 +79,7 @@ Geometrin är modellens (#r.modell.fil) och är kontrollerad mot den. Stolparna 
 - *Material:* konstruktionsvirke C24 ($f_"m,k"$ = #r.mat.C24.fmk, $f_"c,0,k"$ = #r.mat.C24.fc0k, $f_"c,90,k"$ = #r.mat.C24.fc90k, $f_"v,k"$ = #r.mat.C24.fvk MPa, $E_"0,05"$ = #r.mat.C24.E005 MPa, $gamma_M$ = 1,3) och limträ GL30h ($f_"c,0,k"$ = #r.mat.GL30h.fc0k, $f_"m,k"$ = #r.mat.GL30h.fmk MPa, $gamma_M$ = 1,25).
 - *Egenvikt:* tak #r.last.g kN/m² takyta, #r.last.gh kN/m² horisontellt (F-01).
 - *Snö:* $s_k$ = #r.last.sk kN/m². Takfall mot en dal räknas med $mu$ = #r.last.mud jämnt över hela takfallet (#r.last.sd kN/m²). Det är mer än den ansamlade snön enligt SS-EN 1991-1-3 5.3.4, där $mu_2$ = 1,6 bara nås i dalen. Takfall mot takfot räknas med $mu$ = #r.last.mut (#r.last.st kN/m², standarden ger 0,8).
-- *Vind:* vindsug i zon G närmast gaveln, $c_"pe" - c_"pi"$ = #r.last.cpe och $q_p$ = #r.last.qp kN/m² (F-01, K-01), ger lyft #r.last.w kN/m². Lastkombination $1,0 G_k + gamma_d 1,5 W_k$.
+- *Vind:* $q_p$ = #r.last.qp kN/m² (F-01, K-01). Vindsuget räknas med formfaktorerna för sadeltak 30° och lastytans storlek (SS-EN 1991-1-4 7.2.5 och figur 7.2), se @vindsug. Lastkombination $1,0 G_k + gamma_d 1,5 W_k$.
 - *Kombinationer:* 6.10a och 6.10b med $gamma_d$. Snön är huvudlast. Bruksgräns $w_"fin" lt.eq L slash$#r.kl.ned (F-01).
 - *Stolparnas laster* kommer från K-05, som bygger på K-01:s stödreaktioner och gavlarnas takremsor. Huvudstolpens krafter är K-01:s, med stolpen 4 st 45×120.
 
@@ -105,7 +106,7 @@ Takbalkarna är fritt upplagda mellan balkarnas centrumlinjer eller till ytterv�
 
     - *Hak:* dimensionerande för typ #r.tb.dim, #r.tb.umax.
     - *Upplagsregeln:* tryck vinkelrätt fibrerna #r.tb.ureg. Skruv Ø6×100 genom regeln in i limträet bär #r.tb.Fv kN var (8.6, enkelskäriga trä–trä). Det krävs #r.tb.n_skruv skruv per takbalk.
-    - *Lyft:* vindsuget ger högst #r.tb.lyft kN uppåt per takbalksände. En skruv Ø6×160 snett genom takbalken, 80 mm in i balken, bär #r.tb.Fax kN ($f_"ax,k"$ = 11 MPa enligt ETA), #r.tb.ulyft.
+    - *Lyft:* vindsuget i gavelzonen ger högst #r.tb.lyft kN uppåt per takbalksände (typ #r.tb.lyft_typ: lastytan #r.tb.lyft_A m² ger $c_"pe"$ = #r.tb.lyft_cpe och med det inre trycket #r.tb.lyft_w kN/m², @vindsug). En skruv Ø6×160 snett genom takbalken, 80 mm in i balken, bär #r.tb.Fax kN ($f_"ax,k"$ = 11 MPa enligt ETA), #r.tb.ulyft.
 ]
 
 == Takfönster
@@ -119,6 +120,37 @@ Takfönstren TF1–TF3 är 1 200 mm breda och ligger mellan två takbalkar med a
   ..r.fon.map(f => ([TF#f.nr], [#f.y], [#f.typ], [#f.trim], [#f.utrim], [#f.uavv], [#f.kort], [#f.w])).flatten(),
 )
 #liten[Takbalkar vid sidorna: antal takbalkar som står tätt intill öppningen på var sida i modellen. Kortlingar: i modellen, ovanför och nedanför fönstret mitt i öppningen. Utan dem skulle råsponten 20 mm spänna 1,2 m, med nedböjningen i sista kolumnen (egenvikt och snö) mot kravet #r.fon_wkrav mm ($L$/300). Kortlingarna c/c 600 behövs därför. Med dem räcker även en enkel takbalk vid sidan.]
+
+== Yttertakets infästning mot vindsug <vindsug>
+
+Yttertaket hålls mot vindsuget i tre led. Plåten sitter med klammer i råsponten. Råsponten är spikad i ströläkten på takbalkarna och takstolarna. Läkten är skruvad genom hårdboarden i takbalken. De två mellanläkten i varje fack bär ingenting.
+
+#grid(
+  columns: (7.6cm, 1fr),
+  column-gutter: 10pt,
+  figure(image("fig_vindsug.svg", width: 100%), caption: [Ströläktens linjer i plan. Röda delar ligger i randzonerna.]),
+  [
+    *Vindsug.* Infästningar räknas med de lokala formfaktorerna $c_"pe,1"$ (lastyta högst 1 m²), och trycket under den lastade delen läggs till suget. Zonerna är $e slash 10$ = #r.yt.e10 m djupa i plan, #r.yt.e10s m längs takytan, med $e = 2 h$ = #r.yt.e m. Hela djupet från gavelkanten räknas med zon G:s värde. Huset har flera sadeltak i bredd, och takfotszonen gäller bara takfötter mot det fria (7.2.7).
+
+    *Randzonen* på ritningen (R-02) är #r.yt.rand m längs takytan från gavelkanter och fria takfötter.
+
+    *Laster.* På plåten $w_d = gamma_d dot 1,5 dot w_k$. Läkten och spiken får $w_d$ minus egentyngden ovanför läkten, #r.yt.gn kN/m² vinkelrätt takytan, från en remsa på #r.yt.cc_lakt mm.
+  ],
+)
+
+#table(
+  columns: (1fr, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
+  align: (left, right, right, right, right, right, right, right, right, right, right),
+  [Zon], [$c_"pe,1"$], [Under], [$w_k$], [$w_d$], [Läkt], [c/c högst], [Vald c/c], [Skruv], [Spik], [Spik],
+  [], [], [], [kN/m²], [kN/m²], [kN/m], [mm], [mm], [utn.], [N], [utn.],
+  ..r.yt.zoner.map(z => ([*#z.namn.* #z.text], [#z.cpe1], [+#z.under], [#z.wk], [#z.wd], [#z.q], [#z.cc_max], [*#z.cc*], [#z.us], [#z.F], [#z.usp])).flatten(),
+)
+#liten[Under: det inre trycket $c_"pi"$ = +0,2 (K-01). Vid takfoten trycker vinden mot väggen in under takfoten och i luftspaltens mynning, $c_"pe"$ = +0,8 (7.2.1, väggens zon D). Läkt: lasten per meter läkt på takbalk. Spik: kraften per spik i råsponten.]
+
+- *Ströläkten* #r.yt.lakt skruvas i varje takbalk och takstol med #r.yt.skruv (försänkt, C4, ETA-11/0030), c/c #r.yt.cc_rand i randzonerna och c/c #r.yt.cc_ovrigt i övrigt. Huvudets genomdragning i läkten styr: $f_"head,k" d_h^2$ = #r.yt.Rhead kN ($f_"head,k"$ = #r.yt.fhead MPa, $d_h$ = #r.yt.dh mm). Gängans utdrag ur takbalken är #r.yt.Rax kN (#r.yt.lef mm gänga, $f_"ax,k"$ = #r.yt.fax MPa). $R_d$ = #r.yt.Rd kN med $k_"mod"$ = #r.kl.kmodw och $gamma_M$ = 1,3. Skruven sätts mitt i läkten och takbalken, #r.yt.a2 mm från takbalkens kant (minst $4 d$ = #r.yt.a2krav mm, 8.7.2).
+- *Råsponten* spikas med #r.yt.spik_n spik per bräda (#r.yt.spik) i varje läkt som ligger på en takbalk eller takstol (K-04). Spetsen sitter #r.yt.tpen mm i läkten, #r.yt.tpen_d $d$ (minst 12 $d$ för fullt värde, 8.3.2): $F_"ax,Rk"$ = #r.yt.Rspik_k N och $F_"ax,Rd"$ = #r.yt.Rspik_d N per spik. Släta spik får bara bära kortvarig last i utdrag, som vinden. Spiken räcker också med två tredjedelar av värdet, som gäller virke som torkar efter montaget (8.3.2): då är den utnyttjad till högst #r.yt.u_spik23.
+- *Mellanläkten:* här skulle samma spik sticka ut #r.yt.ut_mellan mm under läkten och gå igenom hårdboarden. Brädorna spikas där med #r.yt.spik_mellan.
+- *Plåten:* plåtslagaren dimensionerar klammerns delning för $w_d$ i tabellen.
 
 = Takstolar
 
@@ -186,6 +218,7 @@ Alla delar klarar brott- och bruksgränstillståndet med utförandet nedan#if r.
 
 + Takbalkar 45×170 C24 c/c 600 vilar med hak på upplagsregel 45×45 C24 längs nock- och dalbalkarnas sidor, ovanför underplåten. Regeln skruvas med #r.tb.n_skruv skruv Ø6×100 per takbalk. Varje takbalksände förankras med en skruv Ø6×160 snett in i balken.
 + Takfönster: kortlingar 45×170 c/c 600 ovanför och nedanför fönstret, burna av avväxlingar 45×170 mellan takbalkarna vid sidorna.
++ Yttertaket: ströläkten #r.yt.lakt skruvas i varje takbalk och takstol med #r.yt.skruv, c/c #r.yt.cc_rand inom #r.yt.rand m från gavelkanter och fria takfötter (längs takytan) och c/c #r.yt.cc_ovrigt i övrigt. Råsponten spikas med #r.yt.spik_n spik per bräda (#r.yt.spik) i varje läkt på takbalk eller takstol, i mellanläkten med #r.yt.spik_mellan. Plåtens klammer dimensioneras av plåtslagaren för vindsuget i @vindsug.
 + Takstolar: spikplåt 100×600×2,0 på båda sidor i fötterna och 100×400 i toppen, med ankarspik 4,0×40 enligt tabellen i avsnitt 4. Diagonalerna skruvas till takbalken ovanför innertaket c/c 600. Varje takstol har en toppkloss 45 mm, 600 mm lång, på ena sidan om toppen (gavelstolarna på insidan, mittakstolen på den nordöstra sidan), skruvad enligt tabellen. Fötterna har minst det upplag på hammarbandet som tabellen anger.
 + Huvudstolpen LN1_3: 4 st 45×120 C24 med strävor 45×120 på båda sidor (dubbeltriangel) och en hel topregel över stolpen.
 + Stolpe B (LD4_1): GL30h 140×140. LD4_2: #r.stolpar.find(s => s.namn == "LD4_2").utf sida vid sida under dalbalk 4:s ände. Närmaste regel bredvid gruppen står tätt intill den eller minst 60 mm ifrån, så att lasten sprids 30 mm åt båda håll i syllen. LN1_1 under nockbalk 1:s stöd B: #r.stolpar.find(s => s.namn == "LN1_1").utf i väggen vid y ≈ 2 795.
