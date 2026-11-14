@@ -238,7 +238,7 @@ Beslagen står i modellen (#r.forankring.n_beslag beslag vid #r.forankring.n_upp
   ..r.forankring.beslag_rader.map(b => ([#b.del], [#b.u], [#b.lyft], [#b.H], [#b.modell], [#b.krav], [#eta(b.eta, b.ok)], [#b.komb])).flatten(),
 )]
 
-#liten[Förankringsbeslagen på ytterväggarnas reglar har ankaret 35 mm från plattans kant, där betongens konbrott begränsar dem (@betong); de som inte räcker flyttas in från kanten i \#129.]
+#liten[Förankringsbeslagen på ytterväggarnas reglar har ankaret 35 mm från plattans kant, där betongens konbrott begränsar dem (@betong); de som inte räcker och kantavståndet tas upp i \#141.]
 
 = Bruksgränstillståndet
 
