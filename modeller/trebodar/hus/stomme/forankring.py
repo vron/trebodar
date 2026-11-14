@@ -4,8 +4,10 @@ förankringsbeslag vid reglarna och stolparna som lyfter, ned i plattan.
 Syllarna. Varje syll på plattan har en bult högst KANT_SYLL från vardera änden och högst CC isär, i facken mellan
 reglarna (bulten dras uppifrån), också där inget lyfter: bultarna håller syllen på plats (sidkraften). I innerväggarna
 sitter bulten i syllens mitt. Ytterväggarnas syll står 30 mm utanför plattans kant (K-05; också vid plattan på marks
-fria kanter, där L-elementens rygg är kantisoleringen), så där sitter bulten FRAN_INSIDAN från syllens insida:
-kantavståndet till betongen blir då 45 mm.
+fria kanter, där L-elementens rygg är kantisoleringen). Ytterväggarna med reglar 45 × 95 har därför en bredare syll,
+45 × SYLL_B (prefab/syllar.py, #120), och bulten sitter FRAN_INSIDAN_BRED från dess insida, på den inre remsan och
+minst REMSA_FRI från remsans urtag: kantavståndet till betongen blir 60 mm. Gavlarna med reglar 45 × 145 har bulten
+FRAN_INSIDAN från syllens insida, 95 mm från kanten.
 
 Vinkelbeslagen (K-04:s förankring). Där syllen, bultarna och skruvarna snett genom regelns fot inte räcker får regeln
 eller stolpen vid upplaget (VINKELBESLAG_PA) ett eller två vinkelbeslag ABR10525 (byggdelar/beslag.py) på sina fria
@@ -53,11 +55,14 @@ from trebodar.hus.inredning import inredning
 from trebodar.hus.invandigt import invandigt
 from trebodar.hus.installationer.passager import PASSAGER, passagerna, rektangel as rektangel_i
 from trebodar.hus.stomme import lagen
+from trebodar.hus.stomme.prefab import syllar as breda_syllar
 from trebodar.hus.stomme.prefab.stolpar import ln1_3
 
 CC = 1200.0                 # bultarna högst så långt isär längs syllen [mm]
 KANT_SYLL = 300.0           # och högst så långt från syllens ände
-FRAN_INSIDAN = 20.0         # ytterväggarnas bult från syllens insida [mm]
+FRAN_INSIDAN = 20.0         # ytterväggarnas bult från syllens insida [mm] (gavlarna med syll 45 × 145)
+FRAN_INSIDAN_BRED = 30.0    # och på den breda syllen 45 × SYLL_B: 60 mm från betongens kant
+REMSA_FRI = 40.0            # bulten minst så långt från ett urtag i den breda syllens inre remsa
 BULT_CC = 100.0             # två bultar i samma syll minst så långt isär
 FRITT_REGEL = 25.0          # bulten minst så långt från en regel och ett beslag (brickan och mutterdragaren)
 D, DJUP, OVER = 12.0, 90.0, 15.0     # bultens diameter, djup i betongen och utstick över syllen (bricka och mutter)
@@ -449,10 +454,19 @@ def _lagen() -> tuple[tuple[str, Bult], ...]:
                 x0, y0, x1, y1 = r.bounds
                 reglar.append(us(lagen.Lage(kod, "", (x0, y0, 0.0, x1, y1, 0.0))))
         ww = v.tjocklek - FRAN_INSIDAN if kod in S.YTTERVAGGAR else v.tjocklek / 2
+        urtag: list[tuple[float, float]] = []      # den breda syllens inre remsa finns inte här (prefab/syllar.py)
+        if kod in breda_syllar.breda():
+            ww = S.SYLL_B - FRAN_INSIDAN_BRED
+            urtag = [(-1e5, breda_syllar.HORN), (v.langd - breda_syllar.HORN, 1e5)]
+            p0, p1 = o + v.tjocklek * w, o + v.langd * u + (S.SYLL_B + 1.0) * w
+            remsa = rektangel(*np.min([p0, p1], axis=0), *np.max([p0, p1], axis=0))
+            urtag += [us(d) for d in lagen.prefab() if d.element != kod and d.lada[2] < S.SYLL_H
+                      and rektangel(d.lada[0], d.lada[1], d.lada[3], d.lada[4]).intersection(remsa).area > 1.0]
         sidor = _sidor(kod)
 
         def fack(x: float) -> bool:
-            return all(x < a - FRITT_REGEL or x > b + FRITT_REGEL for a, b in reglar)
+            return (all(x < a - FRITT_REGEL or x > b + FRITT_REGEL for a, b in reglar)
+                    and all(x < a - REMSA_FRI or x > b + REMSA_FRI for a, b in urtag))
 
         def bult(x: float, syll: Any) -> Bult | None:
             p = o + x * u + ww * w

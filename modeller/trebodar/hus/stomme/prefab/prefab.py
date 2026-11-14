@@ -2,6 +2,7 @@
 dalbalkarna, som är en egen beställning)."""
 from modellering import Montage
 
+from . import syllar
 from .innervaggar import innervaggar
 from .stalband import stalband
 from .stolpar import stolpar
@@ -19,4 +20,5 @@ def montage() -> Montage:
     m.lagg(stolpar.montage())
     m.lagg(takbalkar.montage())
     m.lagg(stalband.montage())
+    syllar.anpassa(m)                       # ytterväggarnas breda syllar: urtag i hörnen och mot stommens andra delar
     return m

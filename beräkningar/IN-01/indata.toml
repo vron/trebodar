@@ -97,7 +97,7 @@ status   = "att välja"
 ansvarig = "bygg"
 fas      = "stomme"
 arende   = [88]
-anm      = "M12 (Ø12) genom syllen 45 mm (eller vinkelbeslaget och syllen), minst 90 mm i betongen, med bricka 50×50×5 och mutter; ETA för sprucken betong och kantavstånd ned till 35 mm, N_Rd ≥ 8,5 kN och V_Rd ≥ 10 kN (K-04, förankringen) (ytterväggarnas syll står 30 mm utanför plattans kant). Där en lodrät bult inte når betongen borras den snett inåt, 45° eller 60° från lodlinjen, med snedbricka (modellen, K-04). Syllens bultar högst 300 mm från ändarna och 1 200 mm isär, i facken. Borras i det gröna på AR-03.4 (minst 30 mm från rören). Två av dem går genom huvudstolpens vinkelbeslag (VINKELBESLAG-LN1_3) och tar dess lyft, 5,7 kN i drag per bult med beslagets bändning."
+anm      = "M12 (Ø12) genom syllen 45 mm (eller vinkelbeslaget och syllen), minst 90 mm i betongen, med bricka 50×50×5 och mutter; ETA för sprucken betong C25/30 i en platta 150 mm, N_Rd ≥ 8,5 kN (utdragning) och V_Rd ≥ 10 kN (stålet), med tillåtet kantavstånd högst 60 mm för syllarnas bultar (ytterväggarnas syll 45×120 har bulten 60 mm från plattans kant) och högst 40 mm för bultarna genom ytterväggarnas vinkelbeslag (43 mm från kanten); betongens kon- och kantbrott är räknade i K-04. Där ett hål i ett vinkelbeslag inte når betongen borras bulten snett inåt, 45° eller 60° från lodlinjen, med snedbricka (modellen, K-04). Syllens bultar högst 300 mm från ändarna och 1 200 mm isär, i facken. Borras i det gröna på AR-03.4 (minst 30 mm från rören). Två av dem går genom huvudstolpens vinkelbeslag (VINKELBESLAG-LN1_3) och tar dess lyft, 5,7 kN i drag per bult med beslagets bändning."
 
 [[produkt]]
 kod        = "VINKELBESLAG-STOMME"

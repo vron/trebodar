@@ -183,6 +183,10 @@ def synliga_ytor(kod: str) -> list[tuple[float, Any, Any]]:
     return _YTOR[kod]
 
 
+ANGBROMS_OVER_SYLL = 40.0       # ångbromsen ligger i den breda syllens insida upp till så högt över syllen (över
+#                                 bultarnas muttrar) och går där in till reglarna
+
+
 @cache
 def insida(kod: str) -> Montage:
     """Ytterväggens insida: ångbroms, liggande installationsläkt 45×45 c/c 600, OSB och gips (i badrummet plywood,
@@ -235,6 +239,7 @@ def insida(kod: str) -> Montage:
         tak = unary_union([Polygon([((x - v.origo[0]) * v.u[0], z) for x, z in q.exterior.coords])
                            for _, q, y0, y1 in lagen.takets_stomme() if min(y1, y_hi) - max(y0, y_lo) > 1.0])
         oppet, oppet_skivor = oppet.union(tak), oppet_skivor.union(tak)
+    syll_in = S.SYLL_B if abs(T - S.T_STOMME) < 0.5 else T          # syllens insida (regelstomme.vagg)
     for namn, a, b, typ, mat in grund(kod):
         p = Plan(kod, f"{namn} {kod}", b - a, material=mat)
         ua, ub = granser[(a, b)]
@@ -245,23 +250,40 @@ def insida(kod: str) -> Montage:
             rader += [z for z in (k * 600.0 for k in range(1, int(topp // 600) + 1))
                       if all(abs(z - r) >= LAKT for r in rader)]
             for z in sorted(rader):
+                # den nedersta läkten ligger innanför syllen, som är bredare än reglarna (skelett.SYLL_B)
+                w_in = syll_in + a if z < S.SYLL_H else T + a
                 for q in P.polygoner(box(ua, z, ub, z + LAKT).intersection(yta).difference(oppet).difference(ram_u),
                                      45 * 100):
-                    p.profil(P.kontur(q), T + a, T + b, typ=typ, material=mat)
-            for r in ram:
-                for q in P.polygoner(r.intersection(yta).difference(oppet), 45 * 100):
-                    p.profil(P.kontur(q), T + a, T + b, typ=typ, material=mat)
+                    p.profil(P.kontur(q), w_in, T + b, typ=typ, material=mat)
+            for r in ram:                               # läkten vid dörrarnas sidor: nedtill innanför syllen
+                nedre = (box(ua - 1.0, -1.0, ub + 1.0, S.SYLL_H + ANGBROMS_OVER_SYLL) if syll_in > T + a
+                         else Polygon())
+                for del_, w_in in ((r.difference(nedre), T + a), (r.intersection(nedre), syll_in + a)):
+                    for q in P.polygoner(del_.intersection(yta).difference(oppet), 20 * 20):
+                        p.profil(P.kontur(q), w_in, T + b, typ=typ, material=mat)
             # mineralull mellan läkten (U-05): skiktets yta utom läkten
             lakt = unary_union([box(ua, z, ub, z + LAKT) for z in rader] + ram)
             ull = Plan(kod, f"Isolering i installationsskiktet {kod}", b - a, material=MINERALULL)
-            for q in (P.polygoner(yta.difference(oppet).difference(lakt), 45 * 100) if ULL_I_VAGGARNA else ()):
-                ull.skiva(P.kontur(q), P.hal(q), T + a, T + b, "II", MINERALULL, f"Mineralull {b - a:.0f} {kod}")
+            fri = yta.difference(oppet).difference(lakt)
+            # nedtill, där ångbromsen ligger i den breda syllens insida, börjar ullen innanför den
+            vikt = (box(ua - 1.0, -1.0, ub + 1.0, S.SYLL_H + ANGBROMS_OVER_SYLL) if syll_in > T + a else Polygon())
+            for del_, w_in in ((fri.difference(vikt), T + a), (fri.intersection(vikt), syll_in + a)):
+                for q in (P.polygoner(del_, 20 * 20) if ULL_I_VAGGARNA else ()):
+                    ull.skiva(P.kontur(q), P.hal(q), w_in, T + b, "II", MINERALULL, f"Mineralull {b - a:.0f} {kod}")
             m.lagg(p.montage())
             if ull.bitar:
                 m.lagg(ull.montage())
             continue
         else:
-            for q in P.polygoner(yta.difference(oppet)):
+            # ångbromsen viks in över syllen och dess bultar där syllen är bredare än reglarna: upp till
+            # ANGBROMS_OVER_SYLL ovanför syllen ligger den i syllens insida
+            fri = yta.difference(oppet)
+            if syll_in > T + a:
+                nedre = box(ua - 1.0, -1.0, ub + 1.0, S.SYLL_H + ANGBROMS_OVER_SYLL)
+                for q in P.polygoner(fri.intersection(nedre)):
+                    p.skiva(P.kontur(q), P.hal(q), syll_in + a, syll_in + b, typ, mat, f"{namn} {kod}")
+                fri = fri.difference(nedre)
+            for q in P.polygoner(fri):
                 p.skiva(P.kontur(q), P.hal(q), T + a, T + b, typ, mat, f"{namn} {kod}")
         m.lagg(p.montage())
     # skivorna: våtrumsskikt där badrummet ligger mot väggen (ytterväggarna i badrummet är målade, #105), annars OSB

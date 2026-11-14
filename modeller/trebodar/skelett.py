@@ -26,6 +26,9 @@ Z_BOTTENPLATTA = -H_BJALKLAG - H_KALLARE      # bottenplattans överkant, z −2
 # och är godtagen av byggherren (#131): väggarnas höjd ändras inte för det, och det redovisas inte i handlingarna.
 H_VAGG = 2490.0             # ytterväggarnas höjd: hammarbandets överkant
 T_STOMME = 95.0             # väggstommen 45×95
+SYLL_H = 45.0               # syllarnas och hammarbandens höjd
+SYLL_B = 120.0              # ytterväggarnas syll 45×120 under reglarna 45×95: 25 mm in under installationsskiktet, så att
+#                             betongbulten kommer längre från plattans kant (#120)
 T_STOMME_145 = 145.0        # gavlarna 1SV och 2SV: reglar 45×145 (#110)
 STOMME_UT = 30.0            # stommens utsida utanför bjälklagets kant (K-05)
 T_FASAD = 65.0              # utegips 10 + ströläkt 12 + spikläkt 21 + panel 22

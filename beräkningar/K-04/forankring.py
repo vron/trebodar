@@ -25,6 +25,9 @@ Kontrollerna per kombination (brottgränstillståndet, k_mod efter kombinationen
   enligt SS-EN 1995-1-1 8.2.3 (bulten fast i betongen som en tjock plåt, enskärig) och betongbultens V_Rd (krav);
 - vinkelbeslaget: R_1,d per beslag (databladet, hälften av två beslag) och bultarnas drag med bändningsfaktorn;
 - förankringsbeslaget: R_1,d i träet (spiken), i stålet och i betongen (ankaret, databladet).
+- betongen kring varje bult och ankare (SS-EN 1992-4, sprucken betong utan tilläggsarmering), med bultens verkliga
+  avstånd till plattans kant (barverk.json): betongkonbrott i drag (7.2.1.4) och kantbrott i skjuvning (7.2.2.5), mot
+  kanten och längs den, med samverkan (N/N_Rd)^1,5 + (V/V_Rd)^1,5 ≤ 1.
 """
 from __future__ import annotations
 
@@ -48,10 +51,30 @@ class Bit:
     b: float
     h: float
     bultar: list[tuple[float, float]] = field(default_factory=list)
+    kant: list[float] = field(default_factory=list)          # bultarnas avstånd till betongens kant
 
 
 def _u(v: dict[str, Any], p: Any) -> float:
     return float((np.asarray(p[:2]) - np.asarray(v["origo"])) @ np.asarray(v["u"]))
+
+
+def betong_drag(F: dict[str, Any], c: float, hef: float) -> float:
+    """Betongkonbrott för ett ensamt ankare med kantavståndet c [N], dimensionerande (SS-EN 1992-4 7.2.1.4,
+    sprucken betong, k_1 = 7,7): N⁰ = k_1 √f_ck h_ef^1,5, ytan (c + 1,5 h_ef) / (3 h_ef) och ψ_s = 0,7 + 0,3 c / (1,5 h_ef)."""
+    n0 = 7.7 * math.sqrt(F["betong_fck"]) * hef ** 1.5
+    yta = min(1.0, (c + 1.5 * hef) / (3 * hef))
+    psi = min(1.0, 0.7 + 0.3 * c / (1.5 * hef))
+    return n0 * yta * psi / F["gamma_Mc"]
+
+
+def betong_skjuv(F: dict[str, Any], c: float, d: float, hef: float) -> float:
+    """Betongens kantbrott för skjuvning mot kanten, ett ensamt ankare med kantavståndet c [N], dimensionerande
+    (SS-EN 1992-4 7.2.2.5, sprucken betong, k_9 = 1,7): V⁰ = k_9 d^α l_f^β √f_ck c^1,5, med plattans tjocklek
+    (ψ_h = √(1,5 c / h) ≥ 1 ökar bärförmågan per ytenhet men ytan minskar: tillsammans faktorn √(h / (1,5 c)) ≤ 1)."""
+    lf = min(hef, 12 * d)
+    a, b = 0.1 * math.sqrt(lf / c), 0.1 * (d / c) ** 0.2
+    v0 = 1.7 * d ** a * lf ** b * math.sqrt(F["betong_fck"]) * c ** 1.5
+    return v0 * min(1.0, math.sqrt(F["betong_h"] / (1.5 * c))) / F["gamma_Mc"]
 
 
 def kapaciteter(IN: dict[str, Any], C24: Any) -> dict[str, Any]:
@@ -86,7 +109,9 @@ def _bitar(N: Any, BV: dict[str, Any]) -> dict[str, list[Bit]]:
             continue
         v = V[b.element]
         ua, ub = sorted((_u(v, b.a0), _u(v, b.b0)))
-        bitar.setdefault(b.element, []).append(Bit(b.element, b.namn, ua - 25.0, ub + 25.0, max(b.bredd, b.hojd),
+        # bredden är väggens: den bredare syllens inre remsa (ytterväggarna, urtagen i hörnen) räknas inte i böjningen
+        bitar.setdefault(b.element, []).append(Bit(b.element, b.namn, ua - 25.0, ub + 25.0,
+                                                   min(max(b.bredd, b.hojd), float(v["tjocklek"])),
                                                    min(b.bredd, b.hojd)))
     for x in BV["bultar"]["lagen"]:
         v = V.get(x["vagg"])
@@ -96,10 +121,13 @@ def _bitar(N: Any, BV: dict[str, Any]) -> dict[str, list[Bit]]:
         for bit in bitar.get(x["vagg"], []):
             if bit.u0 <= u <= bit.u1:
                 bit.bultar.append((u, math.cos(math.radians(x.get("lutning", 0.0)))))
+                bit.kant.append(float(x.get("kant", 1e4)))
                 break
     for lista in bitar.values():
         for bit in lista:
-            bit.bultar.sort()
+            ordning = sorted(range(len(bit.bultar)), key=lambda j: bit.bultar[j])
+            bit.bultar = [bit.bultar[j] for j in ordning]
+            bit.kant = [bit.kant[j] for j in ordning]
     return bitar
 
 
@@ -157,6 +185,28 @@ def _text(besl: list[dict[str, Any]]) -> str:
             (f" ({sneda} snett)" if sneda else ""))
 
 
+def _betongtabell(F: dict[str, Any], bitar: dict[str, list[Bit]], BV: dict[str, Any]) -> list[dict[str, Any]]:
+    """Betongens bärförmåga per slag av ankare vid det minsta kantavståndet i modellen (för rapporten)."""
+    ytter = {k for k in bitar if len(k) == 3}
+    rader = []
+    grupper = [
+        ("Syllens bult M%g, ytterväggarna" % F["bult_d"], F["bult_d"], F["bult_hef"],
+         [c for k, ls in bitar.items() if k in ytter for b in ls for c in b.kant]),
+        ("Syllens bult M%g, innerväggarna" % F["bult_d"], F["bult_d"], F["bult_hef"],
+         [c for k, ls in bitar.items() if k not in ytter for b in ls for c in b.kant]),
+        ("Vinkelbeslagets bult M%g" % F["bult_d"], F["bult_d"], F["bult_hef"],
+         [x.get("kant", 1e4) for b in BV.get("beslag", []) if b["slag"] == "ABR10525" for x in b["bultar"]]),
+        ("Förankringsbeslagets ankare M%g" % F["halldon_d"], F["halldon_d"], F["halldon_hef"],
+         [x.get("kant", 1e4) for b in BV.get("beslag", []) if b["slag"] != "ABR10525" for x in b["bultar"]]),
+    ]
+    for namn, d, hef, kanter in grupper:
+        if kanter:
+            c = min(kanter)
+            rader.append({"namn": namn, "antal": len(kanter), "c": c, "hef": hef, "N": betong_drag(F, c, hef),
+                          "V": betong_skjuv(F, c, d, hef)})
+    return rader
+
+
 def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any) -> dict[str, Any]:
     """Förankringen: kravet på beslag per upplag, modellens beslag mot lasterna och syllarnas och bultarnas
     utnyttjande och horisontalkraften per syllbit."""
@@ -200,14 +250,17 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
         return 4
 
     def bar(besl: list[dict[str, Any]]) -> np.ndarray:
-        """Modellens beslag vid ett upplag: lodrät bärförmåga per kombination."""
+        """Modellens beslag vid ett upplag: lodrät bärförmåga per kombination. Bultarna och ankaret bär högst
+        betongens konbrott vid sitt kantavstånd."""
         r = np.zeros(len(kn))
         for b in besl:
             if b["slag"] == "ABR10525":            # bultarna genom beslaget: lodrätt N_Rd cos(lutningen)
-                bultar = sum(K["N_Rd"] * math.cos(math.radians(x["lutning"])) for x in b["bultar"]) / K["bandning"]
+                bultar = sum(min(K["N_Rd"], betong_drag(F_, x.get("kant", 1e4), F_["bult_hef"]))
+                             * math.cos(math.radians(x["lutning"])) for x in b["bultar"]) / K["bandning"]
                 r = r + np.minimum(R_beslag, bultar)
             else:
-                r = r + R_hd
+                kant = min((x.get("kant", 1e4) for x in b["bultar"]), default=1e4)
+                r = r + np.minimum(R_hd, betong_drag(F_, kant, F_["halldon_hef"]))
         return r
 
     noder: dict[int, dict[str, Any]] = {}
@@ -234,10 +287,15 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
             return np.zeros(len(kn)), np.zeros((len(kn), max(len(bit.bultar), 1)))
         return _syll(bit, [(noder[i]["u"], lyft[:, i]) for i in idx])
 
+    def bultens_drag(bit: Bit) -> np.ndarray:
+        """Bultarnas lodräta bärförmåga (k, bult): brickan mot syllen, produktens krav och betongens konbrott."""
+        nc = np.array([betong_drag(F_, c, F_["bult_hef"]) for c in bit.kant])
+        return np.minimum(N_bult[:, None], nc[None, :]) * np.array([c for _, c in bit.bultar])[None, :]
+
     def syllen_ok(bit: Bit, M: np.ndarray, Nb: np.ndarray) -> bool:
         W = bit.b * bit.h ** 2 / 6
         kh = min((150 / bit.h) ** 0.2, 1.3)
-        Nr = N_bult[:, None] * np.array([c for _, c in bit.bultar])[None, :]
+        Nr = bultens_drag(bit)
         return bool(np.all(M <= fmd * kh * W + 1e-6) and np.all(Nb <= Nr + 1e-6))
 
     # kravet: noderna på syllen så länge syllen, bultarna och skruvarna räcker, annars beslag (störst lyft först)
@@ -281,7 +339,7 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
         M, Nb = syllen(bit, kvar)
         W = bit.b * bit.h ** 2 / 6
         kh = min((150 / bit.h) ** 0.2, 1.3)
-        Nr = N_bult[:, None] * np.array([c for _, c in bit.bultar])[None, :] if bit.bultar else N_bult[:, None]
+        Nr = bultens_drag(bit) if bit.bultar else N_bult[:, None]
         eta_M = float(np.max(M / (fmd * kh * W))) if kvar else 0.0
         eta_N = float(np.max(Nb / Nr)) if kvar and bit.bultar else (math.inf if kvar else 0.0)
         eta_S = max((float(np.max(lyft[:, i] / R_skruv)) for i in kvar), default=0.0)     # regelns skruvar
@@ -290,7 +348,22 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
         n_b = len(bit.bultar) + sum(len(b["bultar"]) for i in idx for b in modell.get(i, []))
         Fv_d = np.minimum(kmod * K["Fv_k"] / gM, K["V_Rd"])
         eta_H = float(np.max(H / (max(n_b, 1) * Fv_d))) if n_b else (0.0 if H.max() < 1.0 else math.inf)
-        bit_ut.append({"vagg": vagg, "syll": bit.namn, "langd": bit.u1 - bit.u0 - 50.0, "bultar": len(bit.bultar),
+        # betongen kring syllens bultar: kantbrott av skjuvningen (mot kanten och längs den) och konbrott av draget
+        eta_B, kant = 0.0, min(bit.kant, default=1e4)
+        if bit.bultar and vagg in V and kant < 1000.0:
+            wv = np.array([-V[vagg]["u"][1], V[vagg]["u"][0]])            # in i huset (w = z × u)
+            uv = np.array(V[vagg]["u"])
+            ut_ = np.maximum(R[:, idx, :2].sum(axis=1) @ wv, 0.0) / max(n_b, 1)       # mot kanten, per bult
+            la_ = np.abs(R[:, idx, :2].sum(axis=1) @ uv) / max(n_b, 1)                # längs kanten
+            vres = np.hypot(ut_, la_)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                cos_a = np.where(vres > 1e-9, ut_ / vres, 0.0)
+            psi = np.sqrt(1.0 / (cos_a ** 2 + 0.25 * (1.0 - cos_a ** 2)))             # 1 mot kanten, 2 längs den
+            v_rd = betong_skjuv(F_, kant, F_["bult_d"], F_["bult_hef"]) * psi
+            n_rd = betong_drag(F_, kant, F_["bult_hef"])
+            nb_ = Nb.max(axis=1) if kvar else np.zeros(len(kn))
+            eta_B = float(np.max((nb_ / n_rd) ** 1.5 + (vres / v_rd) ** 1.5))
+        bit_ut.append({"eta_B": eta_B, "kant": kant,"vagg": vagg, "syll": bit.namn, "langd": bit.u1 - bit.u0 - 50.0, "bultar": len(bit.bultar),
                        "sneda": sum(1 for _, c in bit.bultar if c < 0.999),
                        "b": bit.b, "h": bit.h, "eta_M": eta_M, "eta_N": eta_N, "eta_H": eta_H, "eta_S": eta_S,
                        "H": float(H.max()), "V_bult": float((H / max(n_b, 1)).max()),
@@ -344,4 +417,4 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
             "R_skruv_W": kw * K["Fax_k"] / gM, "N_bult_W": float(min(K["N_Rd"], kw * C24.fc90k / gM * K["A_bricka"])),
             "Fv_d_W": float(min(kw * K["Fv_k"] / gM, K["V_Rd"])), "R_beslag_W": Rb_W,
             "max_lyft": float(lyft.max()), "n_lyft": int((lyft.max(axis=0) > 1.0).sum()), "n_upplag": len(upp),
-            "F": F_}
+            "F": F_, "betong": _betongtabell(F_, bitar, BV)}

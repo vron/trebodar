@@ -41,7 +41,10 @@ väggarnas höjd eller balkarnas lägen följer takbalkar, takstolar, takets ski
 Stommen byggs med regler. Väggarnas regelverk följer
 [`hus/stomme/prefab/regelstomme.py`](hus/stomme/prefab/regelstomme.py): syll och hammarband med skarvar, karmreglar,
 överstycken, bröstningar och kortlingar ur öppningarna i `oppningar.py`, reglar c/c 600 från ett raster, hörnstolpar,
-stolpar, dalbalkarnas upplag på gavlarna och lutande hammarband under takfallen. Takstolarna följer
+stolpar, dalbalkarnas upplag på gavlarna och lutande hammarband under takfallen. Ytterväggarna med reglar 45×95 har
+syllen 45×120 (`skelett.SYLL_B`), 25 mm in under installationsskiktet, så att betongbultarna sitter 60 mm från plattans
+kant; [`hus/stomme/prefab/syllar.py`](hus/stomme/prefab/syllar.py) tar bort den inre remsan i hörnen och mot stommens
+andra delar. Takstolarna följer
 [`byggdelar/takstol.py`](byggdelar/takstol.py): ytterbalkar, diagonaler, underram, ståndare och säten ur takfallen,
 nockbalken, dalbalkarna och väggens överkant. Varje vägg och takstol har en egen fil med sina egna data (rastrets
 början, fria reglar, skarvar, öppningarnas utförande, stolpar, underramens höjd) och är ett eget montage.

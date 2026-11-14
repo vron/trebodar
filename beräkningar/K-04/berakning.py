@@ -274,7 +274,9 @@ bit_ut = [{"vagg": b["vagg"], "syll": b["syll"], "langd": fmt(b["langd"], 0),
            "bultar": str(b["bultar"]) + (f" ({b['sneda']} snett)" if b["sneda"] else ""),
            "M": pct(b["eta_M"]) if b["eta_M"] else "–", "N": pct(b["eta_N"]) if b["eta_N"] else "–",
            "H": fmt(b["H"] / 1e3, 1), "V": fmt(b["V_bult"] / 1e3, 1), "uH": pct(b["eta_H"]), "beslag": str(b["beslag"]),
-           "ok": max(b["eta_M"], b["eta_N"], b["eta_H"], b["eta_S"]) <= 1.0}
+           "uB": pct(b["eta_B"]) if b["eta_B"] else "–", "kant": fmt(b["kant"], 0) if b["kant"] < 1000 else "–",
+           "ok": (max(b["eta_M"], b["eta_N"], b["eta_H"], b["eta_S"], b["eta_B"]) <= 1.0
+                  and b["kant"] >= IN["forankring"]["bult_cmin"] - 0.5)}
           for b in sorted(FA["bitar"], key=lambda b: (b["vagg"], b["syll"]))]
 beslag_ut = [{"del": b["del"], "u": fmt(b["u"], 0) if b["u"] == b["u"] else "–", "lyft": fmt(b["lyft"] / 1e3, 1),
               "H": fmt(b["Hmax"] / 1e3, 1) if b["sidled"] else "–", "komb": b["komb"], "modell": b["modell"],
@@ -306,13 +308,21 @@ forank = {"lyft": fmt(fa["lyft"] / 1e3, 1), "lyft_del": fa["lyft_del"], "lyft_ko
           "bitar": bit_ut, "beslag_rader": beslag_ut, "halldon": halldon,
           "n_beslag": str(FA["n_modell"]), "n_upplag_beslag": str(len(beslag_ut)),
           "sneda": str(sum(b["sneda"] for b in FA["bitar"])),
+          "sneda_beslag": str(sum(1 for b in BV.get("beslag", []) for x in b["bultar"] if x["lutning"] > 0.5)),
+          "c_syll": fmt(min(b["kant"] for b in FA["bitar"]), 0),
           "sneda_text": (f" ({sum(b['sneda'] for b in FA['bitar'])} av syllarnas bultar, de andra är beslagens);"
                          if any(b["sneda"] for b in FA["bitar"]) else ";"),
           "V_max": fmt(max(b["V_bult"] for b in FA["bitar"]) / 1e3, 1),
           "N_max": fmt(max(b["N_bult"] for b in FA["bitar"]) / 1e3, 1),
-          "M_max": pct(max(b["eta_M"] for b in FA["bitar"])), "ok": fa_ok}
+          "M_max": pct(max(b["eta_M"] for b in FA["bitar"])), "ok": fa_ok,
+          "B_max": pct(max(b["eta_B"] for b in FA["bitar"])), "cmin": fmt(IN["forankring"]["bult_cmin"], 0),
+          "hef": fmt(IN["forankring"]["bult_hef"], 0),
+          "betong": [{"namn": b["namn"], "antal": str(b["antal"]), "c": fmt(b["c"], 0), "hef": fmt(b["hef"], 0),
+                      "N": fmt(b["N"] / 1e3, 1), "V": fmt(b["V"] / 1e3, 1), "V2": fmt(2 * b["V"] / 1e3, 1)}
+                     for b in FA["betong"]]}
 _bM = max(FA["bitar"], key=lambda b: b["eta_M"])
 _bN = max(FA["bitar"], key=lambda b: max(b["eta_N"], b["eta_H"], b["eta_S"]))
+_bB = max(FA["bitar"], key=lambda b: b["eta_B"])
 _bs = max(FA["beslag"], key=lambda b: b["eta"])
 forank["sammanf"] = [
     {"grupp": "Förankring: syllarna", "kontroll": "Böjning mellan bultarna", "eta": pct(_bM["eta_M"]),
@@ -320,6 +330,8 @@ forank["sammanf"] = [
     {"grupp": "Förankring: betongbultarna", "kontroll": "Drag och skjuvning, skruvarna",
      "eta": pct(max(_bN["eta_N"], _bN["eta_H"], _bN["eta_S"])),
      "ok": max(_bN["eta_N"], _bN["eta_H"], _bN["eta_S"]) <= 1.0, "del": _bN["syll"]},
+    {"grupp": "Förankring: betongen kring syllarnas bultar", "kontroll": "Konbrott och kantbrott",
+     "eta": pct(_bB["eta_B"]), "ok": _bB["eta_B"] <= 1.0, "del": _bB["syll"]},
     {"grupp": "Förankring: beslagen", "kontroll": "Lyft (och sidkraft)",
      "eta": pct(_bs["eta"]) if math.isfinite(_bs["eta"]) else "saknas",
      "ok": _bs["eta"] <= 1.0, "del": f"{_bs['del']}, {_bs['komb']}"}]

@@ -15,6 +15,7 @@ import re
 from typing import Any
 
 import numpy as np
+from shapely.geometry import Point
 
 from modellering import Lada, Montage, Prisma, omslutande
 from modellering.form import Diff, Form, Transf
@@ -151,5 +152,7 @@ def utdrag(rot: Montage) -> dict[str, Any]:
 
 
 def _bult(kod: str, b: Any) -> dict[str, Any]:
-    """Bulten där den går genom ytan som brickan ligger på, och dess lutning från lodlinjen [°]."""
-    return {"vagg": kod, "x": round(b.genom[0], 1), "y": round(b.genom[1], 1), "lutning": round(b.lutning, 1)}
+    """Bulten där den går genom ytan som brickan ligger på, dess lutning från lodlinjen [°] och avståndet från där den
+    går in i plattan till betongens närmaste kant [mm]."""
+    return {"vagg": kod, "x": round(b.genom[0], 1), "y": round(b.genom[1], 1), "lutning": round(b.lutning, 1),
+            "kant": round(float(forankring.betongen().exterior.distance(Point(*b.i_plattan()))), 1)}

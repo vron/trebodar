@@ -460,6 +460,9 @@ def _elementblad(e: Element) -> Blad:
             *([f"Förankringen: {len(e.bultar)} betongbultar M{BULT[0]:g} genom syllen, {BULT[1]:g} mm ned i "
                "mellanbjälklaget (#88; lägena längs syllen i måttkedjan \"bultar\", i plan på AR-03.4). Borras efter "
                "gjutningen, fria från rören i plattan."] if e.bultar else []),
+            *([BRED_SYLL] if e.slag == "vägg" and any(d.typ == "S" and max(d.matt[1:]) > 100.0 and
+                                                       any(r.typ == "R" and max(r.matt[1:]) < 100.0 for r in e.delar)
+                                                       for d in e.delar) else []),
             *([_beslagstext(e.beslag)] if e.beslag else []),
         ]),
     ]
@@ -546,6 +549,9 @@ FORBAND: dict[str, dict] = {}               # K-03:s och K-04:s resultat (las_fo
 # syllisoleringen är inte med i modellen: dess höjd (några mm) räknas inte (#126)
 SYLLISOLERING = ("Under syllen läggs syllisolering (tätande, kapillärbrytande list) i syllens hela bredd, och ångbromsen "
                  "ansluts mot den.")
+BRED_SYLL = ("Syllen 45×120 går 25 mm innanför reglarna (in under installationsskiktet); bultarna sitter i den inre "
+             "remsan, 30 mm från syllens insida. Remsan tas ur 200 mm från väggens ändar och där en annan vägg eller "
+             "stolpe står mot väggens insida.")
 K03_TAKSTOL = {"2C": "L2M"}                 # takstolens kod i modellen -> namnet i K-03
 # beslagen i vyn: höjd, den liggande skänkelns djup och bredd (byggdelar/beslag.py)
 BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 60.0, 60.0)}
@@ -587,7 +593,8 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
     st = [(kod.get(r["namn"], r["namn"]), r) for r in k3["st"]]
     rader = [
         ["Syll mot mellanbjälklaget", f"Syllisolering under syllen. Betongbult M{BULT[0]:g} med bricka {fo['bricka']}, "
-         f"{BULT[1]:g} mm i plattan",
+         f"{BULT[1]:g} mm i plattan. Ytterväggarna med reglar 45×95 har syllen 45×120, med bulten i den inre remsan, "
+         f"{fo['c_syll']} mm från plattans kant",
          f"{len(utdrag.get('bultar', {}).get('lagen', []))} st, lägena i måttkedjan \"bultar\" på väggarnas blad och "
          "i plan på AR-03.4", "K-04"],
         ["Regelns fot i syllen", f"{fo['skruv']} snett genom regeln ned i syllen", "Varje regel", "K-04"],

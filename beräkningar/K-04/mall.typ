@@ -196,25 +196,33 @@ Stålband #r.band.b × #r.band.t mm S350GD+Z275, infällda och spikade med #r.ba
 
 Balkmodellen håller varje syllnod och stolpfot fast i bjälklaget; reaktionerna där är krafterna som förankringen ska ta. #r.forankring.n_lyft av #r.forankring.n_upplag upplag lyfter i någon kombination, som mest #r.forankring.lyft kN (#r.forankring.lyft_del, #r.forankring.lyft_komb), och den största horisontalkraften i ett upplag är #r.forankring.hor kN (#r.forankring.hor_del).
 
-*Lastvägen.* Under syllen ligger syllisolering (en tätande, kapillärbrytande list), som inte räknas i höjden eller i bärförmågan. Syllen hålls ned av betongbultarna genom den (modellen, minst en bult per syllbit, högst 300 mm från ändarna och 1 200 mm isär, \#88). Når en lodrät bult inte betongen med minst 35 mm till kanten (ytterväggarna står 30 mm utanför plattans kant, också vid plattan på marks fria kanter, där L-elementens rygg är kantisoleringen) borras den snett inåt, 45° eller 60° från lodlinjen, med snedbricka#r.forankring.sneda_text vid ytterväggarna går den snett in längs väggen förbi beslagets andra bult. Mellan bultarna bär syllen lyftet från reglarna och banden i böjning: fritt upplagd mellan två bultar och konsol utanför den yttersta. Regeln hålls i syllen av #r.forankring.skruv snett genom regelns fot. Där syllen, bultarna eller skruvarna inte räcker har modellen vinkelbeslag #r.forankring.beslag på regelns eller stolpens fria sidor längs väggen (i hörnen på den vinkelräta väggens regel), fullt utskruvade i regeln och syllen, med en eller två betongbultar genom beslagets hål och syllen ned i plattan, och där inte ens två beslag räcker ett förankringsbeslag #r.forankring.halldon_namn på regelgruppens insida. Stolpar som står direkt på plattan har beslagen på plattan, för både lyftet och sidkraften. Beslagen för upplagets lyft direkt till sina bultar; syllen bär lyftet vid de andra upplagen. En syllbit utan egna bultar (ett kort stycke mellan reglarna) hålls av beslagen på den, vars bultar eller ankare går genom syllen: de andra upplagen på biten lyfter genom dem, och på säker sida tar varje sådant beslag hela deras lyft.
+*Lastvägen.* Under syllen ligger syllisolering (en tätande, kapillärbrytande list), som inte räknas i höjden eller i bärförmågan. Syllen hålls ned av betongbultarna genom den (modellen, minst en bult per syllbit, högst 300 mm från ändarna och 1 200 mm isär, \#88). Ytterväggarna står 30 mm utanför plattans kant (också vid plattan på marks fria kanter, där L-elementens rygg är kantisoleringen). Ytterväggarna med reglar 45×95 har därför syllen 45×120, som går 25 mm in under installationsskiktet: bulten sitter lodrätt i den inre remsan, #r.forankring.c_syll mm från betongens kant (i gavlarna med reglar 45×145 längre in). Bultarna genom vinkelbeslagen sitter i beslagens hål; når ett hål inte betongen med minst 35 mm till kanten borras bulten snett inåt, 45° eller 60° från lodlinjen, med snedbricka (#r.forankring.sneda_beslag av beslagens bultar): den går snett in längs väggen förbi beslagets andra bult. Mellan bultarna bär syllen lyftet från reglarna och banden i böjning: fritt upplagd mellan två bultar och konsol utanför den yttersta. Regeln hålls i syllen av #r.forankring.skruv snett genom regelns fot. Där syllen, bultarna eller skruvarna inte räcker har modellen vinkelbeslag #r.forankring.beslag på regelns eller stolpens fria sidor längs väggen (i hörnen på den vinkelräta väggens regel), fullt utskruvade i regeln och syllen, med en eller två betongbultar genom beslagets hål och syllen ned i plattan, och där inte ens två beslag räcker ett förankringsbeslag #r.forankring.halldon_namn på regelgruppens insida. Stolpar som står direkt på plattan har beslagen på plattan, för både lyftet och sidkraften. Beslagen för upplagets lyft direkt till sina bultar; syllen bär lyftet vid de andra upplagen. En syllbit utan egna bultar (ett kort stycke mellan reglarna) hålls av beslagen på den, vars bultar eller ankare går genom syllen: de andra upplagen på biten lyfter genom dem, och på säker sida tar varje sådant beslag hela deras lyft.
 
 Beslagen står i modellen (#r.forankring.n_beslag beslag vid #r.forankring.n_upplag_beslag upplag). Kravet räknas för varje upplag i alla kombinationer: beslag vid de upplag som lyfter mest, ett beslag, två eller två med två bultar vardera, tills syllarna, bultarna och skruvarna räcker. Kontrollen prövar modellens beslag mot lyftet och syllarna och bultarna med upplagen utan beslag.
 
 *Bärförmågor* (vind, $k_"mod"$ #r.kmod.W):
-- *Betongbulten* M#r.forankring.d med bricka #r.forankring.bricka mm: krav på produkten $N_"Rd"$ ≥ #r.forankring.NRd kN och $V_"Rd"$ ≥ #r.forankring.VRd kN i sprucken betong, också vid ytterväggarnas kantavstånd och snett borrad (IN-01). Brickans tryck mot syllen, $f_"c,90,d" A_"ef"$ (6.1.5, 30 mm längs fibrerna på var sida): #r.forankring.Rbricka kN. En sned bult bär lodrätt bärförmågan gånger cos(lutningen).
+- *Betongbulten* M#r.forankring.d med bricka #r.forankring.bricka mm: krav på produkten $N_"Rd"$ ≥ #r.forankring.NRd kN (utdragning) och $V_"Rd"$ ≥ #r.forankring.VRd kN (stålet) i sprucken betong C25/30, med ett tillåtet kantavstånd på högst #r.forankring.cmin mm (IN-01). Brickans tryck mot syllen, $f_"c,90,d" A_"ef"$ (6.1.5, 30 mm längs fibrerna på var sida): #r.forankring.Rbricka kN. En sned bult bär lodrätt bärförmågan gånger cos(lutningen).
+- *Betongen kring bultarna och ankarna* (SS-EN 1992-4, sprucken betong C25/30 utan tilläggsarmering, $gamma_"Mc"$ 1,5), med varje bults avstånd $c$ till plattans kant ur modellen: konbrott i drag $N_"Rd,c"$ (7.2.1.4) och kantbrott i skjuvning $V_"Rd,c"$ (7.2.2.5), mot kanten och det dubbla längs den. Syllarnas bultar prövas med samverkan $(N slash N_"Rd,c")^(1,5) + (V slash V_"Rd,c")^(1,5) <= 1$; beslagens bultar och förankringsbeslagens ankare bär högst $N_"Rd,c"$ vid sitt kantavstånd (@betong).
 - *Bulten i syllen* i sidled (8.2.3, bulten fast i betongen som en tjock plåt, syllen 45 mm, $f_"h,k"$ = #r.forankring.fhk MPa): $F_"v,Rk"$ = #r.forankring.Fvk kN, $F_"v,Rd"$ = #r.forankring.Fvd kN per bult. Horisontalkraften i en syllbit delas på dess bultar och beslagens bultar.
 - *Syllen* flatt: $M_"Rd" = f_"m,d" k_h b h^2 slash 6$ med $h$ = 45 mm och $b$ = väggens bredd.
 - *Regeln i syllen*: #r.forankring.skruv, $f_"ax,k"$ 11 MPa och 40 mm gänga i syllen: #r.forankring.Rskruv kN.
 - *Vinkelbeslaget* (ETA-06/0106, databladet: två beslag $R_"1,k"$ = #r.forankring.R1k kN och $R_"2/3,k"$ = #r.forankring.R23k kN, med skruv CSA5,0×40, inte spik): #r.forankring.R1 kN uppåt och #r.forankring.R23 kN i sidled per beslag ($gamma_M$ 1,35). Bulten genom beslaget får beslagets kraft gånger #r.forankring.band för beslagets bändning. Ett beslag med en lodrät bult bär #r.forankring.Rkat.at(0) kN, två #r.forankring.Rkat.at(1) kN och två med två bultar vardera #r.forankring.Rkat.at(2) kN.
 - *Förankringsbeslaget* #r.forankring.halldon_namn (ETA-23/0813, databladet): $R_"1,k"$ = #r.forankring.hd_tra kN i träet med full spikning, #r.forankring.hd_stal kN i stålet och $R_"1,d"$ = #r.forankring.hd_betong kN i sprucken betong: #r.forankring.Rhd kN.
 
-*Syllbitarna.* Böjningen och bultarnas drag av lyftet som syllen bär (vid upplagen utan beslag), och horisontalkraften per bult:
+#figure(table(
+  columns: (auto, auto, auto, auto, auto, auto, auto),
+  align: (left, right, right, right, right, right, right),
+  [Bult eller ankare], [Antal], [Minsta $c$ (mm)], [$h_"ef"$ (mm)], [$N_"Rd,c"$ (kN)], [$V_"Rd,c"$ mot kanten (kN)], [längs kanten (kN)],
+  ..r.forankring.betong.map(b => ([#b.namn], [#b.antal], [#b.c], [#b.hef], [#b.N], [#b.V], [#b.V2])).flatten(),
+), caption: [Betongens bärförmåga kring en bult vid det minsta kantavståndet i modellen.]) <betong>
+
+*Syllbitarna.* Böjningen och bultarnas drag av lyftet som syllen bär (vid upplagen utan beslag), horisontalkraften per bult och betongen kring bultarna:
 
 #table(
-  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
-  align: (left, left, right, right, right, right, right, right, right, right),
-  [Vägg], [Syll], [Längd (mm)], [Bultar], [Böjning], [Bultens drag], [$H$ (kN)], [per bult (kN)], [Skjuvning], [Beslag],
-  ..r.forankring.bitar.map(b => ([#b.vagg], [#b.syll], [#b.langd], [#b.bultar], [#eta(b.M, b.ok)], [#b.N], [#b.H], [#b.V], [#b.uH], [#b.beslag])).flatten(),
+  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
+  align: (left, left, right, right, right, right, right, right, right, right, right),
+  [Vägg], [Syll], [Längd (mm)], [Bultar], [Böjning], [Bultens drag], [$H$ (kN)], [per bult (kN)], [Skjuvning], [Betongen], [Beslag],
+  ..r.forankring.bitar.map(b => ([#b.vagg], [#b.syll], [#b.langd], [#b.bultar], [#eta(b.M, b.ok)], [#b.N], [#b.H], [#b.V], [#b.uH], [#b.uB], [#b.beslag])).flatten(),
 )
 
 #liten[Bultarnas drag är andel av #r.forankring.Nbricka kN (betongbulten eller brickan, lodrätt för de sneda). Största drag i en bult #r.forankring.N_max kN, största skjuvning #r.forankring.V_max kN.]
@@ -229,6 +237,8 @@ Beslagen står i modellen (#r.forankring.n_beslag beslag vid #r.forankring.n_upp
   [Upplag], [$u$ (mm)], [Lyft (kN)], [$H$ (kN)], [I modellen], [Krav], [Utnyttjande], [Kombination],
   ..r.forankring.beslag_rader.map(b => ([#b.del], [#b.u], [#b.lyft], [#b.H], [#b.modell], [#b.krav], [#eta(b.eta, b.ok)], [#b.komb])).flatten(),
 )]
+
+#liten[Förankringsbeslagen på ytterväggarnas reglar har ankaret 35 mm från plattans kant, där betongens konbrott begränsar dem (@betong); de som inte räcker flyttas in från kanten i \#129.]
 
 = Bruksgränstillståndet
 
