@@ -21,6 +21,9 @@ PLATS = Plats(lat=58.796, lon=11.176, hojd=8.5, azimut_x=318.0, tidszon="Europe/
 H_BJALKLAG = 150.0          # mellanbjälklagets tjocklek (z −150 … 0)
 H_KALLARE = 2100.0          # källarens fria höjd: bottenplattans överkant till bjälklagets underkant (K-06)
 Z_BOTTENPLATTA = -H_BJALKLAG - H_KALLARE      # bottenplattans överkant, z −2 250
+# Med luftspalten och skikten på takbalkarna ligger takytan ca 25 mm över bygglovets (D32: byggnadshöjd 3,468 m och
+# nockhöjd 4,766 m; modellen ca 3,49 och 4,79 m). Upp till 30 mm skillnad i höjd mot bygglovet räknas som avrundning
+# och är godtagen av byggherren (#131): väggarnas höjd ändras inte för det, och det redovisas inte i handlingarna.
 H_VAGG = 2490.0             # ytterväggarnas höjd: hammarbandets överkant
 T_STOMME = 95.0             # väggstommen 45×95
 T_STOMME_145 = 145.0        # gavlarna 1SV och 2SV: reglar 45×145 (#110)

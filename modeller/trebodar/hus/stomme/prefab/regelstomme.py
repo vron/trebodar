@@ -1,7 +1,9 @@
 """Regelstommens regler för väggarna (45×95 C24 i ytterväggarna, 45×70 eller 45×95 i innerväggarna), i väggens system
 (u längs väggen, w genom väggen, z uppåt från bjälklaget):
 
-- syll och hammarband längs väggen, delade i elementskarvarna (över en regel); syllen bryts vid öppningar till golvet;
+- syll och hammarband längs väggen, delade i elementskarvarna (över en regel); syllen bryts vid öppningar till golvet.
+  Syllen står direkt på bjälklaget (z 0): syllisoleringen under den (några mm) är inte med i modellen och ändrar
+  inga höjder (#126);
 - reglar i väggens ändar, gavlarnas hörnstolpar (en regel i änden och en 95×45 på insidan, K-03:s LA) och fria reglar,
   antingen c/c 600 från ett raster eller uppräknade; en rasterregel utgår inne i en öppning och närmare än GLAPP
   intill en annan stående del, och rasterregler som väggen saknar räknas upp;

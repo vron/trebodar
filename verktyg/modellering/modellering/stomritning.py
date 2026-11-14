@@ -304,7 +304,8 @@ def _forbandstext(e: Element) -> list[str]:
                 f"och {b['n']} spik i varje ände (K-04)."]
 
     if e.slag == "vägg":
-        return [f"Reglarnas fot: {k4['forankring']['skruv']} snett genom regeln ned i syllen (K-04).",
+        return [SYLLISOLERING,
+                f"Reglarnas fot: {k4['forankring']['skruv']} snett genom regeln ned i syllen (K-04).",
                 *bandtext("Stålband i väggarna")]
     if e.slag == "takfall":
         y, tb, fb = k3["yt"], k3["tb"], k3["fb"]
@@ -542,6 +543,9 @@ def _oversikt(elementen: list[Element], alla: list[Del], sist: list[list[str]]) 
 
 BULT = [12.0, 100.0]                        # betongbultarna: diameter, djup i betongen (ur utdraget)
 FORBAND: dict[str, dict] = {}               # K-03:s och K-04:s resultat (las_forband), sätts av ritningar
+# syllisoleringen är inte med i modellen: dess höjd (några mm) räknas inte (#126)
+SYLLISOLERING = ("Under syllen läggs syllisolering (tätande, kapillärbrytande list) i syllens hela bredd, och ångbromsen "
+                 "ansluts mot den.")
 K03_TAKSTOL = {"2C": "L2M"}                 # takstolens kod i modellen -> namnet i K-03
 # beslagen i vyn: höjd, den liggande skänkelns djup och bredd (byggdelar/beslag.py)
 BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 60.0, 60.0)}
@@ -582,7 +586,8 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
     kod = {v: k for k, v in K03_TAKSTOL.items()}
     st = [(kod.get(r["namn"], r["namn"]), r) for r in k3["st"]]
     rader = [
-        ["Syll mot mellanbjälklaget", f"Betongbult M{BULT[0]:g} med bricka {fo['bricka']}, {BULT[1]:g} mm i plattan",
+        ["Syll mot mellanbjälklaget", f"Syllisolering under syllen. Betongbult M{BULT[0]:g} med bricka {fo['bricka']}, "
+         f"{BULT[1]:g} mm i plattan",
          f"{len(utdrag.get('bultar', {}).get('lagen', []))} st, lägena i måttkedjan \"bultar\" på väggarnas blad och "
          "i plan på AR-03.4", "K-04"],
         ["Regelns fot i syllen", f"{fo['skruv']} snett genom regeln ned i syllen", "Varje regel", "K-04"],

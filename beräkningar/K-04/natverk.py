@@ -157,7 +157,8 @@ def _komposit(nr: int, delar: list[dict[str, Any]]) -> Bar:
 
 def _sekundara(delar: list[Bar]) -> None:
     """Takstolarnas ståndare (R) och spikreglar (X vid sidan av diagonalerna) ingår inte; toppklossarna (K) är en del
-    av toppens knutpunkt."""
+    av toppens knutpunkt. Utan ståndarna (och gavelns skivor) bär takstolens underram ensam över en öppning i modellen,
+    och dess nedböjning där är inte verklig (kontroller.bruksgrans, #133)."""
     diagonaler: dict[str, list[Bar]] = defaultdict(list)
     for b in delar:
         if b.grupp == "takstol" and b.typ == "D":

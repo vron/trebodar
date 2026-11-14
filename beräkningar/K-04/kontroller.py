@@ -400,7 +400,12 @@ def kontrollera(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
 
 def bruksgrans(N: Natverk, L: Losning, IN: dict[str, Any]) -> dict[str, Any]:
     """Takbalkarnas nedböjning (w_fin, kontinuerliga med krypning: egentyngd och snö var för sig) och väggarnas
-    överkant i karakteristisk vind."""
+    överkant i karakteristisk vind.
+
+    Överstyckena och takstolarnas underramar över öppningar kontrolleras med avsikt inte för nedböjning. Balkmodellen
+    har inte gavlarnas ståndare och skivor (natverk._sekundara), som i verkligheten bär underramen och väggen ovanför
+    öppningen, och laster.py lägger dessutom dörrens övre halva på överstycket. Modellens nedböjning där (underramen
+    2SV-U01 över skjutdörren: ca 15 mm av egentyngd) är alltså inte verklig och är inget fel att rätta (#133)."""
     K, KB = IN["kontroll"], IN["kombination"]
     m = N.modell
     namn = [k.namn for k in L.komb]

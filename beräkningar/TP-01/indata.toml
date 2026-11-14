@@ -391,7 +391,7 @@ slut       = "2027-12-08"
 ansvarig   = "bygg"
 inblandade = ["mark"]
 prel       = true
-anm        = "Väggar, stolpar, nock- och dalbalkar, takstolar och takbalkar; fickdörrarnas kassetter i väggarna."
+anm        = "Väggar, stolpar, nock- och dalbalkar, takstolar och takbalkar; fickdörrarnas kassetter i väggarna. Syllisolering under alla syllar; förbanden enligt R-02."
 
 [[steg]]
 fas        = "stomme"
