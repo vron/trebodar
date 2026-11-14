@@ -12,7 +12,10 @@ from dataclasses import dataclass
 
 from trebodar import skelett as S
 from trebodar.byggdelar import taklager as L
-from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT
+from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, Takfonster
+
+FALS_CC = 525.0              # plåtbanornas bredd (falsarnas delning längs y)
+FALS_FRI = 30.0              # falsarna minst så långt från fönstrens och regionernas kanter
 
 
 @dataclass(frozen=True)
@@ -108,4 +111,22 @@ def regioner(kod: str, typ: str) -> list[Region]:
             if kant in (y0, y1):
                 nedre = r.nedre if r.nedre.x == x else _lodr(_dalens_slut(r.nedre.x - xd, t.kropp))
                 ut.append(Region(a, b, nedre, r.nock))
+    return ut
+
+
+def falsar(kod: str, fonster: tuple[Takfonster, ...]) -> list[float]:
+    """Falsarnas lägen (y) i takfallet: banor FALS_CC breda och lika breda kantbanor vid gavlarna; en fals nära en
+    fönsterkant eller en regionkant flyttas FALS_FRI från den."""
+    rs = REGIONER[kod]
+    y0, y1 = min(r.y0 for r in rs), max(r.y1 for r in rs)
+    n = int((y1 - y0) // FALS_CC)
+    kant = (y1 - y0 - (n - 1) * FALS_CC) / 2
+    hinder = {r.y0 for r in rs} | {r.y1 for r in rs} | {f.y0 for f in fonster} | {f.y1 for f in fonster}
+    ut = []
+    for k in range(n):
+        y = y0 + kant + k * FALS_CC
+        for e in sorted(hinder, key=lambda e: abs(e - y)):
+            if abs(y - e) < FALS_FRI:
+                y = e + FALS_FRI if y >= e else e - FALS_FRI
+        ut.append(y)
     return ut

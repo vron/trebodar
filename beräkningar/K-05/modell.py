@@ -51,7 +51,7 @@ def over_vagg(x, y, marg=175.0):
 def bygg(hmax=200.0, k_ror=None, utan=(), vagg_k=None):
     """Returnerar plattan och lastvektorerna (N):
     Gp  plattans egentyngd och golv (för vindlyft)
-    G   alla permanenta laster (Gp + väggar, stolpar, qD2, trappan)
+    G   alla permanenta laster (Gp + väggar, stolpar, qD2, trappan, kaminen)
     Q   nyttig last 2,0 kN/m² på hela plattan;  V  lätta väggar 0,7 kN/m²;  QT  trappans nyttiga last
     S   snö via stolpar, väggar och qD2 (S_V, S_M, S_H: per huskropp);  W  vindlyft (dimensionerande, K-01 R_min) på stolpar på plattan och qD2
     Laster över källarväggarna förs till närmaste upplagslinje (ovan[stödnamn] = (Gk, Sk) i kN): plattan och
@@ -59,7 +59,7 @@ def bygg(hmax=200.0, k_ror=None, utan=(), vagg_k=None):
     pel = rorstod()
     stod = G["stod"]
     stodlin = [[(a, c), (bb, c)] if ax == "h" else [(c, a), (c, bb)] for ax, c, a, bb in stod]
-    linjer = list(stodlin) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
+    linjer = list(stodlin) + [l["pl"] for l in LASTER["linjer"] if l["namn"] in ("qD2", "qK")]
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
     stolpar = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] == "platta"]
     P = Platta(G["kontur"], hal=[G["hal"]], linjer=linjer + [list(map(tuple, G["mark"])) + [tuple(G["mark"][0])]],

@@ -3,7 +3,8 @@ Laster på mellanbjälklaget: utbredda laster (F-01) och alla laster från träs
 
 Punktlaster heter efter balken de kommer från, numrerade från balkens början (lägsta y): LN1_1, LN1_2, ... för
 nockbalkar och LD2_1, ... för dalbalkar. Hörnstolparna under gavlarnas takstolar heter LA1–LA10. Linjelaster:
-qD2 (dalbalk 2 via bärande vägg), qY1–qY12 (ytterväggar på plan 1), qT (trappan på trapphålets kant).
+qD2 (dalbalk 2 via bärande vägg), qY1–qY12 (ytterväggar på plan 1), qT (trappan på trapphålets kant), qK (kaminen
+och dess murade skorsten).
 
 Laster som står över en källarvägg förs i FE-modellen direkt till väggens upplagslinje (ger ingen böjning i
 plattan, men ingår i väggens reaktion). Övriga laster verkar på plattan där de står.
@@ -64,6 +65,11 @@ STOLPLAGEN = {
 # Trappan (trä, brant, i trapphålet): står på källarens golv vid hålets västra kortsida och hänger i överkant på den
 # östra, vid väggen 2B; halva trappan på den östra kortsidan.
 TRAPPA = dict(langd=2.07, bredd=0.83, g=1.0, q=2.0)      # horisontell längd [m], bredd [m], kN/m² i plan
+# Kaminen och dess murade skorsten på plan 1 (modellen: 684 × 502 mm mot väggen 2C, mitt under mittre nocken):
+# insatsen Rais 600:3 ca 130 kg, lättbetong 100 och lock ca 100 kg, kalciumsilikat ca 120 kg, kalkputs ca 40 kg och
+# ca 60 kg av den isolerade skorstenen som bärs nedifrån, tillsammans 4,5–5 kN. Räknas som 6 kN permanent, längs
+# skorstenens mittlinje i y (#128).
+KAMIN = dict(G=6.0, x=6905.0, y0=5900.0, y1=6402.0)
 
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (fältvis snö eller vindlyft 1,0 G + γd 1,5 W) [kN];
 # K-03 stoppar om de inte är K-01:s (./bygg K-03)
@@ -320,7 +326,7 @@ def ytterväggar():
 
 # ------------------------------------------------------------------ övriga linjelaster
 def linjelaster():
-    """qD2 från dalbalk 2 via bärande vägg på plan 1 (K-01), och trappan på trapphålets östra kortsida."""
+    """qD2 från dalbalk 2 via bärande vägg på plan 1 (K-01), trappan på trapphålets östra kortsida och kaminen."""
     ll = G["linjelaster"]
     L = []
     lyft = K01["D2"]["vagg_lyft"] / (K01["D2"]["vagg"][1] / 1000)      # kN/m
@@ -337,6 +343,9 @@ def linjelaster():
     x = max(x0, x1)
     L.append(dict(namn="qT", pl=[(x, y0), (x, y1)], gk=gk, sk=0.0, qk=qk, wd=0.0, skropp={},
                   text="trappan, halva trappan hänger på hålets östra kortsida"))
+    km = KAMIN
+    L.append(dict(namn="qK", pl=[(km["x"], km["y0"]), (km["x"], km["y1"])], gk=km["G"] / ((km["y1"] - km["y0"]) / 1000),
+                  sk=0.0, qk=0.0, wd=0.0, skropp={}, text="kaminen och dess murade skorsten"))
     return L
 
 

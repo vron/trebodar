@@ -22,8 +22,9 @@ Möbler minst 950 framför dörren och 500 från sidoglasen.
 Skorstenen är isolerad, Ø150/Ø250 rostfri (ett CE-märkt systemskorsten med 50 mm deklarerat avstånd till brännbart,
 G50), ända ned till stosen (manualen): lodrätt till Z_BOJ och i en enda förskjutning 45° snett bakåt genom nischens
 baksida och 2C:s skikt mot garderoben (i nischen, inga reglar) in i garderoben, och lodrätt genom garderobens tak,
-innertaket och taket till 1 000 mm över nocken, med regnhuv: två böjar, sotningsbar uppifrån. Genom taket går den väster
-om nockbalken NB3, mellan takbalken T09 och takstolen 2C. Minst 50 mm till allt brännbart (nischens reglar, skikten,
+innertaket och taket, med regnhuv: två böjar, sotningsbar uppifrån. Genom taket går den väster om nockbalken NB3,
+mellan takbalken T09 och takstolen 2C. Över taket står den i en fyrkantig inklädnad av takets plåt, 560 × 560 och
+1 000 mm över nocken som på bygglovets fasadritning 205 (#131), med avtäckning och rökkanalens mynning strax över den. Minst 50 mm till allt brännbart (nischens reglar, skikten,
 läkten, takbalken, nockbalken); ovanför insatsen är skorstenens sidor därför kalciumsilikat 50 i stället för lättbetong.
 Nockbalken ligger rakt ovanför kaminen, så skorstenen kan inte gå rakt upp. I garderoben står ett skydd av gips runt
 skorstenen och kanalen (HOLJE), minst 50 mm från skorstenen, med en inspektionslucka för sotaren och
@@ -45,7 +46,7 @@ from trebodar.byggdelar import taklager as L
 from trebodar.byggdelar.ror import ror, stang
 from trebodar.hus.invandigt.skikt import innertak_vid
 from trebodar.hus.rum import KAMINMUR
-from trebodar.material import GIPS, GLAS, KALCIUMSILIKAT, KALKPUTS, KAMIN, LATTBETONG, ROSTFRITT
+from trebodar.material import GIPS, GLAS, KALCIUMSILIKAT, KALKPUTS, KAMIN, LATTBETONG, ROSTFRITT, TAKPLAT
 
 # insatsen (Rais 600:3, installationsmanualen)
 KROPP = (678.0, 392.0, 610.0)               # bredd, djup bakom ramen, höjd
@@ -79,7 +80,7 @@ Y_GARDEROB = 5710.0                         # förbränningsluftens kanal i gard
 X_SK, Y_SK = 6635.0, 5635.0                 # och lodrätt genom taket väster om nockbalken NB3 (50 till trä), i facket
 #                                            mellan takbalken T09 (y 5 460) och takstolen 2C (5 905), 50 till trä
 Z_SIDA = 1071.0                             # sidornas murverk upp hit (hålets överkant); ovanför kalciumsilikat 50
-OVER_NOCK = 1000.0                          # mynningen över nocken, som bygglovets fasadritning 205 (1,0 m över taket)
+OVER_NOCK = 1000.0                          # inklädnadens överkant över nocken, som bygglovets fasadritning 205
 # förbränningsluften
 LUFT_D, LUFT_FRAN_FRONT = 100.0, 122.0      # flexslangen och anslutningen under insatsen (bakom fronten)
 LUFT_ISOL = 20.0                            # kanalens isolering
@@ -88,6 +89,12 @@ X_SLANG, Y_SLANG = 6880.0, 5800.0          # slangen rakt bakåt under insatsen,
 X_LUFT, Y_LUFT = 6275.0, Y_GARDEROB         # och lodrätt genom taket väster om skorstenen
 LUFT_FRI = 5.0                              # hålen runt kanalen
 HUV_OVER = 300.0                            # kanalens ände över taket, under huven
+# inklädnaden över taket (#131): fyrkantig som på bygglovets fasadritning 205, av takets plåt på en obrännbar stomme
+# kring den runda skorstenen; västra sidan 20 mm fri från förbränningsluftens huv, östra sidan strax öster om nocken
+KLADSEL = 560.0                             # yttermått
+KLADSEL_X0 = X_LUFT + LUFT_D / 2 + LUFT_ISOL + 40.0 + 20.0
+KRONA_UT, KRONA_T = 25.0, 20.0              # avtäckningen: utsprång runt om och höjd
+MYNNING_OVER = 100.0                        # rökkanalens mynning över avtäckningen
 
 assert abs(MY0 - S.INNERVAGGAR["2C"].origo[1]) < 0.5, "i 2C:s nisch, mot skikten på garderobens sida"
 assert abs(MX1 - MX0 - RAM[0]) < 0.5, "skorstenen är lika bred som insatsens ram"
@@ -100,6 +107,45 @@ def _z_tak(x: float) -> float:
     return S.TAKFALL["2SO"].z_overkant(x) + L.PLAT[1] / S.COS
 
 
+def _z_skikt(x: float, w: float) -> float:
+    """Takets skikt w (vinkelrätt över takbalkarnas överkant) vid x i mittre huskroppen, på båda sidor om nocken."""
+    t = S.TAKFALL["2SO"] if x <= S.HUSKROPPAR[2].nock else S.TAKFALL["2NV"]
+    return t.z_overkant(x) + w / S.COS
+
+
+def _z_topp() -> float:
+    """Inklädnadens överkant."""
+    return _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK
+
+
+def kladselns_lada() -> tuple[float, float, float, float]:
+    """Inklädnadens yttermått i plan: x0, y0, x1, y1."""
+    return KLADSEL_X0, Y_SK - KLADSEL / 2, KLADSEL_X0 + KLADSEL, Y_SK + KLADSEL / 2
+
+
+def _over_taket(x0: float, y0: float, x1: float, y1: float, z1: float, w: float) -> Form:
+    """Lådan x0–x1, y0–y1 från takets skikt w upp till z1, på båda sidor om nocken."""
+    nock = S.HUSKROPPAR[2].nock
+    form: Form | None = None
+    for xa, xb, tecken in ((x0, min(x1, nock), 1.0), (max(x0, nock), x1, -1.0)):
+        if xb - xa < 0.01:
+            continue
+        xm = (xa + xb) / 2
+        z0 = min(_z_skikt(xa, w), _z_skikt(xb, w)) - 5.0
+        halva = Kapad(box(xa, xb, y0, y1, z0, z1), (xm, y0, _z_skikt(xm, w)), (tecken * S.TAN, 0.0, -1.0))
+        form = halva if form is None else form | halva
+    assert form is not None
+    return form
+
+
+def platens_hal() -> tuple[Form, tuple[float, float, float, float, float, float]]:
+    """Hålet i takplåten och falsarna där inklädnaden står: plåten viks upp mot den (för genomforing.genomfor)."""
+    x0, y0, x1, y1 = kladselns_lada()
+    z1 = _z_topp()
+    return (_over_taket(x0, y0, x1, y1, z1, L.PLAT[0]),
+            (x0, y0, min(_z_skikt(x0, L.PLAT[0]), _z_skikt(x1, L.PLAT[0])) - 5.0, x1, y1, z1))
+
+
 def _innertak_vid(x: float, y: float, r: float = 0.0) -> float:
     """Innertakets underkant vid (x, y), den lägsta inom avståndet r (taket lutar)."""
     return min(innertak_vid(x + dx, y + dy) for dx in (-r, 0.0, r) for dy in (-r, 0.0, r))
@@ -108,7 +154,7 @@ def _innertak_vid(x: float, y: float, r: float = 0.0) -> float:
 def genomforing() -> tuple[Form, tuple[float, float, float, float, float, float]]:
     """Hålet för skorstenen genom innertaket, isoleringen och taket, med lådan (för genomforing.genomfor)."""
     r = SKORSTEN_D / 2 + FRI
-    z0, z1 = _innertak_vid(X_SK, Y_SK, r) - 2.0, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK + 20.0
+    z0, z1 = _innertak_vid(X_SK, Y_SK, r) - 2.0, _z_topp() + MYNNING_OVER + KRONA_T + 20.0
     return cylinder(r, z1 - z0, (X_SK, Y_SK, z0)), (X_SK - r, Y_SK - r, z0, X_SK + r, Y_SK + r, z1)
 
 
@@ -137,7 +183,7 @@ def skorstenens_vag() -> list[tuple[float, float, float]]:
     ys = Y_FRONT - STOS_FRAN_FRONT
     zt = Z_INSATS + KROPP[2] + STOS_H
     b = (X_SK, Y_SK, Z_BOJ + math.hypot(X_MITT - X_SK, ys - Y_SK))
-    return [(X_MITT, ys, zt), (X_MITT, ys, Z_BOJ), b, (X_SK, Y_SK, _z_tak(S.HUSKROPPAR[2].nock) + OVER_NOCK)]
+    return [(X_MITT, ys, zt), (X_MITT, ys, Z_BOJ), b, (X_SK, Y_SK, _z_topp() + KRONA_T + MYNNING_OVER)]
 
 
 def kanalens_vag() -> list[tuple[float, float, float]]:
@@ -305,6 +351,17 @@ def montage() -> Montage:
     k = (_z_tak(X_SK + 100.0) - _z_tak(X_SK)) / 100.0                   # takets lutning
     krage = Kapad(ror((X_SK, Y_SK, za), (X_SK, Y_SK, zb), 2 * r, FRI), (X_SK, Y_SK, _z_tak(X_SK) - 40.0), (k, 0.0, -1.0))
     m.lagg(Del("Takgenomföring, krage", krage, ROSTFRITT), Placering(), "KM-KRAGE")      # från 40 under takets yta
+    # inklädnaden över taket: plåt på obrännbar stomme, från underlagspappen (plåten viks upp mot den) till avtäckningen
+    x0, y0, x1, y1 = kladselns_lada()
+    zk = _z_topp()
+    t_pl = L.PLAT_T
+    skal = (_over_taket(x0, y0, x1, y1, zk, L.PLAT[0])
+            - _over_taket(x0 + t_pl, y0 + t_pl, x1 - t_pl, y1 - t_pl, zk + 1.0, L.PLAT[0] - 50.0))
+    m.lagg(Del(f"Skorstenens inklädnad {KLADSEL:g}×{KLADSEL:g}, bandplåt som taket på obrännbar stomme", skal, TAKPLAT,
+               produkt="SKORSTEN"), Placering(), "KM-KLADSEL")
+    krona = (box(x0 - KRONA_UT, x1 + KRONA_UT, y0 - KRONA_UT, y1 + KRONA_UT, zk, zk + KRONA_T)
+             - cylinder(SKORSTEN_D / 2, KRONA_T + 2.0, (X_SK, Y_SK, zk - 1.0)))
+    m.lagg(Del("Skorstenens avtäckning, plåt med fall utåt", krona, TAKPLAT), Placering(), "KM-KRONA")
     # förbränningsluften
     vag = _luftvag()
     slang: Form = ror(vag[0], vag[1], LUFT_D, 1.0)

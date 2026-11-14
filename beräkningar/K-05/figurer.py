@@ -235,6 +235,9 @@ def rita_laster(path, G, L):
     t = [l for l in L["linjer"] if l["namn"] == "qT"]
     ax.text(t[0]["pl"][0][0] - 120, t[0]["pl"][0][1] - 120, "qT", fontsize=5.8, color=LAST, ha="right", va="top",
             zorder=10, path_effects=HALO)
+    k = [l for l in L["linjer"] if l["namn"] == "qK"]
+    ax.text(k[0]["pl"][0][0] - 120, k[0]["pl"][1][1] + 60, "qK", fontsize=5.8, color=LAST, ha="right", va="bottom",
+            zorder=10, path_effects=HALO)
     # punktlaster
     flytt = {"LD2_1": (150, -330, "left"), "LD2_2": (150, 60, "left"), "LD4_1": (-150, 150, "right"),
              "LD2_3": (150, 150, "left"), "LD4_2": (150, -330, "left"), "LD2_4": (-150, -330, "right"),

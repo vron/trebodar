@@ -24,13 +24,11 @@ from trebodar.byggdelar.virke import fmt
 from trebodar.hus.stomme.prefab.takbalkar.takbalkar import FALT, Takfonster
 from trebodar.material import C24_LAKT, GLAS, HDF, KARM, PAPP, RASPONT, TAKPLAT
 
-from . import dalar, takkanter
-from .takytor import REGIONER, regioner
+from . import dalar, takkanter, taksakerhet
+from .takytor import FALS_CC, REGIONER, falsar, regioner
 
 OMLUFT = 600.0               # uppehåll i ströläkten ovanför och nedanför takfönstren, längs takfallet (U-03)
-FALS_CC = 525.0              # plåtbanornas bredd (falsarnas delning längs y)
 FALS_B = 8.0                 # falsens bredd, hälften på var bana
-FALS_FRI = 30.0              # falsarna minst så långt från fönstrens och regionernas kanter
 assert dict(TAKPLAT.rendering)["avstand"] == FALS_CC         # renderingens banor
 
 SKIKT = (("Hårdboard", "HD", L.HARDBOARD, HDF), ("Råspont", "RP", L.RASPONT, RASPONT),
@@ -63,24 +61,6 @@ def _skiva(t: S.Takfall, kod: str, namn: str, typ: str, w: tuple[float, float], 
                 tillagg = [(fals, z0, h) for z0, kant in ((0.0, b), (b - a - h, a)) if fals and kant in fs]
                 p.profil(q, a, b, typ=typ, tillagg=tillagg, bas_namn=f"{namn} bana {fmt(b - a)}")
     return p.montage()
-
-
-def _falsar(kod: str, fonster: tuple[Takfonster, ...]) -> list[float]:
-    """Falsarnas lägen (y) i takfallet: banor FALS_CC breda och lika breda kantbanor vid gavlarna; en fals nära en
-    fönsterkant eller en regionkant flyttas FALS_FRI från den."""
-    rs = REGIONER[kod]
-    y0, y1 = min(r.y0 for r in rs), max(r.y1 for r in rs)
-    n = int((y1 - y0) // FALS_CC)
-    kant = (y1 - y0 - (n - 1) * FALS_CC) / 2
-    hinder = {r.y0 for r in rs} | {r.y1 for r in rs} | {f.y0 for f in fonster} | {f.y1 for f in fonster}
-    ut = []
-    for k in range(n):
-        y = y0 + kant + k * FALS_CC
-        for e in sorted(hinder, key=lambda e: abs(e - y)):
-            if abs(y - e) < FALS_FRI:
-                y = e + FALS_FRI if y >= e else e - FALS_FRI
-        ut.append(y)
-    return ut
 
 
 def _takstolar(kropp: int) -> set[float]:
@@ -142,7 +122,7 @@ def takfall(kod: str) -> Montage:
     m.lagg(_skiva(t, kod, "Hårdboard", "HD", L.HARDBOARD, HDF, fonster))
     m.lagg(_strolakt(t, kod, fonster))
     for namn, typ, w, mat in SKIKT[1:]:
-        m.lagg(_skiva(t, kod, namn, typ, w, mat, fonster, _falsar(kod, fonster) if typ == "TP" else ()))
+        m.lagg(_skiva(t, kod, namn, typ, w, mat, fonster, falsar(kod, fonster) if typ == "TP" else ()))
     return m
 
 
@@ -178,6 +158,7 @@ def montage() -> Montage:
         m.lagg(takfall(kod))
     m.lagg(takkanter.montage())
     m.lagg(dalar.montage())
+    m.lagg(taksakerhet.montage())
     tf = Montage("Takfönster")
     for kod, f in FALT.items():
         for fo in f.fonster:

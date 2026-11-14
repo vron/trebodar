@@ -111,6 +111,7 @@ KALKPUTS = Material("Kalkputs", "Kalkputs 10 på nät, kalkad Jotun 1563 Mørk s
                     "#cdc6b4", 0.92, textur="gips", enhet="m2", cad="#cdc6b4")
 KAMIN = Material("Kamin", "Kamininsats, svart stål", 7850, "#232426", 0.6, 0.8, cad="#3a3d42")
 ROSTFRITT = Material("Rostfritt", "Rostfritt stål (skorsten)", 7900, "#c4c8cc", 0.3, 1.0, cad="#b4bcc6")
+STAL_VFZ = Material("Varmförzinkat stål", "Varmförzinkat stål (taksäkerhet)", 7850, "#8f969b", 0.55, 1.0, cad="#8f969b")
 ANGBROMS = Material("Ångbroms", "Hunton Intello Plus (åldringsbeständig plastfolie)", 900, "#c8d7e0", 0.6,
                     textur="folie", enhet="m2", opacitet=0.6, cad="#5fb3d9")
 PAPP = Material("Underlagspapp", "Underlagspapp T-Roof YEP 2500", 1100, "#1d1e20", 0.9, textur="papp", enhet="m2",

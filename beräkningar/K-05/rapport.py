@@ -78,6 +78,9 @@ qd2 = [l for l in L["linjer"] if l["namn"] == "qD2"]
 qt = [l for l in L["linjer"] if l["namn"] == "qT"]
 D["qD2"] = dict(gk=f(qd2[0]["gk"], 2), sk=f(qd2[0]["sk"], 2), wd=f(qd2[0]["wd"], 2),
                 str=" och ".join(f"{mm(l['pl'][0][1])}–{mm(l['pl'][1][1])}" for l in qd2), x=mm(qd2[0]["pl"][0][0]))
+qk_ = [l for l in L["linjer"] if l["namn"] == "qK"][0]
+D["qK"] = dict(gk=f(qk_["gk"], 2), G=f(LA.KAMIN["G"]), x=mm(qk_["pl"][0][0]),
+               y=f"{mm(qk_['pl'][0][1])}–{mm(qk_['pl'][1][1])}")
 D["qT"] = dict(gk=f(qt[0]["gk"], 2), qk=f(qt[0]["qk"], 2), x=" och ".join(mm(l["pl"][0][0]) for l in qt))
 tot = R["jamvikt"]
 ovanG = sum(p["Gk"] for p in L["punkter"]) + sum(w["Gk"] for w in L["vaggar"]) + sum(

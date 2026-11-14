@@ -109,7 +109,7 @@ def topp(hmax=200.0, ke=1.0):
     """K-05:s nät utan väggar och rör som stöd. Plattan på mark (plan 1) ligger på I.EPS_MARK mm cellplast med
     E = ke · E_k: I.EPS_MARK_GRAD, och I.EPS_MARK_STARK i de fria hörnen (I.EPS_MARK_ZON)."""
     LASTER = M05.LASTER
-    linjer = list(STODLIN) + [l["pl"] for l in LASTER["linjer"] if l["namn"] == "qD2"]
+    linjer = list(STODLIN) + [l["pl"] for l in LASTER["linjer"] if l["namn"] in ("qD2", "qK")]
     punkter = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] != "vägg"]
     stolpar = [(p["x"], p["y"]) for p in LASTER["punkter"] if p["plats"] == "platta"]
     P = Platta(G["kontur"], hal=[G["hal"]], linjer=linjer + [list(map(tuple, G["mark"])) + [tuple(G["mark"][0])]],

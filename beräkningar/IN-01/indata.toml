@@ -33,6 +33,7 @@ byggherre = "Byggherren"
 bygg      = "Byggentreprenören"
 el        = "Elektrikern"
 vvs       = "VVS-entreprenören"
+plat      = "Plåtslagaren"
 
 # ------------------------------------------------------------------ gjutning
 
@@ -425,11 +426,33 @@ anm      = "I en murad skorsten av lättbetong mot 2C, putsad och kalkad, med fr
 [[produkt]]
 kod      = "SKORSTEN"
 grupp    = "Kamin"
-namn     = "Isolerad skorsten Ø150/Ø250 med regnhuv och takgenomföring"
+namn     = "Isolerad skorsten Ø150/Ø250 med regnhuv och takgenomföring, och fyrkantig inklädnad över taket"
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "tatt"
-anm      = "Från rökstosen, 1 000 mm över nocken (bygglovets fasadritning 205)."
+anm      = "Från rökstosen. Över taket en inklädnad 560 × 560 av takets plåt på obrännbar stomme, 1 000 mm över nocken (bygglovets fasadritning 205), med avtäckning; plåtslagaren gör inklädnaden."
+
+# ------------------------------------------------------------------ taksäkerhet
+
+[[produkt]]
+kod      = "TAKSAKERHET"
+grupp    = "Tak"
+namn     = "Tillträde till skorstenen: glidskydd för lös stege och takstege"
+status   = "att välja"
+ansvarig = "plat"
+fas      = "tatt"
+arende   = [125]
+anm      = "Typgodkänt taksäkerhetssystem med falsfästen (inga hål i plåten). Från altanen: lös stege vid gaveln 2SV, längs dalen DB4 och takstege på takfallet 2SO från dalen upp till skorstenens norra sida. Ingen gångbrygga och ingen arbetsplattform: sotaren står på stegen. Lägena i modellen; avstäms med sotaren."
+
+[[produkt]]
+kod      = "SNORASSKYDD"
+grupp    = "Tak"
+namn     = "Snörasskydd över ytterdörrarna, två rör på konsoler"
+status   = "att välja"
+ansvarig = "plat"
+fas      = "tatt"
+arende   = [125]
+anm      = "Över 1SO-D1, 2SO-D1, 3SO-D1 och 1NV-D1, 0,6 m från takfoten, med falsfästen. Samma system som tillträdet."
 
 # ------------------------------------------------------------------ el
 

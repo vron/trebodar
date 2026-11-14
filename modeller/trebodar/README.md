@@ -101,6 +101,8 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Takfallens utbredning, takfoten och dalarnas ändar | `hus/tak/takytor.py` (`REGIONER`); taket, takkanterna, dalarna och innertaket följer med |
 | Takkanterna och dalarna | `hus/tak/takkanter.py` (takfotsplåt, rännor, stuprör, vindskivor) och `hus/tak/dalar.py` (kilar, rändal, ändlådor) |
+| Taksäkerheten | `hus/tak/taksakerhet.py`: takstegen från dalen DB4 till skorstenen, glidskyddet för lös stege och snörasskydden över ytterdörrarna, på falsfästen (#125) |
+| Skorstenen över taket | `hus/kamin/kamin.py`: fyrkantig inklädnad 560 × 560 av takets plåt kring den runda skorstenen, 1 000 över nocken (#131) |
 | De invändiga skikten | `hus/invandigt/skikt.py` (uppbyggnaden), `innertak.py`, `vagginsida.py` (ytterväggarnas insida och hörnen), `vaggar.py` (innerväggarna), `kallare.py` (källarväggarnas gips) och `kallarens_innervaggar.py` (källarens lätta väggar) |
 | Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (uppbyggnaden) och `material.py` (`PANEL` och `ALUMINIUM` per huskropp; kulör, brädbredd, kvistar, skruvar) |
 | Marken vid fasaden (panelens underkant) | `hus/fasad/markniva.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |

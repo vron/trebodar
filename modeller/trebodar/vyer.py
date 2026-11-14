@@ -37,7 +37,8 @@ LJUSSERIER = {
     # D på julafton kl. 22 med fullmånen 43° upp i östsydost, som lyser upp landskapet; utan närbilderna av fasaderna
     # och taket, som är svarta i mörker, och stommen, som är byggskedet
     "D": {"namn": "December, kväll, klar himmel", "ljus": (12, 24, "22:00", "klart"), "tand": "alla",
-          "utan": ("detalj-falu", "detalj-fasad", "detalj-takflakt", "detalj-sten", "detalj-tak", "detalj-takhuv",
+          "utan": ("detalj-falu", "detalj-fasad", "detalj-takflakt", "detalj-sten", "detalj-tak", "detalj-taksakerhet",
+                   "detalj-takhuv",
                    "stomme")},
 }
 Z_KALLARE = S.Z_BOTTENPLATTA
@@ -69,6 +70,9 @@ VYER = {
                     "ljus": (6, 21, "09:00", "sol")},
     "detalj-tak": {"kamera": [-6000, 2500, 3200], "mal": [1500, 9500, 3000], "lins": 45, "ljus": (6, 21, "10:00", "sol"),
                    "lodrat": False},
+    # taksäkerheten (#125): från altanen längs dalen DB4 och upp till skorstenen
+    "detalj-taksakerhet": {"kamera": [1200, 13500, 9000], "mal": [5900, 7600, 3600], "lins": 35,
+                           "ljus": (6, 21, "10:00", "sol"), "lodrat": False},
     "detalj-spot": {"kamera": [6600, 7900, 1500], "mal": [5873, 8650, 3174], "lins": 50, "ljus": (12, 21, "18:00", "sol"),
                     "lodrat": False, "inne": True, "tand": {"AL-T1": 1.0, "AL-T2": 1.0}},
     "detalj-tubspot": {"kamera": [12350, 8750, 2350], "mal": [12725, 9600, 2850], "lins": 50,
@@ -116,6 +120,7 @@ TEXTER = {
     "flyg-tomten": "Tomten uppifrån, norr uppåt", "flyg-omgivningen": "Omgivningen uppifrån, norr uppåt",
     "detalj-fasad": "Fasaden i järnvitriol", "detalj-falu": "Fasaden i falu rödfärg",
     "detalj-sten": "Sockeln av granit", "detalj-tak": "Taket, bandtäckt plåt med takfönster",
+    "detalj-taksakerhet": "Tillträdet till skorstenen: takstege från dalen",
     "detalj-spot": "Spotlights i allrummets tak",
     "detalj-tubspot": "Spotlights i köket", "detalj-ph5": "PH 5 över matbordet", "detalj-stav": "Pendlarna över köksön",
     "detalj-vl45": "VL45 i vardagsrummet", "detalj-glob": "Glob i sovrummet",

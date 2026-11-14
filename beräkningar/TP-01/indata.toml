@@ -421,7 +421,7 @@ slut       = "2028-02-11"
 ansvarig   = "plat"
 inblandade = ["bygg"]
 prel       = true
-anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggning vintertid avstäms med plåtslagaren. Plåtslagaren dimensionerar klammerns delning för vindsuget per zon i K-03 avsnitt 3.4."
+anm        = "Bandtäckt zink-magnesium, dalar, rännor, takgenomföringar och skorsten; läggning vintertid avstäms med plåtslagaren. Plåtslagaren dimensionerar klammerns delning för vindsuget per zon i K-03 avsnitt 3.4, klär in skorstenen över taket och sätter takstegen, glidskyddet och snörasskydden med falsfästen (IN-01)."
 
 [[steg]]
 fas        = "tatt"
