@@ -405,13 +405,16 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   L4 i förrådet.
 - **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
   användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
-  1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (600 djupa, från sparklisten 90 till bänkskivans
+  1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (645 djupa, invändigt 625, från sparklisten 90 till bänkskivans
   underkant 888) med fyra lådor av massiv björk 14 och botten av björkplywood 4 på Blum MOVENTO 760H (SKW = LW − 42,
-  SKL = NL − 10, urtag 13, NL 550; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
+  SKL = NL − 10, urtag 13, NL 600; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
   bakstycket på botten, hålen för löparens hake i sidornas bakände) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
   i öns lådskåp tre lådor 115, 233 och 441, 3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
-  mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,4
-  breda (fronterna 605,4), B4–B7 och skåpen längs 3SV 599,1 (571,1); hörnet är dött med en fogbräda 22 × 22. Diskhon
+  mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,25
+  breda (fronterna 605,25), B4 600 (invändigt 560, för en vanlig häll 60), B5–B7 och skåpen längs 3SV 591,6 (563,6).
+  I hörnet ett hörnstycke av ask, två brädor 22 i vinkel med benen 22 utanför den andra bänkens fronter (för handtag
+  upp till 20 mm), och längs 3SV först hörnskåpet B8: en dörr på två gångjärn, stommen förlängd in i hörnet bakom B7
+  med en blindfront, botten och en mellanhylla. Diskhon
   i B2, med kopparrören från underfördelaren UF1 genom två hylsor bakom lådorna (KO-DB1, #83). Ön: diskmaskinen (vanlig integrerad 60, fronten 596 och fritt 602 mellan fogbrädorna)
   och två lådskåp med tre lådor, alla 624 breda, mot bänken, vita sidor och rygg, öppen för benen mot väster. Bänkskivorna
   Bricmate Jura 12.

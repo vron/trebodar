@@ -182,7 +182,7 @@ status   = "att välja"
 ansvarig = "byggherre"
 fas      = "invandigt"
 arende   = [56]
-anm      = "Lådskenor Blum MOVENTO 760H i modellen; gångjärn och låskrokar är inte modellerade."
+anm      = "Lådskenor Blum MOVENTO 760H6001S (NL 600), under diskhon 760H3501S (NL 350), med kopplingar T51.7601; hörnskåpets dörr på gångjärn Blum CLIP top BLUMOTION 110°."
 
 [[produkt]]
 kod      = "KOKSFRONTER"

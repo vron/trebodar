@@ -2,14 +2,18 @@
 bänkskivorna, diskhon, hällen och diskmaskinen.
 
 Bänken är vinkelformad efter användarens skiss: längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut,
-700 djup (bänkskivan Bricmate Jura 12 mm, 20 mm utanför fronterna). Hörnet är dött: bänken längs 3NV slutar vid den
-korta bänkens fronter, och en fogbräda 22 × 22 står i hörnet. Längs 3NV en bräda 45 mot inbyggnaden (som kan passas
-in på plats), sju lådskåp och fogbrädor 22 mitt över fogarna. Hällen (induktion 590 × 520) står i det fjärde skåpet,
-mitt mellan fönstren 3NV-F4 och 3NV-F5 och under köksfläkten FF1 (som sitter mitt emellan dem); de tre skåpen
-söder om den och skåpen längs 3SV är lika breda (599,1, fronterna 571,1) och de tre norr om den, mot inbyggnaden,
-bredare (633,4, fronterna 605,4), så att sträckan går jämnt upp. Diskhon (undermonterad, 500 × 400) står i det andra
-skåpet, med vattnets kopparrör upp genom hylsorna bakom lådorna (KO-DB1, hus/installationer/vatten/rum/kok.py).
-Längs 3SV tre lådskåp och en vit sida mot rummet. Under skåpen en sparklist 90 hög, 60 mm innanför fronterna.
+700 djup (bänkskivan Bricmate Jura 12 mm, 20 mm utanför fronterna). I hörnet står ett hörnstycke av ask, två brädor 22
+limmade i vinkel, vars ben når HORN_BEN (22) utanför den andra bänkens fronter, så att lådorna och dörren på båda sidor
+går att öppna med handtag som sticker ut upp till 20 mm. Det första skåpet längs 3SV är hörnskåpet: en dörr, och
+stommen förlängd in i hörnet bakom bänkens ände längs 3NV, med botten och en mellanhylla. Längs 3NV en bräda 45 mot
+inbyggnaden (som kan passas in på plats), sju lådskåp och fogbrädor 22 mitt över fogarna. Hällen (induktion 590 ×
+520) står i det fjärde skåpet, 600 brett (invändigt 560, för en vanlig häll 60), mitt mellan fönstren 3NV-F4 och
+3NV-F5 och under köksfläkten FF1 (som sitter mitt emellan dem); de tre skåpen söder om den och skåpen längs 3SV är
+lika breda (591,6, fronterna 563,6) och de tre norr om den, mot inbyggnaden, bredare (633,25, fronterna 605,25), så
+att sträckan går jämnt upp. Diskhon (undermonterad, 500 × 400) står i det andra skåpet, med vattnets kopparrör upp
+genom hylsorna bakom lådorna (KO-DB1, hus/installationer/vatten/rum/kok.py); diskhon och hällen står med mitten
+DJUP_MITT från stommens framkant, där diskhons avlopp går ned genom bjälklaget. Längs 3SV hörnskåpet, två lådskåp och
+en vit sida mot rummet. Under skåpen en sparklist 90 hög, 60 mm innanför fronterna.
 
 Ön: tre skåp med fronterna mot bänken längs 3NV och vita sidor utanför fogbrädorna, 1 000 djup, 1 100 fritt mellan
 bänkskivorna och mitt för hällen (och mellan fönstren); på andra sidan är ön öppen för benen (ryggen vit). Det
@@ -45,12 +49,19 @@ _F4, _F5 = (next(o for o in OPPNINGAR["3NV"] if o.kod == k) for k in ("3NV-F4", 
 Y_HALL = S.YTTERVAGGAR["3NV"].origo[1] + (_F4.u1 + _F5.u0) / 2      # mitt mellan fönstren
 J0 = K_YTA + BRADA - FOG / 2
 N_NORR = 3                                              # skåpen norr om hällen
-P = (Y_FRONT + FOG / 2 - Y_HALL) / (N_LANG - N_NORR - 0.5)        # skåpens bredd, hällens och söder om den
-P_NORR = (Y_HALL - P / 2 - J0) / N_NORR                           # skåpen norr om hällen
-BREDDER_LANG = [P_NORR] * N_NORR + [P] * (N_LANG - N_NORR)
+# hörnstycket: benen når HORN_BEN utanför den andra bänkens fronter, så att ett handtag som sticker ut HANDTAG_UT
+# från fronterna på ena sidan går fritt från lådorna och dörren på den andra (som börjar SPEL längre bort)
+HORN_BEN, HANDTAG_UT = 22.0, 20.0
+assert HORN_BEN >= 20.0 and HORN_BEN + K.SPEL >= HANDTAG_UT + 5.0, "lådorna går fritt från handtagen i hörnet"
+J_HORN = Y_FRONT - HORN_BEN + FOG / 2                  # fogen mot hörnstycket längs 3NV (som om det vore en fogbräda)
+P_HALL = 600.0                                          # hällens skåp: invändigt 560 för en vanlig häll 60
+P = (J_HORN - Y_HALL - P_HALL / 2) / (N_LANG - N_NORR - 1)        # skåpen söder om hällen och längs 3SV
+P_NORR = (Y_HALL - P_HALL / 2 - J0) / N_NORR                      # skåpen norr om hällen
+BREDDER_LANG = [P_NORR] * N_NORR + [P_HALL] + [P] * (N_LANG - N_NORR - 1)
 FOGAR_LANG = [J0 + sum(BREDDER_LANG[:k]) for k in range(N_LANG + 1)]
-FOGAR_KORT = [X_FRONT + FOG / 2 - k * P for k in range(N_KORT + 1)]
+FOGAR_KORT = [X_FRONT - HORN_BEN + FOG / 2 - k * P for k in range(N_KORT + 1)]
 TYPER_LANG = [K.LADSKAP, K.DISKBANKSSKAP, K.LADSKAP, K.HALLSKAP, K.LADSKAP, K.LADSKAP, K.LADSKAP]   # norrifrån
+assert TYPER_LANG[N_NORR] is K.HALLSKAP and P_HALL - 2 * K.T >= 560.0, "hällens skåp mitt mellan fönstren, 560 inne"
 # ön: PASSAGE fritt mellan bänkskivorna, mitt för hällen, fronterna mot öster; skåpen så breda att diskmaskinens
 # front är standardens (DISKMASKIN_FRONT)
 PASSAGE, ON_DJUP = 1100.0, 1000.0
@@ -65,10 +76,11 @@ DISKHO = (500.0, 400.0, 200.0, 10.0)                    # öppningen längs bän
 DISKHO_AVLOPP = 80.0            # avloppets mitt från hons bakre kant (insidan): bakom diskbänksskåpets lådor
 HALL, HALL_T = (590.0, 520.0), 5.0                       # induktionshällen: glaset och dess tjocklek
 HALL_KROPP, HALL_HAL = (520.0, 490.0, 52.0), (560.0, 490.0)   # kroppen under glaset och hålet i bänkskivan
+DJUP_MITT = 290.0               # diskhons och hällens mitt från stommens framkant (diskhons avlopp genom bjälklaget)
 assert P_ON - FOG >= K.DISKMASKIN[0] + 4.0, "diskmaskinen går fritt mellan fogbrädorna"
 assert P_ON + FOG / 2 >= 600.0, "diskmaskinens nisch är minst 600"
 # diskhons avlopp i skåpets djup (från stommens framkant), med vattenlåset Ø40 minst 40 mm bakom lådornas löpare
-_Y_DISKHO_AVLOPP = (K.DJUP - K.T - DISKHO[1]) / 2 + DISKHO[1] - DISKHO_AVLOPP
+_Y_DISKHO_AVLOPP = DJUP_MITT + DISKHO[1] / 2 - DISKHO_AVLOPP
 assert _Y_DISKHO_AVLOPP - 20.0 - K.DISKBANKSSKAP.nl >= 40.0, "diskhons avlopp bakom lådorna"
 
 
@@ -76,15 +88,15 @@ assert _Y_DISKHO_AVLOPP - 20.0 - K.DISKBANKSSKAP.nl >= 40.0, "diskhons avlopp ba
 # avloppsröret upp ur golvet) vid maskinens bakre del, var sin sida om maskinens mitt (nås när maskinen dras ut):
 # kopparröret bakom maskinen i nischens ände längst från röret P3 under ön, så att hylsan ligger utanför rörets
 # genomstansningszon (6d), avloppet under maskinen närmare nischens mitt
-DISKMASKIN_BAK = (40.0, 50.0)   # kopparröret och avloppet från nischens bakkant
+DISKMASKIN_DJUP = (560.0, 550.0)   # kopparröret och avloppet från stommens framkant (bakom maskinen, 550 djup)
 DISKMASKIN_ISAR = (275.0, -120.0)   # kopparröret och avloppet från maskinens mitt längs ön
 
 
 def diskmaskinens_anslutningar() -> tuple[tuple[float, float], tuple[float, float]]:
     """Diskmaskinens kallvatten (kopparröret upp ur hylsan) och avloppets anslutning i plan."""
-    x = X_ON_FRONT - K.FRONT_T - K.DJUP
+    x = X_ON_FRONT - K.FRONT_T
     y = (FOGAR_ON[0] + FOGAR_ON[1]) / 2
-    return ((x + DISKMASKIN_BAK[0], y + DISKMASKIN_ISAR[0]), (x + DISKMASKIN_BAK[1], y + DISKMASKIN_ISAR[1]))
+    return ((x - DISKMASKIN_DJUP[0], y + DISKMASKIN_ISAR[0]), (x - DISKMASKIN_DJUP[1], y + DISKMASKIN_ISAR[1]))
 
 
 def diskhons_avlopp() -> tuple[float, float]:
@@ -124,7 +136,7 @@ def _ytan(pl: Placering, x0: float, x1: float, y0: float, y1: float) -> list[tup
 def _diskho(pl: Placering, bredd: float) -> tuple[Montage, list[tuple[float, float]]]:
     """Diskhon under bänkskivan mitt i skåpet (bredd) och blandaren bakom, och hålet i bänkskivan."""
     b, d, h, t = DISKHO
-    x0, y0 = (bredd - b) / 2, (K.DJUP - K.T - d) / 2
+    x0, y0 = (bredd - b) / 2, DJUP_MITT - d / 2
     m = Montage("Diskho", beskrivning="Diskho av rostfritt stål, undermonterad, och blandare", produkt="DISKHO")
     ho = box(x0 - t, x0 + b + t, y0 - t, y0 + d + t, K.Z_TOPP - h, K.Z_TOPP) - box(x0, x0 + b, y0, y0 + d,
                                                                                     K.Z_TOPP - h + t, K.Z_TOPP + 1.0)
@@ -139,7 +151,7 @@ def _diskho(pl: Placering, bredd: float) -> tuple[Montage, list[tuple[float, flo
 def _hall(pl: Placering, bredd: float) -> tuple[Montage, list[tuple[float, float]]]:
     """Induktionshällen på bänkskivan mitt i skåpet (bredd), med kroppen i hålet, och hålet i bänkskivan."""
     (b, d), (kb, kd, kh), (hb, hd) = HALL, HALL_KROPP, HALL_HAL
-    x0, y0 = (bredd - b) / 2, (K.DJUP - K.T - d) / 2
+    x0, y0 = (bredd - b) / 2, DJUP_MITT - d / 2
     kx, ky = (bredd - kb) / 2, y0 + (d - kd) / 2
     hx, hy = (bredd - hb) / 2, y0 + (d - hd) / 2
     z = K.Z_TOPP + BANK_T
@@ -168,16 +180,22 @@ def bank() -> Montage:
             hall, hal = _hall(pl, bredd)
             m.lagg(hall)
             halen.append(hal)
-    for k in range(N_KORT):
-        m.lagg(K.skap(f"B{N_LANG + k + 1}", K.LADSKAP, P), _kort(k))
     xf, xs = X_FRONT, X_FRONT + K.FRONT_T
     yf, ys = Y_FRONT, Y_FRONT + K.FRONT_T
+    # hörnskåpet längs 3SV in i hörnet, med baksidan i liv med skåpens rygg längs 3NV
+    m.lagg(K.hornskap(f"B{N_LANG + 1}", P, xs + K.DJUP - FOGAR_KORT[1]), _kort(0))
+    for k in range(1, N_KORT):
+        m.lagg(K.skap(f"B{N_LANG + k + 1}", K.LADSKAP, P), _kort(k))
     _bradlada(f"Bräda ask {fmt(BRADA)}×{fmt(K.FRONT_T)} mot inbyggnaden", "B-BRADA",
               (xf, xs, K_YTA, J0 + FOG / 2, z0, z1), m)
-    for i, j in enumerate(FOGAR_LANG[1:], start=1):
+    for i, j in enumerate(FOGAR_LANG[1:-1], start=1):
         _bradlada(f"Fogbräda ask {fmt(FOG)}×{fmt(K.FRONT_T)}", f"B-FOG{i}", (xf, xs, j - FOG / 2, j + FOG / 2, z0, z1), m)
-    for i, j in enumerate(FOGAR_KORT[1:], start=N_LANG + 1):
+    for i, j in enumerate(FOGAR_KORT[1:], start=N_LANG):
         _bradlada(f"Fogbräda ask {fmt(FOG)}×{fmt(K.FRONT_T)}", f"B-FOG{i}", (j - FOG / 2, j + FOG / 2, yf, ys, z0, z1), m)
+    # hörnstycket: en bräda i fronternas plan längs 3NV och en längs 3SV, limmade i vinkel
+    a = HORN_BEN
+    _bradlada(f"Hörnstycke ask {fmt(K.FRONT_T)}×{fmt(a + K.FRONT_T)}", "B-HORN1", (xf, xs, yf - a, ys, z0, z1), m)
+    _bradlada(f"Hörnstycke ask {fmt(K.FRONT_T)}×{fmt(a)}", "B-HORN2", (xf - a, xf, yf, ys, z0, z1), m)
     xv = FOGAR_KORT[-1] - FOG / 2                          # den vita sidan mot rummet, utanför den sista fogbrädan
     m.lagg(Del(f"Sida vit {fmt(SIDA_T)}", box(xv - SIDA_T, xv, yf, Y_SYD, 0.0, K.Z_TOPP), VIT_SKIVA), Placering(),
            "B-SIDA")

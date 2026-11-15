@@ -27,6 +27,7 @@ from trebodar.hus.invandigt.lattvaggar import K_SMYG, K_YTA
 from trebodar.material import ASK, BESLAG, C24, SKAPSTOMME, SOCKELGALLER, VIT_FRONT, VITVARA
 
 from . import koksbank
+from .koksskap import ARM, KOPP, PLATTA, gangjarnens_z
 
 FRONT_T, SPEL = 19.0, 3.0
 SOCKEL, SOCKEL_IN, GALLER_T = 100.0, 40.0, 20.0           # sockelns höjd, gallret innanför fronten, gallrets djup
@@ -38,18 +39,11 @@ Z_TOPP = H_OPPNING - K_SMYG                               # öppningens överkan
 GANGJARN = {"Kyl": -1, "Frys": 1, "Skafferi": -1}          # dörrarnas gångjärn: vid den lägre (−1) eller högre x
 HANDTAG = (20.0, 30.0, 400.0)                             # handtagen: bredd, djup ut från fronten, längd (högst)
 HANDTAG_KANT, HANDTAG_Z = 40.0, 1050.0                    # handtagets kant från dörrens fria kant; dess mitt över golvet
-KOPP = (35.0, 13.0, 22.5)                                 # gångjärnets kopp: Ø, djup, mitten från kanten
-PLATTA = (37.0, 40.0, 40.0, 10.0)                         # monteringsplattan: mitten bakom dörren, längd, höjd, tjock
-ARM = (15.0, 14.0)                                        # armen från den fasta ytan: bredd, höjd
-GANGJARN_KANT = 100.0                                     # de yttersta gångjärnen från dörrens kanter
 
 
 def _gangjarnen(namn: str, x0: float, x1: float, za: float, zb: float, x_fast: float) -> tuple[list[Form], list[Del]]:
     """Gångjärnen till dörren x0–x1, za–zb (baksidan i K_YTA − FRONT_T) på sidan GANGJARN[namn], med plattan på den
     fasta ytan x_fast (skåpsidans eller smygens insida): kopparnas hål i dörren och gångjärnens delar."""
-    h = zb - za
-    n = 2 if h <= 900 else 3 if h <= 1600 else 4 if h <= 2000 else 5
-    a = min(GANGJARN_KANT, h / 4)
     yf = K_YTA - FRONT_T
     d, djup, kant = KOPP
     pd, pl, ph, pt = PLATTA
@@ -57,8 +51,7 @@ def _gangjarnen(namn: str, x0: float, x1: float, za: float, zb: float, x_fast: f
     xc = x0 + kant if s < 0 else x1 - kant
     inat = -s                                               # från den fasta ytan in mot dörrens mitt
     hal, delar = [], []
-    for i in range(n):
-        zc = za + a + i * (h - 2 * a) / (n - 1)
+    for zc in gangjarnens_z(za, zb):
         hal.append(cylinder(d / 2, djup).placerad(Placering.axlar((xc, yf, zc), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0))))
         kopp = cylinder(d / 2, djup).placerad(Placering.axlar((xc, yf, zc), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
         platta = box(x_fast, x_fast + inat * pt, yf - pd - pl / 2, yf - pd + pl / 2, zc - ph / 2, zc + ph / 2)

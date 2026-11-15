@@ -3,17 +3,19 @@ sedan sättas på plats (kok.py): x längs skåpets bredd från dess vänstra si
 stommens framkant och z uppåt från golvet.
 
 Stommen av björkplywood 20 mm: sidorna från sparklisten (90) upp till bänkskivans underkant (888), botten och tak
-mellan sidorna och ryggen mellan botten och tak; djupet 600, så att det blir 58 mm bakom skåpen mot väggen under
-bänkskivan 700 (frontens 22 och 20 mm utstick). Fyra fronter av fräst ask 22, från toppen 115, 115, 233 och 323 höga
+mellan sidorna och ryggen mellan botten och tak; djupet 645 (invändigt 625, för löparna NL 600), så att det blir 13 mm
+bakom skåpen mot väggen under bänkskivan 700 (frontens 22 och 20 mm utstick). Fyra fronter av fräst ask 22, från toppen 115, 115, 233 och 323 höga
 (i öns lådskåp tre, 115, 233 och 441, för högre lådor) med 3 mm emellan och under bänkskivan, med ett linsformat grepp fräst nära överkanten; fronterna sitter utanpå
 stommen, 6 mm in över sidorna, och mellan skåpen sitter en lodrät askbräda 22 över fogen, 3 mm från fronterna
 (kok.py). Lådorna av massiv björk 14 med botten av björkplywood 4 i spår i sidorna och framstycket; bakstycket står
 på botten, som går ut till lådans bakkant (Blums utförande utan urtag i bakstycket). Askfronten skruvas på den färdiga
-lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06.22):
+lådan. Löpare Blum MOVENTO 760H med BLUMOTION S, NL 600 (760H6001S, 40 kg; under diskhon NL 350, 760H3501S) (teknisk
+datablad TD-132/1, 06.22):
 
 - lådans invändiga bredd SKW = LW − 42 (LW skåpets invändiga bredd), sidorna högst 16 mm (här 14): 7 mm mellan
   lådsidan och skåpsidan, där löparen sitter;
-- lådans längd SKL = NL − 10 (NL löparens nominella längd), skåpets invändiga djup minst NL + 3;
+- lådans längd SKL = NL − 10 (NL löparens nominella längd), skåpets invändiga djup minst NL + 3 (s. 5; + 1 om
+  löparna sätts i före skåpets montage och + 3 med djupjusteringen, NL + 7 = 607 mot skåpets 625);
 - bottnens urtag 12–15 mm över sidornas underkant (här 13): löparen under sidan och i urtaget under botten, högst
   28,5 mm in från skåpsidan;
 - minst 7 mm fritt över lådsidan och minst 38 mm från skåpets botten till den nedersta lådans botten;
@@ -23,12 +25,15 @@ lådan. Löpare Blum MOVENTO 760H med BLUMOTION S (teknisk datablad TD-132/1, 06
   med botten i spår, med borrmallen T65.1000.02 (Ø2,5 × 10). Därför går framstycket ned under botten;
 - löparens hake i ett hål Ø6 × 10 i sidans bakände, 7 mm från utsidan och 11 mm upp (s. 5);
 - löparen skruvas i skåpsidan (s. 13, montage på sidan) med spånskiveskruv Ø3,5 × 15 (609.1500) eller
-  systemskruv Ø6 × 14,5 (661.1450.HG) i hålen LOPARENS_SKRUVAR från stommens framkant (löparen i liv med den).
+  systemskruv Ø6 × 14,5 (661.1450.HG) i hålen LOPARENS_SKRUVAR från stommens framkant (löparen i liv med den); vid
+  NL 600 som vid NL 550, och en skruv längst bak (utan mått i databladet) ger bäst stabilitet.
 
 Löparna är förenklade (en profil per sida); kopplingarna, djupjusteringen och skruvarna ritas inte, och skruvhålen
 står som data för skåpens ritningar. Skåptyperna: lådskåp med fyra lådor (i ön tre), diskbänksskåp (de två översta fronterna
 fasta på en skiva, öppet tak för diskhon, kortare lådor för rören bakom) och hällskåp (den översta fronten fast, öppet
-tak för hällen); diskmaskinen står i ett skåps ställe.
+tak för hällen); diskmaskinen står i ett skåps ställe. Hörnskåpet (hornskap) har en dörr över hela höjden och stommen
+förlängd in i hörnet bakom den andra bänkens ände, med en blindfront av plywood där, botten och en mellanhylla; dörren
+hänger på två gångjärn Blum CLIP top BLUMOTION 110° (som skåpen i kok.py) i sidan bort från hörnet.
 """
 from __future__ import annotations
 
@@ -37,20 +42,21 @@ from dataclasses import dataclass
 from modellering import Del, Form, Montage, Placering, box, cylinder, prisma
 
 from trebodar.byggdelar.virke import fmt
-from trebodar.material import ASK, BJORK, BJORKPLYWOOD, LOPARE, VITVARA
+from trebodar.material import ASK, BESLAG, BJORK, BJORKPLYWOOD, LOPARE, VITVARA
 
 T = 20.0                                   # stommen
 T_LADA, T_BOTTEN, SPAR = 14.0, 4.0, 6.0    # lådans sidor, botten och bottnens spår i sidorna
 URTAG = 13.0                               # bottnens urtag över sidornas underkant (Blum 12–15)
 HAKE = (6.0, 10.0, 7.0, 11.0)              # hålet för löparens hake i sidans bakände: Ø, djup, från utsidan, upp
 # löparens skruvar i skåpsidan (TD-132 s. 13, 760H): avstånd från stommens framkant per NL; det första (19) kan bytas
-# mot en spånskiveskruv Ø4 × 15, och vid NL 550 ger en skruv längst bak dessutom bäst stabilitet
-LOPARENS_SKRUVAR = {550.0: (19.0, 37.0, 69.0, 243.0, 261.0, 293.0), 350.0: (19.0, 37.0, 69.0, 261.0)}
+# mot en spånskiveskruv Ø4 × 15, och vid NL 550 och 600 ger en skruv längst bak (utan mått) dessutom bäst stabilitet
+LOPARENS_SKRUVAR = {600.0: (19.0, 37.0, 69.0, 243.0, 261.0, 293.0), 350.0: (19.0, 37.0, 69.0, 261.0)}
+NL_TILLAGG_MAX = 7.0                       # + 1 om löparna sätts i före skåpets montage, + 3 med djupjusteringen
 LOPARE_H, LOPARE_IN = 10.0, 28.5           # löparens profil under lådsidan och hur långt den når in från skåpsidan
 FRITT_OVER, FRITT_UNDER = 7.0, 38.0        # Blum: fritt över lådsidan, skåpets botten till den nedersta lådans botten
 SKW_AVDRAG, SKL_AVDRAG, NL_TILLAGG = 42.0, 10.0, 3.0
 SOCKEL, Z_TOPP = 90.0, 888.0               # sparklisten och bänkskivans underkant
-DJUP = 600.0
+DJUP = 645.0                               # sidornas djup, högst 645 (användaren), för NL 600
 FRONT_T, SPEL = 22.0, 3.0
 FRONTER = (323.0, 233.0, 115.0, 115.0)     # nedifrån
 FRONTER_ON = (441.0, 233.0, 115.0)         # öns lådskåp nedifrån: tre lådor, högre
@@ -58,6 +64,13 @@ OVER_SIDAN = 6.0                           # fronten in över stommens sida
 GREPP = (280.0, 28.0, 10.0, 30.0)          # det frästa greppet: längd, höjd mitt på, djup, mitten under överkanten
 REGEL = 40.0                               # takets reglar fram och bak där taket är öppet (diskho, häll)
 DISKMASKIN = (598.0, 550.0)                # integrerad diskmaskin 60: bredd, djup (höjden från sparklisten)
+HYLLA_IN = 20.0                            # hörnskåpets mellanhylla: indragen från stommens framkant
+# gångjärnen Blum CLIP top BLUMOTION 110° (ärende #56; också kok.py): koppen Ø, djup och mitten från dörrens kant;
+# plattan: mitten bakom dörrens baksida, längd, höjd, tjocklek; armen: bredd, höjd; de yttersta från dörrens kanter
+KOPP = (35.0, 13.0, 22.5)
+PLATTA = (37.0, 40.0, 40.0, 10.0)
+ARM = (15.0, 14.0)
+GANGJARN_KANT = 100.0
 assert all(abs(SOCKEL + sum(f) + SPEL * len(f) - Z_TOPP) < 1e-9 for f in (FRONTER, FRONTER_ON)), \
     "fronterna fyller upp till bänkskivan"
 
@@ -66,7 +79,7 @@ assert all(abs(SOCKEL + sum(f) + SPEL * len(f) - Z_TOPP) < 1e-9 for f in (FRONTE
 class Skaptyp:
     namn: str
     lador: tuple[bool, ...]                # per front nedifrån: låda (True) eller fast front
-    nl: float = 550.0                      # löparnas nominella längd
+    nl: float = 600.0                      # löparnas nominella längd
     oppet_tak: bool = False                # taket reglar fram och bak (diskho, häll)
     fronter: tuple[float, ...] = FRONTER   # fronternas höjder nedifrån
 
@@ -151,7 +164,7 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
     m = Montage(kod, typ.namn, f"{typ.namn} {fmt(bredd)}×{fmt(DJUP)}, stomme av björkplywood 20, fronter av ask",
                 produkt="KOKSSKAP")
     inne = DJUP - T
-    assert typ.nl + NL_TILLAGG <= inne, "skåpets invändiga djup (Blum: minst NL + 3)"
+    assert typ.nl + NL_TILLAGG_MAX <= inne, "skåpets invändiga djup (Blum: minst NL + 3, + 4 med montage och djupjustering)"
     assert typ.nl in LOPARENS_SKRUVAR, "löparens skruvhål (TD-132 s. 13) för NL"
     assert len(typ.lador) == len(typ.fronter), "en uppgift (låda eller fast) per front"
     stomme = [("SIDA-V", box(0.0, T, 0.0, DJUP, SOCKEL, Z_TOPP)),
@@ -178,6 +191,64 @@ def skap(kod: str, typ: Skaptyp, bredd: float) -> Montage:
                    front(x0, x1, f0, f1), ASK, produkt="KOKSFRONTER"), Placering(), f"{kod}-FRONT{nr}")
         if ar_lada:
             _lada(m, kod, nr, bredd, typ.nl, l0, l1)
+    return m
+
+
+def gangjarnens_z(za: float, zb: float) -> list[float]:
+    """Gångjärnens höjder på en dörr za–zb: två upp till 900 mm dörrhöjd, tre upp till 1 600, fyra upp till 2 000 och
+    fem däröver, de yttersta GANGJARN_KANT från dörrens kanter."""
+    h = zb - za
+    n = 2 if h <= 900 else 3 if h <= 1600 else 4 if h <= 2000 else 5
+    a = min(GANGJARN_KANT, h / 4)
+    return [za + a + i * (h - 2 * a) / (n - 1) for i in range(n)]
+
+
+def _gangjarnen(x_fast: float, inat: float, x_kopp: float, za: float, zb: float) -> tuple[list[Form], list[Del]]:
+    """Gångjärnen till en dörr za–zb i skåpets system (dörrens baksida i y = 0, skåpet i +y): kopparnas hål i dörren
+    (mitten i x_kopp) och gångjärnens delar, med plattan på skåpsidans insida x_fast och armen åt inat (±1)."""
+    d, djup, _ = KOPP
+    pd, pl, ph, pt = PLATTA
+    hal, delar = [], []
+    for zc in gangjarnens_z(za, zb):
+        kopp = cylinder(d / 2, djup).placerad(Placering.axlar((x_kopp, 0.0, zc), (1.0, 0.0, 0.0), (0.0, -1.0, 0.0)))
+        xa, xb = sorted((x_fast, x_fast + inat * pt))
+        platta = box(xa, xb, pd - pl / 2, pd + pl / 2, zc - ph / 2, zc + ph / 2)
+        xa, xb = sorted((x_fast, x_fast + inat * ARM[0]))
+        arm = box(xa, xb, 0.0, pd - pl / 2, zc - ARM[1] / 2, zc + ARM[1] / 2)
+        hal.append(kopp)
+        delar.append(Del("Gångjärn Blum CLIP top BLUMOTION 110° med monteringsplatta", kopp | arm | platta, BESLAG))
+    return hal, delar
+
+
+def hornskap(kod: str, bredd: float, langd: float) -> Montage:
+    """Hörnskåpet i skåpets system: en dörr framför 0..bredd (som ett vanligt skåp av bredden), stommen förlängd till
+    langd in i hörnet (åt +x) bakom den andra bänkens ände, med en blindfront av plywood från bredd till langd, botten,
+    en mellanhylla och dörrens gångjärn i sidan vid x = 0 (bort från hörnet)."""
+    m = Montage(kod, "Hörnskåp", f"Hörnskåp {fmt(langd)}×{fmt(DJUP)} med dörr {fmt(bredd)}, stomme av björkplywood "
+                                 f"20, front av ask", produkt="KOKSSKAP")
+    inne = DJUP - T
+    zh = (SOCKEL + Z_TOPP + T) / 2                          # mellanhyllans överkant: två lika höga fack
+    assert langd > bredd, "hörnskåpet går in i hörnet"
+    stomme = [("SIDA-V", box(0.0, T, 0.0, DJUP, SOCKEL, Z_TOPP)),
+              ("SIDA-H", box(langd - T, langd, 0.0, DJUP, SOCKEL, Z_TOPP)),
+              ("BOTTEN", box(T, langd - T, 0.0, DJUP, SOCKEL, SOCKEL + T)),
+              ("TAK", box(T, langd - T, 0.0, DJUP, Z_TOPP - T, Z_TOPP)),
+              ("RYGG", box(T, langd - T, inne, DJUP, SOCKEL + T, Z_TOPP - T)),
+              ("BLINDFRONT", box(bredd - T, langd - T, 0.0, T, SOCKEL + T, Z_TOPP - T)),
+              ("HYLLA", box(T, langd - T, HYLLA_IN, inne, zh - T, zh))]
+    for namn, f in stomme:
+        m.lagg(Del(f"Skåpstomme björkplywood {fmt(T)}" if namn != "HYLLA" else f"Hylla björkplywood {fmt(T)}", f,
+                   BJORKPLYWOOD), Placering(), f"{kod}-{namn}")
+    x0, x1 = T - OVER_SIDAN, bredd - T + OVER_SIDAN
+    z0, z1 = SOCKEL, Z_TOPP - SPEL
+    hal, gj = _gangjarnen(T, 1.0, x0 + KOPP[2], z0, z1)
+    dorr = front(x0, x1, z0, z1)
+    for h in hal:
+        dorr = dorr - h
+    m.lagg(Del(f"Front ask fräst {fmt(FRONT_T)} {fmt(x1 - x0)}×{fmt(z1 - z0)} (dörr)", dorr, ASK,
+               produkt="KOKSFRONTER"), Placering(), f"{kod}-FRONT")
+    for i, g in enumerate(gj, start=1):
+        m.lagg(g, Placering(), f"{kod}-GANGJARN{i}")
     return m
 
 
