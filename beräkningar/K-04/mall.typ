@@ -51,6 +51,7 @@ Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från
   [Takbalkarnas nedböjning], [$w_"fin" <= L slash 300$], [#eta(r.bruks.tak.eta, r.bruks.tak.ok)], liten[#r.bruks.tak.del],
   [Väggarnas överkant i vind], [$u <= H slash 300$], [#eta(r.bruks.drift.eta, r.bruks.drift.ok)], liten[#r.bruks.drift.del, #r.bruks.drift.komb],
   ..r.forankring.sammanf.map(s => ([#s.grupp], [#s.kontroll], [#eta(s.eta, s.ok)], liten[#s.del])).flatten(),
+  ..r.forband.sammanf.map(s => ([#s.grupp], [#s.kontroll], [#eta(s.eta, s.ok)], liten[#s.del])).flatten(),
 )
 
 #if r.alla_ok [Alla delar och stålbanden klarar lasterna.] else [*Rött: delar som inte klarar lasterna* med stommen som den är i modellen.#if r.sektioner.len() > 0 [ Snitt genom dem finns i @snitt.]]
@@ -102,7 +103,7 @@ Reaktionerna i upplagen är lika med lasterna (jämvikt). Stolparna bär enligt 
       table.header([Takstol], [$N_"d"$], [K-03], [$H_"d"$], [K-03]),
       ..r.takstolar.map(t => ([#t.namn], [#if t.N_over { text(fill: rod, weight: "bold", t.N) } else { t.N }], [#t.N03], [#if t.H_over { text(fill: rod, weight: "bold", t.H) } else { t.H }], [#t.H03])).flatten(),
     )
-    #liten[Takstolarna: tryckkraften i diagonalen och dragkraften i underramen (kN, snö som huvudlast) i balkmodellen och i K-03, där takstolen ensam bär nockbalkens stöd och takremsan till fötterna. Krafterna i stolparna i kN.]
+    #liten[Takstolarna: tryckkraften i diagonalen och dragkraften i underramen (kN, snö som huvudlast) i balkmodellen och i K-03, där takstolen ensam bär nockbalkens stöd och takremsan till fötterna; K-03 räknar dragbandet och fotens förband för det största av de två. Krafterna i stolparna i kN.]
   ],
 )
 
@@ -239,6 +240,19 @@ Beslagen står i modellen (#r.forankring.n_beslag beslag vid #r.forankring.n_upp
 )]
 
 #liten[Förankringsbeslagen på ytterväggarnas reglar har ankaret 35 mm från plattans kant, där betongens konbrott begränsar dem (@betong); de som inte räcker och kantavståndet tas upp i \#141.]
+
+= Förband i knutpunkterna <forband>
+
+Balkmodellen har delarna ledat sammanfogade. Kraften som en del får av sin knutpunkt ska föras över av delens förband, och varje slag av knutpunkt har ett fästdon som prövas mot den största kraften i alla kombinationer. Takbalken vid takfoten prövas för lyft, kraft längs takbalken och kraft tvärs den (längs väggen, #r.forband.e mm över hammarbandet) med samverkan $F_1 slash R_1 + F_2 slash R_2 + F_4 slash R_4 <= 1$ (#r.forband.beslag). Vid nock- och dalbalkarna tar ett stålband över balken draget mellan takbalkarna på var sida, trycket går i anliggning mot balken och skruven snett in i balken tar lyftet (K-03). Stålbandens ändar i takfallen spikas i hammarbandet eller balken där de slutar, så att bandens kraft inte går genom takbalkarnas förband.
+
+#text(size: 8pt)[#table(
+  columns: (auto, auto, 1.3fr, 1.2fr, 1.4fr, auto, auto),
+  align: (left, right, left, left, left, right, left),
+  [Knutpunkt], [Antal], [Förband], [Bärförmåga (vind)], [Största kraft], [Utnyttjande], [Utöver det],
+  ..r.forband.rader.map(k => ([#k.knut], [#k.antal], [#k.forband], [#k.bar], [#k.kraft], [#eta(k.eta, k.ok)], [#k.mer])).flatten(),
+)]
+
+#liten[Bandet över balken med fler spik per takbalk: #r.forband.fler_spik. Två skruvar för lyftet: #r.forband.tva_skruvar. Vinkelbeslag i regelns topp (drag, kN): #r.forband.med_beslag.#if r.forband.over != "" [ Takbalkar vid takfoten där två universalbeslag inte räcker: #r.forband.over. De får ett förstärkt förband (\#119).]]
 
 = Bruksgränstillståndet
 

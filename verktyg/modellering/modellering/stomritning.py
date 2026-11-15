@@ -614,6 +614,8 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
         ["Takbalk mot nock- och dalbalk", f"Upplagsregel {fb['regel']} längs balkens sida, skruv {fb['regel_skruv']} genom "
          f"regeln in i limträet. Förankring: skruv {fb['lyft_skruv']} snett genom takbalken in i balken",
          f"{tb['n_skruv']} skruv i regeln per takbalk, en förankringsskruv per takbalksände", "K-03"],
+        *([r["knut"] + " (krafter ur balkmodellen)", r["forband"][0].upper() + r["forband"][1:],
+           f"{r['antal']} knutpunkter" + (f"; {r['mer']}" if r["mer"] != "–" else ""), "K-04"] for r in k4["forband"]["rader"]),
         ["Takstolarnas fötter och topp", f"Spikplåt ({fb['plat']}) på båda sidor, {fb['spik']}",
          "Spik per plåt och stav: " + ", ".join(f"{k} {r['spik']}" for k, r in st), "K-03"],
         ["Takstolarnas toppkloss", f"Kloss {fb['kloss']} på ena sidan om toppen, skruv {fb['kloss_skruv']}",

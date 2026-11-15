@@ -344,9 +344,10 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     kc, lr = C24.kc(Ld, hd)
     Ad, Wd_ = 45 * hd, 45 * hd ** 2 / 6
     u_diag = N * 1e3 / (kc * Ad * C24.fc0d) + M * 1e6 / (Wd_ * C24.kh(hd) * C24.fmd)
-    u_band = H * 1e3 / (45 * hb) / (C24.kh(hb) * C24.ft0d)
-    n_spik = math.ceil(H / 2 / Fv_spik_d)
-    u_plat = H / 2 / N_plat
+    H_dim = max(H, T.get("H_k04", 0.0))                  # dragbandet: det största av triangelns och balkmodellens (K-04)
+    u_band = H_dim * 1e3 / (45 * hb) / (C24.kh(hb) * C24.ft0d)
+    n_spik = math.ceil(H_dim / 2 / Fv_spik_d)
+    u_plat = H_dim / 2 / N_plat
     # toppen under balken (säte = balkens bredd): diagonalernas ändar, fibrerna 30° (6.16), och toppklossarna med
     # vågräta fibrer, tryck vinkelrätt fibrerna med l_ef = bredden + 2 × 30 mm och k_c,90 (6.1.5); klossens del av
     # lasten går genom skruvarna till takstolen
@@ -357,7 +358,7 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     n_kloss = math.ceil(P * R_kloss / (R_diag + nk * R_kloss) / Fv_kloss_d) if nk else 0   # per kloss
     l_fot = V * 1e3 / (45 * 1.5 * C24.fc90d)             # erforderlig upplagslängd på hammarbandet
     ST.append(dict(namn=T["namn"], text=T["text"], stod=f"{T['stod'][0]} {T['stod'][1]}", y=yy, P=P, Gk=Gk, Sk=Sk, a=a, hd=hd, hb=hb,
-                   bredd=bredd, q=q, V=V, H=H, N=N, M=M, Ld=Ld, kc=kc, u_diag=u_diag, u_band=u_band, n_spik=n_spik, u_plat=u_plat,
+                   bredd=bredd, q=q, V=V, H=H, H_dim=H_dim, N=N, M=M, Ld=Ld, kc=kc, u_diag=u_diag, u_band=u_band, n_spik=n_spik, u_plat=u_plat,
                    nk=nk, u_topp=u_topp, n_kloss=n_kloss,
                    l_fot=l_fot, gavel=T["gavel"],
                    x_topp=x_topp, staver=g["staver"], platar=g["platar"]))
@@ -595,10 +596,11 @@ R = {
     "fon_wkrav": fmt(FON[0]["w_krav"], 1),
     "st": [dict(namn=t["namn"].replace("Stol ", ""), text=t["text"], stod=t["stod"], P=fmt(t["P"], 1), a=fmt(t["a"], 2),
                 bredd=fmt(t["bredd"], 2), diag=f"45×{t['hd']:.0f}", N=fmt(t["N"], 1), M=fmt(t["M"], 2), ud=pct(t["u_diag"]),
-                band=f"45×{t['hb']:.0f}", H=fmt(t["H"], 1), ub=pct(t["u_band"]), spik=str(t["n_spik"]),
+                band=f"45×{t['hb']:.0f}", H=fmt(t["H"], 1), Hdim=fmt(t["H_dim"], 1), ub=pct(t["u_band"]), spik=str(t["n_spik"]),
                 kloss=str(t["nk"]), nk=str(t["n_kloss"]) if t["nk"] else "–", utopp=pct(t["u_topp"]),
                 lfot=fmt(t["l_fot"], 0), dim=t is L2M) for t in ST],
     "L2M": dict(P=fmt(L2M["P"], 1), a=fmt(L2M["a"], 2), q=fmt(L2M["q"], 2), V=fmt(L2M["V"], 1), H=fmt(L2M["H"], 1),
+                Hdim=fmt(L2M["H_dim"], 1),
                 N=fmt(L2M["N"], 1), M=fmt(L2M["M"], 2), kc=fmt(L2M["kc"], 2), Ld=fmt(L2M["Ld"], 0), ud=pct(L2M["u_diag"]),
                 ub=pct(L2M["u_band"]), hd=fmt(L2M["hd"], 0), hb=fmt(L2M["hb"], 0), kloss=str(L2M["nk"]),
                 ut=pct(L2M["u_topp"]), nk=str(L2M["n_kloss"]), spik=str(L2M["n_spik"]), plat=pct(L2M["u_plat"]),

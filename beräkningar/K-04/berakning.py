@@ -21,6 +21,7 @@ import analys
 import fem
 import figurer
 import forankring
+import forband
 import kontroller
 import laster
 import natverk
@@ -119,6 +120,11 @@ BV = json.loads(BARVERK.read_text(encoding="utf-8"))
 K03 = json.loads((HERE.parent / "K-03" / "resultat.json").read_text(encoding="utf-8"))
 lyft03 = {namn: kraft * 1e3 for namn, kraft in K03["lyft_stolpar"].items()}
 FA = forankring.kontrollera(N, L, IN, BV, kontroller.Material("C24", IN["material"]["C24"]), lyft03)
+# förbanden i knutpunkterna (#119): balkmodellens krafter mot ett fästdon per slag av knutpunkt
+FB = forband.kontrollera(N, L, A, IN, (FA["K"]["Fax_k"], IN["material"]["C24"]["gamma_M"]),
+                         (FA["K"]["R1k"] * 1e3, FA["K"]["gM_beslag"]),
+                         {"NtRd": K["NtRd"], "FvRk": K["FvRk"]},
+                         float(K03["tb"]["Fax"].replace(",", ".")) * 1e3)
 tid = time.perf_counter() - t0
 m = N.modell
 namn_k = [k.namn for k in komb]
@@ -207,10 +213,11 @@ for el in sorted({b.element for b in N.delar if b.grupp == "takstol" and b.typ =
         continue
     Nd = max((-linjekraft(d, 0.5 * (d.a0 + d.b0)))[sno].max() for d in D)
     Hd = linjekraft(U, 0.5 * (U.a + U.b))[sno].max()
-    tal03 = {k: float(st[k].replace(",", ".").replace("−", "-")) for k in ("N", "H")}
+    # K-03 räknar dragbandet för det största av sin triangel och balkmodellens kraft (Hdim, K-03:s indata H_k04)
+    tal03 = {k: float(st[k].replace(",", ".").replace("−", "-")) for k in ("N", "Hdim")}
     takstolar.append({"namn": el + (" (L2M)" if el == "2C" else ""), "N": fmt(Nd / 1e3, 1), "N03": st["N"],
-                      "H": fmt(Hd / 1e3, 1), "H03": st["H"],
-                      "N_over": bool(Nd / 1e3 > tal03["N"] + 0.05), "H_over": bool(Hd / 1e3 > tal03["H"] + 0.05)})
+                      "H": fmt(Hd / 1e3, 1), "H03": st["Hdim"],
+                      "N_over": bool(Nd / 1e3 > tal03["N"] + 0.05), "H_over": bool(Hd / 1e3 > tal03["Hdim"] + 0.05)})
 
 # gavlarna: skivornas kraft där de håller gavelns överkant och takstolens överram i sidled
 Bk = np.abs(L.bindning[str_]) if L.bindning.size else np.zeros((len(str_), 0))
@@ -339,6 +346,46 @@ forank["sammanf"] = [
     {"grupp": "Förankring: beslagen", "kontroll": "Lyft (och sidkraft)",
      "eta": pct(_bs["eta"]) if math.isfinite(_bs["eta"]) else "saknas",
      "ok": _bs["eta"] <= 1.0, "del": f"{_bs['del']}, {_bs['komb']}"}]
+# förbanden i knutpunkterna, till rapporten
+_tf, _bk, _rg = FB["storst"]["takfot"], FB["storst"]["balk"], FB["storst"]["regel"]
+_fler: dict[int, list[str]] = defaultdict(list)
+for _r in FB["balk"]:
+    if _r["spik"] > IN["knutpunkter"]["spik_min"]:
+        _fler[_r["spik"]].append(_r["del"].replace("-", "‑"))
+_over = list({r["del"]: r for r in reversed(FB["takfot"]) if r["eta"] > 1.0}.values())[::-1]     # en rad per takbalk
+_drag = max(FB["balk"], key=lambda r: r["drag"])
+forb = {
+    "beslag": IN["knutpunkter"]["beslag"], "band": IN["knutpunkter"]["band"], "spik_min": str(IN["knutpunkter"]["spik_min"]),
+    "e": fmt(IN["knutpunkter"]["e"], 0),
+    "rader": [
+        {"knut": "Takbalk mot hammarband", "antal": str(len(FB["takfot"])), "forband": "två universalbeslag UNI130",
+         "bar": f"lyft {fmt(FB['R1_W'] / 1e3, 1)}, längs {fmt(FB['R23_W'] / 1e3, 1)}, tvärs {fmt(FB['R45_W'] / 1e3, 1)} kN",
+         "kraft": f"lyft {fmt(_tf['lyft'] / 1e3, 1)}, längs {fmt(abs(_tf['langs']) / 1e3, 1)}, tvärs "
+                  f"{fmt(_tf['tvars'] / 1e3, 1)} kN ({_tf['del']})",
+         "eta": pct(_tf["eta"]), "ok": _tf["eta"] <= 1.0,
+         "mer": f"{len(_over)} över 100 %" if _over else "–"},
+        {"knut": "Takbalk mot nock- eller dalbalk", "antal": str(len(FB["balk"])),
+         "forband": f"stålband 40×2,0 över balken, {IN['knutpunkter']['spik_min']} ankarspik per takbalk; skruv Ø6×160",
+         "bar": f"{fmt(FB['FvRd_W'] / 1e3, 2)} kN per spik, {fmt(FB['Fax_W'] / 1e3, 2)} kN per skruv",
+         "kraft": f"drag {fmt(_drag['drag'] / 1e3, 1)} kN ({_drag['del']}), lyft "
+                  f"{fmt(max(r['lyft'] for r in FB['balk']) / 1e3, 1)} kN",
+         "eta": pct(max(max(r["eta_band"], r["eta_lyft"]) for r in FB["balk"])), "ok": True,
+         "mer": f"{sum(len(v) for v in _fler.values())} med fler spik, {sum(r['skruv'] > 1 for r in FB['balk'])} med två skruvar"},
+        {"knut": "Regel eller stolpe mot hammarband", "antal": str(len(FB["regel"])),
+         "forband": IN["forankring"]["skruv_n"] and f"{IN['forankring']['skruv_n']} skruv "
+                    f"{fmt(IN['forankring']['skruv_d'], 0)}×90 snett",
+         "bar": f"{fmt(FB['Rs_W'] / 1e3, 1)} kN (vinkelbeslag {fmt(FB['Rb_W'] / 1e3, 1)} kN)",
+         "kraft": f"drag {fmt(_rg['drag'] / 1e3, 1)} kN ({_rg['del']})",
+         "eta": pct(max(r["eta"] for r in FB["regel"])), "ok": max(r["eta"] for r in FB["regel"]) <= 1.0,
+         "mer": f"{sum(r['beslag'] for r in FB['regel'])} med vinkelbeslag"}],
+    "fler_spik": "; ".join(f"{n} spik: {', '.join(sorted(set(v)))}" for n, v in sorted(_fler.items())),
+    "tva_skruvar": ", ".join(sorted({r["del"].replace("-", "‑") for r in FB["balk"] if r["skruv"] > 1})),
+    "med_beslag": ", ".join(f"{r['del'].replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)})" for r in FB["regel"] if r["beslag"]),
+    "over": ", ".join(f"{r['del'].replace('-', '‑')} ({pct(r['eta'])})" for r in _over),
+    "ok": FB["ok"]}
+forb["sammanf"] = [{"grupp": "Förband: " + r["knut"][0].lower() + r["knut"][1:], "kontroll": r["forband"].split(",")[0].split(";")[0],
+                    "eta": r["eta"], "ok": r["ok"],
+                    "del": {0: _tf["del"], 1: _drag["del"], 2: _rg["del"]}[i]} for i, r in enumerate(forb["rader"])]
 bruks = {"tak": {k: (fmt(v, 1) if isinstance(v, float) and k != "eta" else v) for k, v in B["takbalk"].items()},
          "drift": {k: (fmt(v, 1) if isinstance(v, float) and k != "eta" else v) for k, v in B["drift"].items()}}
 bruks["tak"]["eta"] = pct(B["takbalk"]["eta"])
@@ -346,7 +393,7 @@ bruks["drift"]["eta"] = pct(B["drift"]["eta"])
 bruks["tak"]["ok"] = B["takbalk"]["eta"] <= 1
 bruks["drift"]["ok"] = B["drift"]["eta"] <= 1
 
-alla_ok = all(r["ok"] for r in sammanf) and bruks["tak"]["ok"] and bruks["drift"]["ok"] and fa_ok
+alla_ok = all(r["ok"] for r in sammanf) and bruks["tak"]["ok"] and bruks["drift"]["ok"] and fa_ok and forb["ok"]
 figurer.modell(N, K, HERE / "fig_modell.svg")
 figurer.forankring(N, FA, BV, HERE / "fig_forankring.svg")
 figurer.plan(N, K, HERE / "fig_plan.svg")
@@ -496,7 +543,7 @@ skivor_ut = {"ug": {"F_k": fmt(UG.get("F_k", 0.0), 0), "s": fmt(UG.get("s", 0.0)
 R_ut = {"projekt": IN["projekt"], "raspont": raspont, "skivor": skivor_ut, "modell": modell, "last": last,
         "stolpar": stolptab, "G_tot": fmt(G_tot, 1),
         "takstolar": takstolar, "gavel": gavel,
-        "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank,
+        "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank, "forband": forb,
         "bruks": bruks, "alla_ok": alla_ok, "forband_h02": IN["forband_h02"], "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)
                                                             for k, v in IN["kombination"].items()
                                                             if not isinstance(v, (list, dict))},
@@ -516,9 +563,16 @@ for r in sammanf:
 for t in takstolar:
     if t["N_over"] or t["H_over"]:
         print(f"  takstol {t['namn']}: balkmodellen ger mer än K-03 (N {t['N']} mot {t['N03']}, H {t['H']} mot {t['H03']} kN)")
+# takstolarnas dragband: K-03 räknar det för balkmodellens kraft (indata H_k04); växer den, ska K-03 räknas om
+dragband = [t for t in takstolar if t["H_over"]]
+if dragband:
+    raise SystemExit("K-04: balkmodellen ger större drag i takstolens underram än K-03 räknar med. För in kraften i "
+                     "K-03/indata.toml (H_k04) och räkna om K-03:\n" +
+                     "\n".join(f"    {t['namn']}: H_k04 = {t['H']}" for t in dragband))
 # stolparna som balkmodellen ger mer last än K-05 räknar bjälklaget för: K-05 ska räknas om med dem
 over = [s for s in stolptab if s["over"] or s["over_max"]]
 if over:
     raise SystemExit("K-04: balkmodellen ger större stolplaster än K-05 räknar med. För in raderna i K-05/laster.py (K04) "
                      "och räkna om K-05 och det som bygger på det (./bygg K-05 K-06 U-01):\n" +
                      "\n".join(f'    "{s["namn"]}": {s["k05_rad"]},' for s in over))
+

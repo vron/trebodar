@@ -166,7 +166,7 @@ Takstolarna är trianglar av två diagonaler och ett dragband med spikplåtar i 
 
 #figure(image("fig_takstol.svg", width: 100%), caption: [Mittakstolen L2M i elevation ur modellen, med last och krafter. Gaveltakstolarna har samma form men bär mindre.])
 
-*Mittakstolen L2M* bär nockbalk 3:s stöd C, $P_d$ = #r.L2M.P kN, och en takremsa på #r.L2M.bredd m, $q_d$ = #r.L2M.q kN/m. Med $a$ = #r.L2M.a m blir $V$ = #r.L2M.V kN, $H$ = #r.L2M.H kN och $N$ = #r.L2M.N kN. Diagonalen 45×#r.L2M.hd ($L$ = #r.L2M.Ld mm, $k_c$ = #r.L2M.kc) och $M$ = #r.L2M.M kNm ger #r.L2M.ud. Dragbandet 45×#r.L2M.hb ger #r.L2M.ub. Varje fot har spikplåtar på båda sidor med minst #r.L2M.spik ankarspik per plåt och stav, och plåten #r.L2M.plat. Foten behöver minst #r.L2M.lfot mm upplag på hammarbandet. Toppen med toppklossen, fäst med #r.L2M.nk skruv Ø6×90, är utnyttjad till #r.L2M.ut.
+*Mittakstolen L2M* bär nockbalk 3:s stöd C, $P_d$ = #r.L2M.P kN, och en takremsa på #r.L2M.bredd m, $q_d$ = #r.L2M.q kN/m. Med $a$ = #r.L2M.a m blir $V$ = #r.L2M.V kN, $H$ = #r.L2M.H kN och $N$ = #r.L2M.N kN. Diagonalen 45×#r.L2M.hd ($L$ = #r.L2M.Ld mm, $k_c$ = #r.L2M.kc) och $M$ = #r.L2M.M kNm ger #r.L2M.ud. Dragbandet 45×#r.L2M.hb räknas för #r.L2M.Hdim kN, som K-04:s balkmodell ger när takbalkarna bär som sparrar mot dalbalkarna: #r.L2M.ub. Varje fot har spikplåtar på båda sidor med minst #r.L2M.spik ankarspik per plåt och stav, och plåten #r.L2M.plat. Foten behöver minst #r.L2M.lfot mm upplag på hammarbandet. Toppen med toppklossen, fäst med #r.L2M.nk skruv Ø6×90, är utnyttjad till #r.L2M.ut.
 
 = Stolpar
 
