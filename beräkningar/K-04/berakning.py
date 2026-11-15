@@ -122,9 +122,9 @@ lyft03 = {namn: kraft * 1e3 for namn, kraft in K03["lyft_stolpar"].items()}
 FA = forankring.kontrollera(N, L, IN, BV, kontroller.Material("C24", IN["material"]["C24"]), lyft03)
 # förbanden i knutpunkterna (#119): balkmodellens krafter mot ett fästdon per slag av knutpunkt
 FB = forband.kontrollera(N, L, A, IN, (FA["K"]["Fax_k"], IN["material"]["C24"]["gamma_M"]),
-                         (FA["K"]["R1k"] * 1e3, FA["K"]["gM_beslag"]),
+                         (FA["K"]["R1k"] * 1e3, FA["K"]["R23k"] * 1e3, FA["K"]["gM_beslag"]),
                          {"NtRd": K["NtRd"], "FvRk": K["FvRk"]},
-                         float(K03["tb"]["Fax"].replace(",", ".")) * 1e3)
+                         float(K03["tb"]["Fax"].replace(",", ".")) * 1e3, SK)
 tid = time.perf_counter() - t0
 m = N.modell
 namn_k = [k.namn for k in komb]
@@ -263,6 +263,13 @@ for g in ordning:
     r = max(rr, key=lambda r: r.eta)
     sammanf.append({"grupp": g, "antal": r.detaljer.get("antal", ""), "kontroll": r.kontroll, "eta": pct(r.eta),
                     "ok": r.eta <= 1.0, "del": r.del_, "komb": r.komb})
+# nock- och dalbalkarna i sidled, med K-01:s lodräta utnyttjande (#119)
+K01 = json.loads((HERE.parent / "K-01" / "resultat.json").read_text(encoding="utf-8"))
+SIDLED = forband.balkar_i_sidled(N, L, IN, K01)
+_sl = max(SIDLED, key=lambda r: r["eta"])
+sammanf.append({"grupp": "Nock- och dalbalkar i sidled", "antal": str(len(SIDLED)),
+                "kontroll": "Böjning och skjuvning i sidled med K-01:s lodräta", "eta": pct(_sl["eta"]),
+                "ok": _sl["eta"] <= 1.0, "del": _sl["del"], "komb": _sl["komb"]})
 detalj = []
 for r in sorted(K["rader"], key=lambda r: (ordning.index(r.grupp) if r.grupp in ordning else 99, -r.eta)):
     d = r.detaljer
@@ -354,23 +361,31 @@ for _r in FB["balk"]:
         _fler[_r["spik"]].append(_r["del"].replace("-", "‑"))
 _over = list({r["del"]: r for r in reversed(FB["takfot"]) if r["eta"] > 1.0}.values())[::-1]     # en rad per takbalk
 _drag = max(FB["balk"], key=lambda r: r["drag"])
+_kort = sorted({r["del"]: r for r in FB["takfot"] if r["kortling"]}.values(), key=lambda r: r["del"])   # en per takbalk
+_kort_max = max(_kort, key=lambda r: r["kortling_eta"]) if _kort else None
+_utan = sorted({r["del"].replace("-", "‑") for r in FB["balk"] if not r["mittemot"]})
 forb = {
     "beslag": IN["knutpunkter"]["beslag"], "band": IN["knutpunkter"]["band"], "spik_min": str(IN["knutpunkter"]["spik_min"]),
     "e": fmt(IN["knutpunkter"]["e"], 0),
     "rader": [
-        {"knut": "Takbalk mot hammarband", "antal": str(len(FB["takfot"])), "forband": "två universalbeslag UNI130",
-         "bar": f"lyft {fmt(FB['R1_W'] / 1e3, 1)}, längs {fmt(FB['R23_W'] / 1e3, 1)}, tvärs {fmt(FB['R45_W'] / 1e3, 1)} kN",
+        {"knut": "Takbalk mot hammarband", "antal": str(len(FB["takfot"])),
+         "forband": "två universalbeslag UNI130" + (f"; kortling vid {len(_kort)} bandändar" if _kort else ""),
+         "bar": f"lyft {fmt(FB['R1_W'] / 1e3, 1)}, längs {fmt(FB['R23_W'] / 1e3, 1)}, tvärs {fmt(FB['R45_W'] / 1e3, 1)} kN"
+                + (f"; kortlingens beslag {fmt(FB['R1b_W'] / 1e3, 1)} lyft, {fmt(FB['R23b_W'] / 1e3, 1)} sidled" if _kort else ""),
          "kraft": f"lyft {fmt(_tf['lyft'] / 1e3, 1)}, längs {fmt(abs(_tf['langs']) / 1e3, 1)}, tvärs "
                   f"{fmt(_tf['tvars'] / 1e3, 1)} kN ({_tf['del']})",
-         "eta": pct(_tf["eta"]), "ok": _tf["eta"] <= 1.0,
-         "mer": f"{len(_over)} över 100 %" if _over else "–"},
+         "eta": pct(max(_tf["eta"], _kort_max["kortling_eta"] if _kort_max else 0.0)),
+         "ok": _tf["eta"] <= 1.0 and (_kort_max is None or _kort_max["kortling_eta"] <= 1.0),
+         "mer": ", ".join([f"kortlingen {pct(_kort_max['kortling_eta'])} ({_kort_max['del']})"] * bool(_kort_max)
+                          + [f"{len(_over)} över 100 %"] * bool(_over)) or "–"},
         {"knut": "Takbalk mot nock- eller dalbalk", "antal": str(len(FB["balk"])),
          "forband": f"stålband 40×2,0 över balken, {IN['knutpunkter']['spik_min']} ankarspik per takbalk; skruv Ø6×160",
          "bar": f"{fmt(FB['FvRd_W'] / 1e3, 2)} kN per spik, {fmt(FB['Fax_W'] / 1e3, 2)} kN per skruv",
          "kraft": f"drag {fmt(_drag['drag'] / 1e3, 1)} kN ({_drag['del']}), lyft "
                   f"{fmt(max(r['lyft'] for r in FB['balk']) / 1e3, 1)} kN",
          "eta": pct(max(max(r["eta_band"], r["eta_lyft"]) for r in FB["balk"])), "ok": True,
-         "mer": f"{sum(len(v) for v in _fler.values())} med fler spik, {sum(r['skruv'] > 1 for r in FB['balk'])} med två skruvar"},
+         "mer": f"{sum(len(v) for v in _fler.values())} med fler spik, {sum(r['skruv'] > 1 for r in FB['balk'])} med två "
+                f"skruvar, {len(_utan)} utan takbalk mitt emot"},
         {"knut": "Regel eller stolpe mot hammarband", "antal": str(len(FB["regel"])),
          "forband": IN["forankring"]["skruv_n"] and f"{IN['forankring']['skruv_n']} skruv "
                     f"{fmt(IN['forankring']['skruv_d'], 0)}×90 snett",
@@ -380,8 +395,18 @@ forb = {
          "mer": f"{sum(r['beslag'] for r in FB['regel'])} med vinkelbeslag"}],
     "fler_spik": "; ".join(f"{n} spik: {', '.join(sorted(set(v)))}" for n, v in sorted(_fler.items())),
     "tva_skruvar": ", ".join(sorted({r["del"].replace("-", "‑") for r in FB["balk"] if r["skruv"] > 1})),
-    "med_beslag": ", ".join(f"{r['del'].replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)})" for r in FB["regel"] if r["beslag"]),
+    "med_beslag": ", ".join(f"{'+'.join(r['delar']).replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)}"
+                            f"{', ett på var sida' if r['n_beslag'] == 2 else ''})" for r in FB["regel"] if r["beslag"]),
     "over": ", ".join(f"{r['del'].replace('-', '‑')} ({pct(r['eta'])})" for r in _over),
+    "kortling": IN["knutpunkter"]["kortling"],
+    "kortling_lista": [{"del": r["del"], "beslag": r["kortling_beslag"], "kraft": fmt(r["kortling_kraft"] / 1e3, 1)}
+                       for r in _kort],
+    "kortlingar": ", ".join(f"{r['del'].replace('-', '‑')} ({r['kortling_beslag']} beslag, "
+                            f"{fmt(r['kortling_kraft'] / 1e3, 1)} kN)" for r in _kort),
+    "utan_mittemot": ", ".join(_utan),
+    "sidled": [{"del": r["del"], "Mz": fmt(r["Mz"] / 1e6, 1), "Vy": fmt(r["Vy"] / 1e3, 1), "u": pct(r["u_sidled"]),
+                "eta_m": pct(r["eta_m"]), "eta_v": pct(r["eta_v"]), "eta_p": pct(r["eta_p"]), "ok": r["eta"] <= 1.0}
+               for r in SIDLED],
     "ok": FB["ok"]}
 forb["sammanf"] = [{"grupp": "Förband: " + r["knut"][0].lower() + r["knut"][1:], "kontroll": r["forband"].split(",")[0].split(";")[0],
                     "eta": r["eta"], "ok": r["ok"],

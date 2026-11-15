@@ -85,6 +85,8 @@ beta_c = 0.1
 [material.S355]        # nock- och dalbalkarnas plåtar (K-01)
 E0mean = 210000.0
 Gmean = 81000.0
+fy = 355.0
+gamma_M0 = 1.0         # EKS (som K-01)
 [material."Stålband"]  # stålband 40×2,0 S350GD+Z275 (SS-EN 10346)
 E0mean = 210000.0
 Gmean = 81000.0
@@ -137,6 +139,9 @@ gamma_M = 1.35         # som vinkelbeslagen
 gamma_M_spik = 1.3     # spiken i stålbandet över balken (som stålbanden)
 spik_min = 4           # minst så många spik per takbalk i bandet över nock- och dalbalken
 band = "stålband 40×2,0 över balken, ankarspik 4,0×40"
+kortling = "kortling 45×170 C24 i facket bredvid, på hammarbandet, med vinkelbeslag ABR10525 i ändarna"
+kortling_h = 170.0     # kortlingens höjd: bandets kraft i överkanten [mm]
+kortling_L = 555.0     # kortlingens längd mellan takbalkarna (c/c 600) [mm]
 
 [forankring]           # förankringen i bjälklaget (forankring.py): betongbultarna genom syllarna, vinkelbeslagen
 bult_d = 12.0          # betongbulten (IN-01 BETONGBULT-SYLL), genom syllen med bricka

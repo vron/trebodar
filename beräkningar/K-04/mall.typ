@@ -243,16 +243,25 @@ Beslagen står i modellen (#r.forankring.n_beslag beslag vid #r.forankring.n_upp
 
 = Förband i knutpunkterna <forband>
 
-Balkmodellen har delarna ledat sammanfogade. Kraften som en del får av sin knutpunkt ska föras över av delens förband, och varje slag av knutpunkt har ett fästdon som prövas mot den största kraften i alla kombinationer. Takbalken vid takfoten prövas för lyft, kraft längs takbalken och kraft tvärs den (längs väggen, #r.forband.e mm över hammarbandet) med samverkan $F_1 slash R_1 + F_2 slash R_2 + F_4 slash R_4 <= 1$ (#r.forband.beslag). Vid nock- och dalbalkarna tar ett stålband över balken draget mellan takbalkarna på var sida, trycket går i anliggning mot balken och skruven snett in i balken tar lyftet (K-03). Stålbandens ändar i takfallen spikas i hammarbandet eller balken där de slutar, så att bandens kraft inte går genom takbalkarnas förband.
+Balkmodellen har delarna ledat sammanfogade. Kraften som en del får av sin knutpunkt ska föras över av delens förband, och varje slag av knutpunkt har ett fästdon som prövas mot den största kraften i alla kombinationer. Takbalken vid takfoten prövas för lyft, kraft längs takbalken och kraft tvärs den (längs väggen, #r.forband.e mm över hammarbandet) med samverkan $F_1 slash R_1 + F_2 slash R_2 + F_4 slash R_4 <= 1$ (#r.forband.beslag). Vid nock- och dalbalkarna tar ett stålband över balken draget mellan takbalkarna på var sida (utan takbalk mitt emot spikas bandet i limträets sida på andra sidan), trycket går i anliggning mot balken och skruven snett in i balken tar lyftet (K-03). En takbalk som vilar på en nock- eller dalbalk prövas mot balken, också där en innervägg eller takstol når samma knutpunkt. Där ett av takfallens stålband slutar på en takbalk nära takfoten drar bandet takbalkens överkant längs väggen. Bandet spikas där också i en #r.forband.kortling, som tar den kraften åt båda hållen: $F slash 2$ i sidled i varje beslag och vältningen $F h slash L$ i lyft i den ena änden, med två beslag i var ände där ett inte räcker. Takbalkens beslag prövas då för lyftet och kraften längs takbalken. Regelns topp prövas för delens ändkraft med väggskivornas hörnkraft i knutpunkten från delens egen vägg (balkmodellen samlar skivans kantkraft i hörnen, och skivan är spikad i både regeln och hammarbandet); skikten i en sammansatt stolpe prövas tillsammans och andra delar i samma knutpunkt var för sig.
+
+Takbalkarnas krafter längs nock- och dalbalkarna böjer balkarna i sidled, vilket K-01 inte räknar. Balkmodellens böjning i sidled prövas i det samverkande tvärsnittet (limträet med plåtarna, limmade enligt K-01) och tvärkraften i limträet ensamt, tillsammans med K-01:s utnyttjande lodrätt: limträets böjning $max(η_"K-01" + 0.7 η_"sidled", 0.7 η_"K-01" + η_"sidled")$ (6.1.6), skjuvningen $sqrt(η_"K-01"^2 + η_"sidled"^2)$ (spänningarna möts i tvärsnittets mitt) och plåtarnas normalspänning som en summa.
 
 #text(size: 8pt)[#table(
-  columns: (auto, auto, 1.3fr, 1.2fr, 1.4fr, auto, auto),
+  columns: (auto, auto, auto, auto, auto, auto, auto),
+  align: (left, right, right, right, right, right, right),
+  [Balk], [$M_z$ (kNm)], [$V_y$ (kN)], [I sidled], [Limträ, böjning], [Limträ, skjuvning], [Plåtarna],
+  ..r.forband.sidled.map(s => ([#s.del], [#s.Mz], [#s.Vy], [#s.u], [#eta(s.eta_m, s.ok)], [#eta(s.eta_v, s.ok)], [#eta(s.eta_p, s.ok)])).flatten(),
+)]
+
+#text(size: 8pt)[#table(
+  columns: (1.1fr, auto, 1.3fr, 1.2fr, 1.1fr, auto, 1.1fr),
   align: (left, right, left, left, left, right, left),
   [Knutpunkt], [Antal], [Förband], [Bärförmåga (vind)], [Största kraft], [Utnyttjande], [Utöver det],
   ..r.forband.rader.map(k => ([#k.knut], [#k.antal], [#k.forband], [#k.bar], [#k.kraft], [#eta(k.eta, k.ok)], [#k.mer])).flatten(),
 )]
 
-#liten[Bandet över balken med fler spik per takbalk: #r.forband.fler_spik. Två skruvar för lyftet: #r.forband.tva_skruvar. Vinkelbeslag i regelns topp (drag, kN): #r.forband.med_beslag.#if r.forband.over != "" [ Takbalkar vid takfoten där två universalbeslag inte räcker: #r.forband.over. De får ett förstärkt förband (\#119).]]
+#liten[#if r.forband.kortlingar != "" [Kortling vid bandets ände (beslag, kraft längs väggen): #r.forband.kortlingar. ]#if r.forband.utan_mittemot != "" [Bandet spikat i limträets sida (ingen takbalk mitt emot): #r.forband.utan_mittemot. ]Bandet över balken med fler spik per takbalk: #r.forband.fler_spik. Två skruvar för lyftet: #r.forband.tva_skruvar. Vinkelbeslag i regelns topp (drag, kN): #r.forband.med_beslag.#if r.forband.over != "" [ Takbalkar vid takfoten där två universalbeslag inte räcker: #r.forband.over. De får ett förstärkt förband (\#119).]]
 
 = Bruksgränstillståndet
 

@@ -142,6 +142,15 @@ def _komposit(nr: int, delar: list[dict[str, Any]]) -> Bar:
     lo, hi = P.min(axis=0), P.max(axis=0)
     b.c = b.c + ((lo + hi) / 2) @ b.E
     b.halv = (hi - lo) / 2
+    # höjdriktningen är den som plåtarna ligger isär i (över och under limträet), också när limträet är bredare än
+    # högt: plåtarnas hävarm ger då böjstyvheten i rätt riktning
+    c_lt, E_lt, h_lt = _lada(lt)
+    platar = [_lada(d)[0] for d in delar if d["material"] == "S355"]
+    if platar:
+        ovr = [i for i in range(3) if i != _axel(E_lt, h_lt)]
+        ih = max(ovr, key=lambda i: max(abs(float((c - c_lt) @ E_lt[i])) for c in platar))
+        ib = next(i for i in ovr if i != ih)
+        b.ez, b.bredd, b.hojd = E_lt[ih].copy(), 2 * h_lt[ib], 2 * h_lt[ih]
     for d in delar:
         if d["material"] != "S355":
             continue
