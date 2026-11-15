@@ -220,6 +220,25 @@ def main(argv: list[str] | None = None) -> None:
                     help="tänd elinstallationens tändgrupper, t.ex. AL-T1 AL-T2=0.5 (dimrad till hälften)")
     wb = sub.add_parser("webb", help="webbvisaren (three.js) med modellen i docs/modell/ för GitHub Pages")
     wb.add_argument("--ut", type=Path, default=ROT / "docs")
+    pl = sub.add_parser("lank", help="en länk till en vy i webbvisaren (#vy=…): mål, kamera och snitt")
+    pl.add_argument("--visa", nargs="+", metavar="MÅL", help="visa bara de här delarna eller grupperna")
+    pl.add_argument("--tona", nargs="+", metavar="MÅL", help="tona ner allt utom dem")
+    pl.add_argument("--dolj", nargs="+", metavar="MÅL", help="dölj dem")
+    pl.add_argument("--zooma", nargs="+", metavar="MÅL", help="zooma till dem (annars till visa/tona)")
+    pl.add_argument("--fran", nargs=3, type=float, metavar=("DX", "DY", "DZ"),
+                    help="riktningen från målet mot kameran, i modellens axlar")
+    pl.add_argument("--luft", type=float, help="avståndet: 1 = målen fyller bilden (standard 1,6)")
+    pl.add_argument("--kamera", nargs=3, type=float, metavar=("X", "Y", "Z"), help="kamerans läge [mm]")
+    pl.add_argument("--mal", nargs=3, type=float, metavar=("X", "Y", "Z"), help="punkten kameran ser mot [mm]")
+    pl.add_argument("--punkt", nargs=3, type=float, metavar=("X", "Y", "Z"),
+                    help="se mot punkten [mm] från --fran på --avstand (i stället för --kamera och --mal)")
+    pl.add_argument("--avstand", type=float, default=3000.0, help="kamerans avstånd till --punkt [mm]")
+    pl.add_argument("--snitt", nargs="+", metavar="AXEL=MM", help="snitt, t.ex. z=1200 y=5000")
+    pl.add_argument("--vand", action="store_true", help="vänd snitten")
+    pl.add_argument("--orto", action="store_true", help="ortografisk vy")
+    pl.add_argument("--text", help="rubriken i visaren")
+    pl.add_argument("--json", dest="vy_json", help="hela vyn som JSON (i stället för flaggorna)")
+    pl.add_argument("--bas", help="visarens adress (standard: webbplatsen)")
     sub.add_parser("typ", help="typkontroll (mypy) av ramverket och modellen")
     po = sub.add_parser("onshape", help="ladda upp modellen (STEP) till ett nytt dokument i Onshape")
     po.add_argument("--del", dest="vag")
@@ -345,6 +364,30 @@ def main(argv: list[str] | None = None) -> None:
     pa.add_argument("--fil", type=Path, default=None, help="standard: modeller/trebodar/ut/<modell>-avtryck.json")
     arg = a.parse_args(argv)
 
+    if arg.kommando == "lank":
+        import json
+        from . import lank
+        vy: dict = json.loads(arg.vy_json) if arg.vy_json else {}
+        for nyckel in ("visa", "tona", "dolj", "zooma", "fran", "luft", "kamera", "mal", "text"):
+            if getattr(arg, nyckel) is not None:
+                vy[nyckel] = getattr(arg, nyckel)
+        if arg.punkt:                                    # närbild: kameran på avståndet från punkten, åt hållet fran
+            fran = vy.pop("fran", None) or [1.0, -1.0, 0.5]
+            langd = sum(c * c for c in fran) ** 0.5
+            vy["mal"] = [round(c) for c in arg.punkt]
+            vy["kamera"] = [round(p + arg.avstand * c / langd) for p, c in zip(arg.punkt, fran)]
+        if arg.snitt:
+            vy["snitt"] = {**{a.split("=")[0]: float(a.split("=")[1]) for a in arg.snitt},
+                           **({"vand": True} if arg.vand else {})}
+        if arg.orto:
+            vy["orto"] = True
+        index = [{"sokvag": vag, "material": d.material.namn} for vag, d, _ in ladda().platta()]     # modellens delar
+        utom = getattr(importlib.import_module("trebodar.vyer"), "WEBB_UTOM", [])
+        fel = lank.kontrollera(index, vy, utom)
+        print(lank.adress(vy, arg.bas or lank.BAS))
+        if fel:
+            raise SystemExit("\n".join(fel))
+        return
     if arg.kommando == "typ":
         import subprocess
         from .struktur import kontrollera

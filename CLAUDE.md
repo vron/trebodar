@@ -46,6 +46,19 @@ Användaren samlar fel och önskemål som ärenden i [vron/trebodar](https://git
 - Varje åtgärd följer arbetssättet ovan (kontroller, `./bygg`, titta på de renderade sidorna). Avsluta commit-meddelandet med en rad `Fixes #<nr>` per ärende, så stängs ärendet när commiten når `main`.
 - Är ett ärende oklart, kräver det ett beslut av användaren eller strider det mot handlingarna: kommentera ärendet med frågan (`gh issue comment`) och gå vidare till nästa. Ett ärende vars senaste kommentar är Claudes fråga väntar på användaren och tas upp igen först när användaren har svarat. Kommentarerna postas med användarens konto, så Claude avslutar sina med raden `— Claude`, för att de ska gå att skilja från användarens.
 
+## Länkar in i 3D-modellen
+
+Webbvisaren (https://vron.github.io/trebodar/modell/) öppnar en bestämd vy ur adressen, `#vy=<JSON, URL-kodad>`: kameran, det som visas ensamt, tonas ner eller döljs, och snitten. Claude skapar sådana länkar med `./mod lank` (i `verktyg/modellering`; nycklarna och målens form står i `modellering/lank.py`) och lägger dem i ärendenas kommentarer och i svar när en plats i modellen ska visas. Kommandot prövar målen mot modellen och skriver adressen:
+
+```text
+./mod lank --visa Stolpar "Nock- och dalbalkar" --punkt 11655 4686 3550 --fran 1 -1 -0.4 --avstand 2500 --text "LN1_2 under nockbalk 1"
+./mod lank --tona "Vägg 1A" --fran 1 -1 0.5 --snitt z=1200
+```
+
+- Ett mål är en dels eller grupps sökväg i modellträdet, slutet av den (`Hus/Stomme`), namnet (`LN1_2-R01`, med `*` för vad som helst) eller `material:<namn>`. `--punkt`, `--fran` och `--avstand` ger en närbild av en punkt i K-05:s koordinater; utan dem zoomas vyn till målen.
+- Länken visar webbplatsens modell. En ändring syns där först när den är pushad och GitHub Actions har byggt webbplatsen (några minuter); pröva länken lokalt med `--bas` mot en lokal server för `docs/` när utseendet spelar roll.
+- Knappen Kopiera länk till vyn i visaren ger samma slags länk för vyn som den är inställd.
+
 ## Automod
 
 Säger användaren att Claude ska gå in i automod, arbetar Claude självständigt igenom ärendena med etiketten `Auto` eller `auto` och frågar aldrig i chatten. Claude sätter då själv upp texten nedan som sessionens mål, med en körning var 15:e minut (`/loop 15m` följt av texten), och svarar i chatten bara med en rad om att automoden är igång. I automod har Claude användarens tillstånd att ladda ner datablad, produktfiler och bilder och att söka på internet efter data som ett ärende behöver.

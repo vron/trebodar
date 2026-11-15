@@ -40,6 +40,7 @@ Kör sedan allt via `./mod` (använder `.venv`). Rendering kräver Blender (`/Ap
 | `./mod kameraplan [--ut PDF] [--webb MAPP]` | Ritningen över inomhusbildernas kameror (I-01: plan 1 i 1:75 och källaren i 1:150) ur STEP-filens snitt (kräver `./mod bygg` och `verktyg/modellanalys`); standard `renderingar/kameraplan.pdf`. Skriver också webbplatsens sida med renderingarna på planerna (`docs/renderingar/`: `index.html` och `plan.json`) |
 | `./mod publicera [VY …] [--lokalt] [--fran MAPP …]` | De renderade bilderna (`renderingar/inne/` och `ute/`, med sidodata från `mod rendera`) som JPEG i 480, 960, 1 440 och 2 048 px till `docs/renderingar/bilder/` och releasen `bilder` på GitHub, med förteckningen `renderingar.json`, varefter webbplatsen byggs om (`gh workflow run`). `--lokalt`: bara till `docs/` |
 | `./mod webb` | Webbvisaren (three.js) med modellen i `docs/modell/` för GitHub Pages |
+| `./mod lank [--visa MÅL …] [--tona MÅL …] [--dolj MÅL …] [--punkt X Y Z --fran DX DY DZ --avstand MM] [--snitt AXEL=MM …] [--text T]` | En länk till en vy i webbvisaren (`#vy=…`, se nedan): prövar målen mot modellen och skriver adressen; `--json` tar hela vyn, `--bas` en annan adress än webbplatsens |
 | `./mod typ` | Typkontroll (mypy) av ramverket och modellen, och modellens struktur: inga importcykler, privata namn från andra moduler, importer i funktioner eller brott mot modellens lagerordning (`modellering/struktur.py`, `LAGER` i `trebodar/kontrollregler.py`) |
 | `./mod onshape [--del VÄG] [--dokument NAMN] [--mapp NAMN] [--publik]` | Bygger STEP och laddar upp den till ett nytt dokument i en mapp i Onshape (standard `TrebodarAuto`) via Onshapes API, väntar på importen och redovisar flikar och delar |
 
@@ -171,7 +172,12 @@ egen modell (t.ex. för beställning). Utdata:
   pekaren. Djupbufferten är logaritmisk, så att tunna skikt nära varandra (takplåten på pappen) inte flimrar. Högerklick på en del (delen och
   grupperna den ingår i), en grupp i trädet eller ett material ger en meny: visa bara, tona ner resten (90 %
   genomskinligt), dölj, zooma, visa i trädet och visa allt; Esc avslutar. Fokus står i adressen (`#bara=<sökväg>`,
-  `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. Mätverktygen uppe till höger mäter
+  `#tona=<sökväg>`, `#bara=material:<namn>`), så att en vy kan delas med en länk. En hel vy delas med
+  `#vy=<JSON, URL-kodad>`: kameran (`kamera`, `mal` i modellens mm, eller zoomning till målen från `fran` med `luft`),
+  det som visas ensamt, tonas ner eller döljs (`visa`, `tona`, `dolj`: delars eller gruppers sökväg, slutet av den,
+  namn med `*` eller `material:<namn>`), snitten (`snitt`), `orto`, `verklig`, `kanter` och rubriken `text`
+  (nycklarna står i `modellering/lank.py`). Knappen Kopiera länk till vyn ger länken till vyn som den är, och
+  `./mod lank` bygger en länk ur mål och en punkt. Mätverktygen uppe till höger mäter
   en rak kant (K), avståndet mellan två punkter (A) och det vinkelräta avståndet mellan två parallella kanter (P),
   också på snittets konturer, och visar den senaste mätningen med Δx, Δy och Δz i en ruta under knapparna; pekaren snäpper till hörn, kanters mitt, kanter och ytor, och
   kanter som delas upp i nätet räknas som en.

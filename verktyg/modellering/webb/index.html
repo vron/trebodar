@@ -88,6 +88,8 @@
     <a href="../renderingar/" style="color: var(--accent)">Renderingar</a> ·
     <a href="../#handlingar" style="color: var(--accent)">Handlingar</a></div>
   <h2>Vyer</h2><div id="vyer"></div>
+  <div class="rad"><button id="lank" title="Kopierar en länk till den här vyn: kameran, snitten och det som visas, tonas ner eller är dolt">Kopiera länk till vyn</button>
+    <span id="lankinfo" style="color: var(--dim); font-size: 12px"></span></div>
   <div class="rad"><label><input type="checkbox" id="orto"> ortografisk (parallellprojektion, O)</label></div>
   <div class="rad"><label><input type="checkbox" id="gaRuta"> gå genom huset (G)</label>
     <select id="objektiv" title="Bildvinkeln när man går">
@@ -385,6 +387,7 @@ function visaITradet(o) {
 // eller ett material, eller tonar ner allt annat (90 % genomskinligt).
 const doldaMaterial = new Set(), materialRutor = new Map();
 let fokus = null;                      // { namn, test(del), hash, lage: "bara" eller "tona" }
+let vyAdress = null;                   // adressen (#vy=…) för en vy ur en länk, tills fokus ändras för hand
 const TONING = 0.1;
 const kantTonad = new THREE.LineBasicMaterial({ color: 0x262626, transparent: true, opacity: 0.12, depthWrite: false });
 const under = (o, rot) => { for (; o; o = o.parent) if (o === rot) return true; return false; };
@@ -404,7 +407,8 @@ function uppdatera() {
   const f = document.getElementById("fokus");
   f.style.display = fokus ? "block" : "none";
   if (fokus) f.firstElementChild.textContent = (fokus.lage === "bara" ? "Visar bara " : "Tonar ner allt utom ") + fokus.namn;
-  history.replaceState(null, "", fokus ? `#${fokus.lage}=${encodeURIComponent(fokus.hash)}` : location.pathname + location.search);
+  history.replaceState(null, "", vyAdress || (fokus ? `#${fokus.lage}=${encodeURIComponent(fokus.hash)}`
+                                                      : location.pathname + location.search));
   planeraSnitt();
 }
 
@@ -423,12 +427,13 @@ function malMaterial(namn) {
 
 function fokusera(mal, lage) {
   mal.visa();
+  vyAdress = null;
   fokus = { ...mal, lage };
   uppdatera();
   if (lage === "bara") zooma(mal);
 }
 
-function avsluta() { fokus = null; uppdatera(); }
+function avsluta() { fokus = null; vyAdress = null; uppdatera(); }
 
 function visaAllt() {
   modell.traverse(o => { if (!o.isLineSegments) o.visible = true; if (o.userData.ruta) o.userData.ruta.checked = true; });
@@ -437,7 +442,7 @@ function visaAllt() {
   avsluta();
 }
 
-function zooma(mal) {
+function zooma(mal, luft = 1.05) {             // luft: avståndet som andel av det som precis rymmer målet
   const b = new THREE.Box3();
   for (const d of delar) if (mal.test(d) && d.material.visible && synlig(d)) b.expandByObject(d);
   if (b.isEmpty()) return;
@@ -446,7 +451,7 @@ function zooma(mal) {
   const halv = Math.min(camera.fov / 2, Math.atan(Math.tan(camera.fov * Math.PI / 360) * fri) * 180 / Math.PI);
   const riktning = camera.position.clone().sub(controls.target).normalize();
   controls.target.copy(c);
-  camera.position.copy(c).addScaledVector(riktning, 1.05 * r / Math.sin(halv * Math.PI / 180));
+  camera.position.copy(c).addScaledVector(riktning, luft * r / Math.sin(halv * Math.PI / 180));
 }
 
 // meny med en rad per mål (delen och grupperna den ingår i, en grupp i trädet eller ett material)
@@ -1075,8 +1080,93 @@ new GLTFLoader().load("trebodar.glb", gltf => {
     }
     if (!ut.length) traffar.innerHTML = '<li class="vag">Inga träffar</li>';
   };
+  // En vy ur adressen, så att en plats i modellen kan delas med en länk: #vy=<JSON, URL-kodad> med
+  //   kamera, mal: [x, y, z] i modellens mm (K-05), brannvidd (mm, småbild), orto;
+  //   visa: [mål …] (bara dem) eller tona: [mål …] (allt annat nedtonat), dolj: [mål …], text (rubriken);
+  //   utan kamera zoomas vyn till målen (eller zooma: [mål …]) sedda från fran: [dx, dy, dz] (från målet mot kameran,
+  //   i modellens axlar) med luft (1 = målen fyller bilden, större = längre bort);
+  //   snitt: { x, y, z (mm), vand }, verklig (verkliga färger), kanter.
+  // Ett mål är en dels eller grupps sökväg, slutet av den, namnet (* står för vad som helst) eller material:<namn>.
+  const allaObjekt = [];
+  tradRot.traverse(o => { if (o !== tradRot && !o.isLineSegments && o.name) allaObjekt.push(o); });
+  const hittaMal = s => {
+    if (s.startsWith("material:")) return materialRutor.has(s.slice(9)) ? [malMaterial(s.slice(9))] : [];
+    let ut = allaObjekt.filter(o => o.userData.sokvag === s);
+    if (!ut.length) ut = allaObjekt.filter(o => (o.userData.sokvag || "").endsWith("/" + s));
+    if (!ut.length) {
+      const re = new RegExp("^" + s.split("*").map(x => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$");
+      ut = allaObjekt.filter(o => re.test(kallad(o)));
+    }
+    return ut.map(malObjekt);
+  };
+  const flera = (mal, text) => ({
+    namn: text || mal.slice(0, 3).map(m => m.namn).join(", ") + (mal.length > 3 ? " …" : ""), hash: "",
+    test: d => mal.some(m => m.test(d)), visa: () => mal.forEach(m => m.visa()), dolj: () => mal.forEach(m => m.dolj()) });
+  const tillampaVy = v => {
+    visaAllt();
+    const mal = lista => [].concat(...(lista || []).map(hittaMal));
+    for (const m of mal(v.dolj)) m.dolj();
+    const lage = v.visa ? "bara" : v.tona ? "tona" : null, valda = mal(v.visa || v.tona);
+    if (lage && valda.length) { const f = flera(valda, v.text); f.visa(); fokus = { ...f, lage, mal: v.visa || v.tona }; }
+    for (const a of ["x", "y", "z"]) {
+      const pa = !!v.snitt && v.snitt[a] !== undefined;
+      document.getElementById("k" + a).checked = pa;
+      if (pa) document.getElementById("s" + a).value = v.snitt[a];
+    }
+    document.getElementById("vand").checked = !!(v.snitt && v.snitt.vand);
+    snitt();
+    for (const [id, pa] of [["verklig", !!v.verklig], ["kanter", v.kanter !== false]]) {
+      const r = document.getElementById(id);
+      if (r.checked !== pa) { r.checked = pa; r.onchange({ target: r }); }
+    }
+    if (gaende) slutaGa();
+    ortoRuta.checked = orto = !!v.orto;
+    if (v.kamera && v.mal) gaTill(v);
+    else {
+      if (v.brannvidd) { camera.fov = 2 * Math.atan(18 / v.brannvidd) * 180 / Math.PI; camera.updateProjectionMatrix(); }
+      const z = Array.isArray(v.zooma) ? mal(v.zooma) : valda;
+      if (z.length) {
+        if (v.fran) camera.position.copy(controls.target).add(tillScen(v.fran).normalize());
+        zooma(flera(z), v.luft || 1.6);
+      }
+    }
+    vyAdress = "#vy=" + encodeURIComponent(JSON.stringify(v));
+    uppdatera();
+  };
+  // vyn som den är nu, i samma form (knappen Kopiera länk till vyn)
+  const tillModell = p => [Math.round(p.x * 1000), Math.round(-p.z * 1000), Math.round(p.y * 1000)];
+  const vyNu = () => {
+    const v = { kamera: tillModell(camera.position), mal: tillModell(controls.target),
+                brannvidd: Math.round(18 / Math.tan(camera.fov * Math.PI / 360)) };
+    if (orto) v.orto = true;
+    if (fokus) v[fokus.lage === "bara" ? "visa" : "tona"] = fokus.mal || [fokus.hash];
+    if (fokus && vyAdress && fokus.namn) v.text = fokus.namn;
+    const dolj = [...doldaMaterial].map(n => "material:" + n);
+    const dolda = o => { for (const c of delbarn(o)) { if (!c.visible) { if (c.userData.sokvag) dolj.push(c.userData.sokvag); } else dolda(c); } };
+    dolda(tradRot);
+    if (dolj.length) v.dolj = dolj;
+    const sn = {};
+    for (const a of ["x", "y", "z"]) if (document.getElementById("k" + a).checked) sn[a] = Number(document.getElementById("s" + a).value);
+    if (Object.keys(sn).length) { if (document.getElementById("vand").checked) sn.vand = true; v.snitt = sn; }
+    if (document.getElementById("verklig").checked) v.verklig = true;
+    if (!document.getElementById("kanter").checked) v.kanter = false;
+    return v;
+  };
+  document.getElementById("lank").onclick = async () => {
+    const adress = location.origin + location.pathname + "#vy=" + encodeURIComponent(JSON.stringify(vyNu()));
+    const info = document.getElementById("lankinfo");
+    try { await navigator.clipboard.writeText(adress); info.textContent = "kopierad"; }
+    catch { window.prompt("Länk till vyn:", adress); info.textContent = ""; }
+    setTimeout(() => { info.textContent = ""; }, 2500);
+  };
+  Object.assign(window.visare, { tillampaVy, vyNu });
   // fokus ur adressen: #bara=<sökväg> eller #tona=<sökväg> (material: #bara=material:<namn>), så att en vy kan delas
   const urAdressen = () => {
+    const vy = location.hash.match(/^#vy=(.+)$/);
+    if (vy) {
+      try { tillampaVy(JSON.parse(decodeURIComponent(vy[1]))); } catch (e) { console.warn("vyn i adressen går inte att läsa", e); }
+      return;
+    }
     const a = location.hash.match(/^#(bara|tona)=(.+)$/);
     if (!a) return;
     const v = decodeURIComponent(a[2]);
