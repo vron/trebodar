@@ -57,10 +57,14 @@ def stigare(v: Vy, X: float, Y: float, b: float, h: float, bredd_langs: Pkt, run
     v.linje([tuple(horn[0]), tuple(horn[2])], "tunn")
 
 
-def avluft(v: Vy, X: float, Y: float, ut: Pkt) -> None:
-    """Avluft genom fasaden: pil ut från huset."""
+def avluft(v: Vy, X: float, Y: float, ut: Pkt, in_: bool = False) -> None:
+    """Avluft genom fasaden: pil ut från huset (in_: uteluft, pil in mot huset)."""
     d = np.asarray(ut, float) / float(np.hypot(*ut))
     a = np.array([X, Y]) + d * v.m(0.6)
+    if in_:
+        v.linje([tuple(a + d * v.m(1.2)), tuple(a + d * v.m(4.2))], "normal")
+        v.pil(tuple(a), tuple(-d), langd=1.3, bredd=1.0)
+        return
     v.linje([tuple(a), tuple(a + d * v.m(3.0))], "normal")
     v.pil(tuple(a + d * v.m(4.2)), tuple(d), langd=1.3, bredd=1.0)
 
@@ -126,8 +130,8 @@ TECKEN: list[tuple[Callable[[Vy], None] | str | dict, str]] = [
     (_kanalprov, "kanal med frånluft (yttermått, med isolering)"),
     (lambda w: stigare(w, 0.0, 0.0, 2.2, 2.2, (1.0, 0.0), True), "lodrät kanal (stigarledning)"),
     (lambda w: flakt(w, 0.0, 0.0), "fläkt (triangeln i luftens riktning)"),
-    (lambda w: frandon(w, 0.0, 0.0, 2.6), "frånluftsdon"),
-    (lambda w: avluft(w, -3.0, 0.0, (1.0, 0.0)), "avluft genom fasaden (galler) eller taket (takhuv, takfläkt)"),
+    (lambda w: frandon(w, 0.0, 0.0, 2.6), "frånluftsdon (F), överluftsdon eller uteluftsdon i väggen"),
+    (lambda w: avluft(w, -3.0, 0.0, (1.0, 0.0)), "avluft genom fasaden (galler) eller taket (takhuv, takfläkt); uteluften går inåt"),
     ("dold", "över snittet: köksfläktens kåpa, takhuven"),
 ]
 
@@ -208,8 +212,10 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
                 visade.add(k)
             elif e["slag"] == "don" and _i_vaningen(p[2], vaning):
                 frandon(v, p[0], p[1], typ["front_d"])
-                slag = "överluftsdon" if utdrag["grenar"][e["gren"]].get("overluft") else "frånluftsdon"
-                v.ptext(p[0], p[1], 2.2, 1.2, f"{k} {slag}\n{flode[e['gren']]}", a="lb", sz=5.4, bg=True)
+                gren = utdrag["grenar"][e["gren"]]
+                slag = "överluftsdon" if gren.get("overluft") else "uteluftsdon" if gren.get("uteluft") else "frånluftsdon"
+                v.ptext(p[0], p[1], 2.2, 1.2, f"{k} {slag}\n" + (f"Ø{typ['anslutning']:g}" if gren.get("uteluft")
+                                                               else flode[e["gren"]]), a="lb", sz=5.4, bg=True)
                 visade.add(k)
             elif e["slag"] == "flakt" and _i_vaningen(p[2], vaning):
                 r = np.array(e["riktning"][:2])
@@ -218,7 +224,7 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
                 visade.add(k)
             elif e["slag"] == "avluft" and typ["slag"] == "galler" and _i_vaningen(p[2], vaning):
                 n = np.array(e["normal"][:2])
-                avluft(v, p[0], p[1], tuple(n))
+                avluft(v, p[0], p[1], tuple(n), bool(utdrag["grenar"][e["gren"]].get("uteluft")))
                 q = np.array(p[:2]) + n * v.m(5.0)
                 v.text(q[0], q[1] - v.m(1.2), f"{k} galler", a="lt" if n[0] >= 0 else "rt", sz=5.2, bg=True)
                 visade.add(k)
@@ -233,7 +239,7 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
         v.skalstock(*papper(v, 24.0, 27.0 + (PLAN1[3] - PLAN1[2]) / v.s + 8.0), langd_m=5, steg_m=1)
     grenar = utdrag["grenar"]
     rader = [[g, d["namn"], d["rum"], sv(d["flode"]), sv(d["flode_normal"]), sv(d["tryckfall"], 1)]
-             for g, d in grenar.items() if any(x in visade for x in d["element"])]
+             for g, d in grenar.items() if any(x in visade for x in d["element"]) and not d.get("uteluft")]
     kanaler = [[k, typer[e["typ"]]["matt"] + (" isol." if typer[e["typ"]]["isolering"] else ""),
                 sv(e["langd"] / 1000, 2), f"{sv(e['bojar'])}°", sv(e["hastighet"], 1)]
                for k, e in el.items() if e["slag"] == "kanal" and k in visade]
@@ -258,8 +264,10 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
             "Kanalernas yttermått i skala; lodräta kanaler som tvärsnitt med diagonal. Produkterna är ännu inte "
             "valda (allmänna typer med vanliga mått och flöden).",
             ovriga,
-            "Ersättningsluft (uteluftsdon eller spjäll som öppnar med köksfläkten) är inte projekterad; kaminen kräver "
-            "att huset inte får undertryck.",
+            "Ersättningsluften kommer in genom ventilerna i fönstrens överkarm och två väggventiler Ø100 (UL1 i "
+            "sovrummet, UL2 i det lilla sovrummet), och går under dörrarna till frånluften. Med köksfläkten forcerad "
+            "blir undertrycket större än 10 Pa; det är accepterat (kaminen tar sin förbränningsluft utifrån i en egen "
+            "kanal).",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(TECKEN),

@@ -33,6 +33,9 @@ RUND_150_200 = Overgangstyp("OV150-200", "Övergång Ø150 – Ø200, isolerad",
 FRANLUFTSDON_125 = Dontyp("FD125", "Frånluftsdon Ø125, vitlackerat (ej valt)", 125.0, 190.0, 40.0, 20.0)
 
 FRANLUFTSDON_100 = Dontyp("FD100", "Frånluftsdon Ø100, vitlackerat (ej valt)", 100.0, 160.0, 40.0, 20.0)
+# uteluften genom ytterväggen (#108): väggventil med ställbart don och filter på insidan och galler på fasaden
+UTELUFTSDON_100 = Dontyp("UD100", "Uteluftsdon (väggventil) Ø100, ställbart med filter, vitt (ej valt)", 100.0, 160.0,
+                         40.0, 20.0)
 # överluften mellan två rum i källaren: don på den ena sidan av väggen och galler på den andra
 OVERLUFTSDON_100 = Dontyp("OD100", "Överluftsdon Ø100, vitlackerat (ej valt)", 100.0, 160.0, 40.0, 20.0)
 
@@ -75,9 +78,11 @@ TAKHUV_125 = Avluftstyp("TH125", "Takhuv Ø125 för bandtäckt plåttak, zink-ma
 # ersättningsluften (#108): ventiler i VELFAC-fönstrens överkarm (VELFAC click vent, dold, 2 020 mm² ekvivalent area,
 # VELFAC:s uppgift för den vanliga ventilen) i fönstren och fönsterdörrarna i de torra rummen på plan 1 (vardagsrummet,
 # sovrummen, kontoren, gästrummet och allrummets skjutdörr) och i köksfönstren, inte i badrummet där frånluften tas
-# ut; luften går under dörrarna (spalt minst 10 mm, ID1 över tröskeln) till badrummet. Undertrycket inomhus högst
-# UNDERTRYCK_MAX.
+# ut; luften går under dörrarna (spalt minst 10 mm, ID1 över tröskeln) till badrummet. Därtill två väggventiler Ø100
+# (grenar/uteluft.py). Undertrycket inomhus bör vara högst UNDERTRYCK_MAX; med köksfläkten forcerad blir det mer, och
+# det accepteras (användarens beslut i #108).
 UTELUFT_AREA = 2020.0                   # mm² ekvivalent area per ventil
 UTELUFT_FONSTER = ("1NV-F1", "1NV-D1", "1SO-F1", "1SO-F2", "1SV-F1", "1NO-F2", "2SO-D1", "2NO-F1", "2NO-F2", "2SV-D1",
                    "3NO-F1", "3NO-F2", "3NV-F1", "3NV-F2", "3NV-F3", "3NV-F4", "3NV-F5", "3SV-F1")
+UTELUFT_VAGG_AREA = 5000.0              # mm² ekvivalent area per väggventil Ø100 (grenar/uteluft.py)
 UNDERTRYCK_MAX = 10.0                   # Pa

@@ -17,7 +17,8 @@ from trebodar.hus.fonster_och_dorrar.oppningar import OPPNINGAR
 
 from ..genomforingar import Genomforing, Stycke, genomforingar
 from ..montering import KALLARTAK, Vek
-from .katalog import UNDERTRYCK_MAX, UTELUFT_AREA, UTELUFT_FONSTER
+from .grenar import uteluft
+from .katalog import UNDERTRYCK_MAX, UTELUFT_AREA, UTELUFT_FONSTER, UTELUFT_VAGG_AREA
 from .delar import Avluft, Don, Element, Flakt, Gren, Kanal, Overgang, kanalernas_vagar
 from .grenar import badrum, kok, stora_rummet, tvattstuga
 from .typer import Dontyp, Kanaltyp, Koksflakttyp, Vaggflakttyp
@@ -46,10 +47,10 @@ def langd(vag: list[Vek]) -> float:
     return sum(math.dist(a, b) for a, b in zip(vag, vag[1:]))
 
 
-def undertryck(flode: float, n: int) -> float:
-    """Undertrycket inomhus [Pa] när flödet [l/s] kommer in genom n uteluftsdon med den ekvivalenta arean
-    UTELUFT_AREA (en skarpkantad öppning med Cd 0,61: q = 0,61 · A · √(2 Δp / ρ), ρ = 1,2 kg/m³)."""
-    a = 0.61 * n * UTELUFT_AREA * 1e-6
+def undertryck(flode: float, area: float) -> float:
+    """Undertrycket inomhus [Pa] när flödet [l/s] kommer in genom uteluftsdon med den sammanlagda ekvivalenta arean
+    area [mm²] (en skarpkantad öppning med Cd 0,61: q = 0,61 · A · √(2 Δp / ρ), ρ = 1,2 kg/m³)."""
+    a = 0.61 * area * 1e-6
     return 0.6 * (flode / 1000.0 / a) ** 2 if a > 0 else math.inf
 
 
@@ -106,7 +107,7 @@ class Ventilation:
                     fel.append(f"{e.id}: id ska börja med grenens ({g.id}-)")
             flaktar = [e for e in k if isinstance(e, Flakt) or isinstance(e, Don) and
                        isinstance(e.typ, (Koksflakttyp, Vaggflakttyp))]
-            if len(flaktar) != (0 if g.overluft else 1):
+            if len(flaktar) != (0 if g.overluft or g.uteluft else 1):
                 fel.append(f"{g.id}: {len(flaktar)} fläktar (en per gren, ingen i en överluft)")
             for f in flaktar:
                 if g.flode > f.typ.flode + 1e-6:
@@ -139,24 +140,27 @@ class Ventilation:
         # ventilationen som helhet
         kok_ = [g for g in self.grenar.values() if isinstance(g.kedja[0], Don) and isinstance(g.kedja[0].typ,
                                                                                                Koksflakttyp)]
-        summa = sum(g.flode for g in self.grenar.values() if not g.overluft)
-        normal = sum(g.flode_normal for g in self.grenar.values() if not g.overluft)
+        summa = sum(g.flode for g in self.grenar.values() if not g.overluft and not g.uteluft)
+        normal = sum(g.flode_normal for g in self.grenar.values() if not g.overluft and not g.uteluft)
+        n_vagg = sum(1 for g in self.grenar.values() if g.uteluft)
+        area = len(UTELUFT_FONSTER) * UTELUFT_AREA + n_vagg * UTELUFT_VAGG_AREA
         alla = {o.kod for lst in OPPNINGAR.values() for o in lst}
         fel += [f"uteluftsdonet i {k}: fönstret finns inte" for k in UTELUFT_FONSTER if k not in alla]
         for namn, q in (("normalt", normal), ("med köksfläkten forcerad", summa)):
-            dp = undertryck(q, len(UTELUFT_FONSTER))
+            dp = undertryck(q, area)
             txt = (f"ersättningsluften {namn}: {q:g} l/s genom {len(UTELUFT_FONSTER)} ventiler i fönsterkarmarna "
-                   f"(VELFAC, {UTELUFT_AREA:g} mm² ekvivalent area): {dp:.0f} Pa undertryck")
+                   f"(VELFAC, {UTELUFT_AREA:g} mm² ekvivalent area) och {n_vagg} väggventiler Ø100 "
+                   f"({UTELUFT_VAGG_AREA:g} mm²): {dp:.0f} Pa undertryck")
             if dp > UNDERTRYCK_MAX:
-                anm.append(f"{txt}, mer än {UNDERTRYCK_MAX:g} Pa (kaminen, dörrarna): spjäll som öppnar med "
-                           "köksfläkten, eller ett fönster på glänt när den forceras")
+                anm.append(f"{txt}, mer än {UNDERTRYCK_MAX:g} Pa: accepterat (#108; kaminen har egen förbränningsluft, "
+                           "ett fönster på glänt när köksfläkten forceras länge)")
             elif namn == "normalt" and kok_:
                 anm.append(txt)
         for g in self.grenar.values():
             a = g.kedja[-1]
             if not isinstance(a, Avluft):
                 continue
-            if a.typ.slag == "galler" and a.lage.ref in OPPNINGAR:
+            if a.typ.slag == "galler" and a.lage.ref in OPPNINGAR and not g.uteluft:
                 vd = S.YTTERVAGGAR[a.lage.ref]
                 u = (a.lage.punkt[0] - vd.origo[0]) * vd.u[0] + (a.lage.punkt[1] - vd.origo[1]) * vd.u[1]
                 nara = [o.kod for o in OPPNINGAR[a.lage.ref] if o.typ in ("vändfönster", "fönsterdörr")
@@ -194,7 +198,7 @@ class Ventilation:
                           "ref": e.lage.ref}
                 element[e.id] = d
         return {"grenar": {g.id: {"namn": g.namn, "rum": g.rum, "flode": g.flode, "flode_normal": g.flode_normal,
-                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g), "overluft": g.overluft,
+                                  "element": [e.id for e in g.kedja], "tryckfall": tryckfall(g), "overluft": g.overluft, "uteluft": g.uteluft,
                                   "beskrivning": list(g.beskrivning)}
                            for g in self.grenar.values()},
                 "element": element, "typer": typer,
@@ -247,5 +251,6 @@ def tryckfall(g: Gren) -> float:
 @cache
 def ventilation() -> Ventilation:
     grenar = [g for mod in MODULER for g in (mod.GREN, *([mod.OVERLUFT] if hasattr(mod, "OVERLUFT") else []))]
+    grenar += list(uteluft.UTELUFT)
     return Ventilation({g.id: g for g in grenar})
 
