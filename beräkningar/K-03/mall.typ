@@ -203,7 +203,7 @@ Knäckning räknas med stolpens hela höjd. En vägg stagar stolpen i väggens p
   [Stolpe], [Bär], [Utförande], [$L$ (mm)], [Stagning], [$N_d$ (kN)], [Knäckn.], [Syll], [Ham.band], [Lyft (kN)],
   ..r.stolpar.map(s => ([#s.namn#if s.gamla != "" [ (#s.gamla)]], [#s.bar], [#if s.krav [*#s.utf*] else [#s.utf]], [#s.L], [#s.stag], [#s.Nd], [#s.u], [#s.syll], [#s.ham], [#s.lyft])).flatten(),
 )
-#liten[#if r.stolpar.any(s => s.krav) [Fetstil: utförande som krävs i denna handling, i stället för modellens (se tabellen i avsnitt 1). ]LA1–LA10: största värde för de tio hörnen. Lyft: dimensionerande dragkraft vid vindlyft (K-05), som stolpen förankras för i topp och fot. Huvudstolpen, se @huvud.]
+#liten[#if r.stolpar.any(s => s.krav) [Fetstil: utförande som krävs i denna handling, i stället för modellens (se tabellen i avsnitt 1). ]LA1–LA10: största värde för de tio hörnen. Lyft: dimensionerande dragkraft (K-01:s minsta stödreaktion: vindlyft eller snö fält för fält längs balken, K-05), som stolpen förankras för i topp och fot. Förankringen vid foten är prövad för den i K-04; förbandet i toppen, mellan stolpen och balken, är inte utformat (\#129). Huvudstolpen, se @huvud.]
 
 = Sammanfattning och förutsättningar för utförandet
 

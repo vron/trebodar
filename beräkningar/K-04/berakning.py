@@ -115,7 +115,10 @@ L = analys.los(A, fall, komb, q_max if SK else None)
 K = kontroller.kontrollera(N, L, IN)
 B = kontroller.bruksgrans(N, L, IN)
 BV = json.loads(BARVERK.read_text(encoding="utf-8"))
-FA = forankring.kontrollera(N, L, IN, BV, kontroller.Material("C24", IN["material"]["C24"]))
+# K-03:s lyft i stolparna (K-01:s minsta stödreaktioner): förankringen prövas för det största av dem och balkmodellens
+K03 = json.loads((HERE.parent / "K-03" / "resultat.json").read_text(encoding="utf-8"))
+lyft03 = {namn: kraft * 1e3 for namn, kraft in K03["lyft_stolpar"].items()}
+FA = forankring.kontrollera(N, L, IN, BV, kontroller.Material("C24", IN["material"]["C24"]), lyft03)
 tid = time.perf_counter() - t0
 m = N.modell
 namn_k = [k.namn for k in komb]
@@ -178,7 +181,6 @@ for s in sorted(set(stolpar) | set(k05), key=lambda n: (n[:2], n)):
 
 # takstolarna mot K-03: diagonalens tryck och dragbandets drag mitt på (summan av delarna på systemlinjen), snö som
 # huvudlast
-K03 = json.loads((HERE.parent / "K-03" / "resultat.json").read_text(encoding="utf-8"))
 k03 = {s["namn"]: s for s in K03["st"]}
 pa_linje = defaultdict(list)
 for d, k in N.linjer.items():
@@ -304,7 +306,9 @@ forank = {"lyft": fmt(fa["lyft"] / 1e3, 1), "lyft_del": fa["lyft_del"], "lyft_ko
           "halldon_namn": IN["forankring"]["halldon"], "Rhd": fmt(FA["R_hd_W"] / 1e3, 1),
           "hd_tra": fmt(IN["forankring"]["halldon_R1k_tra"], 1),
           "hd_stal": fmt(IN["forankring"]["halldon_R1k_stal"], 1),
-          "hd_betong": fmt(IN["forankring"]["halldon_R1d_betong"], 1),
+          "hd_betong": fmt(forankring.betong_drag(IN["forankring"], 1e4, IN["forankring"]["halldon_hef"]) / 1e3, 1),
+          "hd_hef": fmt(IN["forankring"]["halldon_hef"], 0),
+          "lyft03": fmt(max(lyft03.values()) / 1e3, 1), "lyft03_del": max(lyft03, key=lambda k: lyft03[k]),
           "bitar": bit_ut, "beslag_rader": beslag_ut, "halldon": halldon,
           "n_beslag": str(FA["n_modell"]), "n_upplag_beslag": str(len(beslag_ut)),
           "sneda": str(sum(b["sneda"] for b in FA["bitar"])),

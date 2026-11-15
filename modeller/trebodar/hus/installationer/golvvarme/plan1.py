@@ -32,7 +32,7 @@ Z_FD = {"fram": -650.0, "retur": -550.0}
 X_N = glipa("V3", Z, 3926.0)                             # stråket N genom V3:s järn
 X_V, X_S, X_G = 3650.0, 5350.0, 9900.0                   # V och N i allrummets västra del, S genom 2C:s dörr och G i
 #                                                          gången, utanför stommens spärrzoner (#114)
-Y_O = 6900.0                                             # O österut norr om huvudstolpens syll
+Y_O = 6894.0                                             # O österut norr om huvudstolpens syll
 Y_HALL = 9120.0                                          # hallens zon HS uppåt: tilloppet till HS går genom 1B:s
 #                                                          passage (installationer/passager.py)
 Y_HN = 9560.0                                            # HN från norr om 1B:s ände (dess spärrzon, #114)
@@ -54,7 +54,7 @@ ZONER = [
                          (2620.0, SO_HORN[1])), 300.0, "x", (X_S, 5850.0), "S"),
     Zon("KT", "Kontor", (4635.0, 135.0, 9345.0, Y_KT), 300.0, "x", (9345.0, Y_KT), "G"),
     Zon("SL", "Sovrum, litet", (9465.0, 1135.0, 13675.0, 2735.0), 300.0, "x", (9465.0, 2735.0), "G"),
-    Zon("KL", "Kontor, litet", (11075.0, 2855.0, 13675.0, 4626.0), 300.0, "x", (11075.0, 4626.0), "G"),
+    Zon("KL", "Kontor, litet", (11075.0, 2855.0, 13675.0, 4606.0), 300.0, "x", (11075.0, 4606.0), "G"),
     Zon("GR", "Gästrum", (11075.0, 4746.0, 13675.0, Y_GR), 300.0, "x", (11075.0, Y_GR), "G"),
     Zon("KO2", "Kök, öster", (11650.0, 6637.0, 13675.0, 12375.0), 300.0, "y", (11650.0, 6637.0), "O"),
     Zon("KO1", "Kök, väster", (9645.0, 6637.0, 11650.0, 12375.0), 300.0, "y", (9645.0, 6637.0), "O"),

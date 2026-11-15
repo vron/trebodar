@@ -82,19 +82,19 @@ UTSTICK = 5.0               # och högst så långt förbi stolpens hörn
 
 # vinkelbeslagen (K-04): regeln eller stolpen vid upplaget -> (beslag, bultar per beslag)
 VINKELBESLAG_PA: dict[str, tuple[int, int]] = {
-    "LA5-1": (1, 1), "1NO-R01": (2, 1), "1NO-R05": (2, 1), "1SO-R09": (1, 1), "1NV-R01": (1, 1), "1NV-R07": (1, 1),
+    "LA5-1": (1, 1), "1NO-R01": (2, 1), "1NO-R05": (2, 1), "1SO-R09": (1, 1), "1NV-R07": (1, 1),
     "LA1-1": (1, 1), "2NO-R11": (2, 1), "2NO-R14": (1, 1), "LA2-2": (1, 1), "2NV-R03": (2, 1), "3NO-R10": (2, 1),
     "LA8-1": (1, 1), "3SV-R01": (2, 1), "3SV-R05": (2, 2), "3NV-R09": (1, 1), "3NV-R20": (1, 1), "3NV-R24": (1, 1),
     "1A-R02": (1, 1), "1A-R04": (1, 1), "1C-R04": (2, 1), "LN5_2-1": (1, 1), "LN3_1-1": (1, 1), "2B-R03": (1, 1),
     "2B-R05": (1, 1), "2C-R05": (1, 1), "2C-R09": (2, 1), "2C-R11": (2, 1), "LN1_1-R01": (1, 1),
-    "LN1_2-R01": (1, 1), "LD4_1-R01": (2, 1), "1B-R01": (1, 1), "2SO-R06": (1, 2),
+    "LD4_1-R01": (2, 1), "1B-R01": (1, 1), "2SO-R06": (1, 2), "LA6-2": (2, 1),
 }
 # förankringsbeslagen WHT340 (K-04) där vinkelbeslagen inte räcker eller inte får plats: på en fri sida av regeln, och
 # i ytterväggarna annars på regelgruppens insida, på plattan
 FORANKRINGSBESLAG_PA: tuple[str, ...] = (
     "3SV-R08", "1NO-R08", "1NO-R11", "1SO-R01", "1A-R01", "LA10-1", "1SV-R02", "1SV-R04", "1NV-R10", "2SV-R01",
     "LD2_4-1", "3NO-R02", "3NO-R07", "3SO-R01", "3SV-R11", "1A-R03", "1B-R02", "LN5_3-1", "1C-R02",
-    "1C-R05", "LD2_1-1", "LD2_2-1", "2C-R03", "2C-R08", "LD2_3-1",
+    "1C-R05", "LD2_1-1", "LD2_2-1", "2C-R03", "2C-R08", "LD2_3-1", "LN1_2-R01", "1NV-R01",
 )
 
 

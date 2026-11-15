@@ -207,9 +207,15 @@ def _betongtabell(F: dict[str, Any], bitar: dict[str, list[Bit]], BV: dict[str, 
     return rader
 
 
-def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any) -> dict[str, Any]:
+K03_KOMB = "K-03: stolpens lyft"
+
+
+def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any,
+                lyft03: dict[str, float]) -> dict[str, Any]:
     """Förankringen: kravet på beslag per upplag, modellens beslag mot lasterna och syllarnas och bultarnas
-    utnyttjande och horisontalkraften per syllbit."""
+    utnyttjande och horisontalkraften per syllbit. lyft03 är K-03:s lyft per stolpe [N] (K-01:s minsta stödreaktion:
+    vindlyft och fältvis snö på nock- och dalbalkarna, som balkmodellen inte har): det prövas som en egen kombination,
+    delat lika på stolpens upplag, så att varje stolpe förankras för det största av de två."""
     F_ = IN["forankring"]
     K = kapaciteter(IN, C24)
     m, delar = N.modell, N.delar
@@ -217,11 +223,20 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
     kn = [k.namn for k in L.komb if k.slag == "STR"]
     kmod = np.array([k.kmod for k in L.komb])[str_]
     R = L.R[str_][..., :3]
-    lyft = np.maximum(-R[..., 2], 0.0)                           # (k, upplag) [N]
     X = np.asarray(m.x)[m.upplag]
     upp = [next((delar[d] for d in N.nod_delar[n_] if delar[d].upplagd), delar[N.nod_delar[n_][0]])
            for n_ in m.upplag]
     nod_namn = [{delar[d].namn for d in N.nod_delar[n_]} for n_ in m.upplag]
+    rad03 = np.zeros((1, R.shape[1], 3))
+    for stolpe, kraft in lyft03.items():                         # upplagen under stolpens stående delar
+        vid = [i for i, n_ in enumerate(m.upplag)
+               if any(stolpe in (delar[d].stolpe, delar[d].namn) and delar[d].typ != "S" for d in N.nod_delar[n_])]
+        assert vid, f"K-03:s stolpe {stolpe} har inget upplag i balkmodellen"
+        rad03[0, vid, 2] = -kraft / len(vid)
+    R = np.concatenate([R, rad03])
+    kn.append(K03_KOMB)
+    kmod = np.append(kmod, float(IN["kombination"]["k_mod"]["S"]))
+    lyft = np.maximum(-R[..., 2], 0.0)                           # (k, upplag) [N]
     V = {v["kod"]: v for v in BV["vaggar"]}
     bitar = _bitar(N, BV)
     gM = C24.gamma_M
@@ -238,7 +253,8 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
     Hn = np.hypot(R[..., 0], R[..., 1])                           # (k, upplag)
     # förankringsbeslaget: träet (spiken), stålet och ankaret i betongen
     R_hd = np.minimum(np.minimum(kmod * F_["halldon_R1k_tra"] / F_["halldon_gamma_M_tra"],
-                                 F_["halldon_R1k_stal"] / F_["halldon_gamma_stal"]), F_["halldon_R1d_betong"]) * 1e3
+                                 F_["halldon_R1k_stal"] / F_["halldon_gamma_stal"]),
+                      betong_drag(F_, 1e4, F_["halldon_hef"]) / 1e3) * 1e3
 
     def kategori(i: int, sidled: bool = False) -> int:
         """Beslagen för lyftet (och för stolpar direkt på plattan också sidkraften: F1/R1 + F2/R2 ≤ 1)."""
@@ -410,7 +426,8 @@ def kontrollera(N: Any, L: Any, IN: dict[str, Any], BV: dict[str, Any], C24: Any
     R_kat_W = [min(Rb_W, K["N_Rd"] / K["bandning"]), 2 * min(Rb_W, K["N_Rd"] / K["bandning"]),
                2 * min(Rb_W, 2 * K["N_Rd"] / K["bandning"])]
     R_hd_W = min(kw * F_["halldon_R1k_tra"] / F_["halldon_gamma_M_tra"],
-                 F_["halldon_R1k_stal"] / F_["halldon_gamma_stal"], F_["halldon_R1d_betong"]) * 1e3
+                 F_["halldon_R1k_stal"] / F_["halldon_gamma_stal"],
+                 betong_drag(F_, 1e4, F_["halldon_hef"]) / 1e3) * 1e3
     return {"bitar": bit_ut, "beslag": beslag, "forslag": forslag, "antal": antal, "K": K, "R_kat_W": R_kat_W,
             "R23_W": kw * K["R23k"] * 1e3 / K["gM_beslag"], "R_hd_W": R_hd_W,
             "n_modell": sum(len(v) for v in modell.values()),

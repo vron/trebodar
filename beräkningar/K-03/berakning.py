@@ -547,6 +547,9 @@ la = dict(namn="LA1–LA10", gamla="A", bar="gavlarnas hörn", utf="3 st 45×95 
 rader.append(la)
 uS = max(r["umax"] for r in rader)
 R = {
+    # lyftet per stolpe [kN], för K-04:s förankring (varje hörnstolpe för sig)
+    "lyft_stolpar": {**{s["namn"]: round(max(-s["Wd"], 0.0), 2) for s in STOLPAR if not s["saknas"]},
+                     "LN1_3": round(lyft_H, 2)},
     "projekt": IN["projekt"],
     "modell": dict(fil=GEO["kalla"]["fil"], hash=GEO["kalla"]["hash"]),
     "last": dict(g=fmt(LA["g_tak"], 2), gh=fmt(G_H, 2), sk=fmt(LA["s_k"], 1), mud=fmt(LA["mu_dal"], 1), mut=fmt(LA["mu_takfot"], 1),

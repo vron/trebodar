@@ -26,7 +26,7 @@ def montage() -> Montage:
     v.syll(0.0, w.langd)
     u1 = S.BALKAR["NB5"].x - w.origo[0] + 2 * R                    # ändregelns sida mot väggens slut
     hb, toppar = lutande_hammarband(hammarbandsplan("1C", "1NV"), (u1 - INNE, VINKELRAT), (w.langd, LODRAT),
-                                    (427.5, 1027.5, 1240.0))
+                                    (427.5, 1025.0, 1240.0))       # 1C-R04 lämnar 170 mm till ändregeln: vinkelbeslag och WHT340
     v.regel(S.VAGGAR["1B"].tjocklek, z1=NOCK)                      # vid 1B:s yta
     v.profil(P.hornen(box(u1 - R, R, u1, NOCK).difference(hb)))
     v.profil(P.hornen(hb), typ="L")

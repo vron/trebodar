@@ -559,6 +559,10 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
     def fri(lada: tuple[float, float, float, float]) -> bool:
         return not any(lada[0] < q[2] and q[0] < lada[2] and lada[1] < q[3] and q[1] < lada[3] for q in lagda)
 
+    # rörens omfång i plan: texterna vid sidan av ett rör läggs inom det (inte ut över bladets ram)
+    alla = np.array([p for r in utdrag["ror"].values() for i0, i1 in _foljder(r["vag"], inne)
+                     for p in _xy(r["vag"][i0:i1 + 1])] or [(0.0, 0.0)])
+    omfang = (*(alla.min(axis=0) - v.m(2.0)), *(alla.max(axis=0) + v.m(2.0)))
     with v.lager("ror"):
         for k, r in utdrag["ror"].items():
             vag = r["vag"]
@@ -591,7 +595,9 @@ def bjalklag(utdrag: dict, delar: list[dict], ovan: list[dict], z: tuple[float, 
                             q = m + n * v.m(avst)
                             x0 = q[0] if n[0] >= 0 else q[0] - w
                             lagen.append((q, "lm" if n[0] >= 0 else "rm", (x0, q[1] - h / 2, x0 + w, q[1] + h / 2)))
-                    q, ank, lada = next((x for x in lagen if fri(x[2])), lagen[0])
+                    inom = [x for x in lagen if omfang[0] <= x[2][0] and x[2][2] <= omfang[2]
+                            and omfang[1] <= x[2][1] and x[2][3] <= omfang[3]] or lagen      # inte utanför rören
+                    q, ank, lada = next((x for x in inom if fri(x[2])), inom[0])
                     v.hanvisning(tuple(m), tuple(q), txt, a=ank, sz=5.6, punkt=False, col="ok")
                 lagda.append(lada)
             # brytpunkterna (där rörets raka sträckor möts) numrerade, med den mjuka böjens radie

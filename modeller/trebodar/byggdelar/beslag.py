@@ -17,8 +17,8 @@ HAL_D = 12.0                             # hålet för bulten M12 (i modellen bu
 
 # förankringsbeslaget WHT340: plåtens höjd, bredd och gods, bottenplattans djup och tjocklek (med brickan) och ankaret
 WHT_H, WHT_B, WHT_T = 340.0, 60.0, 3.0
-WHT_P, WHT_BOTTEN = 60.0, 9.0
-WHT_ANKARE = 30.0                        # ankarets axel från sidan
+WHT_P, WHT_BOTTEN = 63.0, 9.0
+WHT_ANKARE = 35.0                        # ankarets axel från sidan (databladet: m)
 WHT_D = 16.0
 
 

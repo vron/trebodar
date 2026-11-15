@@ -554,7 +554,7 @@ BRED_SYLL = ("Syllen 45×120 går 25 mm innanför reglarna (in under installatio
              "stolpe står mot väggens insida.")
 K03_TAKSTOL = {"2C": "L2M"}                 # takstolens kod i modellen -> namnet i K-03
 # beslagen i vyn: höjd, den liggande skänkelns djup och bredd (byggdelar/beslag.py)
-BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 60.0, 60.0)}
+BESLAG = {"ABR10525": (105.0, 105.0, 90.0), "WHT340": (340.0, 63.0, 60.0)}
 
 
 def _beslagstext(beslag: list[tuple[str, float, float, float]]) -> str:
