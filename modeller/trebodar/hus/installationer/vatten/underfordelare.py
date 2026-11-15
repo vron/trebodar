@@ -5,8 +5,9 @@ läckage syns och rinner till golvbrunnen.
 
 - UF1 i det stora rummet i högra huskroppen, på källarväggen V14 under köket intill diskhons avlopp, som går ned längs
   väggen (../avlopp): kallt och varmt till diskbänken KO-DB1 och kallt till diskmaskinen KO-DM1 i ön, med kopparrör
-  under taket och genom hylsor i bjälklaget (rum/kok.py, #83), utan stråk. Matningen kommer i stråket O och ned till
-  stammarnas början.
+  under taket och genom hylsor i bjälklaget (rum/kok.py, #83), utan stråk. Varmvattnets matning kommer i stråket O
+  och ned till stammens början; kallvattnet kommer direkt från vattenmätaren på samma vägg (#139,
+  teknikrum.till_underfordelaren).
 - UF2 i rummet öster om KL2 under badrummet, på KL1: kallt till WC:n BA-WC1 och till tvättmaskinen BA-TM1 i skåpet i
   badrummet, var sin utgång. Huvudfördelarnas filer räcker inte till ett rör till (#50).
 
@@ -57,6 +58,7 @@ class Underfordelare:
     ordning: tuple[tuple[str, tuple[str | None, int | None]], ...]
     strak_id: str | None = None
     langd: float = 0.0
+    direkt: tuple[str, ...] = ()        # medier som matas direkt från vattenmätaren, inte från fördelarskåpet (#139)
 
     @property
     def medier(self) -> tuple[str, ...]:
@@ -76,7 +78,8 @@ class Underfordelare:
         """Inloppet som ett tappställe i huvudfördelarnas ordning: rören rakt ned ur bjälklaget till stammarnas
         början."""
         q = dict(self.flode)
-        typ = Tappstalletyp(self.id, self.namn, q.get("KV", 0.0), q.get("VV", 0.0), "UF")
+        kv, vv = (0.0 if m in self.direkt else q.get(m, 0.0) for m in ("KV", "VV"))
+        typ = Tappstalletyp(self.id, self.namn, kv, vv, "UF")
         return Tappstalle(self.id, typ, INLOPP, Montering(self.start, self.normal, "vagg", self.rum), self.ror,
                           anslutningar=tuple((m, self._stam(m, -1, self.start)) for m in self.medier))
 
@@ -120,7 +123,8 @@ _KL2_YTA = KL["KL2"].c + KL["KL2"].t / 2 + GIPS_T
 UNDERFORDELARE = [
     Underfordelare("UF1", "Underfördelare under köket", "Källare", _V14.punkt, _V14.normal, (0.0, -1.0, 0.0),
                    (("KV", UNDERFORDELARE_KV), ("VV", UNDERFORDELARE_VV)), ROR_I_ROR_18,
-                   (("KV", 0.3), ("VV", 0.2)), (("KO-DM1", (None, None)), ("KO-DB1", (None, None)))),
+                   (("KV", 0.3), ("VV", 0.2)), (("KO-DM1", (None, None)), ("KO-DB1", (None, None))),
+                   direkt=("KV",)),
     Underfordelare("UF2", "Underfördelare under badrummet", "Källare", (_KL2_YTA + 40.0, _KL1_YTA, 0.0),
                    (0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (("KV", UNDERFORDELARE_KV),), ROR_I_ROR_18,
                    (("KV", 0.25),), (("BA-TM1", ("B", None)), ("BA-WC1", ("B", None))), "B", 1000.0),

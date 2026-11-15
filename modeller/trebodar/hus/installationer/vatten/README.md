@@ -47,7 +47,14 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
   matad från fördelarskåpet med ett rör per media som ett tappställe i `ORDNING` (rören rakt ned ur bjälklaget till
   stammarnas början, utgång 0), med egna utgångar till sina tappställen. UF1 under köket på V14 (diskbänken och
   diskmaskinen i ön, #50, med kopparrör till hylsor, #83) och UF2 under badrummet på KL1 (WC:n och tvättmaskinen i
-  skåpet, #51, i ett eget stråk): fördelarskåpets filer räcker inte till fler rör.
+  skåpet, #51, i ett eget stråk): fördelarskåpets filer räcker inte till fler rör. UF1:s kallvatten kommer inte från
+  fördelarskåpet utan direkt från vattenmätaren på samma vägg (`Underfordelare.direkt`, #139).
+- **Inkommande vatten** (#139): servisen (PEM 32) kommer upp genom bottenplattan under köket, vid V14, till
+  vattenmätaren med huvudavstängningen på väggen (`../teknikrum.py`: TK-SV, TK-VM). Från mätaren går kallvattnet till
+  UF1, i huvudledningen (PEM 32 i skyddsrör 50) ned genom bottenplattan, under den i cellplasten under plattans
+  balkar (`teknikrum.Z_UNDER`) och upp i teknikrummet vid V3 (TK-HL) till kallvattnets fördelare, och i en klenare
+  ledning (PEM 20 i skyddsrör 32) under plattan till tvätthoet KA-TH2 i källarrummet, som bara har kallvatten
+  (`teknikrum.DIREKT`). I mellanbjälklaget går därför bara varmvattnet till UF1 österut.
 - **Hylsor** (dosans slag `hylsa`, #83): köket har inga golvdosor och inga rör i bjälklaget. Kopparrör 15 går från
   UF1:s utgångar rakt upp till under källarens tak (`Z_TAKET`, varmvattnet överst), där först i x och sedan i y till
   under sin hylsa och rakt upp genom den: Ø50 (PP-avloppsrör), en per rör, ingjuten mellan armeringsjärnen
@@ -72,7 +79,7 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
   väggen (och tvärs den inom regelfacket eller cellplasten) och går därifrån till väggdosan.
 - Tappställenas ordning (`ORDNING`, från norr, med stråkets ben där rören viker av) bestämmer filerna: ett
   tappställes två rör ligger bredvid varandra, det som viker av först ytterst mot sin sida, så att rören inte korsar
-  varandra. Stråket O går österut över V19 till källarrummet och köket, S västerut och norrut till badrummet och
+  varandra. Stråket O går österut över V19 till köket (varmvattnet till UF1), S västerut och norrut till badrummet och
   längs V7, och V västerut och norrut längs V21. Där stråken går över källarväggarnas lodräta järn går de mellan
   dem.
 - Röret lämnar filen i punkten närmast tappstället (eller förbi `via`) och går därifrån upp ur bjälklaget i väggens

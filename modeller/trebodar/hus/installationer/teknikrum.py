@@ -10,9 +10,11 @@ YTA är den del av källaren som pekats ut för utrustningen.
 - Tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
   går ut genom skåpets öppna ovansida. Kort
   varmvattenledning från beredaren.
-- Inkommande vatten (servisen) upp genom bottenplattan vid V3, med vattenmätare och huvudavstängning på V3. Servisens
-  väg till huset är inte bestämd.
-- Elens gruppcentral på V3 väster om vattenmätaren (el/grupper.py), rören ur dess ovansida upp i mellanbjälklaget.
+- Inkommande vatten (#139): servisen (PEM) kommer upp genom bottenplattan under köket, vid källarväggen V14 i det
+  stora rummet, med vattenmätare och huvudavstängning på väggen där. Därifrån går kallvattnet till underfördelaren
+  UF1 (köket) och i två ledningar under bottenplattan: huvudledningen till teknikrummet, upp vid V3 (TK-HL), och en
+  klenare till tvätthoet i källarrummet. Servisens väg till huset är inte bestämd.
+- Elens gruppcentral på V3 väster om huvudledningen (el/grupper.py), rören ur dess ovansida upp i mellanbjälklaget.
 - Drivdonsskåpet för källarens ljuslinjer (TK-LC, el/rum/kallare.py) på KL8:s södra sida: ett plåtskåp (ej valt) med
   ett 24 V-drivdon per tändgrupp, åtkomligt framifrån; rören (den dimrade fasen från dimrarna och 24 V till
   ljuslinjerna) ur dess ovansida i en rad upp i mellanbjälklaget.
@@ -66,16 +68,29 @@ VARMEPUMP = Utrustning(
 FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
                           kallarvagg("V19", 8510.0, 1250.0, -1), (1000.0, 120.0, 600.0), {})
 
-# inkommande vatten: servisen upp ur bottenplattan, vattenmätaren och huvudavstängningen på V3 vid V19
-X_VM = 3950.0
-SERVIS = Utrustning("TK-SV", "Inkommande vatten (servis), läget ej bestämt", golv(X_VM, 8850.0, plan=0),
-                    (63.0, 63.0, 0.0), {"ut": (X_VM, 8850.0, Z_GOLV)})
-_VM = kallarvagg("V3", X_VM, 900.0, -1)
+# inkommande vatten (#139): servisen upp ur bottenplattan vid V14 under köket (söder om underfördelaren UF1), med
+# vattenmätaren och huvudavstängningen på väggen ovanför den; mätarens anslutningar uppåt: huvudledningen (ut),
+# tvätthoet i källarrummet (th2) och underfördelaren UF1 (uf1). Huvudledningen kommer upp ur bottenplattan i
+# teknikrummet vid V3 (TK-HL), X_VM från väster
+X_VM = 3960.0                                 # mellan bottenplattans armeringsjärn
+Y_SV = 9150.0
+FRAN_VAGG = 60.0                                # rören på väggen, mitten från gipsen
+_VM = kallarvagg("V14", Y_SV, 900.0, -1)
+_X_V14 = _VM.punkt[0] - FRAN_VAGG
+SERVIS = Utrustning("TK-SV", "Inkommande vatten (servis, PEM), upp ur bottenplattan under köket",
+                    golv(_X_V14, Y_SV, plan=0), (63.0, 63.0, 0.0), {"ut": (_X_V14, Y_SV, Z_GOLV)})
 VATTENMATARE = Utrustning("TK-VM", "Vattenmätare med huvudavstängning och backventil", _VM, (200.0, 120.0, 250.0),
-                          {"in": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] - 125.0),
-                           "ut": (_VM.punkt[0], _VM.punkt[1] - 60.0, _VM.punkt[2] + 125.0)})
+                          {"in": (_X_V14, Y_SV, _VM.punkt[2] - 125.0),
+                           "ut": (_X_V14, Y_SV - 50.0, _VM.punkt[2] + 125.0),
+                           "th2": (_X_V14, Y_SV, _VM.punkt[2] + 125.0),
+                           "uf1": (_X_V14, Y_SV + 50.0, _VM.punkt[2] + 125.0)})
+_HL = kallarvagg("V3", X_VM, 0.0, -1)
+HUVUDLEDNING = Utrustning("TK-HL", "Kallvattnets huvudledning upp ur bottenplattan, från vattenmätaren under köket",
+                          golv(X_VM, _HL.punkt[1] - FRAN_VAGG, plan=0), (63.0, 63.0, 0.0),
+                          {"in": (X_VM, _HL.punkt[1] - FRAN_VAGG, Z_GOLV),
+                           "ut": (X_VM, _HL.punkt[1] - FRAN_VAGG, Z_GOLV + 100.0)})      # kopplingen över golvet
 
-# elcentralen (gruppcentralen, #51) på V3 väster om vattenmätaren, x 2 400–3 000, med FRITT_FRAMFOR fritt framför;
+# elcentralen (gruppcentralen, #51) på V3 väster om kallvattnets huvudledning, x 2 400–3 000, med FRITT_FRAMFOR fritt framför;
 # rören går upp ur ovansidans västra del rakt in i mellanbjälklaget (el/grupper.py, el/bjalklag/mellanbjalklag.py)
 X_GC = 2700.0
 FRITT_FRAMFOR = 800.0
@@ -101,7 +116,8 @@ DRIVDONSSKAP = Utrustning("TK-LC", "Drivdonsskåp för ljuslinjerna, plåtskåp 
 DRIVDON_I_SKAPET = ((-120.0, -95.0), (120.0, -95.0), (-120.0, -205.0), (120.0, -205.0), (-120.0, -315.0))
 DRIVDON = FDIM_24V_60W
 
-UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE, GRUPPCENTRAL, DRIVDONSSKAP)}
+UTRUSTNING = {u.id: u for u in (VARMEPUMP, FORDELARSKAP, SERVIS, VATTENMATARE, HUVUDLEDNING, GRUPPCENTRAL,
+                                DRIVDONSSKAP)}
 
 
 def _placering(u: Utrustning) -> Placering:

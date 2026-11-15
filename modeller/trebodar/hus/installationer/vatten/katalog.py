@@ -15,6 +15,7 @@ BADKAR = Tappstalletyp("BK", "Badkar", 0.3, 0.3, "BK")
 WC = Tappstalletyp("WC", "WC", 0.1, 0.0, "WC")
 TVATTMASKIN = Tappstalletyp("TM", "Tvättmaskin", 0.2, 0.0, "TM")
 TVATTHO = Tappstalletyp("TH", "Tvättho", 0.2, 0.2, "TH")
+TVATTHO_KALLT = Tappstalletyp("TH", "Tvättho, bara kallvatten", 0.2, 0.0, "TH")
 DISKMASKIN = Tappstalletyp("DM", "Diskmaskin", 0.2, 0.0, "DM")
 
 # ------------------------------------------------------------------ anslutningar
@@ -35,6 +36,9 @@ ROR_I_ROR_16 = Rortyp("RIR16", "PEX 16 × 2,0 i skyddsrör 25 (rör-i-rör)", 16
 ROR_I_ROR_18 = Rortyp("RIR18", "PEX 18 × 2,5 i skyddsrör 28 (rör-i-rör)", 18.0, 2.5, 28.0)
 PEX_22 = Rortyp("PEX22", "PEX 22 × 3,0, isoleras i teknikrummet", 22.0, 3.0)
 KOPPAR_15 = Rortyp("CU15", "Kopparrör 15 × 1,0", 15.0, 1.0)
+# under bottenplattan (#139), i skyddsrör i cellplasten så att de går att byta
+PEM_32 = Rortyp("PEM32", "PEM 32 × 3,0 i skyddsrör 50 (servisens dimension)", 32.0, 3.0, 50.0)
+PEM_20 = Rortyp("PEM20", "PEM 20 × 2,0 i skyddsrör 32", 20.0, 2.0, 32.0)
 
 # ------------------------------------------------------------------ fördelare (stammens ändar: inlopp och genomgång)
 # huvudfördelarna i fördelarskåpet och underfördelarna utanpå väggen i källaren (underfordelare.py)

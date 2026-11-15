@@ -88,6 +88,7 @@ TECKEN: list[Rad] = [
     (lambda w: stigare(w, 0.0, 0.0, "KV"), "upp ur bjälklaget, kallvatten"),
     (lambda w: stigare(w, 0.0, 0.0, "VV", ned=True), "ned ur bjälklaget (i källarväggen eller till fördelarskåpet)"),
     ("vv_tak", "kopparrör under källarens tak, från underfördelaren UF1"),
+    ("kv_tak", "kallvatten under källarens tak (koppar) eller under bottenplattan (PEM i skyddsrör)"),
     (lambda w: _hylsa_med_ror(w), "hylsa Ø50 ingjuten i bjälklaget, kopparröret rakt upp genom den"),
     (lambda w: tappstalle(w, 0.0, 0.0, "TS"), "tappställe (TS tvättställ, DU dusch, BK badkar, WC, DB diskbänk, "
                                                "TM tvättmaskin, TH tvättho)"),
@@ -102,8 +103,12 @@ def _anvisningar(utdrag: dict, *ovriga: str) -> list[dict]:
             "Tappvattnet ur modellen (modeller/trebodar/hus/installationer/vatten): rör-i-rör från fördelarskåpet i "
             "teknikrummet till varje tappställe (stjärnsystem, läckor syns i skåpet). Ritningen ritas med ./mod "
             "vatten ritning.",
+            "Inkommande vatten (PEM 32) kommer upp genom bottenplattan under köket, vid källarväggen V14, med "
+            "vattenmätare och huvudavstängning på väggen. Därifrån går kallvattnet till UF1 (köket), i en "
+            "huvudledning PEM 32 i skyddsrör under bottenplattan till teknikrummet (upp vid V3, VS-01.2) och i en "
+            "ledning PEM 20 i skyddsrör under plattan till tvätthoet KA-TH2, som bara har kallvatten.",
             "Underfördelarna UF1 (under köket, på V14) och UF2 (under badrummet, på KL1) sitter öppet på väggen i "
-            "rum med golvbrunn, matade med ett rör per media från fördelarskåpet: " + "; ".join(
+            "rum med golvbrunn, matade från fördelarskåpet (UF1 bara med varmvatten): " + "; ".join(
                 f"{k} {', '.join(u['tappstallen'])}" for k, u in utdrag.get("underfordelare", {}).items()) + ". "
             "Från UF2 går rören i stråket B. Från UF1 går kopparrör under källarens tak och rakt upp genom var sin "
             "hylsa Ø50 (PP-avloppsrör), ingjuten mellan armeringsjärnen, till diskbänken (bakom lådorna) och "
@@ -173,6 +178,11 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
                     v.linje([(a[0], a[1]), (b[0], b[1])], r["media"].lower())
                 elif _vagratt(a, b) and r.get("koppar"):            # kopparrören under källarens tak
                     v.linje([(a[0], a[1]), (b[0], b[1])], r["media"].lower() + "_tak")
+                elif _vagratt(a, b) and a[2] < utdrag["nivaer"]["källarens golv"] - 1.0:      # under bottenplattan
+                    v.linje([(a[0], a[1]), (b[0], b[1])], "kv_tak")
+                    if math.dist(a[:2], b[:2]) > 2000.0:
+                        v.ptext((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0.0, 1.6 if r["till"].startswith("TK") else -1.6,
+                                f"{r['typ'].split(' (')[0]} under bottenplattan", a="mm", sz=5.0, bg=True)
     with v.lager("hylsor"):
         for h in utdrag.get("hylsor", []):
             hylsa(v, h["punkt"][0], h["punkt"][1], h["d"])
@@ -204,6 +214,9 @@ def _bjalklag(utdrag: dict, mb: list[dict], plan1: list[dict], kallare: list[dic
             c = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
             ider = sorted((t for t, x in tapp.items() if x["strak"] == k), key=lambda t: tapp[t]["utgang"])
             v.ptext(c[0], c[1], 2.0, 2.0, f"Stråk {k}: " + ", ".join(ider), a="lb", sz=5.4, col="gra", bg=True)
+        vm = utdrag["utrustning"]["TK-VM"]["punkt"]
+        v.hanvisning((vm[0], vm[1]), (vm[0] - v.m(16.0), vm[1] + v.m(12.0)),
+                     "TK-VM inkommande vatten och vattenmätare i källaren, på V14", a="rm", sz=5.4)
         fs = utdrag["utrustning"]["TK-FS"]["punkt"]
         v.hanvisning((fs[0] - 60.0, fs[1]), (fs[0] - 60.0 - v.m(14.0), fs[1] + v.m(16.0)),
                      "fördelarskåpet TK-FS i källaren (VS-01.2)", a="rm", sz=5.4)
@@ -335,7 +348,7 @@ def _teknikrum(utdrag: dict, kallare: list[dict], vyn: list[dict], vent: dict | 
                     hela.ptext(x0, a[1], -1.0, 0.0, k, a="rm", sz=4.8)
         u = utdrag["utrustning"]
         for k, X, Y, ank in (("TK-VP", x0 + 60.0, 7700.0, "lm"), ("TK-FS", x0 + 60.0, 8250.0, "lm"),
-                             ("TK-VM", x0 + 60.0, 9000.0, "lm")):
+                             ("TK-HL", x0 + 60.0, 9000.0, "lm")):
             if k in u:
                 q = u[k]["punkt"]
                 hela.hanvisning((q[0], q[1]), (X, Y), f"{k} {u[k]['namn'].split(' (')[0].split(',')[0].lower()}",

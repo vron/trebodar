@@ -106,7 +106,7 @@ class Vatten:
             "teknikrum.ORDNING": dict(teknikrum.ORDNING),
             **{f"{u.id}:s ordning": dict(u.ordning) for u in self.underfordelare.values()}}
         fel += [f"{t}: i {n} tappställenas ordningar" for t in self.tappstallen
-                if (n := sum(t in o for o in ordningar.values())) != 1]
+                if (n := sum(t in o for o in ordningar.values())) != (0 if t in teknikrum.DIREKT else 1)]
         fel += [f"{t}: i {k} men finns inte" for k, o in ordningar.items() for t in o
                 if t not in self.tappstallen and t not in self.underfordelare]
         for r in self.ror.values():
@@ -370,4 +370,12 @@ def vatten() -> Vatten:
                     ror_[r.id] = r
                     modul[r.id] = modul[t_id]
         fordelare.update({f.id: f for f in fd_u.values()})
+        for m in u.direkt:                               # matningen direkt från vattenmätaren (#139)
+            r = teknikrum.till_underfordelaren(u.id, fd_u[m].utgang(0))
+            ror_[r.id] = r
+            modul[r.id] = u.rum
+    for t_id in teknikrum.DIREKT:                        # tappställena med rör under bottenplattan från mätaren
+        r = teknikrum.till_tappstallet_under_plattan(tapp[t_id])
+        ror_[r.id] = r
+        modul[r.id] = modul[t_id]
     return Vatten(tapp, fordelare, ror_, rum, modul, strak, utgangar, uf)
