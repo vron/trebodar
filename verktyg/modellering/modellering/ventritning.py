@@ -264,8 +264,9 @@ def _plan(utdrag: dict, delar: list[dict], vaning: tuple[float, float], nummer: 
             "Kanalernas yttermått i skala; lodräta kanaler som tvärsnitt med diagonal. Produkterna är ännu inte "
             "valda (allmänna typer med vanliga mått och flöden).",
             ovriga,
-            "Ersättningsluften kommer in genom ventilerna i fönstrens överkarm och två väggventiler Ø100 (UL1 i "
-            "sovrummet, UL2 i det lilla sovrummet), och går under dörrarna till frånluften. Med köksfläkten forcerad "
+            "Ersättningsluften kommer in genom ventilerna i fönstrens överkarm och tre väggventiler Ø100 (UL1 i "
+            "sovrummet, UL2 i det lilla sovrummet, UL3 i skafferiet, där den öppnas för att hålla skafferiet kallt), "
+            "och går under dörrarna till frånluften. Med köksfläkten forcerad "
             "blir undertrycket större än 10 Pa; det är accepterat (kaminen tar sin förbränningsluft utifrån i en egen "
             "kanal).",
         ]),

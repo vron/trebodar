@@ -70,7 +70,7 @@ fläktar ansluts på väggen mitt för fläkten (elen: KA-D6 på V14 och KA-D7 p
   stommen; syll och hammarband urtas), genomföringar i innertaket (ångbromsen tätas) och i taket (takhuven), och att
   kanalerna mellan takbalkarna går fria från dem;
 - kalla delar: kanaler genom ytterväggen och takets isolering ska vara isolerade (kondens);
-- helheten: ersättningsluften genom ventilerna i VELFAC-fönstrens överkarm (`katalog.UTELUFT_FONSTER`) och två väggventiler Ø100 (`grenar/uteluft.py`: uteluftsdon utan fläkt, `Gren.uteluft`, #108): undertrycket normalt och med köksfläkten forcerad, där mer än 10 Pa är accepterat; avluft nära öppningsbara fönster och
+- helheten: ersättningsluften genom ventilerna i VELFAC-fönstrens överkarm (`katalog.UTELUFT_FONSTER`) och tre väggventiler Ø100 (`grenar/uteluft.py`: uteluftsdon utan fläkt, `Gren.uteluft`; sovrummen #108, skafferiet #143): undertrycket normalt och med köksfläkten forcerad, där mer än 10 Pa är accepterat; avluft nära öppningsbara fönster och
   takhuvar nära nock och dal;
 - krockar ur modellens geometri mot husets delar: stommens delar (virke, läkt, limträ, stål) var för sig och
   genomföringarna i skikten (betong, armering, isolering, skivor, fasad, tak) per element; och mot elen, tappvattnet
