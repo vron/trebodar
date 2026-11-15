@@ -108,15 +108,20 @@ def ladornas_z(fronter: tuple[float, ...] = FRONTER) -> list[tuple[float, float]
     return list(zip(z0, topp))
 
 
-def front(x0: float, x1: float, z0: float, z1: float, grepp_z: float | None = None) -> Form:
-    """Front av ask (y −22..0) med det frästa greppet: en lins nära överkanten (eller med mitten i grepp_z, höga
-    dörrar), i (u, v) = (x, −z) utdragen längs y från framsidan."""
-    L, h, d, under = GREPP
+def grepp_lins(x0: float, x1: float, z1: float, grepp_z: float | None = None) -> list[tuple[float, float]]:
+    """Det frästa greppets lins (x, z) på fronten x0–x1: mitt på fronten, med mitten GREPP[3] under överkanten z1
+    (eller i grepp_z, höga dörrar)."""
+    L, h, _, under = GREPP
     xm, zm = (x0 + x1) / 2, z1 - under if grepp_z is None else grepp_z
     n = 24
     ovre = [(xm - L / 2 + L * i / n, zm + h / 2 * (1.0 - (2.0 * i / n - 1.0) ** 2)) for i in range(n + 1)]
-    lins = ovre + [(x, 2 * zm - z) for x, z in reversed(ovre[1:-1])]
-    grepp = prisma([(x, -z) for x, z in lins], d).placerad(
+    return ovre + [(x, 2 * zm - z) for x, z in reversed(ovre[1:-1])]
+
+
+def front(x0: float, x1: float, z0: float, z1: float, grepp_z: float | None = None) -> Form:
+    """Front av ask (y −22..0) med det frästa greppet (grepp_lins), i (u, v) = (x, −z) utdraget längs y från
+    framsidan."""
+    grepp = prisma([(x, -z) for x, z in grepp_lins(x0, x1, z1, grepp_z)], GREPP[2]).placerad(
         Placering.axlar((0.0, -FRONT_T, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
     return box(x0, x1, -FRONT_T, 0.0, z0, z1) - grepp
 

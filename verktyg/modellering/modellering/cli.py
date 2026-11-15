@@ -283,6 +283,9 @@ def main(argv: list[str] | None = None) -> None:
     pg = sub.add_parser("gjutning", help="arbetsritningarna för gjutningen av plattorna (AR-03, AR-04, #86)")
     pg.add_argument("atgard", choices=("ritning",))
     pg.add_argument("--ut", type=Path, default=ROT / "ritningar")
+    pk = sub.add_parser("kok", help="arbetsritningen av köksskåpen ur modellens skåp (AR-05)")
+    pk.add_argument("atgard", choices=("ritning",))
+    pk.add_argument("--ut", type=Path, default=ROT / "ritningar")
     ps = sub.add_parser("stomme", help="konstruktionsritningen av trästommen ur bärverket (R-02, #91)")
     ps.add_argument("atgard", choices=("ritning",))
     ps.add_argument("--ut", type=Path, default=ROT / "ritningar")
@@ -866,6 +869,14 @@ def main(argv: list[str] | None = None) -> None:
                          for g, y in ventritning.sektioner(utdrag)}
             pdf = ventritning.ritningar(utdrag, plan1, kallare, sektioner, _norr(), UT / "ventilation" / "blad", arg.ut)
             print(f"  {pdf}")
+    elif arg.kommando == "kok":
+        from . import koksritning
+        if str(MODELLMAPP) not in sys.path:
+            sys.path.insert(0, str(MODELLMAPP))
+        kb = importlib.import_module("trebodar.hus.inredning.koksbank")
+        kk = importlib.import_module("trebodar.hus.inredning.koksskap")
+        pdf = koksritning.ritningar(kb, kk, UT / "kok" / "blad", arg.ut / f"{koksritning.SERIE} {koksritning.TITEL}.pdf")
+        print(f"  {pdf}")
     elif arg.kommando == "stomme":
         from . import stomritning
         if str(MODELLMAPP) not in sys.path:

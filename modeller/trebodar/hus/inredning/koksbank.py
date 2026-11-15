@@ -6,11 +6,11 @@ Bänken är vinkelformad efter användarens skiss: längs 3NV från kökets inby
 limmade i vinkel, vars ben når HORN_BEN (22) utanför den andra bänkens fronter, så att lådorna och dörren på båda sidor
 går att öppna med handtag som sticker ut upp till 20 mm. Det första skåpet längs 3SV är hörnskåpet: en dörr, och
 stommen förlängd in i hörnet bakom bänkens ände längs 3NV, med botten och en mellanhylla. Längs 3NV en bräda 45 mot
-inbyggnaden (som kan passas in på plats), sju lådskåp och fogbrädor 22 mitt över fogarna. Hällen (induktion 590 ×
-520) står i det fjärde skåpet, 600 brett (invändigt 560, för en vanlig häll 60), mitt mellan fönstren 3NV-F4 och
-3NV-F5 och under köksfläkten FF1 (som sitter mitt emellan dem); de tre skåpen söder om den och skåpen längs 3SV är
-lika breda (591,6, fronterna 563,6) och de tre norr om den, mot inbyggnaden, bredare (633,25, fronterna 605,25), så
-att sträckan går jämnt upp. Diskhon (undermonterad, 500 × 400) står i det andra skåpet, med vattnets kopparrör upp
+inbyggnaden (som passas in på plats), sju lådskåp och fogbrädor 22 mitt över fogarna. Hällen (induktion 590 × 520)
+står i det fjärde skåpet, 600 brett (invändigt 560, för en vanlig häll 60), mitt mellan fönstren 3NV-F4 och 3NV-F5
+och under köksfläkten FF1 (som sitter mitt emellan dem); de tre skåpen söder om den och skåpen längs 3SV är lika
+breda (591, fronterna 563) och de tre norr om den, mot inbyggnaden, bredare (633, fronterna 605). Skåpen är hela mm
+breda: resten tar brädan mot inbyggnaden (minst 45) och hörnstyckets ben längs 3NV (minst HORN_BEN). Diskhon (undermonterad, 500 × 400) står i det andra skåpet, med vattnets kopparrör upp
 genom hylsorna bakom lådorna (KO-DB1, hus/installationer/vatten/rum/kok.py); diskhon och hällen står med mitten
 DJUP_MITT från stommens framkant, där diskhons avlopp går ned genom bjälklaget. Längs 3SV hörnskåpet, två lådskåp och
 en vit sida mot rummet. Under skåpen en sparklist 90 hög, 60 mm innanför fronterna.
@@ -22,6 +22,8 @@ standardens 596 och den går fritt mellan fogbrädorna (602), och nischen bakom 
 De två lådskåpen på ön har tre lådor (115, 233 och 441 från toppen) för högre lådor, bänkens skåp fyra.
 """
 from __future__ import annotations
+
+import math
 
 from modellering import Del, Montage, Placering, box, prisma, svep
 
@@ -47,19 +49,24 @@ Y_FRONT = Y_SYD - BANK_DJUP + UTSTICK                   # fronternas yta längs 
 # hällens skåp (det fjärde) mitt mellan fönstren 3NV-F4 och 3NV-F5; längs 3SV från hörnet västerut
 _F4, _F5 = (next(o for o in OPPNINGAR["3NV"] if o.kod == k) for k in ("3NV-F4", "3NV-F5"))
 Y_HALL = S.YTTERVAGGAR["3NV"].origo[1] + (_F4.u1 + _F5.u0) / 2      # mitt mellan fönstren
-J0 = K_YTA + BRADA - FOG / 2
 N_NORR = 3                                              # skåpen norr om hällen
 # hörnstycket: benen når HORN_BEN utanför den andra bänkens fronter, så att ett handtag som sticker ut HANDTAG_UT
 # från fronterna på ena sidan går fritt från lådorna och dörren på den andra (som börjar SPEL längre bort)
 HORN_BEN, HANDTAG_UT = 22.0, 20.0
-assert HORN_BEN >= 20.0 and HORN_BEN + K.SPEL >= HANDTAG_UT + 5.0, "lådorna går fritt från handtagen i hörnet"
 J_HORN = Y_FRONT - HORN_BEN + FOG / 2                  # fogen mot hörnstycket längs 3NV (som om det vore en fogbräda)
 P_HALL = 600.0                                          # hällens skåp: invändigt 560 för en vanlig häll 60
-P = (J_HORN - Y_HALL - P_HALL / 2) / (N_LANG - N_NORR - 1)        # skåpen söder om hällen och längs 3SV
-P_NORR = (Y_HALL - P_HALL / 2 - J0) / N_NORR                      # skåpen norr om hällen
+# skåpen i hela mm: söder om hällen och längs 3SV, och norr om hällen; brädan mot inbyggnaden (minst BRADA) och
+# hörnstyckets ben längs 3NV (minst HORN_BEN) tar resten
+P = float(math.floor((J_HORN - Y_HALL - P_HALL / 2) / (N_LANG - N_NORR - 1)))
+P_NORR = float(math.floor((Y_HALL - P_HALL / 2 - (K_YTA + BRADA - FOG / 2)) / N_NORR))
+J0 = Y_HALL - P_HALL / 2 - N_NORR * P_NORR              # fogen mot brädan vid inbyggnaden
 BREDDER_LANG = [P_NORR] * N_NORR + [P_HALL] + [P] * (N_LANG - N_NORR - 1)
 FOGAR_LANG = [J0 + sum(BREDDER_LANG[:k]) for k in range(N_LANG + 1)]
 FOGAR_KORT = [X_FRONT - HORN_BEN + FOG / 2 - k * P for k in range(N_KORT + 1)]
+HORN_BEN_NV = Y_FRONT - (FOGAR_LANG[-1] - FOG / 2)      # hörnstyckets ben längs 3NV, minst HORN_BEN
+assert min(HORN_BEN, HORN_BEN_NV) >= 20.0 and HORN_BEN + K.SPEL >= HANDTAG_UT + 5.0, \
+    "lådorna går fritt från handtagen i hörnet"
+assert J0 + FOG / 2 - K_YTA >= BRADA, "brädan mot inbyggnaden"
 TYPER_LANG = [K.LADSKAP, K.DISKBANKSSKAP, K.LADSKAP, K.HALLSKAP, K.LADSKAP, K.LADSKAP, K.LADSKAP]   # norrifrån
 assert TYPER_LANG[N_NORR] is K.HALLSKAP and P_HALL - 2 * K.T >= 560.0, "hällens skåp mitt mellan fönstren, 560 inne"
 # ön: PASSAGE fritt mellan bänkskivorna, mitt för hällen, fronterna mot öster; skåpen så breda att diskmaskinens
@@ -186,16 +193,16 @@ def bank() -> Montage:
     m.lagg(K.hornskap(f"B{N_LANG + 1}", P, xs + K.DJUP - FOGAR_KORT[1]), _kort(0))
     for k in range(1, N_KORT):
         m.lagg(K.skap(f"B{N_LANG + k + 1}", K.LADSKAP, P), _kort(k))
-    _bradlada(f"Bräda ask {fmt(BRADA)}×{fmt(K.FRONT_T)} mot inbyggnaden", "B-BRADA",
+    _bradlada(f"Bräda ask {fmt(J0 + FOG / 2 - K_YTA)}×{fmt(K.FRONT_T)} mot inbyggnaden", "B-BRADA",
               (xf, xs, K_YTA, J0 + FOG / 2, z0, z1), m)
     for i, j in enumerate(FOGAR_LANG[1:-1], start=1):
         _bradlada(f"Fogbräda ask {fmt(FOG)}×{fmt(K.FRONT_T)}", f"B-FOG{i}", (xf, xs, j - FOG / 2, j + FOG / 2, z0, z1), m)
     for i, j in enumerate(FOGAR_KORT[1:], start=N_LANG):
         _bradlada(f"Fogbräda ask {fmt(FOG)}×{fmt(K.FRONT_T)}", f"B-FOG{i}", (j - FOG / 2, j + FOG / 2, yf, ys, z0, z1), m)
     # hörnstycket: en bräda i fronternas plan längs 3NV och en längs 3SV, limmade i vinkel
-    a = HORN_BEN
+    a, b = HORN_BEN_NV, HORN_BEN
     _bradlada(f"Hörnstycke ask {fmt(K.FRONT_T)}×{fmt(a + K.FRONT_T)}", "B-HORN1", (xf, xs, yf - a, ys, z0, z1), m)
-    _bradlada(f"Hörnstycke ask {fmt(K.FRONT_T)}×{fmt(a)}", "B-HORN2", (xf - a, xf, yf, ys, z0, z1), m)
+    _bradlada(f"Hörnstycke ask {fmt(K.FRONT_T)}×{fmt(b)}", "B-HORN2", (xf - b, xf, yf, ys, z0, z1), m)
     xv = FOGAR_KORT[-1] - FOG / 2                          # den vita sidan mot rummet, utanför den sista fogbrädan
     m.lagg(Del(f"Sida vit {fmt(SIDA_T)}", box(xv - SIDA_T, xv, yf, Y_SYD, 0.0, K.Z_TOPP), VIT_SKIVA), Placering(),
            "B-SIDA")

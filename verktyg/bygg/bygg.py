@@ -162,6 +162,9 @@ STEG = [
     Steg("gjutning", "verktyg/modellering", [["mod", "gjutning", "ritning"]],
          kallor=[*MODELL, MALL, "verktyg/modellanalys"], bygger_pa=["modell"], miljoer=["ma"],
          utdata=["ritningar/AR-03 Gjutning av mellanbjälklaget.pdf", "ritningar/AR-04 Gjutning av bottenplattan.pdf"]),
+    # arbetsritningen av köksskåpen ur modellens skåp
+    Steg("AR-05", "verktyg/modellering", [["mod", "kok", "ritning"]], kallor=[*MODELL, MALL], bygger_pa=MODELL_PA,
+         utdata=["ritningar/AR-05 Köksskåp.pdf"]),
     # installationsritningarna ur installationernas data och modellens snitt (#90)
     installation("E-01", "Elinstallation", "el"),
     installation("E-02", "Brandlarm", "brandlarm"),

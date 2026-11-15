@@ -315,6 +315,10 @@ nr = "AR-04"
 namn = "Arbetsritning gjutning av bottenplattan: golvvärme, avlopp, hål, ingjutningsgods"
 status = "klar"
 [[handling]]
+nr = "AR-05"
+namn = "Arbetsritning köksskåp: positioner, typer, stommar, fronter och lådor"
+status = "klar"
+[[handling]]
 nr = "U-01"
 namn = "Bottenplattan – temperatur och fukt under året"
 status = "klar"

@@ -410,8 +410,10 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   SKL = NL − 10, urtag 13, NL 600; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
   bakstycket på botten, hålen för löparens hake i sidornas bakände) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
   i öns lådskåp tre lådor 115, 233 och 441, 3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
-  mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633,25
-  breda (fronterna 605,25), B4 600 (invändigt 560, för en vanlig häll 60), B5–B7 och skåpen längs 3SV 591,6 (563,6).
+  mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633
+  breda (fronterna 605), B4 600 (invändigt 560, för en vanlig häll 60), B5–B7 och skåpen längs 3SV 591 (563); brädan
+  mot inbyggnaden och hörnstyckets ben längs 3NV tar resten, så att skåpen är hela mm. Arbetsritningen AR-05 ritas ur
+  skåpen (`./mod kok ritning`).
   I hörnet ett hörnstycke av ask, två brädor 22 i vinkel med benen 22 utanför den andra bänkens fronter (för handtag
   upp till 20 mm), och längs 3SV först hörnskåpet B8: en dörr på två gångjärn, stommen förlängd in i hörnet bakom B7
   med en blindfront, botten och en mellanhylla. Diskhon
