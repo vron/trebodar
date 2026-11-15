@@ -39,7 +39,7 @@ STOMME = {"SIDA-V": "Sida", "SIDA-H": "Sida", "BOTTEN": "Botten", "TAK": "Tak", 
           "HYLLA": "Mellanhylla"}
 SKALOR = (10.0, 15.0, 20.0)
 DETALJ = 2.0                    # detaljens skala
-DETALJ_FONSTER = (-8.0, 78.0, 34.0)   # detaljens fönster: x från, x till, z under löparens överkant
+DETALJ_FONSTER = (-8.0, 98.0, 34.0)   # detaljens fönster: x från, x till, z under löparens överkant
 DETALJ_HOJD = 90.0              # detaljens fönster i höjd [mm i verkligheten]
 TOPP = 24.0                     # vyernas överkant på papperet (under rubriken)
 VANSTER = 34.0                  # vyernas vänstra kant på papperet
@@ -223,7 +223,13 @@ def _frontrader(s: Skap) -> list[list[str]]:
     return rader
 
 
-def _ladrader(s: Skap, z_botten: float) -> list[list[str]]:
+def _skruvaxel(s: Skap, nr: int, kk: ModuleType) -> float:
+    """Löparens skruvaxel för låda nr: LOPARE_SKRUV över löparens underkant, som är LOPARE_UNDER under bottnens
+    undersida (TD-132/1 s. 5)."""
+    return s.del_(f"LADA{nr}-BOTTEN").bb[2] - kk.LOPARE_UNDER + kk.LOPARE_SKRUV
+
+
+def _ladrader(s: Skap, z_botten: float, kk: ModuleType) -> list[list[str]]:
     rader = []
     for nr in s.lador:
         p = f"LADA{nr}-"
@@ -233,7 +239,7 @@ def _ladrader(s: Skap, z_botten: float) -> list[list[str]]:
                       f"{svm(fram[3] - fram[0])} × {svm(fram[5] - fram[2])}",
                       f"{svm(bak[3] - bak[0])} × {svm(bak[5] - bak[2])}",
                       f"{svm(botten[3] - botten[0])} × {svm(botten[4] - botten[1])}", nl,
-                      svm(sida[2] - z_botten)])
+                      svm(_skruvaxel(s, nr, kk) - z_botten)])
     return rader
 
 
@@ -303,9 +309,10 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
             sv = s.del_(f"LADA{lador[0]}-SIDA-V").bb
             sh = s.del_(f"LADA{lador[0]}-SIDA-H").bb
             b_.mattx([sv[0], sh[3]], -12.0 * skala, [z_golv] * 2, sz=6.0)
-            zl = [z_bot] + [s.del_(f"LADA{n}-SIDA-V").bb[2] for n in lador]
-            b_.matty(zl, W + 12.0 * skala, [W - kk.T] * len(zl), sz=5.6,
-                     texter=[svm(q - p) if q - p > 30.0 else "" for p, q in zip(zl[:-1], zl[1:])])
+            zl = [z_bot] + [_skruvaxel(s, n, kk) for n in lador]      # löparnas skruvaxlar på skåpsidan
+            b_.matty(zl, W + 12.0 * skala, [W - kk.T] * len(zl), sz=5.6)
+            for z in zl[1:]:
+                b_.linje([(W - kk.T - 30.0, z), (W - kk.T, z)], "axel")
         if s.med("HYLLA"):
             hy = s.del_("HYLLA").bb
             b_.matty([z_bot, hy[2], hy[5], z_tak], W + 12.0 * skala, [W - kk.T] * 4, sz=5.6)
@@ -370,17 +377,21 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
             _snittvy(d, s, 1, yc)
         with d.lager("matt"):
             xi = sv[3]
-            d.mattx([kk.T, sv[0], xi], sv[2] + 48.0, [sv[2] + 40.0] * 3, sz=5.4)
-            d.mattx([xi - kk.SPAR, xi], bo[5] + 9.0, [bo[5]] * 2, sz=5.4)
-            zk = [sv[2] - kk.LOPARE_H, sv[2], bo[2], bo[5]]
-            d.matty(zk, u1 - 6.0, [xi] * 4, sz=5.4)
-            d.matty([z_bot, sv[2]], u0 + 4.0, [kk.T] * 2, sz=5.4)
+            zl = bo[2] - kk.LOPARE_UNDER                         # löparens underkant
+            zs = zl + kk.LOPARE_SKRUV                            # skruvarnas axel
+            d.mattx([kk.T, sv[0], xi], zs + 14.0, [zs + 8.0] * 3, sz=5.4)
+            d.mattx([xi - kk.SPAR, xi], bo[5] + 7.0, [bo[5]] * 2, sz=5.4)
+            d.matty([zl, bo[2], bo[5]], u1 - 4.0, [xi + kk.LOPARE_BREDD] * 3, sz=5.4)
+            d.matty([sv[2], bo[2]], u1 - 12.0, [xi] * 2, sz=5.4)
+            d.matty([z_bot, zl, zs], u0 + 4.0, [kk.T] * 3, sz=5.4)
+            d.linje([(u0, zs), (kk.T + 4.0, zs)], "axel")
         with d.lager("text"):
-            d.text(kk.T / 2, sv[2] + 30.0, f"stomme {svm(kk.T)}", a="cm", sz=5.0, rot=90, bg=True)
-            d.text((sv[0] + xi) / 2, sv[2] + 30.0, f"lådsida {svm(kk.T_LADA)}", a="cm", sz=5.0, rot=90, bg=True)
-            d.hanvisning((xi + 12.0, bo[2] + 2.0), (xi + 14.0, bo[5] + 22.0), f"botten {svm(kk.T_BOTTEN)}", a="lm",
+            d.text(kk.T / 2, sv[2] + 44.0, f"stomme {svm(kk.T)}", a="cm", sz=5.0, rot=90, bg=True)
+            d.text((sv[0] + xi) / 2, sv[2] + 44.0, f"lådsida {svm(kk.T_LADA)}", a="cm", sz=5.0, rot=90, bg=True)
+            d.text(kk.T / 2, zs + 2.0, "skruv", a="cb", sz=4.6, bg=True)
+            d.hanvisning((xi + 12.0, bo[2] + 2.0), (xi + 18.0, bo[5] + 22.0), f"botten {svm(kk.T_BOTTEN)}", a="lm",
                          sz=5.0)
-            d.hanvisning((xi + 4.0, sv[2] - 4.0), (xi + 14.0, sv[2] - 22.0), "löpare", a="lm", sz=5.0)
+            d.hanvisning((xi + 8.0, zl + 6.0), (xi + 18.0, zl - 8.0), "löparens utrymme", a="lm", sz=5.0)
         vyer.append(d)
         block.append(dict(x=dx, y=dy - 6.5, w=60.0, innehall=[
             dict(typ="text", rader=[f"Detalj, låda {lador[0]}, 1:2"], sz=7.0)]))
@@ -390,12 +401,13 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
         block.append(dict(x=bx, y=yP - 2.0, w=326.0 - bx - 2.0, innehall=[
             dict(typ="rubrik", text="Lådorna (massiv björk 14, botten björkplywood 4)"),
             dict(typ="tabell", kolumner=["Låda", "Sidor, 2 st", "Framstycke", "Bakstycke", "Botten", "NL",
-                                         "Löpare ök"],
+                                         "Skruvaxel"],
                  bredd=(0.45, 0.9, 0.9, 0.9, 0.9, 0.4, 0.6), just=["c", "c", "c", "c", "c", "c", "c"], sz=6.0,
-                 rader=_ladrader(s, z_bot)),
+                 rader=_ladrader(s, z_bot, kk)),
             dict(typ="text", sz=6.0, rader=[
-                "Sidorna längd × höjd; framstycket och bakstycket bredd × höjd; bottnen bredd × djup. Löpare ök: "
-                "löparens överkant (sidans underkant) över skåpbottnens ovansida."])]))
+                "Sidorna längd × höjd; framstycket och bakstycket bredd × höjd; bottnen bredd × djup. Skruvaxel: "
+                f"löparens skruvar över skåpbottnens ovansida, {svm(kk.LOPARE_SKRUV)} över löparens underkant, som "
+                f"är {svm(kk.LOPARE_UNDER)} under bottnens undersida (TD-132/1 s. 5)."])]))
     positioner = [x.kod for x in alla if x.typ == s.typ]
     nl = sorted({d.namn.split("NL ")[-1] for d in s.med("LADA") if "SKENA" in d.kod})
     beslag = []
@@ -417,8 +429,10 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
             f"{svm(kk.T)}, från sparklisten {svm(kk.SOCKEL)} till bänkskivans underkant {svm(kk.Z_TOPP)}.",
             f"Fronterna av fräst ask {svm(F)}, {svm(kk.OVER_SIDAN)} mm in över stommens sidor, {svm(kk.SPEL)} mm "
             "spel mellan fronterna och under bänkskivan; lådorna och fronterna numrerade nedifrån.",
-            *([f"Lådorna på Blum MOVENTO: SKW = LW − {svm(kk.SKW_AVDRAG)}, SKL = NL − {svm(kk.SKL_AVDRAG)}, bottnen "
-               f"{svm(kk.URTAG)} över sidornas underkant; hålet för löparens hake Ø{svm(kk.HAKE[0])} × "
+            *([f"Lådorna på Blum MOVENTO: SKW = LW − {svm(kk.SKW_AVDRAG)} (Blum LW − 42 +0/−1,5), SKL = NL − "
+               f"{svm(kk.SKL_AVDRAG)}, bottnens undersida {svm(kk.URTAG)} över sidornas underkant (Blum 12–15). "
+               f"Löparen behöver {svm(kk.LOPARE_UNDER)} under bottnen och {svm(kk.FRITT_OVER)} fritt över lådsidan; "
+               f"hålet för löparens hake Ø{svm(kk.HAKE[0])} × "
                f"{svm(kk.HAKE[1])} i sidans bakände, {svm(kk.HAKE[2])} från utsidan och {svm(kk.HAKE[3])} upp. "
                "Kopplingarna skruvas 75° in i framstycket (borrmall T65.1000.02)."] if lador else []),
             *([f"Löparens skruvhål från stommens framkant (TD-132/1 s. 13), {'; '.join(skruvar)}."]

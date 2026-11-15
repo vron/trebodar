@@ -12,13 +12,16 @@ på botten, som går ut till lådans bakkant (Blums utförande utan urtag i baks
 lådan. Löpare Blum MOVENTO 760H med BLUMOTION S, NL 600 (760H6001S, 40 kg; under diskhon NL 350, 760H3501S) (teknisk
 datablad TD-132/1, 06.22):
 
-- lådans invändiga bredd SKW = LW − 42 (LW skåpets invändiga bredd), sidorna högst 16 mm (här 14): 7 mm mellan
-  lådsidan och skåpsidan, där löparen sitter;
+- lådans invändiga bredd SKW = LW − 42 +0/−1,5 (LW skåpets invändiga bredd), här LW − 43, 1 mm innanför den övre
+  gränsen; sidorna högst 16 mm (här 14), lådsidans insida 21 från skåpsidan (s. 5);
 - lådans längd SKL = NL − 10 (NL löparens nominella längd), skåpets invändiga djup minst NL + 3 (s. 5; + 1 om
   löparna sätts i före skåpets montage och + 3 med djupjusteringen, NL + 7 = 607 mot skåpets 625);
-- bottnens urtag 12–15 mm över sidornas underkant (här 13): löparen under sidan och i urtaget under botten, högst
-  28,5 mm in från skåpsidan;
-- minst 7 mm fritt över lådsidan och minst 38 mm från skåpets botten till den nedersta lådans botten;
+- bottnens urtag 12–15 mm från sidornas underkant till bottnens undersida (s. 5), här 14: 2 mm till den nedre
+  gränsen, som en slipad underkant eller en sviktande botten närmar sig, och 1 mm till den övre;
+- löparen sitter under botten och sidan och behöver minst 28,5 mm under bottnens undersida, och dess skruvar sitter
+  38 mm över dess underkant (s. 5: minst 38 från skåpets botten till skruvarna, + 1 om löparna sätts i före
+  stommen): den nedersta lådans löpare 1 mm över skåpets botten; minst 7 mm fritt över lådsidan, till taket eller
+  till löparen under lådan ovanför;
 - kopplingarna Blum T51.7601 (vänster och höger) ligger plant under botten vid framstyckets hörn. Fyrsidiga lådor
   har i TD-132 kopplingen skruvad lodrätt i en tjock botten (s. 19, bild 1a); med botten 4 mm skruvas den i stället
   med två skruvar 75° in i framstycket, som för tresidiga lådor (bild 1b) och i Blums monteringsanvisning för lådor
@@ -37,6 +40,7 @@ hänger på två gångjärn Blum CLIP top BLUMOTION 110° (som skåpen i kok.py)
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from modellering import Del, Form, Montage, Placering, box, cylinder, prisma
@@ -46,15 +50,18 @@ from trebodar.material import ASK, BESLAG, BJORK, BJORKPLYWOOD, LOPARE, VITVARA
 
 T = 20.0                                   # stommen
 T_LADA, T_BOTTEN, SPAR = 14.0, 4.0, 6.0    # lådans sidor, botten och bottnens spår i sidorna
-URTAG = 13.0                               # bottnens urtag över sidornas underkant (Blum 12–15)
+URTAG = 14.0                               # bottnens undersida över sidornas underkant (Blum 12–15)
 HAKE = (6.0, 10.0, 7.0, 11.0)              # hålet för löparens hake i sidans bakände: Ø, djup, från utsidan, upp
 # löparens skruvar i skåpsidan (TD-132 s. 13, 760H): avstånd från stommens framkant per NL; det första (19) kan bytas
 # mot en spånskiveskruv Ø4 × 15, och vid NL 550 och 600 ger en skruv längst bak (utan mått) dessutom bäst stabilitet
 LOPARENS_SKRUVAR = {600.0: (19.0, 37.0, 69.0, 243.0, 261.0, 293.0), 350.0: (19.0, 37.0, 69.0, 261.0)}
 NL_TILLAGG_MAX = 7.0                       # + 1 om löparna sätts i före skåpets montage, + 3 med djupjusteringen
-LOPARE_H, LOPARE_IN = 10.0, 28.5           # löparens profil under lådsidan och hur långt den når in från skåpsidan
-FRITT_OVER, FRITT_UNDER = 7.0, 38.0        # Blum: fritt över lådsidan, skåpets botten till den nedersta lådans botten
-SKW_AVDRAG, SKL_AVDRAG, NL_TILLAGG = 42.0, 10.0, 3.0
+# löparen (TD-132/1 s. 5): utrymmet under bottnens undersida, skruvarnas axel över löparens underkant och (förenklat)
+# profilens bredd under botten innanför lådsidan; + 1 mm under den nedersta lådan för löpare som sätts i före stommen
+LOPARE_UNDER, LOPARE_SKRUV, LOPARE_BREDD, MONTAGE = 28.5, 38.0, 20.0, 1.0
+FRITT_OVER = 7.0                           # Blum: fritt över lådsidan
+SKW_AVDRAG, SKL_AVDRAG, NL_TILLAGG = 43.0, 10.0, 3.0    # Blum: SKW = LW − 42 +0/−1,5; här 1 mm innanför
+assert 12.0 <= URTAG <= 15.0 and 42.0 <= SKW_AVDRAG <= 43.5, "Blums toleranser"
 SOCKEL, Z_TOPP = 90.0, 888.0               # sparklisten och bänkskivans underkant
 DJUP = 645.0                               # sidornas djup, högst 645 (användaren), för NL 600
 FRONT_T, SPEL = 22.0, 3.0
@@ -100,11 +107,11 @@ def fronternas_z(fronter: tuple[float, ...] = FRONTER) -> list[tuple[float, floa
 
 
 def ladornas_z(fronter: tuple[float, ...] = FRONTER) -> list[tuple[float, float]]:
-    """Lådornas sidor (z0, z1) nedifrån: 5 över frontens underkant, den nedersta 38 över skåpets botten (Blum), och
-    7 mm fritt under löparen ovanför eller under taket."""
+    """Lådornas sidor (z0, z1) nedifrån, i hela mm: 5 över frontens underkant, den nedersta så att dess löpare går
+    fritt över skåpets botten (+ 1, Blum), och 7 mm fritt under löparen ovanför eller under taket."""
     z0 = [f0 + 5.0 for f0, _ in fronternas_z(fronter)]
-    z0[0] = max(z0[0], SOCKEL + T + FRITT_UNDER - URTAG - T_BOTTEN)
-    topp = [b - LOPARE_H - FRITT_OVER for b in z0[1:]] + [Z_TOPP - T - FRITT_OVER]
+    z0[0] = max(z0[0], math.ceil(SOCKEL + T + MONTAGE + LOPARE_UNDER - URTAG))
+    topp = [math.floor(b + URTAG - LOPARE_UNDER - FRITT_OVER) for b in z0[1:]] + [Z_TOPP - T - FRITT_OVER]
     return list(zip(z0, topp))
 
 
@@ -157,9 +164,11 @@ def _lada(m: Montage, kod: str, nr: int, bredd: float, nl: float, z0: float, z1:
                  "FRAM": f"Lådans framstycke björk {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - z0)}",
                  "BAK": f"Lådans bakstycke björk {fmt(T_LADA)} {fmt(skw)}×{fmt(z1 - zb - T_BOTTEN)}"}[namn]
         m.lagg(Del(beskr, f, mat), Placering(), f"{p}-{namn}")
-    # löparna: under lådsidan från skåpsidan och in under botten i urtaget, bakom framstycket (där kopplingen sitter)
-    for namn, (a, b, c) in (("V", (T, T + LOPARE_IN, xi0)), ("H", (bredd - T - LOPARE_IN, bredd - T, xi1))):
-        under = box(a, b, 0.0, nl, z0 - LOPARE_H, z0)
+    # löparna (förenklade till sitt utrymme): från skåpsidan under lådsidan och LOPARE_BREDD in under botten, ned till
+    # LOPARE_UNDER under bottnens undersida; i urtaget bakom framstycket (där kopplingen sitter)
+    zl = zb - LOPARE_UNDER
+    for namn, (a, b, c) in (("V", (T, xi0 + LOPARE_BREDD, xi0)), ("H", (xi1 - LOPARE_BREDD, bredd - T, xi1))):
+        under = box(a, b, 0.0, nl, zl, z0)
         inne = box(c, b, T_LADA, nl, z0, zb) if namn == "V" else box(a, c, T_LADA, nl, z0, zb)
         m.lagg(Del(f"Löpare MOVENTO 760H NL {fmt(nl)}", under | inne, LOPARE), Placering(), f"{p}-SKENA-{namn}")
 
