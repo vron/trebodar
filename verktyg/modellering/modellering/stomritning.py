@@ -630,6 +630,8 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
             "sida takbalken dras mot", ", ".join(f"{k['del']} {k['sida']} sidan {k['par']} par"
                                                  for k in k4["forband"]["stopp_lista"]), "K-04"]]
           if k4["forband"].get("stopp_lista") else []),
+        *([["Regelns topp med fyra skruv", f"{stor(fo['skruv'])} snett på var sida", k4["forband"]["fyra_skruv"]
+            + " (drag, kN)", "K-04"]] if k4["forband"].get("fyra_skruv") else []),
         *([["Vinkelbeslag i regelns eller stolpens topp", f"{fo['beslag']} mot hammarbandet, utan bult",
             k4["forband"]["med_beslag"] + " (drag, kN)", "K-04"]] if k4["forband"].get("med_beslag") else []),
         *([["Bandet över nock- och dalbalken utan takbalk mitt emot", "Bandet spikas i limträets sida på andra sidan",

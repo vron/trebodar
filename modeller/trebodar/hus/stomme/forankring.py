@@ -29,6 +29,11 @@ K-03).
 
 Beslagen är valda i K-04, som läser dem ur bärverket och prövar dem: ändras stommen, räknas K-04 om med ./bygg K-04,
 som visar de beslag som behövs.
+
+Reglarnas topp (K-04:s förband i knutpunkterna, #119): där draget i regelns topp är större än fyra skruvar snett
+genom regeln tar ett vinkelbeslag ABR10525 det (TOPPBESLAG_PA, ur K-04), på regelns fria sida längs väggen med den liggande
+skänkeln under hammarbandet, skruvat i regeln och hammarbandet, utan bult. Stolparnas topp och hörnet 2SV-R01/3SO-R06
+(bara en fri sida, bredvid stolpen LD2_4) väntar på #129.
 """
 from __future__ import annotations
 
@@ -89,6 +94,9 @@ VINKELBESLAG_PA: dict[str, tuple[int, int]] = {
     "2B-R05": (1, 1), "2C-R05": (1, 1), "2C-R09": (2, 1), "2C-R11": (2, 1), "LN1_1-R01": (1, 1),
     "LD4_1-R01": (2, 1), "1B-R01": (1, 1), "2SO-R06": (1, 2), "LA6-2": (2, 1),
 }
+# vinkelbeslag i regelns topp (K-04, förbanden i knutpunkterna): regeln -> sidan längs väggen (x eller y i huset)
+# där beslaget sitter; de andra sidorna är upptagna av stommen eller de invändiga skikten
+TOPPBESLAG_PA: dict[str, tuple[float, float]] = {"3NO-R02": (1.0, 0.0)}
 # förankringsbeslagen WHT340 (K-04) där vinkelbeslagen inte räcker eller inte får plats: på en fri sida av regeln, och
 # i ytterväggarna annars på regelgruppens insida, på plattan
 FORANKRINGSBESLAG_PA: tuple[str, ...] = (
@@ -413,6 +421,28 @@ def beslag() -> tuple[Beslag, ...]:
     return tuple(ut)
 
 
+@cache
+def toppbeslag() -> tuple[Beslag, ...]:
+    """Vinkelbeslagen i reglarnas topp (TOPPBESLAG_PA): på regelns sida längs väggen, med den liggande skänkeln under
+    hammarbandet och den stående nedåt längs regeln."""
+    hinder = list(lagen.prefab())
+    ut: list[Beslag] = []
+    for nyckel, (nx, ny) in TOPPBESLAG_PA.items():
+        d = next(h for h in hinder if h.namn == nyckel)
+        n = np.array([nx, ny])
+        sida = _sida(d, n, ABR_BREDD, _inat(d.element))
+        assert sida is not None, f"vinkelbeslaget i toppen vid {nyckel}: regeln är för smal"
+        p, _ = sida
+        plac = Placering.axlar((p[0], p[1], d.lada[5]), (nx, ny, 0.0), (0.0, 0.0, -1.0))
+        env = [_lada(plac, 0.0, ABR_B, -ABR_BREDD / 2, ABR_BREDD / 2, 0.0, ABR_T),
+               _lada(plac, 0.0, ABR_T, -ABR_BREDD / 2, ABR_BREDD / 2, 0.0, ABR_A)]
+        # hammarbanden (också de lutande, vars lådor är stora) prövas mot formen i ./mod kontroll
+        krock = sorted({h.namn for e in env for h in hinder if h.namn != nyckel and h.typ != "H" and _krock(e, h.lada)})
+        assert not krock, f"vinkelbeslaget i toppen vid {nyckel} går in i {', '.join(krock)}"
+        ut.append(Beslag(nyckel, nyckel, d.element, "ABR10525", plac, ()))
+    return tuple(ut)
+
+
 def huvudstolpens_beslag() -> tuple[Beslag, ...]:
     """Huvudstolpens vinkelbeslag vid foten (ln1_3, K-03) med sina bultar, för K-04."""
     return tuple(Beslag("LN1_3-R01", "LN1_3-R01", "LN1_3", "ABR10525", ln1_3.beslag(sida)[1],
@@ -615,4 +645,7 @@ def montage() -> Montage:
             m.lagg(Del("Förankringsbeslag WHT340", forankringsbeslag(), FORANKRINGSBESLAG,
                        produkt="FORANKRINGSBESLAG"), b.plac, kort)
             m.lagg(*_bultdel(b.bultar[0], WHT_DJUP, WHT_OVER, WHT_D, f"Ankare M{WHT_D:.0f}", None), f"{kort}-A")
+    for i, b in enumerate(toppbeslag(), 1):
+        m.lagg(Del("Vinkelbeslag ABR10525 i regelns topp", vinkelbeslag(()), VINKELBESLAG, produkt="VINKELBESLAG-STOMME"),
+               b.plac, f"VT{i:02d}")
     return m

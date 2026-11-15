@@ -14,8 +14,8 @@ Balkmodellen har delarna ledat sammanfogade i knutpunkterna. Kraften som en del 
   på var sida, spikat i varje takbalk (antalet spik efter draget; trycket går i anliggning mot balken; utan takbalk
   mitt emot spikas bandet i limträets sida på andra sidan), och lyft mot förankringsskruven snett genom takbalken in
   i balken (K-03);
-- regeln eller stolpen mot hammarbandet: drag i toppen mot skruvarna snett genom regeln (som i foten), annars ett
-  vinkelbeslag (som vid foten, utan bult). Draget är delens ändkraft med väggskivornas hörnkraft i knutpunkten från
+- regeln eller stolpen mot hammarbandet: drag i toppen mot två skruvar snett genom regeln (som i foten), fyra (två på
+  var sida), annars ett vinkelbeslag (som vid foten, utan bult). Draget är delens ändkraft med väggskivornas hörnkraft i knutpunkten från
   delens egen vägg: balkmodellen samlar skivans kantkraft i hörnen, och skivan är spikad i både regeln och
   hammarbandet. Skikten i en sammansatt stolpe prövas tillsammans, andra delar i samma nod var för sig.
 
@@ -197,13 +197,16 @@ def kontrollera(N: Any, L: Any, A: Any, IN: dict[str, Any], skruv: tuple[float, 
                 kraft_[g] = kraft_[g] + L.skiva[str_, c] * v[2]
         for g, ds_ in grupper.items():
             drag = np.maximum(kraft_[g], 0.0)            # knutpunkten drar delen uppåt
-            med_beslag = bool(np.any(drag > Rs))
-            n_b = 1 if not med_beslag or np.all(drag <= Rb) else 2       # ett beslag på var sida om ett inte räcker
-            u = drag / (n_b * Rb if med_beslag else Rs)
+            # två skruvar snett, fyra (två på var sida), annars vinkelbeslag (två: ett på var sida om ett inte räcker)
+            par = 1 if np.all(drag <= Rs) else 2
+            med_beslag = bool(np.any(drag > 2 * Rs))
+            n_b = 1 if not med_beslag or np.all(drag <= Rb) else 2
+            u = drag / (n_b * Rb if med_beslag else par * Rs)
             k = int(np.argmax(u))
             namn_ = sorted(delar[x].namn for x in ds_)
             regel.append({"del": namn_[0], "delar": namn_, "nod": int(topp), "drag": float(drag[k]), "komb": kn[k],
-                          "beslag": med_beslag, "n_beslag": n_b if med_beslag else 0, "eta": float(u[k])})
+                          "beslag": med_beslag, "n_beslag": n_b if med_beslag else 0, "skruv": 0 if med_beslag else 2 * par,
+                          "eta": float(u[k])})
     tf = max(takfot, key=lambda r: r["eta"])
     bk = max(balk, key=lambda r: r["spik"] + r["drag"] * 1e-6)
     rg = max(regel, key=lambda r: r["drag"])

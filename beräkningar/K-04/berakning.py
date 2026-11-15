@@ -394,9 +394,12 @@ forb = {
          "bar": f"{fmt(FB['Rs_W'] / 1e3, 1)} kN (vinkelbeslag {fmt(FB['Rb_W'] / 1e3, 1)} kN)",
          "kraft": f"drag {fmt(_rg['drag'] / 1e3, 1)} kN ({_rg['del']})",
          "eta": pct(max(r["eta"] for r in FB["regel"])), "ok": max(r["eta"] for r in FB["regel"]) <= 1.0,
-         "mer": f"{sum(r['beslag'] for r in FB['regel'])} med vinkelbeslag"}],
+         "mer": f"{sum(r['skruv'] == 4 for r in FB['regel'])} med fyra skruv, {sum(r['beslag'] for r in FB['regel'])} "
+                "med vinkelbeslag"}],
     "fler_spik": "; ".join(f"{n} spik: {', '.join(sorted(set(v)))}" for n, v in sorted(_fler.items())),
     "tva_skruvar": ", ".join(sorted({r["del"].replace("-", "‑") for r in FB["balk"] if r["skruv"] > 1})),
+    "fyra_skruv": ", ".join(f"{'+'.join(r['delar']).replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)})"
+                            for r in FB["regel"] if r["skruv"] == 4),
     "med_beslag": ", ".join(f"{'+'.join(r['delar']).replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)}"
                             f"{', ett på var sida' if r['n_beslag'] == 2 else ''})" for r in FB["regel"] if r["beslag"]),
     "over": ", ".join(f"{r['del'].replace('-', '‑')} ({pct(r['eta'])})" for r in _over),

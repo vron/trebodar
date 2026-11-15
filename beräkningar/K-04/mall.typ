@@ -261,7 +261,7 @@ Takbalkarnas krafter längs nock- och dalbalkarna böjer balkarna i sidled, vilk
   ..r.forband.rader.map(k => ([#k.knut], [#k.antal], [#k.forband], [#k.bar], [#k.kraft], [#eta(k.eta, k.ok)], [#k.mer])).flatten(),
 )]
 
-#liten[#if r.forband.stoppen != "" [Isolerstopp skruvat vid bandets ände (takbalk, stoppets sida, skruvpar, kraft längs väggen): #r.forband.stoppen. ]#if r.forband.utan_mittemot != "" [Bandet spikat i limträets sida (ingen takbalk mitt emot): #r.forband.utan_mittemot. ]Bandet över balken med fler spik per takbalk: #r.forband.fler_spik. Två skruvar för lyftet: #r.forband.tva_skruvar. Vinkelbeslag i regelns topp (drag, kN): #r.forband.med_beslag.#if r.forband.over != "" [ Takbalkar vid takfoten där två universalbeslag inte räcker: #r.forband.over. De får ett förstärkt förband (\#119).]]
+#liten[#if r.forband.stoppen != "" [Isolerstopp skruvat vid bandets ände (takbalk, stoppets sida, skruvpar, kraft längs väggen): #r.forband.stoppen. ]#if r.forband.utan_mittemot != "" [Bandet spikat i limträets sida (ingen takbalk mitt emot): #r.forband.utan_mittemot. ]Bandet över balken med fler spik per takbalk: #r.forband.fler_spik. Två skruvar för lyftet: #r.forband.tva_skruvar. Fyra skruv (två på var sida) i regelns topp (drag, kN): #r.forband.fyra_skruv. Vinkelbeslag i regelns topp (drag, kN): #r.forband.med_beslag.#if r.forband.over != "" [ Takbalkar vid takfoten där två universalbeslag inte räcker: #r.forband.over. De får ett förstärkt förband (\#119).]]
 
 = Bruksgränstillståndet
 
