@@ -49,8 +49,8 @@ HOJD = K.Z1 - K.Z0               # 2 100
 H_HAL = 2010.0                   # dörrhålens höjd (karm 1 990)
 FRIGANG = 5.0                    # mellan rören och virket
 _H = T / 2
-# avloppets stam från badrummet ned genom källaren (hus/installationer/avlopp, Ø110), i KL8 öster om röret P4, under
-# badrummets vägg L11 (stommens mitt), så att luftningen går rakt upp i den
+# avloppets stam genom källaren (hus/installationer/avlopp, Ø110; luftar grundledningen och är dess rensning), i KL8
+# öster om röret P4, under badrummets vägg L11 (stommens mitt), så att luftningen går rakt upp i den
 AVLOPPSSTAM = (LATTA_VAGGAR["L11"].origo[0] - LATT_T / 2, 7675.0, 110.0)
 _GIPSYTA = K.KARNA / 2 + K.CELL + GIPS_T     # källarväggarnas gipsyta från kärnans centrumlinje
 

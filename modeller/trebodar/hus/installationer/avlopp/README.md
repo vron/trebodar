@@ -29,14 +29,17 @@ cd verktyg/modellering
 - **Golvbrunnen** i duschen (`GOLVBRUNN` i `hus/badrum.py`): kroppen ingjuten i mellanbjälklaget med flänsen i dess
   överkant, lodrätt utlopp Ø75. Golvets fall mot den står i `hus/badrum.py` och golvet i
   [`hus/invandigt/badrumsgolv.py`](../../invandigt/badrumsgolv.py).
-- **WC:n**: S-låset till ett rör Ø110 genom golvet `WC_AVLOPP` från L9 (AV1), som blir samlingsledningen.
+- **WC:n**: S-låset till ett rör Ø110 genom golvet `WC_AVLOPP` från L9 (AV1).
 - **Tvättstället**: vattenlåset i skåpet till ett rör Ø50 genom golvet under tvättstället (AV2).
 - **Badkaret**: vattenlåset under karet till ett rör Ø50 genom golvet under karets mitt (AV3).
 - **Tvätten i skåpet** (#51, förberedd för tvättmaskin och torktumlare staplade): vattenlåset utanpå L10 i nischen
   (`TVATT_AVLOPP` i `hus/badrum.py`) till ett rör Ø50 ned i väggens regelfack och genom golvet (AV21).
-- **Under bjälklaget**, `UPPHANG` under betongen: samlingsledningen Ø110 söderut i WC:ns linje, under KL1:s hammarband
-  genom väggen, och österut längs KL8 till stammen; tvättställets ledning längs V7 till WC:ns lodräta rör, badkarets,
-  golvbrunnens och tvättens till samlingsledningen (tvättens under KL2:s hammarband genom väggen).
+- **Rakt ned genom källaren** (#138): alla går ned längs källarens väggar och kopplas ihop under bottenplattan, med
+  var sin gren Ø110 till grundledningen. Tvättställets längs V7, badkarets längs KL1 och tvättens längs KL2; WC:ns
+  går `UPPHANG` under bjälklaget österut till KL2 och ned längs dess västra gips (`X_WC_NED`), golvbrunnens söderut
+  till KL8 och ned längs dess norra gips (`Y_GB_NED`).
+- **Genom och under bottenplattan** är rören minst `INGJUTET_MIN` (Ø75, #137): de klenare ökar från Ø50 till Ø75
+  `OKNING` över källargolvet (ledningarna "genom bottenplattan").
 
 Hålen genom bjälklaget ligger utanför rörens genomstansningszon (6d, `GENOMSTANSNING`) utom golvbrunnens, ca 0,5 m från
 P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
@@ -45,7 +48,8 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 
 - **Diskhon**: avloppet i hons bakre del, `DISKHO_AVLOPP` från bakkanten (`hus/inredning/koksbank.py`), bakom
   diskbänksskåpets korta lådor (NL 350). Vattenlåset Ø40 står mellan hon och golvet, och röret Ø50 går rakt ned genom
-  mellanbjälklaget, källaren (längs källarväggen V14:s gips) och bottenplattan till en gren Ø110 (AV5, AV6).
+  mellanbjälklaget och källaren (längs källarväggen V14:s gips), Ø75 genom bottenplattan (AV29), till en gren Ø110
+  (AV5, AV6).
 - **Diskmaskinen i ön** (#50): pumpat avlopp (AV20). Maskinens egen pump trycker vattnet genom ett rör PEX 25 utan
   fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen
   (`koksbank.diskmaskinens_anslutningar`) förbi tappvattnets matning till underfördelaren UF1, upp i
@@ -57,13 +61,14 @@ P4; kontrollen redovisar hål inom den. Järnen läggs om runt hålen.
 
 - **Stammen** Ø110 står i källarväggen KL8 (AV7) under badrummets vägg L11, från toppen (`Z_STAM`) ned genom
   bottenplattan, och går med en böj och en kort sträcka norrut till grundledningen. Rensningen sitter `RENSNING` över
-  källargolvet, med locket genom KL8:s gips mot teknikrummet.
+  källargolvet, med locket genom KL8:s gips mot teknikrummet. Stammen tar inget avlopp: den luftar grundledningen och
+  är dess rensning.
 - **Grundledningen** Ø110 (AV8) under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i
   teknikrummet, norr om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under
   källarväggen V9 (`UTLOPP`). Direkt utanför väggen faller den brant under dräneringen runt grunden (`UTLOPP_FALL`) och
   fortsätter åt nordost, längs dagvattnets utgående rör, mot förbindelsepunkten; `UTLOPP_L` av den ritas.
 - Överkanten ligger `UNDER_CELLPLAST` under bottenplattans cellplast där den börjar. Grenarna går vinkelrätt mot den,
-  de nära varandra något förskjutna (minst `GREN_AVSTAND` isär), och ansluter med vattengången `ANSLUTNING_OVER` över
+  de nära varandra något förskjutna (minst `GREN_AVSTAND` isär, i ordning längs den så att de inte korsar varandra), och ansluter med vattengången `ANSLUTNING_OVER` över
   dess.
 
 ## Luftningen

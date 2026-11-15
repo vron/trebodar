@@ -231,12 +231,9 @@ def _sektion(u: dict) -> Vy:
         huv = lu2[-1][2] + u["luftning"]["huv"][1]                     # huvens överkant
         v.linje([(0.0, lu2[0][2]), (0.0, huv - 60.0)], "lu")
         v.polygon([(-80.0, huv - 60.0), (80.0, huv - 60.0), (80.0, huv - 10.0), (-80.0, huv - 10.0)], "vit", "av_tunn")
-        a1 = led["AV1"]["vag"][-1]
-        v.linje([(1200.0, a1[2] + 12.0), (55.0, a1[2])], "av_tak")
         rz = u["stam"]["rensning"]
         v.linje([(0.0, rz), (180.0, rz)], "av")
     with v.lager("texter"):
-        v.ptext(1200.0, a1[2], 0.8, 0.0, "AV1 från badrummet", a="lm", sz=5.4, col="av")
         v.ptext(180.0, rz, 0.8, 0.0, "rensning", a="lm", sz=5.4, col="av")
         v.ptext(1200.0, st[1][2], 0.0, -0.8, "till grundledningen AV8", a="rt", sz=5.4, col="av")
         v.ptext(0.0, (st[0][2] + st[1][2]) / 2, -0.8, 0.0, "AV7 Ø110 i KL8", a="rm", sz=5.4, col="av")
@@ -254,14 +251,20 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
         return sum(math.dist(a, b) for a, b in zip(vag, vag[1:])) / 1000
 
     rader = []
+    # ökningen genom bottenplattan (Ø50 → Ø75) redovisas på det lodräta rörets rad
+    okning = {k: ld for k, ld in led.items() if ld["namn"].endswith(", genom bottenplattan")}
     for k, ld in led.items():
+        if k in okning:
+            continue
+        nedre = okning.get(ld["till"])
         vgg = ld["vattengang"]
         st = [(a, b) for a, b in zip(ld["vag"], ld["vag"][1:]) if math.dist(a[:2], b[:2]) >= 1.0]
         fall = sv(1000 * (st[0][0][2] - st[0][1][2]) / math.dist(st[0][0][:2], st[0][1][:2]), 0) if st else "lodrätt"
         if ld.get("pumpad"):
             fall = "pumpat"
         rader.append([k, ld["namn"].replace(", grenen under bottenplattan", ", grenen").replace(", rakt ned", ""),
-                      f"{ld['d']:g}", sv(langd(ld["vag"]), 1), fall,
+                      f"{ld['d']:g}" + (f"/{nedre['d']:g}" if nedre else ""),
+                      sv(langd(ld["vag"]) + (langd(nedre["vag"]) if nedre else 0.0), 1), fall,
                       vg(u, ld, vgg[0] + ld["d"] / 2) if vgg else "–", vg(u, ld, vgg[1] + ld["d"] / 2) if vgg else "–"])
     lu = u["luftning"]
     kol: list[dict] = [
@@ -274,21 +277,24 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
             "Grundledningarna ligger under bottenplattans cellplast, grenarna vinkelrätt mot grundledningen och "
             "anslutna med 45° grenrör. Direkt utanför källarväggen V9 faller grundledningen brant (två böjar 45°) "
             "under dräneringen runt grunden.",
+            "Badrummets och kökets avlopp går rakt ned genom källaren, längs väggarna, och kopplas ihop under "
+            "bottenplattan med var sin gren till grundledningen. WC:ns rör går under bjälklaget till källarväggen KL2 "
+            "och golvbrunnens till KL8, och ned längs dem. Genom och under bottenplattan är alla rör minst Ø75: de "
+            "klenare ökar från Ø50 till Ø75 0,1 m över källargolvet.",
             "Stammen Ø110 står i källarväggen KL8, med rensning 0,5 m över golvet (lock genom gipsen mot "
-            "teknikrummet). Badrummets ledningar hänger i källarens tak till stammen; köket går rakt ned längs "
-            "källarväggen V14.",
+            "teknikrummet). Den tar inget avlopp: den luftar grundledningen och är dess rensning.",
             f"Luftningen går rakt upp från stammen i KL8 och badrummets vägg L11, Ø{lu['d'][0]:g} i väggen och "
             f"Ø{lu['d'][1]:g} isolerad från innertaket ut genom taket till en luftningshuv av plåt; syll och "
             "hammarband urtas. Hålen i mellanbjälklaget för luftningen och duschens golvbrunn ligger inom rörets P4 "
             "genomstansningszon (K-05).",
             "Golvbrunnarna i källaren gjuts in i bottenplattan med flänsen i dess överkant; tvättmaskinen töms i GB1. "
-            "Tvätthona TH1–TH3 får var sin anslutning Ø50 i golvet framför väggdosan.",
+            "Tvätthona TH1–TH3 får var sin anslutning Ø75 i golvet framför väggdosan.",
             "Diskmaskinen i köksön har pumpat avlopp (AV20): maskinens egen pump trycker vattnet genom ett rör PEX 25 "
             "utan fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen "
             "till diskbänksskåpet bakom lådorna och upp till diskhons vattenlås (anslutning för diskmaskin, med en ögla "
             f"under bänkskivan). Diskmaskinen ska tillåta minst {sv(u['dm_slang'], 0)} m avloppsslang.",
             "Tvätten i badrummets skåp (förberedd för tvättmaskin och torktumlare): vattenlåset på väggen L10, Ø50 "
-            "ned i väggen och genom bjälklaget (AV21) till samlingsledningen, under KL2:s hammarband genom väggen.",
+            "ned i väggen, genom bjälklaget och ned längs källarväggen KL2 (AV21).",
             f"Höjderna: vattengången (VG, rörets innerbotten) i RH 2000; plan 1 ±0 = +{sv(u['rh0'] / 1000, 3)}, "
             f"källargolvet +{sv((u['bottenplattan'] + u['rh0']) / 1000, 3)}.",
             "Produkterna är inte valda (allmänna typer med vanliga mått). Ritningen ritas med ./mod avlopp ritning.",
@@ -296,8 +302,8 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(),
         dict(typ="rubrik", text="Ledningar"),
-        dict(typ="tabell", kolumner=["Id", "Vad", "Ø", "Längd (m)", "Fall ‰", "VG början", "VG slut"],
-             bredd=(0.42, 1.5, 0.32, 0.5, 0.48, 0.66, 0.66), just=["l", "l", "r", "r", "r", "r", "r"], sz=5.6,
+        dict(typ="tabell", kolumner=["Id", "Vad", "Ø", "L (m)", "Fall ‰", "VG början", "VG slut"],
+             bredd=(0.42, 1.75, 0.42, 0.42, 0.42, 0.6, 0.6), just=["l", "l", "r", "r", "r", "r", "r"], sz=5.2,
              rader=rader),
     ]
     nr = f"{SERIE.split()[0]}.1"
