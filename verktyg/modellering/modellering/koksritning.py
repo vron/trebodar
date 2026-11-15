@@ -485,17 +485,22 @@ def _oversikt(alla: list[Skap], losa: list[tuple[str, str, str, tuple[float, ...
     vp.rubrik(X0, Y1 + 400.0 + 6.0 * ps, "Plan", skala=50)
     # fronterna i elevation 1:25, bänken längs 3NV sedd västerifrån, längs 3SV norrifrån och ön österifrån
     es = 25.0
-    leder = (("Bänken längs 3NV, sedd från väster", lambda q: q[1], lambda s: s.kod in {f"B{i}" for i in range(1, 8)},
+    leder = (("Bänken längs 3NV, sedd från väster", lambda s: s.kod in {f"B{i}" for i in range(1, 8)},
               lambda b: abs(b[0] - kb.X_FRONT) < 1.0),
-             ("Bänken längs 3SV, sedd från norr", lambda q: -q[0],
-              lambda s: s.kod in {f"B{i}" for i in range(8, 11)}, lambda b: abs(b[1] - kb.Y_FRONT) < 1.0),
-             ("Ön, sedd från öster", lambda q: -q[1], lambda s: s.kod.startswith("O"),
-              lambda b: abs(b[3] - kb.X_ON_FRONT) < 1.0))
+             ("Bänken längs 3SV, sedd från norr", lambda s: s.kod in {f"B{i}" for i in range(8, 11)},
+              lambda b: abs(b[1] - kb.Y_FRONT) < 1.0),
+             ("Ön, sedd från öster", lambda s: s.kod.startswith("O"), lambda b: abs(b[3] - kb.X_ON_FRONT) < 1.0))
     vyer = [vp]
     ex = 34.0 + (X1 - X0) / ps + 22.0
     lagen = [(ex, TOPP + 8.0)]                              # 3NV överst, 3SV och ön under den, bredvid varandra
-    for i, (titel, U, valj, los) in enumerate(leder):
+    for i, (titel, valj, los) in enumerate(leder):
         sk = [s for s in skap if valj(s)]
+        # sedd framifrån som skåpen: skåpens x (från vänster sett framifrån) åt höger på papperet
+        r = sk[0].placering.riktning((1.0, 0.0, 0.0))
+        assert all(max(abs(a_ - b_) for a_, b_ in zip(x.placering.riktning((1.0, 0.0, 0.0)), r)) < 1e-9 for x in sk)
+
+        def U(q: Sequence[float], r: Sequence[float] = r) -> float:
+            return q[0] * r[0] + q[1] * r[1]
         lo = [x for x in losa if los(x[3]) and not x[0].endswith("SKIVA") and "SPARK" not in x[0]]
 
         def u_av(b: Sequence[float], U: Callable = U) -> tuple[float, float]:
