@@ -303,14 +303,14 @@ def _forbandstext(e: Element) -> list[str]:
         return [f"Stålbanden {k4['band']['b']}×{k4['band']['t']}: {k4['band']['spik'].lower()} i varje del bandet korsar "
                 f"och {b['n']} spik i varje ände (K-04)."]
 
-    def kortlingtext(e: Element) -> list[str]:
+    def stopptext(e: Element) -> list[str]:
         namn = {d.namn for d in e.delar}
-        rader = [k for k in k4["forband"].get("kortling_lista", []) if k["del"] in namn]
+        rader = [k for k in k4["forband"].get("stopp_lista", []) if k["del"] in namn]
         if not rader:
             return []
-        return [f"Där stålbandet slutar vid takfoten spikas bandet också i en {k4['forband']['kortling']}: "
-                + ", ".join(f"{k['del']}" + (f" ({k['beslag'] // 2} beslag i var ände)" if k["beslag"] > 2 else "")
-                            for k in rader) + " (K-04)."]
+        return [f"Där stålbandet slutar vid takfoten: isolerstoppet på den sida takbalken dras mot skruvas ned i "
+                f"hammarbandet, {k4['forband']['stopp_skruv']}: "
+                + ", ".join(f"{k['del']} {k['sida']} sidan {k['par']} par" for k in rader) + " (K-04)."]
 
     if e.slag == "vägg":
         return [SYLLISOLERING,
@@ -327,7 +327,7 @@ def _forbandstext(e: Element) -> list[str]:
                 f"Regeln skruvas med {tb['n_skruv']} skruv {fb['regel_skruv']} per takbalk, och varje takbalksände "
                 f"förankras med en skruv {fb['lyft_skruv']} snett in i balken (K-03).",
                 *bandtext("Stålband i takfallen"),
-                *kortlingtext(e)]
+                *stopptext(e)]
     if e.slag == "takstol":
         fb = k3["fb"]
         rad = next((r for r in k3["st"] if r["namn"] == K03_TAKSTOL.get(e.kod, e.kod)), None)
@@ -626,10 +626,10 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
          f"{tb['n_skruv']} skruv i regeln per takbalk, en förankringsskruv per takbalksände", "K-03"],
         *([r["knut"] + " (krafter ur balkmodellen)", r["forband"][0].upper() + r["forband"][1:],
            f"{r['antal']} knutpunkter" + (f"; {r['mer']}" if r["mer"] != "–" else ""), "K-04"] for r in k4["forband"]["rader"]),
-        *([["Kortling vid takfallets stålband vid takfoten", stor(k4["forband"]["kortling"]) + "; bandet spikas i den",
-            ", ".join(f"{k['del']}" + (f" ({k['beslag'] // 2} beslag i var ände)" if k["beslag"] > 2 else "")
-                      for k in k4["forband"]["kortling_lista"]), "K-04"]]
-          if k4["forband"].get("kortling_lista") else []),
+        *([["Isolerstoppet vid takfallets stålband vid takfoten", stor(k4["forband"]["stopp_skruv"]) + ", stoppet på den "
+            "sida takbalken dras mot", ", ".join(f"{k['del']} {k['sida']} sidan {k['par']} par"
+                                                 for k in k4["forband"]["stopp_lista"]), "K-04"]]
+          if k4["forband"].get("stopp_lista") else []),
         *([["Vinkelbeslag i regelns eller stolpens topp", f"{fo['beslag']} mot hammarbandet, utan bult",
             k4["forband"]["med_beslag"] + " (drag, kN)", "K-04"]] if k4["forband"].get("med_beslag") else []),
         *([["Bandet över nock- och dalbalken utan takbalk mitt emot", "Bandet spikas i limträets sida på andra sidan",

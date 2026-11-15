@@ -6,9 +6,10 @@ Balkmodellen har delarna ledat sammanfogade i knutpunkterna. Kraften som en del 
 - takbalken mot hammarbandet (takfoten): lyft, kraft längs takbalken (i plan) och kraft tvärs den, längs väggen, mot
   ett par universalbeslag (ETA-07/0137: R_1 lyft, R_2/3 längs takbalken, R_4/5 tvärs den med excentriciteten e),
   med samverkan F_1/R_1 + F_2/R_2 + F_4/R_4 ≤ 1. Där ett av takfallets stålband slutar på takbalken (inom BAND_ANDE
-  från hammarbandet) drar bandets komponent längs väggen takbalkens överkant i sidled: bandet spikas också i en
-  kortling i facket bredvid, som står på hammarbandet med vinkelbeslag i ändarna och tar den kraften åt båda hållen
-  (sidled och vältning F h / L), och takbalkens beslag prövas för lyftet och kraften längs takbalken;
+  från hammarbandet) drar bandets komponent längs väggen takbalkens överkant i sidled. Isolerstoppet i facket på den
+  sida takbalken dras mot (finns i varje fack, 45 mm på hammarbandet upp till takbalkarnas överkant) ligger an mot
+  takbalkens sida i hela höjden och tar kraften; det skruvas ned i hammarbandet med korsade par snett i sin
+  längdriktning (sidled och vältning). Takbalkens beslag prövas för lyftet och kraften längs takbalken;
 - takbalken mot nock- eller dalbalken: drag längs takbalken mot ett stålband över balken som binder ihop takbalkarna
   på var sida, spikat i varje takbalk (antalet spik efter draget; trycket går i anliggning mot balken; utan takbalk
   mitt emot spikas bandet i limträets sida på andra sidan), och lyft mot förankringsskruven snett genom takbalken in
@@ -21,8 +22,7 @@ Balkmodellen har delarna ledat sammanfogade i knutpunkterna. Kraften som en del 
 En takbalk som vilar på en nock- eller dalbalk räknas som knutpunkt mot balken också där en innervägg eller takstol
 når samma nod. Takbalkens tryck mot balken går i anliggning.
 
-Stålbandens ändar i takfallen spikas i takbalken där de slutar och vid takfoten också i kortlingen (kontroller.py
-prövar spiken)."""
+Stålbandens ändar i takfallen spikas i takbalken där de slutar (kontroller.py prövar spiken)."""
 from __future__ import annotations
 
 from typing import Any
@@ -79,9 +79,10 @@ def kontrollera(N: Any, L: Any, A: Any, IN: dict[str, Any], skruv: tuple[float, 
             for x in N.nod_delar[n_]:
                 if delar[x].grupp == "takbalk" and delar[x].typ == "T":
                     band_ande.setdefault(x, []).extend(s for s, n2 in N.stationer[x] if n2 == n_)
-    # kortlingens vinkelbeslag (som vid regelns fot): ett beslag, lyft och sidled
-    R1b, R23b = kmod * beslag[0] / beslag[2], kmod * beslag[1] / beslag[2]
-    hk, Lk = P["kortling_h"], P["kortling_L"]
+    # isolerstoppens skruvar: korsade par snett 45° i stoppets längdriktning, axiellt (en skruv)
+    Fax_s = kmod * P["stopp_Fax_k"] * 1e3 / P["gamma_M_stopp"]
+    hs, Ls = P["stopp_h"], P["stopp_hav"]
+    c45 = np.cos(np.radians(45.0))
     for d, lista in N.stationer.items():
         b = delar[d]
         if b.slag != "balk":
@@ -106,26 +107,33 @@ def kontrollera(N: Any, L: Any, A: Any, IN: dict[str, Any], skruv: tuple[float, 
                 ax = FR[:, :2] @ v                       # drag +: knutpunkten drar takbalken mot sig
                 tv = np.abs(FR[:, :2] @ np.array([-v[1], v[0]]))
                 if vid_vagg:
-                    # där ett av takfallets stålband slutar på takbalken (BAND_ANDE) drar bandet takbalken längs väggen,
-                    # i takbalkens överkant: bandet spikas också i en kortling i facket bredvid, som står på
-                    # hammarbandet med ett vinkelbeslag i var ände och tar den kraften (åt båda hållen). Beslagen på
-                    # takbalken prövas då för lyftet och kraften längs den.
+                    # där ett av takfallets stålband slutar på takbalken (BAND_ANDE) drar bandet takbalken längs väggen
+                    # (y), i takbalkens överkant. Isolerstoppen på hammarbandet i facken på var sida ligger an mot
+                    # takbalkens sidor i hela dess höjd: det på den sida som takbalken dras mot tar kraften i anliggning
+                    # och skruvas ned i hammarbandet. Beslagen på takbalken prövas då för lyftet och kraften längs den.
                     kort = any(abs(s - s_nod) <= natverk.BAND_ANDE for s in band_ande.get(d, []))
-                    u = lyft / R1 + np.abs(ax) / R23 + (0.0 if kort else tv / R45)
+                    fy = FR[:, 1]                        # knutpunkten skjuter takbalken mot högre y: stoppet på norra sidan
+                    sidor = [(sida, kraft) for sida, kraft in (("norra", np.maximum(fy, 0.0)), ("södra", np.maximum(-fy, 0.0)))
+                             if kort and kraft.max() >= P["stopp_min"] * 1e3]
+                    # sidkraften som inte går till ett skruvat stopp tar beslagen
+                    tv_b = tv.copy()
+                    for _, kraft in sidor:
+                        tv_b = np.where(kraft > 0, 0.0, tv_b)
+                    u = lyft / R1 + np.abs(ax) / R23 + tv_b / R45
                     k = int(np.argmax(u))
                     rad = {"del": b.namn, "x": float(m.x[nod, 0]), "y": float(m.x[nod, 1]), "eta": float(u[k]),
                            "komb": kn[k], "lyft": float(lyft[k]), "langs": float(ax[k]), "tvars": float(tv[k]),
-                           "kortling": kort}
-                    if kort:
-                        # kraften F i kortlingens överkant: F/2 i sidled i varje beslag och F h/L i lyft i den ena änden;
-                        # två beslag i var ände (ett på var sida) om ett inte räcker
-                        for per_ande in (1, 2):
-                            uk = tv * hk / (Lk * per_ande * R1b) + tv / (2 * per_ande * R23b)
-                            if uk.max() <= 1.0:
+                           "bandande": kort, "stopp": []}
+                    for sida, kraft in sidor:
+                        # n par: drag i den ena skruven (F/n)/(2 cos 45°) i sidled, och vältningen F (h/2)/a i ändparet
+                        # (kraften i stoppets halva höjd, a mellan de yttre paren), som lyft i dess två skruvar
+                        for n_par in (2, 3, 4):
+                            us = ((kraft / n_par) / (2 * c45) + kraft * hs / 2 / Ls / (2 * c45)) / Fax_s
+                            if us.max() <= 1.0:
                                 break
-                        kk = int(np.argmax(uk))
-                        rad.update({"kortling_beslag": 2 * per_ande, "kortling_eta": float(uk[kk]),
-                                    "kortling_kraft": float(tv[kk]), "kortling_komb": kn[kk]})
+                        kk = int(np.argmax(us))
+                        rad["stopp"].append({"sida": sida, "par": n_par, "eta": float(us[kk]),
+                                             "kraft": float(kraft[kk]), "komb": kn[kk]})
                     takfot.append(rad)
                 else:
                     # en takbalk på andra sidan balken i samma knutpunkt: bandet över balken binder ihop dem; annars
@@ -205,11 +213,11 @@ def kontrollera(N: Any, L: Any, A: Any, IN: dict[str, Any], skruv: tuple[float, 
             "R45_W": float(min(P["c45"] * kW * P["Rlat_k"], np.interp(kW, VARAKT, P["k1"]) * (P["b"] + P["k2"]) / P["e"])
                            * 1e3 / gM),
             "FvRd_W": float(kW * band["FvRk"] / gB), "Fax_W": float(Fax03),
-            "R1b_W": float(kW * beslag[0] / beslag[2]), "R23b_W": float(kW * beslag[1] / beslag[2]),
+            "Fax_stopp_W": float(kW * P["stopp_Fax_k"] * 1e3 / P["gamma_M_stopp"]),
             "Rs_W": float(kW * skruv[0] / skruv[1]), "Rb_W": float(kW * beslag[0] / beslag[2]),
             "storst": {"takfot": tf, "balk": bk, "regel": rg},
             "ok": bool(tf["eta"] <= 1.0 and max(r["eta_band"] for r in balk) <= 1.0
-                       and all(r["kortling_eta"] <= 1.0 for r in takfot if r["kortling"])
+                       and all(s["eta"] <= 1.0 for r in takfot for s in r["stopp"])
                        and max(r["eta"] for r in regel) <= 1.0)}
 
 

@@ -361,22 +361,24 @@ for _r in FB["balk"]:
         _fler[_r["spik"]].append(_r["del"].replace("-", "‑"))
 _over = list({r["del"]: r for r in reversed(FB["takfot"]) if r["eta"] > 1.0}.values())[::-1]     # en rad per takbalk
 _drag = max(FB["balk"], key=lambda r: r["drag"])
-_kort = sorted({r["del"]: r for r in FB["takfot"] if r["kortling"]}.values(), key=lambda r: r["del"])   # en per takbalk
-_kort_max = max(_kort, key=lambda r: r["kortling_eta"]) if _kort else None
+# isolerstoppen som skruvas vid takfallets bandändar: (takbalk, stopp), en rad per takbalk och sida
+_stopp = sorted({(r["del"], s["sida"]): (r["del"], s) for r in FB["takfot"] for s in r["stopp"]}.values(),
+                key=lambda x: (x[0], x[1]["sida"]))
+_stopp_max = max(_stopp, key=lambda x: x[1]["eta"]) if _stopp else None
 _utan = sorted({r["del"].replace("-", "‑") for r in FB["balk"] if not r["mittemot"]})
 forb = {
     "beslag": IN["knutpunkter"]["beslag"], "band": IN["knutpunkter"]["band"], "spik_min": str(IN["knutpunkter"]["spik_min"]),
     "e": fmt(IN["knutpunkter"]["e"], 0),
     "rader": [
         {"knut": "Takbalk mot hammarband", "antal": str(len(FB["takfot"])),
-         "forband": "två universalbeslag UNI130" + (f"; kortling vid {len(_kort)} bandändar" if _kort else ""),
+         "forband": "två universalbeslag UNI130" + (f"; isolerstoppet skruvat vid {len(_stopp)} bandändar" if _stopp else ""),
          "bar": f"lyft {fmt(FB['R1_W'] / 1e3, 1)}, längs {fmt(FB['R23_W'] / 1e3, 1)}, tvärs {fmt(FB['R45_W'] / 1e3, 1)} kN"
-                + (f"; kortlingens beslag {fmt(FB['R1b_W'] / 1e3, 1)} lyft, {fmt(FB['R23b_W'] / 1e3, 1)} sidled" if _kort else ""),
+                + (f"; stoppets skruv {fmt(FB['Fax_stopp_W'] / 1e3, 2)} kN axiellt" if _stopp else ""),
          "kraft": f"lyft {fmt(_tf['lyft'] / 1e3, 1)}, längs {fmt(abs(_tf['langs']) / 1e3, 1)}, tvärs "
                   f"{fmt(_tf['tvars'] / 1e3, 1)} kN ({_tf['del']})",
-         "eta": pct(max(_tf["eta"], _kort_max["kortling_eta"] if _kort_max else 0.0)),
-         "ok": _tf["eta"] <= 1.0 and (_kort_max is None or _kort_max["kortling_eta"] <= 1.0),
-         "mer": ", ".join([f"kortlingen {pct(_kort_max['kortling_eta'])} ({_kort_max['del']})"] * bool(_kort_max)
+         "eta": pct(max(_tf["eta"], _stopp_max[1]["eta"] if _stopp_max else 0.0)),
+         "ok": _tf["eta"] <= 1.0 and (_stopp_max is None or _stopp_max[1]["eta"] <= 1.0),
+         "mer": ", ".join([f"stoppet {pct(_stopp_max[1]['eta'])} ({_stopp_max[0]})"] * bool(_stopp_max)
                           + [f"{len(_over)} över 100 %"] * bool(_over)) or "–"},
         {"knut": "Takbalk mot nock- eller dalbalk", "antal": str(len(FB["balk"])),
          "forband": f"stålband 40×2,0 över balken, {IN['knutpunkter']['spik_min']} ankarspik per takbalk; skruv Ø6×160",
@@ -398,11 +400,10 @@ forb = {
     "med_beslag": ", ".join(f"{'+'.join(r['delar']).replace('-', '‑')} ({fmt(r['drag'] / 1e3, 1)}"
                             f"{', ett på var sida' if r['n_beslag'] == 2 else ''})" for r in FB["regel"] if r["beslag"]),
     "over": ", ".join(f"{r['del'].replace('-', '‑')} ({pct(r['eta'])})" for r in _over),
-    "kortling": IN["knutpunkter"]["kortling"],
-    "kortling_lista": [{"del": r["del"], "beslag": r["kortling_beslag"], "kraft": fmt(r["kortling_kraft"] / 1e3, 1)}
-                       for r in _kort],
-    "kortlingar": ", ".join(f"{r['del'].replace('-', '‑')} ({r['kortling_beslag']} beslag, "
-                            f"{fmt(r['kortling_kraft'] / 1e3, 1)} kN)" for r in _kort),
+    "stopp_skruv": IN["knutpunkter"]["stopp_skruv"], "Fax_stopp": fmt(FB["Fax_stopp_W"] / 1e3, 2),
+    "stopp_lista": [{"del": d_, "sida": s["sida"], "par": s["par"], "kraft": fmt(s["kraft"] / 1e3, 1)} for d_, s in _stopp],
+    "stoppen": ", ".join(f"{d_.replace('-', '‑')} {s['sida']} sidan ({s['par']} par, {fmt(s['kraft'] / 1e3, 1)} kN)"
+                         for d_, s in _stopp),
     "utan_mittemot": ", ".join(_utan),
     "sidled": [{"del": r["del"], "Mz": fmt(r["Mz"] / 1e6, 1), "Vy": fmt(r["Vy"] / 1e3, 1), "u": pct(r["u_sidled"]),
                 "eta_m": pct(r["eta_m"]), "eta_v": pct(r["eta_v"]), "eta_p": pct(r["eta_p"]), "ok": r["eta"] <= 1.0}

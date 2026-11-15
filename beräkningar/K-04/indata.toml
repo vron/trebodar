@@ -139,9 +139,13 @@ gamma_M = 1.35         # som vinkelbeslagen
 gamma_M_spik = 1.3     # spiken i stålbandet över balken (som stålbanden)
 spik_min = 4           # minst så många spik per takbalk i bandet över nock- och dalbalken
 band = "stålband 40×2,0 över balken, ankarspik 4,0×40"
-kortling = "kortling 45×170 C24 i facket bredvid, på hammarbandet, med vinkelbeslag ABR10525 i ändarna"
-kortling_h = 170.0     # kortlingens höjd: bandets kraft i överkanten [mm]
-kortling_L = 555.0     # kortlingens längd mellan takbalkarna (c/c 600) [mm]
+stopp_skruv = "skruv Ø6×160 helgängad, i korsade par snett 45° i stoppets längdriktning ned i hammarbandet"
+stopp_Fax_k = 3.96     # en skruv axiellt [kN]: SS-EN 1995-1-1 8.7.2, d 6, gängan 64 mm i hammarbandet (45 / sin 45°),
+                       # 45° mot fibrerna, ρ_k 350: f_ax,k 15,2 MPa, k_d 0,75, / (1,2 cos² + sin²)
+gamma_M_stopp = 1.3
+stopp_h = 177.0        # isolerstoppets höjd (till takbalkarnas överkant) [mm]
+stopp_hav = 400.0      # mellan de yttre skruvparen i stoppet (facket 555) [mm]
+stopp_min = 0.5        # mindre sidkraft än så [kN] tar takbalkens beslag; annars skruvas stoppet
 
 [forankring]           # förankringen i bjälklaget (forankring.py): betongbultarna genom syllarna, vinkelbeslagen
 bult_d = 12.0          # betongbulten (IN-01 BETONGBULT-SYLL), genom syllen med bricka
