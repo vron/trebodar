@@ -11,9 +11,11 @@ Plan 1, badrummet (#52), med var sitt rör lodrätt genom mellanbjälklaget (hyl
 - tvätten i skåpet i nischen (#51, förberedd för tvättmaskin och torktumlare): vattenlåset på L10 (hus/badrum.py) till
   ett rör Ø50 ned i väggen och genom bjälklaget.
 Alla går rakt ned genom källaren och kopplas ihop under bottenplattan (#138), med var sin gren till grundledningen:
-tvättställets längs V7, badkarets längs KL1 och tvättens längs KL2; WC:ns går under bjälklaget österut till KL2 och
-ned längs dess västra gips (X_WC_NED), och golvbrunnens söderut till KL8 och ned längs dess norra gips (Y_GB_NED).
-Inget hänger i källarens tak utom de två korta styckena. Hålen genom bjälklaget ligger utanför rörens (P4, P8, P9)
+tvättställets längs V7, badkarets i KL1:s regelfack (vattenlåset under karet, över väggen) och tvättens i KL2:s
+(vattenlåset på L10 rakt över den); WC:ns går under bjälklaget österut till KL2 och ned längs dess västra gips
+(X_WC_NED), och golvbrunnens söderut in i KL8 och ned i dess regelfack (användarens kommentar: rören i väggarna, inte
+fritt i rummen; lägena i hus/invandigt/kallarens_innervaggar.AVLOPP_I_VAGGARNA). Inget hänger i källarens tak utom
+de två korta styckena. Hålen genom bjälklaget ligger utanför rörens (P4, P8, P9)
 genomstansningszon 6d utom golvbrunnens, som K-05 ska pröva (kontrollen redovisar hålen inom GENOMSTANSNING från
 rören).
 
@@ -66,7 +68,7 @@ from trebodar.hus.grund import kallarvaggar as K
 from trebodar.hus.grund.pelare import PELARE
 from trebodar.hus.inredning import koksbank as KB
 from trebodar.hus.invandigt.kallare import GIPS_T
-from trebodar.hus.invandigt.kallarens_innervaggar import AVLOPPSSTAM
+from trebodar.hus.invandigt.kallarens_innervaggar import AVLOPP_I_VAGGARNA, AVLOPPSSTAM
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as KL
 from trebodar.hus.invandigt.vaggar import vaggdef
 
@@ -98,10 +100,12 @@ INGJUTET_MIN = 75.0                         # rören genom och under bottenplatt
 OKNING = 100.0                              # de klenare rörens ökning till INGJUTET_MIN, så högt över källargolvet
 # WC:ns rör går under bjälklaget österut till KL2 och ned längs dess västra gips (10 mm från den)
 X_WC_NED = KL["KL2"].c - KL["KL2"].t / 2 - GIPS_T - 10.0 - 55.0
-# duschens golvbrunn: röret går under bjälklaget söderut till KL8 och ned längs dess norra gips
-Y_GB_NED = KL["KL8"].c - KL["KL8"].t / 2 - GIPS_T - 10.0 - INGJUTET_MIN / 2
+# duschens golvbrunn: röret går under bjälklaget söderut in i KL8 (genom hammarbandets urtag) och ned i regelfacket
+X_GB_NED, Y_GB_NED, _ = AVLOPP_I_VAGGARNA["AV4"]
 TVATTSTALL_AVLOPP = (B.X_TVATTSTALL, B.Y_1NO + 260.0)      # under tvättställets mitt (inredning/badrum.py)
-BADKAR_AVLOPP = ((B.BADKAR_X[0] + B.BADKAR_X[1]) / 2, (B.BADKAR_Y[0] + B.BADKAR_Y[1]) / 2)
+BADKAR_AVLOPP = AVLOPP_I_VAGGARNA["AV3"][:2]                    # under karet, över KL1
+assert B.BADKAR_X[0] < BADKAR_AVLOPP[0] < B.BADKAR_X[1] and B.BADKAR_Y[0] < BADKAR_AVLOPP[1] < B.BADKAR_Y[1], \
+    "badkarets avlopp under karet"
 BADKAR_BOTTEN = B.Z_BADKAR + B.BADKAR_KAR                        # karets botten
 BRUNN = (200.0, 100.0)                      # golvbrunnens kropp: diameter, djup under flänsen
 BRUNN_SIL = (220.0, 230.0)                  # silen och klämringen (hålet i golvets skikt, badrumsgolv.BRUNN_HAL)
@@ -119,6 +123,7 @@ DM_SLANG = 4.0                              # så lång avloppsslang ska diskmas
 assert KB.FOGAR_LANG[1] + 100.0 <= DM_DISKBANK[1] <= KB.FOGAR_LANG[2] - 100.0, "röret upp i diskbänksskåpet"
 # tvättens vattenlås på L10 i skåpet i badrummet: röret i väggens regelfack och genom bjälklaget (hus/badrum.py)
 TVATT_AVLOPP = (B.TVATT_AVLOPP[0], vaggdef("L10").origo[1] + vaggdef("L10").tjocklek / 2)
+assert max(abs(a - b) for a, b in zip(TVATT_AVLOPP, AVLOPP_I_VAGGARNA["AV21"][:2])) < 1e-6, "tvättens avlopp i KL2"
 I_VAGGEN = ("LU1", "LU2", "AV21")           # ledningarna lodrätt i väggarnas regelfack, genom syll och hammarband
 
 # ------------------------------------------------------------------ källaren och grundledningen
@@ -285,8 +290,8 @@ def ledningar() -> dict[str, Ledning]:
          [(xs, ys, B.golvniva(xs, ys)), *_fall((xs, ys, _under(GRUND)), [(X_WC_NED, ys)], GRUND)], True),
         (("AV2", "AV22", "AV23"), "Tvättstället", 50.0, (xt, yt), [(xt, yt, B.golvniva(xt, yt))], False),
         (("AV3", "AV24", "AV25"), "Badkaret", 50.0, (xb, yb), [(xb, yb, B.golvniva(xb, yb))], False),
-        (("AV4", "", "AV26"), "Golvbrunnen i duschen", 75.0, (gx, Y_GB_NED),
-         [(gx, gy, -BRUNN[1]), *_fall((gx, gy, _under(75.0)), [(gx, Y_GB_NED)], 75.0)], False),
+        (("AV4", "", "AV26"), "Golvbrunnen i duschen", 75.0, (X_GB_NED, Y_GB_NED),
+         [(gx, gy, -BRUNN[1]), *_fall((gx, gy, _under(75.0)), [(X_GB_NED, Y_GB_NED)], 75.0)], False),
         (("AV21", "AV27", "AV28"), "Tvätten i badrummets skåp", 50.0, (xv, yv),
          [(xv, yv, B.golvniva(xv, B.Y_L10 + 50.0) + B.TVATT_AVLOPP[1])], False),
         (("AV5", "AV29", "AV6"), "Diskbänken", 50.0, DISKHO, [(*DISKHO, 0.0)], False),

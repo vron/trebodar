@@ -30,7 +30,10 @@ Z_GOLV = PLAN[0]
 Z_TOPP = Z_GOLV + 100.0                     # rörens ände över golvet i teknikrummet
 Z_VAG = Z_GOLV - 650.0                      # rörens mitt under plattan: under cellplasten och makadamen, under
                                             # avloppet och under dräneringen (installationer/dranering) norr om V7
-UPP = (3840.0, 8200.0)                      # upp genom plattan (mitt mellan rören), användarens markering
+# upp genom plattan (mitt mellan rören) väster om värmepumpen, inte framför den, så att den kan rullas in i sin nisch
+# (användarens kommentar): närmare KL8 går inte, för bottenplattans tilläggsjärn under pelaren P4 (x 2 346–3 390,
+# y 7 155–8 199) och stammens gren AV7 under plattan
+UPP = (3485.0, 8300.0)
 BRUNN = (3500.0, -2000.0)                   # energibrunnen, ungefärligt
 Y_SIDA = 1000.0                             # sidoförskjutningen börjar (utanför huset, norr om V7)
 RIKTNING = {"KB-in": 1, "KB-ut": -1}        # rören öster och väster om mitten

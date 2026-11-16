@@ -31,13 +31,15 @@ cd verktyg/modellering
   [`hus/invandigt/badrumsgolv.py`](../../invandigt/badrumsgolv.py).
 - **WC:n**: S-låset till ett rör Ø110 genom golvet `WC_AVLOPP` från L9 (AV1).
 - **Tvättstället**: vattenlåset i skåpet till ett rör Ø50 genom golvet under tvättstället (AV2).
-- **Badkaret**: vattenlåset under karet till ett rör Ø50 genom golvet under karets mitt (AV3).
+- **Badkaret**: vattenlåset under karet till ett rör Ø50 genom golvet rakt över källarväggen KL1 (AV3).
 - **Tvätten i skåpet** (#51, förberedd för tvättmaskin och torktumlare staplade): vattenlåset utanpå L10 i nischen
-  (`TVATT_AVLOPP` i `hus/badrum.py`) till ett rör Ø50 ned i väggens regelfack och genom golvet (AV21).
-- **Rakt ned genom källaren** (#138): alla går ned längs källarens väggar och kopplas ihop under bottenplattan, med
-  var sin gren Ø110 till grundledningen. Tvättställets längs V7, badkarets längs KL1 och tvättens längs KL2; WC:ns
-  går `UPPHANG` under bjälklaget österut till KL2 och ned längs dess västra gips (`X_WC_NED`), golvbrunnens söderut
-  till KL8 och ned längs dess norra gips (`Y_GB_NED`).
+  (`TVATT_AVLOPP` i `hus/badrum.py`, rakt över källarväggen KL2) till ett rör Ø50 ned i väggens regelfack och genom
+  golvet (AV21).
+- **Rakt ned genom källaren** (#138): alla går ned längs eller i källarens väggar, inte fritt i rummen, och kopplas
+  ihop under bottenplattan, med var sin gren Ø110 till grundledningen. Tvättställets längs V7, badkarets i KL1:s och
+  tvättens i KL2:s regelfack; WC:ns går `UPPHANG` under bjälklaget österut till KL2 och ned längs dess västra gips
+  (`X_WC_NED`), golvbrunnens söderut in i KL8 och ned i dess regelfack. Lägena i väggarna står i
+  `kallarens_innervaggar.AVLOPP_I_VAGGARNA`, så att reglarna går runt rören.
 - **Genom och under bottenplattan** är rören minst `INGJUTET_MIN` (Ø75, #137): de klenare ökar från Ø50 till Ø75
   `OKNING` över källargolvet (ledningarna "genom bottenplattan").
 

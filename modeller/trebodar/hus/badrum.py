@@ -62,7 +62,7 @@ Z_FONSTER = F1.z0                                                      # fönstr
 KLINKER_T = 9.0                    # Bricmate J66 Jura Select 60 × 60, 9 mm
 TATSKIKT_T = 5.0                   # tätskikt och fix
 BYGGHOJD = KLINKER_T + TATSKIKT_T  # golvets ytskikt över fallavjämningen (och över brunnens fläns)
-GOLVBRUNN = (2440.0, 7390.0)       # brunnens mitt: 272 mm från 1B och 290 mm innanför dörrarna
+GOLVBRUNN = (2500.0, 7390.0)       # brunnens mitt: 290 mm innanför dörrarna, i liv med avloppet ned i KL8
 BRUNN_Z = BYGGHOJD                 # golvet vid brunnen: flänsen i bjälklagets överkant
 FALL_DUSCH = 8.0                   # duschens kant över brunnen
 Y_DUSCH = Y_1A + 23.0              # glasdörrarnas linje, duschens kant mot rummet
@@ -203,9 +203,9 @@ SKAP_Z = 2100.0                             # skåpets överkant över golvet, s
 # staplingssatsen) mot L19: vattnets väggdosa med avstängningen och avloppets vattenlås på L10 i glipan bredvid dem,
 # och dubbeluttaget på L10 ovanför dem (användarens markering)
 TVATT = (600.0, 600.0, 1750.0)              # maskinerna: bredd, djup, höjd staplade
-TVATT_VATTEN = (2750.0, 1100.0)             # x, z över golvet
-TVATT_AVLOPP = (3050.0, 650.0)
-TVATT_UTTAG = (2950.0, 1950.0)
+TVATT_VATTEN = (2880.0, 1100.0)             # x, z över golvet: öster om avloppet (röret från UF2 längs L10 korsar det inte)
+TVATT_AVLOPP = (2800.0, 650.0)              # rakt över källarväggen KL2, så att röret går rakt ned i den
+TVATT_UTTAG = (3000.0, 1950.0)
 assert SKAP_Y[1] - SKAP_Y[0] >= TVATT[0] + 150.0, "skåpet rymmer maskinerna och glipan för anslutningarna"
 assert SKAP_X[1] - SKAP_X[0] >= TVATT[1] + 100.0, "skåpet rymmer maskinerna och slangarna bakom dem"
 assert SKAP_Z >= TVATT[2] + 300.0, "uttaget ryms ovanför maskinerna"

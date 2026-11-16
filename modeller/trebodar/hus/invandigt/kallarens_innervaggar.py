@@ -61,6 +61,12 @@ _H = T / 2
 # avloppets stam genom källaren (hus/installationer/avlopp, Ø110; luftar grundledningen och är dess rensning), i KL8
 # öster om röret P4, under badrummets vägg L11 (stommens mitt), så att luftningen går rakt upp i den
 AVLOPPSSTAM = (LATTA_VAGGAR["L11"].origo[0] - LATT_T / 2, 7675.0, 110.0)
+# badrummets avlopp rakt ned i närmaste källarvägg (användarens kommentar): badkarets i KL1 (under karet, väster om
+# dörren KD1:s karmregel), tvättens i KL2 (vattenlåset på L10 rakt ovanför) och duschens golvbrunn i KL8 (röret under
+# bjälklaget söderut in i väggen); x, y, Ø (Ø75 där de klenare ökar över källargolvet)
+AVLOPP_I_VAGGARNA = {"AV3": (600.0, 5820.0, 75.0),
+                     "AV21": (2800.0, LATTA_VAGGAR["L10"].origo[1] + LATT_T / 2, 75.0),
+                     "AV4": (2500.0, 7675.0, 75.0)}
 _GIPSYTA = K.KARNA / 2 + K.CELL + GIPS_T     # källarväggarnas gipsyta från kärnans centrumlinje
 
 
@@ -186,6 +192,7 @@ def _ror(v: Innervagg) -> list[tuple[float, float]]:
     """Rören och avloppsstammen i väggen: deras utbredning längs u med frigången, sammanslagna."""
     genom = [(namn, x + k * R.VKR, y, R.VKR / 2) for namn, (x, y) in _P.items() for k in range(R.ANTAL.get(namn, 1))]
     genom.append(("avloppsstammen", AVLOPPSSTAM[0], AVLOPPSSTAM[1], AVLOPPSSTAM[2] / 2))
+    genom += [(f"avloppet {k}", x, y, d / 2) for k, (x, y, d) in AVLOPP_I_VAGGARNA.items()]
     ut: list[tuple[float, float]] = []
     for namn, x, y, r in genom:
         langs, tvars = (x, y) if v.riktning == "h" else (y, x)
