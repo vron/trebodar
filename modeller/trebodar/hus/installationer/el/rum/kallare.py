@@ -80,7 +80,7 @@ from ..punkter import Apparat, Dosa, Krets, Lampa, Punkt, Ror, Rum, Tandgrupp, a
 from . import kallarens_punkter as KP
 from .kallarens_punkter import (BRYTARE, D_STORA, DOSOR, KL_GIPSYTA, PANELER, S6, S_D2, SMA_O, SMA_V, SPEL,
                                 STORA_RUMMET, UTTAG_KS, UTTAG_SMA, UTTAG_STORA, UTTAG_V2, V_GIPSYTA, X_TVATT_UTTAG,
-                                X_UTTAG_KL4, Y_D2, Y_FLAKT_STORA, Y_FLAKT_TVATT, Y_MASKINER, Y_UTTAG_KL3, Z_BRYTARE, Z_D2, Z_GOLVZON, dosans_lage,
+                                X_UTTAG_KL4, Y_D2, Y_FLAKT_STORA, Y_FLAKT_TVATT, Y_MASKINER, Z_BRYTARE, Z_D2, Z_GOLVZON, dosans_lage,
                                 ned_i_dosan, pa_kl, panelens, stigarna, ur_dosan, vaggens_c, xy)
 
 RUM, NAMN = KP.RUM, KP.NAMN
@@ -154,15 +154,13 @@ def _sma_uttagen() -> list[Ror]:
                                                  (v18, UTTAG_KS[0][1], _ZG))))
     ut.append(_ror("G23-R5", "KA-U13", "KA-U14", ((v18, UTTAG_KS[0][1], _ZG), (v18, UTTAG_KS[1][1], _ZG))))
     # trapphallen: från det östra lilla rummets andra uttag upp i V7:s cellplast till strax under taket, österut till
-    # KL3 och i dess regelfack söderut över dörren KD3 till uttaget på KL3; därifrån lägre (där inga dörrar är)
-    # norrut till KL4 och österut i dess regelfack till uttaget där
+    # KL3 och i dess regelfack söderut över dörren KD3 till KL4 och österut i dess regelfack, förbi bågen KL12, till
+    # uttaget i KL4:s raka del
     kl3, kl4 = KL["KL3"].c, KL["KL4"].c
-    zh, zl = KALLARTAK - 60.0, KALLARTAK - 110.0
+    zh = KALLARTAK - 60.0
     a = _i_cellplasten("V7", UTTAG_SMA[-1][1] - 30.0)
-    ut.append(_ror("G23-R6", "KA-U8", "KA-U18", ((a[0], a[1], _ZU), (a[0], a[1], zh), (kl3, _V7_EPS, zh),
-                                                 (kl3, Y_UTTAG_KL3, zh), (kl3, Y_UTTAG_KL3, _ZG))))
-    ut.append(_ror("G23-R7", "KA-U18", "KA-U17", ((kl3, Y_UTTAG_KL3 - 30.0, _ZG), (kl3, Y_UTTAG_KL3 - 30.0, zl),
-                                                  (kl3, kl4, zl), (X_UTTAG_KL4, kl4, zl), (X_UTTAG_KL4, kl4, _ZG))))
+    ut.append(_ror("G23-R6", "KA-U8", "KA-U17", ((a[0], a[1], _ZU), (a[0], a[1], zh), (kl3, _V7_EPS, zh),
+                                                 (kl3, kl4, zh), (X_UTTAG_KL4, kl4, zh), (X_UTTAG_KL4, kl4, _ZG))))
     return ut
 
 
@@ -235,7 +233,7 @@ TANDGRUPPER += [
 # dimrade fasen går i ett eget rör dit (230 V dimrad).
 DIMRAR = {
     "KA-B1": Apparat("KA-B1", DIMMER_LED, pa_kl("KL4", 7250.0, 1), styr=("KA-T1",)),
-    "KA-B2": Apparat("KA-B2", DIMMER_LED, pa_kl("KL3", 6100.0, -1), styr=("KA-T2",)),
+    "KA-B2": Apparat("KA-B2", DIMMER_LED, pa_kl("KL11", 6100.0, -1), styr=("KA-T2",)),
     "KA-B3": Apparat("KA-B3", DIMMER_LED_2, kallarvagg("V4", 5150.0, Z_BRYTARE - PLAN[0], 1), styr=("KA-T3", "KA-T4")),
     "KA-B4": Apparat("KA-B4", DIMMER_LED, pa_kl("KL4", 5420.0, -1), styr=("KA-T5",)),
 }

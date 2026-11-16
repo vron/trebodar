@@ -180,9 +180,8 @@ UTTAG_V2 = [("V2", 5800.0, -1), ("V2", 8400.0, -1)]
 UTTAG += [Apparat(f"KA-U{i + 13}", UTTAG_2, kallarvagg(v, s_, Z_GOLVZON, sida))
           for i, (v, s_, sida) in enumerate([*UTTAG_KS, *UTTAG_V2])]
 # trapphallen: två dubbla uttag, på KL3 (norr om dörren KD2) och KL4 (väster om dörren KD4), 250 mm över golvet (G23)
-Y_UTTAG_KL3, X_UTTAG_KL4 = 5600.0, 5300.0
-UTTAG += [Apparat("KA-U17", UTTAG_2, pa_kl("KL4", X_UTTAG_KL4, 1, PLAN[0] + Z_GOLVZON)),
-          Apparat("KA-U18", UTTAG_2, pa_kl("KL3", Y_UTTAG_KL3, 1, PLAN[0] + Z_GOLVZON))]
+X_UTTAG_KL4 = 5600.0            # trapphallens uttag på KL4, i dess raka del mellan bågen KL12 och P11
+UTTAG += [Apparat("KA-U17", UTTAG_2, pa_kl("KL4", X_UTTAG_KL4, 1, PLAN[0] + Z_GOLVZON))]
 PUNKTER: list[Punkt] = [*PANELER, Dosa("KA-D1", INGJUTNINGSDOSA, kallartak(*D_STORA)), *BRYTARE.values(), *UTTAG]
 _P = BRYTARE
 

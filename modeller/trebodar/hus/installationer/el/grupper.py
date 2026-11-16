@@ -70,7 +70,7 @@ GRUPPER = [
     Grupp("G21", "Tvättmaskin, tvättstugan", 10, 1, 1.5, ("KA-U3",)),
     Grupp("G22", "Torktumlare, tvättstugan", 10, 1, 1.5, ("KA-U4",)),
     Grupp("G23", "Uttag de små rummen norr om KL1, rummet norr om trapphallen och trapphallen, fläkten FF4", 16, 1, 2.5,
-          ("KA-U5", "KA-U6", "KA-U7", "KA-U8", "KA-U13", "KA-U14", "KA-U18", "KA-U17", "KA-D7")),
+          ("KA-U5", "KA-U6", "KA-U7", "KA-U8", "KA-U13", "KA-U14", "KA-U17", "KA-D7")),
     Grupp("G24", "Uttag det stora rummet och rummen vid V2, fläkten FF3", 16, 1, 2.5,
           ("KA-D2", "KA-D4", "KA-D6", "KA-U9", "KA-U10", "KA-U11", "KA-U12", "KA-U15", "KA-U16")),
 ]

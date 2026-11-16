@@ -194,7 +194,7 @@ Trebodar
     │                           innerväggarna: lätta väggar L1–L14 och L19 och skikten på alla innerväggar, kökets
     │                           inbyggnad (L15–L18, förrådet ovanför, smygar, lucka och galler), ändbrädor av ask
     │                           där väggarna slutar fritt, badrummets golv (fallavjämning, tätskikt och klinker),
-    │                           källarväggarnas gips, källarens innerväggar KL1–KL10 (stomme och gips per vägg)
+    │                           källarväggarnas gips, källarens innerväggar KL1–KL12 (stomme och gips per vägg)
     └── Inredning               inbyggt, isär från husets system: garderoben i sovrummet (stomme, skikt, dörrar),
                                 dubbelsängen där (160 × 200, huvudgaveln mot 2B),
                                 köket (kylen, frysen, skåpen, fronterna, skafferiets dörr och hyllor, bänken längs 3NV
@@ -445,10 +445,13 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   ytterväggarnas insida och båda sidor av innerväggarna, runt väggändarna i D2 och D3, i fönstrens smyg från karmen
   och på bröstningen. Källardörren D1 (pardörren) sitter i det yttre cellplastlagret; smygens gips går till kärnans
   utsida.
-- **Källarens innerväggar KL1–KL10**: lätta väggar 45×95 C24 c/c 600 med gips 13 på båda sidor från bottenplattan
+- **Källarens innerväggar KL1–KL12**: lätta väggar 45×95 C24 c/c 600 med gips 13 på båda sidor från bottenplattan
   till bjälklaget, i rörens linjer så att rören står i stommen (KL8 45×120 för avloppsstammen Ø110 bredvid P4), med
   dörrhålen KD1–KD5 för M9×20 och M8×20 (rumshöjden 2 100 rymmer inte M×21). Teknikrummet avgränsas av KL8–KL10 med
-  en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje söder därom.
+  en knyck runt värmepumpen; KL5 börjar vid KL4, eftersom trappan går ut över dess linje söder därom. KL12 är en
+  kvartscirkel R 830 (användarens skiss) mellan KL4 och P10, tangent mot båda, med pelarna P10 och P11 kvar i väggarna:
+  det framtida badrummets vägg mot gången, med syll och hammarband sågade i båge, reglar radiellt c/c 300 och två
+  lager böjbar gips 6,5 på varje sida; KL3 går därför från V7 till KL4 och KL11 från P10 till V4.
 - **Huvudentrén 1SO-D1** (planritning 201): i Onshape-modellen fanns bara öppningen i regelverket. Dörren har
   en karm som Elitfönsters altandörr och ett tätt dörrblad med panel (produkten inte vald).
 - **Plattan på mark** enligt AR-02: mellanbjälklaget i L-element 500 (ytterkanten i väggarnas ytterliv) med betongen
