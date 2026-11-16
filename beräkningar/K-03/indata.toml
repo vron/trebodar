@@ -186,7 +186,7 @@ namn  = "Stol L2M"
 text  = "Mitten, mittakstol"
 stod  = ["N3", "C"]
 gavel = false
-H_k04 = 46.6    # dragbandets kraft i K-04:s balkmodell [kN] (#119): dragbandet och fotens förband räknas för det
+H_k04 = 46.7    # dragbandets kraft i K-04:s balkmodell [kN] (#119): dragbandet och fotens förband räknas för det
 #                 största av den och triangelns
 [[takstol]]
 namn  = "Stol 2SV"
