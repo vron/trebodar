@@ -58,12 +58,12 @@ def _hylsor(t: Tappstalle) -> list[tuple[Del, Placering, str]]:
 
 
 def _dosa(t: Tappstalle) -> tuple[Del, Placering]:
-    """Väggdosan i väggen (fronten i ytan), golvdosan på golvet (förskjuten mellan järnen) eller väggfästet utanpå
-    väggen."""
+    """Väggdosan i väggen (fronten i ytan), golvdosan på golvet (förskjuten mellan järnen), golvstosen på källarens
+    golv eller väggfästet utanpå väggen."""
     d, m = t.dosa, t.lage
     n = m.normal
-    if d.slag == "golv":
-        dx, dy = forskjutning(t)
+    if d.slag in ("golv", "stos"):                  # golvstosen står redan mellan järnen (rum/stos.py)
+        dx, dy = forskjutning(t) if d.slag == "golv" else (0.0, 0.0)
         return (Del(d.namn, box(-d.b / 2, d.b / 2, -d.h / 2, d.h / 2, 0.0, d.djup), VATTENDOSA),
                 Placering.axlar((m.punkt[0] + dx, m.punkt[1] + dy, m.punkt[2]), t.kallt or (1.0, 0.0, 0.0), n))
     z0, z1 = (-d.djup, 0.0) if d.slag == "vägg" else (0.0, d.djup)
