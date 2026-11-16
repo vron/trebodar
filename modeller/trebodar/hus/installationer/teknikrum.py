@@ -4,12 +4,13 @@ geometri.
 Rummets väggar är källarens innerväggar KL8–KL10 (invandigt/kallarens_innervaggar.py) med en knyck runt värmepumpen;
 YTA är den del av källaren som pekats ut för utrustningen.
 
-- Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19;
-  anslutningarna på ovansidan: köldbärare in och ut, värme fram och retur till golvvärmen (golvvarme/, fördelarna på
-  V5) och kallvatten in och varmvatten ut (vid baksidan, mot fördelarskåpet).
-- Tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen, med kallvattnets och varmvattnets fördelare; rören
-  går ut genom skåpets öppna ovansida. Kort
-  varmvattenledning från beredaren.
+- Bergvärmepumpen med inbyggd varmvattenberedare (allmän, ej vald: 600 × 620 × 1 800) med baksidan mot V19, i
+  nischen innanför KL9–KL10; framför den är golvet fritt, så att den kan rullas in (användarens kommentar): inget
+  skåp på V19 och köldbärarrören väster om den. Anslutningarna på ovansidan: köldbärare in och ut, värme fram och
+  retur till golvvärmen (golvvarme/, fördelarna på V5) och kallvatten in och varmvatten ut.
+- Tappvattnets fördelarskåp (rör-i-rör) på V3 väster om huvudledningen, högt och smalt från golvet till taket
+  (användarens kommentar): upptill fördelarna till mellanbjälklaget (rören ut genom skåpets ovansida), nedtill
+  fördelarna till källarens tappställen (rören ned genom skåpets botten och bottenplattan, under den i cellplasten).
 - Inkommande vatten (#139): servisen (PEM) kommer upp genom bottenplattan under köket, vid källarväggen V14 i det
   stora rummet, med vattenmätare och huvudavstängning på väggen där. Därifrån går kallvattnet till underfördelaren
   UF1 (köket) och i två ledningar under bottenplattan: huvudledningen till teknikrummet, upp vid V3 (TK-HL), och en
@@ -24,9 +25,10 @@ koordinater, z från plan 1:s golv (källarens golv z −2 250).
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
-from modellering import Del, Montage, Placering, box
+from modellering import Del, Form, Montage, Placering, box, minus
 
 from trebodar.hus.invandigt.kallare import GIPS_T
 from trebodar.hus.invandigt.kallarens_innervaggar import VAGGAR as KL_VAGGAR
@@ -64,9 +66,10 @@ VARMEPUMP = Utrustning(
      "VV-ut": (_VP_X1 - 55.0, _VP_Y1 - 160.0, _TOPP), "KV-in": (_VP_X1 - 55.0, _VP_Y1 - 60.0, _TOPP)},
     produkt="VARMEPUMP")
 
-# tappvattnets fördelarskåp (rör-i-rör) på V19 söder om värmepumpen
-FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt (ej valt)",
-                          kallarvagg("V19", 8510.0, 1250.0, -1), (1000.0, 120.0, 600.0), {})
+# tappvattnets fördelarskåp (rör-i-rör) på V3 mellan gruppcentralen och huvudledningen, från golvet till taket
+X_FS, FS_MATT = 3500.0, (600.0, 150.0, 2040.0)  # mitten längs V3; bredd, djup, höjd
+FORDELARSKAP = Utrustning("TK-FS", "Fördelarskåp för tappvatten, rör-i-rör, öppet uppåt och nedåt, golv till tak "
+                          "(ej valt)", kallarvagg("V3", X_FS, 30.0 + FS_MATT[2] / 2, -1), FS_MATT, {})
 
 # inkommande vatten (#139): servisen upp ur bottenplattan vid V14 under köket (söder om underfördelaren UF1), med
 # vattenmätaren och huvudavstängningen på väggen ovanför den; mätarens anslutningar uppåt: huvudledningen (ut),
@@ -128,16 +131,50 @@ def _placering(u: Utrustning) -> Placering:
     return Placering.axlar(u.lage.punkt, (n[1], -n[0], 0.0), (0.0, 0.0, 1.0))
 
 
-def _skap(u: Utrustning) -> Montage:
-    """Fördelarskåpet som plåtlåda öppen uppåt (rören går ut genom ovansidan): baksida, dörr, sidor och botten."""
+Rorvag = tuple[tuple[Vek, ...], float]           # ett rörs väg (mittlinjen) och yttermått
+
+
+def _utslag(u: Utrustning, plat: tuple[float, float, float, float, float, float], ror: list[Rorvag]) -> list[Form]:
+    """Utslagen i fördelarskåpets plåt där rören (tappvattnets) går igenom, i skåpets system: fyrkantiga, rörets
+    yttermått (längre där det går snett) + 2 · 15 mm för bockarna, för varje rakt stycke som korsar plåtens mittplan
+    inom plåten."""
+    p0, n = u.lage.punkt, u.lage.normal                 # på en vägg (som _placering): x längs den, y = normalen
+    ax, ay = (n[1], -n[0], 0.0), (n[0], n[1], 0.0)
+
+    def lokal(q: Vek) -> Vek:
+        d = [q[i] - p0[i] for i in range(3)]
+        return (sum(d[i] * ax[i] for i in range(3)), sum(d[i] * ay[i] for i in range(3)), d[2])
+    lo, hi = plat[0::2], plat[1::2]
+    tunn = min(range(3), key=lambda i: hi[i] - lo[i])
+    mitt = (lo[tunn] + hi[tunn]) / 2
+    ut: list[Form] = []
+    for vag_, yttre in ror:
+        vag = [lokal(q) for q in vag_]
+        for a, b in zip(vag, vag[1:]):
+            if (a[tunn] - mitt) * (b[tunn] - mitt) > 0 or abs(b[tunn] - a[tunn]) < 1e-6:
+                continue
+            s = yttre / 2 / max(0.3, abs(b[tunn] - a[tunn]) / math.dist(a, b)) + 15.0     # snett: längre
+            t = (mitt - a[tunn]) / (b[tunn] - a[tunn])
+            c = [a[i] + t * (b[i] - a[i]) for i in range(3)]
+            if all(lo[i] - s < c[i] < hi[i] + s for i in range(3) if i != tunn):
+                ut.append(box(*(v_ for i in range(3) for v_ in ((lo[i] - 1, hi[i] + 1) if i == tunn
+                                                                  else (c[i] - s, c[i] + s)))))
+    return ut
+
+
+def _skap(u: Utrustning, ror: list[Rorvag]) -> Montage:
+    """Fördelarskåpet som plåtlåda öppen uppåt (de övre fördelarnas rör går ut genom ovansidan): baksida, dörr, sidor
+    och botten, med utslag där rören går igenom (de nedre fördelarnas rör genom botten, matarledningarna genom
+    sidorna)."""
     b, d, h = u.matt
     m = Montage(u.id, beskrivning=u.namn)
-    for namn, form in (("baksida", box(-b / 2, b / 2, 0.0, PLAT, -h / 2, h / 2)),
-                       ("dörr", box(-b / 2, b / 2, d - PLAT, d, -h / 2, h / 2)),
-                       ("sida 1", box(-b / 2, -b / 2 + PLAT, PLAT, d - PLAT, -h / 2, h / 2)),
-                       ("sida 2", box(b / 2 - PLAT, b / 2, PLAT, d - PLAT, -h / 2, h / 2)),
-                       ("botten", box(-b / 2 + PLAT, b / 2 - PLAT, PLAT, d - PLAT, -h / 2, -h / 2 + PLAT))):
-        m.lagg(Del(f"Fördelarskåp, {namn}", form, PLATSKAP), _placering(u), f"{u.id}-{namn.replace(' ', '')}")
+    for namn, lada in (("baksida", (-b / 2, b / 2, 0.0, PLAT, -h / 2, h / 2)),
+                       ("dörr", (-b / 2, b / 2, d - PLAT, d, -h / 2, h / 2)),
+                       ("sida 1", (-b / 2, -b / 2 + PLAT, PLAT, d - PLAT, -h / 2, h / 2)),
+                       ("sida 2", (b / 2 - PLAT, b / 2, PLAT, d - PLAT, -h / 2, h / 2)),
+                       ("botten", (-b / 2 + PLAT, b / 2 - PLAT, PLAT, d - PLAT, -h / 2, -h / 2 + PLAT))):
+        m.lagg(Del(f"Fördelarskåp, {namn}", minus(box(*lada), _utslag(u, lada, ror)), PLATSKAP), _placering(u),
+               f"{u.id}-{namn.replace(' ', '')}")
     return m
 
 
@@ -160,9 +197,9 @@ def _drivdonsskap(u: Utrustning) -> Montage:
     return m
 
 
-def montage() -> Montage:
-    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet, vattenmätaren, elcentralen och drivdonsskåpet
-    på väggarna."""
+def montage(genom_skapet: list[Rorvag]) -> Montage:
+    """Teknikrummets utrustning: värmepumpen på golvet, fördelarskåpet (med utslag för rören genom_skapet, tappvattnets:
+    installationer.py), vattenmätaren, elcentralen och drivdonsskåpet på väggarna."""
     m = Montage("Teknikrum", beskrivning="Utrustningen i teknikrummet: värmepump, fördelare, vattenmätare, "
                                          "elcentral och drivdonen för källarens ljuslinjer")
     for u in UTRUSTNING.values():
@@ -170,7 +207,7 @@ def montage() -> Montage:
         if h <= 0:
             continue
         if u is FORDELARSKAP:
-            m.lagg(_skap(u))
+            m.lagg(_skap(u, genom_skapet))
         elif u is DRIVDONSSKAP:
             m.lagg(_drivdonsskap(u))
         elif u.lage.yta == "golv":

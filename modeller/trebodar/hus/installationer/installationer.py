@@ -14,6 +14,7 @@ from .el import el
 from .golvvarme import golvvarme
 from .kollektor import kollektor
 from .vatten import vatten
+from .vatten.system import vatten as tappvattnet
 from .ventilation import ventilation
 
 
@@ -28,5 +29,6 @@ def montage() -> Montage:
     m.lagg(kollektor.montage())
     m.lagg(brandlarm.montage())
     m.lagg(dranering.montage())
-    m.lagg(teknikrum.montage())
+    v = tappvattnet()
+    m.lagg(teknikrum.montage([(tuple(v.vag(r)), r.typ.yttre) for r in v.ror.values()]))
     return m

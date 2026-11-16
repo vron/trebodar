@@ -87,10 +87,11 @@ isoleringen); syll och hammarband urtas.
 
 - **Golvbrunnarna** GB1–GB5 (`GOLVBRUNNAR_KALLARE`, efter skissen): kroppen ingjuten i bottenplattans betong med
   flänsen i dess överkant och lodrätt utlopp Ø110, GB1 och GB2 rakt ned i grundledningen och de andra med var sin
-  gren. Tvättmaskinen töms i GB1 bredvid den; GB2 tar fördelarskåpets läckageindikering i teknikrummet. GB4 står vid
-  tvätthoet KA-TH3 på V7, så att golvvärmens slinga ryms i rummet öster om KL2.
-- **Tvätthona** (tappvattnets KA-TH1–KA-TH3, som inte är modellerade): var sin anslutning Ø50 i golvet framför
-  väggdosan (`TVATTHO_AVSTAND`), rakt ned till en gren.
+  gren. Tvättmaskinen töms i GB1 bredvid den; GB2 tar fördelarskåpets läckageindikering i teknikrummet. GB4 är duschens
+  i det framtida badrummet i källaren (mellan KL2, KL3 och bågväggen KL12).
+- **Tvätthona och det framtida handfatet** (tappvattnets KA-TH1, KA-TH2 och KB-TS1, som inte är modellerade): var sin
+  anslutning Ø75 i golvet bredvid golvstosen, på den sida där tappvattnet inte kommer (`BREDVID_STOSEN`), rakt ned
+  till en gren. Det framtida WC:t har en Ø110 (`WC_KALLARE`, AV30) mot KL2; det framtida badrummets är proppade.
 
 ## Fall och nivåer
 

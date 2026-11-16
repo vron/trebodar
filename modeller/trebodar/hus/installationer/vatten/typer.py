@@ -27,7 +27,7 @@ class Dosatyp:
     ("fördelare") är rören rakt ned ur bjälklaget till stammarnas början."""
     kod: str
     namn: str
-    slag: str                   # "vägg", "golv", "utanpå", "hylsa" eller "fördelare"
+    slag: str                   # "vägg", "golv", "stos", "utanpå", "hylsa" eller "fördelare"
     b: float
     h: float
     djup: float

@@ -40,9 +40,10 @@ L11:s regelfack (Ø50, LU1; väggens stomme 70 mm rymmer inte Ø75), och från i
 större (Ø75, LU2, mot frost) isolerad genom takets isolering och ut genom taket till luftningshuven (HUV).
 
 Källaren: fem golvbrunnar (GOLVBRUNNAR_KALLARE, efter användarens skiss) med kroppen ingjuten i bottenplattans
-betong och lodrätt utlopp Ø110; tvättmaskinen töms i golvbrunnen GB1 bredvid den. Tvätthona (tappvattnets
-KA-TH1–KA-TH3, som inte är modellerade) får var sin anslutning Ø75 i golvet framför väggdosan (TVATTHO_AVSTAND), rakt
-ned till en gren.
+betong och lodrätt utlopp Ø110; tvättmaskinen töms i golvbrunnen GB1 bredvid den och GB4 är duschens i det framtida
+badrummet. Tvätthona och det framtida badrummets handfat (tappvattnets KA-TH1, KA-TH2 och KB-TS1, som inte är
+modellerade) får var sin anslutning Ø75 i golvet bredvid golvstosen (BREDVID_STOSEN), rakt ned till en gren, och det
+framtida WC:t en Ø110 (WC_KALLARE), proppade tills vidare.
 
 Grundledningen Ø110 under bottenplattan börjar i golvbrunnen GB1 vid tvätten, går österut genom GB2 i teknikrummet,
 norr om köldbärarens rör där de går upp genom plattan, och därifrån rakt mot nordost ut under källarväggen V9
@@ -76,7 +77,7 @@ from ..dranering.ledningar import UTLOPP_RIKTNING
 from ..genomforingar import Stycke, genomforingar
 from ..montering import I_BETONGEN, angbromsen, pa_tak
 from ..strak import mellan_jarnen
-from ..vatten.rum import kallare as vattnet_i_kallaren
+from ..vatten.rum import kallarbadrum, kallare as vattnet_i_kallaren
 
 Vek = tuple[float, float, float]
 
@@ -136,10 +137,14 @@ GREN_AVSTAND = 300.0                        # grenarnas anslutningar minst så l
 GOLVBRUNNAR_KALLARE = {"GB1": (1520.0, 8430.0),            # vid tvätten (tvättmaskinen töms i den)
                        "GB2": (3770.0, 8510.0),            # i teknikrummet (fördelarskåpets läckageindikering)
                        "GB3": (8330.0, 9920.0),
-                       "GB4": (3850.0, 4180.0),            # vid tvätthoet KA-TH3 på V7 (skissen: 1,2 m norrut), så
-                       "GB5": (11310.0, 3430.0)}           # att golvvärmens slinga ryms i rummet öster om KL2
+                       "GB4": (3310.0, 4450.0),            # i det framtida badrummets dusch (skissen)
+                       "GB5": (11310.0, 3430.0)}
 BRUNN_KALLARE = (200.0, G.H_PLATTA)         # golvbrunnens kropp i källaren: diameter och djup (plattans betong)
-TVATTHO_AVSTAND = 150.0                     # tvätthoets avlopp i golvet från väggens gips
+# tvätthonas och handfatets avlopp bredvid golvstosen (dx, dy): tvätthona norr om stosen (vattnet kommer söderifrån),
+# handfatet längs bågen förbi kallvattnet (vattnet kommer västerifrån)
+BREDVID_STOSEN = {"KA-TH1": (0.0, -100.0), "KA-TH2": (0.0, -100.0),
+                  "KB-TS1": (110.0 * kallarbadrum.TANGENT[0], 110.0 * kallarbadrum.TANGENT[1])}
+WC_KALLARE = (3050.0, 5150.0)               # det framtida WC:ts golvavlopp Ø110 (skissen: mot KL2, 190 från gipsen)
 TVATTHO_STOS = 80.0                         # anslutningens överkant över golvet
 _V9 = next(v for v in K.VAGGAR if v.namn == "V9")
 UTLOPP = (13000.0, _V9.c - K.KARNA / 2 - K.CELL)          # där grundledningen går ut under V9:s utsida
@@ -173,12 +178,14 @@ def _fall(start: Vek, plan: list[tuple[float, float]], d: float) -> list[Vek]:
 
 
 def tvatthon() -> dict[str, tuple[float, float]]:
-    """Tvätthonas avlopp i golvet: TVATTHO_AVSTAND framför väggdosan (tappvattnets KA-TH1–KA-TH3)."""
+    """Tvätthonas och det framtida handfatets avlopp i golvet bredvid deras golvstosar (tappvattnets KA-TH1, KA-TH2
+    och KB-TS1), på den sida där tappvattnet inte kommer under plattan (BREDVID_STOSEN)."""
     ut = {}
-    for t in vattnet_i_kallaren.TAPPSTALLEN:
-        if t.typ.kod == "TH":
-            (x, y, _), (nx, ny, _) = t.lage.punkt, t.lage.normal
-            ut[t.id] = (x + nx * TVATTHO_AVSTAND, y + ny * TVATTHO_AVSTAND)
+    for t in (*vattnet_i_kallaren.TAPPSTALLEN, *kallarbadrum.TAPPSTALLEN):
+        if t.id in BREDVID_STOSEN:
+            (x, y, _), (dx, dy) = t.lage.punkt, BREDVID_STOSEN[t.id]
+            ut[t.id] = (x + dx, y + dy)
+    assert set(ut) == set(BREDVID_STOSEN), "avloppen bredvid golvstosarna"
     return ut
 
 
@@ -298,8 +305,10 @@ def ledningar() -> dict[str, Ledning]:
         (("AV7", "", ""), "Stammen i KL8", GRUND, (sx, sy), [(sx, sy, Z_STAM)], True),
         *(((f"AV{11 + i}", "", ""), f"Golvbrunnen {k}", GRUND, p, [(*p, zk)], True)
           for i, (k, p) in enumerate(q for q in GOLVBRUNNAR_KALLARE.items() if q[0] not in ("GB1", "GB2"))),
-        *(((f"AV{14 + 2 * i}", "", f"AV{15 + 2 * i}"), f"Tvätthoet {k}", INGJUTET_MIN, p,
-           [(*p, S.Z_BOTTENPLATTA + TVATTHO_STOS)], False) for i, (k, p) in enumerate(tvatthon().items()))]
+        *(((f"AV{14 + 2 * i}", "", f"AV{15 + 2 * i}"), f"{'Handfatet' if k.startswith('KB') else 'Tvätthoet'} {k}",
+           INGJUTET_MIN, p, [(*p, S.Z_BOTTENPLATTA + TVATTHO_STOS)], False) for i, (k, p) in enumerate(tvatthon().items())),
+        (("AV30", "", ""), "Det framtida WC:t i källaren", GRUND, WC_KALLARE,
+         [(*WC_KALLARE, S.Z_BOTTENPLATTA + TVATTHO_STOS)], True)]
     # GB1 och GB2 står på grundledningen och går rakt ned i den
     for lid, k, s in (("AV9", "GB1", 0.0), ("AV10", "GB2", s1)):
         x, y = GOLVBRUNNAR_KALLARE[k]

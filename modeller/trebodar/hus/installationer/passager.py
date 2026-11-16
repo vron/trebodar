@@ -35,8 +35,8 @@ class Passage:
 
 PASSAGER: dict[str, tuple[Passage, ...]] = {
     "1A": (Passage(938.0, 1088.0, "tappvattnets stråk S till badkaret och tvättstället"),
-           Passage(1510.0, 1686.0, "tappvattnets stråk S2 till UF2 och källarens tvättho")),
-    "1B": (Passage(1315.0, 1878.0, "tappvattnets stråk S2, S och V västerut och golvvärmens tillopp till hallen"),),
+           Passage(1510.0, 1686.0, "tappvattnets stråk S2 till WC:n, tvätten och duschen")),
+    "1B": (Passage(1315.0, 1878.0, "tappvattnets stråk S2 och S västerut och golvvärmens tillopp till hallen"),),
     "2B": (Passage(420.0, 935.0, "golvvärmens slinga i kontoret"),
            Passage(5170.0, 5920.0, "golvvärmens tillopp G och O österut")),
     "1NO": (Passage(1016.0, 1380.0, "tvättställets golvdosa och rör"),),

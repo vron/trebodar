@@ -27,10 +27,10 @@ from . import teknikrum
 from .katalog import FORDELARE_KV, FORDELARE_VV
 from ..strak import Strak, filer
 from .punkter import FIL, Z_ROR, Fordelare, Ror, Rum, Tappstalle, anslutning, hylsa, ror, ror_hylsa, till_tappstallet
-from .rum import badrum, kallare, kok
+from .rum import badrum, kallarbadrum, kallare, kok
 from .underfordelare import ROR_MATNING, UNDERFORDELARE, Underfordelare
 
-MODULER: tuple[ModuleType, ...] = (badrum, kok, kallare)
+MODULER: tuple[ModuleType, ...] = (badrum, kok, kallare, kallarbadrum)
 
 VV_TID = 10.0                  # varmvatten vid tappstället inom 10 s vid normflödet (BBR 6:62, Säker Vatten) [s]
 V_MAX, V_ANM = 2.5, 2.0        # vattenhastighet vid normflödet [m/s]: fel över V_MAX, anmärkning över V_ANM
@@ -104,6 +104,7 @@ class Vatten:
         anm: list[str] = []
         ordningar: dict[str, dict[str, tuple[str | None, int | None]]] = {
             "teknikrum.ORDNING": dict(teknikrum.ORDNING),
+            "teknikrum.ORDNING_NED": {t: (g, None) for t, g in teknikrum.ORDNING_NED.items()},
             **{f"{u.id}:s ordning": dict(u.ordning) for u in self.underfordelare.values()}}
         fel += [f"{t}: i {n} tappställenas ordningar" for t in self.tappstallen
                 if (n := sum(t in o for o in ordningar.values())) != (0 if t in teknikrum.DIREKT else 1)]
@@ -149,8 +150,9 @@ class Vatten:
                     fel.append(f"{fd.id}: utgång {n} används av {anv.count(n)} rör")
             if fd.utgangar > fd.typ.utgangar:
                 fel.append(f"{fd.id}: {fd.utgangar} utgångar men fördelaren har {fd.typ.utgangar}")
-        for tid, (_, utg) in self.utgangar.items():
-            if len(utg) == 2 and (tid not in self.tappstallen or self.tappstallen[tid].dosa.slag != "hylsa"):
+        for tid, (fd_id, utg) in self.utgangar.items():
+            if (len(utg) == 2 and fd_id != "FDN"
+                    and (tid not in self.tappstallen or self.tappstallen[tid].dosa.slag != "hylsa")):
                 avvik = [_avvik(self.vag(self.ror[f"{tid}-{m}"])) for m in ("KV", "VV")]
                 if math.dist(avvik[0], avvik[1]) < FIL - 1.0:
                     fel.append(f"{tid}: kallt och varmt lämnar stråket på samma ställe (vänd golvdosan eller ange "
@@ -191,7 +193,8 @@ class Vatten:
                           "koppar": r.typ.kod.startswith("CU"),
                           "fran": r.fran, "till": r.till, "modul": self.modul[r.id], "vag": [list(p) for p in v],
                           "langd": langd(v), "volym": langd(v) / 1000 * r.typ.liter_per_m}
-        ordning = {**teknikrum.ORDNING, **{t: s for u in self.underfordelare.values() for t, s in u.ordning}}
+        ordning = {**teknikrum.ORDNING, **{t: (g, None) for t, g in teknikrum.ORDNING_NED.items()},
+                   **{t: s for u in self.underfordelare.values() for t, s in u.ordning}}
 
         def utgang(tid: str) -> str:
             fd, utg = self.utgangar.get(tid, ("FD", {}))
@@ -329,23 +332,41 @@ def vatten() -> Vatten:
             modul[t.id] = mod.RUM.namn
     uf = {u.id: u for u in UNDERFORDELARE}
     huvud = {**tapp, **{u.id: u.inlopp() for u in uf.values()}}         # underfördelarnas inlopp som tappställen
-    filer_, mitt = _filer(huvud, teknikrum.ORDNING, teknikrum.strak, (teknikrum.X["KV"], teknikrum.Y_FIL0), (0.0, 1.0))
+    filer_, mitt = _filer(huvud, teknikrum.ORDNING, teknikrum.strak, (teknikrum.X_FIL0, teknikrum.Y["KV"]), (1.0, 0.0))
     fd = {m: teknikrum.fordelare(m, typ, tuple(sorted(n for (_, mm), n in filer_.items() if mm == m)))
           for m, typ in (("KV", FORDELARE_KV), ("VV", FORDELARE_VV))}
     utgangar: dict[str, tuple[str, dict[str, int]]] = {}
     for (t_id, m), n in filer_.items():
         utgangar.setdefault(t_id, ("FD", {}))[1][m] = fd[m].filer.index(n) + 1
+    # de nedre fördelarna: en fil per rör i ORDNING_NED:s ordning (kallt före varmt), grupperna N1 och N2
+    ned = [(t_id, g, m) for t_id, g in teknikrum.ORDNING_NED.items() if t_id in tapp
+           for m, q in (("KV", tapp[t_id].typ.kv), ("VV", tapp[t_id].typ.vv)) if q > 0]
+    fil = teknikrum.FILER_NED
+    fd_ned = {m: teknikrum.fordelare(m, typ, tuple(fil[i] for i, (_, _, mm) in enumerate(ned) if mm == m), ned=True)
+              for m, typ in (("KV", FORDELARE_KV), ("VV", FORDELARE_VV))}
     strak = teknikrum.strak(mitt)
-    ror_: dict[str, Ror] = {r.id: r for r in teknikrum.matarledningar(fd["KV"], fd["VV"])}
+    ror_: dict[str, Ror] = {r.id: r for r in teknikrum.matarledningar(
+        {"KV": fd["KV"], "VV": fd["VV"], "KVN": fd_ned["KV"], "VVN": fd_ned["VV"]})}
+    for g in ("N1", "N2"):
+        grupp = [(i, t_id, m) for i, (t_id, gg, m) in enumerate(ned) if gg == g]
+        for k, (i, t_id, m) in enumerate(grupp):
+            r = teknikrum.ror_under_plattan(tapp[t_id], m, fd_ned[m], fd_ned[m].filer.index(fil[i]) + 1, g, k,
+                                            len(grupp))
+            ror_[r.id] = r
+            modul[r.id] = modul[t_id]
+            utgangar.setdefault(t_id, ("FDN", {}))[1][m] = fd_ned[m].filer.index(fil[i]) + 1
     modul.update({r: "Teknikrum" for r in ror_})
-    for t_id, (_, utg) in list(utgangar.items()):
+    for t_id, (fd_id, utg) in list(utgangar.items()):
+        if fd_id == "FDN":                                              # under bottenplattan, redan dragna
+            continue
         s_id, ben = teknikrum.ORDNING[t_id]
-        for r in ror(huvud[t_id], utg, strak[s_id], fd, ben, avloppen_i_nivan(huvud[t_id].ror.yttre / 2)):
+        hinder = unary_union([avloppen_i_nivan(huvud[t_id].ror.yttre / 2), teknikrum.rata_horn()])
+        for r in ror(huvud[t_id], utg, strak[s_id], fd, ben, hinder):
             if t_id in uf:                                              # matningen till underfördelarens utgång 0
                 r = replace(r, till=f"{t_id}-{r.media}:0", typ=ROR_MATNING.get((t_id, r.media), r.typ))
             ror_[r.id] = r
             modul[r.id] = uf[t_id].rum if t_id in uf else modul[t_id]
-    fordelare = {f.id: f for f in fd.values()}
+    fordelare = {f.id: f for f in (*fd.values(), *fd_ned.values())}
     for u in uf.values():
         ordning = dict(u.ordning)
         i_strak = {t: (s, b) for t, (s, b) in ordning.items() if s is not None}

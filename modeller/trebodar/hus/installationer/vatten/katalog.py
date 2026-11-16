@@ -26,6 +26,8 @@ VAGGDOSA = Dosatyp("VD1", "Väggdosa för rör-i-rör (ej vald)", "vägg", 90.0,
 GOLVDOSA = Dosatyp("GD", "Golvgenomföring för rör-i-rör i skåpet (ej vald)", "golv", 160.0, 80.0, 40.0, cc=60.0)
 INLOPP = Dosatyp("UF", "Underfördelarens inlopp: rören ned ur bjälklaget till stammarnas början", "fördelare",
                  0.0, 0.0, 0.0)
+GOLVSTOS = Dosatyp("GS", "Golvstos: rör-i-röret upp genom bottenplattan strax innanför väggen, med avstängning "
+                   "(under bänken, ej vald)", "stos", 60.0, 60.0, 200.0, cc=60.0)
 HYLSA_50 = Dosatyp("HY", "Hylsa Ø50 i bjälklaget per rör (PP-avloppsrör 50 × 1,8), kopparröret från underfördelaren "
                    "rakt upp", "hylsa", 50.0, 50.0, 150.0)
 
@@ -44,7 +46,8 @@ PEM_20 = Rortyp("PEM20", "PEM 20 × 2,0 i skyddsrör 32", 20.0, 2.0, 32.0)
 # huvudfördelarna i fördelarskåpet och underfördelarna utanpå väggen i källaren (underfordelare.py)
 
 FORDELARE_KV = Fordelartyp("FDKV", "Fördelare för kallvatten, rör-i-rör, 10 utgångar och genomgång (ej vald)", 10, 40.0)
-FORDELARE_VV = Fordelartyp("FDVV", "Fördelare för varmvatten, rör-i-rör, 8 utgångar (ej vald)", 8, 40.0)
+FORDELARE_VV = Fordelartyp("FDVV", "Fördelare för varmvatten, rör-i-rör, 8 utgångar och genomgång (ej vald)", 8,
+                           40.0)
 UNDERFORDELARE_KV = Fordelartyp("UFKV", "Underfördelare för kallvatten, rör-i-rör, 3 utgångar (ej vald)", 3,
                                 50.0)
 UNDERFORDELARE_VV = Fordelartyp("UFVV", "Underfördelare för varmvatten, rör-i-rör, 2 utgångar (ej vald)", 2,

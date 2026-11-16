@@ -1,5 +1,5 @@
-"""Teknikrummet i källaren (#51): uttagen på V3 mellan centralen och vattenmätaren (gruppen G19, ur centralens
-baksida i V3:s cellplast), gruppcentralen (..teknikrum.GRUPPCENTRAL, på V3 väster om vattenmätaren) som punkten
+"""Teknikrummet i källaren (#51): uttagen på V3 vid fördelarskåpet (gruppen G19, ur centralens baksida i V3:s
+cellplast, bakom skåpet), gruppcentralen (..teknikrum.GRUPPCENTRAL, på V3 väster om vattenmätaren) som punkten
 GC, där varje grupps rör börjar på centralens ovansida (bjalklag/mellanbjalklag.py), och värmepumpens fasta
 anslutning (TK-D1) på V19 ovanför värmepumpen, med röret från centralens östra ände i källarväggarnas cellplast
 bakom gipsen (fräst spår), i V3 och V19.
@@ -22,7 +22,8 @@ _V3_EPS = kallarvagg("V3", 0.0, 0.0, -1).punkt[1] + 63.0      # mitt i V3:s cell
 _V19_EPS = _VP.punkt[0] + 63.0
 
 Z_UTTAG = 1100.0                             # uttagen i teknikrummet och tvättstugan, över golvet
-X_UTTAG = (3200.0, 3450.0, 3700.0)          # teknikrummets uttag på V3, mellan centralen och vattenmätaren (x 3 850)
+X_UTTAG = (3100.0, 4100.0, 4300.0)          # teknikrummets uttag på V3: mellan centralen och fördelarskåpet och
+#                                             öster om skåpet och huvudledningen (x 3 960)
 PUNKTER = [
     Dosa("GC", CENTRAL, Montering(_TOPP, (0.0, 0.0, 1.0), "central", GRUPPCENTRAL.id)),
     # drivdonsskåpet för källarens ljuslinjer på KL8 öster om pelaren P4 (rören i rum/kallare.py)

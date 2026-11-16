@@ -3,8 +3,8 @@ blandare på 1SO mitt för karet (#97), WC:n på L9 och tvättstället i badrums
 bjälklaget från stråket S i mellanbjälklaget: i väggarnas regelfack eller installationsskikt till väggdosorna (duschen,
 badkaret, WC:n) och genom golvet till golvdosan (tvättstället, i skåpet under det).
 
-Tvättmaskinen i skåpet i nischen (#51, förberedd) har en egen väggdosa på L10 i glipan bredvid maskinerna, med kallt
-från underfördelaren UF2 under badrummet, som också matar WC:n (underfordelare.py); de andra kommer från stråket S.
+Tvättmaskinen i skåpet i nischen (#51, förberedd) har en egen väggdosa på L10 i glipan bredvid maskinerna, öster om
+tvättens avlopp; den och WC:n får kallt i stråket S2 med duschen, badkaret och tvättstället i stråket S.
 
 Duschens blandare sitter på L11 i nischens främre del, mitt i regelfacket mellan L11-R05 och L11-R06. WC:ns väggdosa sitter vid sidan av cisternen i regelfacket mellan L9-R02 och
 L9-R03. Golvdosorna står i golvets färdiga yta (klinkern över fallavjämningen) och dosornas höjd räknas från golvet.
@@ -41,6 +41,7 @@ def _over_golvet(kod: str, u: float, z: float, sida: int) -> Montering:
 
 # duschens rör från stråket S2 söder om 1A (minst 200 mm från 1A:s och 1B:s bultar), under badrummet österut till
 # nischen och längs L11 norrut till blandaren; varmvattnet ytterst, så att rören inte korsar varandra (#114)
+FORBI_TVATTENS_AVLOPP = 70.0                    # tvättmaskinens rör så långt söder om avloppet i L10
 DUSCHENS_VAG: dict[str, Via | tuple[Via, ...]] = {"KV": ((3200.0, 6250.0), (3200.0, None)), "VV": ((3164.0, 6286.0), (3164.0, None))}
 
 TAPPSTALLEN = [
@@ -53,6 +54,8 @@ TAPPSTALLEN = [
     Tappstalle("BA-WC1", WC, VAGGDOSA, _over_golvet("L9", Y_WC_DOSA - vaggdef("L9").origo[1], Z_WC_DOSA, 1),
                ROR_I_ROR_15),
     Tappstalle("BA-TS1", TVATTSTALL, GOLVDOSA, _golv(*TS_DOSA), ROR_I_ROR_15, kallt=(0.0, 1.0, 0.0)),
+    # österut söder om tvättens avlopp (i L10:s mitt, väster om dosan) och norrut in i väggen öster om det
     Tappstalle("BA-TM1", TVATTMASKIN, VAGGDOSA,
-               _over_golvet("L10", B.TVATT_VATTEN[0] - vaggdef("L10").origo[0], B.TVATT_VATTEN[1], 1), ROR_I_ROR_16),
+               _over_golvet("L10", B.TVATT_VATTEN[0] - vaggdef("L10").origo[0], B.TVATT_VATTEN[1], 1), ROR_I_ROR_16,
+               via=(None, vaggdef("L10").origo[1] + vaggdef("L10").tjocklek / 2 + FORBI_TVATTENS_AVLOPP)),
 ]

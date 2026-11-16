@@ -8,7 +8,7 @@ R-03–R-06.
 
 Varje blad har plattans snitt, väggarna på plattan streckade (och källarens tunna under mellanbjälklaget),
 punkterna numrerade och måttsatta från närmaste fasta referens (plattans kant, hålets kant, källarväggens liv; i rad
-som måttkedjor), detaljer 1:10 där det är tätt (centralens och drivdonsskåpets rör, tappvattnets stigare vid V19,
+som måttkedjor), detaljer 1:10 där det är tätt (centralens och drivdonsskåpets rör, tappvattnets stigare ur fördelarskåpet på V3,
 köket vid V14), en tabell över punkternas lägen x, y i mm från mellanbjälklagets kanter (K-05:s origo, som på R-04,
 R-05 och R-06) och vad de är, och en teckenförklaring. Punkterna kontrolleras mot modellen (kontroll). Ritas med
 `./mod gjutning ritning` (i ritningar/, i ./bygg).
@@ -135,7 +135,7 @@ def kontroll(platta: object, hal: list[dict], plattor: list[dict], punkter: dict
 
 def _fordelarna(vt: dict) -> dict[str, list[tuple[str, list[float], list[float]]]]:
     """Tappvattnets fördelare och underfördelare under plattan som stänger (media, start och slut i plan) per
-    fördelare: FD (huvudfördelarna i teknikrummet), UF1, UF2."""
+    fördelare: FD (huvudfördelarna i teknikrummet) och UF1."""
     ut: dict[str, list[tuple[str, list[float], list[float]]]] = {}
     for f in vt.get("fordelare", {}).values():
         ut.setdefault("FD", []).append((f["media"], f["start"][:2], f["slut"][:2]))
@@ -498,7 +498,7 @@ def _numrera(v: Vy, punkter: list[Punkt], prefix: str, samla: Sequence[Omrade] =
 TABELL_EL = (226.0, 14.0, 48.0)       # AR-03.1:s punkttabell i två spalter till höger på ritytan, över detaljen
 DETALJ = (2330.0, 3060.0, 8820.0, 9140.0)           # el: rören ur gruppcentralen (x0, x1, y0, y1)
 DETALJ_LC = (3090.0, 3670.0, 7690.0, 7935.0)         # el: rören ur drivdonsskåpet på KL8 (öster om P4)
-DETALJ_VATTEN = (4150.0, 4500.0, 7980.0, 9080.0)     # tappvatten: stigarna ur källaren vid V19
+DETALJ_VATTEN = (3150.0, 3850.0, 8780.0, 9080.0)     # tappvatten: stigarna ur fördelarskåpet på V3
 DETALJ_KOK = (13280.0, 13520.0, 8300.0, 8900.0)      # köket vid V14: hylsorna, diskbänkens avlopp, UF1
 DETALJER = (DETALJ, DETALJ_LC, DETALJ_VATTEN, DETALJ_KOK)
 SKALA_DETALJ = 10.0
@@ -848,7 +848,7 @@ def ritningar(el: dict, vatten: dict, avlopp: dict, golvvarme: dict, hal: dict[s
             "Rör-i-rör läggs i stråken närmast underkantsnätet, c/c 50, och går upp och ned mellan armeringsjärnen. "
             "Hylsorna (PP-avloppsrör) gjuts in mellan järnen; kopparrören dras senare. Där det är tätt: se "
             "detaljerna.", norr,
-            [detalj("Detalj: stigarna ur källaren vid V19", DETALJ_VATTEN, (238.0, 44.0),
+            [detalj("Detalj: stigarna ur fördelarskåpet på V3", DETALJ_VATTEN, (238.0, 150.0),
                     _vatten_element(vatten, MB, DETALJ_VATTEN)),
              detalj("Detalj: köket vid V14", DETALJ_KOK, (290.0, 44.0), _vatten_element(vatten, MB, DETALJ_KOK))]),
         gor(nr[2], m, "avlopp", "A", mb, *m_vagg, lambda v: _avlopp(v, avlopp, MB),

@@ -151,8 +151,8 @@ def _hinder(plan: int) -> Polygon:
     """Det som slingorna ska hålla sig ifrån: järnen i rörens nivå, tappvattnets rör upp ur mellanbjälklaget, elens rör
     där de går genom slingornas nivå (lodrätt, där de byter nivå och där de går under eller över ett annat rör, #87) och
     avloppets rör och golvbrunn genom det och stommens bultar (forankring.sparrzon, #114; plan 1), utrustningen på
-    källarens golv och rören genom bottenplattan (servisen, köldbärarens skyddsrör och avloppets rör ned till
-    grundledningen, källaren)."""
+    källarens golv och rören genom bottenplattan (tappvattnets rör till golvstosarna och från fördelarskåpet,
+    köldbärarens skyddsrör och avloppets rör ned till grundledningen, källaren)."""
     delar = [g.buffer(JARN) for g, _ in jarnen(plan)]
     if plan == 1:
         v = vatten()
@@ -172,6 +172,10 @@ def _hinder(plan: int) -> Polygon:
         delar.append(sparrzon().buffer(GOLVVARMEROR.d / 2 + MARGINAL_STOMME))
     else:
         delar += [Point(k.vag[0][0], k.vag[0][1]).buffer(FRITT + KB_D / 2) for k in kollektorns().values()]
+        v = vatten()                   # tappvattnets rör upp genom bottenplattan: golvstosarna och fördelarskåpets
+        delar += [Point(a[0], a[1]).buffer(FRITT + r.typ.yttre / 2) for r in v.ror.values()
+                  for a, b in zip(v.vag(r), v.vag(r)[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
+                  and min(a[2], b[2]) < S.Z_BOTTENPLATTA < max(a[2], b[2])]
         delar += [Point(a[0], a[1]).buffer(FRITT + led.d / 2) for led in avloppets().values()
                   for a, b in zip(led.vag, led.vag[1:]) if abs(a[0] - b[0]) < 1.0 and abs(a[1] - b[1]) < 1.0
                   and min(a[2], b[2]) < S.Z_BOTTENPLATTA < max(a[2], b[2])]

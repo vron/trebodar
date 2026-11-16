@@ -23,8 +23,8 @@ cd verktyg/modellering
 | [`typer.py`](typer.py) | Produkttyperna: `Tappstalletyp` (normflöden), `Dosatyp` (väggdosa, golvdosa, hylsor), `Rortyp` (PEX, med skyddsrör för rör-i-rör, och koppar) och `Fordelartyp` |
 | [`katalog.py`](katalog.py) | Produkterna, tills vidare allmänna typer med vanliga mått och normflöden (ej valda) |
 | [`punkter.py`](punkter.py) | Tappställe, fördelare och rör, och hur rören dras: nivån i bjälklaget (`Z_ROR`), filerna (`FIL`), `till_tappstallet` och `ror` |
-| [`teknikrum.py`](teknikrum.py) | Fördelarna, tappställenas ordning (`ORDNING`), stråken (`strak`) och matarledningarna |
-| [`underfordelare.py`](underfordelare.py) | Underfördelarna UF1 (under köket) och UF2 (under badrummet): läget på väggen, stammarna, matningen och deras tappställen (UF2 i ett eget stråk, UF1 med kopparrör till hylsor) |
+| [`teknikrum.py`](teknikrum.py) | Fördelarna (de övre till bjälklaget, de nedre till källaren), tappställenas ordning (`ORDNING`, `ORDNING_NED`), stråken (`strak`), rören under bottenplattan och matarledningarna |
+| [`underfordelare.py`](underfordelare.py) | Underfördelaren UF1 (under köket): läget på väggen, stammarna, matningen och dess tappställen (med kopparrör till hylsor) |
 | `rum/<rum>.py` | Ett rums tappställen: typ, dosa, läge på väggen eller golvet och rörtyp |
 | [`system.py`](system.py) | Allt ur rummen (`MODULER`), rören från fördelarna, kontrollen, genomföringarna och utdraget för ritningarna |
 | [`vatten.py`](vatten.py) | Geometrin, ett montage per rum och ett för teknikrummet under `Hus/Installationer/Vatten` |
@@ -41,13 +41,18 @@ genomföringarna ([`../genomforingar.py`](../genomforingar.py)) är gemensamma m
   normflöden, anslutningen (väggdosa i väggen, golvdosa i golvet eller hylsor i bjälklaget), läget och rörtypen.
   Kallvattnet ansluter till höger och varmvattnet till vänster sett mot dosan; golvdosornas riktning från varmt till
   kallt är `kallt`.
-- **Fördelare** (`Fordelare`): kallvattnets och varmvattnets stammar i fördelarskåpet, med numrerade utgångar uppåt;
-  utgång 0 och utgången efter den sista är stammens ändar (inlopp och genomgång).
+- **Fördelare** (`Fordelare`): kallvattnets och varmvattnets stammar i fördelarskåpet, med numrerade utgångar;
+  utgång 0 och utgången efter den sista är stammens ändar (inlopp och genomgång). Skåpet (TK-FS) står högt och smalt
+  på V3 från golvet till taket: upptill de övre fördelarna (FD-KV, FD-VV) med utgångarna uppåt in i mellanbjälklaget,
+  nedtill de nedre (FD-KVN, FD-VVN) med utgångarna nedåt genom bottenplattan till källarens tappställen
+  (`ORDNING_NED`, grupperna N1 västerut och N2 österut), i cellplasten under plattans balkar (`teknikrum.Z_UNDER`) och
+  upp genom plattan till golvstosarna (dosans slag `stos`, `rum/stos.py`) strax innanför väggarna. Filerna under
+  skåpet är de som går fria från bottenplattans järn (`FILER_NED`).
 - **Underfördelare** (`Underfordelare`): en liten fördelare öppet på en vägg i källaren i ett rum med golvbrunn,
   matad från fördelarskåpet med ett rör per media som ett tappställe i `ORDNING` (rören rakt ned ur bjälklaget till
   stammarnas början, utgång 0), med egna utgångar till sina tappställen. UF1 under köket på V14 (diskbänken och
-  diskmaskinen i ön, #50, med kopparrör till hylsor, #83) och UF2 under badrummet på KL1 (WC:n och tvättmaskinen i
-  skåpet, #51, i ett eget stråk): fördelarskåpets filer räcker inte till fler rör. UF1:s kallvatten kommer inte från
+  diskmaskinen i ön, #50, med kopparrör till hylsor, #83). UF2 under badrummet finns inte längre: WC:n och tvätten
+  matas från fördelarskåpet i stråket S2. UF1:s kallvatten kommer inte från
   fördelarskåpet utan direkt från vattenmätaren på samma vägg (`Underfordelare.direkt`, #139).
 - **Inkommande vatten** (#139): servisen (PEM 32) kommer upp genom bottenplattan under köket, vid V14, till
   vattenmätaren med huvudavstängningen på väggen (`../teknikrum.py`: TK-SV, TK-VM). Från mätaren går kallvattnet till

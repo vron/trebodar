@@ -8,8 +8,6 @@ läckage syns och rinner till golvbrunnen.
   under taket och genom hylsor i bjälklaget (rum/kok.py, #83), utan stråk. Varmvattnets matning kommer i stråket O
   och ned till stammens början; kallvattnet kommer direkt från vattenmätaren på samma vägg (#139,
   teknikrum.till_underfordelaren).
-- UF2 i rummet öster om KL2 under badrummet, på KL1: kallt till WC:n BA-WC1 och till tvättmaskinen BA-TM1 i skåpet i
-  badrummet, var sin utgång. Huvudfördelarnas filer räcker inte till ett rör till (#50).
 
 Stammarna som i fördelarskåpet: varmvattnet bakom och högre, kallvattnet framför, utgångarna uppåt c/c FIL i rörens
 filer, och rören rakt upp i mellanbjälklaget mellan underkantsnätets järn: underfördelaren flyttas längs väggen så
@@ -125,9 +123,6 @@ UNDERFORDELARE = [
                    (("KV", UNDERFORDELARE_KV), ("VV", UNDERFORDELARE_VV)), ROR_I_ROR_18,
                    (("KV", 0.3), ("VV", 0.2)), (("KO-DM1", (None, None)), ("KO-DB1", (None, None))),
                    direkt=("KV",)),
-    Underfordelare("UF2", "Underfördelare under badrummet", "Källare", (_KL2_YTA + 40.0, _KL1_YTA, 0.0),
-                   (0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (("KV", UNDERFORDELARE_KV),), ROR_I_ROR_18,
-                   (("KV", 0.25),), (("BA-TM1", ("B", None)), ("BA-WC1", ("B", None))), "B", 1000.0),
 ]
 
 # matningens rör till UF1:s varmvatten är klenare, så att varmvattnet når diskbänken inom tiden (system.VV_TID)

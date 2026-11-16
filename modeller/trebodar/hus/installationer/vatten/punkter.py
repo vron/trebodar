@@ -111,7 +111,7 @@ def _anslutning(t: Tappstalle, media: str) -> Vek:
         return dict(t.anslutningar)[media]
     m, d = t.lage, t.dosa
     n = m.normal
-    hoger = (-n[1], n[0], 0.0) if d.slag != "golv" else (t.kallt or (1.0, 0.0, 0.0))
+    hoger = (-n[1], n[0], 0.0) if d.slag not in ("golv", "stos") else (t.kallt or (1.0, 0.0, 0.0))
     p = flytt(m.punkt, n, -d.djup / 2 if d.slag == "vägg" else d.djup / 2)
     return flytt(p, hoger, (d.cc / 2) * (1 if media == "KV" else -1)) if d.cc else p
 

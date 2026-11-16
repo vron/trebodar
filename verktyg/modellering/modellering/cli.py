@@ -1004,7 +1004,7 @@ def main(argv: list[str] | None = None) -> None:
             plan1 = snitt(ma, step_fil, 1200.0, UT / "vatten-plan1.json")
             kallare = snitt(ma, step_fil, skel.Z_BOTTENPLATTA + 1200.0, UT / "vatten-kallare.json")
             mb = snitt(ma, step_fil, -75.0, UT / "vatten-mellanbjalklag.json")
-            vyn = snitt(ma, step_fil, f"x={vattenritning.X_VY:g}", UT / "vatten-vy.json")
+            vyn = snitt(ma, step_fil, f"y={vattenritning.Y_VY:g}", UT / "vatten-vy.json")
             vent = importlib.import_module("trebodar.hus.installationer.ventilation.system").ventilation().utdrag()
             pdf = vattenritning.ritningar(utdrag, plan1, kallare, mb, vyn, vent, _norr(), UT / "vatten" / "blad",
                                           arg.ut)

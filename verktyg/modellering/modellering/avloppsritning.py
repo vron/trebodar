@@ -25,7 +25,8 @@ SZ = 5.6                                          # texternas storlek [pt]
 R_LODRATT, R_GB, R_STAM, R_LU = 0.75, 1.3, 1.2, 0.95   # symbolernas radie på papperet [mm]
 PIL = "#8a5524"                                   # flödespilarna (ritningsmallens AV)
 # avloppspunkterna på plan 1 och i källaren: ledningen vars första punkt är punkten och dess förkortning i planen
-PUNKTER = {"AV1": "WC", "AV2": "TS", "AV3": "BK", "AV5": "DB", "AV14": "TH1", "AV16": "TH2", "AV18": "TH3",
+PUNKTER = {"AV1": "WC", "AV2": "TS", "AV3": "BK", "AV5": "DB", "AV14": "TH1", "AV16": "TH2", "AV18": "KB-TS",
+           "AV30": "KB-WC",
            "AV21": "TM"}
 
 Pkt = tuple[float, float]
@@ -287,12 +288,13 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
             f"Ø{lu['d'][1]:g} isolerad från innertaket ut genom taket till en luftningshuv av plåt; syll och "
             "hammarband urtas. Hålen i mellanbjälklaget för luftningen och duschens golvbrunn ligger inom rörets P4 "
             "genomstansningszon (K-05).",
-            "Golvbrunnarna i källaren gjuts in i bottenplattan med flänsen i dess överkant; tvättmaskinen töms i GB1. "
-            "Tvätthona TH1–TH3 får var sin anslutning Ø75 i golvet framför väggdosan.",
-            "Diskmaskinen i köksön har pumpat avlopp (AV20): maskinens egen pump trycker vattnet genom ett rör PEX 25 "
-            "utan fall, ingjutet i mellanbjälklaget på tappvattnets nivå, från anslutningen i golvet under maskinen "
-            "till diskbänksskåpet bakom lådorna och upp till diskhons vattenlås (anslutning för diskmaskin, med en ögla "
-            f"under bänkskivan). Diskmaskinen ska tillåta minst {sv(u['dm_slang'], 0)} m avloppsslang.",
+            "Golvbrunnarna i källaren gjuts in i bottenplattan med flänsen i överkant; tvättmaskinen töms i GB1. "
+            "Tvätthona TH1, TH2 och det framtida badrummets handfat (KB-TS) har Ø75 i golvet bredvid golvstosen, "
+            "dess WC (KB-WC) Ø110 och dusch GB4; KB:s proppade.",
+            "Diskmaskinen i köksön har pumpat avlopp (AV20): maskinens pump trycker vattnet genom PEX 25 utan fall, "
+            "ingjutet i mellanbjälklaget på tappvattnets nivå, från golvet under maskinen till diskbänksskåpet och upp "
+            "till diskhons vattenlås (anslutning för diskmaskin, ögla under bänkskivan). Maskinen ska tillåta minst "
+            f"{sv(u['dm_slang'], 0)} m avloppsslang.",
             "Tvätten i badrummets skåp (förberedd för tvättmaskin och torktumlare): vattenlåset på väggen L10, Ø50 "
             "ned i väggen, genom bjälklaget och ned längs källarväggen KL2 (AV21).",
             f"Höjderna: vattengången (VG, rörets innerbotten) i RH 2000; plan 1 ±0 = +{sv(u['rh0'] / 1000, 3)}, "
@@ -301,14 +303,16 @@ def _blad(u: dict, delar: list[dict], norr: tuple[float, float]) -> Blad:
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         _teckenforklaring(),
+    ]
+    # ledningarna i ett block på ritytan, under planen till höger om sektionen (spalten rymmer dem inte)
+    block = [dict(x=212.0, y=182.0, w=106.0, innehall=[
         dict(typ="rubrik", text="Ledningar"),
         dict(typ="tabell", kolumner=["Id", "Vad", "Ø", "L (m)", "Fall ‰", "VG början", "VG slut"],
              bredd=(0.42, 1.75, 0.42, 0.42, 0.42, 0.6, 0.6), just=["l", "l", "r", "r", "r", "r", "r"], sz=5.2,
-             rader=rader),
-    ]
+             rader=rader)])]
     nr = f"{SERIE.split()[0]}.1"
     return blad(nr, ["Avlopp", "Källaren och grundledningarna"], f"1:{SKALA:g}", "Modellen", kol,
-                [_plan(u, delar, norr), _sektion(u)])
+                [_plan(u, delar, norr), _sektion(u)], block)
 
 
 def ritningar(utdrag: dict, kallaren: list[dict], norr: tuple[float, float], arbete: Path, ut: Path) -> Path:

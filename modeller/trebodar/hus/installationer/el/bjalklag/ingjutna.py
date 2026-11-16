@@ -314,6 +314,10 @@ class Ingjutning:
         if any(tvars):
             mitt = ingjutet(kartor_el(r), a, b, nivaer[0], nivaer[1], h, led_a, kost, mjuka, radie_a,
                             extra=[[*u, *v] for u, v in zip(rakt, tvars)], led_b=led_b)
+        bredvid = _bredvid(mitt[0], mjuka)          # går vägen längs ett annat rör (t.ex. genom samma glipa): igen,
+        if any(bredvid):                            # med noder tätt bredvid det, så att den kan gå jämsides
+            mitt = ingjutet(kartor_el(r), a, b, nivaer[0], nivaer[1], h, led_a, kost, mjuka, radie_a,
+                            extra=[[*u, *v, *w] for u, v, w in zip(rakt, tvars, bredvid)], led_b=led_b)
         via, radier = sammanfoga((fore, fore_radier), mitt, (efter, efter_radier))
         for p, bage in ((a, bage_a), (b, bage_b)):
             if bage > 0.0:
@@ -389,6 +393,40 @@ def _tvars(punkter: Sequence[Vek], mjuka: Sequence[Sequence[BaseGeometry]]) -> l
                 w = bredd / 2 + TVARS_UT
                 ut[i] += [(m.x + u[0] * t + n[0] * sid * w, m.y + u[1] * t + n[1] * sid * w) for t in TVARS
                           for sid in (-1.0, 1.0)]
+    return ut
+
+
+BREDVID_STEG = 40.0              # noderna bredvid ett annat rör så tätt längs det
+BREDVID_UT = 2.0                 # och så långt utanför det (förstorat: upptaget_av())
+
+
+def _bredvid(punkter: Sequence[Vek], mjuka: Sequence[Sequence[BaseGeometry]]) -> list[list[Punkt]]:
+    """Extra noder per nivå där vägen går längs ett annat rör (mjuka: rören förstorade, upptaget_av()) minst SNETT:
+    tätt längs det på båda sidor, där vägen går i det och SNETT till, så att vägen kan gå jämsides med det."""
+    ut: list[list[Punkt]] = [[] for _ in NIVAER]
+    for i, niva in enumerate(NIVAER):
+        if i >= len(mjuka) or not mjuka[i]:
+            continue
+        z = BJALKLAG[niva]
+        lopp: list[list[Punkt]] = [[]]                # vägens sammanhängande delar i nivån
+        for q in punkter:
+            if abs(q[2] - z) <= 1.0:
+                lopp[-1].append(q[:2])
+            elif lopp[-1]:
+                lopp.append([])
+        trad = STRtree(list(mjuka[i]))
+        for pts in (q for q in lopp if len(q) >= 2):
+            linje = LineString(pts)
+            for j in trad.query(linje):
+                g = mjuka[i][int(j)]
+                del_ = g.intersection(linje)
+                if del_.length < SNETT:
+                    continue
+                kant = g.buffer(BREDVID_UT).boundary.intersection(del_.buffer(SNETT))
+                for k in getattr(kant, "geoms", [kant]):
+                    if k.length > 0.0:
+                        ut[i] += [(q.x, q.y) for q in (k.interpolate(t) for t in
+                                                       np.arange(0.0, k.length + 1e-9, BREDVID_STEG))]
     return ut
 
 

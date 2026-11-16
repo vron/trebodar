@@ -139,7 +139,8 @@ def _genom_platta(st: Stycke, z_ok: float, tjocklek: float, yta: Polygon, namn: 
                   ut: list[Genomforing], fore: bool = False) -> None:
     """Ett stycke genom en vågrät platta (överkant z_ok) inom ytan: hylsa för små rör, annars ursparing. Ett rör som
     slutar inne i plattan är ingjutet och kommer ut ur dess över- eller underkant (läggs före gjutningen). fore: rören
-    genom plattan läggs före gjutningen och gjuts in (bottenplattan: de kommer underifrån, ur marken)."""
+    genom plattan läggs före gjutningen och gjuts in (bottenplattan: de kommer underifrån, ur marken; ritningen säger
+    det i sina anvisningar)."""
     a, b = st.a, st.b
     z_uk = z_ok - tjocklek
     z0, z1 = sorted((a[2], b[2]))
@@ -156,8 +157,7 @@ def _genom_platta(st: Stycke, z_ok: float, tjocklek: float, yta: Polygon, namn: 
         ut.append(Genomforing(namn, f"ingjutet, ut ur {'överkanten' if upp else 'underkanten'} mellan "
                               f"armeringsjärnen ({ritning})", p, st.matt, st.element))
     elif fore:
-        ut.append(Genomforing(namn, f"ingjutet, genom plattan mellan armeringsjärnen; läggs före gjutningen "
-                              f"({ritning})", p, st.matt, st.element))
+        ut.append(Genomforing(namn, "ingjutet genom plattan, mellan järnen", p, st.matt, st.element))
     else:
         atgard = (f"hylsa ingjuten ({ritning}) eller kärnborrning mellan armeringsjärnen" if max(st.yttre) <= HYLSA
                   else f"ursparing före gjutningen, armeringen läggs om ({ritning})")
@@ -166,7 +166,7 @@ def _genom_platta(st: Stycke, z_ok: float, tjocklek: float, yta: Polygon, namn: 
 
 def genomforingar(stycken: list[Stycke]) -> tuple[list[Genomforing], list[str]]:
     """Genomföringarna genom husets delar och felen från dem (stycken som inte ryms i väggen, går mot takbalkar eller
-    är oisolerade i kalla delar), varje genomföring en gång per element och byggdel."""
+    är oisolerade i kalla delar), varje genomföring en gång per element och byggdel (i plattorna per läge)."""
     ut: list[Genomforing] = []
     fel: list[str] = []
     for st in stycken:
@@ -251,7 +251,9 @@ def genomforingar(stycken: list[Stycke]) -> tuple[list[Genomforing], list[str]]:
                 for y in FALT[tf.kod].y:
                     if a[1] + hy > y - 5.0 and a[1] - hy < y + S.TAKBALK_B + 5.0:
                         fel.append(f"{eid}: går mot takbalken i y {y:g}–{y + S.TAKBALK_B:g} ({tf.kod})")
-    unika: dict[tuple[str, str, str], Genomforing] = {}
+    unika: dict[tuple[str, str, str, str], Genomforing] = {}
     for gf in ut:
-        unika.setdefault((gf.del_, gf.element, gf.atgard.split(", z")[0]), gf)
+        # i plattorna: en per läge (ett rör kan gå ned genom bottenplattan på ett ställe och upp på ett annat)
+        lage = f"{gf.punkt[0]:.0f},{gf.punkt[1]:.0f}" if gf.del_ in ("Mellanbjälklaget", "Bottenplattan") else ""
+        unika.setdefault((gf.del_, gf.element, gf.atgard.split(", z")[0], lage), gf)
     return list(unika.values()), sorted(set(fel))
