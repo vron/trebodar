@@ -57,6 +57,17 @@ tak för hällen); diskmaskinen står i ett skåps ställe. Hörnskåpet (hornsk
 förlängd in i hörnet bakom den andra bänkens ände, med en blindfront av plywood där, botten, tak 20 och en
 mellanhylla; dörren hänger på två gångjärn Blum CLIP top BLUMOTION 110° (som skåpen i kok.py) i sidan bort från
 hörnet.
+
+Underlagen, som måtten ovan är lästa ur, ligger i lokalt/manualer/ (versionshanteras inte; hämtas på nytt hit i en
+ny klon):
+
+- Blum MOVENTO, tekniskt datablad TD-132/1 EN/06.22 ("Blum MOVENTO TD-132-1 EN 06.22.pdf"):
+  https://d2.blum.com/services/BEC003/me13029704_td_dok_bau_$sen_$aof_$v1.pdf
+- Leigh D4R Pro User Guide, 2021 ("Leigh D4R Pro User Guide 2021.pdf"; sidan med alla Leighs bruksanvisningar:
+  https://www.leightools.com/instructional-videos-and-user-guides/):
+  https://www.leightools.com/wp-content/uploads/2021/04/D4RPro-User-Guide-Complete-2021.pdf
+- Blum MOVENTO, monteringsanvisning MD-047 ("Blum MOVENTO monteringsanvisning MD-047.pdf"): bara bilder av
+  montaget, utan mått; finns bland MOVENTO:s dokument på https://www.blum.com.
 """
 from __future__ import annotations
 
