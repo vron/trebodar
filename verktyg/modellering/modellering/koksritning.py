@@ -334,8 +334,8 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
     with c.lager("matt"):
         ys = [-F, 0.0]
         if lador:
-            ys.append(s.del_(f"LADA{lador[0]}-SIDA-V").bb[4])
-        ys.append(D - kk.T)
+            ys.append(s.del_(f"LADA{lador[0]}-BAK").bb[4])
+        ys.append(D - kk.T_RYGG)
         c.mattx(sorted(set(ys)), -6.0 * skala, [z_golv] * len(set(ys)), sz=5.6)
         c.mattx([0.0, D], -12.0 * skala, [z_golv] * 2, sz=6.0)
     c.rubrik(-F, H + 9.0 * skala, "Snitt A–A", skala=None)
@@ -352,12 +352,13 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
         _snittvy(p, s, 2, zc)
     with p.lager("matt"):
         p.mattx([0.0, W], -F - 6.0 * skala, [-F] * 2, sz=6.0)
-        p.matty([-F, 0.0, D - kk.T, D], W + 6.0 * skala, [W] * 4, sz=5.6)
+        p.matty([-F, 0.0, D - kk.T_RYGG, D], W + 6.0 * skala, [W] * 4, sz=5.6)
         if lador:
             fr = s.del_(f"LADA{top}-FRAM").bb
-            p.mattx([kk.T, W - kk.T], D + 5.0 * skala, [D - kk.T] * 2, sz=5.6)
-            p.mattx([fr[0], fr[3]], D + 11.0 * skala, [fr[4]] * 2, sz=5.6)
-            p.text(fr[3] + 2.0 * skala, D + 11.0 * skala, "SKW", a="lm", sz=5.4, i=True)
+            xi0, xi1 = s.del_(f"LADA{top}-SIDA-V").bb[3], s.del_(f"LADA{top}-SIDA-H").bb[0]     # lådans insida
+            p.mattx([kk.T, W - kk.T], D + 5.0 * skala, [D - kk.T_RYGG] * 2, sz=5.6)
+            p.mattx([xi0, xi1], D + 11.0 * skala, [fr[4]] * 2, sz=5.6)
+            p.text(xi1 + 2.0 * skala, D + 11.0 * skala, "SKW", a="lm", sz=5.4, i=True)
             p.text(W - kk.T + 2.0 * skala, D + 5.0 * skala, "LW", a="lm", sz=5.4, i=True)
     p.rubrik(0.0, D + 18.0 * skala, "Snitt B–B", skala=None)
     vyer.append(p)
@@ -395,11 +396,39 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
         vyer.append(d)
         block.append(dict(x=dx, y=dy - 6.5, w=60.0, innehall=[
             dict(typ="text", rader=[f"Detalj, låda {lador[0]}, 1:2"], sz=7.0)]))
+        # --- detalj 1:2 i plan: lådans bakre vänstra hörn i höjd med hålet för löparens hake (under bottnen), med
+        # sidans sinkor i bakstycket, bakstyckets urtag för löparen och skåpets rygg i sin fals
+        ba = s.del_(f"LADA{lador[0]}-BAK").bb
+        xi = sv[3]
+        pu0, pu1 = -8.0, xi + kk.URTAG_BAK + 16.0
+        pv0, pv1 = ba[1] - 56.0, min(D + 5.0, ba[4] + 30.0)    # med skåpets rygg där lådan når nästan dit
+        rygg = [D - kk.T_RYGG, D] if D < pv1 else []
+        dy2 = dy + h_ + 15.0
+        e = Vy(dx, dy2, (pu1 - pu0) / DETALJ, (pv1 - pv0) / DETALJ, DETALJ, pu0, pv1, klipp=True)
+        with e.lager("delar"):
+            _snittvy(e, s, 2, sv[2] + kk.HAKE[3])
+        with e.lager("matt"):
+            e.mattx([kk.T, sv[0], xi, xi + kk.URTAG_BAK], ba[1] - 46.0, [ba[1] - 6.0] * 3 + [ba[1]], sz=5.4)
+            e.matty([ba[1], sv[4], ba[4]] + rygg, pu1 - 5.0, [xi + kk.URTAG_BAK + 2.0] * 3 + [pu1 - 12.0] * len(rygg),
+                    sz=5.4)
+        with e.lager("text"):
+            e.text(kk.T / 2, ba[1] - 24.0, f"stomme {svm(kk.T)}", a="cm", sz=5.0, rot=90, bg=True)
+            e.text((sv[0] + xi) / 2, ba[1] - 24.0, f"lådsida {svm(kk.T_LADA)}", a="cm", sz=5.0, rot=90, bg=True)
+            e.hanvisning((sv[0] + kk.HAKE[2], ba[4] - 4.0), (xi + 30.0, ba[1] - 26.0),
+                         f"hål Ø{svm(kk.HAKE[0])} × {svm(kk.HAKE[1])} för löparens hake", a="lm", sz=5.0)
+            e.hanvisning((xi + 40.0, ba[1] + 7.0), (xi + 30.0, ba[1] - 12.0), "bakstyckets urtag för löparen",
+                         a="lm", sz=5.0)
+            e.hanvisning((xi + kk.URTAG_BAK + 6.0, ba[1] + 7.0), (xi + 42.0, ba[4] + 9.0),
+                         f"bakstycke {svm(kk.T_LADA)}", a="rm", sz=5.0)
+        vyer.append(e)
+        block.append(dict(x=dx, y=dy2 - 6.5, w=70.0, innehall=[
+            dict(typ="text", rader=[f"Detalj i plan, låda {lador[0]}:s bakre hörn, 1:2"], sz=7.0)]))
     # --- tabellerna: lådorna på ritytan, stommen, fronterna och beslagen i kolumnen
     if lador:
         bx = xA + W / skala + gap + (DETALJ_FONSTER[1] - DETALJ_FONSTER[0]) / DETALJ + 12.0
         block.append(dict(x=bx, y=yP - 2.0, w=326.0 - bx - 2.0, innehall=[
-            dict(typ="rubrik", text="Lådorna (massiv björk 14, botten björkplywood 4)"),
+            dict(typ="rubrik", text=f"Lådorna (massiv björk {svm(kk.T_LADA)}, sinkade, botten björkplywood "
+                                    f"{svm(kk.T_BOTTEN)})"),
             dict(typ="tabell", kolumner=["Låda", "Sidor, 2 st", "Framstycke", "Bakstycke", "Botten", "NL",
                                          "Skruvaxel"],
                  bredd=(0.45, 0.9, 0.9, 0.9, 0.9, 0.4, 0.6), just=["c", "c", "c", "c", "c", "c", "c"], sz=6.0,
@@ -407,7 +436,14 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
             dict(typ="text", sz=6.0, rader=[
                 "Sidorna längd × höjd; framstycket och bakstycket bredd × höjd; bottnen bredd × djup. Skruvaxel: "
                 f"löparens skruvar över skåpbottnens ovansida, {svm(kk.LOPARE_SKRUV)} över löparens underkant, som "
-                f"är {svm(kk.LOPARE_UNDER)} under bottnens undersida (TD-132/1 s. 5)."])]))
+                f"är {svm(kk.LOPARE_UNDER)} under bottnens undersida (TD-132/1 s. 5).",
+                f"Halvdolda sinkor frästa i ett pass i Leigh D4R Pro (fräs 80-8, djup ca {svm(kk.SINKA)}): fram- och "
+                f"bakstycket i lådans hela bredd, sidorna {svm(kk.SINKA)} in i dem ({svm(kk.T_LADA - kk.SINKA)} mm "
+                "kvar utanför sidans ände). Alla fyra brädorna i en låda lika höga, höjden ur Leighs tabell (55, "
+                f"83, 110, 138, 166, 193, 221, 248, 276, 305, 331; + {svm(kk.LEIGH_PLUS)} eller − "
+                f"{svm(kk.LEIGH_MINUS)}). Bottnen i spår {svm(kk.SPAR)} djupt runt om, {svm(kk.URTAG)} över "
+                f"underkanten. Bakstycket: urtag för löparen i varje nedre hörn, {svm(kk.URTAG_BAK)} × "
+                f"{svm(kk.URTAG)} från sidans insida."])]))
     positioner = [x.kod for x in alla if x.typ == s.typ]
     nl = sorted({d.namn.split("NL ")[-1] for d in s.med("LADA") if "SKENA" in d.kod})
     beslag = []
@@ -426,14 +462,19 @@ def _typblad(nr: str, s: Skap, alla: list[Skap], kk: ModuleType) -> Blad:
         dict(typ="lista", sz=6.8, rader=[
             f"Antal {len(positioner)}: {', '.join(positioner)} (översikten {SERIE}.1).",
             f"Stommen {svm(W)} × {svm(D)} × {svm(kk.Z_TOPP - kk.SOCKEL)} (bredd × djup × höjd) av björkplywood "
-            f"{svm(kk.T)}, från sparklisten {svm(kk.SOCKEL)} till bänkskivans underkant {svm(kk.Z_TOPP)}.",
+            f"{svm(kk.T)}, från sparklisten {svm(kk.SOCKEL)} till bänkskivans underkant {svm(kk.Z_TOPP)}. Ryggen "
+            f"{svm(kk.T_RYGG)} i fals {svm(kk.FALS)} × {svm(kk.T_RYGG)} i sidornas och bottnens bakkant"
+            + (", upp över takets bakre regel" if s.med("TAK-B") else " och takets" if s.med("HYLLA") else
+               f"; taket {svm(kk.T_TAK)} i fals {svm(kk.FALS)} × {svm(kk.T_TAK)} i sidornas överkant")
+            + f"; invändigt djup {svm(D - kk.T_RYGG)}.",
             f"Fronterna av fräst ask {svm(F)}, {svm(kk.OVER_SIDAN)} mm in över stommens sidor, {svm(kk.SPEL)} mm "
             "spel mellan fronterna och under bänkskivan; lådorna och fronterna numrerade nedifrån.",
             *([f"Lådorna på Blum MOVENTO: SKW = LW − {svm(kk.SKW_AVDRAG)} (Blum LW − 42 +0/−1,5), SKL = NL − "
                f"{svm(kk.SKL_AVDRAG)}, bottnens undersida {svm(kk.URTAG)} över sidornas underkant (Blum 12–15). "
                f"Löparen behöver {svm(kk.LOPARE_UNDER)} under bottnen och {svm(kk.FRITT_OVER)} fritt över lådsidan; "
                f"hålet för löparens hake Ø{svm(kk.HAKE[0])} × "
-               f"{svm(kk.HAKE[1])} i sidans bakände, {svm(kk.HAKE[2])} från utsidan och {svm(kk.HAKE[3])} upp. "
+               f"{svm(kk.HAKE[1])} i lådans bakkant, genom bakstycket in i sidans ände, {svm(kk.HAKE[2])} från "
+               f"utsidan och {svm(kk.HAKE[3])} upp. "
                "Kopplingarna skruvas 75° in i framstycket (borrmall T65.1000.02)."] if lador else []),
             *([f"Löparens skruvhål från stommens framkant (TD-132/1 s. 13), {'; '.join(skruvar)}."]
               if skruvar else []),

@@ -405,10 +405,11 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   L4 i förrådet.
 - **Köket** (hus/inredning/koksskap.py och koksbank.py, ärende #21; inte på planritning 201): vinkelbänk efter
   användarens skiss längs 3NV från kökets inbyggnad till 3SV och längs 3SV västerut, 700 djup, och en ö 1 000 djup
-  1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (645 djupa, invändigt 625, från sparklisten 90 till bänkskivans
+  1 100 från bänken (fritt mellan bänkskivorna), mitt för hällen, med de tre Stav över sig. Skåpen byggs vart för sig av björkplywood 20 (615 djupa, skivornas bredd, med ryggen 6 i fals, invändigt 609; lådskåpens tak 8 i fals; från sparklisten 90 till bänkskivans
   underkant 888) med fyra lådor av massiv björk 14 och botten av björkplywood 4 på Blum MOVENTO 760H (SKW = LW − 43, inom Blums LW − 42 +0/−1,5,
-  SKL = NL − 10, urtag 14 (Blum 12–15), löparen 28,5 under bottnen och 7 fritt över sidan, NL 600; under diskhon 350; framstycket med bottnen i spår, för kopplingarnas skruvar 75°,
-  bakstycket på botten, hålen för löparens hake i sidornas bakände) och fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
+  SKL = NL − 10, urtag 14 (Blum 12–15), löparen 28,5 under bottnen, bakom lådans egen front, och 7 fritt över sidan, NL 600; under diskhon 350). Lådorna sinkas med halvdolda sinkor
+  i ett pass i Leigh D4R Pro: fram- och bakstycket i lådans hela bredd, sidorna 11 mm in i dem, och sidornas höjd ur Leighs tabell (276, 193, 83 och 83 nedifrån, i ön 331, 193 och 83);
+  bottnen i spår runt om, framstycket för kopplingarnas skruvar 75°, bakstycket med urtag för löparna och hålen för deras hakar. Fronter av fräst ask 22 (115, 115, 233 och 323 nedifrån räknat från toppen,
   i öns lådskåp tre lådor 115, 233 och 441, 3 mm spel, linsformat grepp); mellan skåpen fogbrädor av ask 22 och mot inbyggnaden en bräda 45. Längs 3NV sju skåp
   mellan brädan och hörnet, med hällen i B4 mitt mellan fönstren 3NV-F4 och 3NV-F5 under köksfläkten: B1–B3 633
   breda (fronterna 605), B4 600 (invändigt 560, för en vanlig häll 60), B5–B7 och skåpen längs 3SV 591 (563); brädan
