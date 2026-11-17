@@ -58,8 +58,9 @@ förlängd in i hörnet bakom den andra bänkens ände, med en blindfront av ply
 mellanhylla; dörren hänger på två gångjärn Blum CLIP top BLUMOTION 110° (som skåpen i kok.py) i sidan bort från
 hörnet.
 
-Underlagen, som måtten ovan är lästa ur, ligger i lokalt/manualer/ (versionshanteras inte; hämtas på nytt hit i en
-ny klon):
+Läs Blums datablad och Leighs bruksanvisning (kap. 11) innan skåpen eller lådorna ändras: stommens djup, lådornas
+längd, bredd och höjd, löparnas lägen och sinkningen hänger ihop genom deras mått. Underlagen, som måtten ovan är
+lästa ur, ligger i lokalt/manualer/ (versionshanteras inte; hämtas på nytt hit i en ny klon):
 
 - Blum MOVENTO, tekniskt datablad TD-132/1 EN/06.22 ("Blum MOVENTO TD-132-1 EN 06.22.pdf"):
   https://d2.blum.com/services/BEC003/me13029704_td_dok_bau_$sen_$aof_$v1.pdf
