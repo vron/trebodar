@@ -108,14 +108,14 @@ fot_eps    = 100
 rygg_eps   = 100
 makadam    = 150
 
-# Mellanbjälklaget (K-05): betong 150, kantisolering 30 (cellplast), golvvärmen PE-RT 16 × 2 c/c 300 (badrummet 200)
+# Mellanbjälklaget (K-05): betong 150, kantisolering 30 (cellplast), golvvärmen PE-RT 16 × 2 c/c 200
 # med centrum 68 mm under överkant (modellen: I_BETONGEN), slingorna 150 mm från väggarna.
 [bjalklag]
 h          = 150
 kant_eps   = 30
 ror_z      = 68
 ror_d      = 16
-ror_cc     = 300
+ror_cc     = 200
 marginal   = 150
 
 # Plattan på mark (AR-02): mellanbjälklaget på cellplast 100 + 250, L-element 500 med rygg 100 och fot 100, makadam 150
@@ -327,7 +327,7 @@ reduktion  = 0.5          # trappan och räcket i öppningen
 # Värmepumpen (IN-01): bergvärmepump NIBE S1256-13 (eller CTC GSi 612) med borrhål ca 200 m. Värmefaktorn räknas
 # varje timme ur kondensorns och förångarens temperaturer: COP = η · T_kond / (T_kond − T_förång) [K], med η
 # bestämt så att COP blir NIBE:s 5,06 vid B0/W35 (SS-EN 14511, 5,12 kW). Kondensorn: golvvärmens framledning, som
-# är golvvärmeplanets temperatur plus rörens motstånd mot betongen (PE-RT 16 × 2 c/c 300) och halva temperaturfallet,
+# är golvvärmeplanets temperatur plus rörens motstånd mot betongen (PE-RT 16 × 2 c/c 200) och halva temperaturfallet,
 # plus 2 K. Förångaren: köldbärarens medeltemperatur i borrhålet minus halva temperaturfallet och 2 K. Köldbäraren:
 # ostörd berggrund minus borrhålets motstånd gånger uttaget per meter och bergets motstånd gånger uttaget i tre
 # tidsskalor (6 timmar, 30 dygn och medeluttaget under driftåren; linjekällan, bergets λ och värmekapacitet ur
@@ -339,7 +339,7 @@ lyft_min   = 28.0         # minsta temperaturlyft mellan förångning och konden
 approach   = 2.0          # kondensor och förångare mot vattnet och köldbäraren [K]
 dT_vatten  = 5.0          # golvvärmens temperaturfall [K]
 dT_koldbarare = 3.0       # köldbärarens temperaturfall [K]
-R_ror      = 0.089        # rören mot golvvärmeplanet [m²K/W]: (c/(2πλ_b)) ln(c/(π d_y)) + c ln(d_y/d_i)/(2πλ_PE)
+R_ror      = 0.052        # rören mot golvvärmeplanet [m²K/W]: (c/(2πλ_b)) ln(c/(π d_y)) + c ln(d_y/d_i)/(2πλ_PE)
 T_berg     = 8.5          # ostörd berggrund, medel över borrhålet [°C] (typvärde för kusten i Bohuslän)
 borrhal_L  = 200.0        # [m] (IN-01: 1 borrhål, ca 200 m)
 R_borrhal  = 0.08         # borrhålets motstånd, enkel U-slinga i grundvattenfyllt hål [m·K/W]
