@@ -1,8 +1,9 @@
 """Taksäkerheten (BBR 8:24, #125): tillträdet till skorstenen för sotning och snörasskydden över ytterdörrarna.
 
-Tillträdet går från altanen: lös stege mot takfallet 2SO vid gaveln 2SV, där dalen DB4 slutar (glidskydd för stegen),
-längs dalen och uppför en takstege från dalen till skorstenens norra sida (på den västra står förbränningsluftens
-huv). Sotaren står på stegen bredvid skorstenen: ingen gångbrygga och ingen arbetsplattform (byggherrens val, #125).
+Tillträdet går från uteplatsen: lös stege mot skorstenens takfall vid gaveln 2SV, där dalen slutar (glidskydd för
+stegen), och längs dalen till skorstenen. Står skorstenen minst STEGE_MIN upp från dalen går en takstege från dalen
+upp längs dess norra sida, och sotaren står på stegen bredvid skorstenen; står den vid dalen (som i allrummets hörn,
+#145) står sotaren i dalen. Ingen gångbrygga och ingen arbetsplattform (byggherrens val, #125).
 Snörasskydd, två rör på konsoler, sitter över ytterdörrarna som står under en takfot.
 
 Allt fästs i plåtens falsar med falsfästen, utan hål i plåten: fästskenorna och konsolerna står på falsarna
@@ -21,8 +22,8 @@ from trebodar.material import STAL_VFZ
 
 from .takytor import REGIONER, falsar
 
-TAKFALL = "2SO"                  # tillträdet går på mittre huskroppens takfall mot dalen DB4
 STEGE_FRAN_DAL = 350.0           # takstegens nedre ände från dallinjen, i plan (ovanför rändalen)
+STEGE_MIN = 900.0                # kortare takstege än så i plan sätts inte upp (skorstenen nås från dalen)
 STEGE_FORBI = 300.0              # takstegens övre ände så långt upp längs skorstenens sida, i plan
 KONSOL_B = 40.0                  # konsolernas bredd (på falsen)
 KONSOL_CC = 1100.0               # största avstånd mellan konsolerna längs snörasskydden
@@ -70,42 +71,48 @@ def _konsoler(falsar: list[float], y0: float, y1: float) -> list[float]:
 
 
 def _tilltrade() -> Montage:
-    m = Montage("Tillträde till skorstenen", "TS", "Glidskydd för lös stege vid gaveln 2SV och takstege från dalen DB4 "
-                "upp till skorstenen (BBR 8:24)", produkt="TAKSAKERHET")
-    kod = TAKFALL
+    kx0, _, kx1, ky1 = kamin.skorstenens_lada()
+    kod = "2SO" if (kx0 + kx1) / 2 < S.HUSKROPPAR[2].nock else "2NV"       # skorstenens takfall
     t = S.TAKFALL[kod]
-    assert t.riktning > 0
+    upp = float(t.riktning)                              # uppför takfallet i x
     falsarna = _falsar(kod)
     rs = REGIONER[kod]
-    x_dal = max(r.nedre.x for r in rs)                  # dallinjen (takfoten vid gaveln 2NO ligger längre ut)
+    x_dal = max(r.nedre.x for r in rs) if upp > 0 else min(r.nedre.x for r in rs)   # dallinjen, inte takfoten
     y_gavel = max(r.y1 for r in rs)
-    kx0, _, _, ky1 = kamin.kladselns_lada()
     wf = L.FALS[1]
-    # takstegen norr om skorstenen, mellan två falsar: fästskenor tvärs över falsarna, sidostycken och steg
-    pk = [y for y in falsarna if ky1 + 30.0 <= y][:2]
-    if len(pk) < 2 or pk[1] - pk[0] < STEGE_B + 40.0:
-        raise ValueError("takstegen ryms inte mellan två falsar norr om skorstenen")
-    y_st = (pk[0] + pk[1]) / 2
-    sx0, sx1 = x_dal + STEGE_FRAN_DAL, kx0 + STEGE_FORBI
-    sy0, sy1 = y_st - STEGE_B / 2, y_st + STEGE_B / 2
-    p = STEGE_PROFIL
-    n_skenor = max(2, int((sx1 - sx0) / S.COS // 1000.0) + 1)
-    for i in range(n_skenor):
-        x = sx0 + 60.0 + i * (sx1 - sx0 - 120.0) / (n_skenor - 1)
-        m.lagg(Del("Fästskena för takstege, falsfästen", _langs(kod, x - 20.0, x + 20.0, pk[0] - 30.0, pk[1] + 30.0, wf,
-                                                                 wf + 20.0), STAL_VFZ), Placering(), f"TS-SKENA{i + 1}")
-    stege: Form = (_langs(kod, sx0, sx1, sy0, sy0 + p, wf + 20.0, wf + 20.0 + p)
-                   | _langs(kod, sx0, sx1, sy1 - p, sy1, wf + 20.0, wf + 20.0 + p))
-    n_steg = int((sx1 - sx0) / S.COS // STEG_CC)
-    for i in range(n_steg):
-        x = sx0 + (i + 0.5) * (sx1 - sx0) / n_steg
-        stege = stege | _langs(kod, x - 15.0, x + 15.0, sy0 + p, sy1 - p, wf + 20.0, wf + 20.0 + p)
-    m.lagg(Del(f"Takstege {STEGE_B:g} L={(sx1 - sx0) / S.COS:.0f}", stege, STAL_VFZ), Placering(), "TS-STEGE")
-    # glidskyddet för den lösa stegen från altanen: på falsen närmast gaveln 2SV, ovanför rändalen
+    sx0 = x_dal + upp * STEGE_FRAN_DAL
+    sx1 = (kx0 if upp > 0 else kx1) + upp * STEGE_FORBI   # förbi skorstenens nedre sida
+    med_stege = (sx1 - sx0) * upp >= STEGE_MIN
+    m = Montage("Tillträde till skorstenen", "TS", "Glidskydd för lös stege vid gaveln 2SV"
+                + (" och takstege från dalen upp till skorstenen" if med_stege else "; skorstenen nås från dalen")
+                + " (BBR 8:24)", produkt="TAKSAKERHET")
+    if med_stege:
+        # takstegen norr om skorstenen, mellan två falsar: fästskenor tvärs över falsarna, sidostycken och steg
+        pk = [y for y in falsarna if ky1 + 30.0 <= y][:2]
+        if len(pk) < 2 or pk[1] - pk[0] < STEGE_B + 40.0:
+            raise ValueError("takstegen ryms inte mellan två falsar norr om skorstenen")
+        y_st = (pk[0] + pk[1]) / 2
+        xa, xb = sorted((sx0, sx1))
+        sy0, sy1 = y_st - STEGE_B / 2, y_st + STEGE_B / 2
+        p = STEGE_PROFIL
+        n_skenor = max(2, int((xb - xa) / S.COS // 1000.0) + 1)
+        for i in range(n_skenor):
+            x = xa + 60.0 + i * (xb - xa - 120.0) / (n_skenor - 1)
+            m.lagg(Del("Fästskena för takstege, falsfästen", _langs(kod, x - 20.0, x + 20.0, pk[0] - 30.0, pk[1] + 30.0,
+                                                                     wf, wf + 20.0), STAL_VFZ), Placering(),
+                   f"TS-SKENA{i + 1}")
+        stege: Form = (_langs(kod, xa, xb, sy0, sy0 + p, wf + 20.0, wf + 20.0 + p)
+                       | _langs(kod, xa, xb, sy1 - p, sy1, wf + 20.0, wf + 20.0 + p))
+        n_steg = int((xb - xa) / S.COS // STEG_CC)
+        for i in range(n_steg):
+            x = xa + (i + 0.5) * (xb - xa) / n_steg
+            stege = stege | _langs(kod, x - 15.0, x + 15.0, sy0 + p, sy1 - p, wf + 20.0, wf + 20.0 + p)
+        m.lagg(Del(f"Takstege {STEGE_B:g} L={(xb - xa) / S.COS:.0f}", stege, STAL_VFZ), Placering(), "TS-STEGE")
+    # glidskyddet för den lösa stegen från uteplatsen: på falsen närmast gaveln 2SV, ovanför rändalen
     gl, gb, gh = GLIDSKYDD
     yg = max(y for y in falsarna if y < y_gavel - 150.0)
-    m.lagg(Del("Glidskydd för lös stege, falsfäste", _langs(kod, sx0, sx0 + gl, yg - gb / 2, yg + gb / 2, wf, wf + gh),
-               STAL_VFZ), Placering(), "TS-GLID")
+    m.lagg(Del("Glidskydd för lös stege, falsfäste", _langs(kod, sx0, sx0 + upp * gl, yg - gb / 2, yg + gb / 2, wf,
+                                                            wf + gh), STAL_VFZ), Placering(), "TS-GLID")
     return m
 
 

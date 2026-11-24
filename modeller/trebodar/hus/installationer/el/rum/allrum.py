@@ -9,7 +9,7 @@ hänger över bordet, symmetriskt kring nocken, 600 mm över bordsskivan (0,72 m
 
 Dimrarna sitter på väggen 2C (allrumssidan) bredvid sovrummets fickdörr, öster om fickan: en med två
 kanaler för spotarna och en för PH 5. Ledningarna går i rör: från dimrarna upp i väggen och i innertakets
-installationsskikt längs raderna; till den nordvästra raden går röret i väggen 2C över kaminens öppning. Gruppens rör
+installationsskikt längs raderna; till den nordvästra raden går röret i väggen 2C, 2 250 över golvet. Gruppens rör
 från centralen kommer i innertaket från hallgarderoben och ned i väggen (bjalklag/mellanbjalklag.UPP_I_TAKET).
 """
 from __future__ import annotations
@@ -66,7 +66,7 @@ PUNKTER = [
     Apparat("AL-U2", UTTAG_1, ovan_fonstret("2SV", 1435.0)),
 ]
 
-_OVER_KAMIN = 2250.0                         # över kaminens öppning i 2C (överkant 2 045)
+_I_2C = 2250.0                               # rörets höjd i väggen 2C, till den nordvästra raden
 _NV_U = mellan_lakten("2NV", RADER["2NV"], Y[0]) - S.INNERVAGGAR["2C"].origo[0]
 
 ROR = [
@@ -76,7 +76,7 @@ ROR = [
     Ror("AL-R04", FXP16, "AL-L03", "AL-L04"),
     Ror("AL-R05", FXP16, "AL-L01", "AL-L05"),
     Ror("AL-R06", FXP16, "AL-B1", "AL-L06",
-        via=(i_vagg("2C", DIMMER_U, _OVER_KAMIN), i_vagg("2C", _NV_U, _OVER_KAMIN), *vid_tak("2C", _NV_U))),
+        via=(i_vagg("2C", DIMMER_U, _I_2C), i_vagg("2C", _NV_U, _I_2C), *vid_tak("2C", _NV_U))),
     Ror("AL-R07", FXP16, "AL-L06", "AL-L07"),
     Ror("AL-R08", FXP16, "AL-L07", "AL-L08"),
     Ror("AL-R09", FXP16, "AL-L08", "AL-L09"),

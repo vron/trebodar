@@ -75,6 +75,7 @@ class Steg:
     lokalt: list[str] = field(default_factory=list)      # tunga steg: mellanresultat som tunga steg efter läser
     miljoer: list[str] = field(default_factory=list)     # fler Pythonmiljöer som kommandona behöver
     manuell: bool = False                                # tungt steg som bara görs när det väljs (./bygg U-04)
+    env: dict[str, str] = field(default_factory=dict)    # miljövariabler för kommandona
 
 
 def ber(nr: str, *kor: str | list[str], **kw) -> Steg:
@@ -100,6 +101,10 @@ STEG = [
          utdata=["modeller/trebodar/ut/trebodar.step"]),
     Steg("webb", "verktyg/modellering/webb", [["mod", "webb"]], kallor=MODELL, bygger_pa=MODELL_PA,
          utdata=["docs/modell/index.html", "docs/modell/vyer.json", "docs/modell/trebodar.glb"]),
+    # kaminens andra läge i allrummets hörn (rum.KAMIN_LAGE, #145) som en egen visare, att jämföra med modellens
+    Steg("webb-kamin-b", "verktyg/modellering/webb", [["mod", "webb", "--ut", "../../docs/alternativ/kamin-b"]],
+         kallor=MODELL, bygger_pa=["webb"], env={"TREBODAR_KAMIN": "B"},
+         utdata=["docs/alternativ/kamin-b/modell/index.html", "docs/alternativ/kamin-b/modell/trebodar.glb"]),
     Steg("kameraplan", "renderingar", [["mod", "kameraplan"]], kallor=[*MODELL, "verktyg/modellanalys"],
          bygger_pa=["modell"], miljoer=["ma"],
          utdata=["renderingar/kameraplan.pdf", "docs/renderingar/index.html", "docs/renderingar/plan.json"]),
@@ -316,7 +321,7 @@ def miljoer(steg: list[Steg]) -> None:
 def kor_steg(s: Steg, prefix: str = "") -> None:
     """Stegets kommandon (miljöerna ska finnas), med utdata rad för rad (med prefix när flera steg körs)."""
     env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}   # __pycache__ ignoreras av git
-    env |= {"MPLBACKEND": "Agg", "PYTHONUNBUFFERED": "1"}
+    env |= {"MPLBACKEND": "Agg", "PYTHONUNBUFFERED": "1"} | s.env
     for k in s.kor:
         if k[0] in ("mod", "ma"):                  # ./mod och ./ma (ma-tjänsten) i sina egna mappar
             argv = [str(ROT / {"mod": "verktyg/modellering/mod", "ma": "verktyg/modellanalys/ma"}[k[0]]), *k[1:]]

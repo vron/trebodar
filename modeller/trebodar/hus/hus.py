@@ -36,12 +36,9 @@ def montage() -> Montage:
     m.lagg(trappa.montage())
     m.lagg(altan.montage())
     m.lagg(kamin.montage())
-    # skorstenens och förbränningsluftens hål genom taket, isoleringen och innertaket, och genom 2C och garderobens
-    # tak (#109); takplåten och falsarna slutar mot skorstenens inklädnad (#131)
-    for hal, lada, montage in ((*kamin.genomforing(), ("Tak", "Isolering", "Invändigt")),
-                               (*kamin.platens_hal(), ("Tak",)),
-                               (*kamin.luftkanalens_hal(), ("Tak", "Isolering", "Invändigt")),
-                               *kamin.genomforingar()):
+    # skorstenens hål genom taket, isoleringen och innertaket; takplåten och falsarna slutar mot skorstenens
+    # inklädnad där den står
+    for hal, lada, montage in kamin.genomforingar():
         for i in m.barn:
             if i.namn in montage and isinstance(i.barn, Montage):
                 genomfor(i.barn, hal, lada, i.placering)

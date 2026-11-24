@@ -6,20 +6,22 @@ på varje långsida, med sitsen 450 hög och 100 in under bordet. Bordet och sto
 
 Fåtöljerna (Mathsson Mi 473 Eva hög, flätad linnegjord, mathsson.se): 600 bred, 740 djup och 1 100 hög, sitsen 340;
 ram av betsad björk och böjlimmad ek (brun), sits och rygg av naturell sadelgjord av lin, utan huvudkudde. De står
-snett på var sin sida om kaminen, vända mot rummet, enligt skissen i ärendet, och minst 500 från kaminens sidoglas
-(Rais 600:3: möbler minst 500 från sidoglasen och 950 framför dörren).
+vända mot kaminen i allrummets hörn, väster om den mellan väggen 2C och matbordet (rum.KAMIN_LAGE: framför
+sidoglaset i läge A och framför fronten i läge B), minst 950 från glasen (Rais 600:2: möbler minst 950 framför dörren och från sidoglaset).
 """
 from __future__ import annotations
 
 import math
 
+from shapely import affinity
 from shapely.geometry import LineString, box as plan_box
 
 from modellering import Del, Form, Material, Montage, Placering, box, prisma
 
 from trebodar import skelett as S
 from trebodar.hus.installationer.el.rum.allrum import PH5_X, PH5_Y
-from trebodar.hus.rum import KAMINMUR
+from trebodar.hus.kamin import kamin
+from trebodar.hus.rum import KAMIN_LAGE, kamin_plan
 from trebodar.material import ASK, EVA_RAM, LINNEGJORD
 
 # bordet och stolarna
@@ -34,8 +36,10 @@ EVA = (600.0, 740.0)
 ARM = [(650.0, 18.0), (120.0, 18.0), (60.0, 380.0), (120.0, 600.0), (520.0, 600.0)]     # meden, framben och armstöd
 SITS = [(40.0, 420.0), (330.0, 340.0), (600.0, 560.0), (700.0, 1090.0)]                 # sitsen och ryggen
 ARM_T, ARM_H, SIDA_T, SIDA_H, GJORD_T = 30.0, 36.0, 30.0, 50.0, 6.0
-SIDOGLAS_FRI = 500.0
-EVA_LAGEN = ((-1, 1350.0, 450.0, 25.0), (1, 1350.0, 450.0, 25.0))      # sida, från mitten, framför kaminen, vridning°
+GLAS_FRI = 950.0
+# fåtöljernas mitt (x, y) och riktningen de är vända åt (grader från +x, moturs)
+EVA_LAGEN = {"A": ((6800.0, 6650.0, -5.0), (7300.0, 7550.0, -45.0)),
+             "B": ((7450.0, 6500.0, 5.0), (7450.0, 7450.0, -10.0))}[KAMIN_LAGE]
 
 
 def _bordet(m: Montage) -> None:
@@ -100,15 +104,15 @@ def _eva(m: Montage, kod: str, framkant: tuple[float, float], fram: tuple[float,
 
 
 def _fatoljerna(m: Montage) -> None:
-    x0, _, x1, y1 = KAMINMUR.bounds
-    xm = (x0 + x1) / 2
-    for i, (sida, dx, dy, vrid) in enumerate(EVA_LAGEN, 1):
-        fram = (-sida * math.sin(math.radians(vrid)), math.cos(math.radians(vrid)))   # mot rummet, snett mot mitten
-        cx, cy = xm + sida * dx, y1 + dy
-        d = EVA[1]
-        framkant = (cx + fram[0] * d / 2, cy + fram[1] * d / 2)
-        _eva(m, f"AR-EVA{i}", framkant, fram)
-        assert abs(cx - (x1 if sida > 0 else x0)) - math.hypot(*EVA) / 2 >= SIDOGLAS_FRI, "500 från sidoglaset"
+    # insatsens front och glassida i plan (kamin.py: p från sidoväggen, q från baksidans vägg)
+    glasen = (plan_box(*kamin_plan(kamin.SIDA_FRI, kamin.BREDD, kamin.DJUP, kamin.DJUP))
+              .union(plan_box(*kamin_plan(kamin.BREDD, kamin.BREDD, kamin.DJUP - kamin.KROPP[1], kamin.DJUP))))
+    b, d = EVA
+    for i, (cx, cy, vrid) in enumerate(EVA_LAGEN, 1):
+        fram = (math.cos(math.radians(vrid)), math.sin(math.radians(vrid)))
+        _eva(m, f"AR-EVA{i}", (cx + fram[0] * d / 2, cy + fram[1] * d / 2), fram)
+        yta = affinity.rotate(plan_box(cx - d / 2, cy - b / 2, cx + d / 2, cy + b / 2), vrid, origin=(cx, cy))
+        assert yta.distance(glasen) >= GLAS_FRI, f"fåtölj {i}: {yta.distance(glasen):.0f} från kaminens glas, minst 950"
 
 
 def montage() -> Montage:

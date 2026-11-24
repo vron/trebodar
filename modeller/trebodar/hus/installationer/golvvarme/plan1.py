@@ -10,7 +10,7 @@ vardagsrummet söder om V3 och resten. Slingorna stannar i sin del, och stråken
 - N: vardagsrummet (två slingor, den norra och den södra halvan) och hallens södra del (med allrummets västra del),
   söderut genom V3; den södra slingans tillopp går längs den norras östra ände.
 - V: badrummet och hallens norra del, västerut från stråket i allrummets västra del.
-- S: sovrummet, norrut genom 2C väster om kaminen och elens rör i bjälklaget (MB-R01).
+- S: sovrummet, norrut genom 2C väster om elens rör i bjälklaget (MB-R01).
 - G: kontoret, sovrummet och kontoret vid gången och gästrummet: österut under 2B och norrut i gången.
 - O: köket, österut längs kökets norra vägg.
 

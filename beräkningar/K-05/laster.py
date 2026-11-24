@@ -65,11 +65,11 @@ STOLPLAGEN = {
 # Trappan (trä, brant, i trapphålet): står på källarens golv vid hålets västra kortsida och hänger i överkant på den
 # östra, vid väggen 2B; halva trappan på den östra kortsidan.
 TRAPPA = dict(langd=2.07, bredd=0.83, g=1.0, q=2.0)      # horisontell längd [m], bredd [m], kN/m² i plan
-# Kaminen och dess murade skorsten på plan 1 (modellen: 684 × 502 mm mot väggen 2C, mitt under mittre nocken):
-# insatsen Rais 600:3 ca 130 kg, lättbetong 100 och lock ca 100 kg, kalciumsilikat ca 120 kg, kalkputs ca 40 kg och
-# ca 60 kg av den isolerade skorstenen som bärs nedifrån, tillsammans 4,5–5 kN. Räknas som 6 kN permanent, längs
-# skorstenens mittlinje i y (#128).
-KAMIN = dict(G=6.0, x=6905.0, y0=5900.0, y1=6402.0)
+# Kaminen och dess murade skorsten på plan 1 (modellen: 1 055 × 502 mm i allrummets hörn mellan väggarna 2C och 2B,
+# från golvet till innertaket, #145): insatsen Rais 600:2 ca 130 kg, lättbetong 100 ca 30 kg, kalciumsilikat ca 160 kg,
+# kalkputs ca 70 kg och ca 60 kg av den isolerade skorstenen som bärs nedifrån, tillsammans ca 4,5 kN. Räknas som
+# 6 kN permanent, längs skorstenens mittlinje i y (#128).
+KAMIN = dict(G=6.0, x=8817.5, y0=6020.0, y1=6522.0)
 
 # K-01: stödreaktioner, dimensionerande R_max (6.10b) och R_min (fältvis snö eller vindlyft 1,0 G + γd 1,5 W) [kN];
 # K-03 stoppar om de inte är K-01:s (./bygg K-03)

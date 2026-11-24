@@ -137,7 +137,7 @@ TEKNIK = {"stomme", "detalj-spot", "detalj-tubspot", "detalj-kallarkanal", "deta
 # Inomhusbilderna: (nummer, rum, vy, objektiv, kamerans läge (x, y) [, golvets z], målet (x, y, z))
 _INNE = [
     ("I01", "allrum", "mot-kok", "vid", (5100, 10450), (11500, 8300, 1300)),
-    ("I02", "allrum", "mot-kamin", "vid", (6900, 10500), (6900, 5900, 1350)),
+    ("I02", "allrum", "mot-kamin", "vid", (8300, 10400), (8750, 6300, 1300)),
     ("I03", "allrum", "mot-tradgard", "vid", (6000, 6450), (6900, 11040, 1100)),
     ("I04", "allrum", "matplats", "öga", (9900, 9600), (5000, 8800, 1200)),
     ("I05", "allrum", "mot-hall", "vid", (8800, 7200), (1500, 10200, 1300)),

@@ -99,13 +99,13 @@ beskrivning, eller flyttas till underlaget den hör till.
 | Kökets inbyggnad (kyl, frys, skafferi) | lägena, öppningarna och luckan i `hus/invandigt/lattvaggar.py` (`K_…`), stommen, skikten, förrådet och smygarna i `kokets_inbyggnad.py`; vitvarorna, skåpen, fronterna och skafferiet i `hus/inredning/kok.py` |
 | En innervägg eller ett dörrhål i källaren | `hus/invandigt/kallarens_innervaggar.py` (`VAGGAR`, `DORRHAL`); reglarna, gipsen och urtagen vid rören följer med |
 | Badrummet | `hus/rum.py` (`BADRUM`): väggarnas skikt mot badrummet blir våtrumsskikt och innertaket panel; `hus/badrum.py`: inredningens lägen (bänken, tvättstället, badkaret, WC:n, duschen, skåpet, spegeln, handdukstorken) och golvets fall; inredningen, golvet, tappvattnet, avloppet och elen följer med |
-| Kaminen och skorstenen | `hus/kamin/kamin.py` (insatsens mått och läge, skorstenens läge); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
+| Kaminen och skorstenen | `hus/rum.py` (hörnet, måtten och läget A eller B, miljövariabeln `TREBODAR_KAMIN`) och `hus/kamin/kamin.py` (insatsens mått, uppbyggnaden, skorstenen); hålet i taket, isoleringen och innertaket skärs med `byggdelar/genomforing.py` |
 | Trappan | `hus/trappa/trappa.py` (steg och vangstycken; läget följer trapphålet i `skelett.py`) |
 | Takets uppbyggnad | `byggdelar/taklager.py` (skiktens tjocklek) och `hus/tak/tak.py` (ströläktens delning, uppehåll vid fönstren, plåtens banor och falsar) |
 | Takfallens utbredning, takfoten och dalarnas ändar | `hus/tak/takytor.py` (`REGIONER`); taket, takkanterna, dalarna och innertaket följer med |
 | Takkanterna och dalarna | `hus/tak/takkanter.py` (takfotsplåt, rännor, stuprör, vindskivor) och `hus/tak/dalar.py` (kilar, rändal, ändlådor) |
-| Taksäkerheten | `hus/tak/taksakerhet.py`: takstegen från dalen DB4 till skorstenen, glidskyddet för lös stege och snörasskydden över ytterdörrarna, på falsfästen (#125) |
-| Skorstenen över taket | `hus/kamin/kamin.py`: fyrkantig inklädnad 560 × 560 av takets plåt kring den runda skorstenen, 1 000 över nocken (#131) |
+| Taksäkerheten | `hus/tak/taksakerhet.py`: glidskyddet för lös stege vid skorstenens takfall (och en takstege från dalen när skorstenen står högre upp på taket) och snörasskydden över ytterdörrarna, på falsfästen (#125) |
+| Skorstenen över taket | `hus/kamin/kamin.py`: mynningen 800 över mittre nocken; fyrkantig inklädnad 560 × 560 av takets plåt kring den runda skorstenen i läge A, rund med krage i läge B (för nära dalen) |
 | De invändiga skikten | `hus/invandigt/skikt.py` (uppbyggnaden), `innertak.py`, `vagginsida.py` (ytterväggarnas insida och hörnen), `vaggar.py` (innerväggarna), `kallare.py` (källarväggarnas gips) och `kallarens_innervaggar.py` (källarens lätta väggar) |
 | Fasadens uppbyggnad, panelens eller fönstrens kulör | `hus/fasad/fasad.py` (uppbyggnaden) och `material.py` (`PANEL` och `ALUMINIUM` per huskropp; kulör, brädbredd, kvistar, skruvar) |
 | Marken vid fasaden (panelens underkant) | `hus/fasad/markniva.py` (`MARKNIVA` per vägg, ur den byggda modellen med `verktyg/modellanalys/marknivaer.py`; körs om när marken ändras) |
@@ -188,7 +188,7 @@ Trebodar
     ├── Trappa                  brant trätrappa till källaren, i trapphålet
     ├── Altan                   trädäck framför skjutpartiet 2SV: trall, sarg, bjälkar, bärlinor och plintar (fria
     │                           från dräneringens och dagvattnets ledningar), lucka och trappsteg
-    ├── Kamin                   Rais 600:3 i en murad skorsten mot 2C, isolerad skorsten genom garderoben och taket
+    ├── Kamin                   Rais 600:2 i en murad skorsten i allrummets hörn, isolerad skorsten rakt upp genom taket
     ├── Isolering               takets träfiber och mineralullen i väggarna och gavelspetsarna
     ├── Invändigt               innertak, ytterväggarnas insida (ångbroms, installationsskikt med mineralull, OSB och gips),
     │                           innerväggarna: lätta väggar L1–L14 och L19 och skikten på alla innerväggar, kökets
@@ -263,8 +263,8 @@ handlingarnas källfiler har dem (K-03).
   takfallets innertak); avloppet AV1–AV4 (ledningarnas rör), AV-GB golvbrunnen (-RING, -SIL) och AV-VL-TS, AV-VL-BK
   vattenlåsen; ID1-TROSKEL tröskeln.
 - **Trappan**: TR-V1, TR-V2 vangstyckena, TR-S01 … TR-S10 stegen nerifrån. **Kaminen**: KM-INSATS, KM-RAM, KM-GLAS,
-  KM-FRONT, KM-PLAT, KM-STOD1–2, KM-STOS, KM-ROR1–2, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-LUFT (flexslangen),
-  KM-LUFT2 (den isolerade kanalen), KM-LUFTHUV, KM-LUFTKRAGE.
+  KM-GLAS-SIDA, KM-MUR-F och KM-SIDA-F (den fria sidan), KM-SIDA-V (mot sidoväggen), KM-BAK, KM-FRONT, KM-PUTS,
+  KM-PLAT, KM-STOD1–2, KM-STOS, KM-SKORSTEN, KM-HUV, KM-KRAGE, KM-KLADSEL och KM-KRONA (inklädnaden, läge A).
 - **Bottenplattan** (K-06, L400): BP-B betongen, BP-KB kantbalken, BP-IB balkarna under innerväggarna, BP-PL-P1
   plinten under röret P1 osv., BP-FAS betongen i L-elementens fas, BP-L L-elementen, BP-C1 cellplastens undre lager
   (S200 100 i hela ytan, lika tjockt som L-elementens fot, också under balkar och plintar), BP-CS dess del i S300 (hörnet
@@ -370,7 +370,7 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   Skikten går upp till innertaket, och där taket lutar tvärs över väggen är skivornas överkant sned som taket.
   Ytskiktens språng och springor kontrolleras med `./mod ytor` (ingår i `./mod kontroll`).
 - **Garderoben i sovrummet** (hus/inredning, ärende #16): lätta väggar GC, GB och GA (lägena i
-  invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C, runt kaminens kåpa till L7, med fronten i linje med L6 och ett
+  invandigt/lattvaggar.py) från stolpen LD4_1 längs 2C till L7, med fronten i linje med L6 och ett
   snett hörn 600 × 600 mot fickdörren ID6; OSB och gips mot rummet upp till innertaket, gips inuti, två par dörrar i
   smyg av vitmålad furu och garderobens tak på dörrarnas höjd med tomrum ovanför.
 - **Sängen i sovrummet** (hus/inredning/sang.py, ärende #27): dubbelsäng med madrass 160 × 200, huvudgaveln av ask
@@ -469,13 +469,14 @@ Skillnaderna mot Onshape-modellen som modellen först byggdes efter är dessa:
   fasad.
 - **Trappan** till källaren är brant (45°, 11 steghöjder) och ryms i trapphålet, med fri höjd över hela trappan
   (K-05 räknar med trappans last på trapphålets östra kortsida).
-- **Kaminen** (hus/kamin/kamin.py, ärende #102 och #109; inte som planritning 201): Rais 600:3 med glas på tre
-  sidor i en murad, putsad och kalkad skorsten av lättbetong i allrummet, mot 2C mitt under nocken, från golvet till
-  halva höjden, med fronten ovanför och under insatsen av kalciumsilikat och konvektionsöppningar i sidorna. Den
-  isolerade skorstenen Ø150/Ø250 går från stosen i en förskjutning snett bakåt genom nischen i 2C in i garderoben och
-  lodrätt genom taket väster om nockbalk 3, minst 50 mm från allt brännbart och 1 000 mm över nocken, sotningsbar
-  uppifrån; i garderoben står ett skydd av gips med inspektionslucka runt den. Förbränningsluften (AirSystem) går i en
-  isolerad kanal samma väg upp genom taket. Måtten och avstånden står i modulens beskrivning.
+- **Kaminen** (hus/kamin/kamin.py, ärende #145; inte som planritning 201): Rais 600:2 med glas framtill och på en
+  sida i en murad, putsad och kalkad skorsten i allrummets hörn mellan väggarna 2C och 2B, från golvet till
+  innertaket, med skivor av kalciumsilikat mot väggarna och i fronten och konvektionsöppningar i den fria sidan. Två
+  lägen att jämföra, valda med miljövariabeln `TREBODAR_KAMIN`: A (förvalt) med fronten mot rummet och B med fronten
+  längs 2C; webbplatsen visar A i `modell/` och B i `alternativ/kamin-b/modell/`. Den isolerade skorstenen Ø150/Ø250
+  går rakt upp från stosen genom taket mellan takbalkarna, minst 50 mm från allt brännbart, till 800 mm över mittre
+  nocken; den kommer upp nära dalen DB2 och står därför högt över taket. Förbränningsluften är inte dragen (#145).
+  Måtten och avstånden står i modulens beskrivning.
 - **Fasadstenen** enligt AR-01: enskilda stenar i 400 mm skift med slumpade längder 600–1 200, fog 10, hörnstenar 400
   och 200 i varannat skift och kluven framsida 30–50 mm, med fogbruk och armeringsbruk; utbredningen som i
   Onshape-modellen.

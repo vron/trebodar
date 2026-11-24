@@ -417,11 +417,11 @@ anm        = "Samma serie som köksbänkarnas skivor. Golvet med fall mot golvbr
 kod      = "KAMIN"
 grupp    = "Kamin"
 namn     = "Kamininsats med förbränningsluft utifrån"
-vald     = "Rais 600:3 (glas på tre sidor) och Rais AirSystem"
+vald     = "Rais 600:2 (glas framtill och på en sida) och Rais AirSystem"
 status   = "vald"
 ansvarig = "byggherre"
 fas      = "invandigt"
-anm      = "I en murad skorsten av lättbetong mot 2C, putsad och kalkad, med front av Skamotec 225 (#102)."
+anm      = "I en murad skorsten i allrummets hörn mellan 2C och 2B, putsad och kalkad, med skivor av Skamotec 225 (#145)."
 
 [[produkt]]
 kod      = "SKORSTEN"
@@ -430,19 +430,19 @@ namn     = "Isolerad skorsten Ø150/Ø250 med regnhuv och takgenomföring, och f
 status   = "att välja"
 ansvarig = "byggherre"
 fas      = "tatt"
-anm      = "Från rökstosen. Över taket en inklädnad 560 × 560 av takets plåt på obrännbar stomme, 1 000 mm över nocken (bygglovets fasadritning 205), med avtäckning; plåtslagaren gör inklädnaden."
+anm      = "Från rökstosen rakt upp, mynningen 800 mm över mittre nocken. Över taket en inklädnad 560 × 560 av takets plåt på obrännbar stomme, med avtäckning; plåtslagaren gör inklädnaden (#145)."
 
 # ------------------------------------------------------------------ taksäkerhet
 
 [[produkt]]
 kod      = "TAKSAKERHET"
 grupp    = "Tak"
-namn     = "Tillträde till skorstenen: glidskydd för lös stege och takstege"
+namn     = "Tillträde till skorstenen: glidskydd för lös stege"
 status   = "att välja"
 ansvarig = "plat"
 fas      = "tatt"
 arende   = [125]
-anm      = "Typgodkänt taksäkerhetssystem med falsfästen (inga hål i plåten). Från altanen: lös stege vid gaveln 2SV, längs dalen DB4 och takstege på takfallet 2SO från dalen upp till skorstenens norra sida. Ingen gångbrygga och ingen arbetsplattform: sotaren står på stegen. Lägena i modellen; avstäms med sotaren."
+anm      = "Typgodkänt taksäkerhetssystem med falsfästen (inga hål i plåten). Från uteplatsen: lös stege vid gaveln 2SV och längs dalen DB2 till skorstenen, som står vid dalen (#145). Ingen gångbrygga och ingen arbetsplattform. Lägena i modellen; avstäms med sotaren."
 
 [[produkt]]
 kod      = "SNORASSKYDD"

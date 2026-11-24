@@ -24,6 +24,7 @@ Pythonmiljöerna (`beräkningar/.venv`, `verktyg/modellering/.venv`, `verktyg/mo
 |---|---|---|
 | `modell` | `./mod bygg --format step` | `modeller/trebodar/ut/trebodar.step` och modellanalysens cache för den |
 | `webb` | `./mod webb` | `docs/modell/` (webbvisaren) |
+| `webb-kamin-b` | `TREBODAR_KAMIN=B ./mod webb` | `docs/alternativ/kamin-b/modell/` (webbvisaren med kaminens andra läge, #145) |
 | `kameraplan` | `./mod kameraplan` | `renderingar/kameraplan.pdf`, `docs/renderingar/` (renderingarna på planerna) |
 | `granskning` | `kontroll_laster.py` och `kontroll_balkplattor.py` (stoppar bygget om balkplåtarnas skärfiler inte följer K-01:s hålbilder) | `verktyg/modellanalys/granskning/ytterväggens_läge.png` |
 | F-01, AV-01, K-01, K-02, K-03, U-02 | beräkningen och rapporten (se mappens README) | rapporten i `rapporter/` |

@@ -7,7 +7,7 @@ och gips 13, upp till innertaket (snett som taket); inuti gips 13 upp till garde
 skikten slutar mot stolpen, L7:s skikt och L6:s skikt, som går runt L7:s ände. Fronten har två öppningar (deras
 smyg vitmålad furu 15) med par av dörrar, blad 22 i trä i liv med väggen. Garderobens tak, gips 13 på överstyckenas
 höjd, stänger den uppåt; ovanför är ett tomrum upp till innertaket. Insidan bakom är de befintliga väggarnas skikt
-(2C och L7); kaminen står på allrummets sida av 2C (#102). Stolpen LD4_1 förankras med ett vinkelbeslag på GC:s syll
+(2C och L7). Stolpen LD4_1 förankras med ett vinkelbeslag på GC:s syll
 i facket vid stolpen (stomme/forankring.py, #112): insidans gips är urtagen runt det vid golvet (URTAG).
 """
 from __future__ import annotations
