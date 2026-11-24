@@ -7,8 +7,8 @@ vardagsrummet söder om V3 och resten. Slingorna stannar i sin del, och stråken
 (D2 i V4–V5) eller mellan två järn (V3). Zonerna och stråken i fördelarens ordning från väster:
 
 - AR: allrummet, genom D2 och längs dess norra kant.
-- N: vardagsrummet och hallens södra del (med allrummets västra del och vardagsrummets rader närmast hallen, genom
-  öppningen öster om 1D), söderut genom V3.
+- N: vardagsrummet (två slingor, den norra och den södra halvan) och hallens södra del (med allrummets västra del),
+  söderut genom V3; den södra slingans tillopp går längs den norras östra ände.
 - V: badrummet och hallens norra del, västerut från stråket i allrummets västra del.
 - S: sovrummet, norrut genom 2C väster om kaminen och elens rör i bjälklaget (MB-R01).
 - G: kontoret, sovrummet och kontoret vid gången och gästrummet: österut under 2B och norrut i gången.
@@ -37,8 +37,9 @@ X_V, X_S, X_G = 3650.0, 5350.0, 9900.0                   # V och N i allrummets 
 Y_O = 6894.0                                             # O österut norr om huvudstolpens syll
 Y_HALL = 9120.0                                          # hallens zon HS uppåt: tilloppet till HS går genom 1B:s
 #                                                          passage (installationer/passager.py)
-Y_VR = 11872.0                                           # VR från 800 mm söder om 1D: raderna närmast hallen hör till
-#                                                          HN, så att VR med tilloppen ryms i rörets längsta längd
+Y_VR = 11072.0                                           # vardagsrummet från 1D:s södra sida
+Y_VR2 = 13472.0                                          # vardagsrummets södra slinga VR2 härifrån; VR1 når 103 mm
+#                                                          längre, så att raderna ligger c/c 200 över gränsen
 Y_HN = 9560.0                                            # HN från norr om 1B:s ände (dess spärrzon, #114)
 Y_KT = 1930.0                                            # KT (och tilloppen till slingans ändar) minst 200 mm
 #                                                          från 2A:s bultar
@@ -50,9 +51,9 @@ Y_GR = 6460.0                                            # GR (och tilloppet lä
 # i fördelarens ordning från väster; i ett stråk det som viker av först ytterst mot sin sida
 ZONER = [
     Zon("AR", "Allrum", (4545.0, 7515.0, 9645.0, 10875.0), 200.0, "y", (4545.0, 7515.0), "AR"),
-    Zon("VR", "Vardagsrum", (0.0, Y_VR, 4400.0, 16000.0), 200.0, "x", (4175.0, Y_VR), "N"),
-    Zon("HN", "Hall, allrum väster och vardagsrum norr", (0.0, Y_HN, 4545.0, Y_VR), 200.0, "x", (4545.0, Y_HN),
-        "N"),
+    Zon("VR2", "Vardagsrum, söder", (0.0, Y_VR2, 4400.0, 16000.0), 200.0, "x", (4175.0, Y_VR2), "N"),
+    Zon("VR1", "Vardagsrum, norr", (0.0, Y_VR, 4400.0, Y_VR2 + 103.0), 200.0, "x", (4175.0, Y_VR), "N"),
+    Zon("HN", "Hall och allrum, väster", (0.0, Y_HN, 4545.0, Y_VR), 200.0, "x", (4545.0, Y_HN), "N"),
     Zon("HS", "Hall", (0.0, 7210.0, 2035.0, Y_HALL), 200.0, "x", (2035.0, Y_HALL), "V"),
     Zon("BA", "Badrum", tuple(BADRUM.exterior.coords)[:-1], 200.0, "x", (3237.0, 7700.0), "V"),
     Zon("SO", "Sovrum", ((2620.0, 2272.0), (9345.0, 2272.0), (9345.0, 5850.0), (SO_HORN[0], 5850.0), SO_HORN,
@@ -71,9 +72,10 @@ def strak(mitt: dict[str, float]) -> dict[str, Strak]:
     som viker av åt samma håll gör det i ordning, det första närmast väggen."""
     return {s.id: s for s in (
         Strak("AR", ((mitt["AR"], VAGG), (mitt["AR"], 7150.0), (5830.0, 7150.0), (5830.0, 7600.0), (4600.0, 7600.0))),
-        Strak("N", ((mitt["N"], VAGG), (mitt["N"], 7000.0), (X_N, 7000.0), (X_N, Y_VR + 628.0))),
-        Strak("V", ((mitt["V"], VAGG), (mitt["V"], 6800.0), (X_V, 6800.0), (X_V, 9050.0))),
-        Strak("S", ((mitt["S"], VAGG), (mitt["S"], 6650.0), (X_S, 6650.0), (X_S, 5720.0))),
+        Strak("N", ((mitt["N"], VAGG), (mitt["N"], 6950.0), (X_N, 6950.0), (X_N, 9300.0), (X_N - 30.0, 9500.0),
+                     (X_N - 30.0, Y_VR2 + 628.0))),
+        Strak("V", ((mitt["V"], VAGG), (mitt["V"], 6700.0), (X_V, 6700.0), (X_V, 9050.0))),
+        Strak("S", ((mitt["S"], VAGG), (mitt["S"], 6550.0), (X_S, 6550.0), (X_S, 5720.0))),
         Strak("G", ((mitt["G"], VAGG), (mitt["G"], 6440.0), (X_G, 6440.0), (X_G, 1600.0))),
         Strak("O", ((mitt["O"], VAGG), (mitt["O"], Y_O), (13500.0, Y_O))),
     )}
