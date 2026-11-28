@@ -281,9 +281,7 @@ def rita_balk(path, B, A, env, rad, BOKST):
     matt_h(ax, 0, L, 2.25, sv(L), fs=7, gap=0.06)
     ax.plot([0, 0], [1.85, 2.35], color=INK, lw=0.35)
     ax.plot([L, L], [1.85, 2.35], color=INK, lw=0.35)
-    if strava:
-        ax.text(strava[0] - 0.009 * L, -1.0, "stolpe med dubbla strävor",
-                ha="right", va="center", fontsize=6.3, color="#333")
+    # stolpen med dubbla strävor ritas utan etikett (stöd D, LN1_3, i texten)
     ax.set_ylim(-2.5, 2.75)
     ax.axis("off")
     # -------------------------------------------------- moment (dragen sida nedåt: fältmoment ritas under axeln)

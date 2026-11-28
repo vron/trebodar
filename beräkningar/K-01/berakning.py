@@ -7,6 +7,7 @@ Läser indata.toml, räknar enligt SS-EN 1990/1991/1993/1995 med EKS (analys.py)
 ritar figurer och sätter ihop PDF via Typst (mall.typ).
 Kräver: pip install typst matplotlib numpy scipy
 """
+import copy
 import json
 import math
 import tomllib
@@ -383,6 +384,24 @@ for nr, B in enumerate(IN["balk"], 1):
     lim_d = dict(namn=B["namn"], tauL=fmt(tau_L.max(), 2), xL=fmt(A.xm[iL], 0), tauT=fmt(tau_T.max(), 2),
                  tau=fmt(tau_fog[iF], 2), x=fmt(A.xm[iF], 0), u=pct(tau_fog[iF] / fvk_cr), uval=tau_fog[iF] / fvk_cr,
                  uL=pct(tau_L.max() / fvk_cr))
+    # känslighet för limfogens styvhet: k_lim ≈ G·b/30 mm är en uppskattning (träets skjuvdeformation närmast fogen).
+    # Halva och dubbla styvheten (60 respektive 15 mm): fogens toppar och bruksgränsens största utnyttjande i fält med plåt.
+    kansl = {}
+    for f_ in (0.5, 2.0):
+        Ak = copy.deepcopy(A)
+        kk_ = np.where(Ak.plat_el, f_ * k_lim, 0.0)
+        Ak.full_samverkan(kk_)
+        ql_ = np.zeros(Ak.ne)
+        for r_ in Ak.res_full:
+            np.maximum.at(ql_, r_["f"]["e"], (r_["k_el"][r_["f"]["e"]][:, None] * np.abs(r_["f"]["dl"])).max(axis=1))
+        FTk = Ak.temperatur(np.where(Ak.plat_el, 100.0, np.inf), 1.0, andzon=False, k_full=kk_)
+        tL_, tT_ = ql_ / b * qk_ / Ak.qd, FTk["q"] / b
+        tf_ = np.maximum(tL_ + la["psi0_T"] * tT_, tL_ * (Lq_["G"] + psi0 * Lq_["S"]) / qk_ + tT_)
+        wu_ = [(w_falt(Ak, Lq["G"], Lq["S"], lo, hi, a_, b_, lambda fak, kk_=kk_: kk_)
+                + la["psi0_T"] * max(0.0, float(FTk["w"][jj].max()))) / ((b_ - a_) / la["nedbojning_krav"])
+               for jj, (lo, hi, a_, b_) in enumerate(A.ss) if brg[jj]["plat"]]
+        kansl[f_] = dict(tau=float(tf_.max()) / float(tau_fog[iF]), wu=max(wu_, default=0.0))
+    lim_d["kansl"] = kansl
     LIM.append(lim_d)
     # kontroll: distansreglarna fullt verkande (limträ som b×H där plåt saknas), samma skruvschema
     u_dist = None
@@ -506,6 +525,11 @@ R = {
     "brg_utan_lim": [fmt(z["uskval"], 2) for bb in balkar for z in bb["brg"] if z["plat"]],
     "L_utan_lim": (fmt(min(float(z["L"].replace(" ", "")) / float(z["wsk"].replace(",", ".")) for bb in balkar for z in bb["brg"] if z["plat"] and z["uskval"] > 1), 0), fmt(max(float(z["L"].replace(" ", "")) / float(z["wsk"].replace(",", ".")) for bb in balkar for z in bb["brg"] if z["plat"] and z["uskval"] > 1), 0)), "jfr": {k: fmt(v, 0) for k, v in IN.get("jamforelse", {}).items()}, "temp": TEMP, "lim_tab": LIM, "fvk_cr": fmt(tr["k_cr"] * tr["fvk"], 2),
     "lim_umax": pct(max(l["uval"] for l in LIM)), "lim_umin": pct(min(l["uval"] for l in LIM)), "L_slapp": fmt(L_slapp, 0),
+    "kansl": dict(
+        tau_halv=(pct(min(l["kansl"][0.5]["tau"] for l in LIM)), pct(max(l["kansl"][0.5]["tau"] for l in LIM))),
+        tau_dubbel=(pct(min(l["kansl"][2.0]["tau"] for l in LIM)), pct(max(l["kansl"][2.0]["tau"] for l in LIM))),
+        wu_max=pct(max(max(l["kansl"][f]["wu"] for f in (0.5, 2.0)) for l in LIM)),
+        wu_bas=pct(max(z["uval"] for bb in balkar for z in bb["brg"] if z["plat"]))),
     "lam_lim": fmt(math.sqrt(k_lim * (1 / (Es * A1) + 2 / (Et * b * hw))) * 1e3, 2),
     "u_full_max": pct(max(UFULL)),
     "cc_rad_min": fmt(cc_rad, 0), "e1_min": fmt(1.2 * d0, 1), "p1_min": fmt(2.2 * d0, 1), "p2_min": fmt(2.4 * d0, 1),
