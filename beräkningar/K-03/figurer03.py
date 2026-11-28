@@ -43,7 +43,7 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
         xs = [s["x0"] for s in t["staver"] if s["z0"] > 2000] + [s["x1"] for s in t["staver"] if s["z0"] > 2000]
         ax.plot([min(xs), max(xs)], [t["y"]] * 2, color=BLA, lw=2.6, zorder=2, solid_capstyle="butt")
         namn = t["namn"].replace("Stol ", "")
-        dy = -300 if t["y"] > 15000 or 3000 < t["y"] < 4000 else 300
+        dy = -300 if namn.endswith("NO") else 300           # gavelstolarnas etikett utanför taket, NO under och SV över
         ax.text((min(xs) + max(xs)) / 2 + (650 if namn in ("1NO", "1SV") else 0), t["y"] + dy, f"takstol {namn}", fontsize=6.3,
                 color=BLA, va="center", ha="center", zorder=6, bbox=dict(fc="white", ec="none", pad=0.4, alpha=0.85))
     for f in GEO["fonster"]:
@@ -55,16 +55,15 @@ def oversikt(path, GEO, G05, ST, STOLPAR, huvud, brister):
         p = s["p"]
         fel = s["namn"] in brister
         ax.add_patch(Rectangle((p["x"] - 90, p["y"] - 90), 180, 180, fc=ROD if fel else INK, ec="none", zorder=7))
-        txt = s["namn"] + (f" ({s['gamla']})" if s["gamla"] else "")
+        txt = s["namn"]
         dy =-230 if p["y"] > 15000 or (p["y"] > 3000 and p["y"] < 3800) or p["y"] > 12000 or p["y"] < 100 else 230
         dx = -130 if p["x"] > 13000 or (p["x"] > 4400 and p["x"] < 4600 and p["y"] < 3700) else 130
         ax.text(p["x"] + dx, p["y"] + dy, txt, fontsize=6.0, color=ROD if fel else INK, va="center", ha="left" if dx > 0 else "right",
                 zorder=8, bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.8))
-    hp = huvud["p"]
-    ax.add_patch(Rectangle((hp["x"] - 140, hp["y"] - 140), 280, 280, fc=ROD, ec="none", zorder=9))
-    ax.annotate("HUVUDSTOLPE\nLN1_3 (F)", (hp["x"] + 150, hp["y"]), (hp["x"] + 700, hp["y"] + 1300), fontsize=7.5,
-                weight="bold", color=ROD, ha="left", va="center", zorder=10,
-                arrowprops=dict(arrowstyle="-|>", color=ROD, lw=0.8), bbox=dict(fc="white", ec=ROD, lw=0.6, pad=1.5))
+    hp = huvud["p"]                                         # huvudstolpen som de andra stolparna
+    ax.add_patch(Rectangle((hp["x"] - 90, hp["y"] - 90), 180, 180, fc=INK, ec="none", zorder=7))
+    ax.text(hp["x"] + 130, hp["y"] + 230, huvud["namn"], fontsize=6.0, color=INK, va="center", ha="left", zorder=8,
+            bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.8))
     h = [plt.Line2D([], [], color=TYPF[k], lw=1.6) for k in TYPF]
     lbl = ["ÅII nock–dal, mitten", "ÅIY nock–takfot, mitten", "ÅYI nock–dal, sidorna", "ÅYY nock–takfot, sidorna"]
     h += [plt.Line2D([], [], color=STAL, lw=4), plt.Line2D([], [], color=BLA, lw=2.6),
@@ -235,6 +234,6 @@ def huvudstolpe(path, GEO, HS, kc, u):
     ax.text(yc + e / 2, t["z1"] + 290, f"{e:.0f}", ha="center", fontsize=6.3)
     ax.text(yc - 80, 1500, "4 st 45×120 C24\nsida vid sida", rotation=90, ha="center", va="center", fontsize=6.3)
     ax.plot([yc - 1200, yc + 1200], [0, 0], color=INK, lw=1.0)
-    ax.text(yc - 1150, 60, "bjälklag (K-05)", fontsize=6.3)
+    ax.text(yc - 1150, 60, "bjälklag", fontsize=6.3)
     ax.set_xlim(yc - 1250, yc + 1250); ax.set_ylim(-420, t["z1"] + 560); ax.set_aspect("equal"); ax.axis("off")
     _spara(fig, path)

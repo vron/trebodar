@@ -270,6 +270,10 @@ for z in YT["zon"]:
 print(f"  läktskruv {LK['skruv']}: huvud {R_head_k:.2f}, gänga {R_ax_k:.2f} kN -> R_d {R_lakt_d:.2f} kN; "
       f"spik {RS['d']}×{RS['L']:.0f}: R_k {R_spik_k * 1000:.0f} N, R_d {R_spik_d * 1000:.0f} N; e {e_zon:.1f} m")
 YT_DIM = max(YTZ, key=lambda z: max(z["u_skruv"], z["u_spik"]))
+# rapporten: randzonerna (gavelkanter och fria takfötter, samma c/c) i en rad med den ogynnsammaste zonens värden;
+# vid takfötterna är suget c_pe,1 −1,5 med vindens tryck +0,8 in i luftspaltens mynning, vid gavlarna −2,0 med +0,2
+_rand = max((z for z in YTZ if z["rand"]), key=lambda z: max(z["u_skruv"], z["u_spik"]))
+YTZ_RAPPORT = [dict(_rand, namn="Randzon", text="Gavelkanter och fria takfötter")] + [z for z in YTZ if not z["rand"]]
 
 # ------------------------------------------------------------------ takfönster
 FON = []
@@ -589,7 +593,7 @@ R = {
                zoner=[dict(namn=z["namn"], text=z["text"], rand=z["rand"], cpe1=fmt(z["cpe1"], 1), cpe10=fmt(z["cpe10"], 1),
                            under=fmt(z["under"], 1), wk=fmt(z["wk"], 2), wd=fmt(z["wd"], 2), q=fmt(z["q"], 2),
                            cc_max=fmt(z["cc_max"] * 1000, 0), cc=fmt(z["cc"] * 1000, 0), us=pct(z["u_skruv"]),
-                           F=fmt(z["F_spik"] * 1000, 0), usp=pct(z["u_spik"])) for z in YTZ]),
+                           F=fmt(z["F_spik"] * 1000, 0), usp=pct(z["u_spik"])) for z in YTZ_RAPPORT]),
     "fon": [dict(nr=str(f["nr"]), y=f"{fmt(f['y0'], 0)}–{fmt(f['y1'], 0)}", typ=f["typ"],
                  trim=" / ".join(str(n) for n in f["trimmer"]), utrim=" / ".join(pct(u) for u in f["u_trim"]),
                  uavv=pct(f["u_avv"]), kort=str(f["kortlingar"]), w=fmt(f["w_rasspont"], 1)) for f in FON],
