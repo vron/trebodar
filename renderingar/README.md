@@ -77,7 +77,9 @@ Kameran hålls vågrät och bilden flyttas i höjdled med objektivförskjutning,
 
 Dagsljuset är 20 april kl. 14.00 med sol (`INNE_LJUS` i `vyer.py`), räknat för platsen: solens riktning, färg och
 styrka och himlens ljus (`./mod ljus 4 20 14:00 sol`). Himlen lyser in genom ljusportaler i fönstren, och utanför
-syns omgivningen ur öppna geodata (`./mod omgivning --hamta`, sparas i `lokalt/omgivning/`; utan den en enkel mark).
+syns omgivningen ur öppna geodata (`./mod omgivning --hamta`, sparas i `lokalt/omgivning/`). Renderingen stannar
+om något i `lokalt/` saknas (omgivningen, Poly Havens texturer, modeller och himlar, natthimlen eller armaturernas
+fotometrifiler, `modellering/tillgangar.py`) och bygger om omgivningen när det den byggs av är nyare.
 Exponeringen och vitbalansen räknas fram ur en snabb förhandsbild per bild, som ögats anpassning till rummets ljus.
 I källaren (I28–I30) är källarens belysning tänd (tändgrupperna i `KALLAREN` i `vyer.py`), eftersom de små fönstren ger för lite ljus.
 

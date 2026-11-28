@@ -92,13 +92,26 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
              blender: str, blend: bool, natter: dict[str, dict] | None = None) -> None:
     """Modellens GLB och scenens beskrivning (vyerna med dagsljus och tända grupper, ljusportalerna, lamporna,
     omgivningen, armaturerna, materialen och natthimlen per tid, natthimmel.natt) och Blender (blender/rendera.py) i
-    bakgrunden."""
+    bakgrunden. Först tillgångarna i lokalt/ (tillgangar.py): en gammal omgivning byggs om, och det som saknas stoppar
+    renderingen."""
     import json
     import subprocess
     from . import dagsljus
     from .export import glb
+    from . import tillgangar
     vy_mod = importlib.import_module("trebodar.vyer")
     plats = importlib.import_module("trebodar.skelett").PLATS
+    cfg = vy_mod.GEODATA
+    if (nytt := tillgangar.nyare(cfg)) and tillgangar.kan_byggas(cfg):
+        print(f"  omgivningen byggs om ({nytt} är nyare eller saknas)")
+        _omgivning()
+    saknas = tillgangar.saknas(cfg)
+    armaturer = _armaturer(saknas)
+    if not saknas and (nytt := tillgangar.nyare(cfg)):
+        saknas.append(f"omgivningen i {cfg['mapp']} är äldre än {nytt} (./mod omgivning)")
+    if saknas:
+        raise SystemExit("renderingen behöver det här i lokalt/ (versionshanteras inte, modellering/tillgangar.py):\n"
+                         + "\n".join(f"  {f}" for f in saknas))
     fil = UT / f"{filnamn(rot)}-rendering.glb"
     glb.skriv(_utan(rot, getattr(vy_mod, "RENDER_UTOM", [])), fil, karna)
     ut.mkdir(parents=True, exist_ok=True)
@@ -107,11 +120,7 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
             "lampor": {k: {**g, "farg": dagsljus.svartkropp(float(g["kelvin"]))}
                        for k, g in getattr(vy_mod, "LAMPOR", {}).items()},
             "omgivning": getattr(vy_mod, "OMGIVNING", None),
-            "geodata": (str(ROT / vy_mod.GEODATA["mapp"]) if hasattr(vy_mod, "GEODATA")
-                        and (ROT / vy_mod.GEODATA["mapp"] / "omgivning.json").exists() else None),
-            "tillgangar": (str(ROT / vy_mod.GEODATA["tillgangar"]) if "tillgangar" in getattr(vy_mod, "GEODATA", {})
-                           and (ROT / vy_mod.GEODATA["tillgangar"]).is_dir() else None),
-            "armaturer": _armaturer(),
+            "geodata": str(ROT / cfg["mapp"]), "tillgangar": str(ROT / cfg["tillgangar"]), "armaturer": armaturer,
             "material": {d.material.namn: d.material.renderdata() for _, d, _ in rot.platta()}, "vyer": vyer,
             "natter": natter or {},
             "blend": str((UT / f"{filnamn(rot)}.blend").resolve()) if blend else None}
@@ -130,10 +139,53 @@ def _blender(rot: Montage, karna: Karna, vyer: dict[str, dict], kvalitet: str, b
     print(f"  ({time.perf_counter() - t:.0f} s)")
 
 
-def _armaturer() -> list[dict[str, object]]:
+def _omgivning(hamta: bool = False) -> None:
+    """Omgivningen för renderingen (`./mod omgivning`, tillgangar.py): med hamta först det som saknas av
+    geodata, Poly Havens tillgångar och natthimlen."""
+    import numpy as np
+    from . import geodata
+    if str(MODELLMAPP) not in sys.path:
+        sys.path.insert(0, str(MODELLMAPP))
+    vy_mod = importlib.import_module("trebodar.vyer")
+    plats = importlib.import_module("trebodar.skelett").PLATS
+    cfg = vy_mod.GEODATA
+    passning, fel = vy_mod.sweref_passning()
+    mitt = vy_mod.OMGIVNING["mitt"]
+    lat, lon = geodata.wgs84(*passning.till_sweref(np.array([mitt[0]]), np.array([mitt[1]])))
+    print(f"  modellens mitt {lat[0]:.5f} N {lon[0]:.5f} O (passningen mot SWEREF: restfel {fel:.1f} mm)")
+    mapp = ROT / cfg["mapp"]
+    if hamta:
+        geodata.hamta(float(lat[0]), float(lon[0]), cfg["radie"] + 300.0, str(mapp))
+        if "tillgangar" in cfg:
+            from . import polyhaven
+            nya = polyhaven.hamta(str(ROT / cfg["tillgangar"]))
+            print(f"  Poly Haven: {', '.join(nya) if nya else 'inget nytt'} -> {ROT / cfg['tillgangar']}")
+        from . import natthimmel
+        nya = natthimmel.hamta()
+        print(f"  natthimlen: {', '.join(nya) if nya else 'inget nytt'} -> {natthimmel.MAPP}")
+    besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
+    print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
+    terr = ROT / cfg.get("terrang", "lokalt/terrang")
+    if (terr / "hojd").is_dir():
+        from . import terrang
+        S = importlib.import_module("trebodar.skelett")
+        from shapely.geometry import Polygon
+        fasad = list(Polygon(S.KONTUR).buffer(95.0, join_style=2).exterior.coords)
+        st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd, fasad, cfg.get("byggnader", ()),
+                          cfg.get("skog", ()), cfg.get("utan_trad", ()), cfg.get("nya_trad", ()),
+                          cfg.get("baddar", ()), cfg.get("buskar", ()))
+        na = st["nara"]
+        print(f"  Lantmäteriets höjder ur {terr}; tomten {na['nx']}×{na['ny']} celler à {na['cell']} m, "
+              f"{st['uteslutna']} markpunkter avviker mer än {terrang.RATT_MAX} m och räknas inte")
+        print("  inmätta punkter mot Lantmäteriet (median avvikelse, median |avvikelse| före och efter rättningen):")
+        for k, (antal, med, fore, efter, mark) in st["punkter"].items():
+            print(f"    {k:8s} {antal:4d}  {med:+.3f}  {fore:.3f} → {efter:.3f} m" + ("" if mark else "  (föremål)"))
+
+
+def _armaturer(saknas: list[str]) -> list[dict[str, object]]:
     """Elinstallationens armaturer för renderingen (modellens el, om den finns): linsens läge, ljusets riktning,
     tändgruppen, färgen och ljusfördelningen (IES ur tillverkarens fotometrifil i lokalt/el/, annars en stråle med
-    databladets strålvinkel). Pendlarna: ljuskällan i armaturen ("kalla", lika åt alla håll, eller en stråle för en
+    databladets strålvinkel, och filen i saknas). Pendlarna: ljuskällan i armaturen ("kalla", lika åt alla håll, eller en stråle för en
     armatur med strålvinkel), med flödet genom glas som omsluter den (transmissionen), och glasets luminans
     ("luminans", flödet genom glaset fördelat på dess yta, cd/m²)."""
     from . import dagsljus, fotometri
@@ -177,7 +229,7 @@ def _armaturer() -> list[dict[str, object]]:
             fordelningar[p["typ"]] = (fotometri.las_ldt(ldt).skalad(t["ljusflode"]) if ldt.exists() else
                                       fotometri.spot(t["stralvinkel"], t["ljusflode"], t["namn"]))
             if not ldt.exists():
-                print(f"  {p['typ']}: fotometrifilen saknas ({ldt}), stråle {t['stralvinkel']:g}° (./mod el hamta)")
+                saknas.append(f"{ldt.relative_to(ROT)} (armaturen {p['typ']}: ./mod el hamta)")
         f = fordelningar[p["typ"]]
         ut.append({"id": pid, "typ": p["typ"], "tand": p["tand"], "lins": p["lins"], "riktning": p["riktning"],
                    "punkt": p["punkt"], "normal": p["normal"], "ies": f.ies(),
@@ -539,44 +591,7 @@ def main(argv: list[str] | None = None) -> None:
               or blender.stdout[-3000:] + blender.stderr[-2000:])
         return
     if arg.kommando == "omgivning":
-        import numpy as np
-        from . import geodata
-        if str(MODELLMAPP) not in sys.path:
-            sys.path.insert(0, str(MODELLMAPP))
-        vy_mod = importlib.import_module("trebodar.vyer")
-        plats = importlib.import_module("trebodar.skelett").PLATS
-        cfg = vy_mod.GEODATA
-        passning, fel = vy_mod.sweref_passning()
-        mitt = vy_mod.OMGIVNING["mitt"]
-        lat, lon = geodata.wgs84(*passning.till_sweref(np.array([mitt[0]]), np.array([mitt[1]])))
-        print(f"  modellens mitt {lat[0]:.5f} N {lon[0]:.5f} O (passningen mot SWEREF: restfel {fel:.1f} mm)")
-        mapp = ROT / cfg["mapp"]
-        if arg.hamta:
-            geodata.hamta(float(lat[0]), float(lon[0]), cfg["radie"] + 300.0, str(mapp))
-            if "tillgangar" in cfg:
-                from . import polyhaven
-                nya = polyhaven.hamta(str(ROT / cfg["tillgangar"]))
-                print(f"  Poly Haven: {', '.join(nya) if nya else 'inget nytt'} -> {ROT / cfg['tillgangar']}")
-            from . import natthimmel
-            nya = natthimmel.hamta()
-            print(f"  natthimlen: {', '.join(nya) if nya else 'inget nytt'} -> {natthimmel.MAPP}")
-        besk = geodata.bygg(str(mapp), passning, (mitt[0], mitt[1]), cfg["radie"], cfg["cell"], plats.hojd)
-        print(f"  {besk['n']}×{besk['n']} celler à {besk['cell']} m, {len(besk['byggnader'])} byggnader -> {mapp}")
-        terr = ROT / cfg.get("terrang", "lokalt/terrang")
-        if (terr / "hojd").is_dir():
-            from . import terrang
-            S = importlib.import_module("trebodar.skelett")
-            from shapely.geometry import Polygon
-            fasad = list(Polygon(S.KONTUR).buffer(95.0, join_style=2).exterior.coords)
-            st = terrang.bygg(str(mapp), str(terr), passning, plats.hojd, fasad, cfg.get("byggnader", ()),
-                              cfg.get("skog", ()), cfg.get("utan_trad", ()), cfg.get("nya_trad", ()),
-                              cfg.get("baddar", ()), cfg.get("buskar", ()))
-            na = st["nara"]
-            print(f"  Lantmäteriets höjder ur {terr}; tomten {na['nx']}×{na['ny']} celler à {na['cell']} m, "
-                  f"{st['uteslutna']} markpunkter avviker mer än {terrang.RATT_MAX} m och räknas inte")
-            print("  inmätta punkter mot Lantmäteriet (median avvikelse, median |avvikelse| före och efter rättningen):")
-            for k, (antal, med, fore, efter, mark) in st["punkter"].items():
-                print(f"    {k:8s} {antal:4d}  {med:+.3f}  {fore:.3f} → {efter:.3f} m" + ("" if mark else "  (föremål)"))
+        _omgivning(arg.hamta)
         return
     t0 = time.perf_counter()
     rot = valj(ladda(), getattr(arg, "vag", None))

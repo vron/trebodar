@@ -47,6 +47,12 @@ if SCEN.get("omgivning"):
 portaler = [o for o in bpy.data.objects if o.name.startswith("Portal ")]
 lampor = S.lampor(SCEN.get("lampor", {}))
 armaturer = S.armaturer(SCEN.get("armaturer", []))
+# bilderna som materialen pekar på (Poly Havens modeller tar med sina egna): en som saknas blir rosa i bilden
+saknade = sorted({bpy.path.abspath(b.filepath, library=b.library) for b in bpy.data.images
+                  if b.source == "FILE" and b.filepath and not b.packed_file
+                  and not os.path.exists(bpy.path.abspath(b.filepath, library=b.library))})
+if saknade:
+    raise RuntimeError("bilderna saknas (./mod omgivning --hamta):\n  " + "\n  ".join(saknade))
 
 
 def stall_in(namn: str, vy: dict) -> None:

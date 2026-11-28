@@ -784,15 +784,17 @@ _MODELLER: dict[str, list[bpy.types.Object]] = {}
 
 def _modell(tillgangar: str | None, namn: str) -> list[bpy.types.Object]:
     """Varianterna av Poly Havens modell namn (MODELLER) med sina nät, material (tonade efter TONING) och bilder, en
-    gång per scen; de som saknas i tillgångarna hoppas över."""
+    gång per scen; en variant som saknas i tillgångarna stoppar renderingen (modellering/tillgangar.py)."""
     if namn not in _MODELLER:
         _MODELLER[namn] = []
         for fil, objekt in MODELLER[namn] if tillgangar else ():
             fil = os.path.join(tillgangar, "modeller", fil)
             if not os.path.exists(fil):
-                continue
+                raise RuntimeError(f"Poly Havens modell saknas: {fil} (./mod omgivning --hamta)")
             with bpy.data.libraries.load(os.path.abspath(fil), link=False) as (src, dst):
-                dst.objects = [objekt] if objekt in src.objects else []
+                if objekt not in src.objects:
+                    raise RuntimeError(f"{objekt} saknas i {fil}")
+                dst.objects = [objekt]
             _MODELLER[namn] += [o for o in dst.objects if o is not None]
         for mat in {m for o in _MODELLER[namn] for m in o.data.materials if m}:
             if mat.name in TONING:
