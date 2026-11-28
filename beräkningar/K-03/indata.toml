@@ -214,16 +214,32 @@ skruv_L = 90
 skruv_My = 9500.0
 
 [spikplat]
-t = 2.0                 # plåttjocklek [mm], S250GD+Z
-fu = 330.0
-bredd = 100
-hal = 5.0
-hal_per_rad = 4
-spik_d = 4.0            # ankarspik 4,0×40
-spik_L = 40
-spik_fu = 600.0
-gamma_M2 = 1.25
-gamma_M_forband = 1.3
+# Hydrauliskt inpressade spikplåtar (punched metal plate fasteners) i takstolarna och huvudstolpen, prefabricerade.
+# Referensplåt MiTek M20H, 1,0 mm, eller likvärdig: deklarerade värden enligt SS-EN 14545 ur prestandadeklarationen
+# DoPM20H (2021-01-25), för konstruktionsvirke och limträ med ρ_k = 350 kg/m³ (C24).
+produkt   = "MiTek M20H"
+t         = 1.0         # plåttjocklek [mm], S350GD+Z275
+fa00      = 2.97        # f_a,0,0,k [N/mm²]
+fa9090    = 1.37        # f_a,90,90,k [N/mm²]
+k1        = -0.0079
+k2        = 0.0157
+alfa0     = 60.0        # [°]
+ft0       = 171         # plåtens bärförmåga per mm [N/mm]: drag, tryck och skjuvning längs (0) och tvärs (90)
+ft90      = 158
+fc0       = 88
+fc90      = 99
+fv0       = 83
+fv90      = 43
+gamma0    = -11.0       # [°]
+kv        = 1.5
+gamma_M   = 1.25        # spikplåtar (SS-EN 1995-1-1 tabell 2.3)
+min_tra   = 35          # minsta virkestjocklek [mm]
+# tillverkarens standardmått (tum): bredd och längd [mm]
+bredder   = [76, 102, 127, 152, 178, 203, 254]
+langder   = [76, 102, 127, 152, 178, 203, 229, 254, 279, 305, 330, 356, 381, 406, 432, 457, 483, 508, 533, 559, 584, 610]
+spel_topp = 8.0         # toppens plåt under nockbalken (modellen: TOPPLAT_SPEL)
+spel_stolpe = 10.0      # huvudstolpens plåt under topregelns överkant (modellen: PLAT_SPEL)
+n_storlekar = { fot = 2, topp = 1, huvudstolpe = 2, stolptopp = 1 }   # högst så många storlekar per slag av knutpunkt
 
 # ------------------------------------------------------------------ stolpar
 # namn: K-05:s punktlast. sok: punkt i modellen där stolpen söks (kontroll_k03.py). gamla: beteckning i den äldre
@@ -258,9 +274,9 @@ sok = [9435, 10992]
 gamla = "G"
 [[stolpe]]
 namn = "LN3_1"
-sok = [7007, 2200]
+sok = [7030, 2200]
 gamla = "H"
-e = 48.5        # nockbalk 3 vilar på 83 av stolpens 180 mm (väggen slutar före balkens mittlinje, #45)
+e = 71          # nockbalk 3 vilar på stolpens västra 83 av 225 mm (#45): lastens mitt x 6 958,5, stolpens 7 029,5
 [[stolpe]]
 namn = "LD4_1"
 sok = [4475, 5843]
@@ -289,7 +305,7 @@ e = 71          # nockbalk 5 vilar på stolpens östra 83 av 225 mm (#45): laste
 [huvudstolpe]
 L = 2900                # golv till strävornas fäste (K-01)
 strava_b = 45
-strava_h = 120
+strava_h = 145          # strävornas höjd: 45×145, så att spikplåtarna vid foten får plats (spikplat.py)
 strava_lager = 4
 strava_L = 990          # strävans längd mellan knutpunkterna (modellen, 45°)
 

@@ -1,6 +1,6 @@
 """
 Kontroll av K-03:s geometri (beräkningar/K-03/geometri.json) mot modellen: nock- och dalbalkar, takbalkar,
-takfönster, takstolar, stolpar och huvudstolpen, och K-05:s stolplägen.
+takfönster, upplagsreglarna, takstolar, stolpar och huvudstolpen, och K-05:s stolplägen.
 
     .venv/bin/python kontroll_k03.py
 
@@ -99,6 +99,15 @@ def main():
         tf.append(dict(y0=y0, y1=y1, z_under=ts[0]["z0"], z_over=ts[-1]["z0"], n=len(ts)))
     par, _ = para(kalla["fonster"], tf, lambda f: ((f["y0"] + f["y1"]) / 2, 0.0))
     jamfor_tal("öppningarna", par, ("y0", "y1", "z_under", "z_over"))
+
+    # ---------------------------------------------------------------- upplagsreglarna (R-01 ritar dem)
+    rapport.append("Upplagsreglar")
+    ur = {d.namn: lada([d]) for d in stomme if re.fullmatch(r"\w+-UR-\w+?(-\d+)?", d.namn)}
+    kalla_ur = {u["namn"]: u for u in kalla.get("upplagsreglar", [])}
+    for n in sorted(set(ur) ^ set(kalla_ur)):
+        fel.append(f"upplagsregeln {n}: " + ("bara i modellen" if n in ur else "bara i källfilen"))
+    jamfor_tal("upplagsreglarna", [(kalla_ur[n], ur[n]) for n in sorted(set(ur) & set(kalla_ur))],
+               ("x0", "x1", "y0", "y1", "z0", "z1"))
 
     # ---------------------------------------------------------------- takstolar
     rapport.append("Takstolar")

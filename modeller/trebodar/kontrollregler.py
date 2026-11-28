@@ -61,7 +61,7 @@ TILLATNA_OVERLAPP = {
     frozenset(("Installation", "Cellplast S300")): "avloppet genom cellplasten under bottenplattan (genomföring)",
     frozenset(("Kamin",)): "rökrörets delar går in i varandra i böjarna",
     frozenset(("Kamin", "Rostfritt")): "rökröret går in i den isolerade skorstenens anslutning i kassen",
-    frozenset(("Spikplåt", "Utegips")): "spikplåt 2 mm på gavelstolens utsida, utegipsen fräses ur",
+    frozenset(("Spikplåt", "Utegips")): "spikplåt 1 mm på gavelstolens utsida, utegipsen fräses ur",
     frozenset(("Stålband", "C24")): "stålbanden (K-04) är infällda i reglarna, hammarbanden, syllarna och takbalkarna",
     frozenset(("Stålband",)): "stålbanden korsar varandra i kryssets mitt",
     frozenset(("Stålband", "Träfiberisolering")): "isoleringen i facken trycks undan vid de infällda stålbanden",

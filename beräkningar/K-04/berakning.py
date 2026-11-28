@@ -571,6 +571,8 @@ skivor_ut = {"ug": {"F_k": fmt(UG.get("F_k", 0.0), 0), "s": fmt(UG.get("s", 0.0)
 
 R_ut = {"projekt": IN["projekt"], "raspont": raspont, "skivor": skivor_ut, "modell": modell, "last": last,
         "stolpar": stolptab, "G_tot": fmt(G_tot, 1),
+        "kvot_max": pct(max(stolpar[t["namn"]][sno].max() / k05[t["namn"]] for t in stolptab if t["namn"] in k05)),
+        "kvot_over": [t["namn"] for t in stolptab if t["over"]],
         "takstolar": takstolar, "gavel": gavel,
         "riktningar": riktningar, "sammanf": sammanf, "detalj": detalj, "band": band, "forankring": forank, "forband": forb,
         "bruks": bruks, "alla_ok": alla_ok, "forband_h02": IN["forband_h02"], "sektioner": sektioner, "kombination": {k: (fmt(v, 2) if isinstance(v, float) else v)

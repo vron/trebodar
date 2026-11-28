@@ -44,6 +44,8 @@ IN = tomllib.load(open(os.path.join(K01, "indata.toml"), "rb"))
 R = json.load(open(os.path.join(K01, "resultat.json"), encoding="utf-8"))
 G03 = json.load(open(os.path.join(BER, "K-03", "geometri.json"), encoding="utf-8"))
 G05 = json.load(open(os.path.join(BER, "K-05", "bild", "geometri.json"), encoding="utf-8"))
+UP = tomllib.load(open(os.path.join(BER, "K-03", "indata.toml"), "rb"))["upplag"]
+K03R = json.load(open(os.path.join(BER, "K-03", "resultat.json"), encoding="utf-8"))
 
 NR = "R-01"
 REV, DATUM = "A", "2026-10-13"
@@ -115,8 +117,11 @@ for bi, br in zip(IN["balk"], R["balkar"]):
         assert sum(z["n"] for z in zoner if z["bit"] == nr) == len(b["hal"]), (bi["namn"], nr)
     plan = next(g for g in G03["balkar"] if g["namn"] == nyckel)
     assert abs(plan["y1"] - plan["y0"] - L) < 1, nyckel
+    # upplagsreglarna 45×45 på balkens sidor (K-03, geometri.json ur modellen), i balkens x och höjd över underkanten
+    regler = [dict(namn=u["namn"], takfall=u["namn"].split("-")[0], x0=u["y0"] - plan["y0"], x1=u["y1"] - plan["y0"],
+                   z0=u["z0"] - plan["zu"], z1=u["z1"] - plan["zu"]) for u in G03["upplagsreglar"] if u["balk"] == kort]
     BALKAR[kort] = dict(namn=bi["namn"], nyckel=nyckel, kort=kort, typ=bi["typ"], L=L, platar=platar, hal=hal,
-                        dist=dist, stod=stod, zoner=zoner, plan=plan, n_skruv=br["n_balk"],
+                        dist=dist, stod=stod, zoner=zoner, plan=plan, n_skruv=br["n_balk"], regler=regler,
                         stal=sum(platvikt(b["till"] - b["fran"], len(b["hal"])) for b in hal.values()) * 2)
 
 # ================================================================== 2. placeringar
@@ -192,6 +197,8 @@ def elevation(k, ytopp):
                 v.linje([(a, z), (c, z)], "plat")
         v.linje([(0, 0), (0, H)], "normal")
         v.linje([(L, 0), (L, H)], "normal")
+        for u in b["regler"]:                            # upplagsreglarna på balkens sidor
+            v.rekt(u["x0"], u["z0"], u["x1"], u["z1"], fyll="karna", stil="tunn")
     # ---- stöd, bara för orientering
     with v.lager("stod"):
         for st in b["stod"]:
@@ -493,12 +500,16 @@ def blad_elevationer():
             "Skruvzonerna: c/c i varje rad och antal skruv per plåt (lika i över- och underplåt). Två rader om inget "
             "annat anges. Hålen laserskärs enligt hålbilderna (R-01.2), en skruv i varje hål.",
             "Stöden visas bara för orientering.",
+            f"Upplagsreglar {UP['regel_b']}×{UP['regel_h']} C24 längs balkens sidor där takbalkarna vilar (K-03), "
+            "monterade på balken före lyftet: lägena i elevationerna och tabellen på R-01.2, skruv "
+            f"Ø{UP['skruv_d']:g}×{UP['skruv_L']} genom regeln in i limträet, {K03R['tb']['n_skruv']} per takbalk.",
         ]),
         dict(typ="rubrik", text="Teckenförklaring"),
         dict(typ="symboler", rader=[
             dict(form="yta", fyll="limtra", stil="tunn", text=f"limträ {TR['kvalitet']} {LTD}"),
             dict(form="linje", stil="plat", text=f"plattstål {PLD}, över- och underplåt"),
             dict(form="linje", stil="distans", text=f"distansregel {DISTD}"),
+            dict(form="yta", fyll="karna", stil="tunn", text=f"upplagsregel {UP['regel_b']}×{UP['regel_h']}"),
             dict(form="stod", text="stöd"),
             dict(form="yta", fyll="stodyta", stil="", text="stöd, vägg"),
             dict(form="yta", fyll="vit", stil="tunn", text="skruvzon, två rader"),
@@ -524,6 +535,16 @@ def platforteckning():
     rader.append(["Summa", f"{len(rader)} plåtar", "", svm(tot_L), str(tot_n), sv(tot_kg, 0)])
     return dict(typ="tabell", kolumner=["Plåt", "Läge", "x i balken (mm)", "L (mm)", "Hål", "Vikt efter håltagning (kg)"],
                 bredd=(0, 0, 1, 0, 0, 0), rader=rader, just=["l", "l", "l", "r", "r", "r"], sz=6.4)
+
+
+def regelforteckning():
+    """Upplagsreglarna per balk och sida: x i balken och höjden över balkens underkant."""
+    rader = []
+    for k in sorted(BALKAR, key=lambda q: int(q[2:])):
+        for u in sorted(BALKAR[k]["regler"], key=lambda u: (u["takfall"], u["x0"])):
+            rader.append([k, f"mot {u['takfall']}", f"{svm(u['x0'])}–{svm(u['x1'])}", f"{u['z0']:.0f}–{u['z1']:.0f}"])
+    return dict(typ="tabell", kolumner=["Balk", "Sida", "x i balken (mm)", "z över uk (mm)"],
+                bredd=(0, 0, 1, 0), rader=rader, just=["l", "l", "l", "r"], sz=6.0)
 
 
 def balkforteckning():
@@ -580,6 +601,7 @@ def blad_sektioner():
             dict(form="linje", stil="dold", text="skruv i den andra raden"),
             dict(form="linje", stil="axel", text="skruvrad")]),
         dict(typ="rubrik", text="Balkar"), balkforteckning(),
+        dict(typ="rubrik", text=f"Upplagsreglar {UP['regel_b']}×{UP['regel_h']} C24 (K-03)"), regelforteckning(),
     ]
     return Blad(hd("R-01.2"), REVISIONER, kol, vyer, block)
 

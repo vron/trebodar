@@ -35,13 +35,15 @@
   inset: 4pt,
   [*Projekt*], p.namn, [*Dokument*], [#p.dokument, rev #p.revision],
   [*Objekt*], p.objekt, [*Datum*], p.datum,
-  [*Innehåll*], [Konstruktionsberäkning, balkmodell (FEM) av trästommen], [*Upprättad*], p.upprattad,
+  [*Innehåll*], [Konstruktionsberäkning, balkmodell av trästommen], [*Upprättad*], p.upprattad,
   ..if p.granskad != "" { ([], [], [*Granskad*], p.granskad) },
 )
 
 = Syfte och resultat
 
-Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från taket och väggarna ned till bjälklaget, och kontrollerar stommens alla delar och stabiliseringen. Hela stommen räknas i en balkmodell (FEM): reglar, syllar, hammarband, överstycken, stolpar, takbalkar, takstolar, nock- och dalbalkar och stålband. De horisontella lasterna tas av infällda stålband i kryss i väggarna och i en del av takfallens fält och av skivorna där de räknas som skjuvskivor: utegipsen, OSB:n direkt på reglarna i de bärande innerväggarna och i gaveln 1SV och råsponten i takfallen (@skivor). Varje grupp av likadana delar kontrolleras i alla #r.last.antal_komb lastkombinationer, och tabellen visar det högsta utnyttjandet i gruppen. Nock- och dalbalkarna kontrolleras i K-01, takets anslutningar (hak, säten, takstolarnas spikplåtar) i K-03 och bjälklaget i K-05.
+Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från taket och väggarna ned till bjälklaget. Hela stommen räknas i en balkmodell (FEM): reglar, syllar, hammarband, överstycken, stolpar, takbalkar, takstolar, nock- och dalbalkar och stålband. De horisontella lasterna tas av infällda stålband i kryss i väggarna och i en del av takfallens fält och av skivorna där de räknas som skjuvskivor. Varje grupp av likadana delar kontrolleras i alla lastkombinationer,
+// Skjuvskivorna (avsnitt Skivverkan): utegipsen, OSB:n direkt på reglarna i de bärande innerväggarna och i gaveln 1SV och
+// råsponten i takfallen. Antalet kombinationer: r.last.antal_komb. och tabellen visar det högsta utnyttjandet i gruppen. Nock- och dalbalkarna kontrolleras i K-01, takets anslutningar (hak, säten, takstolarnas spikplåtar) i K-03 och bjälklaget i K-05.
 
 #table(
   columns: (1.6fr, 1.25fr, auto, 1.3fr),
@@ -58,28 +60,30 @@ Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från
 
 = Bärverket och balkmodellen <modell>
 
-#figure(image("fig_modell.svg", width: 100%), caption: [Balkmodellen: #r.modell.element balkelement mellan #r.modell.noder knutpunkter, #r.modell.band_vagg stålband i väggarna och #r.modell.band_tak i takfallen (blå), upplagen på bjälklaget (svarta). Röda delar har ett utnyttjande över 100 %.])
+#figure(image("fig_modell.svg", width: 100%), caption: [Balkmodellen: #r.modell.element balkelement mellan #r.modell.noder knutpunkter, #r.modell.band_vagg stålband i väggarna och #r.modell.band_tak i takfallen (blå), upplagen på bjälklaget (svarta).])
 
-*Modellen.* Balkmodellen är det bärande systemet ritat på systemlinjer. Varje virkesdel blir en balk längs sin fiberriktning och tvärsnittets mitt. Delar som ligger an mot varandra längs en sträcka, sida vid sida eller ovanpå varandra (reglarna i en stolpe, hammarbandet och takstolens underram, ytterbalken på diagonalen), får den största delens systemlinje och verkar tillsammans utan samverkan; last på en sådan del går till den största. Delar förbinds där deras systemlinjer möts: knutpunkten ligger på den viktigaste delen som går igenom den (syll, balk och hammarband före reglar och diagonaler, före takbalkar), och en del som slutar där förlängs längs sin axel till knutpunkten och har en led (fria böjrotationer). Knutpunkter närmare varandra längs en del än halva delens höjd är en knutpunkt, men två ställen längs en nock- eller dalbalk längre isär än så är alltid två. Varje del är rak mellan sina yttersta knutpunkter (en fot på bjälklaget räknas som en), och takstolarnas fötter och topp är en knutpunkt var, som i K-03. Nock- och dalbalkarna är limträ med stålplåtarna i full samverkan där plåtarna finns (limmade, K-01), stålbanden dragstänger som bara tar drag. Syllarna och stolparnas fötter står fast på bjälklaget; reaktionerna är lasterna till bjälklaget och förankringen.
+*Modellen.* Balkmodellen är det bärande systemet ritat på systemlinjer. Delar som ligger an mot varandra längs en sträcka, sida vid sida eller ovanpå varandra, får den största delens systemlinje och verkar tillsammans utan samverkan. Delar förbinds där deras systemlinjer möts: knutpunkten ligger på den viktigaste delen som går igenom den, och en del som slutar där förlängs längs sin axel till knutpunkten och har en led (fria böjrotationer). Varje del är rak mellan sina yttersta knutpunkter. Nock- och dalbalkarna är limträ med stålplåtarna i full samverkan där plåtarna finns, stålbanden dragstänger som bara tar drag. Syllarna och stolparnas fötter står fast på bjälklaget; reaktionerna är lasterna till bjälklaget och förankringen.
 
-*Takstolarna och gavlarna.* Takstolarnas ståndare och spikreglar (#r.modell.sekundara delar) ingår inte: de sitter för skivorna och fästs när taket är lagt, så att takstolen bär som en triangel av diagonaler och underram och för nockbalkens stöd och takremsan till fötterna (K-03). Gavelns överkant (hammarbandet och underramen) och takstolens överram hålls raka i sidled av gavelns och takets skivor, mellan gavelns hörn och mellan takstolens fot och topp, och skivorna för krafterna dit, som mest #r.gavel.max kN i en knutpunkt (#r.gavel.gavel, #r.gavel.komb). Det är en förutsättning (@atgarder).
+*Takstolarna och gavlarna.* Takstolarnas ståndare och spikreglar ingår inte, så takstolen bär som en triangel av diagonaler och underram. Vinden mot gaveln vill böja ut gavelns överkant och takstolens överram. Gavelns och takets skivor håller dem raka och för kraften till gavelns hörn och till takstolens fot och topp, som mest #r.gavel.max kN i en knutpunkt (#r.gavel.gavel). Modellen förutsätter det (@atgarder).
 
 #table(
-  columns: (1.6fr, auto, 1.4fr, auto),
-  align: (left, right, left, left),
-  [Grupp], [Antal], [Tvärsnitt (mm)], [Material],
-  ..r.modell.grupper.map(g => ([#g.namn], [#g.antal], [#g.dim], [#g.mat])).flatten(),
+  columns: (1.6fr, 1.4fr, auto),
+  align: (left, left, left),
+  [Grupp], [Tvärsnitt (mm)], [Material],
+  ..r.modell.grupper.map(g => ([#g.namn], [#g.dim], [#g.mat])).flatten(),
 )
 
-*Förutsättningar.* Reglarna och stolparna i väggarna och takbalkarna knäcker bara i sin styva riktning: skivorna och läkten håller dem i den veka. I ett hörn, där en vinkelrät väggs regel ligger an längs minst halva höjden (också en lätt väggs), är regeln eller stolpen stagad åt båda hållen. Fristående stolpar av flera reglar är ihopskruvade och verkar som ett tvärsnitt (som K-03). Klimatklass 1, säkerhetsklass 2 ($gamma_d$ = #r.kombination.gamma_d).
+*Förutsättningar.* Läkt och skivor hindrar knäckning i väggens plan. Fristående stolpar av flera reglar är ihopskruvade och verkar som ett tvärsnitt. Klimatklass 1, säkerhetsklass 2 ($gamma_d$ = #r.kombination.gamma_d).
 
 = Laster
 
-Lasterna läggs på stommens ytor och förs till de bärande delarna: taket i rutor om 100 × 100 mm till den närmaste takbalken, takstolens ytterbalk eller nock- och dalbalken, väggarna till den närmaste delen i väggen, och den nedre delen av dörrar och glaspartier direkt till bjälklaget.
+Lasterna läggs på stommens ytor och förs till de bärande delarna.
+// Taket i rutor om 100 × 100 mm till den närmaste takbalken, takstolens ytterbalk eller nock- och dalbalken, väggarna till den
+// närmaste delen i väggen, och den nedre delen av dörrar och glaspartier direkt till bjälklaget.
 
-- *Egentyngd* G: delarna med #r.last.rho kg/m³, taket #r.last.g_tak kN/m² takyta (#r.last.kg_tak kg/m²: F-01 utan takbalkarna, som är delar i modellen), ytterväggarna #r.last.vagg_ytter och innerväggarna #r.last.vagg_inner kN/m² vägg.
-- *Snö* (F-01, $s_k$ = #r.last.sk kN/m²): S1 med $mu$ = #r.last.mu_dal på takfallen mot dalarna och #r.last.mu_takfot mot takfoten (som K-03, på säker sida), S2 och S3 osymmetriska.
-- *Vind* (F-01, $q_p$ = #r.last.qp kN/m², $h$ = #r.last.h m): formfaktorerna efter SS-EN 1991-1-4, väggarna för hela huset (7.2.2) och taken för varje huskropp som sadeltak (7.2.5). Med vinden vinkelrätt mot nockarna (x) är taken ett tak med flera skepp (7.2.7, figur 7.10 c): zonerna F, G och J bara på den första kroppen i vindens väg, och formfaktorn gånger 0,6 på läfallen bakom den första kroppen och på lovartsfallen bakom den andra, där kropparna står bakom varandra. Sadeltakets formfaktorer används också bakom dalarna (större vågrät kraft än det tråggformade takets).
+- *Egentyngd* G: delarna med #r.last.rho kg/m³, taket #r.last.g_tak kN/m² takyta, ytterväggarna #r.last.vagg_ytter och innerväggarna #r.last.vagg_inner kN/m² vägg.
+- *Snö* (F-01, $s_k$ = #r.last.sk kN/m²): S1 med $mu$ = #r.last.mu_dal på takfallen mot dalarna och #r.last.mu_takfot mot takfoten.
+- *Vind* (F-01, $q_p$ = #r.last.qp kN/m², $h$ = #r.last.h m): formfaktorerna efter SS-EN 1991-1-4, väggarna för hela huset (7.2.2) och taken för varje huskropp som sadeltak (7.2.5). Med vinden vinkelrätt mot nockarna (x) är taken ett tak med flera skepp (7.2.7, figur 7.10 c): zonerna F, G och J bara på den första kroppen i vindens väg, och formfaktorn gånger 0,6 på läfallen bakom den första kroppen och på lovartsfallen bakom den andra, där kropparna står bakom varandra. Sadeltakets formfaktorer används också bakom dalarna (större vågrät kraft än det tråggformade takets). Vinden verkar på ytterväggarna och taken, inte på innerväggarna.
 
 *Kombinationer.* #r.last.antal_komb i brottgränstillståndet: 6.10a och 6.10b med $gamma_d$, snö och vind som huvudlast med den andra som samverkande ($psi_0$ = #r.kombination.psi0_sno respektive #r.kombination.psi0_vind) och vind med gynnsam egentyngd (lyft, förankring); #r.last.antal_bruks i bruksgränstillståndet. $k_"mod"$ = #r.kmod.G (egentyngd), #r.kmod.S (med snö) och #r.kmod.W (med vind).
 
@@ -87,7 +91,10 @@ Lasterna läggs på stommens ytor och förs till de bärande delarna: taket i ru
 
 == Vertikala laster till bjälklaget
 
-Reaktionerna i upplagen är lika med lasterna (jämvikt). Stolparna bär enligt balkmodellen: karakteristiska G och S1, dimensionerande $N_"Ed"$ med snö som huvudlast jämfört med lasten som K-05 dimensionerar bjälklaget för, och det största $N_"Ed"$ i alla kombinationer (med vind som huvudlast får stolparna i stålbandens fält bandens vertikala kraft). Väggar som står under nock- och dalbalkarna bär en del av balkarnas last, som K-01 och K-05 lägger på stolparna och takstolarna. Rött: stolpar där balkmodellen ger mer än K-05 räknar bjälklaget för (beräkningen stoppar då, tills K-05 har räknats om med dem) och takstolar där den ger mer än K-03.
+Stolparna och takstolarna, bjälklaget under dem och plintarna är dimensionerade med handräkningarna i K-03 och K-05. Här jämförs de med balkmodellens krafter. #if r.kvot_over.len() == 0 [Balkmodellen ger högst #r.kvot_max av K-05:s last i stolparna (kolumnen _Kvot_), så handräkningarna ligger på säker sida och deras laster används.] else [Balkmodellen ger mer än K-05:s last i #r.kvot_over.join(", ", last: " och ") (rött); K-05 räknas om med dem.] Väggar som står under nock- och dalbalkarna bär en del av balkarnas last, som handräkningarna lägger på stolparna och takstolarna. För takstolarna räknar K-03 dragbandet och fotens förband för det största av handräkningen och balkmodellen.
+// Kolumnerna: karakteristiska G och S1 i balkmodellen, dimensionerande N_Ed med snö som huvudlast mot K-05:s last, och det
+// största N_Ed i alla kombinationer (Max; med vind som huvudlast får stolparna i stålbandens fält bandens vertikala kraft).
+// Rött: stolpar där balkmodellen ger mer än K-05 (beräkningen stoppar då) och takstolar där den ger mer än K-03.
 
 #grid(columns: (1.35fr, 1fr), gutter: 10pt,
   table(

@@ -300,13 +300,6 @@ for f in GEO["fonster"]:
           f"avväxling {u_v:.0%}, kortlingar i modellen {f['kortlingar']}, råspont utan kortlingar w {w_r:.1f} mm (krav {IN['fonster']['bredd'] / KL['nedbojning']:.1f})")
 
 # ------------------------------------------------------------------ takstolar
-SP = IN["spikplat"]
-fh_sp = 0.082 * C24.rhok * SP["spik_d"] ** -0.3
-My_sp = 0.3 * SP["spik_fu"] * SP["spik_d"] ** 2.6
-t1_sp = SP["spik_L"] - SP["t"]
-Fv_spik = min(0.4 * fh_sp * t1_sp * SP["spik_d"], 1.15 * math.sqrt(2 * My_sp * fh_sp * SP["spik_d"])) / 1000   # tunn plåt (8.9)
-Fv_spik_d = KMOD * Fv_spik / SP["gamma_M_forband"]
-N_plat = 0.9 * (SP["bredd"] - SP["hal_per_rad"] * SP["hal"]) * SP["t"] * SP["fu"] / SP["gamma_M2"] / 1000
 f_topp = C24.fc_alfa(math.pi / 2 - ALFA)                 # toppens säte under balken: lodrät kraft, fibrerna 30°
 TK = IN["toppkloss"]
 fh_c24 = 0.082 * C24.rhok * TK["skruv_d"] ** -0.3
@@ -350,8 +343,6 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     u_diag = N * 1e3 / (kc * Ad * C24.fc0d) + M * 1e6 / (Wd_ * C24.kh(hd) * C24.fmd)
     H_dim = max(H, T.get("H_k04", 0.0))                  # dragbandet: det största av triangelns och balkmodellens (K-04)
     u_band = H_dim * 1e3 / (45 * hb) / (C24.kh(hb) * C24.ft0d)
-    n_spik = math.ceil(H_dim / 2 / Fv_spik_d)
-    u_plat = H_dim / 2 / N_plat
     # toppen under balken (säte = balkens bredd): diagonalernas ändar, fibrerna 30° (6.16), och toppklossarna med
     # vågräta fibrer, tryck vinkelrätt fibrerna med l_ef = bredden + 2 × 30 mm och k_c,90 (6.1.5); klossens del av
     # lasten går genom skruvarna till takstolen
@@ -362,13 +353,13 @@ for T, g in zip(IN["takstol"], GEO["takstolar"]):
     n_kloss = math.ceil(P * R_kloss / (R_diag + nk * R_kloss) / Fv_kloss_d) if nk else 0   # per kloss
     l_fot = V * 1e3 / (45 * 1.5 * C24.fc90d)             # erforderlig upplagslängd på hammarbandet
     ST.append(dict(namn=T["namn"], text=T["text"], stod=f"{T['stod'][0]} {T['stod'][1]}", y=yy, P=P, Gk=Gk, Sk=Sk, a=a, hd=hd, hb=hb,
-                   bredd=bredd, q=q, V=V, H=H, H_dim=H_dim, N=N, M=M, Ld=Ld, kc=kc, u_diag=u_diag, u_band=u_band, n_spik=n_spik, u_plat=u_plat,
+                   bredd=bredd, q=q, V=V, H=H, H_dim=H_dim, N=N, M=M, Ld=Ld, kc=kc, u_diag=u_diag, u_band=u_band,
                    nk=nk, u_topp=u_topp, n_kloss=n_kloss,
                    l_fot=l_fot, gavel=T["gavel"],
-                   x_topp=x_topp, staver=g["staver"], platar=g["platar"]))
+                   x_topp=x_topp, staver=g["staver"], platar=g["platar"], klossar=g["klossar"]))
     print(f"takstol {T['namn']:9s} {T['stod'][0]} {T['stod'][1]}: P {P:5.1f} kN, a {a:.2f} m, remsa {bredd:.2f} m, diag 45×{hd:.0f} "
           f"N {N:.1f} kN M {M:.2f} kNm kc {kc:.2f} -> {u_diag:.0%}; band 45×{hb:.0f} H {H:.1f} kN -> {u_band:.0%}; "
-          f"spik {n_spik}/plåt och stav, plåt {u_plat:.0%}; topp {nk} kloss -> {u_topp:.0%} ({n_kloss} skruv); fot l {l_fot:.0f} mm")
+          f"topp {nk} kloss -> {u_topp:.0%} ({n_kloss} skruv); fot l {l_fot:.0f} mm")
 
 # ------------------------------------------------------------------ stolpar
 PL = {p["namn"]: p for p in L05.punktlaster()}
@@ -478,9 +469,151 @@ R1d_H_spik = HF["R1_k_spik"] * KL["k_mod_vind"] / HF["gamma_M"]
 u_fot = lyft_H / R1d_H
 N_bult = lyft_H / HF["n_beslag"] * HF["bandning"]
 l_topregel = HS["F_strava"] * 1e3 / (HS["strava_lager"] * HS["strava_b"] * 1.5 * C24.fc90d)
-n_spik_H = math.ceil(Ns / 2 / Fv_spik_d)
 print(f"huvudstolpen: {nH} st 45×{hH:.0f}, b {bH:.0f}, L {HS['L']} kc {kcH:.2f}: N {HS['N_d']:.1f} M {HS['M_d']:.2f} -> {u_H:.0%}; "
-      f"strävor {Ns:.1f} kN/lager -> {u_strava:.0%}; topregel drag {u_topregel:.0%}, upplag {l_topregel:.0f} mm; spik {n_spik_H}")
+      f"strävor {Ns:.1f} kN/lager -> {u_strava:.0%}; topregel drag {u_topregel:.0%}, upplag {l_topregel:.0f} mm")
+
+# ------------------------------------------------------------------ spikplåtarna (spikplat.py)
+# Hydrauliskt inpressade spikplåtar i takstolarnas fötter och toppar och i huvudstolpens knutpunkter (fyra lager,
+# plåtar på båda sidor av varje lager). Plåtarnas lägen följer modellens regler (byggdelar/takstol.py, stolpar/ln1_3.py):
+# i foten mitt där diagonalens underkant möter underramens mitthöjd (plåten aldrig under underramen), i toppen mitt på
+# stolen TOPPLAT_SPEL under balken, i huvudstolpen längs strävans mittlinje (vid foten med det övre hörnet i stolpens
+# mitt, i toppen med det yttre hörnet vid topregelns ände) och mitt på stolpens topp. Tryck går genom kontakt mellan
+# stavarna, drag och skjuvning genom plåtarna.
+from shapely.affinity import rotate as _rot  # noqa: E402
+from shapely.geometry import LineString, Polygon as _Poly, box as _box  # noqa: E402
+from shapely.ops import unary_union as _union  # noqa: E402
+
+import spikplat as SPK  # noqa: E402
+
+SPP = IN["spikplat"]
+PLT = SPK.Plat(SPP, KMOD)
+STORL = [(w, L) for w in SPP["bredder"] for L in SPP["langder"] if L >= w]
+VAR = lambda F: [F, -F]                                  # noqa: E731  båda tecknen (tryck i plåten är svagare)
+KNUT = {}                                                # {(grupp, namn): {storlek: läge och utnyttjande}}
+for t in ST:
+    stv = [s_ for s_ in t["staver"] if s_["z0"] > 2000]
+    diag = [s_ for s_ in stv if "diag" in s_["namn"]]
+    band = next(s_ for s_ in stv if any(k in s_["namn"] for k in ("btm", "bottom", "coord")))
+    X_ = [s_ for s_ in stv if "extra" in s_["namn"]]
+    D = {("V" if s_["az"] > 0 else "H"): (SPK.diagonal(s_, next(x for x in X_ if x["az"] * s_["az"] > 0)),
+                                         np.array([s_["ax"], s_["az"]]), s_["h"]) for s_ in diag}
+    zb = band["z0"]
+    zt = max(s_["z1"] for s_ in diag)
+    hb = band["z1"] - band["z0"]
+    bp = SPK.stav(band).difference(_union([d[0] for d in D.values()]))
+    rekt_band = _box(band["x0"], band["z0"], band["x1"], band["z1"]).buffer(-0.5)
+    vinkel = math.degrees(math.atan2(abs(diag[0]["az"]), abs(diag[0]["ax"])))
+    Fh = t["H_dim"] * 1e3 / 2                            # per plåt, två plåtar
+    for sida in ("V", "H"):
+        dp, ax_, hd_ = D[sida]
+        fog = dp.boundary.intersection(rekt_band)
+        zm = zb + hb / 2
+        pts = dp.boundary.intersection(LineString([(dp.bounds[0] - 10, zm), (dp.bounds[2] + 10, zm)]))
+        xs_ = sorted(g.x for g in getattr(pts, "geoms", [pts]))
+        knut = xs_[-1] if sida == "V" else xs_[0]          # diagonalens underkant
+        KNUT[("fot", f"{t['namn']} {sida}")] = SPK.knutpunkt(
+            PLT, {"diagonal": (dp, ax_, hd_), "dragband": (bp, np.array([1.0, 0.0]), hb)},
+            [(F, 0.0, {"diagonal": (abs(F), 0.0, vinkel), "dragband": (abs(F), 0.0, 0.0)}) for F in (Fh,)],
+            fog, vinkel, lambda w, L, d, knut=knut, zm=zm, zb=zb: _box(knut - L / 2, max(zm, zb + w / 2) - w / 2,
+                                                                         knut + L / 2, max(zm, zb + w / 2) + w / 2),
+            STORL, [0])
+    # toppen: plåtar på sidorna utan kloss; lyft (drag tvärs fogen) och osymmetrisk snö (skjuvning längs fogen)
+    n_topp = 2 - t["nk"]
+    if n_topp > 0:
+        T_ = next(T for T in IN["takstol"] if T["namn"] == t["namn"])
+        P_lyft = max(0.0, -L05.K01[T_["stod"][0]]["stod"][T_["stod"][1]][2])
+        q_upp = max(0.0, GD * 1.5 * LA["q_p"] * (abs(ZON["Gavelzon"]["cpe10"]) + ZON["Gavelzon"]["under"]) - G_H) * t["bredd"]
+        H_lyft = (P_lyft / 2 + q_upp * t["a"] / 2) / math.tan(ALFA)
+        V_asym = GD * 1.5 * LA["mu_dal"] * LA["s_k"] * t["bredd"] * t["a"] / 4
+        t.update(H_lyft=H_lyft, V_asym=V_asym, n_topp=n_topp)
+        xt = t["x_topp"]
+        fogt = LineString([(xt, zb), (xt, zt + 1)])
+        spel = SPP["spel_topp"]
+        KNUT[("topp", t["namn"])] = SPK.knutpunkt(
+            PLT, {"diagonal V": D["V"], "diagonal H": D["H"]},
+            [(H_lyft * 1e3 / n_topp, 0.0, {"diagonal V": (H_lyft * 1e3 / n_topp, 0.0, vinkel),
+                                           "diagonal H": (H_lyft * 1e3 / n_topp, 0.0, vinkel)}),
+             *[(0.0, F, {"diagonal V": (abs(F), 90.0, 90.0 - vinkel), "diagonal H": (abs(F), 90.0, 90.0 - vinkel)})
+               for F in VAR(V_asym * 1e3 / n_topp)]],
+            fogt, 90.0, lambda w, L, d, xt=xt, zt=zt: _box(xt - L / 2, zt - spel - d - w, xt + L / 2, zt - spel - d),
+            STORL, [0])
+    else:
+        t.update(H_lyft=0.0, V_asym=0.0, n_topp=0)
+# huvudstolpen: ett lager i (y, z), plåtar på båda sidor av varje lager
+_H = {}
+for d_ in GEO["huvudstolpe"]:
+    _H.setdefault(d_["namn"], d_)
+_v, _t = _H["R L3 VertVert"], _H["R L3 VertTop"]
+YM_, ZT_, B_ = (_v["y0"] + _v["y1"]) / 2, _v["z1"], _v["y1"] - _v["y0"]
+_e = HS["e"]
+BS_ = HS["strava_h"]                                     # strävornas höjd (45×145)
+_d = BS_ * math.sqrt(2)
+_ZS = ZT_ - (_e - B_ / 2)
+post = _box(_v["y0"], 0.0, _v["y1"], ZT_)
+topregel = _box(YM_ - _e, ZT_, YM_ + _e, ZT_ + B_)
+strava = _Poly([(YM_ + B_ / 2, _ZS), (YM_ + _e, ZT_), (YM_ + _e - _d, ZT_), (YM_ + B_ / 2, _ZS + _d)])
+R2_ = math.sqrt(0.5)
+mitt = (YM_ + B_ / 2, _ZS + BS_ * R2_)                    # strävans mittlinje vid stolpens sida
+
+
+strava_m = _Poly([(2 * YM_ - y, z) for y, z in reversed(list(strava.exterior.coords)[:-1])])
+F_s = HS["F_strava"] * 1e3 / HS["strava_lager"] / 2      # strävans lodräta och vågräta kraft per plåt (45°)
+ax45 = np.array([R2_, R2_])
+# vid strävornas fot: en plåt per sida av lagret, mitt på stolpen över båda strävornas fot, längden lodrätt
+# vid strävans fot: en plåt per sträva och sida av lagret, från stolpens mitt (den andra strävans plåt sitter på andra
+# halvan) in på strävan, huvudriktningen lodrät; strävans lodräta kraft genom plåten, den vågräta genom kontakt
+KNUT[("huvudstolpe", "strävans fot")] = SPK.knutpunkt(
+    PLT, {"stolpe": (post, np.array([0.0, 1.0]), B_), "sträva": (strava, ax45, BS_)},
+    [(F, 0.0, {"stolpe": (abs(F), 0.0, 0.0), "sträva": (abs(F), 0.0, 45.0)}) for F in VAR(F_s)],
+    LineString([(YM_ + B_ / 2, _ZS), (YM_ + B_ / 2, _ZS + _d)]), 0.0,
+    lambda w, L, d: _box(YM_, d - L / 2, YM_ + w, d + L / 2), STORL, [_ZS + z for z in range(0, 400, 5)])
+# vid strävans topp: plåten längs strävans mittlinje (som i modellen), med det yttre hörnet nära topregelns ände
+mitt = (YM_ + B_ / 2, _ZS + BS_ * R2_)                    # strävans mittlinje vid stolpens sida
+
+
+def _langs(t0, w, L):
+    """Plåten längs strävans mittlinje från t0 (från stolpens sida), L lång och w bred."""
+    (my, mz), b = mitt, w / 2
+    return _Poly([(my + (tt - s_ * b) * R2_, mz + (tt + s_ * b) * R2_)
+                  for tt, s_ in ((t0, -1), (t0 + L, -1), (t0 + L, 1), (t0, 1))])
+
+
+KNUT[("huvudstolpe", "strävans topp")] = SPK.knutpunkt(
+    PLT, {"topregel": (topregel, np.array([1.0, 0.0]), B_), "sträva": (strava, ax45, BS_)},
+    [(F * R2_, -F * R2_, {"topregel": (abs(F), 45.0, 0.0), "sträva": (abs(F), 45.0, 45.0)}) for F in VAR(F_s)],
+    LineString([(YM_ + _e - _d, ZT_), (YM_ + _e, ZT_)]), 45.0,
+    lambda w, L, d: _langs((_e - B_ / 2) / R2_ - w / 2 - L + d, w, L), STORL, list(range(-150, 151, 5)))
+F_t = lyft_H * 1e3 / HS["strava_lager"] / 2
+KNUT[("stolptopp", "stolpens topp")] = SPK.knutpunkt(
+    PLT, {"stolpe": (post, np.array([0.0, 1.0]), B_), "topregel": (topregel, np.array([1.0, 0.0]), B_)},
+    [(F_t, 0.0, {"stolpe": (F_t, 0.0, 0.0), "topregel": (F_t, 0.0, 90.0)})],
+    LineString([(_v["y0"], ZT_), (_v["y1"], ZT_)]), 90.0,
+    lambda w, L, d: _box(YM_ - w / 2, min(ZT_ + B_ - SPP["spel_stolpe"], ZT_ + L / 2) - L,
+                         YM_ + w / 2, min(ZT_ + B_ - SPP["spel_stolpe"], ZT_ + L / 2)), STORL, [0])
+# grupperna: högst n storlekar per slag
+PLATVAL = {}
+for grupp in ("fot", "topp", "huvudstolpe", "stolptopp"):
+    behov = {k: set(v) for k, v in KNUT.items() if k[0] == grupp}
+    tomma = [k[1] for k, v in behov.items() if not v]
+    if tomma:
+        raise SystemExit(f"spikplåtar: ingen standardplåt räcker för {grupp} {', '.join(tomma)}")
+    valda = SPK.gruppera(behov, STORL, SPP["n_storlekar"].get(grupp, 1))
+    if len(valda) != len(behov):
+        raise SystemExit(f"spikplåtar: {grupp} går inte med {SPP['n_storlekar'].get(grupp, 1)} storlekar")
+    for k, sz in valda.items():
+        PLATVAL[k] = dict(KNUT[k][sz], storlek=sz)
+for k, v in sorted(PLATVAL.items()):
+    print(f"spikplåt {k[0]:11s} {k[1]:16s} {v['storlek'][0]:.0f}×{v['storlek'][1]:.0f}: utn {v['u']:.0%}, "
+          f"A_ef " + ", ".join(f"{n} {a:.0f}" for n, a in v["A_ef"].items()) + f" mm², fog {v['l']:.0f} mm")
+def _stl(v):
+    """Plåtens storlek som text, bredd × längd [mm]."""
+    w, L = v["storlek"]
+    return f"{w:.0f}×{L:.0f}"
+
+
+for t in ST:
+    t["plat_fot"] = max((PLATVAL[("fot", f"{t['namn']} {s_}")] for s_ in ("V", "H")), key=lambda v: v["u"])
+    t["plat_topp"] = PLATVAL.get(("topp", t["namn"]))
 
 # ------------------------------------------------------------------ brister i modellen (det som inte räcker eller saknas)
 # stolpar med krav i indata (modellens utförande räcker inte eller saknas), takfönster utan kortlingar, toppar som inte
@@ -575,8 +708,8 @@ R = {
                    w=f"{fmt(t['wfin'], 1)} / {fmt(t['wkrav'], 1)}", uw=pct(t["uw"]), dim=t is TB_DIM) for t in TYPER],
     # förbandens fästdon som text, för R-02
     "fb": dict(regel=f"{UP['regel_b']}×{UP['regel_h']} C24", regel_skruv=f"Ø{fmt(d_s, 0)}×{UP['skruv_L']}",
-               lyft_skruv=f"Ø{fmt(d_s, 0)}×{UP['lyft_skruv_L']}", spik=f"ankarspik {fmt(SP['spik_d'], 1)}×{SP['spik_L']}",
-               plat=f"{SP['bredd']} mm bred, {fmt(SP['t'], 1)} mm", kloss=f"{TK['t']} mm",
+               lyft_skruv=f"Ø{fmt(d_s, 0)}×{UP['lyft_skruv_L']}",
+               plat=f"inpressade spikplåtar {SPP['produkt']} {fmt(SPP['t'], 1)} mm eller likvärdiga", kloss=f"{TK['t']} mm",
                kloss_skruv=f"Ø{fmt(TK['skruv_d'], 0)}×{TK['skruv_L']}"),
     # yttertakets infästning; talen utan formatering (rand_mm, cc_rand, cc_ovrigt) läses av R-02
     "yt": dict(e=fmt(e_zon, 1), e10=fmt(e_zon / 10, 2), e10s=fmt(e_zon / 10 / CA, 2), rand=fmt(YT["rand"], 1),
@@ -600,20 +733,33 @@ R = {
     "fon_wkrav": fmt(FON[0]["w_krav"], 1),
     "st": [dict(namn=t["namn"].replace("Stol ", ""), text=t["text"], stod=t["stod"], P=fmt(t["P"], 1), a=fmt(t["a"], 2),
                 bredd=fmt(t["bredd"], 2), diag=f"45×{t['hd']:.0f}", N=fmt(t["N"], 1), M=fmt(t["M"], 2), ud=pct(t["u_diag"]),
-                band=f"45×{t['hb']:.0f}", H=fmt(t["H"], 1), Hdim=fmt(t["H_dim"], 1), ub=pct(t["u_band"]), spik=str(t["n_spik"]),
+                band=f"45×{t['hb']:.0f}", H=fmt(t["H"], 1), Hdim=fmt(t["H_dim"], 1), ub=pct(t["u_band"]), platfot=_stl(t["plat_fot"]), ufot=pct(t["plat_fot"]["u"]),
+                plattopp=_stl(t["plat_topp"]) if t["plat_topp"] else "–", utoppl=pct(t["plat_topp"]["u"]) if t["plat_topp"] else "–",
                 kloss=str(t["nk"]), nk=str(t["n_kloss"]) if t["nk"] else "–", utopp=pct(t["u_topp"]),
                 lfot=fmt(t["l_fot"], 0), dim=t is L2M) for t in ST],
     "L2M": dict(P=fmt(L2M["P"], 1), a=fmt(L2M["a"], 2), q=fmt(L2M["q"], 2), V=fmt(L2M["V"], 1), H=fmt(L2M["H"], 1),
                 Hdim=fmt(L2M["H_dim"], 1),
                 N=fmt(L2M["N"], 1), M=fmt(L2M["M"], 2), kc=fmt(L2M["kc"], 2), Ld=fmt(L2M["Ld"], 0), ud=pct(L2M["u_diag"]),
                 ub=pct(L2M["u_band"]), hd=fmt(L2M["hd"], 0), hb=fmt(L2M["hb"], 0), kloss=str(L2M["nk"]),
-                ut=pct(L2M["u_topp"]), nk=str(L2M["n_kloss"]), spik=str(L2M["n_spik"]), plat=pct(L2M["u_plat"]),
+                ut=pct(L2M["u_topp"]), nk=str(L2M["n_kloss"]), platfot=_stl(L2M["plat_fot"]), ufot=pct(L2M["plat_fot"]["u"]),
                 lfot=fmt(L2M["l_fot"], 0), bredd=fmt(L2M["bredd"], 2)),
-    "sp": dict(Fv=fmt(Fv_spik_d, 2), Fvk=fmt(Fv_spik, 2), Nplat=fmt(N_plat, 1), ftopp=fmt(f_topp, 2), Fvk_kloss=fmt(Fv_kloss_d, 2),
-               fc90=fmt(TK["kc90"] * C24.fc90d, 2), kc90=fmt(TK["kc90"], 1)),
+    "sp": dict(ftopp=fmt(f_topp, 2), Fvk_kloss=fmt(Fv_kloss_d, 2), fc90=fmt(TK["kc90"] * C24.fc90d, 2),
+               kc90=fmt(TK["kc90"], 1), produkt=SPP["produkt"], t=fmt(SPP["t"], 1), fa00=fmt(SPP["fa00"], 2),
+               fa9090=fmt(SPP["fa9090"], 2), ft0=str(SPP["ft0"]), fc0=str(SPP["fc0"]), fv0=str(SPP["fv0"]),
+               fv90=str(SPP["fv90"]), gM=fmt(SPP["gamma_M"], 2),
+               storlekar=sorted({_stl(v) for v in PLATVAL.values()}, key=lambda q: [int(x) for x in q.split("×")]),
+               knutar=[dict(grupp={"fot": "Takstolarnas fötter", "topp": "Takstolarnas toppar",
+                                   "huvudstolpe": "Huvudstolpen", "stolptopp": "Huvudstolpen"}[k[0]],
+                            namn=k[1].replace("Stol ", ""), storlek=_stl(v), u=pct(v["u"]),
+                            A=", ".join(f"{n} {fmt(a / 100, 0)}" for n, a in v["A_ef"].items()), l=fmt(v["l"], 0))
+                       for k, v in sorted(PLATVAL.items(), key=lambda kv: (["fot", "topp", "huvudstolpe", "stolptopp"].index(kv[0][0]), kv[0][1]))
+                       if not k[1].endswith(" H")]),
     "hs": dict(N=fmt(HS["N_d"], 1), M=fmt(HS["M_d"], 2), L=fmt(HS["L"], 0), n=str(nH), h=fmt(hH, 0), b=fmt(bH, 0), kc=fmt(kcH, 2),
                lr=fmt(lrH, 2), u=pct(u_H), F=fmt(HS["F_strava"], 1), Fax=fmt(F_strava_ax, 1), Ns=fmt(Ns, 1), us=pct(u_strava),
-               ut=pct(u_topregel), lt=fmt(l_topregel, 0), spik=str(n_spik_H), e=fmt(HS["e"], 0),
+               ut=pct(u_topregel), lt=fmt(l_topregel, 0), e=fmt(HS["e"], 0), bs=fmt(HS["strava_h"], 0),
+               plat_fot=_stl(PLATVAL[("huvudstolpe", "strävans fot")]), u_plat_fot=pct(PLATVAL[("huvudstolpe", "strävans fot")]["u"]),
+               plat_topp=_stl(PLATVAL[("huvudstolpe", "strävans topp")]), u_plat_topp=pct(PLATVAL[("huvudstolpe", "strävans topp")]["u"]),
+               plat_stolpe=_stl(PLATVAL[("stolptopp", "stolpens topp")]), u_plat_stolpe=pct(PLATVAL[("stolptopp", "stolpens topp")]["u"]),
                lyft=fmt(lyft_H, 1), beslag=HF["beslag"], n_beslag=str(HF["n_beslag"]), skruv=HF["skruv"],
                R1k=fmt(HF["R1_k"], 1), R1d=fmt(R1d_H, 1), R1d_spik=fmt(R1d_H_spik, 1), ufot=pct(u_fot),
                bult=f"M{HF['bult_d']:.0f}", bult_djup=fmt(HF["bult_djup"], 0), Nb=fmt(N_bult, 1),
@@ -630,7 +776,8 @@ R = {
                                             if YT_DIM["u_skruv"] >= YT_DIM["u_spik"] else "råspontens spik"),
              u=pct(max(YT_DIM["u_skruv"], YT_DIM["u_spik"]))),
         dict(del_="Takstolar", antal=str(len(ST)), dim="L2M, diagonal och topp med kloss",
-             u=pct(max(max(t["u_diag"], t["u_band"], t["u_plat"], t["u_topp"]) for t in ST))),
+             u=pct(max(max(t["u_diag"], t["u_band"], t["plat_fot"]["u"], (t["plat_topp"] or {"u": 0})["u"], t["u_topp"])
+                       for t in ST))),
         dict(del_="Huvudstolpen LN1_3", antal="1", dim="knäckning och moment", u=pct(u_H)),
         dict(del_="Övriga stolpar", antal=str(len(STOLPAR)), dim=max(rader, key=lambda r: r["umax"])["namn"], u=pct(uS)),
     ],

@@ -333,8 +333,8 @@ def _forbandstext(e: Element) -> list[str]:
         rad = next((r for r in k3["st"] if r["namn"] == K03_TAKSTOL.get(e.kod, e.kod)), None)
         if rad is None:
             return []
-        return [f"Spikplåtar ({fb['plat']}) på båda sidor i fötterna och i toppen: {fb['spik']}, minst {rad['spik']} per "
-                "plåt och stav (K-03).",
+        return [f"Prefabricerad med {fb['plat']}: {rad['platfot']} på båda sidor i fötterna och "
+                f"{rad['plattopp']} i toppen på sidan utan toppkloss (K-03).",
                 *([f"Toppkloss {fb['kloss']} på ena sidan om toppen, fäst med {rad['nk']} skruv {fb['kloss_skruv']}."]
                   if rad["kloss"] != "0" else []),
                 f"Foten har minst {rad['lfot']} mm upplag på hammarbandet."
@@ -636,13 +636,15 @@ def _forbandsrader(utdrag: dict) -> list[list[str]]:
             k4["forband"]["med_beslag"] + " (drag, kN)", "K-04"]] if k4["forband"].get("med_beslag") else []),
         *([["Bandet över nock- och dalbalken utan takbalk mitt emot", "Bandet spikas i limträets sida på andra sidan",
             k4["forband"]["utan_mittemot"], "K-04"]] if k4["forband"].get("utan_mittemot") else []),
-        ["Takstolarnas fötter och topp", f"Spikplåt ({fb['plat']}) på båda sidor, {fb['spik']}",
-         "Spik per plåt och stav: " + ", ".join(f"{k} {r['spik']}" for k, r in st), "K-03"],
+        ["Takstolarnas fötter och topp", f"Prefabricerade, {fb['plat']} på båda sidor",
+         "Plåt i fötterna: " + ", ".join(f"{k} {r['platfot']}" for k, r in st)
+         + "; i toppen " + ", ".join(sorted({r['plattopp'] for _, r in st if r['plattopp'] != '–'})), "K-03"],
         ["Takstolarnas toppkloss", f"Kloss {fb['kloss']} på ena sidan om toppen, skruv {fb['kloss_skruv']}",
          "Skruv: " + ", ".join(f"{k} {r['nk']}" for k, r in st if r["kloss"] != "0"), "K-03"],
-        ["Huvudstolpen LN1_3", f"Knutpunkterna: spikplåt på båda sidor, {fb['spik']}. Foten: {hs['n_beslag']} vinkelbeslag "
-         f"{hs['beslag']} med {hs['skruv']} och betongbult {hs['bult']} genom vart",
-         f"Minst {hs['spik']} spik per plåt och stav", "K-03"],
+        ["Huvudstolpen LN1_3", f"Fyra prefabricerade lager, {fb['plat']} på båda sidor av varje lager. Foten: "
+         f"{hs['n_beslag']} vinkelbeslag {hs['beslag']} med {hs['skruv']} och betongbult {hs['bult']} genom vart",
+         f"Plåt {hs['plat_fot']} vid strävans fot, {hs['plat_topp']} i strävans topp, {hs['plat_stolpe']} över stolpens topp",
+         "K-03"],
         [f"Ströläkt {y['lakt']} på takbalk och takstol", y["skruv"],
          f"c/c {y['cc_rand']} i randzonerna ({y['rand']} m från gavelkanter och fria takfötter), c/c {y['cc_ovrigt']} i övrigt",
          "K-03"],

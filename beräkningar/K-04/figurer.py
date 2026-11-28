@@ -26,8 +26,11 @@ def _projektion(P: np.ndarray, az: float = -55.0, el: float = 28.0) -> np.ndarra
     return P @ R.T
 
 
+DEL_GRA, BAND_BLA = "#6f757c", "#8fb8e8"        # figur 1: delarna mörkare grå, stålbanden ljust blå
+
+
 def modell(N: Natverk, K: dict[str, Any], fil: Path) -> None:
-    """Balkmodellen i 3D: delarna grå (röda över 100 % utnyttjande), banden blå, upplagen."""
+    """Balkmodellen i 3D: delarna grå (röda över 100 % utnyttjande), banden ljust blå, upplagen svarta."""
     m = N.modell
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     eta = K["eta_element"]
@@ -35,17 +38,19 @@ def modell(N: Natverk, K: dict[str, Any], fil: Path) -> None:
         e = np.flatnonzero((eta <= 1.0) == ok)
         for i in e:
             P = _projektion(np.array([m.x[m.bi[i]], m.x[m.bj[i]]]))
-            ax.plot(P[:, 0], P[:, 1], color=GRA if ok else ROD, lw=0.45 if ok else 1.2, zorder=1 if ok else 3)
+            ax.plot(P[:, 0], P[:, 1], color=DEL_GRA if ok else ROD, lw=0.45 if ok else 1.2, zorder=2 if ok else 3)
     for k, (i, j) in enumerate(zip(m.ti, m.tj)):
         P = _projektion(np.array([m.x[i], m.x[j]]))
-        ax.plot(P[:, 0], P[:, 1], color=BLA, lw=0.8, zorder=2)
+        ax.plot(P[:, 0], P[:, 1], color=BAND_BLA, lw=0.8, zorder=1)
     U = _projektion(m.x[m.upplag])
     ax.scatter(U[:, 0], U[:, 1], s=1.2, color="k", zorder=4)
     ax.set_aspect("equal")
     ax.axis("off")
-    ax.plot([], [], color=GRA, lw=1, label="del")
-    ax.plot([], [], color=BLA, lw=1, label="stålband")
-    ax.plot([], [], color=ROD, lw=1.5, label="utnyttjande över 100 %")
+    ax.plot([], [], color=DEL_GRA, lw=1, label="del")
+    ax.plot([], [], color=BAND_BLA, lw=1, label="stålband")
+    ax.scatter([], [], s=6, color="k", label="upplag på bjälklaget")
+    if (eta > 1.0).any():
+        ax.plot([], [], color=ROD, lw=1.5, label="utnyttjande över 100 %")
     ax.legend(loc="lower left", frameon=False, fontsize=7.5)
     fig.tight_layout(pad=0.1)
     fig.savefig(fil)

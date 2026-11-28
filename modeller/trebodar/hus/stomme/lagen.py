@@ -150,6 +150,7 @@ def takstol(kod: str) -> tuple[Lage, ...]:
 # takets fack mellan takbalkarna, gavlarna och takstolarna (isoleringen och innertaket)
 GAVELVAGGAR = {1: ("1NO", "1SV"), 2: ("2NO", "2SV"), 3: ("3NO", "3SV")}
 TAKSTOLSVAGGAR = set(T.STOLAR) & set(S.INNERVAGGAR)       # innerväggar med takstol (mittstolen 2C)
+SPEL_TAKSTOL = 2.0                                          # skiktens avstånd till mittstolens spikplåtar [mm]
 
 
 def _med_takstol(kod: str) -> tuple[float, float]:
@@ -158,7 +159,9 @@ def _med_takstol(kod: str) -> tuple[float, float]:
     v = S.VAGGAR[kod]
     ys = [v.origo[1], v.origo[1] + v.w[1] * v.tjocklek]
     ys += [y for d in takstol(kod) for y in (d.lada[1], d.lada[4])]
-    return min(ys), max(ys)
+    # innertaket och isoleringen slutar SPEL_TAKSTOL utanför mittstolens spikplåtar (montagetolerans)
+    m = SPEL_TAKSTOL if kod in TAKSTOLSVAGGAR else 0.0
+    return min(ys) - m, max(ys) + m
 
 
 def under_takfallet(vagg: str, takfall: str) -> bool:

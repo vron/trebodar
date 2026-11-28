@@ -165,32 +165,36 @@ def upplag(path, UP, TB, h_ef):
 
 
 def takstol(path, t, Pd, H, V):
-    """Takstolen i elevation ur modellen, med laster och krafter."""
+    """Takstolen i elevation ur modellen, med laster och krafter: stavarna med sina snitt, toppklossen, plåtarna och
+    nockbalken på sätet."""
     fig, ax = plt.subplots(figsize=(16 * CM, 6.2 * CM))
+    import spikplat as SPK
+    X_ = [s for s in t["staver"] if "extra" in s["namn"]]
     for s in t["staver"]:
         if s["z0"] < 2000:
             continue
-        cx, cz = (s["x0"] + s["x1"]) / 2, (s["z0"] + s["z1"]) / 2
-        ux, uz = s["ax"], s["az"]
-        nx, nz = -uz, ux
-        L, h = s["L"], s["h"]
-        pts = [(cx + sx * ux * L / 2 + sy * nx * h / 2, cz + sx * uz * L / 2 + sy * nz * h / 2)
-               for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
-        fc = TRA if "extra" not in s["namn"] else "#f3ead6"
-        ax.add_patch(Polygon(pts, closed=True, fc=fc, ec=INK, lw=0.5, zorder=3 if "extra" not in s["namn"] else 2))
+        extra = "extra" in s["namn"]
+        pol = (SPK.diagonal(s, next(x for x in X_ if x["az"] * s["az"] > 0)) if "diag" in s["namn"] else SPK.stav(s))
+        ax.add_patch(Polygon(list(pol.exterior.coords), closed=True, fc="#f3ead6" if extra else TRA, ec=INK, lw=0.5,
+                             zorder=2 if extra else 3))
     for p in t["platar"]:
         ax.add_patch(Rectangle((p["x0"], p["z0"]), p["x1"] - p["x0"], p["z1"] - p["z0"], fc="#b8bcc2", ec=INK, lw=0.4,
                                zorder=4, alpha=0.9))
     xt = t["x_topp"]
-    zt = max(s["z1"] for s in t["staver"] if "diag" in s["namn"])
-    ax.add_patch(Rectangle((xt - BALK["b"] / 2, zt - 78), BALK["b"], BALK["h"], fc=STAL, ec=INK, lw=0.5, zorder=5))
-    ax.text(xt - 140, zt + 30, "nockbalk 3\n(K-01)", ha="right", va="center", fontsize=6.3)
-    ax.annotate("", (xt, zt + 120), (xt, zt + 520), arrowprops=dict(arrowstyle="-|>", lw=1.2, color=ROD))
-    ax.text(xt + 60, zt + 420, f"$P_d$ = {Pd:.1f} kN".replace(".", ","), color=ROD, fontsize=7, ha="left")
-    ax.add_patch(Rectangle((xt - 350, zt - 300), 700, 220, fc="none", ec=ROD, lw=0.8, ls=(0, (3, 2)), zorder=6))
-    ax.annotate("toppkloss 45 mm\npå ena sidan" if t["nk"] == 1 else f"{t['nk']} toppklossar 45 mm", (xt + 350, zt - 190),
-                (xt + 900, zt + 250), color=ROD, fontsize=6.3, ha="left",
-                va="center", arrowprops=dict(arrowstyle="-", lw=0.4, color=ROD))
+    zt = max(s["z1"] for s in t["staver"] if "diag" in s["namn"])          # sätet: nockbalkens underkant
+    for k in t.get("klossar", []):
+        ax.add_patch(Rectangle((k["x0"], k["z0"]), k["x1"] - k["x0"], k["z1"] - k["z0"], fc="none", ec=ROD, lw=0.8,
+                               ls=(0, (3, 2)), zorder=6))
+    ax.add_patch(Rectangle((xt - BALK["b"] / 2, zt), BALK["b"], BALK["h"], fc=STAL, ec=INK, lw=0.5, zorder=5))
+    ax.annotate("nockbalk 3", (xt - BALK["b"] / 2, zt + BALK["h"] * 0.7), (xt - 700, zt + BALK["h"] + 250), fontsize=6.3,
+                ha="right", va="center", arrowprops=dict(arrowstyle="-", lw=0.4, color=INK))
+    ax.annotate("", (xt, zt + BALK["h"] + 20), (xt, zt + BALK["h"] + 420), arrowprops=dict(arrowstyle="-|>", lw=1.2, color=ROD))
+    ax.text(xt + 60, zt + BALK["h"] + 320, f"$P_d$ = {Pd:.1f} kN".replace(".", ","), color=ROD, fontsize=7, ha="left")
+    if t.get("klossar"):
+        k = t["klossar"][0]
+        ax.annotate("toppkloss 45 mm\npå ena sidan" if t["nk"] == 1 else f"{t['nk']} toppklossar 45 mm", (k["x1"], (k["z0"] + k["z1"]) / 2),
+                    (xt + 900, zt + 150), color=ROD, fontsize=6.3, ha="left",
+                    va="center", arrowprops=dict(arrowstyle="-", lw=0.4, color=ROD))
     xs = [s["x0"] for s in t["staver"] if "diag" in s["namn"]] + [s["x1"] for s in t["staver"] if "diag" in s["namn"]]
     zb = min(s["z0"] for s in t["staver"] if s["z0"] > 2000)
     for x in (min(xs), max(xs)):
@@ -199,7 +203,7 @@ def takstol(path, t, Pd, H, V):
         ax.text(x + (110 if x < xt else -110), zb - 330, f"{V:.1f} kN".replace(".", ","), color=BLA, fontsize=6.5,
                 ha="left" if x < xt else "right")
     ax.text(xt, zb + 230, f"dragband: H = {H:.1f} kN".replace(".", ","), ha="center", fontsize=6.5, color=BLA)
-    ax.set_xlim(min(xs) - 300, max(xs) + 300); ax.set_ylim(zb - 480, zt + 650); ax.set_aspect("equal"); ax.axis("off")
+    ax.set_xlim(min(xs) - 300, max(xs) + 300); ax.set_ylim(zb - 480, zt + BALK["h"] + 520); ax.set_aspect("equal"); ax.axis("off")
     _spara(fig, path)
 
 

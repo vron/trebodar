@@ -15,9 +15,10 @@ En takstol står på väggens överkant (sätet) under en nockbalk och följer t
 - toppklossar 45 mm (K), lika höga som diagonalerna och 600 mm långa, på sidan av toppen: gavelstolarna har en kloss
   på insidan (utsidan är fasad) och mittstolen 2C en på den nordöstra sidan, inne i väggens tjocklek (på den
   sydvästra skulle den gå ut genom väggens gips);
-- spikplåtar 2,0 mm (K-03, P) utanpå på båda sidor: vid fötterna 600×100 mitt på knutpunkten, där diagonalens
-  underkant möter underramens mitt, och i toppen 400×100 mitt på stolen, TOPPLAT_SPEL under balken. På klossens sida
-  ersätts toppens plåt av klossen, och plåtar som skulle ligga i en annan del utgår.
+- inpressade spikplåtar 1,0 mm (K-03, P; MiTek M20H eller likvärdig) utanpå på båda sidor: vid fötterna FOTPLAT
+  (längd × bredd, stolens egen storlek) mitt på knutpunkten, där diagonalens underkant möter underramens mitt, men
+  aldrig under underramen, och i toppen TOPPLAT mitt på stolen, TOPPLAT_SPEL under balken. På klossens sida ersätts
+  toppens plåt av klossen, och plåtar som skulle ligga i en annan del utgår. Storlekarna och lägena är K-03:s.
 
 Stolens egna data (sätet, underramens höjd, ståndarnas lägen, spikreglar) står i stolens fil.
 """
@@ -46,9 +47,9 @@ STANDARE_ANTAL = 2           # ståndare på var sida om mittståndaren
 SPIKREGEL_B = 95.0
 KLOSS_T = 45.0
 KLOSS_L = 600.0
-SPIKPLAT_T = 2.0
-FOTPLAT = (600.0, 100.0)
-TOPPLAT = (400.0, 100.0)
+SPIKPLAT_T = 1.0
+FOTPLAT = (152.0, 127.0)     # fötternas plåt: längd längs underramen × bredd (K-03); mittstolen 2C har en större
+TOPPLAT = (152.0, 76.0)
 TOPPLAT_SPEL = 8.0           # toppens spikplåt under nockbalken
 FOT_H = 10.0                 # diagonalens och spikregelns lodräta ände vid takfoten
 
@@ -127,6 +128,7 @@ class Takstol(Plan):
     diagonaler: list[tuple[list[tuple[float, float]], float, float]] = field(default_factory=list)
     ovriga: list[tuple[Polygon, float, float]] = field(default_factory=list)
     knutar: list[float] = field(default_factory=list)       # fötternas knutpunkter (u) för spikplåtarna
+    fotplat: tuple[float, float] = FOTPLAT
 
     @property
     def uc(self) -> float:
@@ -140,9 +142,10 @@ class Takstol(Plan):
 
     def _platar(self) -> list[tuple[float, float, float, float, float, bool]]:
         """Spikplåtarna (u0, u1, z0, z1, ytan w, utanpå åt −w) på båda sidor: vid fötterna och i toppen."""
-        zm = self.sate + self.underram / 2
+        L, b = self.fotplat
+        zm = max(self.sate + self.underram / 2, self.sate + b / 2)       # aldrig under underramen
         z1 = S.BALKAR[self.balk].uk - TOPPLAT_SPEL
-        fot = [(u - FOTPLAT[0] / 2, u + FOTPLAT[0] / 2, zm - FOTPLAT[1] / 2, zm + FOTPLAT[1] / 2) for u in self.knutar]
+        fot = [(u - L / 2, u + L / 2, zm - b / 2, zm + b / 2) for u in self.knutar]
         topp = (self.uc - TOPPLAT[0] / 2, self.uc + TOPPLAT[0] / 2, z1 - TOPPLAT[1], z1)
         return [(*r, *self._sida(s)) for r in (fot[0], topp, fot[1]) for s in (-1, 1)]
 
@@ -186,13 +189,13 @@ class Takstol(Plan):
 
 def takstol(kod: str, balk: str, utsida: bool = True, klossar: tuple[int, ...] = (), sate: float = S.H_VAGG,
             w0: float = 0.0, underram: float = 120.0, standare: Sequence[float] | None = None,
-            spikreglar: bool = False) -> Takstol:
+            spikreglar: bool = False, fotplat: tuple[float, float] = FOTPLAT) -> Takstol:
     """Takstolen på väggen kod under nockbalken balk, enligt reglerna ovan. sate: väggens överkant; w0: stolens sida;
     underram: underramens höjd; standare: ståndarnas lägen (u, standard c/c 600 från nocken; inga: ()); spikreglar:
     spikreglar på stolens insida."""
     v = S.VAGGAR[kod]
     t = Takstol(kod, f"Takstol {kod}", v.tjocklek, beskrivning=f"Takstol på väggen {kod} under {balk}",
-                balk=balk, utsida=utsida, klossar=klossar, sate=sate, w0=w0, underram=underram)
+                balk=balk, utsida=utsida, klossar=klossar, sate=sate, w0=w0, underram=underram, fotplat=fotplat)
     uc, uk = t.uc, S.BALKAR[balk].uk
     sidor = _sidor(kod, balk)
 

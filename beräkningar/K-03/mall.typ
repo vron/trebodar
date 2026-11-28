@@ -165,19 +165,37 @@ Yttertaket hålls mot vindsuget i tre led. Plåten sitter med klammer i råspont
 
 = Takstolar
 
-Takstolarna är trianglar av två diagonaler och ett dragband med spikplåtar i fötter och topp. Nockbalkens stödreaktion $P_d$ (K-01, via K-05) verkar i toppen, och takremsan (halva facken bredvid, i gaveln plus utsprånget) verkar jämnt på diagonalerna. Med halva spannet $a$ blir fotens reaktion $V = P slash 2 + q a$, dragbandets kraft $H = (P slash 2 + q a slash 2) slash tan 30°$ och diagonalens tryckkraft vid foten $N = H cos 30° + V sin 30°$. Diagonalen kontrolleras för tryck och böjning $M = q a^2 slash 8$ med knäckning i takstolens plan (6.23). Ur planet stagas den av takbalken ovanför innertaket, som skruvas i diagonalen c/c 600. Snön räknas med $mu$ = #r.last.mud på hela takstolen.
+Takstolarna är trianglar av två diagonaler och ett dragband, prefabricerade med inpressade spikplåtar i fötter och topp (@spikplatar). Nockbalkens stödreaktion $P_d$ (K-01, via K-05) verkar i toppen, och takremsan (halva facken bredvid, i gaveln plus utsprånget) verkar jämnt på diagonalerna. Med halva spannet $a$ blir fotens reaktion $V = P slash 2 + q a$, dragbandets kraft $H = (P slash 2 + q a slash 2) slash tan 30°$ och diagonalens tryckkraft vid foten $N = H cos 30° + V sin 30°$. Diagonalen kontrolleras för tryck och böjning $M = q a^2 slash 8$ med knäckning i takstolens plan (6.23). Ur planet stagas den av takbalken ovanför innertaket, som skruvas i diagonalen c/c 600. Snön räknas med $mu$ = #r.last.mud på hela takstolen.
 
 #table(
   columns: (auto, 2fr, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),
   align: (left, left, left, right, left, right, left, right, right, right, right, right, right),
-  [Takstol], [Läge], [Bär], [$P_d$ (kN)], [Diagonal], [Utn.], [Dragband], [Utn.], [Spik], [Klossar], [Skruv], [Topp], [Fot (mm)],
-  ..r.st.map(t => (fet(t.dim, t.namn), [#t.text], [#t.stod], [#t.P], [#t.diag], [#t.ud], [#t.band], [#t.ub], [#t.spik], [#t.kloss], [#t.nk], [#t.utopp], [#t.lfot])).flatten(),
+  [Takstol], [Läge], [Bär], [$P_d$ (kN)], [Diagonal], [Utn.], [Dragband], [Utn.], [Plåt fot], [Klossar], [Skruv], [Topp], [Fot (mm)],
+  ..r.st.map(t => (fet(t.dim, t.namn), [#t.text], [#t.stod], [#t.P], [#t.diag], [#t.ud], [#t.band], [#t.ub], [#t.platfot], [#t.kloss], [#t.nk], [#t.utopp], [#t.lfot])).flatten(),
 )
-#liten[Spik: ankarspik 4,0×40 per plåt och stav i foten, spikplåt 100×600×2,0 på båda sidor, #r.sp.Fv kN per spik (8.9, tunn plåt). Topp: under balken, säte #r.tb.balk_b mm (balkens bredd), bär diagonalernas ändar, 45 mm med fibrerna 30° ($f_"c,60,d"$ = #r.sp.ftopp MPa, 6.16), och toppklossen 45 mm på ena sidan med vågräta fibrer, tryck vinkelrätt fibrerna med $l_"ef"$ = #r.tb.balk_b + 2 × 30 mm och $k_"c,90" f_"c,90,d"$ = #r.sp.fc90 MPa (6.1.5). Klossen för sin del av lasten till takstolen med det antal skruv Ø6×90 som anges (#r.sp.Fvk_kloss kN per skruv). Fot: minsta upplag på hammarbandet, $k_"c,90"$ = 1,5.]
+#liten[Plåt fot: spikplåtens bredd × längd (mm) i fötterna, på båda sidor (@spikplatar). Topp: under balken, säte #r.tb.balk_b mm (balkens bredd), bär diagonalernas ändar, 45 mm med fibrerna 30° ($f_"c,60,d"$ = #r.sp.ftopp MPa, 6.16), och toppklossen 45 mm på ena sidan med vågräta fibrer, tryck vinkelrätt fibrerna med $l_"ef"$ = #r.tb.balk_b + 2 × 30 mm och $k_"c,90" f_"c,90,d"$ = #r.sp.fc90 MPa (6.1.5). Klossen för sin del av lasten till takstolen med det antal skruv Ø6×90 som anges (#r.sp.Fvk_kloss kN per skruv). Fot: minsta upplag på hammarbandet, $k_"c,90"$ = 1,5.]
 
 #figure(image("fig_takstol.svg", width: 100%), caption: [Mittakstolen L2M i elevation ur modellen, med last och krafter. Gaveltakstolarna har samma form men bär mindre.])
 
-*Mittakstolen L2M* bär nockbalk 3:s stöd C, $P_d$ = #r.L2M.P kN, och en takremsa på #r.L2M.bredd m, $q_d$ = #r.L2M.q kN/m. Med $a$ = #r.L2M.a m blir $V$ = #r.L2M.V kN, $H$ = #r.L2M.H kN och $N$ = #r.L2M.N kN. Diagonalen 45×#r.L2M.hd ($L$ = #r.L2M.Ld mm, $k_c$ = #r.L2M.kc) och $M$ = #r.L2M.M kNm ger #r.L2M.ud. Dragbandet 45×#r.L2M.hb räknas för #r.L2M.Hdim kN: #r.L2M.ub.   // kraften ur K-04:s balkmodell, där takbalkarna bär som sparrar mot dalbalkarna Varje fot har spikplåtar på båda sidor med minst #r.L2M.spik ankarspik per plåt och stav, och plåten #r.L2M.plat. Foten behöver minst #r.L2M.lfot mm upplag på hammarbandet. Toppen med toppklossen, fäst med #r.L2M.nk skruv Ø6×90, är utnyttjad till #r.L2M.ut.
+*Mittakstolen L2M* bär nockbalk 3:s stöd C, $P_d$ = #r.L2M.P kN, och en takremsa på #r.L2M.bredd m, $q_d$ = #r.L2M.q kN/m. Med $a$ = #r.L2M.a m blir $V$ = #r.L2M.V kN, $H$ = #r.L2M.H kN och $N$ = #r.L2M.N kN. Diagonalen 45×#r.L2M.hd ($L$ = #r.L2M.Ld mm, $k_c$ = #r.L2M.kc) och $M$ = #r.L2M.M kNm ger #r.L2M.ud. Dragbandet 45×#r.L2M.hb räknas för #r.L2M.Hdim kN: #r.L2M.ub. Varje fot har en spikplåt #r.L2M.platfot på båda sidor: #r.L2M.ufot. Foten behöver minst #r.L2M.lfot mm upplag på hammarbandet. Toppen med toppklossen, fäst med #r.L2M.nk skruv Ø6×90, är utnyttjad till #r.L2M.ut.
+// Dragbandets kraft ur K-04:s balkmodell, där takbalkarna bär som sparrar mot dalbalkarna.
+
+== Spikplåtar <spikplatar>
+
+Takstolarna och huvudstolpens fyra lager är prefabricerade med hydrauliskt inpressade spikplåtar, #r.sp.produkt #r.sp.t mm eller likvärdiga, på båda sidor av varje knutpunkt. Plåtarna räknas enligt SS-EN 1995-1-1 8.8 med plåtens deklarerade värden (SS-EN 14545): förankringen $f_"a,0,0,k"$ = #r.sp.fa00 och $f_"a,90,90,k"$ = #r.sp.fa9090 N/mm², plåtens bärförmåga per mm $f_"t,0,k"$ = #r.sp.ft0, $f_"c,0,k"$ = #r.sp.fc0, $f_"v,0,k"$ = #r.sp.fv0 och $f_"v,90,k"$ = #r.sp.fv90 N/mm, $gamma_M$ = #r.sp.gM. Varje knutpunkt räknas med stavarnas konturer och plåten i modellens läge:
+
+- *förankringen* i varje stav: kraften genom den effektiva kontaktytan $A_"ef"$ (5 mm från kanterna och 6 mm från ändarna bortom), med hållfastheten för kraftens vinkel mot plåten och mot fibrerna (8.8.4);
+- *plåten* längs fogen mellan stavarna (8.8.5.2), och minsta överlapp på varje stav, 40 mm eller en tredjedel av stavens höjd.
+
+Tryck går genom kontakt mellan stavarnas ändar, drag och skjuvning genom plåtarna: i takstolarnas fötter dragbandets kraft, i toppen lyftet vid vindsug och skjuvningen vid snö på ena takfallet, i huvudstolpen strävans lodräta kraft vid foten, dess vågräta kraft i toppen och lyftet över stolpens topp. Storlekarna är tillverkarens standardmått, grupperade så att få storlekar behövs: #r.sp.storlekar.join(", ", last: " och ") mm.
+
+#table(
+  columns: (1.2fr, 1fr, auto, auto, 1.8fr, auto),
+  align: (left, left, left, right, left, right),
+  [Knutpunkt], [], [Plåt (mm)], [Utn.], [$A_"ef"$ per stav (cm²)], [Fog (mm)],
+  ..r.sp.knutar.map(k => ([#k.grupp], [#k.namn], [#k.storlek], [#k.u], [#k.A], [#k.l])).flatten(),
+)
+#liten[Plåt: bredd × längd. Fötterna: den ena foten (V); den andra är lika. Fog: fogens längd under plåten.]
 
 = Stolpar
 
@@ -192,9 +210,9 @@ Takstolarna är trianglar av två diagonaler och ett dragband med spikplåtar i 
 
     - *Krafter (K-01):* $N_d$ = #r.hs.N kN och $M_d$ = #r.hs.M kNm, från gungbrädan mellan strävorna och stolpens böjstyvhet.
     - *Stolpen:* knäcklängd #r.hs.L mm i strävornas plan, $lambda_"rel"$ = #r.hs.lr och $k_c$ = #r.hs.kc. Med $N slash (k_c A f_"c,0,d") + M slash (W f_"m,d")$ blir utnyttjandet *#r.hs.u*.
-    - *Strävorna:* 45×120 i fyra lager, #r.hs.Fax kN axiellt på var sida, #r.hs.Ns kN per lager: #r.hs.us.
+    - *Strävorna:* 45×#r.hs.bs i fyra lager, #r.hs.Fax kN axiellt på var sida, #r.hs.Ns kN per lager: #r.hs.us.
     - *Topregeln:* den går i ett stycke över stolpen och tar strävornas vågräta kraft #r.hs.F kN i drag, #r.hs.ut. Under strävans topp krävs minst #r.hs.lt mm upplag mot balken.
-    - *Knutpunkter:* spikplåt 100×400 på båda sidor med minst #r.hs.spik ankarspik per plåt och stav.
+    - *Knutpunkter:* lagren är prefabricerade som takstolarna, med inpressade spikplåtar på båda sidor av varje lager: #r.hs.plat_fot vid strävans fot, från stolpens mitt in på strävan (#r.hs.u_plat_fot), #r.hs.plat_topp längs strävan i dess topp (#r.hs.u_plat_topp) och #r.hs.plat_stolpe över stolpens topp (#r.hs.u_plat_stolpe), se @spikplatar.
     - *Lyft:* stolpen förankras för #r.hs.lyft kN uppåt i topp och fot.
     - *Förankringen vid foten:* stolpen står direkt på bjälklaget, mellan den lätta väggens två syllbitar. På var syllbit sitter ett vinkelbeslag mot stolpens ände, skruvat i stolpen och syllen, och en betongbult #r.hs.bult genom beslaget och syllen, minst #r.hs.bult_djup mm i plattan och borrad efter gjutningen. Två beslag bär $R_"1,k"$ = #r.hs.R1k kN (databladet, søjle på bjælke), $R_"1,d"$ = #r.hs.R1d kN ($k_"mod"$ 0,9, $gamma_M$ 1,35): #r.hs.ufot. Bulten får #r.hs.Nb kN i drag med beslagets bändning.
     // Beslaget: r.hs.beslag (ETA-06/0106) med r.hs.skruv per beslag; med beslagsöm i stället för skruv bara r.hs.R1d_spik kN.
