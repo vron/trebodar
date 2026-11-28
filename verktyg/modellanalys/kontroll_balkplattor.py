@@ -5,7 +5,9 @@ Kontroll av balkplåtarnas skärfiler (modeller/balkplattor) mot K-01: hålens l
 
 Läser varje plåts STEP-fil (exakt B-rep: cylindriska hålytor med axel och radie) och DXF-fil (cirklar i lagret
 HAL, ytterkontur i lagret KONTUR) och jämför med K-01:s hålbilder (beräkningar/K-01/halbild_*.csv) och med
-skruvens håldiameter och plåtens mått i K-01:s indata.toml. Läser filerna oberoende av generera.py.
+skruvens håldiameter och plåtens mått i K-01:s indata.toml. Kontrollerar också det skurna märket (K-01 [markning]):
+lika många hål Ø d_balk som balkens nummer och, på balkar med flera bitar, Ø d_bit som bitens nummer, nära plåtänden
+x = 0 och minst 8 mm från skruvhålen. Läser filerna oberoende av generera.py.
 Skriver "allt stämmer" eller avvikelserna.
 """
 import csv
@@ -31,6 +33,7 @@ PLATAR = ROT / "modeller" / "balkplattor"
 IN = tomllib.loads((K01 / "indata.toml").read_text(encoding="utf-8"))
 B, T = float(IN["geometri"]["b"]), float(IN["geometri"]["t_pl"])
 D = float(IN["skruv"]["hal"])
+M = IN["markning"]
 KORT = {"nockbalk": "NB", "dalbalk": "DB"}
 TOL = 0.01  # mm
 
@@ -93,11 +96,29 @@ def dxf_hal(fil):
         for k, v in e["kod"]:
             d.setdefault(k, []).append(v)
         lager = d.get("8", [""])[0]
-        if e["typ"] == "CIRCLE" and lager == "HAL":
-            cirklar.append((float(d["10"][0]), float(d["20"][0]), 2 * float(d["40"][0])))
+        if e["typ"] == "CIRCLE" and lager in ("HAL", "MARKNING"):
+            cirklar.append((float(d["10"][0]), float(d["20"][0]), 2 * float(d["40"][0]), lager))
         elif e["typ"] == "LWPOLYLINE" and lager == "KONTUR":
             kontur = list(zip(map(float, d["10"]), map(float, d["20"])))
     return cirklar, kontur
+
+
+def markfel(namn, kalla, mhal, krav, nr_balk, nr_bit, n_bitar):
+    """Märkets hål: antal per diameter, nära plåtänden x = 0 och fria från skruvhålen."""
+    fel = []
+    n_b = sum(1 for _, _, d in mhal if abs(d - M["d_balk"]) < TOL)
+    n_t = sum(1 for _, _, d in mhal if abs(d - M["d_bit"]) < TOL)
+    if n_b != nr_balk:
+        fel.append(f"{namn} ({kalla}): {n_b} märkhål Ø{M['d_balk']}, ska vara {nr_balk} (balkens nummer)")
+    if n_t != (nr_bit if n_bitar > 1 else 0):
+        fel.append(f"{namn} ({kalla}): {n_t} märkhål Ø{M['d_bit']}, ska vara {nr_bit if n_bitar > 1 else 0} (bitens nummer)")
+    for x, y, d in mhal:
+        if x > 120:
+            fel.append(f"{namn} ({kalla}): märkhål vid x = {x:.0f}, ska sitta vid plåtänden x = 0")
+        lig = min((math.hypot(x - hx, y - hy) - d / 2 - D / 2 for hx, hy in krav), default=99)
+        if lig < 8:
+            fel.append(f"{namn} ({kalla}): märkhålet vid ({x:.0f}; {y:.0f}) är {lig:.1f} mm från ett skruvhål")
+    return fel
 
 
 def jamfor(namn, kalla, krav, hal):
@@ -125,10 +146,16 @@ n_hal = 0
 for namn in sorted(set(K) & set(filer)):
     L, krav = K[namn]
     sh, (x0, y0, z0, x1, y1, z1) = step_hal(PLATAR / f"{namn}.step")
+    nb, bit = int(namn[2]), int(namn.split("-")[1])
+    n_bitar = sum(1 for n in K if n.startswith(namn[:3] + "-") and n.endswith("-O"))
+    fel += markfel(namn, "STEP", [h for h in sh if abs(h[2] - D) > TOL], krav, nb, bit, n_bitar)
+    sh = [h for h in sh if abs(h[2] - D) <= TOL]
     if max(abs(x0), abs(y0), abs(z0), abs(x1 - L), abs(y1 - B), abs(z1 - T)) > TOL:
         fel.append(f"{namn} (STEP): plåten är {x1 - x0:.1f} × {y1 - y0:.1f} × {z1 - z0:.1f}, ska vara {L:.0f} × {B:.0f} × {T:.0f}")
     fel += jamfor(namn, "STEP", krav, sh)
     dh, kontur = dxf_hal(PLATAR / f"{namn}.dxf")
+    fel += markfel(namn, "DXF", [h[:3] for h in dh if h[3] == "MARKNING"], krav, nb, bit, n_bitar)
+    dh = [h[:3] for h in dh if h[3] == "HAL"]
     if sorted(kontur) != sorted([(0.0, 0.0), (L, 0.0), (L, B), (0.0, B)]):
         fel.append(f"{namn} (DXF): ytterkonturen {kontur} stämmer inte med {L:.0f} × {B:.0f}")
     fel += jamfor(namn, "DXF", krav, dh)
@@ -139,4 +166,4 @@ if fel:
     print(f"{len(fel)} avvikelser:")
     print("\n".join("  " + f for f in fel))
     sys.exit(1)
-print("Allt stämmer: STEP- och DXF-filernas hål har K-01:s lägen och diameter, och plåtarna har rätt mått.")
+print("Allt stämmer: STEP- och DXF-filernas hål har K-01:s lägen och diameter, plåtarna har rätt mått och märket stämmer.")

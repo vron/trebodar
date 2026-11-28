@@ -5,7 +5,9 @@ Stålplåtar till nock- och dalbalkarna (K-01): en STEP-fil och en DXF-fil per p
 
 Läser hålbilderna ../../beräkningar/K-01/halbild_*.csv och plåtens och hålens mått ur K-01:s indata.toml
 (hålets diameter är skruvens, se [skruv]), och skriver en fil per plåtbit och läge
-(över- respektive underplåt). Plåten ritas sedd ovanifrån i monterat läge:
+(över- respektive underplåt). Varje plåt får ett skuret märke vid änden x = 0 (K-01 [markning], markning.py):
+balkens nummer som hål Ø8, + eller − för över- och underplåt och, på balkar med flera bitar, bitens nummer som
+hål Ø5. Plåten ritas sedd ovanifrån i monterat läge:
     x = 0 vid plåtens ände närmast balkens vänstra ände, längs balken
     y = 0 vid plåtens kant mot balkens framsida
     z = 0 plåtens undersida, z = t plåtens ovansida
@@ -16,6 +18,8 @@ import math
 import re
 import tomllib
 from pathlib import Path
+
+import sys
 
 import cadquery as cq
 import ezdxf
@@ -30,6 +34,9 @@ B, T = float(IN["geometri"]["b"]), float(IN["geometri"]["t_pl"])   # plåtens br
 D = float(IN["skruv"]["hal"])                                      # hålets diameter, enligt skruven [mm]
 SKRUV = f"{IN['skruv']['produkt']} ({IN['skruv']['kod']})"
 KORT = {"nockbalk": "NB", "dalbalk": "DB"}
+M = IN["markning"]
+sys.path.insert(0, str(K01))
+from markning import kontur_plus, markning  # noqa: E402
 
 
 def las(fil):
@@ -41,9 +48,14 @@ def las(fil):
     return bitar
 
 
-def plat(L, hal):
+def plat(L, hal, mhal, spar):
     s = cq.Workplane("XY").box(L, B, T, centered=False)
-    return s.faces(">Z").workplane(origin=(0, 0, T)).pushPoints(hal).hole(D).val()
+    s = s.faces(">Z").workplane(origin=(0, 0, T)).pushPoints(hal).hole(D)
+    for x, y, d in mhal:
+        s = s.faces(">Z").workplane(origin=(0, 0, T)).pushPoints([(x, y)]).hole(d)
+    for x0, y0, x1, y1 in spar:
+        s = s.cut(cq.Workplane("XY").box(x1 - x0, y1 - y0, 3 * T, centered=False).translate((x0, y0, -T)))
+    return s.val()
 
 
 def step(shape, namn, fil):
@@ -57,13 +69,20 @@ def step(shape, namn, fil):
     fil.write_text(txt)
 
 
-def dxf(L, hal, fil):
+def dxf(L, hal, mhal, lage, fil):
     doc = ezdxf.new("R2010", setup=False)
     doc.units = ezdxf.units.MM
     msp = doc.modelspace()
     msp.add_lwpolyline([(0, 0), (L, 0), (L, B), (0, B)], close=True, dxfattribs={"layer": "KONTUR"})
     for x, y in hal:
         msp.add_circle((x, y), D / 2, dxfattribs={"layer": "HAL"})
+    for x, y, d in mhal:
+        msp.add_circle((x, y), d / 2, dxfattribs={"layer": "MARKNING"})
+    if lage == "O":
+        msp.add_lwpolyline(kontur_plus(M), close=True, dxfattribs={"layer": "MARKNING"})
+    else:
+        (x0, y0, x1, y1), = markning(M, 1, 1, 1, "U")[1]
+        msp.add_lwpolyline([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], close=True, dxfattribs={"layer": "MARKNING"})
     doc.saveas(fil)
 
 
@@ -71,19 +90,22 @@ rader = []
 for fil in sorted(K01.glob("halbild_*.csv")):
     m = re.match(r"halbild_(nockbalk|dalbalk)(\d+)\.csv", fil.name)
     balk = f"{KORT[m.group(1)]}{m.group(2)}"
-    for nr, b in las(fil).items():
+    bitar = las(fil)
+    for nr, b in bitar.items():
         L = b["till"] - b["fran"]
         for lage, kol, txt in (("O", 1, "överplåt"), ("U", 2, "underplåt")):
             hal = [(h[0] - b["fran"], h[kol]) for h in b["hal"]]
             assert all(0 < x < L and 0 < y < B for x, y in hal)
             namn = f"{balk}-{nr}-{lage}"
-            s = plat(L, hal)
-            # kontroll: volym och antal hål
-            V = L * B * T - len(hal) * math.pi * (D / 2) ** 2 * T
+            mhal, spar = markning(M, int(m.group(2)), nr, len(bitar), lage)
+            s = plat(L, hal, mhal, spar)
+            # kontroll: volym och antal hål (märkets spår: plustecknets mitt räknas en gång)
+            A_spar = sum((x1 - x0) * (y1 - y0) for x0, y0, x1, y1 in spar) - (M["tecken_b"] ** 2 if len(spar) == 2 else 0)
+            V = L * B * T - (len(hal) * math.pi * (D / 2) ** 2 + sum(math.pi * (d / 2) ** 2 for _, _, d in mhal) + A_spar) * T
             assert abs(s.Volume() - V) / V < 1e-6, (namn, s.Volume(), V)
-            assert sum(1 for f in s.Faces() if f.geomType() == "CYLINDER") == len(hal)
+            assert sum(1 for f in s.Faces() if f.geomType() == "CYLINDER") == len(hal) + len(mhal)
             step(s, namn, HERE / f"{namn}.step")
-            dxf(L, hal, HERE / f"{namn}.dxf")
+            dxf(L, hal, mhal, lage, HERE / f"{namn}.dxf")
             rader.append((namn, f"{m.group(1).capitalize()} {m.group(2)}", nr, txt, L, b["fran"], b["till"], len(hal),
                           s.Volume() * 7.85e-6))
             print(f"{namn}: {L:.0f} × {B:.0f} × {T:.0f} mm, {len(hal)} hål")

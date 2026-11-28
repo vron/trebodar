@@ -12,14 +12,14 @@ Varje plåt är ritad sedd ovanifrån i monterat läge:
 - y = 0 vid plåtens kant mot balkens framsida
 - z = 0 plåtens undersida, z = 10 ovansida (STEP)
 
-Över- och underplåt har speglade hålbilder (y_under = 190 − y_över) och kan inte bytas mot varandra. Märk varje plåt efter skärning med sitt namn, med en pil mot balkens vänstra ände och med framsidans kant.
+Över- och underplåt har speglade hålbilder (y_under = 190 − y_över) och kan inte bytas mot varandra. Varje plåt har ett skuret märke vid änden x = 0 (mot balkens vänstra, nordöstra ände), före första skruven och i banden mellan skruvraderna: lika många hål Ø8 som balkens nummer (y = 70), + i överplåten och − i underplåten (raka spår 24 × 5, y = 120) och, på nockbalk 5, hål Ø5 för bitens nummer efter tecknet. Måtten står i K-01:s `indata.toml` (`[markning]`) och `markning.py`.
 
 ## Filer
 
 | Fil | Innehåll |
 |---|---|
 | `*.step` | STEP AP214, enhet mm, en solid per fil, produktnamn = plåtens namn |
-| `*.dxf` | DXF R2010, enhet mm. Lager `KONTUR` (ytterkontur) och `HAL` (hål) |
+| `*.dxf` | DXF R2010, enhet mm. Lager `KONTUR` (ytterkontur), `HAL` (skruvhålen) och `MARKNING` (märket) |
 | `generera.py` | Skapar filerna från hålbilderna i `beräkningar/K-01/halbild_*.csv` |
 
 Generera om efter ändring i K-01: `pip install cadquery ezdxf` och `python generera.py`. Plåtens mått och hålens diameter läses ur K-01:s `indata.toml` (hålet hör till skruven i `[skruv]`), lägena ur hålbilderna. Skriptet kontrollerar varje plåts volym och antal hål. Kontrollera sedan filerna med `verktyg/modellanalys/kontroll_balkplattor.py`, som läser STEP- och DXF-filerna oberoende och jämför hålen med K-01.
@@ -30,7 +30,7 @@ Generera om efter ändring i K-01: `pip install cadquery ezdxf` och `python gene
 |---|---|---|---|---|---|---|---|
 | `DB2-1-O` | Dalbalk 2 | 1 | överplåt | 3733 | 6337–10070 | 44 | 55,2 |
 | `DB2-1-U` | Dalbalk 2 | 1 | underplåt | 3733 | 6337–10070 | 44 | 55,2 |
-| `DB4-1-O` | Dalbalk 4 | 1 | överplåt | 5540 | 1940–7480 | 91 | 81,7 |
+| `DB4-1-O` | Dalbalk 4 | 1 | överplåt | 5540 | 1940–7480 | 91 | 81,6 |
 | `DB4-1-U` | Dalbalk 4 | 1 | underplåt | 5540 | 1940–7480 | 91 | 81,7 |
 | `NB1-1-O` | Nockbalk 1 | 1 | överplåt | 6038 | 5532–11570 | 82 | 89,2 |
 | `NB1-1-U` | Nockbalk 1 | 1 | underplåt | 6038 | 5532–11570 | 82 | 89,2 |
@@ -40,4 +40,4 @@ Generera om efter ändring i K-01: `pip install cadquery ezdxf` och `python gene
 | `NB5-1-U` | Nockbalk 5 | 1 | underplåt | 4825 | 0–4825 | 34 | 71,6 |
 | `NB5-2-O` | Nockbalk 5 | 2 | överplåt | 5145 | 7225–12370 | 57 | 76,1 |
 | `NB5-2-U` | Nockbalk 5 | 2 | underplåt | 5145 | 7225–12370 | 57 | 76,1 |
-| **Summa** | | | | **61032** | | **726** | **903** |
+| **Summa** | | | | **61032** | | **726** | **902** |

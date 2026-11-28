@@ -35,7 +35,9 @@ ROT = os.path.dirname(BER)
 UT = os.path.join(ROT, "ritningar")
 K01 = os.path.join(BER, "K-01")
 sys.path.insert(0, os.path.join(BER, "ritningsmall"))
+sys.path.insert(0, K01)
 from ritning import Vy, Blad, huvud, sv, svm, PROJEKT  # noqa: E402
+from markning import markning  # noqa: E402
 
 # ================================================================== 1. underlag
 IN = tomllib.load(open(os.path.join(K01, "indata.toml"), "rb"))
@@ -387,6 +389,12 @@ def plat_plan(v, k, bit, x0, x1, balkande=False):
             v.linje([(max(x0, pf) - 10, y), (min(x1, pt) - (0 if balkande else 10), y)], "axel")
         for x, y, _ in hal:
             v.cirkel(x, y, SK["hal"] / 2, fyll="vit", stil="tunn", modell=True)
+        if x0 <= pf:                                      # plåtens början: det skurna märket (K-01 [markning])
+            mh, sp = markning(IN["markning"], int(k[2:]), bit, len(b["hal"]), "O")
+            for xx, yy, d in mh:
+                v.cirkel(pf + xx, yy, d / 2, fyll="vit", stil="tunn", modell=True)
+            for a0, b0, a1, b1 in sp:
+                v.rekt(pf + a0, b0, pf + a1, b1, fyll="vit", stil="tunn")
     return hal, rader
 
 
@@ -426,6 +434,9 @@ def detalj_c():
         w.matt((xa[0], 0), (xa[1], 0), 5.0, sida=-1, sz=6.2, txt=f"2s = {xa[1] - xa[0]:.0f}")
     with w.lager("text"):
         w.hanvisning((x1 - 4, 100), (x1 + 15, 100), "överplåten sedd\nuppifrån", a="lm", sz=6.4, punkt=False)
+        M = IN["markning"]
+        w.hanvisning((pf + M["x0"], M["y_balk"]), (x0 + 5, -30),
+                     f"skuret märke: {k[2:]} hål Ø{M['d_balk']:g} = balk {k[2:]}, + = överplåt", a="lm", sz=6.0)
     with w.lager("rubrik"):
         w.rubrik(x0 - 55, -95, "DETALJ C  Plåtände inne på balken", skala=5, sz=9)
         w.text(x0 - 55, -95 - 8.0 * 5, f"Exempel: {k}-{bit} vid x = {svm(pf)}, två rader, s = {s_:.0f}. "
@@ -538,8 +549,10 @@ def blad_sektioner():
             "Klimatklass 1.",
             f"Plåtar: plattstål {PLD} {ST['kvalitet']} enligt {ST['standard']}, laserskurna enligt DXF- och STEP-filerna "
             "i modeller/balkplattor/, en fil per plåt. Bitarna skarvas inte.",
-            f"Hål Ø{SK['hal']:g} genomgående, cylindriska, utan försänkning. Varje plåt märks med sitt namn, en pil mot "
-            "balkens vänstra ände och framsidans kant (y = 0). Över- och underplåt har speglade hålbilder och kan inte bytas.",
+            f"Hål Ø{SK['hal']:g} genomgående, cylindriska, utan försänkning. Varje plåt har ett skuret märke vid änden mot "
+            f"balkens vänstra (nordöstra) ände: lika många hål Ø{IN['markning']['d_balk']:g} som balkens nummer, + i "
+            f"överplåten och − i underplåten och, på nockbalk 5, hål Ø{IN['markning']['d_bit']:g} för bitens nummer "
+            "(detalj C). Över- och underplåt har speglade hålbilder och kan inte bytas.",
             f"{ST['korrosion']} Limytorna på stålet blästras eller slipas och avfettas. Träytan ska vara ren och torr.",
             "Lim: tvåkomponents strukturepoxi för limning av stål (t.ex. Sikadur-30), heltäckande fog mot båda plåtarna "
             f"i hela plåtlängden. Härdning {LIM['hardning']}.",

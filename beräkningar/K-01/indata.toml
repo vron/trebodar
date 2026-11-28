@@ -207,3 +207,20 @@ typ         = "nock"
 total       = 12370
 spann       = [3505, 2120, 1655, 4900]   # stolparna LN5_1 och LN5_3 i 1B:s hörn (y 7 160, 9 280) och LN5_2
 platar      = [[0, 4825], [7225, 12370]]
+
+# ------------------------------------------------------------------
+# Skuret märke på varje plåt (markning.py), så att plåtarna inte förväxlas vid monteringen. Märket sitter vid plåtens
+# ände mot balkens nordöstra ände (plåtens x = 0), före första skruven, i de fria banden mellan skruvraderna
+# (45/95/145 mm, lika i över- och underplåten): minst 25 mm i y till varje skruvhål. Plåtkraften är i det närmaste noll
+# där, och hålen tar bort mindre än 1 % av limytan i änden.
+# ------------------------------------------------------------------
+[markning]
+x0          = 15        # första märkets början/centrum från plåtänden [mm]
+y_balk      = 70        # bandet för balkens nummer: lika många hål som numret [mm från framsidans kant]
+d_balk      = 8         # [mm]
+delning     = 18        # c/c mellan hålen [mm]
+y_tecken    = 120       # bandet för + (överplåt) eller − (underplåt) [mm]
+tecken_l    = 24        # armarnas längd [mm], raka spår
+tecken_b    = 5         # spårens bredd [mm]
+d_bit       = 5         # bitens nummer, bara på balkar med flera bitar: hål efter tecknet i samma band [mm]
+delning_bit = 12        # c/c [mm]

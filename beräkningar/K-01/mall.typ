@@ -54,7 +54,7 @@ Nock- och dalbalkarna är limträ #r.geo.b × #r.hw mm i hel längd. I vissa fä
   table(
     columns: (auto, 1fr),
     [Del], [Utförande],
-    [Plåtar], [Plattstål #r.geo.b×#r.geo.t_pl, #r.stal.kvalitet enligt #r.stal.standard.],
+    [Plåtar], [Plattstål #r.geo.b×#r.geo.t_pl, #r.stal.kvalitet enligt #r.stal.standard. Skuret märke vid änden mot balkens nordöstra ände: balkens nummer som hål, + i överplåten och − i underplåten (R-01).],
     [Limträ], [#r.tra.kvalitet enligt #r.tra.standard, #r.geo.b×#r.hw i hel längd. Fuktkvot #r.tra.fuktkvot.],
     [Distans], [Reglar #r.geo.b×#r.distans.tjocklek där plåt saknas, inga krav på limning. Glipa #r.distans.glipa mm mot plåtänden.],
     [Lim mot stål], [Tvåkomponents strukturepoxi för limning av stål. Heltäckande fog mot båda plåtarna i hela plåtlängden.],
