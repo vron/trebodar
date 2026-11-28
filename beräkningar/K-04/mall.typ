@@ -41,9 +41,9 @@
 
 = Syfte och resultat
 
-Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från taket och väggarna ned till bjälklaget. Hela stommen räknas i en balkmodell (FEM): reglar, syllar, hammarband, överstycken, stolpar, takbalkar, takstolar, nock- och dalbalkar och stålband. De horisontella lasterna tas av infällda stålband i kryss i väggarna och i en del av takfallens fält och av skivorna där de räknas som skjuvskivor. Varje grupp av likadana delar kontrolleras i alla lastkombinationer,
+Handlingen visar hur lasterna går genom trästommen ovanför bjälklaget, från taket och väggarna ned till bjälklaget. Hela stommen räknas i en balkmodell (FEM): reglar, syllar, hammarband, överstycken, stolpar, takbalkar, takstolar, nock- och dalbalkar och stålband. De horisontella lasterna tas av infällda stålband i kryss i väggarna och i en del av takfallens fält och av skivorna där de räknas som skjuvskivor. Varje grupp av likadana delar kontrolleras i alla lastkombinationer, och tabellen visar det högsta utnyttjandet i gruppen. Nock- och dalbalkarna kontrolleras i K-01, takets anslutningar (hak, säten, takstolarnas spikplåtar) i K-03 och bjälklaget i K-05.
 // Skjuvskivorna (avsnitt Skivverkan): utegipsen, OSB:n direkt på reglarna i de bärande innerväggarna och i gaveln 1SV och
-// råsponten i takfallen. Antalet kombinationer: r.last.antal_komb. och tabellen visar det högsta utnyttjandet i gruppen. Nock- och dalbalkarna kontrolleras i K-01, takets anslutningar (hak, säten, takstolarnas spikplåtar) i K-03 och bjälklaget i K-05.
+// råsponten i takfallen. Antalet kombinationer: r.last.antal_komb.
 
 #table(
   columns: (1.6fr, 1.25fr, auto, 1.3fr),
