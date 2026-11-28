@@ -262,10 +262,11 @@ R = {
     "psi": fmt(psi, 3), "L_tak": fmt(L_tak, 1),
     "dT_min": fmt(min(r["dT"] for r in RES), 0), "dT_max": fmt(max(r["dT"] for r in RES), 0),
     "ute_min": fmt(min(r["To"][0] for r in RES), 0),
-    "gips_text": (f"vars topp ligger {fmt(info['ficka'], 0)} mm under balkens underplåt mitt under nocken" if info["ficka"] > 0.5 else
-                  f"vars plan skulle mötas {fmt(-info['ficka'], 0)} mm ovanför balkens underkant; gipsen ligger därför an mot "
-                  "underplåten mitt under balken"),
-    "varm_text": "genom den tunna luftfickan och gipsskivan" if info["ficka"] > 0.5 else "genom gipsskivan, som ligger an mot den",
+    # utan ficka skulle gipsskivornas plan mötas ovanför balkens underkant, och gipsen ligger an mot underplåten mitt under
+    # balken (info["ficka"] < 0); det står inte i rapporten
+    "gips_text": (f", vars topp ligger {fmt(info['ficka'], 0)} mm under balkens underplåt mitt under nocken" if info["ficka"] > 0.5
+                  else ""),
+    "varm_text": "genom den tunna luftfickan och gipsskivan" if info["ficka"] > 0.5 else "genom gipsskivan",
 }
 (HERE / "resultat.json").write_text(json.dumps(R, ensure_ascii=False, indent=1), encoding="utf-8")
 
